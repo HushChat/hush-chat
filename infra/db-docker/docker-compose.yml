@@ -1,0 +1,38 @@
+version: '2'
+services:
+  postgres:
+    image: postgres:15
+    container_name: db_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql
+    networks:
+      - infra_network
+
+
+  redis:
+    image: redis:7.2.4
+    container_name: redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - infra_network
+
+networks:
+  infra_network:
+    name: infra_network
+    driver: bridge
+  elk_network:
+    name: elk_network
+    driver: bridge
+
+volumes:
+  influxdb_data:
+  postgres_data:
