@@ -1,6 +1,6 @@
 
 <h1 align="center">
-  Open-source chat platform that’s simple to deploy and easy to extend
+  Open-Source Chat Platform That’s Simple to Deploy and Easy to Extend
 </h1>
 
 <p align="center">
