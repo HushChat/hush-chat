@@ -29,3 +29,4 @@
 !.vscode/launch.json
 
 chat-app-service-account.json
+logback-spring.xml
