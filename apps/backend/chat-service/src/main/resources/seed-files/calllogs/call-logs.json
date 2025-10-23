@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "initiator": { "id": 1 },
+    "conversation": { "id": 1 },
+    "isVideo": false,
+    "callStartedAt": "2024-01-15T10:30:00+05:30[Asia/Colombo]",
+    "callEndedAt": "2024-01-15T10:45:00+05:30[Asia/Colombo]",
+    "status": "ANSWERED"
+  },
+  {
+    "id": 2,
+    "initiator": { "id": 2 },
+    "conversation": { "id": 2 },
+    "isVideo": true,
+    "callStartedAt": "2024-01-15T14:20:00+05:30[Asia/Colombo]",
+    "callEndedAt": "2024-01-15T14:35:00+05:30[Asia/Colombo]",
+    "status": "ANSWERED"
+  },
+  {
+    "id": 3,
+    "initiator": { "id": 3 },
+    "conversation": { "id": 3 },
+    "isVideo": false,
+    "callStartedAt": "2024-01-16T09:15:00+05:30[Asia/Colombo]",
+    "callEndedAt": null,
+    "status": "MISSED"
+  },
+  {
+    "id": 4,
+    "initiator": { "id": 4 },
+    "conversation": { "id": 1 },
+    "isVideo": true,
+    "callStartedAt": "2024-01-16T16:45:00+05:30[Asia/Colombo]",
+    "callEndedAt": "2024-01-16T17:30:00+05:30[Asia/Colombo]",
+    "status": "ANSWERED"
+  },
+  {
+    "id": 5,
+    "initiator": { "id": 5 },
+    "conversation": { "id": 2 },
+    "isVideo": false,
+    "callStartedAt": "2024-01-17T11:10:00+05:30[Asia/Colombo]",
+    "callEndedAt": null,
+    "status": "REJECTED"
+  },
+  {
+    "id": 6,
+    "initiator": {
+      "id": 1
+    },
+    "conversation": { "id": 3 },
+    "isVideo": true,
+    "callStartedAt": "2024-01-17T15:30:00+05:30[Asia/Colombo]",
+    "callEndedAt": "2024-01-17T16:15:00+05:30[Asia/Colombo]",
+    "status": "ANSWERED"
+  }
+]

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Redis Status</title>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <h1>Redis Connection Status</h1>
+    <p th:text="${connectionStatus}"></p>
+
+    <h2>Redis Keys</h2>
+    <div th:unless="${redisKeys.empty}">
+      <ul>
+        <li th:each="key : ${redisKeys}" th:text="${key}"></li>
+      </ul>
+    </div>
+    <div th:if="${redisKeys.empty}">
+      <p>No keys found or Redis connection failed.</p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+[
+  {
+    "id": 1,
+    "participant": { "id": 1 },
+    "callLog": { "id": 1 },
+    "joinedAt": "2024-01-15T10:30:00+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-15T10:45:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 2,
+    "participant": { "id": 2 },
+    "callLog": { "id": 1 },
+    "joinedAt": "2024-01-15T10:30:05+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-15T10:45:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 3,
+    "participant": { "id": 3 },
+    "callLog": { "id": 1 },
+    "joinedAt": "2024-01-15T10:31:00+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-15T10:40:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 4,
+    "participant": { "id": 2 },
+    "callLog": { "id": 2 },
+    "joinedAt": "2024-01-15T14:20:00+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-15T14:35:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 5,
+    "participant": { "id": 3 },
+    "callLog": { "id": 2 },
+    "joinedAt": "2024-01-15T14:20:10+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-15T14:35:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 6,
+    "participant": { "id": 4 },
+    "callLog": { "id": 2 },
+    "joinedAt": "2024-01-15T14:21:00+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-15T14:30:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 7,
+    "participant": { "id": 1 },
+    "callLog": { "id": 3 },
+    "joinedAt": null,
+    "leftAt": null
+  },
+  {
+    "id": 8,
+    "participant": { "id": 5 },
+    "callLog": { "id": 3 },
+    "joinedAt": null,
+    "leftAt": null
+  },
+  {
+    "id": 9,
+    "participant": { "id": 4 },
+    "callLog": { "id": 4 },
+    "joinedAt": "2024-01-16T16:45:00+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-16T17:30:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 10,
+    "participant": { "id": 1 },
+    "callLog": { "id": 4 },
+    "joinedAt": "2024-01-16T16:45:05+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-16T17:30:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 11,
+    "participant": { "id": 2 },
+    "callLog": { "id": 4 },
+    "joinedAt": "2024-01-16T16:46:00+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-16T17:25:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 12,
+    "participant": { "id": 5 },
+    "callLog": { "id": 5 },
+    "joinedAt": null,
+    "leftAt": null
+  },
+  {
+    "id": 13,
+    "participant": { "id": 3 },
+    "callLog": { "id": 5 },
+    "joinedAt": null,
+    "leftAt": null
+  },
+  {
+    "id": 14,
+    "participant": { "id": 1 },
+    "callLog": { "id": 6 },
+    "joinedAt": "2024-01-17T15:30:00+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-17T16:15:00+05:30[Asia/Colombo]"
+  },
+  {
+    "id": 15,
+    "participant": { "id": 4 },
+    "callLog": { "id": 6 },
+    "joinedAt": "2024-01-17T15:30:10+05:30[Asia/Colombo]",
+    "leftAt": "2024-01-17T16:15:00+05:30[Asia/Colombo]"
+  }
+]

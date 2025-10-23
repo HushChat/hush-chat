@@ -1,0 +1,322 @@
+[
+  {
+    "id": 1,
+    "message": { "id": 1 },
+    "user": { "id": 2 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T10:30:00",
+    "updatedAt": "2024-01-15T10:30:00"
+  },
+  {
+    "id": 2,
+    "message": { "id": 1 },
+    "user": { "id": 3 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-15T10:31:00",
+    "updatedAt": "2024-01-15T10:31:00"
+  },
+  {
+    "id": 3,
+    "message": { "id": 1 },
+    "user": { "id": 4 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T10:32:00",
+    "updatedAt": "2024-01-15T10:32:00"
+  },
+  {
+    "id": 4,
+    "message": { "id": 2 },
+    "user": { "id": 1 },
+    "reactionType": "HAHA",
+    "createdAt": "2024-01-15T11:00:00",
+    "updatedAt": "2024-01-15T11:00:00"
+  },
+  {
+    "id": 5,
+    "message": { "id": 2 },
+    "user": { "id": 3 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T11:01:00",
+    "updatedAt": "2024-01-15T11:01:00"
+  },
+  {
+    "id": 6,
+    "message": { "id": 3 },
+    "user": { "id": 1 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-15T11:02:00",
+    "updatedAt": "2024-01-15T11:02:00"
+  },
+  {
+    "id": 7,
+    "message": { "id": 3 },
+    "user": { "id": 2 },
+    "reactionType": "WOW",
+    "createdAt": "2024-01-15T12:15:00",
+    "updatedAt": "2024-01-15T12:15:00"
+  },
+  {
+    "id": 8,
+    "message": { "id": 3 },
+    "user": { "id": 4 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T12:16:00",
+    "updatedAt": "2024-01-15T12:16:00"
+  },
+  {
+    "id": 9,
+    "message": { "id": 4 },
+    "user": { "id": 1 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-15T14:20:00",
+    "updatedAt": "2024-01-15T14:20:00"
+  },
+  {
+    "id": 10,
+    "message": { "id": 4 },
+    "user": { "id": 2 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-15T14:21:00",
+    "updatedAt": "2024-01-15T14:21:00"
+  },
+  {
+    "id": 11,
+    "message": { "id": 4 },
+    "user": { "id": 5 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T14:22:00",
+    "updatedAt": "2024-01-15T14:22:00"
+  },
+  {
+    "id": 12,
+    "message": { "id": 5 },
+    "user": { "id": 2 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T14:23:00",
+    "updatedAt": "2024-01-15T14:23:00"
+  },
+  {
+    "id": 13,
+    "message": { "id": 5 },
+    "user": { "id": 3 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-15T15:10:00",
+    "updatedAt": "2024-01-15T15:10:00"
+  },
+  {
+    "id": 14,
+    "message": { "id": 6 },
+    "user": { "id": 1 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T15:11:00",
+    "updatedAt": "2024-01-15T15:11:00"
+  },
+  {
+    "id": 15,
+    "message": { "id": 6 },
+    "user": { "id": 2 },
+    "reactionType": "HAHA",
+    "createdAt": "2024-01-15T16:05:00",
+    "updatedAt": "2024-01-15T16:05:00"
+  },
+  {
+    "id": 16,
+    "message": { "id": 7 },
+    "user": { "id": 2 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-15T16:06:00",
+    "updatedAt": "2024-01-15T16:06:00"
+  },
+  {
+    "id": 17,
+    "message": { "id": 7 },
+    "user": { "id": 5 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T16:07:00",
+    "updatedAt": "2024-01-15T16:07:00"
+  },
+  {
+    "id": 18,
+    "message": { "id": 8 },
+    "user": { "id": 1 },
+    "reactionType": "WOW",
+    "createdAt": "2024-01-15T17:30:00",
+    "updatedAt": "2024-01-15T17:30:00"
+  },
+  {
+    "id": 19,
+    "message": { "id": 8 },
+    "user": { "id": 5 },
+    "reactionType": "HAHA",
+    "createdAt": "2024-01-15T18:45:00",
+    "updatedAt": "2024-01-15T18:45:00"
+  },
+  {
+    "id": 20,
+    "message": { "id": 9 },
+    "user": { "id": 4 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T18:46:00",
+    "updatedAt": "2024-01-15T18:46:00"
+  },
+  {
+    "id": 21,
+    "message": { "id": 10 },
+    "user": { "id": 4 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-15T19:10:00",
+    "updatedAt": "2024-01-15T19:10:00"
+  },
+  {
+    "id": 22,
+    "message": { "id": 11 },
+    "user": { "id": 1 },
+    "reactionType": "HAHA",
+    "createdAt": "2024-01-15T19:15:00",
+    "updatedAt": "2024-01-15T19:15:00"
+  },
+  {
+    "id": 23,
+    "message": { "id": 12 },
+    "user": { "id": 1 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T20:05:00",
+    "updatedAt": "2024-01-15T20:05:00"
+  },
+  {
+    "id": 24,
+    "message": { "id": 12 },
+    "user": { "id": 3 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-15T20:06:00",
+    "updatedAt": "2024-01-15T20:06:00"
+  },
+  {
+    "id": 25,
+    "message": { "id": 13 },
+    "user": { "id": 2 },
+    "reactionType": "WOW",
+    "createdAt": "2024-01-15T20:10:00",
+    "updatedAt": "2024-01-15T20:10:00"
+  },
+  {
+    "id": 26,
+    "message": { "id": 14 },
+    "user": { "id": 5 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-16T08:30:00",
+    "updatedAt": "2024-01-16T08:30:00"
+  },
+  {
+    "id": 27,
+    "message": { "id": 15 },
+    "user": { "id": 4 },
+    "reactionType": "HAHA",
+    "createdAt": "2024-01-16T09:00:00",
+    "updatedAt": "2024-01-16T09:00:00"
+  },
+  {
+    "id": 28,
+    "message": { "id": 16 },
+    "user": { "id": 1 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-16T10:15:00",
+    "updatedAt": "2024-01-16T10:15:00"
+  },
+  {
+    "id": 29,
+    "message": { "id": 17 },
+    "user": { "id": 3 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-16T11:20:00",
+    "updatedAt": "2024-01-16T11:20:00"
+  },
+  {
+    "id": 30,
+    "message": { "id": 18 },
+    "user": { "id": 4 },
+    "reactionType": "WOW",
+    "createdAt": "2024-01-16T12:00:00",
+    "updatedAt": "2024-01-16T12:00:00"
+  },
+  {
+    "id": 31,
+    "message": { "id": 20 },
+    "user": { "id": 6 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-16T13:15:00",
+    "updatedAt": "2024-01-16T13:15:00"
+  },
+  {
+    "id": 32,
+    "message": { "id": 21 },
+    "user": { "id": 9 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-16T14:30:00",
+    "updatedAt": "2024-01-16T14:30:00"
+  },
+  {
+    "id": 33,
+    "message": { "id": 23 },
+    "user": { "id": 7 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-16T15:45:00",
+    "updatedAt": "2024-01-16T15:45:00"
+  },
+  {
+    "id": 34,
+    "message": { "id": 25 },
+    "user": { "id": 9 },
+    "reactionType": "HAHA",
+    "createdAt": "2024-01-16T16:20:00",
+    "updatedAt": "2024-01-16T16:20:00"
+  },
+  {
+    "id": 35,
+    "message": { "id": 27 },
+    "user": { "id": 10 },
+    "reactionType": "WOW",
+    "createdAt": "2024-01-16T18:00:00",
+    "updatedAt": "2024-01-16T18:00:00"
+  },
+  {
+    "id": 36,
+    "message": { "id": 29 },
+    "user": { "id": 10 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-16T19:05:00",
+    "updatedAt": "2024-01-16T19:05:00"
+  },
+  {
+    "id": 37,
+    "message": { "id": 32 },
+    "user": { "id": 3 },
+    "reactionType": "LOVE",
+    "createdAt": "2024-01-16T20:30:00",
+    "updatedAt": "2024-01-16T20:30:00"
+  },
+  {
+    "id": 38,
+    "message": { "id": 35 },
+    "user": { "id": 2 },
+    "reactionType": "THUMBS_UP",
+    "createdAt": "2024-01-16T21:00:00",
+    "updatedAt": "2024-01-16T21:00:00"
+  },
+  {
+    "id": 39,
+    "message": { "id": 37 },
+    "user": { "id": 1 },
+    "reactionType": "WOW",
+    "createdAt": "2024-01-16T21:15:00",
+    "updatedAt": "2024-01-16T21:15:00"
+  },
+  {
+    "id": 40,
+    "message": { "id": 45 },
+    "user": { "id": 1 },
+    "reactionType": "HAHA",
+    "createdAt": "2024-01-16T22:00:00",
+    "updatedAt": "2024-01-16T22:00:00"
+  }
+]

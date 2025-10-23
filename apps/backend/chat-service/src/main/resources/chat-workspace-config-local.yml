@@ -1,0 +1,6 @@
+# List of workspaces available in local development.
+# Used as a reference for seeding data and other local setup tasks.
+# This is not needed for  production deployments.
+workspaceIds:
+  localhost:
+    schema: localhost
