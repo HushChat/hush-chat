@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "name": "Project Team Alpha",
+    "isGroup": true,
+    "createdBy": {
+      "id": 1
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 2,
+    "name": "Marketing Discussion",
+    "isGroup": true,
+    "createdBy": {
+      "id": 2
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 3,
+    "name": "",
+    "isGroup": false,
+    "createdBy": {
+      "id": 1
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 4,
+    "name": "Engineering Squad",
+    "isGroup": true,
+    "createdBy": {
+      "id": 6
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 5,
+    "name": "Design Review Team",
+    "isGroup": true,
+    "createdBy": {
+      "id": 7
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 6,
+    "name": "",
+    "isGroup": false,
+    "createdBy": {
+      "id": 9
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 7,
+    "name": "",
+    "isGroup": false,
+    "createdBy": {
+      "id": 8
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 8,
+    "name": "",
+    "isGroup": false,
+    "createdBy": {
+      "id": 2
+    },
+    "imageIndexedName": "https://placehold.co/600x400.png"
+  }
+]

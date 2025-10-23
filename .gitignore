@@ -1,0 +1,149 @@
+# ---------------------------------------
+# General
+# ---------------------------------------
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.bak
+*.pid
+*.seed
+*.env
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+coverage/
+.vscode/
+.idea/
+*.iml
+
+# ---------------------------------------
+# Yarn / NPM
+# ---------------------------------------
+yarn-error.log
+.yarn-integrity
+.pnp.*
+.npmrc
+.cache/
+.yarn/
+.pnp.cjs
+
+# ---------------------------------------
+# React Native / Expo
+# ---------------------------------------
+# Metro / Expo
+.expo/
+.expo-shared/
+.expo-dev-client/
+web-build/
+android/
+ios/
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj/project.xcworkspace/
+*.xcuserdata/
+*.orig
+# React Native bundler caches
+tmp/
+react-native-packager-cache-*
+metro-cache/
+npm-debug.*
+
+# ---------------------------------------
+# Java / Spring Boot
+# ---------------------------------------
+# Gradle
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+# Spring Boot specific
+*.class
+*.jar
+*.war
+*.ear
+*.db
+*.h2.db
+*.mv.db
+*.log
+application-*.yml
+application-*.properties
+!application-example.yml
+!application-example.properties
+
+# ---------------------------------------
+# Docker
+# ---------------------------------------
+.dockerignore
+docker-compose.override.yml
+docker-data/
+docker/logs/
+volumes/
+*.pid
+
+# ---------------------------------------
+# IDE / OS
+# ---------------------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+bin/
+*.sublime-workspace
+*.sublime-project
+*.vs/
+*.user
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.orig
+*~
+
+# ---------------------------------------
+# Tests / Reports
+# ---------------------------------------
+/test-output/
+/surefire-reports/
+/jacoco.exec
+/coverage/
+/reports/
+*.lcov
+
+# ---------------------------------------
+# AWS / Secrets / Keys
+# ---------------------------------------
+*.pem
+*.key
+*.crt
+*.csr
+*.pub
+aws-credentials.json
+secrets.json
+
+# ---------------------------------------
+# CI/CD
+# ---------------------------------------
+# GitHub Actions temp files
+*.retry
