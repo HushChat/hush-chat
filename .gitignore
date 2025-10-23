@@ -10,8 +10,8 @@ Thumbs.db
 *.pid
 *.seed
 *.env
-.env.*
-!.env.example
+apps/backend/chat-service/.env.example
+!apps/backend/chat-service/.env.example
 node_modules/
 dist/
 build/
