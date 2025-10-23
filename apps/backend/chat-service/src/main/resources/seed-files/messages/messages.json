@@ -1,0 +1,935 @@
+[
+  {
+    "id": 1,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Hey team! Welcome to Project Team Alpha. Let's kick off our sprint planning."
+  },
+  {
+    "id": 2,
+    "sender": {
+      "id": 2
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Thanks Zack! I'm excited to get started.",
+    "parentMessage": {
+      "id": 1
+    }
+  },
+  {
+    "id": 3,
+    "sender": {
+      "id": 3
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Should we schedule a meeting for tomorrow?",
+    "parentMessage": {
+      "id": 2
+    }
+  },
+  {
+    "id": 4,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Tomorrow works for me. What time?",
+    "parentMessage": {
+      "id": 3
+    }
+  },
+  {
+    "id": 5,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "How about 10 AM EST?",
+    "parentMessage": {
+      "id": 4
+    }
+  },
+  {
+    "id": 6,
+    "sender": {
+      "id": 5
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "Welcome to our marketing discussion group!"
+  },
+  {
+    "id": 7,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "Thanks for adding me to the group.",
+    "parentMessage": {
+      "id": 6
+    }
+  },
+  {
+    "id": 8,
+    "sender": {
+      "id": 2
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "Looking forward to collaborating on the new campaign."
+  },
+  {
+    "id": 9,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "Hi there!"
+  },
+  {
+    "id": 10,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "Hey! How's your day going?"
+  },
+  {
+    "id": 11,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "Pretty good, thanks for asking!"
+  },
+  {
+    "id": 12,
+    "sender": {
+      "id": 2
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Just confirming - the meeting is at 10 AM tomorrow, right?"
+  },
+  {
+    "id": 13,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Yes, that's correct. See you all then!"
+  },
+  {
+    "id": 14,
+    "sender": {
+      "id": 5
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "I'll share the campaign brief by end of day."
+  },
+  {
+    "id": 15,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "Want to grab coffee later?"
+  },
+  {
+    "id": 16,
+    "sender": {
+      "id": 6
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Hey team, welcome to the Engineering Squad!"
+  },
+  {
+    "id": 17,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Thanks Alice, let's align on our backlog today.",
+    "parentMessage": {
+      "id": 16
+    }
+  },
+  {
+    "id": 18,
+    "sender": {
+      "id": 3
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Can we also discuss tech debt items?",
+    "parentMessage": {
+      "id": 17
+    }
+  },
+  {
+    "id": 19,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Agree, tech debt has been slowing us down.",
+    "parentMessage": {
+      "id": 18
+    }
+  },
+  {
+    "id": 20,
+    "sender": {
+      "id": 6
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Alright, I'll add it to the agenda.",
+    "parentMessage": {
+      "id": 19
+    }
+  },
+  {
+    "id": 21,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Welcome to the Design Review Team!"
+  },
+  {
+    "id": 22,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Thanks Bob, excited to collaborate.",
+    "parentMessage": {
+      "id": 21
+    }
+  },
+  {
+    "id": 23,
+    "sender": {
+      "id": 5
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "I'll share mockups by tomorrow.",
+    "parentMessage": {
+      "id": 22
+    }
+  },
+  {
+    "id": 24,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "Hi Jane, long time no see!"
+  },
+  {
+    "id": 25,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "Hey Diana! Let's catch up soon.",
+    "parentMessage": {
+      "id": 24
+    }
+  },
+  {
+    "id": 26,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "Sure, coffee this week?",
+    "parentMessage": {
+      "id": 25
+    }
+  },
+  {
+    "id": 27,
+    "sender": {
+      "id": 8
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "Yo Ethan, ready for the game tonight?"
+  },
+  {
+    "id": 28,
+    "sender": {
+      "id": 10
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "Absolutely, can't wait!",
+    "parentMessage": {
+      "id": 27
+    }
+  },
+  {
+    "id": 29,
+    "sender": {
+      "id": 8
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "Let's meet at 7 PM.",
+    "parentMessage": {
+      "id": 28
+    }
+  },
+  {
+    "id": 30,
+    "sender": {
+      "id": 10
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "Sounds good, see you then!",
+    "parentMessage": {
+      "id": 29
+    }
+  },
+  {
+    "id": 31,
+    "sender": {
+      "id": 3
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Perfect! I'll prepare the user stories beforehand.",
+    "parentMessage": {
+      "id": 13
+    }
+  },
+  {
+    "id": 32,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Should we invite the product manager to this meeting?",
+    "parentMessage": {
+      "id": 31
+    }
+  },
+  {
+    "id": 33,
+    "sender": {
+      "id": 2
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Good idea! I'll send them the meeting invite.",
+    "parentMessage": {
+      "id": 32
+    }
+  },
+  {
+    "id": 34,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Also, let's review the velocity from last sprint.",
+    "parentMessage": {
+      "id": 33
+    }
+  },
+  {
+    "id": 35,
+    "sender": {
+      "id": 3
+    },
+    "conversation": {
+      "id": 1
+    },
+    "messageText": "Great point! I'll pull the metrics before the meeting.",
+    "parentMessage": {
+      "id": 34
+    }
+  },
+  {
+    "id": 36,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "What's our target audience for this campaign?",
+    "parentMessage": {
+      "id": 14
+    }
+  },
+  {
+    "id": 37,
+    "sender": {
+      "id": 5
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "We're focusing on millennials aged 25-35 in urban areas.",
+    "parentMessage": {
+      "id": 36
+    }
+  },
+  {
+    "id": 38,
+    "sender": {
+      "id": 2
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "Perfect! I have some great insights on that demographic.",
+    "parentMessage": {
+      "id": 37
+    }
+  },
+  {
+    "id": 39,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "What channels are we planning to use?",
+    "parentMessage": {
+      "id": 38
+    }
+  },
+  {
+    "id": 40,
+    "sender": {
+      "id": 5
+    },
+    "conversation": {
+      "id": 2
+    },
+    "messageText": "Social media, digital ads, and some influencer partnerships.",
+    "parentMessage": {
+      "id": 39
+    }
+  },
+  {
+    "id": 41,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "That sounds great! What time works for you?",
+    "parentMessage": {
+      "id": 15
+    }
+  },
+  {
+    "id": 42,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "How about 3 PM at the usual cafe?",
+    "parentMessage": {
+      "id": 41
+    }
+  },
+  {
+    "id": 43,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "Perfect! I have some exciting news to share.",
+    "parentMessage": {
+      "id": 42
+    }
+  },
+  {
+    "id": 44,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "Ooh, can't wait to hear! See you at 3.",
+    "parentMessage": {
+      "id": 43
+    }
+  },
+  {
+    "id": 45,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 3
+    },
+    "messageText": "See you then! ☕",
+    "parentMessage": {
+      "id": 44
+    }
+  },
+  {
+    "id": 46,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "I've prioritized the database optimization tasks.",
+    "parentMessage": {
+      "id": 20
+    }
+  },
+  {
+    "id": 47,
+    "sender": {
+      "id": 3
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Excellent! That should help with our response times.",
+    "parentMessage": {
+      "id": 46
+    }
+  },
+  {
+    "id": 48,
+    "sender": {
+      "id": 4
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Should we also review the API documentation updates?",
+    "parentMessage": {
+      "id": 47
+    }
+  },
+  {
+    "id": 49,
+    "sender": {
+      "id": 6
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Definitely! Documentation is crucial for the new team members.",
+    "parentMessage": {
+      "id": 48
+    }
+  },
+  {
+    "id": 50,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "I'll assign that to our senior dev for review.",
+    "parentMessage": {
+      "id": 49
+    }
+  },
+  {
+    "id": 51,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Looking forward to seeing the new design concepts!",
+    "parentMessage": {
+      "id": 23
+    }
+  },
+  {
+    "id": 52,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "I've been working on some innovative UI patterns.",
+    "parentMessage": {
+      "id": 51
+    }
+  },
+  {
+    "id": 53,
+    "sender": {
+      "id": 5
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "That sounds fantastic! Any accessibility considerations?",
+    "parentMessage": {
+      "id": 52
+    }
+  },
+  {
+    "id": 54,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Absolutely! I've made sure everything meets WCAG guidelines.",
+    "parentMessage": {
+      "id": 53
+    }
+  },
+  {
+    "id": 55,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Perfect! Let's schedule a review session once you're ready.",
+    "parentMessage": {
+      "id": 54
+    }
+  },
+  {
+    "id": 56,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "How about Thursday afternoon?",
+    "parentMessage": {
+      "id": 26
+    }
+  },
+  {
+    "id": 57,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "Thursday works perfectly! Around 2 PM?",
+    "parentMessage": {
+      "id": 56
+    }
+  },
+  {
+    "id": 58,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "2 PM is great! Same coffee shop downtown?",
+    "parentMessage": {
+      "id": 57
+    }
+  },
+  {
+    "id": 59,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "Yes! I love their new seasonal menu.",
+    "parentMessage": {
+      "id": 58
+    }
+  },
+  {
+    "id": 60,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 6
+    },
+    "messageText": "Me too! Can't wait to catch up properly.",
+    "parentMessage": {
+      "id": 59
+    }
+  },
+  {
+    "id": 61,
+    "sender": {
+      "id": 10
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "Should I bring snacks for the game?",
+    "parentMessage": {
+      "id": 30
+    }
+  },
+  {
+    "id": 62,
+    "sender": {
+      "id": 8
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "That would be awesome! Maybe some chips and drinks?",
+    "parentMessage": {
+      "id": 61
+    }
+  },
+  {
+    "id": 63,
+    "sender": {
+      "id": 10
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "Perfect! I'll grab some of those spicy ones you like.",
+    "parentMessage": {
+      "id": 62
+    }
+  },
+  {
+    "id": 64,
+    "sender": {
+      "id": 8
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "You're the best! This is going to be epic.",
+    "parentMessage": {
+      "id": 63
+    }
+  },
+  {
+    "id": 65,
+    "sender": {
+      "id": 10
+    },
+    "conversation": {
+      "id": 7
+    },
+    "messageText": "Our team better win tonight! 🏀",
+    "parentMessage": {
+      "id": 64
+    }
+  },
+  {
+    "id": 66,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Hey Alice, I wanted to join the engineering discussion.",
+    "parentMessage": {
+      "id": 50
+    }
+  },
+  {
+    "id": 67,
+    "sender": {
+      "id": 6
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "Welcome Zack! Your input would be valuable.",
+    "parentMessage": {
+      "id": 66
+    }
+  },
+  {
+    "id": 68,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "I have some concerns about our current deployment pipeline.",
+    "parentMessage": {
+      "id": 67
+    }
+  },
+  {
+    "id": 69,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "What specific issues are you seeing?",
+    "parentMessage": {
+      "id": 68
+    }
+  },
+  {
+    "id": 70,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 4
+    },
+    "messageText": "The staging environment isn't matching production closely enough.",
+    "parentMessage": {
+      "id": 69
+    }
+  },
+  {
+    "id": 71,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Hi Bob, mind if I join the design review discussion?",
+    "parentMessage": {
+      "id": 55
+    }
+  },
+  {
+    "id": 72,
+    "sender": {
+      "id": 7
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Of course Zack! We'd love your perspective.",
+    "parentMessage": {
+      "id": 71
+    }
+  },
+  {
+    "id": 73,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "I'm particularly interested in how the new designs will impact user onboarding.",
+    "parentMessage": {
+      "id": 72
+    }
+  },
+  {
+    "id": 74,
+    "sender": {
+      "id": 9
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Great point! I've been focusing on streamlining that flow.",
+    "parentMessage": {
+      "id": 73
+    }
+  },
+  {
+    "id": 75,
+    "sender": {
+      "id": 1
+    },
+    "conversation": {
+      "id": 5
+    },
+    "messageText": "Excellent! Can we also consider mobile responsiveness for the onboarding steps?",
+    "parentMessage": {
+      "id": 74
+    }
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "username": "testchatuser_jane",
+    "firstName": "Jane",
+    "lastName": "Akka",
+    "email": "jane@chat.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 2,
+    "username": "testchatuser_2",
+    "firstName": "Olie",
+    "lastName": "Pop",
+    "email": "testchatuser_2@hh.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 3,
+    "username": "testchatuser_3",
+    "firstName": "Sarah",
+    "lastName": "Mitchell",
+    "email": "testchatuser_3@hh.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 4,
+    "username": "testchatuser_john",
+    "firstName": "John",
+    "lastName": "Fernando",
+    "email": "john@chat.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 5,
+    "username": "testchatuser_5",
+    "firstName": "Emma",
+    "lastName": "Rodriguez",
+    "email": "testchatuser_5@hh.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 6,
+    "username": "testchatuser_alice",
+    "firstName": "Alice",
+    "lastName": "Johnson",
+    "email": "alice@chat.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 7,
+    "username": "testchatuser_bob",
+    "firstName": "Bob",
+    "lastName": "Lee",
+    "email": "bob@chat.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 8,
+    "username": "testchatuser_charlie",
+    "firstName": "Charlie",
+    "lastName": "Adams",
+    "email": "charlie@chat.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 9,
+    "username": "testchatuser_diana",
+    "firstName": "Diana",
+    "lastName": "Patel",
+    "email": "diana@chat.com",
+    "active": true,
+    "deleted": false
+  },
+  {
+    "id": 10,
+    "username": "testchatuser_ethan",
+    "firstName": "Ethan",
+    "lastName": "Brown",
+    "email": "ethan@chat.com",
+    "active": true,
+    "deleted": false
+  }
+]
