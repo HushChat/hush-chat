@@ -47,7 +47,7 @@ export function useConversationsQuery(
         },
       );
     }
-  }, [criteria, notificationReceivedConversation, queryClient, userId]);
+  }, [notificationReceivedConversation, queryClient, userId]);
 
   const {
     pages,
