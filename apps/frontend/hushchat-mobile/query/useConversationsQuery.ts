@@ -47,7 +47,8 @@ export function useConversationsQuery(
         },
       );
     }
-  }, [criteria, notificationReceivedConversation, queryClient, userId]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notificationReceivedConversation, queryClient, userId]);
 
   const {
     pages,
