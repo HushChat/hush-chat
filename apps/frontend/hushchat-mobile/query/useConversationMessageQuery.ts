@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import { useUserStore } from '@/store/user/useUserStore';
-import { conversationMessageQueryKeys } from '@/constants/queryKeys';
-import { usePaginatedQueryWithCursor } from '@/query/usePaginatedQueryWithCursor';
-import { useConversationMessages } from '@/hooks/useWebSocketEvents';
-import { CursorPaginatedResponse, getConversationMessagesByCursor } from '@/apis/conversation';
-import type { IMessage } from '@/types/chat/types';
+import { useEffect, useMemo, useRef } from "react";
+import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { useUserStore } from "@/store/user/useUserStore";
+import { conversationMessageQueryKeys } from "@/constants/queryKeys";
+import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
+import { useConversationMessages } from "@/hooks/useWebSocketEvents";
+import {
+  CursorPaginatedResponse,
+  getConversationMessagesByCursor,
+} from "@/apis/conversation";
+import type { IMessage } from "@/types/chat/types";
 
 const PAGE_SIZE = 20;
 
@@ -38,13 +41,17 @@ export function useConversationMessagesQuery(conversationId: number) {
     isLoading,
     error,
     fetchOlder,
+    fetchNewer,
     hasMoreOlder,
+    hasMoreNewer,
     isFetchingOlder,
-    invalidateQuery,
+    isFetchingNewer,
     refetch,
+    invalidateQuery,
   } = usePaginatedQueryWithCursor<IMessage>({
     queryKey,
-    queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
+    queryFn: (params) =>
+      getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
   });
@@ -57,7 +64,12 @@ export function useConversationMessagesQuery(conversationId: number) {
     queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
       queryKey,
       (oldData) => {
-        if (!oldData) return undefined;
+        if (!oldData) {
+          return {
+            pages: [{ content: [lastMessage], totalElements: 1 }],
+            pageParams: [{ beforeId: undefined, afterId: undefined }],
+          };
+        }
 
         const firstPageMessages = oldData.pages[0]?.content ?? [];
 
@@ -86,6 +98,9 @@ export function useConversationMessagesQuery(conversationId: number) {
     hasNextPage: hasMoreOlder,
     isFetchingNextPage: isFetchingOlder,
     refetchConversationMessages: invalidateQuery,
+    fetchPreviousPage: fetchNewer,
+    hasPreviousPage: hasMoreNewer,
+    isFetchingPreviousPage: isFetchingNewer,
     refetch,
   } as const;
 }

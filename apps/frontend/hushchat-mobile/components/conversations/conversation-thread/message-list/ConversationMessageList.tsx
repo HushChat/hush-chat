@@ -21,6 +21,7 @@ import { PaginatedResponse } from '@/types/common/types';
 import { ToastUtils } from '@/utils/toastUtils';
 import { useConversationsQuery } from '@/query/useConversationsQuery';
 /* eslint-disable import/no-unresolved */
+// @ts-ignore
 import MessageReactionsModal from '@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal';
 
 interface MessagesListProps {
@@ -31,6 +32,7 @@ interface MessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  onEndReached?: () => void;
 }
 
 const ConversationMessageList = ({
@@ -41,6 +43,7 @@ const ConversationMessageList = ({
   conversationAPIResponse,
   pickerState,
   selectedConversationId,
+  onEndReached
 }: MessagesListProps) => {
   const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
   const { user } = useUserStore();
