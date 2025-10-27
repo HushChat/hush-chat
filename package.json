@@ -3,5 +3,22 @@
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/HushChat/hush-chat.git",
-  "license": "AGPLv3"
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "start:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile start",
+    "start:backend": "mvn -f apps/backend/chat-service/pom.xml spring-boot:run",
+    "build:backend": "mvn -f apps/backend/chat-service/pom.xml clean package -DskipTests",
+    "test:backend": "mvn -f apps/backend/chat-service/pom.xml test",
+    "clean:backend": "mvn -f apps/backend/chat-service/pom.xml clean",
+    "android:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile android",
+    "web:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile web",
+    "lint:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile lint",
+    "clean:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile reset-project",
+    "build:android": "yarn --cwd apps/frontend/hushchat-mobile build-android",
+    "build:web": "yarn --cwd apps/frontend/hushchat-mobile prod:build-web",
+    "run:stack": "concurrently \"yarn start:backend\" \"yarn start:hush-chat\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }
