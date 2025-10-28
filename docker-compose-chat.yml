@@ -26,8 +26,6 @@ services:
       AWS_COGNITO_REGION: ${AWS_COGNITO_REGION}
       AWS_COGNITO_JWKS: ${AWS_COGNITO_JWKS}
       AWS_COGNITO_CLIENT_ID: ${AWS_COGNITO_CLIENT_ID}
-    volumes:
-      - ./infrastructure-dev/db-migrations/platform:/app/db-migrations
     networks:
       - infra_network
 
