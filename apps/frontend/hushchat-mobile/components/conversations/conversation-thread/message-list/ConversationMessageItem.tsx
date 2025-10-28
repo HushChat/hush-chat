@@ -53,8 +53,6 @@ interface MessageItemProps {
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
-  isHighlighted?: boolean;
-  fadeAnim?: Animated.Value;
 }
 
 const REMOVE_ONE = 1;

@@ -282,7 +282,7 @@ const ConversationMessageList = ({
       const isHighlighted = String(highlightedMessageId) === String(item.id);
 
       return (
-        <View
+        <Animated.View
           style={{
             opacity: isHighlighted ? fadeAnim : 1,
           }}
@@ -311,11 +311,9 @@ const ConversationMessageList = ({
               onUnsendMessage={(message) => unSendMessage(message)}
               selectedConversationId={selectedConversationId}
               onViewReactions={handleViewReactions}
-              isHighlighted={String(highlightedMessageId) === String(item.id)} // NEW PROP
-              fadeAnim={fadeAnim}
             />
           </View>
-        </View>
+        </Animated.View>
       );
     },
     [
