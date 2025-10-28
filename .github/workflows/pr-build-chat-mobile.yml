@@ -1,0 +1,58 @@
+name: Chat Mobile App Android Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'hush-chat/apps/frontend/hushchat-mobile/**'
+
+jobs:
+  build-android:
+    runs-on: [self-hosted, on-premise]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+     
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: hush-chat/apps/frontend/hushchat-mobile
+
+      - name: Run ESLint
+        run: yarn lint
+        working-directory: hush-chat/apps/frontend/hushchat-mobile
+
+#      - name: Get changed files
+#        id: changed-files
+#        uses: tj-actions/changed-files@v41
+#        with:
+#          files: |
+#            platform/frontend/mobile/chat/metro.config.js
+#            platform/frontend/mobile/chat/package.json
+#            platform/frontend/mobile/chat/app.config.ts
+#            platform/frontend/mobile/chat/yarn.lock
+#            platform/frontend/mobile/chat/android/**
+
+#      - name: Set up JDK for Android
+#        if: steps.changed-files.outputs.any_changed == 'true'
+#        uses: actions/setup-java@v3
+#        with:
+#          distribution: 'adopt'
+#          java-version: '21'
+
+#      - name: Set up Android SDK
+#        if: steps.changed-files.outputs.any_changed == 'true'
+#        uses: android-actions/setup-android@v3
+#
+#      - name: Build Android
+#        if: steps.changed-files.outputs.any_changed == 'true'
+#        run: yarn build-android
+#        working-directory: platform/frontend/mobile/chat
