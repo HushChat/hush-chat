@@ -10,7 +10,7 @@ on:
 
 jobs:
   liquibase-migration-chat-db:
-    runs-on: [self-hosted, on-premise]
+    runs-on: ubuntu-latest
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
