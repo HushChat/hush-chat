@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImageBackground, KeyboardAvoidingView, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,6 +31,7 @@ import { format } from 'date-fns';
 import { useMessageAttachmentUploader } from '@/apis/photo-upload-service/photo-upload-service';
 import Alert from '@/components/Alert';
 import { useConversationMessagesQuery } from '@/query/useConversationMessageQuery';
+import { ActivityIndicator, Text } from 'react-native';
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -41,6 +42,7 @@ interface ConversationThreadScreenProps {
   webBackPress?: () => void;
   webSearchPress?: () => void;
   webForwardPress?: (messageIds: Set<number>) => void;
+  webTargetMessageId?: number | null; 
 }
 
 const ConversationThreadScreen = ({
@@ -49,12 +51,19 @@ const ConversationThreadScreen = ({
   onShowProfile,
   webSearchPress = () => {},
   webForwardPress,
+  webTargetMessageId,
 }: ConversationThreadScreenProps) => {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
 
   const selectedConversationId = conversationId || Number(params.conversationId);
+
+   const targetMessageIdFromParams = PLATFORM.IS_WEB 
+    ? webTargetMessageId // Use prop for web
+    : (params.messageId ? Number(params.messageId) : null); // Use URL param for mobile
+    
+  const hasNavigatedToMessage = useRef(false);
 
   const { selectionMode, setSelectionMode, selectedMessageIds, setSelectedMessageIds } =
     useConversationStore();
@@ -65,14 +74,18 @@ const ConversationThreadScreen = ({
   const isGroupChat = conversationAPIResponse?.isGroup;
 
   const {
-    conversationMessagesPages,
-    isLoadingConversationMessages,
-    conversationMessagesError,
-    fetchNextPage,
-    isFetchingNextPage,
-    hasNextPage,
-    refetchConversationMessages,
-  } = useConversationMessagesQuery(selectedConversationId);
+  conversationMessagesPages,
+  isLoadingConversationMessages,
+  conversationMessagesError,
+  fetchNextPage,
+  isFetchingNextPage,
+  hasNextPage,
+  refetchConversationMessages,
+  navigateToMessage,
+  isLoadingToMessage,
+  targetMessageId,
+  isMessageLoaded,
+} = useConversationMessagesQuery(selectedConversationId);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
@@ -127,6 +140,44 @@ const ConversationThreadScreen = ({
       ToastUtils.error(getAPIErrorMsg(error));
     },
   );
+   // Update the navigation effect to work with both mobile and web:
+  useEffect(() => {
+    const handleMessageNavigation = async () => {
+      if (
+        targetMessageIdFromParams && 
+        !hasNavigatedToMessage.current && 
+        !isLoadingConversationMessages
+      ) {
+        hasNavigatedToMessage.current = true;
+
+        // Check if message is already loaded
+        if (isMessageLoaded(targetMessageIdFromParams)) {
+          // Message is already loaded, scroll will be handled by ConversationMessageList
+          return;
+        }
+
+        // Message not loaded, fetch until we find it
+        const found = await navigateToMessage(targetMessageIdFromParams);
+
+        if (!found) {
+          ToastUtils.error('Message not found in this conversation');
+        }
+      }
+    };
+
+    handleMessageNavigation();
+  }, [
+    targetMessageIdFromParams,
+    isLoadingConversationMessages,
+    navigateToMessage,
+    isMessageLoaded,
+  ]);
+
+  // Reset navigation flag when conversation changes OR when targetMessageId changes
+  useEffect(() => {
+    hasNavigatedToMessage.current = false;
+  }, [selectedConversationId, targetMessageIdFromParams]);
+
 
   useEffect(() => {
     setSelectedMessage(null);
@@ -272,6 +323,20 @@ const ConversationThreadScreen = ({
       return <LoadingState />;
     }
 
+    if (isLoadingToMessage && targetMessageIdFromParams) {
+      return (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" />
+          <Text className="mt-4 text-gray-600 dark:text-gray-400 text-center px-8">
+            Loading message...
+          </Text>
+          <Text className="mt-2 text-gray-500 dark:text-gray-500 text-sm">
+            This may take a moment for older messages
+          </Text>
+        </View>
+      );
+    }
+
     if (conversationAPIError || conversationMessagesError) {
       return (
         <Alert
@@ -297,11 +362,14 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={selectedConversationId}
+        targetMessageId={targetMessageId || targetMessageIdFromParams} // Pass the target message ID
       />
     );
   }, [
     conversationAPILoading,
     isLoadingConversationMessages,
+    isLoadingToMessage,
+    targetMessageIdFromParams,
     conversationAPIError,
     conversationMessagesError,
     conversationMessages,
@@ -311,6 +379,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse,
     pickerState,
     selectedConversationId,
+    targetMessageId,
   ]);
 
   const renderTextInput = useCallback(() => {

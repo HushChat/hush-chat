@@ -2,7 +2,7 @@ import { View, Dimensions } from 'react-native';
 import FilterButton from '@/components/FilterButton';
 import { ChatComponentProps, ConversationType } from '@/types/chat/types';
 import usePanelManager from '@/hooks/useWebPanelManager';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import ConversationThreadScreen from '@/app/conversation-threads';
 import ConversationInfoPanel from '@/components/conversations/conversation-info-panel/ConversationInfoPanel';
 import Placeholder from '@/components/Placeholder';
@@ -39,6 +39,9 @@ export default function ChatInterface({
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get('window').width);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
+  
+  // NEW: State to handle message navigation from search
+  const [targetMessageId, setTargetMessageId] = useState<number | null>(null);
 
   const { activePanel, isPanelContentReady, contentOpacity, widthAnim, openPanel, closePanel } =
     usePanelManager(screenWidth);
@@ -59,6 +62,7 @@ export default function ChatInterface({
   const handleBackToPlaceholder = () => {
     setSelectedConversation?.(null);
     setShowProfilePanel(false);
+    setTargetMessageId(null); // NEW: Reset target message
   };
 
   const handleShowProfile = useCallback(() => {
@@ -77,9 +81,35 @@ export default function ChatInterface({
     [openPanel, setSelectedMessageIds],
   );
 
+  // NEW: Handle message click from search
+  const handleMessageClickedFromSearch = useCallback((message: any) => {
+    // Close the search panel
+    closePanel();
+    
+    // Set the target message ID to trigger navigation in ConversationThreadScreen
+    setTargetMessageId(message.id);
+    
+    // Optional: Small delay to ensure the panel closes smoothly before navigation
+    setTimeout(() => {
+      setTargetMessageId(message.id);
+    }, 100);
+  }, [closePanel]);
+
   useEffect(() => {
     closePanel();
+    setTargetMessageId(null); // NEW: Reset target message when conversation changes
   }, [closePanel, selectedConversation?.id]);
+
+  // NEW: Reset target message after navigation is complete
+  useEffect(() => {
+    if (targetMessageId) {
+      // Reset after a delay to allow the ConversationThreadScreen to process it
+      const timer = setTimeout(() => {
+        setTargetMessageId(null);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [targetMessageId]);
 
   const renderPanelContent = () => {
     if (!isPanelContentReady || !selectedConversation) return null;
@@ -100,6 +130,7 @@ export default function ChatInterface({
             conversationName={selectedConversation.name}
             conversationId={Number(selectedConversation.id)}
             onClose={closePanel}
+            onMessageClicked={handleMessageClickedFromSearch} // NEW: Pass the handler
           />
         );
       case PanelType.PARTICIPANTS:
@@ -200,6 +231,7 @@ export default function ChatInterface({
               onShowProfile={handleShowProfile}
               webSearchPress={handleShowSearch}
               webForwardPress={handleShowForward}
+              webTargetMessageId={targetMessageId} // NEW: Pass target message ID
             />
           ) : (
             <Placeholder

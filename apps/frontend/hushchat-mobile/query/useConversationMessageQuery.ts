@@ -42,6 +42,11 @@ export function useConversationMessagesQuery(conversationId: number) {
     isFetchingOlder,
     invalidateQuery,
     refetch,
+    // New methods for message navigation
+    navigateToMessage,
+    isLoadingToMessage,
+    targetMessageId,
+    isMessageLoaded,
   } = usePaginatedQueryWithCursor<IMessage>({
     queryKey,
     queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
@@ -87,5 +92,10 @@ export function useConversationMessagesQuery(conversationId: number) {
     isFetchingNextPage: isFetchingOlder,
     refetchConversationMessages: invalidateQuery,
     refetch,
+    // New methods for message navigation
+    navigateToMessage,
+    isLoadingToMessage,
+    targetMessageId,
+    isMessageLoaded,
   } as const;
 }

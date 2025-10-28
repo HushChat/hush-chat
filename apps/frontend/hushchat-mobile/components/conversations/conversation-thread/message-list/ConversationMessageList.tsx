@@ -3,8 +3,8 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { ActivityIndicator, FlatList, View, Animated } from 'react-native';
 import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from '@/types/chat/types';
 import { useUserStore } from '@/store/user/useUserStore';
 import { ConversationMessageItem } from '@/components/conversations/conversation-thread/message-list/ConversationMessageItem';
@@ -20,7 +20,6 @@ import { conversationQueryKeys, conversationMessageQueryKeys } from '@/constants
 import { PaginatedResponse } from '@/types/common/types';
 import { ToastUtils } from '@/utils/toastUtils';
 import { useConversationsQuery } from '@/query/useConversationsQuery';
-/* eslint-disable import/no-unresolved */
 import MessageReactionsModal from '@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal';
 
 interface MessagesListProps {
@@ -31,6 +30,7 @@ interface MessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  targetMessageId?: number | string | null; // NEW PROP
 }
 
 const ConversationMessageList = ({
@@ -41,6 +41,7 @@ const ConversationMessageList = ({
   conversationAPIResponse,
   pickerState,
   selectedConversationId,
+  targetMessageId, // NEW PROP
 }: MessagesListProps) => {
   const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
   const { user } = useUserStore();
@@ -61,6 +62,12 @@ const ConversationMessageList = ({
     visible: false,
     messageId: null,
   });
+
+  // NEW: State for managing scroll to target message
+  const flatListRef = useRef<FlatList>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | string | null>(null);
+  const hasScrolledToTarget = useRef(false);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const { refetch: refetchConversationList } = useConversationsQuery();
 
@@ -93,7 +100,6 @@ const ConversationMessageList = ({
   );
 
   const { mutate: unsend } = usePatchUnsendMessageMutation(undefined, () => {
-    // update conversation message in cache
     updateCache(
       conversationMessageQueryKeys.messages(
         Number(currentUserId),
@@ -192,29 +198,124 @@ const ConversationMessageList = ({
     setReactionsModal((prev) => ({ ...prev, visible: false }));
   }, []);
 
+  // NEW: Scroll to target message when it's loaded
+  useEffect(() => {
+    if (targetMessageId && !hasScrolledToTarget.current && messages.length > 0) {
+      const messageIndex = messages.findIndex(
+        (msg) => String(msg.id) === String(targetMessageId)
+      );
+
+      if (messageIndex !== -1) {
+        hasScrolledToTarget.current = true;
+
+        // Wait for the list to render
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index: messageIndex,
+            animated: true,
+            viewPosition: 0.5, // Center the message
+          });
+
+          // Highlight the message
+          setHighlightedMessageId(targetMessageId);
+
+          // Start fade animation
+          Animated.sequence([
+            Animated.timing(fadeAnim, {
+              toValue: 0.3,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+              toValue: 0.3,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            // Remove highlight after animation
+            setTimeout(() => {
+              setHighlightedMessageId(null);
+            }, 500);
+          });
+        }, 300);
+      }
+    }
+  }, [targetMessageId, messages, fadeAnim]);
+
+  // NEW: Reset scroll flag when conversation changes
+  useEffect(() => {
+    hasScrolledToTarget.current = false;
+    setHighlightedMessageId(null);
+    fadeAnim.setValue(1);
+  }, [selectedConversationId, fadeAnim]);
+
+  // NEW: Handle scroll to index failures
+  const handleScrollToIndexFailed = useCallback((info: {
+    index: number;
+    highestMeasuredFrameIndex: number;
+    averageItemLength: number;
+  }) => {
+    // Wait for items to be measured, then try again
+    setTimeout(() => {
+      flatListRef.current?.scrollToIndex({
+        index: info.index,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    }, 100);
+  }, []);
+
   const renderMessage = useCallback(
     ({ item }: { item: IMessage }) => {
       const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
       const isSelected = selectedMessageIds.has(Number(item.id));
+      const isHighlighted = String(highlightedMessageId) === String(item.id);
+
       return (
-        <ConversationMessageItem
-          message={item}
-          isCurrentUser={!!isCurrentUser}
-          currentUserId={String(currentUserId)}
-          isPickerOpen={openPickerMessageId === String(item.id)}
-          onOpenPicker={handleOpenPicker}
-          onMessageSelect={handleMessageSelect}
-          conversationAPIResponse={conversationAPIResponse}
-          selected={isSelected}
-          onStartSelectionWith={handleStartSelectionWith}
-          onToggleSelection={handleToggleSelection}
-          onMessageLongPress={handleMessageLongPress}
-          onCloseAllOverlays={closeAllOverlays}
-          onMessagePin={(message) => togglePin(message)}
-          onUnsendMessage={(message) => unSendMessage(message)}
-          selectedConversationId={selectedConversationId}
-          onViewReactions={handleViewReactions}
-        />
+        <View
+          style={{
+            opacity: isHighlighted ? fadeAnim : 1,
+          }}
+        >
+          <View
+            className={`${
+              isHighlighted 
+                ? 'bg-yellow-100 dark:bg-yellow-900/20 -mx-4 px-4' 
+                : ''
+            }`}
+          >
+            <ConversationMessageItem
+              message={item}
+              isCurrentUser={!!isCurrentUser}
+              currentUserId={String(currentUserId)}
+              isPickerOpen={openPickerMessageId === String(item.id)}
+              onOpenPicker={handleOpenPicker}
+              onMessageSelect={handleMessageSelect}
+              conversationAPIResponse={conversationAPIResponse}
+              selected={isSelected}
+              onStartSelectionWith={handleStartSelectionWith}
+              onToggleSelection={handleToggleSelection}
+              onMessageLongPress={handleMessageLongPress}
+              onCloseAllOverlays={closeAllOverlays}
+              onMessagePin={(message) => togglePin(message)}
+              onUnsendMessage={(message) => unSendMessage(message)}
+              selectedConversationId={selectedConversationId}
+              onViewReactions={handleViewReactions}
+              isHighlighted={String(highlightedMessageId) === String(item.id)} // NEW PROP
+              fadeAnim={fadeAnim}
+            />
+          </View>
+        </View>
       );
     },
     [
@@ -232,6 +333,8 @@ const ConversationMessageList = ({
       selectedConversationId,
       unSendMessage,
       handleViewReactions,
+      highlightedMessageId,
+      fadeAnim,
     ],
   );
 
@@ -269,6 +372,7 @@ const ConversationMessageList = ({
       )}
 
       <FlatList
+        ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id?.toString()}
@@ -281,7 +385,12 @@ const ConversationMessageList = ({
         onScrollBeginDrag={closeAllOverlays}
         onTouchEnd={closeAllOverlays}
         onMomentumScrollBegin={closeAllOverlays}
-        extraData={{ selectionMode, selectedMessageIdsSize: selectedMessageIds.size }}
+        onScrollToIndexFailed={handleScrollToIndexFailed}
+        extraData={{ 
+          selectionMode, 
+          selectedMessageIdsSize: selectedMessageIds.size,
+          highlightedMessageId,
+        }}
       />
       {reactionsModal.visible && (
         <MessageReactionsModal

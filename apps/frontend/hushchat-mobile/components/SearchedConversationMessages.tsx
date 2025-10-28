@@ -59,15 +59,22 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 
   const handleMessagePress = useCallback(
     (message: any) => {
-      router.push({
-        pathname: CHAT_VIEW_PATH,
-        params: {
-          conversationId,
-          messageId: message.id,
-        },
-      });
+      if (PLATFORM.IS_WEB) {
+        // For web, call the parent handler with the message
+        onMessageClicked?.(message);
+      } else {
+        // For mobile, navigate to the chat view with the messageId parameter
+        // This will trigger the navigation logic in ConversationThreadScreen
+        router.push({
+          pathname: CHAT_VIEW_PATH,
+          params: {
+            conversationId: conversationId,
+            messageId: message.id, // This is the key - it tells the thread to navigate to this message
+          },
+        });
+      }
     },
-    [conversationId],
+    [conversationId, onMessageClicked],
   );
 
   const renderEmptyState = useCallback(() => {
@@ -177,7 +184,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
           <SearchedMessagesList
             messages={searchedMessages}
             searchQuery={searchQuery}
-            onMessagePress={PLATFORM.IS_WEB ? onMessageClicked : handleMessagePress}
+            onMessagePress={handleMessagePress}
           />
         ) : (
           renderEmptyState()
