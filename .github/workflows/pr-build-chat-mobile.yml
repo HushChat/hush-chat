@@ -3,7 +3,7 @@ name: Chat Mobile App Android Build Check
 on:
   pull_request:
     branches:
-      - ft/docker-compose-setup
+      - main
     paths:
       - 'hush-chat/apps/frontend/hushchat-mobile/**'
 
