@@ -15,8 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      TEST_ACTIVE_SPRING_PROFILES: ${{ vars.TEST_ACTIVE_SPRING_PROFILES }}
-
       # AWS / S3
       TEST_CLOUD_AWS_ACCESS_KEY: ${{ secrets.TEST_CLOUD_AWS_ACCESS_KEY }}
       TEST_CLOUD_AWS_SECRET_KEY: ${{ secrets.TEST_CLOUD_AWS_SECRET_KEY }}
@@ -64,5 +62,5 @@ jobs:
 
       - name: Build chat service
         run: |
-          mvn -f apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=${TEST_ACTIVE_SPRING_PROFILES}
-          mvn -f apps/backend/chat-service/pom.xml jacoco:report -Dspring.profiles.active=${TEST_ACTIVE_SPRING_PROFILES}
+          mvn -f apps/backend/chat-service/pom.xml clean install
+          mvn -f apps/backend/chat-service/pom.xml jacoco:report
