@@ -99,6 +99,10 @@ const ConversationThreadScreen = ({
     null,
   );
 
+  const searchedMessage = PLATFORM.IS_WEB
+    ? messageToJump
+    : Number(params.messageId);
+
   const {
     selectedFiles,
     showImagePreview,
@@ -111,11 +115,11 @@ const ConversationThreadScreen = ({
   } = useImagePreview();
 
   useEffect(() => {
-    if (messageToJump && jumpToMessage) {
-      void jumpToMessage(messageToJump);
+    if (searchedMessage && jumpToMessage) {
+      void jumpToMessage(searchedMessage);
       onMessageJumped?.();
     }
-  }, [messageToJump, jumpToMessage, onMessageJumped]);
+  }, [searchedMessage, jumpToMessage, onMessageJumped]);
 
   const {
     pickAndUploadImages,
