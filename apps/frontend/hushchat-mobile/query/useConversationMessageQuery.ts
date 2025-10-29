@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
-import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 import { useConversationMessages } from "@/hooks/useWebSocketEvents";
 import {
   CursorPaginatedResponse,
   getConversationMessagesByCursor,
 } from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
+import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 
 const PAGE_SIZE = 20;
 
@@ -64,12 +64,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
       queryKey,
       (oldData) => {
-        if (!oldData) {
-          return {
-            pages: [{ content: [lastMessage], totalElements: 1 }],
-            pageParams: [{ beforeId: undefined, afterId: undefined }],
-          };
-        }
+        if (!oldData) return undefined;
 
         const firstPageMessages = oldData.pages[0]?.content ?? [];
 
@@ -90,6 +85,21 @@ export function useConversationMessagesQuery(conversationId: number) {
     );
   }, [lastMessage, queryClient, queryKey]);
 
+  const jumpToMessage = useCallback(
+    async (messageId: number) => {
+      const response = await getConversationMessagesByCursor(conversationId, {
+        beforeId: messageId,
+        size: PAGE_SIZE,
+      });
+
+      queryClient.setQueryData(queryKey, {
+        pages: [response.data],
+        pageParams: [{ beforeId: messageId }],
+      });
+    },
+    [conversationId, queryClient, queryKey],
+  );
+
   return {
     conversationMessagesPages: pages,
     isLoadingConversationMessages: isLoading,
@@ -102,5 +112,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     hasPreviousPage: hasMoreNewer,
     isFetchingPreviousPage: isFetchingNewer,
     refetch,
+    jumpToMessage,
   } as const;
 }

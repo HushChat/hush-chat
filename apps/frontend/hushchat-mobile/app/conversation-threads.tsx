@@ -48,6 +48,8 @@ interface ConversationThreadScreenProps {
   webBackPress?: () => void;
   webSearchPress?: () => void;
   webForwardPress?: (messageIds: Set<number>) => void;
+  messageToJump?: number | null;
+  onMessageJumped?: () => void;
 }
 
 const ConversationThreadScreen = ({
@@ -56,6 +58,8 @@ const ConversationThreadScreen = ({
   onShowProfile,
   webSearchPress = () => {},
   webForwardPress,
+  onMessageJumped,
+  messageToJump,
 }: ConversationThreadScreenProps) => {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
@@ -87,6 +91,7 @@ const ConversationThreadScreen = ({
     isFetchingNextPage,
     hasNextPage,
     refetchConversationMessages,
+    jumpToMessage,
     hasPreviousPage,
     fetchPreviousPage,
     isFetchingPreviousPage,
@@ -96,6 +101,10 @@ const ConversationThreadScreen = ({
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(
     null,
   );
+
+  const searchedMessage = PLATFORM.IS_WEB
+    ? messageToJump
+    : Number(params.messageId);
 
   const {
     selectedFiles,
@@ -107,6 +116,13 @@ const ConversationThreadScreen = ({
     removeAt: handleRemoveFile,
     addMore: handleAddMoreFiles,
   } = useImagePreview();
+
+  useEffect(() => {
+    if (searchedMessage && jumpToMessage) {
+      void jumpToMessage(searchedMessage);
+      onMessageJumped?.();
+    }
+  }, [searchedMessage, jumpToMessage, onMessageJumped]);
 
   const {
     pickAndUploadImages,
