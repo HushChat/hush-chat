@@ -142,7 +142,6 @@ const ConversationThreadScreen = ({
       undefined,
       () => {
         setSelectedMessage(null);
-        void refetchConversationMessages();
       },
       (error) => {
         ToastUtils.error(getAPIErrorMsg(error));
@@ -223,8 +222,6 @@ const ConversationThreadScreen = ({
           });
 
           await uploadFilesFromWeb(renamedFiles);
-
-          void refetchConversationMessages();
           setSelectedMessage(null);
         } else {
           sendMessage({
@@ -237,13 +234,7 @@ const ConversationThreadScreen = ({
         console.error("Failed to send message:", error);
       }
     },
-    [
-      isSendingMessage,
-      refetchConversationMessages,
-      selectedConversationId,
-      sendMessage,
-      uploadFilesFromWeb,
-    ],
+    [isSendingMessage, selectedConversationId, sendMessage, uploadFilesFromWeb],
   );
 
   const handleSendFiles = useCallback(() => {
@@ -348,6 +339,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse,
     pickerState,
     selectedConversationId,
+    handleLoadNewer,
   ]);
 
   const renderTextInput = useCallback(() => {

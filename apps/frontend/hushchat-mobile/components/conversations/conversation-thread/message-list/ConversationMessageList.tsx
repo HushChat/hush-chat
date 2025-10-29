@@ -26,7 +26,7 @@ import MessageReactionsModal from '@/components/conversations/conversation-threa
 
 interface MessagesListProps {
   messages: IMessage[];
-  onLoadMore: () => void;
+  onLoadMore: () => Promise<void>;
   isFetchingNextPage: boolean;
   onMessageSelect?: (message: IMessage) => void;
   conversationAPIResponse?: ConversationAPIResponse;
@@ -279,6 +279,7 @@ const ConversationMessageList = ({
         showsVerticalScrollIndicator={false}
         inverted
         onEndReached={onLoadMore}
+        onStartReached={onEndReached}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
         onScrollBeginDrag={closeAllOverlays}

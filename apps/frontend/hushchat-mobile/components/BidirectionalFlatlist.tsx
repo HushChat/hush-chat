@@ -58,7 +58,6 @@ function BidirectionalFlatListInner<T>(
     if (triggeredTop.current[safeData.length]) return;
     triggeredTop.current[safeData.length] = true;
     setLoadingTop(true);
-
     onStartReached().finally(() => setLoadingTop(false));
   };
 
@@ -66,7 +65,6 @@ function BidirectionalFlatListInner<T>(
     if (triggeredBottom.current[safeData.length]) return;
     triggeredBottom.current[safeData.length] = true;
     setLoadingBottom(true);
-
     onEndReached().finally(() => setLoadingBottom(false));
   };
 
@@ -74,9 +72,7 @@ function BidirectionalFlatListInner<T>(
     e: NativeSyntheticEvent<NativeScrollEvent>,
   ) => {
     onScroll?.(e);
-
     const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
-
     if (contentOffset.y <= onStartReachedThreshold) maybeStart();
     if (
       contentSize.height - layoutMeasurement.height - contentOffset.y <=
@@ -110,4 +106,14 @@ function BidirectionalFlatListInner<T>(
   );
 }
 
-export const BidirectionalFlatList = forwardRef(BidirectionalFlatListInner);
+/**
+ * ✅ FIXED EXPORT
+ * This restores generic support to your forwardRef component
+ */
+export const BidirectionalFlatList = forwardRef(
+  BidirectionalFlatListInner,
+) as <T>(
+  props: BidirectionalFlatListProps<T> & {
+    ref?: RefObject<RNFlatList<T> | null>;
+  },
+) => React.ReactElement;
