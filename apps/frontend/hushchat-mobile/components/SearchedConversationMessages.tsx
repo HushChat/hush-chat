@@ -133,7 +133,6 @@ const SearchedConversationMessages: React.FC<
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
-      {/* Header */}
       <View className="p-4 pb-2">
         <View className="flex-row items-center justify-between mb-4">
           {PLATFORM.IS_WEB && (
@@ -144,7 +143,6 @@ const SearchedConversationMessages: React.FC<
 
           {PLATFORM.IS_WEB && <BackButton onPress={onClose} />}
 
-          {/* Mobile search bar */}
           {!PLATFORM.IS_WEB && (
             <View className="flex-row items-center flex-1 gap-2">
               <SearchBar
@@ -167,7 +165,6 @@ const SearchedConversationMessages: React.FC<
           )}
         </View>
 
-        {/* Web search bar */}
         {PLATFORM.IS_WEB && (
           <SearchBar
             onChangeText={handleSearchInputChange}
