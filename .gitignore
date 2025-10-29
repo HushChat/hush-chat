@@ -86,6 +86,7 @@ application-*.yml
 application-*.properties
 !application-example.yml
 !application-example.properties
+!application-ci.properties
 
 # ---------------------------------------
 # Docker
