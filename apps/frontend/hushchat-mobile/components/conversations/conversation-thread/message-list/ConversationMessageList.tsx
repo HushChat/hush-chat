@@ -21,6 +21,7 @@ import { PaginatedResponse } from '@/types/common/types';
 import { ToastUtils } from '@/utils/toastUtils';
 import { useConversationsQuery } from '@/query/useConversationsQuery';
 /* eslint-disable import/no-unresolved */
+// @ts-ignore
 import MessageReactionsModal from '@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal';
 
 interface MessagesListProps {

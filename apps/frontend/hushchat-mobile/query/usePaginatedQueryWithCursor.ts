@@ -1,5 +1,8 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { CursorPaginatedQueryOptions, CursorPaginatedResponse } from '@/apis/conversation';
+import {
+  CursorPaginatedQueryOptions,
+  CursorPaginatedResponse,
+} from "@/apis/conversation";
 
 /**
  * A simplified hook for paginating (older) messages.

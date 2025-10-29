@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import { useUserStore } from '@/store/user/useUserStore';
-import { conversationMessageQueryKeys } from '@/constants/queryKeys';
-import { usePaginatedQueryWithCursor } from '@/query/usePaginatedQueryWithCursor';
-import { useConversationMessages } from '@/hooks/useWebSocketEvents';
-import { CursorPaginatedResponse, getConversationMessagesByCursor } from '@/apis/conversation';
-import type { IMessage } from '@/types/chat/types';
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { useUserStore } from "@/store/user/useUserStore";
+import { conversationMessageQueryKeys } from "@/constants/queryKeys";
+import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
+import { useConversationMessages } from "@/hooks/useWebSocketEvents";
+import {
+  CursorPaginatedResponse,
+  getConversationMessagesByCursor,
+} from "@/apis/conversation";
+import type { IMessage } from "@/types/chat/types";
 
 const PAGE_SIZE = 20;
 
@@ -44,7 +47,8 @@ export function useConversationMessagesQuery(conversationId: number) {
     refetch,
   } = usePaginatedQueryWithCursor<IMessage>({
     queryKey,
-    queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
+    queryFn: (params) =>
+      getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
   });
@@ -78,6 +82,21 @@ export function useConversationMessagesQuery(conversationId: number) {
     );
   }, [lastMessage, queryClient, queryKey]);
 
+  const jumpToMessage = useCallback(
+    async (messageId: number) => {
+      const response = await getConversationMessagesByCursor(conversationId, {
+        beforeId: messageId,
+        size: PAGE_SIZE,
+      });
+
+      queryClient.setQueryData(queryKey, {
+        pages: [response.data],
+        pageParams: [{ beforeId: messageId }],
+      });
+    },
+    [conversationId, queryClient, queryKey],
+  );
+
   return {
     conversationMessagesPages: pages,
     isLoadingConversationMessages: isLoading,
@@ -87,5 +106,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     isFetchingNextPage: isFetchingOlder,
     refetchConversationMessages: invalidateQuery,
     refetch,
+    jumpToMessage,
   } as const;
 }

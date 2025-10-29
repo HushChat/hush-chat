@@ -1,36 +1,43 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ImageBackground, KeyboardAvoidingView, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-import ChatHeader from '@/components/conversations/conversation-thread/ChatHeader';
-import ConversationMessageList from '@/components/conversations/conversation-thread/message-list/ConversationMessageList';
-import EmptyChatState from '@/components/conversations/conversation-thread/message-list/EmptyChatState';
-import LoadingState from '@/components/LoadingState';
-import ConversationInputBar from '@/components/conversations/conversation-thread/composer/ConversationInputBar';
-import DisabledMessageInput from '@/components/conversations/conversation-thread/composer/DisabledMessageInput';
-import FilePreviewOverlay from '@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay';
-import MessageForwardActionBar from '@/components/conversations/conversation-thread/composer/MessageForwardActionBar';
+import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
+import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
+import EmptyChatState from "@/components/conversations/conversation-thread/message-list/EmptyChatState";
+import LoadingState from "@/components/LoadingState";
+import ConversationInputBar from "@/components/conversations/conversation-thread/composer/ConversationInputBar";
+import DisabledMessageInput from "@/components/conversations/conversation-thread/composer/DisabledMessageInput";
+import FilePreviewOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay";
+import MessageForwardActionBar from "@/components/conversations/conversation-thread/composer/MessageForwardActionBar";
 
-import { useConversationByIdQuery } from '@/query/useConversationByIdQuery';
-import { useSendMessageMutation } from '@/query/post/queries';
-import { useAppTheme } from '@/hooks/useAppTheme';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { useImagePreview } from '@/hooks/useImagePreview';
+import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
+import { useSendMessageMutation } from "@/query/post/queries";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { useImagePreview } from "@/hooks/useImagePreview";
 
-import { Images } from '@/assets/images';
-import { PLATFORM } from '@/constants/platformConstants';
-import { FORWARD_PATH } from '@/constants/routes';
-import { EMPTY_SET } from '@/constants/constants';
-import { getAPIErrorMsg } from '@/utils/commonUtils';
-import { ToastUtils } from '@/utils/toastUtils';
+import { Images } from "@/assets/images";
+import { PLATFORM } from "@/constants/platformConstants";
+import { FORWARD_PATH } from "@/constants/routes";
+import { EMPTY_SET } from "@/constants/constants";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { ToastUtils } from "@/utils/toastUtils";
 
-import type { ConversationInfo, IMessage, TPickerState } from '@/types/chat/types';
+import type {
+  ConversationInfo,
+  IMessage,
+  TPickerState,
+} from "@/types/chat/types";
 
-import { format } from 'date-fns';
-import { useMessageAttachmentUploader } from '@/apis/photo-upload-service/photo-upload-service';
-import Alert from '@/components/Alert';
-import { useConversationMessagesQuery } from '@/query/useConversationMessageQuery';
+import { format } from "date-fns";
+import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
+import Alert from "@/components/Alert";
+import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -41,6 +48,8 @@ interface ConversationThreadScreenProps {
   webBackPress?: () => void;
   webSearchPress?: () => void;
   webForwardPress?: (messageIds: Set<number>) => void;
+  messageToJump?: number | null;
+  onMessageJumped?: () => void;
 }
 
 const ConversationThreadScreen = ({
@@ -49,18 +58,28 @@ const ConversationThreadScreen = ({
   onShowProfile,
   webSearchPress = () => {},
   webForwardPress,
+  onMessageJumped,
+  messageToJump,
 }: ConversationThreadScreenProps) => {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
 
-  const selectedConversationId = conversationId || Number(params.conversationId);
+  const selectedConversationId =
+    conversationId || Number(params.conversationId);
 
-  const { selectionMode, setSelectionMode, selectedMessageIds, setSelectedMessageIds } =
-    useConversationStore();
+  const {
+    selectionMode,
+    setSelectionMode,
+    selectedMessageIds,
+    setSelectedMessageIds,
+  } = useConversationStore();
 
-  const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
-    useConversationByIdQuery(selectedConversationId);
+  const {
+    conversationAPIResponse,
+    conversationAPILoading,
+    conversationAPIError,
+  } = useConversationByIdQuery(selectedConversationId);
 
   const isGroupChat = conversationAPIResponse?.isGroup;
 
@@ -72,10 +91,13 @@ const ConversationThreadScreen = ({
     isFetchingNextPage,
     hasNextPage,
     refetchConversationMessages,
+    jumpToMessage,
   } = useConversationMessagesQuery(selectedConversationId);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
-  const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
+  const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(
+    null,
+  );
 
   const {
     selectedFiles,
@@ -87,6 +109,13 @@ const ConversationThreadScreen = ({
     removeAt: handleRemoveFile,
     addMore: handleAddMoreFiles,
   } = useImagePreview();
+
+  useEffect(() => {
+    if (messageToJump && jumpToMessage) {
+      void jumpToMessage(messageToJump + 1);
+      onMessageJumped?.();
+    }
+  }, [messageToJump, jumpToMessage, onMessageJumped]);
 
   const {
     pickAndUploadImages,
@@ -102,12 +131,12 @@ const ConversationThreadScreen = ({
       if (results?.some((r) => r.success)) {
         refetchConversationMessages();
         setSelectedMessage(null);
-        setImageMessage('');
+        setImageMessage("");
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
     } catch {
-      ToastUtils.error('Failed to pick or upload images.');
+      ToastUtils.error("Failed to pick or upload images.");
     }
   }, [
     pickAndUploadImages,
@@ -117,16 +146,17 @@ const ConversationThreadScreen = ({
     uploadError,
   ]);
 
-  const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
-    undefined,
-    () => {
-      setSelectedMessage(null);
-      refetchConversationMessages();
-    },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    },
-  );
+  const { mutate: sendMessage, isPending: isSendingMessage } =
+    useSendMessageMutation(
+      undefined,
+      () => {
+        setSelectedMessage(null);
+        refetchConversationMessages();
+      },
+      (error) => {
+        ToastUtils.error(getAPIErrorMsg(error));
+      },
+    );
 
   useEffect(() => {
     setSelectedMessage(null);
@@ -148,7 +178,7 @@ const ConversationThreadScreen = ({
     if (webBackPress) {
       webBackPress();
     } else {
-      router.replace('/');
+      router.replace("/");
     }
   }, [webBackPress]);
 
@@ -170,16 +200,20 @@ const ConversationThreadScreen = ({
     async (message: string, parentMessage?: IMessage, files?: File[]) => {
       const messageToSend = message;
       const filesToSend = files || [];
-      if ((!messageToSend.trim() && filesToSend.length === 0) || isSendingMessage) return;
+      if (
+        (!messageToSend.trim() && filesToSend.length === 0) ||
+        isSendingMessage
+      )
+        return;
 
       const validFiles = filesToSend.filter((f) => f instanceof File);
-      const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'svg'];
+      const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg"];
 
       try {
         if (validFiles.length > 0) {
           const renamedFiles = validFiles.map((file, index) => {
-            const timestamp = format(new Date(), 'yyyy-MM-dd HH-mm-ss');
-            const fileExtension = file.name.split('.').pop() || '';
+            const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
+            const fileExtension = file.name.split(".").pop() || "";
             const isImage = IMAGE_EXTENSIONS.includes(fileExtension);
             const newFileName = isImage
               ? `ChatApp Image ${selectedConversationId}${index} ${timestamp}.${fileExtension}`
@@ -203,7 +237,7 @@ const ConversationThreadScreen = ({
           });
         }
       } catch (error) {
-        console.error('Failed to send message:', error);
+        console.error("Failed to send message:", error);
       }
     },
     [
@@ -218,10 +252,14 @@ const ConversationThreadScreen = ({
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;
 
-    void handleSendMessage(imageMessage, selectedMessage ?? undefined, selectedFiles);
+    void handleSendMessage(
+      imageMessage,
+      selectedMessage ?? undefined,
+      selectedFiles,
+    );
 
     handleCloseImagePreview();
-    setImageMessage('');
+    setImageMessage("");
 
     if (selectedMessage) setSelectedMessage(null);
   }, [
@@ -242,7 +280,8 @@ const ConversationThreadScreen = ({
   }, [selectedMessageIds, webForwardPress]);
 
   const conversationMessages = useMemo(
-    () => conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [],
+    () =>
+      conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [],
     [conversationMessagesPages],
   );
 
@@ -279,7 +318,7 @@ const ConversationThreadScreen = ({
           message={
             conversationMessagesError?.message ||
             conversationAPIError?.message ||
-            'An error occurred'
+            "An error occurred"
           }
         />
       );
@@ -376,11 +415,16 @@ const ConversationThreadScreen = ({
         webPressSearch={webSearchPress}
       />
 
-      <KeyboardAvoidingView className="flex-1" behavior={PLATFORM.IS_IOS ? 'padding' : 'height'}>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={PLATFORM.IS_IOS ? "padding" : "height"}
+      >
         <ImageBackground
           source={Images.chatBackground}
           className="flex-1"
-          imageStyle={{ opacity: isDark ? CHAT_BG_OPACITY_DARK : CHAT_BG_OPACITY_LIGHT }}
+          imageStyle={{
+            opacity: isDark ? CHAT_BG_OPACITY_DARK : CHAT_BG_OPACITY_LIGHT,
+          }}
         >
           <View className="flex-1">
             <View className="flex-1">
