@@ -1,0 +1,66 @@
+name: "General Request"
+description: "Submit a general feature request, enhancement, or improvement idea for the chat application."
+title: "[Request]: "
+labels: ["enhancement", "feature-request"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Have a feature idea or improvement for our chat app?**  
+        Use this form to request new features, UI/UX changes, or any general enhancements.  
+        Please provide as much detail as possible so we can understand your request.
+
+  - type: input
+    id: title
+    attributes:
+      label: "Request summary"
+      description: "Provide a brief and clear title for your request."
+      placeholder: "Example: Add message reaction support"
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: "Describe your request"
+      description: "Explain what you would like to see added, changed, or improved in the chat app."
+      placeholder: "Example: It would be great to react to messages with emojis."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Which area does this relate to?"
+      description: "Select the part of the chat app your request applies to."
+      options:
+        - Messaging
+        - Notifications
+        - UI / UX
+        - Performance
+        - Integrations
+        - Mobile App
+        - Web App
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Why is this important?"
+      description: "Tell us how this request improves the user experience or solves a specific problem."
+      placeholder: "Example: This feature will help users express quick feedback without typing."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: "Before submitting"
+      options:
+        - label: "I have checked existing issues to make sure this request doesn’t already exist."
+          required: true
+        - label: "I have provided enough context for the team to understand this request."
+          required: true
