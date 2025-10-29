@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      TEST_ACTIVE_SPRING_PROFILES: ${{ secrets.TEST_ACTIVE_SPRING_PROFILES }}
+      TEST_ACTIVE_SPRING_PROFILES: ${{ vars.TEST_ACTIVE_SPRING_PROFILES }}
 
       # AWS / S3
       TEST_CLOUD_AWS_ACCESS_KEY: ${{ secrets.TEST_CLOUD_AWS_ACCESS_KEY }}
