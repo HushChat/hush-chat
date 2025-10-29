@@ -1,16 +1,16 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { debounce } from 'lodash';
+import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { debounce } from "lodash";
 
-import { PLATFORM } from '@/constants/platformConstants';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import { router } from 'expo-router';
-import { CHAT_VIEW_PATH } from '@/constants/routes';
+import { PLATFORM } from "@/constants/platformConstants";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { router } from "expo-router";
+import { CHAT_VIEW_PATH } from "@/constants/routes";
 
-import useConversationMessagesSearchQuery from '@/query/useConversationMessagesSearchQuery';
-import BackButton from '@/components/BackButton';
-import SearchBar from '@/components/SearchBar';
-import { SearchedMessagesList } from '@/components/conversations/conversation-thread/message-list/SearchedMessagesList';
+import useConversationMessagesSearchQuery from "@/query/useConversationMessagesSearchQuery";
+import BackButton from "@/components/BackButton";
+import SearchBar from "@/components/SearchBar";
+import { SearchedMessagesList } from "@/components/conversations/conversation-thread/message-list/SearchedMessagesList";
 
 interface WebSearchedConversationMessages {
   conversationId?: number;
@@ -19,14 +19,16 @@ interface WebSearchedConversationMessages {
   onMessageClicked?: (message: any) => void;
 }
 
-const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = ({
+const SearchedConversationMessages: React.FC<
+  WebSearchedConversationMessages
+> = ({
   conversationName,
   conversationId,
   onClose = () => {},
   onMessageClicked,
 }) => {
-  const [inputValue, setInputValue] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [inputValue, setInputValue] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const debouncedSearch = useMemo(
     () =>
@@ -59,15 +61,19 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 
   const handleMessagePress = useCallback(
     (message: any) => {
-      router.push({
-        pathname: CHAT_VIEW_PATH,
-        params: {
-          conversationId,
-          messageId: message.id,
-        },
-      });
+      if (PLATFORM.IS_WEB) {
+        onMessageClicked?.(message);
+      } else {
+        router.push({
+          pathname: CHAT_VIEW_PATH,
+          params: {
+            conversationId,
+            messageId: message.id,
+          },
+        });
+      }
     },
-    [conversationId],
+    [conversationId, onMessageClicked],
   );
 
   const renderEmptyState = useCallback(() => {
@@ -100,10 +106,17 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 
     return (
       <View className="flex-1 justify-center items-center px-8">
-        <Text className="text-center text-gray-500">Type to search for messages</Text>
+        <Text className="text-center text-gray-500">
+          Type to search for messages
+        </Text>
       </View>
     );
-  }, [inputValue.length, isLoadingSearchedMessages, searchQuery, searchedMessages.length]);
+  }, [
+    inputValue.length,
+    isLoadingSearchedMessages,
+    searchQuery,
+    searchedMessages.length,
+  ]);
 
   const handleCancel = useCallback(() => {
     debouncedSearch.cancel();
@@ -114,13 +127,12 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
   }, [debouncedSearch, conversationId]);
 
   const handleSearchQueryClear = useCallback(() => {
-    setInputValue('');
-    setSearchQuery('');
+    setInputValue("");
+    setSearchQuery("");
   }, []);
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
-      {/* Header */}
       <View className="p-4 pb-2">
         <View className="flex-row items-center justify-between mb-4">
           {PLATFORM.IS_WEB && (
@@ -131,7 +143,6 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 
           {PLATFORM.IS_WEB && <BackButton onPress={onClose} />}
 
-          {/* Mobile search bar */}
           {!PLATFORM.IS_WEB && (
             <View className="flex-row items-center flex-1 gap-2">
               <SearchBar
@@ -154,12 +165,11 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
           )}
         </View>
 
-        {/* Web search bar */}
         {PLATFORM.IS_WEB && (
           <SearchBar
             onChangeText={handleSearchInputChange}
             value={inputValue}
-            placeholder={`Search in ${conversationName || 'conversation'}`}
+            placeholder={`Search in ${conversationName || "conversation"}`}
             onClear={handleSearchQueryClear}
           />
         )}
@@ -177,7 +187,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
           <SearchedMessagesList
             messages={searchedMessages}
             searchQuery={searchQuery}
-            onMessagePress={PLATFORM.IS_WEB ? onMessageClicked : handleMessagePress}
+            onMessagePress={handleMessagePress}
           />
         ) : (
           renderEmptyState()
