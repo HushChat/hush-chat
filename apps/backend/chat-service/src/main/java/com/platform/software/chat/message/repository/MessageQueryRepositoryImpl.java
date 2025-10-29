@@ -137,7 +137,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         }
 
         if(idBasedPageRequest.getBeforeId() != null) {
-            conditions = conditions.and(message.id.lt(idBasedPageRequest.getBeforeId()));
+            conditions = conditions.and(message.id.loe(idBasedPageRequest.getBeforeId()));
         }
 
         Long total = queryFactory
