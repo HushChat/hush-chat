@@ -11,7 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("${spring.profiles.active}")
+@ActiveProfiles("ci")
 @Testcontainers
 public abstract class TestcontainerTest {
 
