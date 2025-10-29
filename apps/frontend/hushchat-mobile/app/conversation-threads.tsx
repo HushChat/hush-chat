@@ -112,7 +112,7 @@ const ConversationThreadScreen = ({
 
   useEffect(() => {
     if (messageToJump && jumpToMessage) {
-      void jumpToMessage(messageToJump + 1);
+      void jumpToMessage(messageToJump);
       onMessageJumped?.();
     }
   }, [messageToJump, jumpToMessage, onMessageJumped]);

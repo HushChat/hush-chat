@@ -85,13 +85,14 @@ export function useConversationMessagesQuery(conversationId: number) {
   const jumpToMessage = useCallback(
     async (messageId: number) => {
       const response = await getConversationMessagesByCursor(conversationId, {
-        beforeId: messageId,
+        // added +1 to include the target message itself in the fetched results window
+        beforeId: messageId + 1,
         size: PAGE_SIZE,
       });
 
       queryClient.setQueryData(queryKey, {
         pages: [response.data],
-        pageParams: [{ beforeId: messageId }],
+        pageParams: [{ beforeId: messageId + 1 }],
       });
     },
     [conversationId, queryClient, queryKey],
