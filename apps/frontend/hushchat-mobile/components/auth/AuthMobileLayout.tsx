@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
 import {
   View,
   StyleSheet,
@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   Image,
   ImageSourcePropType,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { PLATFORM } from '@/constants/platformConstants';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { PLATFORM } from "@/constants/platformConstants";
 
 type TAuthMobileLayoutProps = {
   colors: { background: string; textPrimary: string };
@@ -41,7 +41,7 @@ export default function AuthMobileLayout({
       ) : null}
 
       <KeyboardAvoidingView
-        behavior={PLATFORM.IS_IOS ? 'padding' : 'height'}
+        behavior={PLATFORM.IS_IOS ? "padding" : "height"}
         keyboardVerticalOffset={KEYBOARD_OFFSET}
         style={style.kav}
       >
@@ -59,7 +59,10 @@ export default function AuthMobileLayout({
       <View style={style.footerImageWrap}>
         <Image
           source={image}
-          style={[style.image, { height: IMAGE_HEIGHT, opacity: IMAGE_OPACITY }]}
+          style={[
+            style.image,
+            { height: IMAGE_HEIGHT, opacity: IMAGE_OPACITY },
+          ]}
         />
       </View>
     </View>
@@ -69,7 +72,7 @@ export default function AuthMobileLayout({
 const style = StyleSheet.create({
   container: { flex: 1 },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: PLATFORM.IS_IOS ? 50 : 30,
     left: 20,
     zIndex: 1000,
@@ -79,6 +82,6 @@ const style = StyleSheet.create({
   },
   kav: { flex: 1 },
   content: { flexGrow: 1, paddingHorizontal: 24 },
-  footerImageWrap: { alignItems: 'center', paddingBottom: 20 },
-  image: { width: '100%', resizeMode: 'contain' },
+  footerImageWrap: { alignItems: "center", paddingBottom: 20 },
+  image: { width: "100%", resizeMode: "contain" },
 });

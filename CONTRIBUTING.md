@@ -32,12 +32,12 @@ cd hush-chat
 
 Follow the naming convention below:
 
-| Type | Format | Example |
-|------|---------|----------|
-| Feature | `feature/<short-description>` | `feature/add-message-reactions` |
-| Bug Fix | `fix/<short-description>` | `fix/websocket-connection-error` |
-| Docs | `docs/<short-description>` | `docs/update-readme` |
-| Refactor | `refactor/<short-description>` | `refactor/cleanup-chat-service` |
+| Type     | Format                         | Example                          |
+| -------- | ------------------------------ | -------------------------------- |
+| Feature  | `feature/<short-description>`  | `feature/add-message-reactions`  |
+| Bug Fix  | `fix/<short-description>`      | `fix/websocket-connection-error` |
+| Docs     | `docs/<short-description>`     | `docs/update-readme`             |
+| Refactor | `refactor/<short-description>` | `refactor/cleanup-chat-service`  |
 
 ```bash
 git checkout -b feature/add-message-reactions
@@ -64,6 +64,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) style
 ```
 
 **Examples:**
+
 - `feat(auth): add Google login support`
 - `fix(socket): reconnect on token refresh`
 - `docs: update contributing guide`
@@ -78,10 +79,10 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) style
    ```
 2. Open a Pull Request to the `main` branch of [HushChat/hush-chat](https://github.com/HushChat/hush-chat)
 3. Fill out the PR template:
-    - What you changed
-    - Why you changed it
-    - Screenshots (if applicable)
-    - Linked issue (if any)
+   - What you changed
+   - Why you changed it
+   - Screenshots (if applicable)
+   - Linked issue (if any)
 
 > All PRs require at least **one review** before merging.
 

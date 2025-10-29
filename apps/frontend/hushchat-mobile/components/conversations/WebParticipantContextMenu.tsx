@@ -1,8 +1,12 @@
-import React, { useMemo, useCallback } from 'react';
-import { chatUserRole, ConversationParticipant, IOption } from '@/types/chat/types';
-import { TITLES } from '@/constants/constants';
-import { ToastUtils } from '@/utils/toastUtils';
-import WebChatContextMenu from '@/components/WebContextMenu';
+import React, { useMemo, useCallback } from "react";
+import {
+  chatUserRole,
+  ConversationParticipant,
+  IOption,
+} from "@/types/chat/types";
+import { TITLES } from "@/constants/constants";
+import { ToastUtils } from "@/utils/toastUtils";
+import WebChatContextMenu from "@/components/WebContextMenu";
 
 interface WebParticipantContextMenuProps {
   visible: boolean;
@@ -28,7 +32,7 @@ const WebParticipantContextMenu = ({
       try {
         await action();
       } catch (error) {
-        ToastUtils.error('Error executing action: ' + error);
+        ToastUtils.error("Error executing action: " + error);
       } finally {
         onClose();
       }
@@ -41,22 +45,32 @@ const WebParticipantContextMenu = ({
       {
         id: 1,
         name: TITLES.TOGGLE_ROLE(participant.role),
-        iconName: 'shield-checkmark-outline',
-        action: () => handleToggleAdmin(participant.id, participant.role !== chatUserRole.ADMIN),
+        iconName: "shield-checkmark-outline",
+        action: () =>
+          handleToggleAdmin(
+            participant.id,
+            participant.role !== chatUserRole.ADMIN,
+          ),
       },
       ...(!isCurrentUser
         ? ([
             {
               id: 2,
               name: TITLES.REMOVE_PARTICIPANT,
-              iconName: 'person-remove-outline',
+              iconName: "person-remove-outline",
               action: () => handleRemoveParticipant(participant.id),
               critical: true,
             },
           ] as IOption[])
         : []),
     ],
-    [handleRemoveParticipant, handleToggleAdmin, isCurrentUser, participant.id, participant.role],
+    [
+      handleRemoveParticipant,
+      handleToggleAdmin,
+      isCurrentUser,
+      participant.id,
+      participant.role,
+    ],
   );
 
   return (

@@ -1,6 +1,6 @@
-import { getUserInfo } from '@/apis/user';
-import { IUser } from '@/types/user/types';
-import { StateCreator } from 'zustand';
+import { getUserInfo } from "@/apis/user";
+import { IUser } from "@/types/user/types";
+import { StateCreator } from "zustand";
 
 export interface UserState {
   user: IUser;
@@ -14,11 +14,11 @@ export interface UserState {
 }
 
 const initialUserState: IUser = {
-  id: '',
-  email: '',
-  firstName: '',
-  lastName: '',
-  signedImageUrl: '',
+  id: "",
+  email: "",
+  firstName: "",
+  lastName: "",
+  signedImageUrl: "",
   active: false,
 };
 
@@ -53,7 +53,7 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
 
       if (!response.data) {
         set({
-          error: 'Invalid user data received',
+          error: "Invalid user data received",
           loading: false,
           isAuthenticatedAndDataFetched: false,
         });
@@ -66,8 +66,9 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
         isAuthenticatedAndDataFetched: true,
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user data';
-      console.error('Error fetching user data:', errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to fetch user data";
+      console.error("Error fetching user data:", errorMessage);
       set({
         error: errorMessage,
         loading: false,

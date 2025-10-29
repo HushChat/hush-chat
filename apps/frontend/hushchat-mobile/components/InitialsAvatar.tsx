@@ -1,13 +1,13 @@
-import { View } from 'react-native';
-import React from 'react';
-import { Image } from 'expo-image';
-import { getInitials } from '@/utils/commonUtils';
-import { AppText } from '@/components/AppText';
+import { View } from "react-native";
+import React from "react";
+import { Image } from "expo-image";
+import { getInitials } from "@/utils/commonUtils";
+import { AppText } from "@/components/AppText";
 
 export const AvatarSize = {
-  small: 'sm',
-  medium: 'md',
-  large: 'lg',
+  small: "sm",
+  medium: "md",
+  large: "lg",
 } as const;
 
 type AvatarSizeType = (typeof AvatarSize)[keyof typeof AvatarSize];
@@ -18,13 +18,18 @@ interface InitialsAvatarProps {
   imageUrl?: string | null;
 }
 
-const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> = {
-  sm: { container: 'w-10 h-10', text: 'text-base' },
-  md: { container: 'w-12 h-12', text: 'text-lg' },
-  lg: { container: 'w-40 h-40', text: 'text-6xl' },
-};
+const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> =
+  {
+    sm: { container: "w-10 h-10", text: "text-base" },
+    md: { container: "w-12 h-12", text: "text-lg" },
+    lg: { container: "w-40 h-40", text: "text-6xl" },
+  };
 
-const InitialsAvatar = ({ name, size = AvatarSize.medium, imageUrl }: InitialsAvatarProps) => {
+const InitialsAvatar = ({
+  name,
+  size = AvatarSize.medium,
+  imageUrl,
+}: InitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
 
   return (
@@ -34,12 +39,15 @@ const InitialsAvatar = ({ name, size = AvatarSize.medium, imageUrl }: InitialsAv
       {imageUrl ? (
         <Image
           source={{ uri: imageUrl }}
-          style={{ width: '100%', height: '100%', borderRadius: 150 }}
+          style={{ width: "100%", height: "100%", borderRadius: 150 }}
           contentFit="cover"
           cachePolicy="memory-disk"
         />
       ) : (
-        <AppText className={`font-medium text-center ${text}`} style={{ color: '#FFFFFF' }}>
+        <AppText
+          className={`font-medium text-center ${text}`}
+          style={{ color: "#FFFFFF" }}
+        >
           {getInitials(name)}
         </AppText>
       )}

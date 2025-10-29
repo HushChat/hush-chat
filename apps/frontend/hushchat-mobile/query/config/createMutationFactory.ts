@@ -1,10 +1,12 @@
-import { ApiResponse } from '@/types/common/types';
-import { useGenericMutation } from '@/query/config/useGenericMutation';
+import { ApiResponse } from "@/types/common/types";
+import { useGenericMutation } from "@/query/config/useGenericMutation";
 
 // Overload for void methods (no return data)
 export function createMutationHook<TVariables>(
   mutationFn: (variables: TVariables) => Promise<void>,
-  invalidationKeyBuilder?: (keyParams: any) => (variables?: TVariables, data?: never) => string[][],
+  invalidationKeyBuilder?: (
+    keyParams: any,
+  ) => (variables?: TVariables, data?: never) => string[][],
   defaultInvalidateKeys?: string[][],
 ): (
   keyParams?: any,
@@ -16,7 +18,9 @@ export function createMutationHook<TVariables>(
 // Overload for methods that return data
 export function createMutationHook<TData, TVariables>(
   mutationFn: (variables: TVariables) => Promise<ApiResponse<TData>>,
-  invalidationKeyBuilder?: (keyParams: any) => (variables: TVariables, data?: TData) => string[][],
+  invalidationKeyBuilder?: (
+    keyParams: any,
+  ) => (variables: TVariables, data?: TData) => string[][],
   defaultInvalidateKeys?: string[][],
 ): (
   keyParams?: any,
@@ -28,7 +32,9 @@ export function createMutationHook<TData, TVariables>(
 // Implementation
 export function createMutationHook<TData, TVariables>(
   mutationFn: (variables: TVariables) => Promise<ApiResponse<TData> | void>,
-  invalidationKeyBuilder?: (keyParams: any) => (variables: TVariables, data?: TData) => string[][],
+  invalidationKeyBuilder?: (
+    keyParams: any,
+  ) => (variables: TVariables, data?: TData) => string[][],
   defaultInvalidateKeys: string[][] = [],
 ) {
   return (
@@ -38,12 +44,17 @@ export function createMutationHook<TData, TVariables>(
     additionalInvalidateKeys?: string[][],
   ) => {
     const invalidateKeyComputer =
-      invalidationKeyBuilder && keyParams ? invalidationKeyBuilder(keyParams) : undefined;
+      invalidationKeyBuilder && keyParams
+        ? invalidationKeyBuilder(keyParams)
+        : undefined;
 
     return useGenericMutation(
       mutationFn as (variables: TVariables) => Promise<ApiResponse<TData>>,
       {
-        invalidateKeys: [...defaultInvalidateKeys, ...(additionalInvalidateKeys || [])],
+        invalidateKeys: [
+          ...defaultInvalidateKeys,
+          ...(additionalInvalidateKeys || []),
+        ],
         invalidateKeyComputer,
         onSuccess: onSuccess as (data?: TData) => void,
         onError,

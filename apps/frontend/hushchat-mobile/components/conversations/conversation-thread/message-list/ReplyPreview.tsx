@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { IMessage } from '@/types/chat/types';
-import { AppText } from '@/components/AppText';
+import React from "react";
+import { View, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { IMessage } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
 
 interface ReplyPreviewProps {
   replyToMessage: IMessage;
@@ -10,12 +10,12 @@ interface ReplyPreviewProps {
 }
 
 const ReplyPreview = ({ replyToMessage, onCancelReply }: ReplyPreviewProps) => {
-  let previewText = '';
+  let previewText = "";
 
   if (replyToMessage.messageText?.trim()) {
     previewText = replyToMessage.messageText;
   } else if (replyToMessage.messageAttachments?.length) {
-    previewText = 'Replying to an attachment';
+    previewText = "Replying to an attachment";
   }
 
   return (

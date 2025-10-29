@@ -1,9 +1,12 @@
-import { PaginatedQueryResult, usePaginatedQuery } from '@/query/usePaginatedQuery';
-import { TUser } from '@/types/user/types';
-import { getAllUsers } from '@/apis/user';
+import {
+  PaginatedQueryResult,
+  usePaginatedQuery,
+} from "@/query/usePaginatedQuery";
+import { TUser } from "@/types/user/types";
+import { getAllUsers } from "@/apis/user";
 
 type TUseGetAllUsersQueryResult = {
-  usersPages: PaginatedQueryResult<TUser>['pages'];
+  usersPages: PaginatedQueryResult<TUser>["pages"];
   isLoadingUsers: boolean;
   usersError: Error | null;
   fetchNextPage: () => Promise<unknown>;
@@ -14,7 +17,7 @@ type TUseGetAllUsersQueryResult = {
 };
 
 export const useGetAllUsersQuery = (
-  keyword: string = '',
+  keyword: string = "",
   excludeUsersInConversationId?: number,
 ): TUseGetAllUsersQueryResult => {
   const {
@@ -27,7 +30,7 @@ export const useGetAllUsersQuery = (
     invalidateQuery,
     refetch,
   } = usePaginatedQuery<TUser>({
-    queryKey: ['users', keyword],
+    queryKey: ["users", keyword],
     queryFn: (pageParam: number) =>
       getAllUsers(keyword, excludeUsersInConversationId, pageParam, 10),
     initialPageParam: 0,

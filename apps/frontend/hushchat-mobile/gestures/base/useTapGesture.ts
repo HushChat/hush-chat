@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import { Gesture } from 'react-native-gesture-handler';
-import { bindExclusivity } from './helpers';
-import { ExternalGestures } from '@/types/gestures/types';
+import { useMemo } from "react";
+import { Gesture } from "react-native-gesture-handler";
+import { bindExclusivity } from "./helpers";
+import { ExternalGestures } from "@/types/gestures/types";
 
 type TTapGestureProps = {
   enabled?: boolean;

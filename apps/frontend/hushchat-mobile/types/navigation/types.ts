@@ -1,5 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Href } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons";
+import { Href } from "expo-router";
 interface INavigationItem {
   key: number;
   name: string;

@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { MultiSelectList } from '@/components/MultiSelectList';
-import { SelectedChip } from '@/components/SelectedChip';
-import { SelectableListItem } from '@/components/SelectableListItem';
-import { useConversationsQuery } from '@/query/useConversationsQuery';
-import useGlobalSearchQuery from '@/query/useGlobalSearchQuery';
-import { PaginatedResponse } from '@/types/common/types';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { getCriteria } from '@/utils/conversationUtils';
-import { ISearchResults, IConversation } from '@/types/chat/types';
-import { TUser } from '@/types/user/types';
-import useDebounce from '@/hooks/useDebounce';
+import React, { useState } from "react";
+import { MultiSelectList } from "@/components/MultiSelectList";
+import { SelectedChip } from "@/components/SelectedChip";
+import { SelectableListItem } from "@/components/SelectableListItem";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
+import useGlobalSearchQuery from "@/query/useGlobalSearchQuery";
+import { PaginatedResponse } from "@/types/common/types";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { getCriteria } from "@/utils/conversationUtils";
+import { ISearchResults, IConversation } from "@/types/chat/types";
+import { TUser } from "@/types/user/types";
+import useDebounce from "@/hooks/useDebounce";
 
 export type TConversation = IConversation | TUser;
 
@@ -22,26 +22,29 @@ export interface ConversationsMultiSelectProps {
 const SEARCH_DEBOUNCE_MS = 500;
 
 const getDisplayName = (conversation: TConversation) => {
-  if ('name' in conversation) {
-    return (conversation.name ?? '').trim() || 'Untitled Conversation';
+  if ("name" in conversation) {
+    return (conversation.name ?? "").trim() || "Untitled Conversation";
   }
-  if ('username' in conversation) {
-    return `${conversation.firstName} ${conversation.lastName}`.trim() || 'Unknown User';
+  if ("username" in conversation) {
+    return (
+      `${conversation.firstName} ${conversation.lastName}`.trim() ||
+      "Unknown User"
+    );
   }
-  return 'Unknown';
+  return "Unknown";
 };
 
 const getSubText = (conversation: TConversation) => {
-  if ('email' in conversation) return conversation.email ?? '';
-  return '';
+  if ("email" in conversation) return conversation.email ?? "";
+  return "";
 };
 
 export const ConversationsMultiSelect = ({
   selectedConversations,
   onChange,
-  searchPlaceholder = 'Search conversations...',
+  searchPlaceholder = "Search conversations...",
 }: ConversationsMultiSelectProps) => {
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS).trim();
 
   const { selectedConversationType } = useConversationStore();
@@ -70,7 +73,9 @@ export const ConversationsMultiSelect = ({
       queryResult={{
         pages: debouncedSearch ? searchResults : conversationsPages,
         isLoading: debouncedSearch ? isSearching : isLoadingConversations,
-        error: debouncedSearch ? (searchError ?? null) : (conversationsError ?? null),
+        error: debouncedSearch
+          ? (searchError ?? null)
+          : (conversationsError ?? null),
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
@@ -81,11 +86,14 @@ export const ConversationsMultiSelect = ({
         if (!dataPages) return [];
 
         if (debouncedSearch) {
-          const { chats = [], users = [] } = (dataPages as ISearchResults) ?? {};
+          const { chats = [], users = [] } =
+            (dataPages as ISearchResults) ?? {};
           return [...chats, ...users];
         }
 
-        const pages = (dataPages as { pages?: PaginatedResponse<IConversation>[] })?.pages ?? [];
+        const pages =
+          (dataPages as { pages?: PaginatedResponse<IConversation>[] })
+            ?.pages ?? [];
         return pages.flatMap((page) => page?.content ?? []);
       }}
       renderItemRow={(conversation, isSelected, toggle) => (

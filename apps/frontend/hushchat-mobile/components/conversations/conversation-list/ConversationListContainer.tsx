@@ -1,16 +1,16 @@
-import { useCallback } from 'react';
-import { ISearchResults, IConversation } from '@/types/chat/types';
-import { ToastUtils } from '@/utils/toastUtils';
-import { useModalContext } from '@/context/modal-context';
-import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from '@/components/Modal';
-import SearchedConversationListView from './SearchedConversationListView';
-import RegularConversationListView from './RegularConversationListView';
-import { useDeleteConversationByIdMutation } from '@/query/delete/queries';
-import { useArchiveConversationMutation } from '@/query/patch/queries';
-import { useUserStore } from '@/store/user/useUserStore';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { getCriteria } from '@/utils/conversationUtils';
-import { getAPIErrorMsg } from '@/utils/commonUtils';
+import { useCallback } from "react";
+import { ISearchResults, IConversation } from "@/types/chat/types";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useModalContext } from "@/context/modal-context";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import SearchedConversationListView from "./SearchedConversationListView";
+import RegularConversationListView from "./RegularConversationListView";
+import { useDeleteConversationByIdMutation } from "@/query/delete/queries";
+import { useArchiveConversationMutation } from "@/query/patch/queries";
+import { useUserStore } from "@/store/user/useUserStore";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { getCriteria } from "@/utils/conversationUtils";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
 
 export interface ConversationListContainerProps {
   conversations: IConversation[];
@@ -42,7 +42,7 @@ export default function ConversationListContainer({
   searchedConversationsResult,
   isSearchingConversations,
   errorWhileSearchingConversation,
-  searchQuery = '',
+  searchQuery = "",
   refetchSearchResults,
 }: ConversationListContainerProps) {
   const { openModal, closeModal } = useModalContext();
@@ -58,7 +58,7 @@ export default function ConversationListContainer({
       criteria,
     },
     () => {
-      ToastUtils.success('Conversation deleted successfully!');
+      ToastUtils.success("Conversation deleted successfully!");
       closeModal();
     },
     (error) => {
@@ -92,12 +92,12 @@ export default function ConversationListContainer({
     (conversationId: number) => {
       openModal({
         type: MODAL_TYPES.confirm,
-        title: 'Delete Conversation?',
-        description: 'Are you sure you want to delete this conversation?',
+        title: "Delete Conversation?",
+        description: "Are you sure you want to delete this conversation?",
         buttons: [
-          { text: 'Cancel', onPress: closeModal },
+          { text: "Cancel", onPress: closeModal },
           {
-            text: 'Delete',
+            text: "Delete",
             onPress: () => {
               deleteConversation.mutate(conversationId, {
                 onSuccess: () => {
@@ -110,10 +110,16 @@ export default function ConversationListContainer({
             variant: MODAL_BUTTON_VARIANTS.destructive,
           },
         ],
-        icon: 'trash-bin',
+        icon: "trash-bin",
       });
     },
-    [openModal, closeModal, deleteConversation, selectedConversation?.id, setSelectedConversation],
+    [
+      openModal,
+      closeModal,
+      deleteConversation,
+      selectedConversation?.id,
+      setSelectedConversation,
+    ],
   );
 
   const isSearchActive = searchQuery && searchQuery.length > 0;

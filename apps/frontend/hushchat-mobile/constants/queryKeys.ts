@@ -1,18 +1,18 @@
-import type { ConversationFilterCriteria } from '@/apis/conversation';
+import type { ConversationFilterCriteria } from "@/apis/conversation";
 
-const CALL_LOGS = 'call-logs';
-const GROUP_INFO = 'group-info';
+const CALL_LOGS = "call-logs";
+const GROUP_INFO = "group-info";
 
-const CONVERSATION_QUERY_BASE_KEY = 'conversations';
-const CONVERSATION_MESSAGE_QUERY_BASE_KEY = 'conversation-messages';
-const MESSAGE_REACTION_QUERY_BASE_KEY = 'message-reactions';
-const USER_QUERY_BASE_KEY = 'users';
+const CONVERSATION_QUERY_BASE_KEY = "conversations";
+const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
+const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
+const USER_QUERY_BASE_KEY = "users";
 
 export const conversationQueryKeys = {
   metaDataById: (userId: number, conversationId: number) => [
     CONVERSATION_QUERY_BASE_KEY,
     conversationId,
-    'meta',
+    "meta",
     userId,
   ],
 
@@ -25,7 +25,7 @@ export const conversationQueryKeys = {
   participantProfileInfo: (userId: number, conversationId: number) => [
     CONVERSATION_QUERY_BASE_KEY,
     conversationId,
-    'profile',
+    "profile",
     userId,
   ],
 
@@ -56,7 +56,10 @@ export const conversationMessageQueryKeys = {
     userId,
   ],
 
-  messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
+  messageReactions: (messageId: number) => [
+    MESSAGE_REACTION_QUERY_BASE_KEY,
+    messageId,
+  ],
 };
 
 export const userQueryKeys = {

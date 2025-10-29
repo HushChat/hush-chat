@@ -1,11 +1,11 @@
-import { StorageProvider } from './storageProvider';
-import { SecureStorageProvider } from './secureStorageProvider';
-import { AsyncStorageProvider } from './asyncStorageProvider';
-import { PLATFORM } from '@/constants/platformConstants';
+import { StorageProvider } from "./storageProvider";
+import { SecureStorageProvider } from "./secureStorageProvider";
+import { AsyncStorageProvider } from "./asyncStorageProvider";
+import { PLATFORM } from "@/constants/platformConstants";
 
 export enum StorageType {
-  SECURE = 'secure', // Mobile secure storage
-  ASYNC = 'async', // Mobile AsyncStorage
+  SECURE = "secure", // Mobile secure storage
+  ASYNC = "async", // Mobile AsyncStorage
 }
 
 export class StorageFactory {
@@ -17,7 +17,7 @@ export class StorageFactory {
         case StorageType.ASYNC:
           return new AsyncStorageProvider();
         default:
-          throw new Error('Invalid storage type');
+          throw new Error("Invalid storage type");
       }
     }
 

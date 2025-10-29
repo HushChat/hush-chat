@@ -1,4 +1,3 @@
-
 services:
   backend:
     build: apps/backend/chat-service

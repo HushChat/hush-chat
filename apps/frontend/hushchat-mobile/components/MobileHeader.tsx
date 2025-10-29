@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BackButton from './BackButton';
+import { View, Text, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BackButton from "./BackButton";
 
 type RightAction = {
   label: string;
@@ -14,7 +14,11 @@ type MobileHeaderProps = {
   rightAction?: RightAction;
 };
 
-export default function MobileHeader({ title, onBack, rightAction }: MobileHeaderProps) {
+export default function MobileHeader({
+  title,
+  onBack,
+  rightAction,
+}: MobileHeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -26,7 +30,9 @@ export default function MobileHeader({ title, onBack, rightAction }: MobileHeade
         {/* Left side */}
         <View className="flex-row items-center">
           <BackButton onPress={onBack} />
-          <Text className="ml-3 text-xl font-bold text-gray-900 dark:text-white">{title}</Text>
+          <Text className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
+            {title}
+          </Text>
         </View>
 
         {/* Right side (optional) */}
@@ -37,13 +43,15 @@ export default function MobileHeader({ title, onBack, rightAction }: MobileHeade
               disabled={rightAction.disabled}
               className={`px-4 py-2 rounded-lg ${
                 rightAction.disabled
-                  ? 'bg-gray-300 dark:bg-gray-600'
-                  : 'bg-primary-light dark:bg-primary-dark'
+                  ? "bg-gray-300 dark:bg-gray-600"
+                  : "bg-primary-light dark:bg-primary-dark"
               }`}
             >
               <Text
                 className={`font-medium ${
-                  rightAction.disabled ? 'text-gray-500 dark:text-gray-400' : 'text-white'
+                  rightAction.disabled
+                    ? "text-gray-500 dark:text-gray-400"
+                    : "text-white"
                 }`}
               >
                 {rightAction.label}

@@ -1,5 +1,5 @@
-import { useAuthThemeColors } from '@/hooks/useAuthThemeColors';
-import { IRegisterUser } from '@/types/user/types';
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
+import { IRegisterUser } from "@/types/user/types";
 
 export interface AuthColors {
   background: string;
@@ -15,7 +15,7 @@ export interface AuthColors {
 }
 
 export type TLoginFormProps = {
-  colors: ReturnType<typeof useAuthThemeColors>['colors'];
+  colors: ReturnType<typeof useAuthThemeColors>["colors"];
   errorMessage: string;
   onSubmit: () => void;
   formValues: { email: string; password: string };
@@ -46,7 +46,7 @@ export type TRegisterFormProps = {
 };
 
 export type TForgotPasswordFormProps = {
-  colors: ReturnType<typeof useAuthThemeColors>['colors'];
+  colors: ReturnType<typeof useAuthThemeColors>["colors"];
   errorMessage?: string | null;
   successMessage?: string | null;
   onSubmit: () => void;
@@ -58,7 +58,7 @@ export type TForgotPasswordFormProps = {
 };
 
 export type TForgotPasswordResetFormProps = {
-  colors: ReturnType<typeof useAuthThemeColors>['colors'];
+  colors: ReturnType<typeof useAuthThemeColors>["colors"];
   errorMessage?: string | null;
   successMessage?: string | null;
   formValues: Record<string, string | null>;

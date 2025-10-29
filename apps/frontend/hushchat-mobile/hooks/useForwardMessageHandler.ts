@@ -1,17 +1,23 @@
-import { useMemo, useState } from 'react';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { useForwardMessageMutation } from '@/query/patch/queries';
-import { ToastUtils } from '@/utils/toastUtils';
-import { TConversation } from '@/components/ConversationsMultiSelect';
-import { EMPTY_SET } from '@/constants/constants';
-import { useUserStore } from '@/store/user/useUserStore';
-import { getCriteria } from '@/utils/conversationUtils';
+import { useMemo, useState } from "react";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { useForwardMessageMutation } from "@/query/patch/queries";
+import { ToastUtils } from "@/utils/toastUtils";
+import { TConversation } from "@/components/ConversationsMultiSelect";
+import { EMPTY_SET } from "@/constants/constants";
+import { useUserStore } from "@/store/user/useUserStore";
+import { getCriteria } from "@/utils/conversationUtils";
 
 export const useForwardMessageHandler = (onSuccess?: () => void) => {
-  const { selectedMessageIds, setSelectionMode, setSelectedMessageIds, selectedConversationType } =
-    useConversationStore();
-  const [selectedConversations, setSelectedConversations] = useState<TConversation[]>([]);
-  const [customText, setCustomText] = useState<string>('');
+  const {
+    selectedMessageIds,
+    setSelectionMode,
+    setSelectedMessageIds,
+    selectedConversationType,
+  } = useConversationStore();
+  const [selectedConversations, setSelectedConversations] = useState<
+    TConversation[]
+  >([]);
+  const [customText, setCustomText] = useState<string>("");
   const {
     user: { id: userId },
   } = useUserStore();
@@ -34,14 +40,18 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
       onSuccess?.();
     },
     () => {
-      ToastUtils.error(`Failed to forward message${selectedCount > 1 ? 's' : ''}`);
+      ToastUtils.error(
+        `Failed to forward message${selectedCount > 1 ? "s" : ""}`,
+      );
     },
   );
 
   const handleSend = () => {
     forwardMessage({
       forwardedMessageIds: Array.from(selectedMessageIds),
-      conversationIds: selectedConversations.map((conversation) => Number(conversation.id)),
+      conversationIds: selectedConversations.map((conversation) =>
+        Number(conversation.id),
+      ),
       customText: customText,
     });
   };

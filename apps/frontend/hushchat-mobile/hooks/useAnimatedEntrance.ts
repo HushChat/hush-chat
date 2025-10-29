@@ -1,5 +1,5 @@
-import { useSharedValue, withTiming, Easing } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
+import { useSharedValue, withTiming, Easing } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 interface UseAnimatedEntranceOptions {
   slideFromY?: number;

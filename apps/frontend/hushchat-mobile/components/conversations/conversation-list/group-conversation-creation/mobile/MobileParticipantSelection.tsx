@@ -1,10 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import BackButton from '@/components/BackButton';
-import { TUser } from '@/types/user/types';
-import { UserMultiSelectList } from '@/components/UserMultiSelect';
+import React, { useCallback, useState } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import BackButton from "@/components/BackButton";
+import { TUser } from "@/types/user/types";
+import { UserMultiSelectList } from "@/components/UserMultiSelect";
 
 export default function MobileParticipantSelection() {
   const insets = useSafeAreaInsets();
@@ -13,7 +13,7 @@ export default function MobileParticipantSelection() {
   const goToGroupConfiguration = useCallback(() => {
     const ids = selectedUsers.map((u) => u.id);
     router.push({
-      pathname: '/group-conversation/configure',
+      pathname: "/group-conversation/configure",
       params: { userIds: JSON.stringify(ids) },
     });
   }, [selectedUsers]);
@@ -36,14 +36,16 @@ export default function MobileParticipantSelection() {
               onPress={goToGroupConfiguration}
               className={`px-4 py-2 rounded-lg ${
                 selectedUsers.length > 0
-                  ? 'bg-primary-light dark:bg-primary-dark'
-                  : 'bg-gray-300 dark:bg-gray-600'
+                  ? "bg-primary-light dark:bg-primary-dark"
+                  : "bg-gray-300 dark:bg-gray-600"
               }`}
               disabled={selectedUsers.length === 0}
             >
               <Text
                 className={`font-medium ${
-                  selectedUsers.length > 0 ? 'text-white' : 'text-gray-500 dark:text-gray-400'
+                  selectedUsers.length > 0
+                    ? "text-white"
+                    : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 Continue
@@ -53,7 +55,10 @@ export default function MobileParticipantSelection() {
         </View>
       </View>
 
-      <UserMultiSelectList selectedUsers={selectedUsers} onChange={setSelectedUsers} />
+      <UserMultiSelectList
+        selectedUsers={selectedUsers}
+        onChange={setSelectedUsers}
+      />
     </View>
   );
 }
