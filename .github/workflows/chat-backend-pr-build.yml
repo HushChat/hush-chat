@@ -64,5 +64,5 @@ jobs:
 
       - name: Build chat service
         run: |
-          mvn -f apps/backend/chat-service/pom.xml clean install
-          mvn -f apps/backend/chat-service/pom.xml jacoco:report
+          mvn -f apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=${TEST_ACTIVE_SPRING_PROFILES}
+          mvn -f apps/backend/chat-service/pom.xml jacoco:report -Dspring.profiles.active=${TEST_ACTIVE_SPRING_PROFILES}
