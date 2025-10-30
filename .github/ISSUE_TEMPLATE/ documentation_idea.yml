@@ -1,0 +1,60 @@
+name: "Documentation Feedback"
+description: "Share suggestions or ideas to improve our documentation quality and clarity."
+title: "[Docs]: "
+labels: ["documentation", "enhancement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Thank you for helping us improve our documentation!**  
+        Please provide as much detail as possible so we can understand and address your suggestion effectively.
+
+  - type: input
+    id: title
+    attributes:
+      label: "Summary of your suggestion"
+      description: "Give a short summary of what you’d like to see improved or added."
+      placeholder: "Example: Add more examples to the API Reference section"
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: "Describe your idea or suggestion"
+      description: "Explain the improvement or addition you'd like to see in the documentation."
+      placeholder: "Provide context, examples, or relevant links here..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: docs_area
+    attributes:
+      label: "Which part of the documentation does this relate to?"
+      options:
+        - Getting Started
+        - API Reference
+        - Configuration Guide
+        - Deployment / Installation
+        - Troubleshooting
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem_context
+    attributes:
+      label: "What problem does this improvement solve?"
+      description: "If your suggestion is part of a broader documentation issue, describe it here."
+      placeholder: "Example: Several users found the setup steps confusing"
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: "Before submitting"
+      options:
+        - label: "I’ve checked existing issues to avoid duplicates"
+          required: true
+        - label: "I’ve included enough context for maintainers to understand my suggestion"
+          required: true
