@@ -41,6 +41,13 @@
 **Hush Chat** is a lightweight, open-source chat application built with modern technologies.  
 It’s designed to be fast, easy to deploy, and fully self-hostable — giving you full control over your data and the flexibility to adapt it to your needs.
 
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+
+  <img src="https://gethush.chat/wp-content/uploads/2025/10/hero-screen.1.png" alt="HushChat Logo" style="width: 33%;" />
+  <img src="https://gethush.chat/wp-content/uploads/2025/10/johnfernando-1.png" alt="HushChat Logo" style="width: 33%;" />
+  <img src="https://gethush.chat/wp-content/uploads/2025/10/hero-screen.3.png" alt="HushChat Logo" style="width: 33%;" />
+</div>
+
 ---
 
 ## 🚀 Overview
