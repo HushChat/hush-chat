@@ -1,13 +1,18 @@
-import { TabLayoutProps } from '@/types/navigation/types';
-import { Tabs } from 'expo-router';
-import MobileNavigationInterface from '@/components/tab-layouts/navigations/MobileNavigationInterface';
+import { TabLayoutProps } from "@/types/navigation/types";
+import { Tabs } from "expo-router";
+import MobileNavigationInterface from "@/components/tab-layouts/navigations/MobileNavigationInterface";
 
 const MobileTabLayout = (tabLayoutProps: TabLayoutProps) => {
   const { navigationItems } = tabLayoutProps;
 
   return (
     <Tabs
-      tabBar={(props) => <MobileNavigationInterface navigationItems={navigationItems} {...props} />}
+      tabBar={(props) => (
+        <MobileNavigationInterface
+          navigationItems={navigationItems}
+          {...props}
+        />
+      )}
       screenOptions={{
         headerShown: false,
       }}

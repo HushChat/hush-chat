@@ -4,13 +4,16 @@ import {
   ErrorMessage,
   LinkText,
   FormContainer,
-} from '@/components/FormComponents';
-import { memo } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { router } from 'expo-router';
-import { AUTH_FORGOT_PASSWORD_PATH, AUTH_REGISTER_PATH } from '@/constants/routes';
-import { TLoginFormProps } from '@/types/login/types';
-import TextField from '@/components/forms/TextField';
+} from "@/components/FormComponents";
+import { memo } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import { router } from "expo-router";
+import {
+  AUTH_FORGOT_PASSWORD_PATH,
+  AUTH_REGISTER_PATH,
+} from "@/constants/routes";
+import { TLoginFormProps } from "@/types/login/types";
+import TextField from "@/components/forms/TextField";
 
 export const LoginForm = memo(
   ({
@@ -29,7 +32,9 @@ export const LoginForm = memo(
         colors={colors}
       />
 
-      {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
+      {!!errorMessage && (
+        <ErrorMessage message={errorMessage} colors={colors} />
+      )}
 
       <View className="mb-7">
         <View className="flex-col gap-3">
@@ -58,7 +63,10 @@ export const LoginForm = memo(
           className="self-end pt-2 mb-5"
           onPress={() => router.push(AUTH_FORGOT_PASSWORD_PATH)}
         >
-          <Text className="text-[15px] font-bold" style={{ color: colors.primary }}>
+          <Text
+            className="text-[15px] font-bold"
+            style={{ color: colors.primary }}
+          >
             Forgot Password?
           </Text>
         </TouchableOpacity>
@@ -75,4 +83,4 @@ export const LoginForm = memo(
     </FormContainer>
   ),
 );
-LoginForm.displayName = 'LoginForm';
+LoginForm.displayName = "LoginForm";

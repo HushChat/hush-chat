@@ -4,14 +4,14 @@
  * Web container for the Calls screen.
  */
 
-import { CallLogComponentProps } from '@/types/call/types';
-import React from 'react';
-import { View } from 'react-native';
-import FilterButton from '@/components/FilterButton';
-import RefreshButton from '@/components/RefreshButton';
-import Placeholder from '@/components/Placeholder';
-import { Images } from '@/assets/images';
-import { AppText } from '@/components/AppText';
+import { CallLogComponentProps } from "@/types/call/types";
+import React from "react";
+import { View } from "react-native";
+import FilterButton from "@/components/FilterButton";
+import RefreshButton from "@/components/RefreshButton";
+import Placeholder from "@/components/Placeholder";
+import { Images } from "@/assets/images";
+import { AppText } from "@/components/AppText";
 
 function CallComponentPlaceHolder() {
   return (
@@ -37,14 +37,21 @@ const CallInterface = ({
             <AppText className="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
               Calls
             </AppText>
-            <RefreshButton onRefresh={refetchCallLogs} isLoading={isCallLogsLoading} />
+            <RefreshButton
+              onRefresh={refetchCallLogs}
+              isLoading={isCallLogsLoading}
+            />
           </View>
 
           <View className="px-6 py-3">
             <View className="flex-row flex-wrap gap-2">
               <View className="flex-row space-x-2">
                 {filters.map((filter, index) => (
-                  <FilterButton key={index} label={filter.title} isActive={filter.isActive} />
+                  <FilterButton
+                    key={index}
+                    label={filter.title}
+                    isActive={filter.isActive}
+                  />
                 ))}
               </View>
             </View>

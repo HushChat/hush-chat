@@ -1,19 +1,19 @@
-import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   useSharedValue,
   withTiming,
   withDelay,
   useAnimatedStyle,
   Easing,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import { UserMultiSelectList } from '@/components/UserMultiSelect';
-import React, { useEffect, useState } from 'react';
-import { TUser } from '@/types/user/types';
-import { useCreateAddParticipantsMutation } from '@/query/post/queries';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import { ToastUtils } from '@/utils/toastUtils';
-import { getAPIErrorMsg } from '@/utils/commonUtils';
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { UserMultiSelectList } from "@/components/UserMultiSelect";
+import React, { useEffect, useState } from "react";
+import { TUser } from "@/types/user/types";
+import { useCreateAddParticipantsMutation } from "@/query/post/queries";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { ToastUtils } from "@/utils/toastUtils";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
 
 interface AddParticipantsProps {
   conversationId: number;
@@ -26,14 +26,14 @@ export default function AddMoreGroupParticipants({
   onClose,
   visible,
 }: AddParticipantsProps) {
-  const screenWidth = Dimensions.get('window').width;
+  const screenWidth = Dimensions.get("window").width;
   const translateX = useSharedValue(screenWidth);
   const opacity = useSharedValue(0);
 
   const [selectedUsers, setSelectedUsers] = useState<TUser[]>([]);
 
   const { mutate: addParticipants } = useCreateAddParticipantsMutation(
-    { conversationId: conversationId, keyword: '' },
+    { conversationId: conversationId, keyword: "" },
     () => {
       onClose();
     },
@@ -80,10 +80,10 @@ export default function AddMoreGroupParticipants({
 
   return (
     <Animated.View
-      pointerEvents={visible ? 'auto' : 'none'}
+      pointerEvents={visible ? "auto" : "none"}
       style={[
         {
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           bottom: 0,
           left: 0,
@@ -99,7 +99,7 @@ export default function AddMoreGroupParticipants({
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
           <Text className="text-xl font-semibold text-gray-900 dark:text-white">
-            {'Add Participants'}
+            {"Add Participants"}
           </Text>
         </View>
 
@@ -108,14 +108,16 @@ export default function AddMoreGroupParticipants({
           disabled={selectedUsers.length === 0}
           className={`px-3 py-2 rounded-lg ${
             selectedUsers.length > 0
-              ? 'bg-primary-light dark:bg-primary-dark'
-              : 'bg-gray-300 dark:bg-gray-700'
+              ? "bg-primary-light dark:bg-primary-dark"
+              : "bg-gray-300 dark:bg-gray-700"
           }`}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
           <Text
             className={`text-xs font-medium leading-none ${
-              selectedUsers.length > 0 ? 'text-white' : 'text-gray-500 dark:text-gray-300'
+              selectedUsers.length > 0
+                ? "text-white"
+                : "text-gray-500 dark:text-gray-300"
             }`}
           >
             Add

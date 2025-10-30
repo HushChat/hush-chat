@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   StyleSheet,
   useWindowDimensions,
   ImageSourcePropType,
-} from 'react-native';
+} from "react-native";
 
 type TAuthWebLayoutProps = {
   colors: {
@@ -33,15 +33,20 @@ export default function AuthWebLayout({
 
   return (
     <View style={[s.container, { backgroundColor: colors.background }]}>
-      <View style={[s.shell, { flexDirection: isWide ? 'row' : 'column' }]}>
-        <View style={[s.left, { width: isWide ? '60%' : '100%' }]}>
+      <View style={[s.shell, { flexDirection: isWide ? "row" : "column" }]}>
+        <View style={[s.left, { width: isWide ? "60%" : "100%" }]}>
           <View style={s.leftInner}>
             <View style={s.headerBlock}>
-              <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
+              <Text
+                style={[s.title, { color: colors.primary }]}
+                numberOfLines={2}
+              >
                 {title}
               </Text>
               {subtitle ? (
-                <Text style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+                <Text style={[s.subtitle, { color: colors.textSecondary }]}>
+                  {subtitle}
+                </Text>
               ) : null}
             </View>
 
@@ -51,7 +56,9 @@ export default function AuthWebLayout({
           </View>
         </View>
 
-        <View style={[s.right, { width: isWide ? '40%' : '100%' }]}>{children}</View>
+        <View style={[s.right, { width: isWide ? "40%" : "100%" }]}>
+          {children}
+        </View>
       </View>
     </View>
   );
@@ -59,20 +66,26 @@ export default function AuthWebLayout({
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  backButton: { position: 'absolute', top: 24, left: 20, zIndex: 1000, padding: 8 },
+  backButton: {
+    position: "absolute",
+    top: 24,
+    left: 20,
+    zIndex: 1000,
+    padding: 8,
+  },
 
   shell: {
     flex: 1,
-    alignItems: 'stretch',
+    alignItems: "stretch",
     paddingHorizontal: 48,
     paddingVertical: 42,
     gap: 24,
   },
 
-  left: { justifyContent: 'center' },
+  left: { justifyContent: "center" },
   leftInner: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     minHeight: 0,
   },
 
@@ -82,7 +95,7 @@ const s = StyleSheet.create({
   },
   title: {
     fontSize: 44,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.2,
   },
   subtitle: {
@@ -94,18 +107,18 @@ const s = StyleSheet.create({
 
   imageWrap: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingTop: 16,
   },
   image: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 2,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
 
   right: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 48,
   },
 });

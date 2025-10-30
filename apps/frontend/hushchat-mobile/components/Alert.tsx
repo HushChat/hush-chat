@@ -1,9 +1,9 @@
-import { useAppTheme } from '@/hooks/useAppTheme';
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { View, Text } from 'react-native';
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { View, Text } from "react-native";
 
-type AlertType = 'error' | 'success' | 'info' | 'warning';
+type AlertType = "error" | "success" | "info" | "warning";
 
 interface AlertProps {
   message: string;
@@ -25,24 +25,36 @@ interface AlertStyle {
 
 const alertStyle: Record<AlertType, AlertStyle> = {
   error: {
-    container: 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800/60',
-    text: 'text-red-800 dark:text-red-200',
-    icon: { name: 'alert-circle', colorLight: '#dc2626', colorDark: '#f87171' },
+    container:
+      "bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800/60",
+    text: "text-red-800 dark:text-red-200",
+    icon: { name: "alert-circle", colorLight: "#dc2626", colorDark: "#f87171" },
   },
   success: {
-    container: 'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/60',
-    text: 'text-green-800 dark:text-green-200',
-    icon: { name: 'checkmark-circle', colorLight: '#16a34a', colorDark: '#4ade80' },
+    container:
+      "bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800/60",
+    text: "text-green-800 dark:text-green-200",
+    icon: {
+      name: "checkmark-circle",
+      colorLight: "#16a34a",
+      colorDark: "#4ade80",
+    },
   },
   info: {
-    container: 'bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800/60',
-    text: 'text-blue-800 dark:text-blue-200',
-    icon: { name: 'information-circle', colorLight: '#2563eb', colorDark: '#60a5fa' },
+    container:
+      "bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800/60",
+    text: "text-blue-800 dark:text-blue-200",
+    icon: {
+      name: "information-circle",
+      colorLight: "#2563eb",
+      colorDark: "#60a5fa",
+    },
   },
   warning: {
-    container: 'bg-yellow-50 dark:bg-yellow-950/50 border-yellow-200 dark:border-yellow-800/60',
-    text: 'text-yellow-800 dark:text-yellow-200',
-    icon: { name: 'warning', colorLight: '#ca8a04', colorDark: '#facc15' },
+    container:
+      "bg-yellow-50 dark:bg-yellow-950/50 border-yellow-200 dark:border-yellow-800/60",
+    text: "text-yellow-800 dark:text-yellow-200",
+    icon: { name: "warning", colorLight: "#ca8a04", colorDark: "#facc15" },
   },
 };
 
@@ -63,7 +75,9 @@ const Alert = ({ message, type, size = 20 }: AlertProps) => {
           <Ionicons name={config.icon.name} size={size} color={iconColor} />
 
           <View className="flex-1">
-            <Text className={`text-sm leading-5 ${config.text}`}>{message}</Text>
+            <Text className={`text-sm leading-5 ${config.text}`}>
+              {message}
+            </Text>
           </View>
         </View>
       </View>

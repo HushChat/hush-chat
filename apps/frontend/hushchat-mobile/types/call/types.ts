@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 type TCallParticipant = {
   id: number;
@@ -10,10 +10,10 @@ type TCallParticipant = {
 };
 
 export const CallStatus = {
-  ANSWERED: 'ANSWERED',
-  MISSED: 'MISSED',
-  REJECTED: 'REJECTED',
-  CANCELLED: 'CANCELLED',
+  ANSWERED: "ANSWERED",
+  MISSED: "MISSED",
+  REJECTED: "REJECTED",
+  CANCELLED: "CANCELLED",
 } as const;
 
 type TCallStatus = keyof typeof CallStatus;
@@ -42,8 +42,8 @@ export interface CallLogComponentProps {
 }
 
 export const CallDirection = {
-  incoming: 'incoming',
-  outgoing: 'outgoing',
+  incoming: "incoming",
+  outgoing: "outgoing",
 } as const;
 
 export type Direction = keyof typeof CallDirection;

@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect } from "react";
+import { TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
-} from 'react-native-reanimated';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
+} from "react-native-reanimated";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 
 interface TIconButtonProps {
   toggled?: boolean;
@@ -21,7 +21,7 @@ interface TIconButtonProps {
 const PrimaryCircularButton = ({
   toggled = false,
   disabled,
-  iconColor = '#ffffff',
+  iconColor = "#ffffff",
   iconSize = 18,
   onPress,
   className,

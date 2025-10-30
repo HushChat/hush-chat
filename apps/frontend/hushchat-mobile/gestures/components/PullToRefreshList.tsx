@@ -1,8 +1,11 @@
-import React, { ReactNode } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { useSwipeGesture } from '@/gestures/base/useSwipeGesture';
+import React, { ReactNode } from "react";
+import { View, ActivityIndicator } from "react-native";
+import { GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
+import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
 
 type TPullToRefreshListProps = {
   children: ReactNode;
@@ -20,14 +23,16 @@ export function PullToRefreshList({
   maxDrag = 80,
 }: TPullToRefreshListProps) {
   const { gesture, translateY, progress } = useSwipeGesture({
-    direction: 'vertical',
+    direction: "vertical",
     trigger,
     maxDrag,
     onSwipeDown: () => onRefresh(),
   });
 
   const headerStyle = useAnimatedStyle(() => ({
-    height: withTiming(refreshing ? 40 : Math.min(40, progress.value * 40), { duration: 100 }),
+    height: withTiming(refreshing ? 40 : Math.min(40, progress.value * 40), {
+      duration: 100,
+    }),
     opacity: progress.value,
   }));
 
@@ -38,7 +43,10 @@ export function PullToRefreshList({
   return (
     <GestureDetector gesture={gesture}>
       <View className="flex-1">
-        <Animated.View style={headerStyle} className="items-center justify-center">
+        <Animated.View
+          style={headerStyle}
+          className="items-center justify-center"
+        >
           {refreshing ? <ActivityIndicator /> : null}
         </Animated.View>
         <Animated.View style={groupStyle}>{children}</Animated.View>

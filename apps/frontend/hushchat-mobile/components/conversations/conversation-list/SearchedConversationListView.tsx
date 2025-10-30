@@ -3,21 +3,26 @@ import {
   IConversation,
   ISearchResults,
   ISectionedSearchResult,
-} from '@/types/chat/types';
-import { useCallback, useMemo } from 'react';
-import { Text, View, ActivityIndicator, ListRenderItemInfo } from 'react-native';
-import Alert from '@/components/Alert';
-import ConversationListItem from '@/components/conversations/conversation-list/ConversationListItem';
-import { SearchedItem } from '@/components/conversations/conversation-thread/message-list/SearchedMessageItem';
-import { getAPIErrorMsg, handleChatPress } from '@/utils/commonUtils';
-import { useUserStore } from '@/store/user/useUserStore';
-import BaseConversationList from './BaseConversationList';
-import UserListItem from '@/components/UserListItem';
-import { TUser } from '@/types/user/types';
-import { useCreateOneToOneConversationMutation } from '@/query/post/queries';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { ToastUtils } from '@/utils/toastUtils';
-import { getCriteria } from '@/utils/conversationUtils';
+} from "@/types/chat/types";
+import { useCallback, useMemo } from "react";
+import {
+  Text,
+  View,
+  ActivityIndicator,
+  ListRenderItemInfo,
+} from "react-native";
+import Alert from "@/components/Alert";
+import ConversationListItem from "@/components/conversations/conversation-list/ConversationListItem";
+import { SearchedItem } from "@/components/conversations/conversation-thread/message-list/SearchedMessageItem";
+import { getAPIErrorMsg, handleChatPress } from "@/utils/commonUtils";
+import { useUserStore } from "@/store/user/useUserStore";
+import BaseConversationList from "./BaseConversationList";
+import UserListItem from "@/components/UserListItem";
+import { TUser } from "@/types/user/types";
+import { useCreateOneToOneConversationMutation } from "@/query/post/queries";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { ToastUtils } from "@/utils/toastUtils";
+import { getCriteria } from "@/utils/conversationUtils";
 
 interface SearchedConversationListProps {
   searchedConversationsResult: ISearchResults;
@@ -34,7 +39,11 @@ interface SearchedConversationListProps {
 // Stable empty array reference to avoid unnecessary re-renders
 const EMPTY_ARRAY: ISectionedSearchResult[] = [];
 
-const SectionHeader: React.FC<{ title: string }> = ({ title }: { title: string }) => (
+const SectionHeader: React.FC<{ title: string }> = ({
+  title,
+}: {
+  title: string;
+}) => (
   <View className="bg-gray-100 dark:bg-gray-900 px-4 py-1.5 rounded-md">
     <Text className="text-text-secondary-light dark:text-text-secondary-dark font-medium text-base capitalize">
       {title}
@@ -81,7 +90,11 @@ export default function SearchedConversationList({
   );
 
   const preparedDataWithSections = useMemo<ISectionedSearchResult[]>(() => {
-    const { chats = [], messages = [], users = [] } = searchedConversationsResult;
+    const {
+      chats = [],
+      messages = [],
+      users = [],
+    } = searchedConversationsResult;
 
     // Early return with stable empty array
     if (!chats?.length && !messages?.length && !users?.length) {
@@ -99,7 +112,10 @@ export default function SearchedConversationList({
     }
 
     if (messages?.length > 0) {
-      sections.push({ key: ConversationSearchResultKeys.MESSAGES, items: messages });
+      sections.push({
+        key: ConversationSearchResultKeys.MESSAGES,
+        items: messages,
+      });
     }
 
     if (users?.length > 0) {
@@ -145,13 +161,16 @@ export default function SearchedConversationList({
         // The item is already a conversation object
         const conversation = item as unknown as IConversation;
         const firstMessage = conversation.messages?.[0];
-        const isCurrentUser = firstMessage && Number(currentUserId) === firstMessage.senderId;
+        const isCurrentUser =
+          firstMessage && Number(currentUserId) === firstMessage.senderId;
 
         return (
           <SearchedItem
             conversation={conversation}
             searchQuery={searchQuery}
-            onConversationItemPress={() => handleChatPress(setSelectedConversation)(conversation)}
+            onConversationItemPress={() =>
+              handleChatPress(setSelectedConversation)(conversation)
+            }
             isCurrentUser={isCurrentUser}
           />
         );
@@ -177,8 +196,12 @@ export default function SearchedConversationList({
         return (
           <ConversationListItem
             conversation={conversation}
-            handleChatPress={() => handleChatPress(setSelectedConversation)(conversation)}
-            isConversationSelected={selectedConversation?.id === conversation.id}
+            handleChatPress={() =>
+              handleChatPress(setSelectedConversation)(conversation)
+            }
+            isConversationSelected={
+              selectedConversation?.id === conversation.id
+            }
             handleArchivePress={onArchive}
             handleDeletePress={onDelete}
             conversationsRefetch={onRefresh}
@@ -217,19 +240,25 @@ export default function SearchedConversationList({
     return (
       <View className="flex-1 justify-center items-center px-8">
         <Text className="text-center text-gray-500">
-          No conversations, messages or users found for &quot;{searchQuery}&quot;
+          No conversations, messages or users found for &quot;{searchQuery}
+          &quot;
         </Text>
       </View>
     );
   }, [isSearchingConversations, errorWhileSearchingConversation, searchQuery]);
 
-  const ListEmptyComponent = useMemo(() => renderEmptyComponent(), [renderEmptyComponent]);
+  const ListEmptyComponent = useMemo(
+    () => renderEmptyComponent(),
+    [renderEmptyComponent],
+  );
 
   return (
     <BaseConversationList<ISectionedSearchResult>
       data={preparedDataWithSections}
       renderItem={renderItem}
-      keyExtractor={(item: ISectionedSearchResult) => item._uniqueKey || item._headerTitle || ''}
+      keyExtractor={(item: ISectionedSearchResult) =>
+        item._uniqueKey || item._headerTitle || ""
+      }
       ListEmptyComponent={ListEmptyComponent}
       onRefresh={onRefresh}
       refreshing={false}

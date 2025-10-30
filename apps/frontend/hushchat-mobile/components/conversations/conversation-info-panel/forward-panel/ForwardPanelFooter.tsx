@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 
 interface ForwardPanelFooterProps {
   isPending: boolean;
@@ -30,12 +30,16 @@ export const ForwardPanelFooter = ({
         onPress={onSend}
         disabled={!canSend}
         className={`px-4 py-2 rounded-lg ${
-          canSend ? 'bg-primary-light dark:bg-primary-dark' : 'bg-gray-300 dark:bg-gray-700'
+          canSend
+            ? "bg-primary-light dark:bg-primary-dark"
+            : "bg-gray-300 dark:bg-gray-700"
         } flex-row items-center`}
       >
-        {isPending && <ActivityIndicator size="small" color="#fff" className="mr-2" />}
+        {isPending && (
+          <ActivityIndicator size="small" color="#fff" className="mr-2" />
+        )}
         <Text className="text-white">
-          {isPending ? 'Sending…' : `Send to ${selectedCount || ''}`}
+          {isPending ? "Sending…" : `Send to ${selectedCount || ""}`}
         </Text>
       </TouchableOpacity>
     </View>

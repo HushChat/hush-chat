@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { GestureResponderEvent } from 'react-native';
+import { useState } from "react";
+import type { GestureResponderEvent } from "react-native";
 
 export const useContextMenu = () => {
   const [visible, setVisible] = useState(false);

@@ -1,9 +1,11 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   ConversationState,
   createConversationSlice,
-} from '@/store/conversation/useConversationSlice';
+} from "@/store/conversation/useConversationSlice";
 
-export const useConversationStore = create<ConversationState>((set, get, store) => ({
-  ...createConversationSlice(set, get, store),
-}));
+export const useConversationStore = create<ConversationState>(
+  (set, get, store) => ({
+    ...createConversationSlice(set, get, store),
+  }),
+);

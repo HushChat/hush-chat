@@ -1,8 +1,8 @@
-import { TouchableOpacity, ActivityIndicator } from 'react-native';
-import React from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import classNames from 'classnames';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
+import { TouchableOpacity, ActivityIndicator } from "react-native";
+import React from "react";
+import { Ionicons } from "@expo/vector-icons";
+import classNames from "classnames";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 
 interface RefreshButtonProps {
   onRefresh: () => void;
@@ -31,17 +31,17 @@ export default function RefreshButton({
     <TouchableOpacity
       onPress={handlePress}
       disabled={isDisabled}
-      className={classNames('p-2 rounded-full', {
-        'opacity-50': isDisabled,
-        'hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600':
+      className={classNames("p-2 rounded-full", {
+        "opacity-50": isDisabled,
+        "hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600":
           !isDisabled,
       })}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
     >
       {isLoading ? (
-        <ActivityIndicator size="small" color={color || '#6B7280'} />
+        <ActivityIndicator size="small" color={color || "#6B7280"} />
       ) : (
-        <Ionicons name="refresh" size={size} color={color || '#6B7280'} />
+        <Ionicons name="refresh" size={size} color={color || "#6B7280"} />
       )}
     </TouchableOpacity>
   );

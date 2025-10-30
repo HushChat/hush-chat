@@ -1,30 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, View } from 'react-native';
-import ChatInfoHeader from '@/components/conversations/conversation-info-panel/common/ChatInfoHeader';
-import ActionItem from '@/components/conversations/conversation-info-panel/common/ActionItem';
-import { router } from 'expo-router';
-import { CHAT_VIEW_PATH, SEARCH_VIEW_PATH } from '@/constants/routes';
-import { ConversationParticipant, IConversation } from '@/types/chat/types';
-import { useGroupConversationInfoQuery } from '@/query/useGroupConversationInfoQuery';
-import ChatInfoCommonAction from '@/components/conversations/conversation-info-panel/common/ChatInfoCommonAction';
-import { ToastUtils } from '@/utils/toastUtils';
-import { useModalContext } from '@/context/modal-context';
-import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from '@/components/Modal';
-import { AllParticipants } from '@/components/conversations/AllParticipants';
-import { ParticipantRow } from '@/components/conversations/ParticipantsRow';
-import { PanelType } from '@/types/web-panel/types';
-import useWebPanelManager from '@/hooks/useWebPanelManager';
-import GroupSettings from '@/components/conversations/conversation-info-panel/GroupSettings';
-import LoadingState from '@/components/LoadingState';
-import { useConversationParticipantQuery } from '@/query/useConversationParticipantQuery';
-import AddMoreGroupParticipants from '@/components/conversations/conversation-info-panel/AddMoreGroupParticipants';
-import { useUserStore } from '@/store/user/useUserStore';
+import React, { useEffect, useState } from "react";
+import { Dimensions, Pressable, ScrollView, View } from "react-native";
+import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
+import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
+import { router } from "expo-router";
+import { CHAT_VIEW_PATH, SEARCH_VIEW_PATH } from "@/constants/routes";
+import { ConversationParticipant, IConversation } from "@/types/chat/types";
+import { useGroupConversationInfoQuery } from "@/query/useGroupConversationInfoQuery";
+import ChatInfoCommonAction from "@/components/conversations/conversation-info-panel/common/ChatInfoCommonAction";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useModalContext } from "@/context/modal-context";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { AllParticipants } from "@/components/conversations/AllParticipants";
+import { ParticipantRow } from "@/components/conversations/ParticipantsRow";
+import { PanelType } from "@/types/web-panel/types";
+import useWebPanelManager from "@/hooks/useWebPanelManager";
+import GroupSettings from "@/components/conversations/conversation-info-panel/GroupSettings";
+import LoadingState from "@/components/LoadingState";
+import { useConversationParticipantQuery } from "@/query/useConversationParticipantQuery";
+import AddMoreGroupParticipants from "@/components/conversations/conversation-info-panel/AddMoreGroupParticipants";
+import { useUserStore } from "@/store/user/useUserStore";
 import {
   useExitGroupConversationMutation,
   useReportConversationMutation,
-} from '@/query/post/queries';
-import { getAPIErrorMsg } from '@/utils/commonUtils';
-import { AppText } from '@/components/AppText';
+} from "@/query/post/queries";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { AppText } from "@/components/AppText";
 
 interface GroupChatInfoProps {
   conversation: IConversation;
@@ -39,27 +39,34 @@ export default function GroupChatInfo({
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
 
-  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get('window').width);
-  const [allParticipants, setAllParticipants] = useState<ConversationParticipant[]>([]);
+  const [screenWidth, setScreenWidth] = useState<number>(
+    Dimensions.get("window").width,
+  );
+  const [allParticipants, setAllParticipants] = useState<
+    ConversationParticipant[]
+  >([]);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  const { conversationInfo, isLoadingConversationInfo, refetch } = useGroupConversationInfoQuery(
-    conversation.id,
-  );
+  const { conversationInfo, isLoadingConversationInfo, refetch } =
+    useGroupConversationInfoQuery(conversation.id);
 
   const {
     user: { id: userId },
   } = useUserStore();
 
-  const { pages: participantsPages, error: participantsError } = useConversationParticipantQuery(
-    conversation.id,
-  );
+  const { pages: participantsPages, error: participantsError } =
+    useConversationParticipantQuery(conversation.id);
 
-  const { panelWidth, activePanel, isPanelContentReady, openPanel, closePanel } =
-    useWebPanelManager(screenWidth);
+  const {
+    panelWidth,
+    activePanel,
+    isPanelContentReady,
+    openPanel,
+    closePanel,
+  } = useWebPanelManager(screenWidth);
 
   useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setScreenWidth(window.width);
     });
     return () => {
@@ -75,9 +82,11 @@ export default function GroupChatInfo({
   useEffect(() => {
     if (participantsPages?.pages?.length) {
       const firstPage = participantsPages.pages[0];
-      const participantsList = (firstPage.content as ConversationParticipant[]) || [];
+      const participantsList =
+        (firstPage.content as ConversationParticipant[]) || [];
       setAllParticipants(participantsList.slice(0, 3));
-      const total = firstPage.totalElements || firstPage.total || participantsList.length;
+      const total =
+        firstPage.totalElements || firstPage.total || participantsList.length;
       setTotalCount(total);
     }
   }, [participantsPages]);
@@ -120,58 +129,59 @@ export default function GroupChatInfo({
   const handleExitGroup = () =>
     openModal({
       type: MODAL_TYPES.confirm,
-      title: 'Exit Group',
-      description: "Are you sure you want to exit? You won't be able to see new messages.",
+      title: "Exit Group",
+      description:
+        "Are you sure you want to exit? You won't be able to see new messages.",
       buttons: [
-        { text: 'Cancel', onPress: closeModal },
+        { text: "Cancel", onPress: closeModal },
         {
-          text: 'Exit Group',
+          text: "Exit Group",
           onPress: () => exitGroupMutation.mutate(conversation.id),
           variant: MODAL_BUTTON_VARIANTS.destructive,
         },
       ],
-      icon: 'exit-outline',
+      icon: "exit-outline",
     });
 
   const handleReportGroup = () =>
     openModal({
       type: MODAL_TYPES.info,
-      title: 'Report Group',
-      description: 'What would you like to report about this group?',
+      title: "Report Group",
+      description: "What would you like to report about this group?",
       buttons: [
-        { text: 'Cancel', onPress: closeModal, className: 'w-full' },
+        { text: "Cancel", onPress: closeModal, className: "w-full" },
         {
-          text: 'Spam',
+          text: "Spam",
           onPress: () => {
             reportConversationMutation.mutate({
               conversationId: conversation.id,
-              reason: 'SPAM',
+              reason: "SPAM",
             });
           },
-          className: 'w-full',
+          className: "w-full",
         },
         {
-          text: 'Inappropriate Content',
+          text: "Inappropriate Content",
           onPress: () => {
             reportConversationMutation.mutate({
               conversationId: conversation.id,
-              reason: 'INAPPROPRIATE_CONTENT',
+              reason: "INAPPROPRIATE_CONTENT",
             });
           },
-          className: 'w-full',
+          className: "w-full",
         },
         {
-          text: 'Other',
+          text: "Other",
           onPress: () => {
             reportConversationMutation.mutate({
               conversationId: conversation.id,
-              reason: 'OTHER',
+              reason: "OTHER",
             });
           },
-          className: 'w-full',
+          className: "w-full",
         },
       ],
-      icon: 'flag',
+      icon: "flag",
     });
 
   if (isLoadingConversationInfo) {
@@ -182,7 +192,7 @@ export default function GroupChatInfo({
     return (
       <View style={{ flex: 1 }}>
         <ChatInfoHeader
-          title={conversationInfo?.conversation.name ?? ''}
+          title={conversationInfo?.conversation.name ?? ""}
           onBack={onBack}
           showActions
           onPressChat={() =>
@@ -194,14 +204,14 @@ export default function GroupChatInfo({
               },
             })
           }
-          imageUrl={conversationInfo?.conversation.signedImageUrl || ''}
+          imageUrl={conversationInfo?.conversation.signedImageUrl || ""}
           onPressSearch={() =>
             router.push({
               pathname: SEARCH_VIEW_PATH,
               params: {
                 conversationId: String(conversation.id),
                 conversationName: conversation.name,
-                isSearchModeOn: 'true',
+                isSearchModeOn: "true",
               },
             })
           }
@@ -211,7 +221,7 @@ export default function GroupChatInfo({
             Failed to load participants
           </AppText>
           <AppText className="text-gray-500 text-center">
-            {participantsError?.message || 'Unknown error occurred'}
+            {participantsError?.message || "Unknown error occurred"}
           </AppText>
         </View>
       </View>
@@ -221,7 +231,7 @@ export default function GroupChatInfo({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <ChatInfoHeader
-        title={conversation.name ?? ''}
+        title={conversation.name ?? ""}
         onBack={onBack}
         showActions
         onPressChat={() =>
@@ -233,14 +243,14 @@ export default function GroupChatInfo({
             },
           })
         }
-        imageUrl={conversation.signedImageUrl || ''}
+        imageUrl={conversation.signedImageUrl || ""}
         onPressSearch={() =>
           router.push({
             pathname: SEARCH_VIEW_PATH,
             params: {
               conversationId: String(conversation.id),
               conversationName: conversation.name,
-              isSearchModeOn: 'true',
+              isSearchModeOn: "true",
             },
           })
         }
@@ -261,27 +271,36 @@ export default function GroupChatInfo({
 
             <View className="ml-auto">
               <AppText className="text-sm text-gray-500 dark:text-gray-400">
-                {totalCount} {totalCount === 1 ? 'member' : 'members'}
+                {totalCount} {totalCount === 1 ? "member" : "members"}
               </AppText>
             </View>
           </View>
 
           <View>
             {allParticipants.map((participant) => (
-              <ParticipantRow key={participant.id.toString()} participant={participant} />
+              <ParticipantRow
+                key={participant.id.toString()}
+                participant={participant}
+              />
             ))}
           </View>
           <Pressable
             onPress={handleShowAllParticipants}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? 'rgba(59,130,246,0.1)' : 'transparent',
+              backgroundColor: pressed ? "rgba(59,130,246,0.1)" : "transparent",
               paddingVertical: 10,
               paddingHorizontal: 20,
               borderRadius: 8,
-              alignSelf: 'center',
+              alignSelf: "center",
             })}
           >
-            <AppText style={{ color: '#3B82F6', fontWeight: '500', textAlign: 'center' }}>
+            <AppText
+              style={{
+                color: "#3B82F6",
+                fontWeight: "500",
+                textAlign: "center",
+              }}
+            >
               See All Participants
             </AppText>
           </Pressable>

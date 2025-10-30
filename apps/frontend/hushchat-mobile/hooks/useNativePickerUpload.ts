@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import { PLATFORM } from '@/constants/platformConstants';
+import { useCallback, useMemo, useRef, useState } from "react";
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
+import { PLATFORM } from "@/constants/platformConstants";
 
-export type PickSource = 'media' | 'document';
-export type MediaKind = 'image' | 'video' | 'all';
+export type PickSource = "media" | "document";
+export type MediaKind = "image" | "video" | "all";
 
 export type PickAndUploadOptions = {
   source: PickSource;
@@ -46,7 +46,7 @@ type State = {
 };
 
 const defaultOpts: Partial<PickAndUploadOptions> = {
-  mediaKind: 'all',
+  mediaKind: "all",
   allowsEditing: false,
   aspect: [1, 1],
   quality: 0.9,
@@ -55,11 +55,11 @@ const defaultOpts: Partial<PickAndUploadOptions> = {
   allowedMimeTypes: undefined,
 };
 
-function guessNameFromUri(uri: string, fallback = 'file'): string {
-  const last = uri.split('/').pop() ?? '';
+function guessNameFromUri(uri: string, fallback = "file"): string {
+  const last = uri.split("/").pop() ?? "";
   if (!last) return `${fallback}`;
   // iOS sometimes appends query/fragments
-  const clean = last.split('?')[0].split('#')[0];
+  const clean = last.split("?")[0].split("#")[0];
   return clean || fallback;
 }
 
@@ -75,9 +75,9 @@ async function ensureLocalFile(meta: {
   size?: number;
 }): Promise<LocalFile> {
   const blob = await readAsBlob(meta.uri);
-  const type = meta.mime || blob.type || 'application/octet-stream';
+  const type = meta.mime || blob.type || "application/octet-stream";
   const name = meta.name || guessNameFromUri(meta.uri);
-  const size = typeof meta.size === 'number' ? meta.size : (blob as any).size;
+  const size = typeof meta.size === "number" ? meta.size : (blob as any).size;
   return { uri: meta.uri, name, type, size };
 }
 
@@ -86,25 +86,34 @@ function passesFilters(
   maxSizeKB?: number,
   allow?: string[],
 ): { ok: boolean; reason?: string } {
-  if (typeof maxSizeKB === 'number' && file.size && file.size / 1024 > maxSizeKB) {
+  if (
+    typeof maxSizeKB === "number" &&
+    file.size &&
+    file.size / 1024 > maxSizeKB
+  ) {
     return { ok: false, reason: `File too large (> ${maxSizeKB} KB)` };
   }
   if (allow && allow.length > 0) {
     const ok = allow.some((m) =>
-      m.includes('*') ? file.type.startsWith(m.split('/')[0] + '/') : file.type === m,
+      m.includes("*")
+        ? file.type.startsWith(m.split("/")[0] + "/")
+        : file.type === m,
     );
     if (!ok) return { ok: false, reason: `Blocked MIME type: ${file.type}` };
   }
   return { ok: true };
 }
 
-async function putToSignedUrl(file: LocalFile, signedUrl: string): Promise<void> {
+async function putToSignedUrl(
+  file: LocalFile,
+  signedUrl: string,
+): Promise<void> {
   const blob = await readAsBlob(file.uri);
   await fetch(signedUrl, {
-    method: 'PUT',
+    method: "PUT",
     body: blob,
     headers: {
-      'Content-Type': file.type || blob.type || 'application/octet-stream',
+      "Content-Type": file.type || blob.type || "application/octet-stream",
     },
   });
 }
@@ -127,7 +136,13 @@ export function useNativePickerUpload(
   const abortRef = useRef<boolean>(false);
 
   const reset = useCallback(() => {
-    setState({ isPicking: false, isUploading: false, error: null, progress: 0, results: [] });
+    setState({
+      isPicking: false,
+      isUploading: false,
+      error: null,
+      progress: 0,
+      results: [],
+    });
     abortRef.current = false;
   }, []);
 
@@ -136,29 +151,33 @@ export function useNativePickerUpload(
   }, []);
 
   const pick = useCallback(
-    async (opts?: Partial<PickAndUploadOptions>): Promise<LocalFile[] | null> => {
+    async (
+      opts?: Partial<PickAndUploadOptions>,
+    ): Promise<LocalFile[] | null> => {
       const o: PickAndUploadOptions = {
         ...defaultOpts,
-        source: 'media',
+        source: "media",
         ...opts,
       } as PickAndUploadOptions;
       setState((s) => ({ ...s, isPicking: true, error: null }));
 
       try {
-        if (o.source === 'media') {
+        if (o.source === "media") {
           const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (!perm.granted) {
-            throw new Error('Permission to access media library is required.');
+            throw new Error("Permission to access media library is required.");
           }
 
           const mediaTypes: ImagePicker.MediaType | ImagePicker.MediaType[] =
-            o.mediaKind === 'image'
-              ? 'images'
-              : o.mediaKind === 'video'
-                ? 'videos'
-                : ['images', 'videos'];
+            o.mediaKind === "image"
+              ? "images"
+              : o.mediaKind === "video"
+                ? "videos"
+                : ["images", "videos"];
 
-          const supportsMultiple = Boolean(o.multiple && (PLATFORM.IS_IOS || PLATFORM.IS_ANDROID));
+          const supportsMultiple = Boolean(
+            o.multiple && (PLATFORM.IS_IOS || PLATFORM.IS_ANDROID),
+          );
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes,
             allowsEditing: o.allowsEditing,
@@ -175,8 +194,11 @@ export function useNativePickerUpload(
           for (const a of assets) {
             const file = await ensureLocalFile({
               uri: a.uri,
-              mime: a.mimeType || (a.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-              name: a.fileName || guessNameFromUri(a.uri, a.type === 'video' ? 'video' : 'image'),
+              mime:
+                a.mimeType || (a.type === "video" ? "video/mp4" : "image/jpeg"),
+              name:
+                a.fileName ||
+                guessNameFromUri(a.uri, a.type === "video" ? "video" : "image"),
               size: a.fileSize,
             });
             const check = passesFilters(file, o.maxSizeKB, o.allowedMimeTypes);
@@ -196,8 +218,8 @@ export function useNativePickerUpload(
           for (const a of result.assets ?? []) {
             const file = await ensureLocalFile({
               uri: a.uri,
-              mime: a.mimeType ?? 'application/octet-stream',
-              name: a.name ?? guessNameFromUri(a.uri, 'document'),
+              mime: a.mimeType ?? "application/octet-stream",
+              name: a.name ?? guessNameFromUri(a.uri, "document"),
               size: a.size,
             });
             const check = passesFilters(file, o.maxSizeKB, o.allowedMimeTypes);
@@ -207,7 +229,10 @@ export function useNativePickerUpload(
           return files;
         }
       } catch (err: any) {
-        setState((s) => ({ ...s, error: err?.message ?? 'Failed to pick files' }));
+        setState((s) => ({
+          ...s,
+          error: err?.message ?? "Failed to pick files",
+        }));
         return null;
       } finally {
         setState((s) => ({ ...s, isPicking: false }));
@@ -220,21 +245,28 @@ export function useNativePickerUpload(
     async (files: LocalFile[]): Promise<UploadResult[]> => {
       if (!files || files.length === 0) return [];
 
-      setState((s) => ({ ...s, isUploading: true, error: null, progress: 0, results: [] }));
+      setState((s) => ({
+        ...s,
+        isUploading: true,
+        error: null,
+        progress: 0,
+        results: [],
+      }));
       try {
         const signed = await getSignedUrls(files);
-        if (!signed || signed.length === 0) throw new Error('No signed URLs returned from server');
+        if (!signed || signed.length === 0)
+          throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];
         for (let i = 0; i < files.length; i++) {
-          if (abortRef.current) throw new Error('Upload cancelled');
+          if (abortRef.current) throw new Error("Upload cancelled");
           const f = files[i];
           const s = signed.find((x) => x.originalFileName === f.name);
           if (!s) {
             results.push({
               success: false,
               fileName: f.name,
-              error: 'Missing signed URL for file',
+              error: "Missing signed URL for file",
               signed: null,
             });
           } else {
@@ -245,7 +277,7 @@ export function useNativePickerUpload(
               results.push({
                 success: false,
                 fileName: f.name,
-                error: e?.message ?? 'PUT failed',
+                error: e?.message ?? "PUT failed",
                 signed: s,
               });
             }
@@ -260,9 +292,13 @@ export function useNativePickerUpload(
         }
         return results;
       } catch (err: any) {
-        const msg = err?.message ?? 'Upload failed';
+        const msg = err?.message ?? "Upload failed";
         setState((s) => ({ ...s, error: msg }));
-        return files.map((f) => ({ success: false, fileName: f.name, error: msg }));
+        return files.map((f) => ({
+          success: false,
+          fileName: f.name,
+          error: msg,
+        }));
       } finally {
         setState((s) => ({ ...s, isUploading: false }));
       }

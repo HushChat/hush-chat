@@ -1,12 +1,16 @@
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import React from 'react';
-import { Text, View } from 'react-native';
-import BackButton from '@/components/BackButton';
-import { CHAT_VIEW_PATH } from '@/constants/routes';
-import GroupConfigurationForm from '@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import React from "react";
+import { Text, View } from "react-native";
+import BackButton from "@/components/BackButton";
+import { CHAT_VIEW_PATH } from "@/constants/routes";
+import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
 
-const MobileGroupCreation = ({ participantUserIds }: { participantUserIds: number[] }) => {
+const MobileGroupCreation = ({
+  participantUserIds,
+}: {
+  participantUserIds: number[];
+}) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -24,7 +28,10 @@ const MobileGroupCreation = ({ participantUserIds }: { participantUserIds: numbe
       <GroupConfigurationForm
         participantUserIds={participantUserIds}
         onSuccess={(conversationId) =>
-          router.replace({ pathname: CHAT_VIEW_PATH, params: { conversationId } })
+          router.replace({
+            pathname: CHAT_VIEW_PATH,
+            params: { conversationId },
+          })
         }
       />
     </View>

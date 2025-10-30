@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
-import { ConversationFilterCriteria } from '@/apis/conversation';
-import { ToastUtils } from '@/utils/toastUtils';
-import { useToggleConversationFavoriteMutation } from '@/query/patch/queries';
-import { useUserStore } from '@/store/user/useUserStore';
+import { useCallback } from "react";
+import { ConversationFilterCriteria } from "@/apis/conversation";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useToggleConversationFavoriteMutation } from "@/query/patch/queries";
+import { useUserStore } from "@/store/user/useUserStore";
 
 export function useConversationFavorites(
   conversationId: number,
@@ -22,7 +22,7 @@ export function useConversationFavorites(
       try {
         toggleFavorite.mutate(conversationId);
       } catch {
-        ToastUtils.error('Failed to update favorites!');
+        ToastUtils.error("Failed to update favorites!");
       }
     },
     [toggleFavorite],

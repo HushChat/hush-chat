@@ -1,6 +1,6 @@
 // @ts-ignore
 // eslint-disable-next-line import/no-unresolved
-import LoginScreen from '@/components/auth/login/LoginScreen';
+import LoginScreen from "@/components/auth/login/LoginScreen";
 
 const LoginScreenRoute = () => {
   return <LoginScreen />;

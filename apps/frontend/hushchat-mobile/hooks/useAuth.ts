@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { useAuthStore } from '@/store/auth/authStore';
-import { useRouter } from 'expo-router';
-import { loginUser } from '@/services/authService';
-import { CHATS_PATH, VERIFY_OTP_PATH } from '@/constants/routes';
-import { useQueryClient } from '@tanstack/react-query';
-import { USER_NOT_CONFIRMED_ERROR } from '@/constants/constants';
+import { useState } from "react";
+import { useAuthStore } from "@/store/auth/authStore";
+import { useRouter } from "expo-router";
+import { loginUser } from "@/services/authService";
+import { CHATS_PATH, VERIFY_OTP_PATH } from "@/constants/routes";
+import { useQueryClient } from "@tanstack/react-query";
+import { USER_NOT_CONFIRMED_ERROR } from "@/constants/constants";
 
 export function useAuth() {
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const saveUserAuthData = useAuthStore((state) => state.saveUserAuthData);
   const queryClient = useQueryClient();
 
   const handleLogin = async (username: string, password: string) => {
     queryClient.clear();
-    setErrorMessage('');
+    setErrorMessage("");
 
     const response = await loginUser(username, password);
 
@@ -27,7 +27,11 @@ export function useAuth() {
       return;
     }
 
-    await saveUserAuthData(response.idToken, response.accessToken, response.refreshToken);
+    await saveUserAuthData(
+      response.idToken,
+      response.accessToken,
+      response.refreshToken,
+    );
 
     // small delay to ensure storage flushes on slower devices
     await new Promise((resolve) => setTimeout(resolve, 300));

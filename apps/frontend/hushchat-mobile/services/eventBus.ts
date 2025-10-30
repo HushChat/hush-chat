@@ -1,48 +1,59 @@
-import mitt from 'mitt';
+import mitt from "mitt";
 import {
   TypingIndicator,
   UserPresence,
   WebSocketError,
   NotificationPayload,
-} from '@/types/ws/types';
-import { IConversation } from '@/types/chat/types';
+} from "@/types/ws/types";
+import { IConversation } from "@/types/chat/types";
 
 export type WebSocketEvents = {
   // Core WebSocket events
-  'websocket:message': IConversation;
-  'websocket:connected': { timestamp: string };
-  'websocket:disconnected': { reason?: string; timestamp: string };
-  'websocket:error': WebSocketError;
-  'websocket:reconnecting': { attempt: number; maxAttempts: number };
+  "websocket:message": IConversation;
+  "websocket:connected": { timestamp: string };
+  "websocket:disconnected": { reason?: string; timestamp: string };
+  "websocket:error": WebSocketError;
+  "websocket:reconnecting": { attempt: number; maxAttempts: number };
 
   // Conversation-specific events
-  'conversation:newMessage': { conversationId: number; messageWithConversation: IConversation };
-  'conversation:typing': TypingIndicator;
-  'conversation:messageRead': { conversationId: number; messageIds: string[]; userId: string };
-  'conversation:messageDelivered': { conversationId: number; messageIds: string[]; userId: string };
+  "conversation:newMessage": {
+    conversationId: number;
+    messageWithConversation: IConversation;
+  };
+  "conversation:typing": TypingIndicator;
+  "conversation:messageRead": {
+    conversationId: number;
+    messageIds: string[];
+    userId: string;
+  };
+  "conversation:messageDelivered": {
+    conversationId: number;
+    messageIds: string[];
+    userId: string;
+  };
 
   // User presence events
-  'user:presence': UserPresence;
-  'user:joined': { conversationId: number; user: { id: string; name: string } };
-  'user:left': { conversationId: number; userId: string };
+  "user:presence": UserPresence;
+  "user:joined": { conversationId: number; user: { id: string; name: string } };
+  "user:left": { conversationId: number; userId: string };
 
   // Notification events
-  'notification:show': NotificationPayload;
-  'notification:clear': { conversationId?: number };
+  "notification:show": NotificationPayload;
+  "notification:clear": { conversationId?: number };
 
   // Call events (if you have voice/video calling)
-  'call:incoming': {
+  "call:incoming": {
     callId: string;
     from: string;
     conversationId: number;
-    type: 'voice' | 'video';
+    type: "voice" | "video";
   };
-  'call:ended': { callId: string; duration?: number };
-  'call:rejected': { callId: string; reason?: string };
+  "call:ended": { callId: string; duration?: number };
+  "call:rejected": { callId: string; reason?: string };
 
   // System events
-  'system:maintenance': { message: string; scheduledTime?: string };
-  'system:update': { version: string; features: string[] };
+  "system:maintenance": { message: string; scheduledTime?: string };
+  "system:update": { version: string; features: string[] };
 };
 
 // Create and export the event bus
@@ -51,8 +62,8 @@ export const eventBus = mitt<WebSocketEvents>();
 // Helper functions for common operations
 export const emitNewMessage = (messageWithConversation: IConversation) => {
   // Emit both general and conversation-specific events
-  eventBus.emit('websocket:message', messageWithConversation);
-  eventBus.emit('conversation:newMessage', {
+  eventBus.emit("websocket:message", messageWithConversation);
+  eventBus.emit("conversation:newMessage", {
     conversationId: messageWithConversation.id as number,
     messageWithConversation: messageWithConversation,
   });
