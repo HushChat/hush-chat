@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="https://gethush.chat/wp-content/uploads/2025/10/hushchat-logo-min.png" alt="HushChat Logo" width="140" />
+</p>
 <h1 align="center">
   Open-Source Chat Platform That’s Simple to Deploy and Easy to Extend
 </h1>
