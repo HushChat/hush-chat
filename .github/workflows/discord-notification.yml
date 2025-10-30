@@ -1,0 +1,78 @@
+name: Discord PR Notification
+
+on:
+  pull_request:
+    types: [opened, closed]
+    branches:
+      - main
+
+jobs:
+  notify-opened:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: Send Discord Notification - PR Opened
+        run: |
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "content": "📝 New PR Created!",
+              "embeds": [{
+                "title": "${{ github.event.pull_request.title }}",
+                "description": "${{ github.event.pull_request.body }}",
+                "url": "${{ github.event.pull_request.html_url }}",
+                "color": 3447003,
+                "fields": [
+                  {
+                    "name": "Author",
+                    "value": "${{ github.event.pull_request.user.login }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "From Branch",
+                    "value": "${{ github.event.pull_request.head.ref }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "To Branch",
+                    "value": "${{ github.event.pull_request.base.ref }}",
+                    "inline": true
+                  }
+                ]
+              }]
+            }'
+
+  notify-merged:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    steps:
+      - name: Send Discord Notification - PR Merged
+        run: |
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "content": "🎉 PR Merged to Main!",
+              "embeds": [{
+                "title": "${{ github.event.pull_request.title }}",
+                "description": "${{ github.event.pull_request.body }}",
+                "url": "${{ github.event.pull_request.html_url }}",
+                "color": 3066993,
+                "fields": [
+                  {
+                    "name": "Author",
+                    "value": "${{ github.event.pull_request.user.login }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "From Branch",
+                    "value": "${{ github.event.pull_request.head.ref }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Merged By",
+                    "value": "${{ github.event.pull_request.merged_by.login }}",
+                    "inline": true
+                  }
+                ]
+              }]
+            }'
