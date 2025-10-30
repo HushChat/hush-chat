@@ -1,0 +1,27 @@
+
+echo "🚀 Running pre-commit checks...\n"
+
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx|ts|tsx|json|md)$')
+
+# Run Prettier check
+if [ -n "$STAGED_FILES" ]; then
+    echo "🎨 Checking code formatting with Prettier..."
+    if ! echo "$STAGED_FILES" | xargs yarn prettier --check; then
+        echo "\n❌ Prettier check failed!"
+        echo "💡 Tip: Run 'yarn prettier:write' to auto-fix formatting issues\n"
+        exit 1
+    fi
+fi
+echo "✅ Prettier check passed!\n"
+
+# Run ESLint
+echo "🔍 Linting code with ESLint..."
+if ! yarn lint-staged; then
+    echo "\n❌ ESLint check failed!"
+    echo "💡 Tip: Run 'yarn lint --fix' to auto-fix some issues\n"
+    exit 1
+fi
+echo "✅ ESLint check passed!\n"
+
+echo "🎉 All pre-commit checks passed! Ready to commit.\n"
