@@ -18,6 +18,8 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
+          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
           PR_HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
           PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
@@ -34,6 +36,16 @@ jobs:
                   {
                     "name": "Author",
                     "value": "${{ env.PR_AUTHOR }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Commits",
+                    "value": "${{ env.PR_COMMITS }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Changed Files",
+                    "value": "${{ env.PR_CHANGED_FILES }}",
                     "inline": true
                   },
                   {
@@ -66,6 +78,8 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
+          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
           PR_HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
           PR_MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
         run: |
@@ -82,6 +96,16 @@ jobs:
                   {
                     "name": "Author",
                     "value": "${{ env.PR_AUTHOR }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Commits",
+                    "value": "${{ env.PR_COMMITS }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Changed Files",
+                    "value": "${{ env.PR_CHANGED_FILES }}",
                     "inline": true
                   },
                   {
