@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/github/actions/workflow/status/HushChat/hush-chat/build.yml?label=build&logo=github" alt="Build Status">
   </a>
   <a href="https://github.com/HushChat/hush-chat/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/HushChat/hush-chat?color=green" alt="Licenses">
+    <img src="https://img.shields.io/github/license/HushChat/hush-chat?color=green" alt="License">
   </a>
 </p>
 
