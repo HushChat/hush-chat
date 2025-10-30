@@ -43,9 +43,9 @@ It’s designed to be fast, easy to deploy, and fully self-hostable — giving y
 
 <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
 
-  <img src="https://gethush.chat/wp-content/uploads/2025/10/hero-screen.1.png" alt="HushChat Logo" style="width: 33%;" />
-  <img src="https://gethush.chat/wp-content/uploads/2025/10/johnfernando-1.png" alt="HushChat Logo" style="width: 33%;" />
-  <img src="https://gethush.chat/wp-content/uploads/2025/10/hero-screen.3.png" alt="HushChat Logo" style="width: 33%;" />
+  <img src="https://gethush.chat/wp-content/uploads/2025/10/hero-screen.1.png" alt="HushChat Logo" style="width: 30%;" />
+  <img src="https://gethush.chat/wp-content/uploads/2025/10/johnfernando-1.png" alt="HushChat Logo" style="width: 30%;" />
+  <img src="https://gethush.chat/wp-content/uploads/2025/10/hero-screen.3.png" alt="HushChat Logo" style="width: 30%;" />
 </div>
 
 ---
