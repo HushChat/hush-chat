@@ -23,20 +23,20 @@ jobs:
           PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
           PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
         run: |
-          curl -X POST "$DISCORD_WEBHOOK" \
-            -H 'Content-Type: application/json' \
-            -d "{
-              \"content\": \"📝 New PR Created!\",
-              \"embeds\": [{
-                \"title\": \"$PR_TITLE\",
-                \"description\": \"$PR_BODY\",
-                \"url\": \"$PR_URL\",
-                \"color\": 3447003,
-                \"fields\": [
+          cat > /tmp/discord_payload.json << 'EOF'
+          {
+            "content": "📝 New PR Created!",
+            "embeds": [
+              {
+                "title": "${{ env.PR_TITLE }}",
+                "description": "${{ env.PR_BODY }}",
+                "url": "${{ env.PR_URL }}",
+                "color": 3447003,
+                "fields": [
                   {
-                    \"name\": \"Author\",
-                    \"value\": \"$PR_AUTHOR\",
-                    \"inline\": true
+                    "name": "Author",
+                    "value": "${{ env.PR_AUTHOR }}",
+                    "inline": true
                   },
                   {
                     \"name\": \"Commits\",
@@ -44,23 +44,23 @@ jobs:
                     \"inline\": true
                   },
                   {
-                    \"name\": \"From Branch\",
-                    \"value\": \"$PR_HEAD_BRANCH\",
-                    \"inline\": true
+                    "name": "From Branch",
+                    "value": "${{ env.PR_HEAD_BRANCH }}",
+                    "inline": true
                   },
                   {
-                    \"name\": \"To Branch\",
-                    \"value\": \"$PR_BASE_BRANCH\",
-                    \"inline\": true
-                  },
-                  {
-                    \"name\": \"Changed Files\",
-                    \"value\": \"$PR_CHANGED_FILES\",
-                    \"inline\": true
+                    "name": "To Branch",
+                    "value": "${{ env.PR_BASE_BRANCH }}",
+                    "inline": true
                   }
                 ]
-              }]
-            }"
+              }
+            ]
+          }
+          EOF
+          curl -X POST "$DISCORD_WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -d @/tmp/discord_payload.json
 
   notify-merged:
     runs-on: ubuntu-latest
@@ -78,20 +78,20 @@ jobs:
           PR_MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
           PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
         run: |
-          curl -X POST "$DISCORD_WEBHOOK" \
-            -H 'Content-Type: application/json' \
-            -d "{
-              \"content\": \"🎉 PR Merged to Main!\",
-              \"embeds\": [{
-                \"title\": \"$PR_TITLE\",
-                \"description\": \"$PR_BODY\",
-                \"url\": \"$PR_URL\",
-                \"color\": 3066993,
-                \"fields\": [
+          cat > /tmp/discord_payload.json << 'EOF'
+          {
+            "content": "🎉 PR Merged to Main!",
+            "embeds": [
+              {
+                "title": "${{ env.PR_TITLE }}",
+                "description": "${{ env.PR_BODY }}",
+                "url": "${{ env.PR_URL }}",
+                "color": 3066993,
+                "fields": [
                   {
-                    \"name\": \"Author\",
-                    \"value\": \"$PR_AUTHOR\",
-                    \"inline\": true
+                    "name": "Author",
+                    "value": "${{ env.PR_AUTHOR }}",
+                    "inline": true
                   },
                   {
                     \"name\": \"Commits\",
@@ -99,20 +99,20 @@ jobs:
                     \"inline\": true
                   },
                   {
-                    \"name\": \"From Branch\",
-                    \"value\": \"$PR_HEAD_BRANCH\",
-                    \"inline\": true
+                    "name": "From Branch",
+                    "value": "${{ env.PR_HEAD_BRANCH }}",
+                    "inline": true
                   },
                   {
-                    \"name\": \"Merged By\",
-                    \"value\": \"$PR_MERGED_BY\",
-                    \"inline\": true
-                  },
-                  {
-                    \"name\": \"Changed Files\",
-                    \"value\": \"$PR_CHANGED_FILES\",
-                    \"inline\": true
+                    "name": "Merged By",
+                    "value": "${{ env.PR_MERGED_BY }}",
+                    "inline": true
                   }
                 ]
-              }]
-            }"
+              }
+            ]
+          }
+          EOF
+          curl -X POST "$DISCORD_WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -d @/tmp/discord_payload.json
