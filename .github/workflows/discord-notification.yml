@@ -29,6 +29,11 @@ jobs:
                     "inline": true
                   },
                   {
+                    "name": "Commits",
+                    "value": "${{ github.event.pull_request.commits }}",
+                    "inline": true
+                  },
+                  {
                     "name": "From Branch",
                     "value": "${{ github.event.pull_request.head.ref }}",
                     "inline": true
@@ -36,6 +41,11 @@ jobs:
                   {
                     "name": "To Branch",
                     "value": "${{ github.event.pull_request.base.ref }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Changed Files",
+                    "value": "${{ github.event.pull_request.changed_files }}",
                     "inline": true
                   }
                 ]
@@ -64,6 +74,11 @@ jobs:
                     "inline": true
                   },
                   {
+                    "name": "Commits",
+                    "value": "${{ github.event.pull_request.commits }}",
+                    "inline": true
+                  },
+                  {
                     "name": "From Branch",
                     "value": "${{ github.event.pull_request.head.ref }}",
                     "inline": true
@@ -71,6 +86,11 @@ jobs:
                   {
                     "name": "Merged By",
                     "value": "${{ github.event.pull_request.merged_by.login }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Changed Files",
+                    "value": "${{ github.event.pull_request.changed_files }}",
                     "inline": true
                   }
                 ]
