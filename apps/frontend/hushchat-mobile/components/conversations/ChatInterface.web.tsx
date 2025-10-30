@@ -1,22 +1,22 @@
-import { View, Dimensions } from 'react-native';
-import FilterButton from '@/components/FilterButton';
-import { ChatComponentProps, ConversationType } from '@/types/chat/types';
-import usePanelManager from '@/hooks/useWebPanelManager';
-import { useCallback, useEffect, useState } from 'react';
-import ConversationThreadScreen from '@/app/conversation-threads';
-import ConversationInfoPanel from '@/components/conversations/conversation-info-panel/ConversationInfoPanel';
-import Placeholder from '@/components/Placeholder';
-import { Images } from '@/assets/images';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import SearchBar from '@/components/SearchBar';
-import { ConversationHeader } from '@/components/conversations/ConversationHeader';
-import { WebGroupCreation } from '@/components/conversations/conversation-list/group-conversation-creation/web/WebGroupCreation';
-import { PanelType } from '@/types/web-panel/types';
-import SearchedConversationMessages from '@/components/SearchedConversationMessages';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { AllParticipants } from '@/components/conversations/AllParticipants';
-import ConversationForwardPanelWeb from '@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel';
-import { EMPTY_SET } from '@/constants/constants';
+import { View, Dimensions } from "react-native";
+import FilterButton from "@/components/FilterButton";
+import { ChatComponentProps, ConversationType } from "@/types/chat/types";
+import usePanelManager from "@/hooks/useWebPanelManager";
+import { useCallback, useEffect, useState } from "react";
+import ConversationThreadScreen from "@/app/conversation-threads";
+import ConversationInfoPanel from "@/components/conversations/conversation-info-panel/ConversationInfoPanel";
+import Placeholder from "@/components/Placeholder";
+import { Images } from "@/assets/images";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import SearchBar from "@/components/SearchBar";
+import { ConversationHeader } from "@/components/conversations/ConversationHeader";
+import { WebGroupCreation } from "@/components/conversations/conversation-list/group-conversation-creation/web/WebGroupCreation";
+import { PanelType } from "@/types/web-panel/types";
+import SearchedConversationMessages from "@/components/SearchedConversationMessages";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import { AllParticipants } from "@/components/conversations/AllParticipants";
+import ConversationForwardPanelWeb from "@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel";
+import { EMPTY_SET } from "@/constants/constants";
 
 export default function ChatInterface({
   chatItemList,
@@ -26,7 +26,7 @@ export default function ChatInterface({
   selectedConversation,
   setSelectedConversation,
   onSearchQueryInserting = () => {},
-  searchQuery = '',
+  searchQuery = "",
 }: ChatComponentProps) {
   const {
     selectedConversationType,
@@ -36,15 +36,28 @@ export default function ChatInterface({
   } = useConversationStore();
 
   const [showProfilePanel, setShowProfilePanel] = useState<boolean>(false);
-  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState<number>(
+    Dimensions.get("window").width,
+  );
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
+  const [messageToJump, setMessageToJump] = useState<number | null>(null);
 
-  const { activePanel, isPanelContentReady, contentOpacity, widthAnim, openPanel, closePanel } =
-    usePanelManager(screenWidth);
+  const {
+    activePanel,
+    isPanelContentReady,
+    contentOpacity,
+    widthAnim,
+    openPanel,
+    closePanel,
+  } = usePanelManager(screenWidth);
+
+  const handleSearchMessageClick = useCallback((message: any) => {
+    setMessageToJump(message.id);
+  }, []);
 
   useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setScreenWidth(window.width);
     });
     return () => subscription?.remove();
@@ -100,6 +113,7 @@ export default function ChatInterface({
             conversationName={selectedConversation.name}
             conversationId={Number(selectedConversation.id)}
             onClose={closePanel}
+            onMessageClicked={handleSearchMessageClick}
           />
         );
       case PanelType.PARTICIPANTS:
@@ -111,7 +125,9 @@ export default function ChatInterface({
           />
         );
       case PanelType.FORWARD:
-        return <ConversationForwardPanelWeb onClose={handleForwardPanelClose} />;
+        return (
+          <ConversationForwardPanelWeb onClose={handleForwardPanelClose} />
+        );
       default:
         return null;
     }
@@ -133,8 +149,10 @@ export default function ChatInterface({
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-row h-full relative">
         <View
-          onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
-          style={{ position: 'relative' }}
+          onLayout={(event) =>
+            setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))
+          }
+          style={{ position: "relative" }}
           className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
         >
           <ConversationHeader
@@ -149,7 +167,7 @@ export default function ChatInterface({
               <SearchBar
                 value={searchQuery}
                 onChangeText={onSearchQueryInserting}
-                onClear={() => onSearchQueryInserting('')}
+                onClear={() => onSearchQueryInserting("")}
               />
             </View>
           )}
@@ -172,7 +190,9 @@ export default function ChatInterface({
           )}
 
           <View className="flex-1 min-h-0">
-            <View className="max-w-md mx-auto w-full flex-1 min-h-0">{chatItemList}</View>
+            <View className="max-w-md mx-auto w-full flex-1 min-h-0">
+              {chatItemList}
+            </View>
           </View>
 
           {showCreateGroup && (
@@ -200,6 +220,8 @@ export default function ChatInterface({
               onShowProfile={handleShowProfile}
               webSearchPress={handleShowSearch}
               webForwardPress={handleShowForward}
+              messageToJump={messageToJump}
+              onMessageJumped={() => setMessageToJump(null)}
             />
           ) : (
             <Placeholder
@@ -211,7 +233,7 @@ export default function ChatInterface({
         </Animated.View>
 
         <Animated.View
-          style={[{ flexShrink: 0, overflow: 'hidden' }, panelStyle]}
+          style={[{ flexShrink: 0, overflow: "hidden" }, panelStyle]}
           className="bg-background-light dark:bg-gray-900"
         >
           <Animated.View
