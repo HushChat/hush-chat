@@ -1,0 +1,13 @@
+
+echo "🚀 Running pre-commit checks...\n"
+
+# Run ESLint
+echo "🔍 Linting code with ESLint..."
+if ! yarn lint-staged; then
+    echo "\n❌ ESLint check failed!"
+    echo "💡 Tip: Run 'yarn lint --fix' to auto-fix some issues\n"
+    exit 1
+fi
+echo "✅ ESLint check passed!\n"
+
+echo "🎉 All pre-commit checks passed! Ready to commit.\n"
