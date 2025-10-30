@@ -12,87 +12,107 @@ jobs:
     if: github.event.action == 'opened'
     steps:
       - name: Send Discord Notification - PR Opened
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
+          PR_HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
         run: |
-          curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+          curl -X POST "$DISCORD_WEBHOOK" \
             -H 'Content-Type: application/json' \
-            -d '{
-              "content": "📝 New PR Created!",
-              "embeds": [{
-                "title": "${{ github.event.pull_request.title }}",
-                "description": "${{ github.event.pull_request.body }}",
-                "url": "${{ github.event.pull_request.html_url }}",
-                "color": 3447003,
-                "fields": [
+            -d "{
+              \"content\": \"📝 New PR Created!\",
+              \"embeds\": [{
+                \"title\": \"$PR_TITLE\",
+                \"description\": \"$PR_BODY\",
+                \"url\": \"$PR_URL\",
+                \"color\": 3447003,
+                \"fields\": [
                   {
-                    "name": "Author",
-                    "value": "${{ github.event.pull_request.user.login }}",
-                    "inline": true
+                    \"name\": \"Author\",
+                    \"value\": \"$PR_AUTHOR\",
+                    \"inline\": true
                   },
                   {
-                    "name": "Commits",
-                    "value": "${{ github.event.pull_request.commits }}",
-                    "inline": true
+                    \"name\": \"Commits\",
+                    \"value\": \"$PR_COMMITS\",
+                    \"inline\": true
                   },
                   {
-                    "name": "From Branch",
-                    "value": "${{ github.event.pull_request.head.ref }}",
-                    "inline": true
+                    \"name\": \"From Branch\",
+                    \"value\": \"$PR_HEAD_BRANCH\",
+                    \"inline\": true
                   },
                   {
-                    "name": "To Branch",
-                    "value": "${{ github.event.pull_request.base.ref }}",
-                    "inline": true
+                    \"name\": \"To Branch\",
+                    \"value\": \"$PR_BASE_BRANCH\",
+                    \"inline\": true
                   },
                   {
-                    "name": "Changed Files",
-                    "value": "${{ github.event.pull_request.changed_files }}",
-                    "inline": true
+                    \"name\": \"Changed Files\",
+                    \"value\": \"$PR_CHANGED_FILES\",
+                    \"inline\": true
                   }
                 ]
               }]
-            }'
+            }"
 
   notify-merged:
     runs-on: ubuntu-latest
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     steps:
       - name: Send Discord Notification - PR Merged
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
+          PR_HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
+          PR_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
         run: |
-          curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+          curl -X POST "$DISCORD_WEBHOOK" \
             -H 'Content-Type: application/json' \
-            -d '{
-              "content": "🎉 PR Merged to Main!",
-              "embeds": [{
-                "title": "${{ github.event.pull_request.title }}",
-                "description": "${{ github.event.pull_request.body }}",
-                "url": "${{ github.event.pull_request.html_url }}",
-                "color": 3066993,
-                "fields": [
+            -d "{
+              \"content\": \"🎉 PR Merged to Main!\",
+              \"embeds\": [{
+                \"title\": \"$PR_TITLE\",
+                \"description\": \"$PR_BODY\",
+                \"url\": \"$PR_URL\",
+                \"color\": 3066993,
+                \"fields\": [
                   {
-                    "name": "Author",
-                    "value": "${{ github.event.pull_request.user.login }}",
-                    "inline": true
+                    \"name\": \"Author\",
+                    \"value\": \"$PR_AUTHOR\",
+                    \"inline\": true
                   },
                   {
-                    "name": "Commits",
-                    "value": "${{ github.event.pull_request.commits }}",
-                    "inline": true
+                    \"name\": \"Commits\",
+                    \"value\": \"$PR_COMMITS\",
+                    \"inline\": true
                   },
                   {
-                    "name": "From Branch",
-                    "value": "${{ github.event.pull_request.head.ref }}",
-                    "inline": true
+                    \"name\": \"From Branch\",
+                    \"value\": \"$PR_HEAD_BRANCH\",
+                    \"inline\": true
                   },
                   {
-                    "name": "Merged By",
-                    "value": "${{ github.event.pull_request.merged_by.login }}",
-                    "inline": true
+                    \"name\": \"Merged By\",
+                    \"value\": \"$PR_MERGED_BY\",
+                    \"inline\": true
                   },
                   {
-                    "name": "Changed Files",
-                    "value": "${{ github.event.pull_request.changed_files }}",
-                    "inline": true
+                    \"name\": \"Changed Files\",
+                    \"value\": \"$PR_CHANGED_FILES\",
+                    \"inline\": true
                   }
                 ]
               }]
-            }'
+            }"
