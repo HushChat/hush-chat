@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, usePathname } from 'expo-router';
+import { useRouter, usePathname, Href } from 'expo-router';
 import { INavigationItem } from '@/types/navigation/types';
 import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
 import classNames from 'classnames';
@@ -91,6 +91,7 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
       <View className="mt-auto">
         <View className="w-8 h-0.5 bg-gray-300 dark:bg-slate-700 mx-auto mb-2 rounded-full" />
         <TouchableOpacity
+          onPress={() => router.push('/settings' as Href)}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
           className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-2xl items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700"
         >

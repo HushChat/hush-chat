@@ -6,4 +6,5 @@ export const Images = {
   CallLogPlaceholder: require('./callLogPlaceholder.webp'),
   LoginPeople: require('./login-img.png'),
   Workspace: require('./workspace.png'),
+  Settings: require('./gear.png')
 };
