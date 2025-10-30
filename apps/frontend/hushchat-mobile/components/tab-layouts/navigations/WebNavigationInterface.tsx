@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, usePathname } from "expo-router";
+import { useRouter, usePathname, Href } from "expo-router";
 import { INavigationItem } from "@/types/navigation/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import classNames from "classnames";
