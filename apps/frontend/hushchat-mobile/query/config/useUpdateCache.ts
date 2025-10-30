@@ -1,4 +1,4 @@
-import { useQueryClient, QueryKey } from '@tanstack/react-query';
+import { useQueryClient, QueryKey } from "@tanstack/react-query";
 
 /**
  * Reusable helper to update a field in any cached object.

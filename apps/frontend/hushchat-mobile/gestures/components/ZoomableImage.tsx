@@ -1,13 +1,17 @@
-import React from 'react';
-import { ImageProps } from 'react-native';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { usePinchGesture } from '@/gestures/base/usePinchGesture';
-import { usePanGesture } from '@/gestures/base/usePanGesture';
-import { useDoubleTapGesture } from '@/gestures/base/useDoubleTapGesture';
+import React from "react";
+import { ImageProps } from "react-native";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { usePinchGesture } from "@/gestures/base/usePinchGesture";
+import { usePanGesture } from "@/gestures/base/usePanGesture";
+import { useDoubleTapGesture } from "@/gestures/base/useDoubleTapGesture";
 
 type TZoomableImageProps = {
-  source: ImageProps['source'];
+  source: ImageProps["source"];
   doubleTapScale?: number;
   onZoom?: (scale: number) => void;
   className?: string;
@@ -33,7 +37,7 @@ export function ZoomableImage({
   });
 
   const { gesture: pan } = usePanGesture({
-    axis: 'free',
+    axis: "free",
     onUpdate: ({ translationX, translationY }) => {
       tx.value = translationX;
       ty.value = translationY;
@@ -61,7 +65,11 @@ export function ZoomableImage({
   const composed = Gesture.Simultaneous(pinch, pan, doubleTap);
 
   const style = useAnimatedStyle(() => ({
-    transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }],
+    transform: [
+      { translateX: tx.value },
+      { translateY: ty.value },
+      { scale: scale.value },
+    ],
   }));
 
   return (
@@ -69,7 +77,7 @@ export function ZoomableImage({
       <Animated.View>
         <Animated.Image
           source={source}
-          style={[{ width: '100%', height: '100%' }, style]}
+          style={[{ width: "100%", height: "100%" }, style]}
           className={className}
         />
       </Animated.View>

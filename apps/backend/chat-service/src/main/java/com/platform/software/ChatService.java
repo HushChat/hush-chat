@@ -37,7 +37,7 @@ public class ChatService implements ApplicationListener<ApplicationReadyEvent> {
     @PostConstruct
     public void init(){
         long startupTime = System.currentTimeMillis() - applicationStartTime;
-        logger.info("postconstruct event called in {} seconds, after app startup", startupTime / 1000.0);
+        logger.info("post construct event called in {} seconds, after app startup", startupTime / 1000.0);
 
         TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of(Constants.TIME_ZONE_IST)));
     }

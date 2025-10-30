@@ -9,10 +9,10 @@
  * This acts as the placeholder route for the conversation info sidebar/panel
  * in the web layout of the chat application.
  */
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import ConversationInfoPanel from '@/components/conversations/conversation-info-panel/ConversationInfoPanel';
-import { useEffect } from 'react';
-import { CHATS_PATH } from '@/constants/routes';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import ConversationInfoPanel from "@/components/conversations/conversation-info-panel/ConversationInfoPanel";
+import { useEffect } from "react";
+import { CHATS_PATH } from "@/constants/routes";
 
 export default function ConversationIdRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CursorPaginatedQueryOptions,
   CursorPaginatedResponse,
@@ -30,8 +30,12 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
     enabled,
     initialPageParam: undefined,
     queryFn: async ({ pageParam }) => {
-      const response = await queryFn({ beforeId: Number(pageParam), size: pageSize });
-      if (!response.data) throw new Error(response.error || 'Failed to fetch data');
+      const response = await queryFn({
+        beforeId: Number(pageParam),
+        size: pageSize,
+      });
+      if (!response.data)
+        throw new Error(response.error || "Failed to fetch data");
       return response.data;
     },
     getNextPageParam: (lastPage) => {

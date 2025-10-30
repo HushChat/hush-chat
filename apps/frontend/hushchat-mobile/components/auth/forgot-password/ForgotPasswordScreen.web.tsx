@@ -1,14 +1,20 @@
-import React from 'react';
-import { useAuthThemeColors } from '@/hooks/useAuthThemeColors';
-import { Images } from '@/assets/images';
-import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
-import { ForgotPasswordForm } from '@/components/auth/forgot-password/ForgotPasswordForm';
-import AuthWebLayout from '@/components/auth/AuthWebLayout';
+import React from "react";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
+import { Images } from "@/assets/images";
+import { useForgotPassword } from "@/hooks/auth/useForgotPassword";
+import { ForgotPasswordForm } from "@/components/auth/forgot-password/ForgotPasswordForm";
+import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function ForgotPasswordScreen() {
   const { colors } = useAuthThemeColors();
-  const { email, setEmail, errorMessage, successMessage, handleSendCode, goBackToLogin } =
-    useForgotPassword();
+  const {
+    email,
+    setEmail,
+    errorMessage,
+    successMessage,
+    handleSendCode,
+    goBackToLogin,
+  } = useForgotPassword();
 
   return (
     <AuthWebLayout
@@ -27,7 +33,7 @@ export default function ForgotPasswordScreen() {
         formErrors={{}}
         showErrors={false}
         onValueChange={({ name, value }) => {
-          if (name === 'email') setEmail(value);
+          if (name === "email") setEmail(value);
         }}
       />
     </AuthWebLayout>

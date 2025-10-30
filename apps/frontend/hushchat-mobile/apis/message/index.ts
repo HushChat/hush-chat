@@ -1,14 +1,23 @@
-import { CONVERSATION_API_ENDPOINTS, MESSAGE_API_ENDPOINTS } from '@/constants/apiConstants';
-import { IMessageReactionRequest } from '@/types/chat/types';
-import { ErrorResponse } from '@/utils/apiErrorUtils';
-import axios, { AxiosError } from 'axios';
+import {
+  CONVERSATION_API_ENDPOINTS,
+  MESSAGE_API_ENDPOINTS,
+} from "@/constants/apiConstants";
+import { IMessageReactionRequest } from "@/types/chat/types";
+import { ErrorResponse } from "@/utils/apiErrorUtils";
+import axios, { AxiosError } from "axios";
 
 /**
  * Add a reaction to a message
  */
-export const addMessageReaction = async (messageId: number, reaction: IMessageReactionRequest) => {
+export const addMessageReaction = async (
+  messageId: number,
+  reaction: IMessageReactionRequest,
+) => {
   try {
-    const response = await axios.post(MESSAGE_API_ENDPOINTS.REACTIONS(messageId), reaction);
+    const response = await axios.post(
+      MESSAGE_API_ENDPOINTS.REACTIONS(messageId),
+      reaction,
+    );
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -21,7 +30,9 @@ export const addMessageReaction = async (messageId: number, reaction: IMessageRe
  */
 export const removeMessageReaction = async (messageId: number) => {
   try {
-    const response = await axios.delete(MESSAGE_API_ENDPOINTS.REACTIONS(messageId));
+    const response = await axios.delete(
+      MESSAGE_API_ENDPOINTS.REACTIONS(messageId),
+    );
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -29,10 +40,16 @@ export const removeMessageReaction = async (messageId: number) => {
   }
 };
 
-export const pinMessage = async (params: { conversationId: number; messageId: number }) => {
+export const pinMessage = async (params: {
+  conversationId: number;
+  messageId: number;
+}) => {
   try {
     const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.PIN_MESSAGE(params.conversationId, params.messageId),
+      CONVERSATION_API_ENDPOINTS.PIN_MESSAGE(
+        params.conversationId,
+        params.messageId,
+      ),
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -61,7 +78,9 @@ export const forwardMessages = async (params: {
 
 export const unsendMessage = async (params: { messageId: number }) => {
   try {
-    const response = await axios.patch(MESSAGE_API_ENDPOINTS.UNSEND(params.messageId));
+    const response = await axios.patch(
+      MESSAGE_API_ENDPOINTS.UNSEND(params.messageId),
+    );
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -75,9 +94,12 @@ export const getMessageReactions = async (
   size: number = 20,
 ) => {
   try {
-    const response = await axios.get(MESSAGE_API_ENDPOINTS.REACTIONS(messageId), {
-      params: { page, size },
-    });
+    const response = await axios.get(
+      MESSAGE_API_ENDPOINTS.REACTIONS(messageId),
+      {
+        params: { page, size },
+      },
+    );
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;

@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSharedValue, withTiming, Easing, type SharedValue } from 'react-native-reanimated';
-import { PanelType } from '@/types/web-panel/types';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useSharedValue,
+  withTiming,
+  Easing,
+  type SharedValue,
+} from "react-native-reanimated";
+import { PanelType } from "@/types/web-panel/types";
 
 const PANEL_CONFIG = {
   WIDTH_RATIO: 0.3,
@@ -17,7 +22,10 @@ const useWebPanelManager = (screenWidth: number) => {
 
   const panelWidth = useMemo(() => {
     const calculated = screenWidth * PANEL_CONFIG.WIDTH_RATIO;
-    return Math.min(Math.max(calculated, PANEL_CONFIG.MIN_WIDTH), PANEL_CONFIG.MAX_WIDTH);
+    return Math.min(
+      Math.max(calculated, PANEL_CONFIG.MIN_WIDTH),
+      PANEL_CONFIG.MAX_WIDTH,
+    );
   }, [screenWidth]);
 
   useEffect(() => {
@@ -47,7 +55,9 @@ const useWebPanelManager = (screenWidth: number) => {
   }, []);
 
   const togglePanel = useCallback((panelType: PanelType) => {
-    setActivePanel((current) => (current === panelType ? PanelType.NONE : panelType));
+    setActivePanel((current) =>
+      current === panelType ? PanelType.NONE : panelType,
+    );
   }, []);
 
   return {

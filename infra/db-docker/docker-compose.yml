@@ -1,4 +1,4 @@
-version: '2'
+version: "2"
 services:
   postgres:
     image: postgres:15
@@ -14,7 +14,6 @@ services:
       - ./init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql
     networks:
       - infra_network
-
 
   redis:
     image: redis:7.2.4

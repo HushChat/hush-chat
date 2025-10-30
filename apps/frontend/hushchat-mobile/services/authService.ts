@@ -1,10 +1,13 @@
-import axios from 'axios';
-import { AUTH_API_ENDPOINTS } from '@/constants/apiConstants';
-import { IRegisterUserPayload } from '@/types/user/types';
+import axios from "axios";
+import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
+import { IRegisterUserPayload } from "@/types/user/types";
 
 export async function loginUser(email: string, password: string) {
   try {
-    const { data } = await axios.post(AUTH_API_ENDPOINTS.LOGIN, { email, password });
+    const { data } = await axios.post(AUTH_API_ENDPOINTS.LOGIN, {
+      email,
+      password,
+    });
     return {
       success: true,
       idToken: data.idToken,
@@ -15,7 +18,8 @@ export async function loginUser(email: string, password: string) {
   } catch (error: unknown) {
     return {
       success: false,
-      message: error.response?.data?.message || 'Login failed. Please try again.',
+      message:
+        error.response?.data?.message || "Login failed. Please try again.",
     };
   }
 }
@@ -27,7 +31,8 @@ export async function registerUser(userData: IRegisterUserPayload) {
   } catch (error: unknown) {
     return {
       success: false,
-      message: error.response?.data?.message || 'Register failed. Please try again.',
+      message:
+        error.response?.data?.message || "Register failed. Please try again.",
     };
   }
 }
@@ -41,7 +46,9 @@ export async function confirmSignup(email: string, confirmationCode: number) {
   } catch (error: unknown) {
     return {
       success: false,
-      message: error.response?.data?.message || 'OTP confirmation failed. Please try again.',
+      message:
+        error.response?.data?.message ||
+        "OTP confirmation failed. Please try again.",
     };
   }
 }
@@ -55,7 +62,9 @@ export async function resendOtp(email: string) {
   } catch (error: unknown) {
     return {
       success: false,
-      message: error.response?.data?.message || 'OTP confirmation failed. Please try again.',
+      message:
+        error.response?.data?.message ||
+        "OTP confirmation failed. Please try again.",
     };
   }
 }

@@ -1,12 +1,12 @@
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import { INotificationService } from './INotificationService';
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import { INotificationService } from "./INotificationService";
 
 export const ExpoNotificationService: INotificationService = {
   async registerDevice() {
     if (!Device.isDevice) return null;
     const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') return null;
+    if (status !== "granted") return null;
     const token = (await Notifications.getExpoPushTokenAsync()).data;
     return token;
   },

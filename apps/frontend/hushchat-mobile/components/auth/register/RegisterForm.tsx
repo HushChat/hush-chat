@@ -1,8 +1,13 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { FormHeader, FormButton, ErrorMessage, FormContainer } from '@/components/FormComponents';
-import TextField from '@/components/forms/TextField';
-import { TRegisterFormProps } from '@/types/login/types';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import {
+  FormHeader,
+  FormButton,
+  ErrorMessage,
+  FormContainer,
+} from "@/components/FormComponents";
+import TextField from "@/components/forms/TextField";
+import { TRegisterFormProps } from "@/types/login/types";
 
 export const RegisterForm = ({
   colors,
@@ -23,21 +28,40 @@ export const RegisterForm = ({
 
   return (
     <FormContainer>
-      <FormHeader title="Register" subtitle="Create your account to get started." colors={colors} />
+      <FormHeader
+        title="Register"
+        subtitle="Create your account to get started."
+        colors={colors}
+      />
 
-      {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
+      {!!errorMessage && (
+        <ErrorMessage message={errorMessage} colors={colors} />
+      )}
 
       <View style={styles.fieldsContainer}>
         <View style={styles.row}>
           <View style={styles.halfWidth}>
-            <TextField name="firstName" placeholder="First Name" {...sharedProps} />
+            <TextField
+              name="firstName"
+              placeholder="First Name"
+              {...sharedProps}
+            />
           </View>
           <View style={styles.halfWidth}>
-            <TextField name="lastName" placeholder="Last Name" {...sharedProps} />
+            <TextField
+              name="lastName"
+              placeholder="Last Name"
+              {...sharedProps}
+            />
           </View>
         </View>
 
-        <TextField name="username" placeholder="Username" autoCapitalize="none" {...sharedProps} />
+        <TextField
+          name="username"
+          placeholder="Username"
+          autoCapitalize="none"
+          {...sharedProps}
+        />
 
         <TextField
           name="email"
@@ -49,7 +73,12 @@ export const RegisterForm = ({
 
         <View style={styles.row}>
           <View style={styles.halfWidth}>
-            <TextField name="password" placeholder="Password" secureTextEntry {...sharedProps} />
+            <TextField
+              name="password"
+              placeholder="Password"
+              secureTextEntry
+              {...sharedProps}
+            />
           </View>
           <View style={styles.halfWidth}>
             <TextField
@@ -63,7 +92,7 @@ export const RegisterForm = ({
       </View>
 
       <FormButton
-        title={isLoading ? 'Registering...' : 'Register'}
+        title={isLoading ? "Registering..." : "Register"}
         onPress={onSubmit}
         disabled={isLoading}
         colors={colors}
@@ -75,14 +104,14 @@ export const RegisterForm = ({
 
 const styles = StyleSheet.create({
   fieldsContainer: {
-    flexDirection: 'column',
+    flexDirection: "column",
     gap: 10,
-    width: '100%',
+    width: "100%",
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
-    width: '100%',
+    width: "100%",
   },
   halfWidth: {
     flex: 1,

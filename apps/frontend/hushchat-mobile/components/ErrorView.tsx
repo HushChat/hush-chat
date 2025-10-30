@@ -1,7 +1,16 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ImageSourcePropType,
+} from "react-native";
+import {
+  useSafeAreaInsets,
+  SafeAreaView,
+} from "react-native-safe-area-context";
 
 type ErrorViewProps = {
   title: string;
@@ -11,7 +20,13 @@ type ErrorViewProps = {
   imageSource?: ImageSourcePropType;
 };
 
-const ErrorView = ({ title, message, onBack, onRetry, imageSource }: ErrorViewProps) => {
+const ErrorView = ({
+  title,
+  message,
+  onBack,
+  onRetry,
+  imageSource,
+}: ErrorViewProps) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -36,7 +51,11 @@ const ErrorView = ({ title, message, onBack, onRetry, imageSource }: ErrorViewPr
 
       <View className="flex-1 items-center justify-center px-4">
         {imageSource ? (
-          <Image source={imageSource} resizeMode="contain" style={{ width: 228, height: 228 }} />
+          <Image
+            source={imageSource}
+            resizeMode="contain"
+            style={{ width: 228, height: 228 }}
+          />
         ) : (
           <Ionicons name="chatbubbles-outline" size={80} color="#9CA3AF" />
         )}
@@ -52,7 +71,9 @@ const ErrorView = ({ title, message, onBack, onRetry, imageSource }: ErrorViewPr
             onPress={onRetry}
             className="mt-6 bg-primary-light dark:bg-primary-dark px-6 py-3 rounded-lg"
           >
-            <Text className="text-text-primary-dark font-semibold">Try Again</Text>
+            <Text className="text-text-primary-dark font-semibold">
+              Try Again
+            </Text>
           </TouchableOpacity>
         )}
       </View>

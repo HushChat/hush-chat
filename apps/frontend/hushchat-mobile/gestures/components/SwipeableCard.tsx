@@ -1,9 +1,9 @@
-import React, { ReactNode } from 'react';
-import { View } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { useSwipeGesture } from '@/gestures/base/useSwipeGesture';
-import { scheduleOnRN } from 'react-native-worklets';
+import React, { ReactNode } from "react";
+import { View } from "react-native";
+import { GestureDetector } from "react-native-gesture-handler";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
+import { scheduleOnRN } from "react-native-worklets";
 
 type TSwipeableCardProps = {
   children: ReactNode;
@@ -23,7 +23,7 @@ export function SwipeableCard({
   maxDrag = width * 0.6,
 }: TSwipeableCardProps) {
   const { gesture, translateX } = useSwipeGesture({
-    direction: 'horizontal',
+    direction: "horizontal",
     trigger,
     maxDrag,
     onSwipeLeft: () => {
@@ -45,7 +45,9 @@ export function SwipeableCard({
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View style={style}>
-        <View className="rounded-lg shadow-lg bg-white dark:bg-neutral-800">{children}</View>
+        <View className="rounded-lg shadow-lg bg-white dark:bg-neutral-800">
+          {children}
+        </View>
       </Animated.View>
     </GestureDetector>
   );

@@ -1,5 +1,9 @@
-import { ApiResponse } from '@/types/common/types';
-import { useMutation, UseMutationOptions, useQueryClient } from '@tanstack/react-query';
+import { ApiResponse } from "@/types/common/types";
+import {
+  useMutation,
+  UseMutationOptions,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 /**
  * A generic mutation hook that wraps React Query's useMutation with enhanced error handling,
@@ -32,18 +36,23 @@ export const useGenericMutation = <TData, TVariables = void>(
     onError?: (error?: unknown) => void;
     mutationOptions?: Omit<
       UseMutationOptions<ApiResponse<TData>, unknown, TVariables>,
-      'mutationFn' | 'onSuccess' | 'onError'
+      "mutationFn" | "onSuccess" | "onError"
     >;
   },
 ) => {
   const queryClient = useQueryClient();
 
   // Helper to check if response indicates success and extract data
-  const isSuccessResponse = (response: any): { isSuccess: boolean; data?: TData } => {
+  const isSuccessResponse = (
+    response: any,
+  ): { isSuccess: boolean; data?: TData } => {
     if (response === undefined || response === null) {
       return { isSuccess: true }; // Void methods
     }
-    if (('data' in response && response.data !== undefined) || !('error' in response)) {
+    if (
+      ("data" in response && response.data !== undefined) ||
+      !("error" in response)
+    ) {
       return { isSuccess: true, data: response.data };
     }
     return { isSuccess: false };
@@ -62,12 +71,17 @@ export const useGenericMutation = <TData, TVariables = void>(
         }
 
         // All keys to invalidate (static + computed)
-        const allKeysToInvalidate = [...(options?.invalidateKeys || []), ...computedKeys];
+        const allKeysToInvalidate = [
+          ...(options?.invalidateKeys || []),
+          ...computedKeys,
+        ];
 
         // Invalidate
         if (allKeysToInvalidate.length > 0) {
           await Promise.all(
-            allKeysToInvalidate.map((key) => queryClient.invalidateQueries({ queryKey: key })),
+            allKeysToInvalidate.map((key) =>
+              queryClient.invalidateQueries({ queryKey: key }),
+            ),
           );
         }
 
@@ -79,13 +93,13 @@ export const useGenericMutation = <TData, TVariables = void>(
         }
       } else {
         // Handle API errors (no invalidation)
-        console.error('API error:', response.error);
+        console.error("API error:", response.error);
         options?.onError?.(response.error);
       }
     },
     onError: (error) => {
       // Handle network/unexpected errors (no invalidation)
-      console.error('Network/unexpected error:', error);
+      console.error("Network/unexpected error:", error);
       options?.onError?.(error);
     },
     ...options?.mutationOptions,

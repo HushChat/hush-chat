@@ -1,9 +1,13 @@
-import { withTiming, useSharedValue, type SharedValue } from 'react-native-reanimated';
-import { usePanGesture } from './usePanGesture';
-import { PLATFORM } from '@/constants/platformConstants';
-import { OffsetThresholds, VelocityThresholds } from '@/types/gestures/types';
+import {
+  withTiming,
+  useSharedValue,
+  type SharedValue,
+} from "react-native-reanimated";
+import { usePanGesture } from "./usePanGesture";
+import { PLATFORM } from "@/constants/platformConstants";
+import { OffsetThresholds, VelocityThresholds } from "@/types/gestures/types";
 
-type Direction = 'horizontal' | 'vertical';
+type Direction = "horizontal" | "vertical";
 
 type SwipeGestureProps = {
   enabled?: boolean;
@@ -26,7 +30,7 @@ type SwipeGestureProps = {
 };
 
 type SwipeGestureResult = {
-  gesture: ReturnType<typeof usePanGesture>['gesture'];
+  gesture: ReturnType<typeof usePanGesture>["gesture"];
   translateX: SharedValue<number>;
   translateY: SharedValue<number>;
   progress: SharedValue<number>;
@@ -34,7 +38,7 @@ type SwipeGestureResult = {
 
 export function useSwipeGesture({
   enabled = true,
-  direction = 'horizontal',
+  direction = "horizontal",
   trigger = 42,
   maxDrag = 80,
   velocity = { horizontal: 900, vertical: 900 },
@@ -69,12 +73,14 @@ export function useSwipeGesture({
 
   const { gesture } = usePanGesture({
     enabled,
-    axis: direction === 'horizontal' ? 'horizontal' : 'vertical',
-    offsets: offsets ?? (direction === 'horizontal' ? horizontalOffsets : verticalOffsets),
+    axis: direction === "horizontal" ? "horizontal" : "vertical",
+    offsets:
+      offsets ??
+      (direction === "horizontal" ? horizontalOffsets : verticalOffsets),
     callbacksRunOnJS: PLATFORM.IS_WEB,
 
     onUpdate: ({ translationX, translationY }) => {
-      if (direction === 'horizontal') {
+      if (direction === "horizontal") {
         const leftLimit = maxDragLeft ?? maxDrag;
         const rightLimit = maxDragRight ?? maxDrag;
 
@@ -85,7 +91,11 @@ export function useSwipeGesture({
         translateX.value = x;
 
         const p =
-          allowLeft && allowRight ? Math.abs(x) : allowRight ? Math.max(0, x) : Math.max(0, -x);
+          allowLeft && allowRight
+            ? Math.abs(x)
+            : allowRight
+              ? Math.max(0, x)
+              : Math.max(0, -x);
         progress.value = Math.min(p / trigger, 1);
       } else {
         const y = Math.max(Math.min(translationY, maxDrag), -maxDrag);
@@ -95,7 +105,7 @@ export function useSwipeGesture({
     },
 
     onEnd: ({ translationX, translationY, velocityX, velocityY }) => {
-      if (direction === 'horizontal') {
+      if (direction === "horizontal") {
         const vThresh = velocity.horizontal ?? 900;
         if (allowRight && (translationX >= trigger || velocityX > vThresh)) {
           onSwipeRight?.();
@@ -108,7 +118,8 @@ export function useSwipeGesture({
       } else {
         const vThresh = velocity.vertical ?? 900;
         if (translationY >= trigger || velocityY > vThresh) onSwipeDown?.();
-        else if (translationY <= -trigger || velocityY < -vThresh) onSwipeUp?.();
+        else if (translationY <= -trigger || velocityY < -vThresh)
+          onSwipeUp?.();
       }
 
       translateX.value = withTiming(0, { duration: 150 });

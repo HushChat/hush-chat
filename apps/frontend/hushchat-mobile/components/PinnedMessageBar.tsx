@@ -1,7 +1,7 @@
-import { Pressable, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { useAppTheme } from '@/hooks/useAppTheme';
+import { Pressable, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface PinnedMessageBarProps {
   senderName: string;
@@ -23,7 +23,7 @@ export const PinnedMessageBar = ({
       onPress={onPress}
       className="flex-row items-center px-4 py-3 bg-secondary-light/40 dark:bg-secondary-dark/40 border-l-4 border-primary-light dark:border-primary-dark shadow-sm"
       style={{
-        boxShadow: '#000',
+        boxShadow: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
@@ -34,7 +34,7 @@ export const PinnedMessageBar = ({
         <Ionicons
           name="pin"
           size={16}
-          style={{ transform: [{ rotate: '45deg' }] }}
+          style={{ transform: [{ rotate: "45deg" }] }}
           className="!text-primary-light dark:!text-primary-dark"
         />
       </View>
@@ -62,7 +62,11 @@ export const PinnedMessageBar = ({
         className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 items-center justify-center ml-3"
         hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
       >
-        <Ionicons name="close" size={14} color={isDark ? '#FAFAF9' : '#050506'} />
+        <Ionicons
+          name="close"
+          size={14}
+          color={isDark ? "#FAFAF9" : "#050506"}
+        />
       </Pressable>
     </Pressable>
   );

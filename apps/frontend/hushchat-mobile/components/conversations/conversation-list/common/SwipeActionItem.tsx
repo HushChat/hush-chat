@@ -3,11 +3,11 @@
  *
  * A reusable button component revealed by swipe gestures on list items.
  */
-import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppTheme } from '@/hooks/useAppTheme';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
+import React from "react";
+import { View, TouchableOpacity, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 
 export interface SwipeActionProps {
   onPress: () => void;
@@ -18,23 +18,23 @@ export interface SwipeActionProps {
 
 export default function SwipeActionItem({
   onPress,
-  backgroundColor = 'bg-gray-500',
+  backgroundColor = "bg-gray-500",
   iconName,
   text,
 }: SwipeActionProps) {
   const { isDark } = useAppTheme();
 
   const getActionColor = () => {
-    if (backgroundColor.includes('green')) {
-      return isDark ? '#128C7E' : '#25D366';
+    if (backgroundColor.includes("green")) {
+      return isDark ? "#128C7E" : "#25D366";
     }
-    if (backgroundColor.includes('red')) {
-      return isDark ? '#DC143C' : '#FF3B30';
+    if (backgroundColor.includes("red")) {
+      return isDark ? "#DC143C" : "#FF3B30";
     }
-    if (backgroundColor.includes('blue')) {
-      return isDark ? '#007AFF' : '#0084FF';
+    if (backgroundColor.includes("blue")) {
+      return isDark ? "#007AFF" : "#0084FF";
     }
-    return isDark ? '#34495e' : '#95a5a6';
+    return isDark ? "#34495e" : "#95a5a6";
   };
 
   const actionColor = getActionColor();

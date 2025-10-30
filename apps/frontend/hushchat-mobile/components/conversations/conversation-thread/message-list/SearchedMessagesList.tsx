@@ -1,8 +1,8 @@
-import { SectionList, View } from 'react-native';
-import { SearchedItem } from '@/components/conversations/conversation-thread/message-list/SearchedMessageItem';
-import { IMessageView } from '@/types/chat/types';
-import { useUserStore } from '@/store/user/useUserStore';
-import { AppText } from '@/components/AppText';
+import { SectionList, View } from "react-native";
+import { SearchedItem } from "@/components/conversations/conversation-thread/message-list/SearchedMessageItem";
+import { IMessageView } from "@/types/chat/types";
+import { useUserStore } from "@/store/user/useUserStore";
+import { AppText } from "@/components/AppText";
 
 interface SearchResultsListProps {
   messages: IMessageView[];
@@ -34,18 +34,19 @@ const groupMessagesByDate = (messages: IMessageView[]) => {
 
     // Determine the date label
     if (date.toDateString() === today.toDateString()) {
-      dateKey = 'Today';
+      dateKey = "Today";
     } else if (date.toDateString() === yesterday.toDateString()) {
-      dateKey = 'Yesterday';
+      dateKey = "Yesterday";
     } else if (date > new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)) {
       // Within last week - show day name
-      dateKey = date.toLocaleDateString('en-US', { weekday: 'long' });
+      dateKey = date.toLocaleDateString("en-US", { weekday: "long" });
     } else {
       // Older - show date
-      dateKey = date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+      dateKey = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year:
+          date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
       });
     }
 
@@ -95,14 +96,19 @@ export const SearchedMessagesList: React.FC<SearchResultsListProps> = ({
           </View>
         );
       }}
-      renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
+      renderSectionHeader={({ section }) => (
+        <SectionHeader title={section.title} />
+      )}
       className="bg-background-light dark:bg-background-dark"
       stickySectionHeadersEnabled={true}
       onEndReached={onEndReached}
       onEndReachedThreshold={onEndReachedThreshold}
       ListFooterComponent={ListFooterComponent}
       ItemSeparatorComponent={() => (
-        <View className="bg-gray-200 dark:bg-gray-900" style={{ width: '100%', height: 1 }} />
+        <View
+          className="bg-gray-200 dark:bg-gray-900"
+          style={{ width: "100%", height: 1 }}
+        />
       )}
     />
   );
