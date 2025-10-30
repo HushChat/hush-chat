@@ -12,11 +12,11 @@ export const AUTH_API_ENDPOINTS = {
 
 export const TOKEN_TYPE = "Bearer";
 
-export const CONVERSATION_API_BASE = '/conversations';
-export const USER_API_BASE = '/users';
-export const MESSAGE_API_BASE = '/messages';
-export const SEARCH_API_BASE = '/search';
-export const SETTINGS_API_BASE = '/settings'
+export const CONVERSATION_API_BASE = "/conversations";
+export const USER_API_BASE = "/users";
+export const MESSAGE_API_BASE = "/messages";
+export const SEARCH_API_BASE = "/search";
+export const SETTINGS_API_BASE = "/settings";
 
 export const CONVERSATION_API_ENDPOINTS = {
   ALL: CONVERSATION_API_BASE,
@@ -55,7 +55,7 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/pin`,
   REMOVE_CONVERSATION_PARTICIPANT: (
     conversationId: number,
-    participantId: number,
+    participantId: number
   ) =>
     `${CONVERSATION_API_BASE}/${conversationId}/participants/${participantId}`,
   TOGGLE_MUTE_CONVERSATION: (conversationId: number) =>
@@ -87,6 +87,6 @@ export const MESSAGE_API_ENDPOINTS = {
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
 };
 
-export const SETTINGS_API_ENDPOINTS ={
-   CONTACTUS: `${SETTINGS_API_BASE}/contact-us`,
+export const SETTINGS_API_ENDPOINTS = {
+  CONTACTUS: `${SETTINGS_API_BASE}/contact-us`,
 };
