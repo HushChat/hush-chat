@@ -3,26 +3,34 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
-import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from '@/types/chat/types';
-import { useUserStore } from '@/store/user/useUserStore';
-import { ConversationMessageItem } from '@/components/conversations/conversation-thread/message-list/ConversationMessageItem';
-import ActionsHeader from '@/components/conversations/conversation-thread/ActionsHeader';
-import { PinnedMessageBar } from '@/components/PinnedMessageBar';
-import * as Haptics from 'expo-haptics';
-import { PLATFORM } from '@/constants/platformConstants';
-import { usePinMessageMutation } from '@/query/post/queries';
-import { usePatchUnsendMessageMutation } from '@/query/patch/queries';
-import { useUpdateCache } from '@/query/config/useUpdateCache';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { conversationQueryKeys, conversationMessageQueryKeys } from '@/constants/queryKeys';
-import { PaginatedResponse } from '@/types/common/types';
-import { ToastUtils } from '@/utils/toastUtils';
-import { useConversationsQuery } from '@/query/useConversationsQuery';
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, FlatList, View } from "react-native";
+import {
+  ConversationAPIResponse,
+  IBasicMessage,
+  IMessage,
+  TPickerState,
+} from "@/types/chat/types";
+import { useUserStore } from "@/store/user/useUserStore";
+import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
+import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
+import { PinnedMessageBar } from "@/components/PinnedMessageBar";
+import * as Haptics from "expo-haptics";
+import { PLATFORM } from "@/constants/platformConstants";
+import { usePinMessageMutation } from "@/query/post/queries";
+import { usePatchUnsendMessageMutation } from "@/query/patch/queries";
+import { useUpdateCache } from "@/query/config/useUpdateCache";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import {
+  conversationQueryKeys,
+  conversationMessageQueryKeys,
+} from "@/constants/queryKeys";
+import { PaginatedResponse } from "@/types/common/types";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
 /* eslint-disable import/no-unresolved */
 // @ts-ignore
-import MessageReactionsModal from '@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal';
+import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 
 interface MessagesListProps {
   messages: IMessage[];
@@ -43,17 +51,28 @@ const ConversationMessageList = ({
   pickerState,
   selectedConversationId,
 }: MessagesListProps) => {
-  const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
+  const [selectedActionMessage, setSelectedActionMessage] =
+    useState<IMessage | null>(null);
   const { user } = useUserStore();
   const currentUserId = user?.id;
   const { openPickerMessageId, setOpenPickerMessageId } = pickerState;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
-  const handleCloseActions = useCallback(() => setSelectedActionMessage(null), []);
+  const handleCloseActions = useCallback(
+    () => setSelectedActionMessage(null),
+    [],
+  );
   const updateCache = useUpdateCache();
-  const [selectedPinnedMessage, setSelectedPinnedMessage] = useState<IBasicMessage | null>(null);
-  const [unsendMessage, setUnSendMessage] = useState<IBasicMessage>({} as IBasicMessage);
-  const { selectionMode, selectedMessageIds, setSelectionMode, setSelectedMessageIds } =
-    useConversationStore();
+  const [selectedPinnedMessage, setSelectedPinnedMessage] =
+    useState<IBasicMessage | null>(null);
+  const [unsendMessage, setUnSendMessage] = useState<IBasicMessage>(
+    {} as IBasicMessage,
+  );
+  const {
+    selectionMode,
+    selectedMessageIds,
+    setSelectionMode,
+    setSelectedMessageIds,
+  } = useConversationStore();
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [reactionsModal, setReactionsModal] = useState<{
     visible: boolean;
@@ -71,10 +90,16 @@ const ConversationMessageList = ({
       setSelectedActionMessage(null);
       setOpenPickerMessageId(null);
       const pinnedMessageState =
-        pinnedMessage?.id === selectedPinnedMessage?.id ? null : selectedPinnedMessage;
+        pinnedMessage?.id === selectedPinnedMessage?.id
+          ? null
+          : selectedPinnedMessage;
       updateCache(
-        conversationQueryKeys.metaDataById(+!!currentUserId, Number(conversationAPIResponse?.id)),
-        (prev) => (prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev),
+        conversationQueryKeys.metaDataById(
+          +!!currentUserId,
+          Number(conversationAPIResponse?.id),
+        ),
+        (prev) =>
+          prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev,
       );
     },
     (error) => {
@@ -179,7 +204,11 @@ const ConversationMessageList = ({
   );
 
   const handleViewReactions = useCallback(
-    (messageId: number, position: { x: number; y: number }, isOpen: boolean) => {
+    (
+      messageId: number,
+      position: { x: number; y: number },
+      isOpen: boolean,
+    ) => {
       setMenuPosition(position);
       setReactionsModal({
         visible: isOpen,
@@ -195,7 +224,8 @@ const ConversationMessageList = ({
 
   const renderMessage = useCallback(
     ({ item }: { item: IMessage }) => {
-      const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
+      const isCurrentUser =
+        currentUserId && Number(currentUserId) === item.senderId;
       const isSelected = selectedMessageIds.has(Number(item.id));
       return (
         <ConversationMessageItem
@@ -263,8 +293,8 @@ const ConversationMessageList = ({
 
       {pinnedMessage && (
         <PinnedMessageBar
-          senderName={`${pinnedMessage?.senderFirstName || ''} ${pinnedMessage?.senderLastName || ''}`.trim()}
-          messageText={pinnedMessage?.messageText || ''}
+          senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
+          messageText={pinnedMessage?.messageText || ""}
           onUnpin={() => togglePin(pinnedMessage)}
         />
       )}
@@ -282,7 +312,10 @@ const ConversationMessageList = ({
         onScrollBeginDrag={closeAllOverlays}
         onTouchEnd={closeAllOverlays}
         onMomentumScrollBegin={closeAllOverlays}
-        extraData={{ selectionMode, selectedMessageIdsSize: selectedMessageIds.size }}
+        extraData={{
+          selectionMode,
+          selectedMessageIdsSize: selectedMessageIds.size,
+        }}
       />
       {reactionsModal.visible && (
         <MessageReactionsModal

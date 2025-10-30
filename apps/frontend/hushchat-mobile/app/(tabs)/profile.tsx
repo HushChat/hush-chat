@@ -1,28 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUserStore } from '@/store/user/useUserStore';
-import { router } from 'expo-router';
-import { useAuthStore } from '@/store/auth/authStore';
-import InitialsAvatar from '@/components/InitialsAvatar';
-import { Images } from '@/assets/images';
-import Placeholder from '@/components/Placeholder';
-import { PLATFORM } from '@/constants/platformConstants';
-import { Ionicons } from '@expo/vector-icons';
-import { useQueryClient } from '@tanstack/react-query';
-import { AUTH_WORKSPACE_FORM_PATH } from '@/constants/routes';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  Image,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useUserStore } from "@/store/user/useUserStore";
+import { router } from "expo-router";
+import { useAuthStore } from "@/store/auth/authStore";
+import InitialsAvatar from "@/components/InitialsAvatar";
+import { Images } from "@/assets/images";
+import Placeholder from "@/components/Placeholder";
+import { PLATFORM } from "@/constants/platformConstants";
+import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
+import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
 import {
   getImagePickerAsset,
   uploadImage,
   uploadImageToSignedUrl,
   UploadType,
-} from '@/apis/photo-upload-service/photo-upload-service';
-import UploadIndicator from '@/components/UploadIndicator';
-import { ImagePickerResult } from 'expo-image-picker/src/ImagePicker.types';
-import { useUpdateUserMutation } from '@/query/patch/queries';
-import { ToastUtils } from '@/utils/toastUtils';
-import { AppText, AppTextInput } from '@/components/AppText';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
+} from "@/apis/photo-upload-service/photo-upload-service";
+import UploadIndicator from "@/components/UploadIndicator";
+import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
+import { useUpdateUserMutation } from "@/query/patch/queries";
+import { ToastUtils } from "@/utils/toastUtils";
+import { AppText, AppTextInput } from "@/components/AppText";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 
 type ProfileFieldProps = {
   label: string;
@@ -44,13 +50,15 @@ const ProfileField = ({
     {editable && onChangeText ? (
       <AppTextInput
         className="text-base dark:text-white text-black py-1"
-        value={value || ''}
+        value={value || ""}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="#9ca3af"
       />
     ) : (
-      <AppText className="text-base dark:text-white text-black">{value || 'Not provided'}</AppText>
+      <AppText className="text-base dark:text-white text-black">
+        {value || "Not provided"}
+      </AppText>
     )}
   </View>
 );
@@ -59,33 +67,39 @@ export default function Profile() {
   const { logout } = useAuthStore();
   const { user, loading, fetchUserData } = useUserStore();
   const isMobile = !PLATFORM.IS_WEB;
-  const [firstName, setFirstName] = useState(user?.firstName || '');
-  const [lastName, setLastName] = useState(user?.lastName || '');
+  const [firstName, setFirstName] = useState(user?.firstName || "");
+  const [lastName, setLastName] = useState(user?.lastName || "");
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | null>(null);
-  const [imageAssetData, setImageAssetData] = useState({ fileUri: '', fileName: '', fileType: '' });
+  const [imagePickerResult, setImagePickerResult] =
+    useState<ImagePickerResult | null>(null);
+  const [imageAssetData, setImageAssetData] = useState({
+    fileUri: "",
+    fileName: "",
+    fileType: "",
+  });
   const queryClient = useQueryClient();
 
-  const { mutate: updateUser, isPending: isUpdatingUser } = useUpdateUserMutation(
-    { userId: Number(user?.id) },
-    (user) => {
-      const imageSignedUrl = user.signedImageUrl;
+  const { mutate: updateUser, isPending: isUpdatingUser } =
+    useUpdateUserMutation(
+      { userId: Number(user?.id) },
+      (user) => {
+        const imageSignedUrl = user.signedImageUrl;
 
-      if (imageSignedUrl && imageAssetData !== null) {
-        uploadImageToSignedUrl(imageAssetData?.fileUri, imageSignedUrl);
-      }
+        if (imageSignedUrl && imageAssetData !== null) {
+          uploadImageToSignedUrl(imageAssetData?.fileUri, imageSignedUrl);
+        }
 
-      fetchUserData();
-    },
-    (error) => {
-      ToastUtils.error(error as string);
-    },
-  );
+        fetchUserData();
+      },
+      (error) => {
+        ToastUtils.error(error as string);
+      },
+    );
 
   useEffect(() => {
-    setFirstName(user?.firstName || '');
-    setLastName(user?.lastName || '');
+    setFirstName(user?.firstName || "");
+    setLastName(user?.lastName || "");
     setImageError(false);
   }, [user]);
 
@@ -107,11 +121,14 @@ export default function Profile() {
     )
       return;
 
-    const imageAssetData = getImagePickerAsset(imagePickerResult, UploadType.PROFILE);
+    const imageAssetData = getImagePickerAsset(
+      imagePickerResult,
+      UploadType.PROFILE,
+    );
     setImageAssetData(imageAssetData);
 
     updateUser({
-      id: user?.id ?? '',
+      id: user?.id ?? "",
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       imageFileName: imageAssetData ? imageAssetData.fileName : null,
@@ -142,7 +159,7 @@ export default function Profile() {
             disabled={uploading}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
-            <View style={{ position: 'relative' }}>
+            <View style={{ position: "relative" }}>
               {imagePickerResult?.assets?.[0]?.uri ? (
                 <Image
                   source={{ uri: imagePickerResult.assets[0].uri }}
@@ -158,21 +175,21 @@ export default function Profile() {
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <InitialsAvatar name={`${user.firstName ?? ''}`} size="lg" />
+                <InitialsAvatar name={`${user.firstName ?? ""}`} size="lg" />
               )}
 
               <UploadIndicator isUploading={uploading} />
 
               <View
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   bottom: 0,
                   right: 0,
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: "#3b82f6",
                   borderRadius: 16,
                   padding: 4,
                   borderWidth: 2,
-                  borderColor: '#fff',
+                  borderColor: "#fff",
                 }}
               >
                 <Ionicons name="camera" size={18} color="#fff" />
@@ -217,7 +234,9 @@ export default function Profile() {
             {isUpdatingUser ? (
               <ActivityIndicator size={20} color="#ffffff" />
             ) : (
-              <AppText className="text-white text-base font-semibold">Update Profile</AppText>
+              <AppText className="text-white text-base font-semibold">
+                Update Profile
+              </AppText>
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -225,7 +244,9 @@ export default function Profile() {
             disabled={isUpdatingUser}
             className="bg-red-500 py-4 rounded-xl items-center"
           >
-            <AppText className="text-white text-base font-semibold">Logout</AppText>
+            <AppText className="text-white text-base font-semibold">
+              Logout
+            </AppText>
           </TouchableOpacity>
         </View>
       </View>

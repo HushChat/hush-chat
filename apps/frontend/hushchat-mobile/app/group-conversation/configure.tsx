@@ -1,6 +1,6 @@
-import MobileGroupCreation from '@/components/conversations/conversation-list/group-conversation-creation/mobile/MobileGroupCreation';
-import { useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
+import MobileGroupCreation from "@/components/conversations/conversation-list/group-conversation-creation/mobile/MobileGroupCreation";
+import { useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
 
 const GroupConfiguration = () => {
   const { userIds } = useLocalSearchParams<{ userIds?: string }>();

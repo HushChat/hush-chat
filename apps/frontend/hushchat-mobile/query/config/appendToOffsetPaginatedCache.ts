@@ -1,7 +1,11 @@
-import { QueryClient, QueryKey } from '@tanstack/react-query';
+import { QueryClient, QueryKey } from "@tanstack/react-query";
 
 type PageWithItems<T> = { items: T[]; [k: string]: any };
-type OffsetResult<T> = { pages: PageWithItems<T>[]; pageParams?: any[]; [k: string]: any };
+type OffsetResult<T> = {
+  pages: PageWithItems<T>[];
+  pageParams?: any[];
+  [k: string]: any;
+};
 
 type AppendOptions<T> = {
   /** Required: unique id for de-dupe */
@@ -116,7 +120,7 @@ export function appendToOffsetPaginatedCache<T>(
     pageSize,
     getPageItems = (p: any) => (p?.content ?? p?.items ?? []) as T[],
     setPageItems = (p: any, items: T[]) =>
-      'content' in (p ?? {}) ? { ...p, content: items } : { ...p, items },
+      "content" in (p ?? {}) ? { ...p, content: items } : { ...p, items },
     dedupeAcrossPages = true,
     createIfEmpty = true,
   } = opts;
@@ -128,11 +132,16 @@ export function appendToOffsetPaginatedCache<T>(
     // If there is no cache yet and allowed to create, seed it
     if (!data?.pages?.length) {
       if (!createIfEmpty) return data;
-      const first = setPageItems({}, items.slice(0, Math.min(items.length, pageSize)));
+      const first = setPageItems(
+        {},
+        items.slice(0, Math.min(items.length, pageSize)),
+      );
       const pages = [{ ...first }];
       // Carry any overflow beyond pageSize down the chain
       let carry =
-        getPageItems(pages[0]).length > pageSize ? getPageItems(pages[0]).splice(pageSize) : [];
+        getPageItems(pages[0]).length > pageSize
+          ? getPageItems(pages[0]).splice(pageSize)
+          : [];
       while (carry.length) {
         const nextChunk = carry.splice(0, pageSize);
         pages.push(setPageItems({}, nextChunk));

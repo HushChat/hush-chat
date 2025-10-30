@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react';
-import { View, Text, ImageSourcePropType } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { useAnimatedEntrance } from '@/hooks/useAnimatedEntrance';
-import { AppText } from '@/components/AppText';
+import React, { useEffect } from "react";
+import { View, Text, ImageSourcePropType } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
+import { useAnimatedEntrance } from "@/hooks/useAnimatedEntrance";
+import { AppText } from "@/components/AppText";
 
 type PlaceholderProps = {
   title: string;
@@ -27,7 +31,7 @@ export default function Placeholder({
   title,
   subtitle,
   image,
-  bottomNote = 'Private and secure workspace communication.',
+  bottomNote = "Private and secure workspace communication.",
   imageWidth = DEFAULT_IMAGE_WIDTH,
   imageHeight = DEFAULT_IMAGE_HEIGHT,
   showDelayMs = DEFAULT_SHOW_DELAY_MS,
@@ -51,7 +55,7 @@ export default function Placeholder({
   const containerStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ translateY: translateY.value }],
-    alignItems: 'center',
+    alignItems: "center",
   }));
 
   const imageStyle = useAnimatedStyle(() => ({

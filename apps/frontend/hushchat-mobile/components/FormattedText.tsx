@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
-import { Linking, TextStyle } from 'react-native';
-import ParsedText, { ParseShape } from 'react-native-parsed-text';
-import classNames from 'classnames';
-import { TUser } from '@/types/user/types';
-import { HASHTAG_REGEX, MENTION_REGEX } from '@/constants/regex';
+import React, { useCallback, useMemo } from "react";
+import { Linking, TextStyle } from "react-native";
+import ParsedText, { ParseShape } from "react-native-parsed-text";
+import classNames from "classnames";
+import { TUser } from "@/types/user/types";
+import { HASHTAG_REGEX, MENTION_REGEX } from "@/constants/regex";
 
 interface FormattedTextProps {
   text: string;
@@ -32,21 +32,27 @@ const FormattedText = ({
 }: FormattedTextProps) => {
   const handleUrlPress = useCallback(
     async (url: string) => {
-      const finalUrl = url.startsWith('http') ? url : `https://${url}`;
+      const finalUrl = url.startsWith("http") ? url : `https://${url}`;
       if (onLinkPress) return onLinkPress(finalUrl);
       if (await Linking.canOpenURL(finalUrl)) await Linking.openURL(finalUrl);
     },
     [onLinkPress],
   );
-  const handleEmailPress = useCallback((email: string) => onEmailPress?.(email), [onEmailPress]);
-  const handlePhonePress = useCallback((phone: string) => onPhonePress?.(phone), [onPhonePress]);
+  const handleEmailPress = useCallback(
+    (email: string) => onEmailPress?.(email),
+    [onEmailPress],
+  );
+  const handlePhonePress = useCallback(
+    (phone: string) => onPhonePress?.(phone),
+    [onPhonePress],
+  );
   const handleHashtagPress = useCallback(
-    (hashtag: string) => onHashtagPress?.(hashtag.replace('#', '')),
+    (hashtag: string) => onHashtagPress?.(hashtag.replace("#", "")),
     [onHashtagPress],
   );
   const handleMentionPress = useCallback(
     (mention: string) => {
-      const username = mention.replace(MENTION_REGEX, '');
+      const username = mention.replace(MENTION_REGEX, "");
       if (mentions.some((m) => m.username === username)) {
         onMentionPress?.(username);
       }
@@ -57,31 +63,43 @@ const FormattedText = ({
   const parse = useMemo<ParseShape[]>(
     () => [
       {
-        type: 'url',
+        type: "url",
         onPress: handleUrlPress,
-        style: { textDecorationLine: 'underline', color: '#7dd3fc', opacity: 0.9 },
+        style: {
+          textDecorationLine: "underline",
+          color: "#7dd3fc",
+          opacity: 0.9,
+        },
       },
       {
-        type: 'email',
+        type: "email",
         onPress: handleEmailPress,
-        style: { textDecorationLine: 'underline', color: '#7dd3fc', opacity: 0.9 },
+        style: {
+          textDecorationLine: "underline",
+          color: "#7dd3fc",
+          opacity: 0.9,
+        },
       },
       {
-        type: 'phone',
+        type: "phone",
         onPress: handlePhonePress,
-        style: { textDecorationLine: 'underline', color: '#7dd3fc', opacity: 0.9 },
+        style: {
+          textDecorationLine: "underline",
+          color: "#7dd3fc",
+          opacity: 0.9,
+        },
       },
       {
         pattern: HASHTAG_REGEX,
         onPress: handleHashtagPress,
-        style: { color: '#ddd6fe', fontWeight: '500', opacity: 0.9 },
+        style: { color: "#ddd6fe", fontWeight: "500", opacity: 0.9 },
       },
       {
         pattern: MENTION_REGEX,
         onPress: handleMentionPress,
         style: isCurrentUser
-          ? { fontWeight: '700', borderRadius: 4, color: '#beb4e8' }
-          : { fontWeight: '700', borderRadius: 4, color: '#6366f1' },
+          ? { fontWeight: "700", borderRadius: 4, color: "#beb4e8" }
+          : { fontWeight: "700", borderRadius: 4, color: "#6366f1" },
       },
     ],
     [
@@ -98,8 +116,8 @@ const FormattedText = ({
     <ParsedText
       style={style}
       className={classNames(
-        'text-base text-text-primary-light dark:text-text-primary-dark',
-        isCurrentUser ? 'text-white' : '',
+        "text-base text-text-primary-light dark:text-text-primary-dark",
+        isCurrentUser ? "text-white" : "",
         className,
       )}
       parse={parse}

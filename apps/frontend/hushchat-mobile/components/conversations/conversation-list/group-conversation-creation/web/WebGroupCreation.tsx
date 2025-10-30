@@ -1,18 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import { TUser } from '@/types/user/types';
-import { UserMultiSelectList } from '@/components/UserMultiSelect';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import GroupConfigurationForm from '@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm';
-import { scheduleOnRN } from 'react-native-worklets';
-import { IConversation } from '@/types/chat/types';
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { TUser } from "@/types/user/types";
+import { UserMultiSelectList } from "@/components/UserMultiSelect";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
+import { scheduleOnRN } from "react-native-worklets";
+import { IConversation } from "@/types/chat/types";
 
 type TWebGroupCreationOverlay = {
   visible: boolean;
@@ -113,15 +113,15 @@ export const WebGroupCreation = ({
 
   return (
     <Animated.View
-      pointerEvents={visible ? 'auto' : 'none'}
+      pointerEvents={visible ? "auto" : "none"}
       style={[
         {
-          position: 'absolute',
+          position: "absolute",
           left: 0,
           top: 0,
           bottom: 0,
           width,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: "#FFFFFF",
         },
         containerStyle,
       ]}
@@ -133,7 +133,7 @@ export const WebGroupCreation = ({
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
           <Text className="text-xl font-semibold text-gray-900 dark:text-white">
-            {showConfigurationForm ? 'Group Details' : 'New group'}
+            {showConfigurationForm ? "Group Details" : "New group"}
           </Text>
         </View>
 
@@ -143,14 +143,16 @@ export const WebGroupCreation = ({
             disabled={selectedUsers.length === 0}
             className={`px-3 py-2 rounded-lg ${
               selectedUsers.length > 0
-                ? 'bg-primary-light dark:bg-primary-dark'
-                : 'bg-gray-300 dark:bg-gray-700'
+                ? "bg-primary-light dark:bg-primary-dark"
+                : "bg-gray-300 dark:bg-gray-700"
             }`}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
             <Text
               className={`text-xs font-medium leading-none ${
-                selectedUsers.length > 0 ? 'text-white' : 'text-gray-500 dark:text-gray-300'
+                selectedUsers.length > 0
+                  ? "text-white"
+                  : "text-gray-500 dark:text-gray-300"
               }`}
             >
               Continue
@@ -164,13 +166,13 @@ export const WebGroupCreation = ({
           style={[
             {
               width: width * 2,
-              height: '100%',
-              flexDirection: 'row',
+              height: "100%",
+              flexDirection: "row",
             },
             stepsStyle,
           ]}
         >
-          <View style={{ width, height: '100%' }}>
+          <View style={{ width, height: "100%" }}>
             <UserMultiSelectList
               selectedUsers={selectedUsers}
               onChange={setSelectedUsers}
@@ -178,7 +180,7 @@ export const WebGroupCreation = ({
             />
           </View>
 
-          <View style={{ width, height: '100%' }}>
+          <View style={{ width, height: "100%" }}>
             {showConfigurationForm ? (
               <GroupConfigurationForm
                 participantUserIds={participantUserIds}

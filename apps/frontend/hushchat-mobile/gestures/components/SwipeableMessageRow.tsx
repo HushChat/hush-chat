@@ -1,11 +1,15 @@
-import React, { ReactNode, useMemo } from 'react';
-import { View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { interpolate, useAnimatedStyle, Extrapolation } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useSwipeGesture } from '@/gestures/base/useSwipeGesture';
-import { useLongPressGesture } from '@/gestures/base/useLongPressGesture';
+import React, { ReactNode, useMemo } from "react";
+import { View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  Extrapolation,
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
+import { useLongPressGesture } from "@/gestures/base/useLongPressGesture";
 
 type TSwipeableMessageRowProps = {
   children: ReactNode;
@@ -32,7 +36,7 @@ export function SwipeableMessageRow({
     progress,
   } = useSwipeGesture({
     enabled,
-    direction: 'horizontal',
+    direction: "horizontal",
     trigger,
     maxDrag,
     allowLeft: false,
@@ -64,8 +68,18 @@ export function SwipeableMessageRow({
   }));
 
   const iconStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP);
-    const scale = interpolate(progress.value, [0, 1], [0.8, 1], Extrapolation.CLAMP);
+    const opacity = interpolate(
+      progress.value,
+      [0, 1],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    const scale = interpolate(
+      progress.value,
+      [0, 1],
+      [0.8, 1],
+      Extrapolation.CLAMP,
+    );
     return { opacity, transform: [{ scale }] };
   });
 
@@ -76,10 +90,10 @@ export function SwipeableMessageRow({
           <Animated.View
             style={[
               {
-                position: 'absolute',
+                position: "absolute",
                 top: 10,
                 left: 8,
-                pointerEvents: 'none',
+                pointerEvents: "none",
               },
               iconStyle,
             ]}

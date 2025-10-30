@@ -3,38 +3,38 @@
  * Renders a single message bubble within a conversation thread.
  */
 
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { GestureResponderEvent, Pressable, View } from 'react-native';
-import { format } from 'date-fns';
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { GestureResponderEvent, Pressable, View } from "react-native";
+import { format } from "date-fns";
 import {
   ConversationAPIResponse,
   IMessage,
   IOption,
   ReactionType,
   IMessageAttachment,
-} from '@/types/chat/types';
-import classNames from 'classnames';
-import { PLATFORM } from '@/constants/platformConstants';
-import ReactionPicker from '@/components/conversations/conversation-thread/message-list/reaction/ReactionPicker';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import Animated from 'react-native-reanimated';
-import ParentMessagePreview from './ParentMessagePreview';
-import WebContextMenu from '@/components/WebContextMenu';
-import FormattedText from '@/components/FormattedText';
-import { SwipeableMessageRow } from '@/gestures/components/SwipeableMessageRow';
-import { ForwardedLabel } from '@/components/conversations/conversation-thread/composer/ForwardedLabel';
-import { useAddMessageReactionMutation } from '@/query/post/queries';
-import { useRemoveMessageReactionMutation } from '@/query/delete/queries';
-import { ToastUtils } from '@/utils/toastUtils';
-import { useUserStore } from '@/store/user/useUserStore';
-import { getAPIErrorMsg } from '@/utils/commonUtils';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import UnsendMessagePreview from '@/components/UnsendMessagePreview';
-import { renderFileGrid } from '@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid';
-import { AppText } from '@/components/AppText';
-import MessageReactionsSummary from '@/components/conversations/conversation-thread/message-list/reaction/MessageReactionSummary';
+} from "@/types/chat/types";
+import classNames from "classnames";
+import { PLATFORM } from "@/constants/platformConstants";
+import ReactionPicker from "@/components/conversations/conversation-thread/message-list/reaction/ReactionPicker";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import Animated from "react-native-reanimated";
+import ParentMessagePreview from "./ParentMessagePreview";
+import WebContextMenu from "@/components/WebContextMenu";
+import FormattedText from "@/components/FormattedText";
+import { SwipeableMessageRow } from "@/gestures/components/SwipeableMessageRow";
+import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
+import { useAddMessageReactionMutation } from "@/query/post/queries";
+import { useRemoveMessageReactionMutation } from "@/query/delete/queries";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useUserStore } from "@/store/user/useUserStore";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import UnsendMessagePreview from "@/components/UnsendMessagePreview";
+import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
+import { AppText } from "@/components/AppText";
+import MessageReactionsSummary from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionSummary";
 
 interface MessageItemProps {
   message: IMessage;
@@ -52,7 +52,11 @@ interface MessageItemProps {
   onMessagePin: (message: IMessage) => void;
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
-  onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
+  onViewReactions: (
+    messageId: number,
+    position: { x: number; y: number },
+    isOpen: boolean,
+  ) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -60,9 +64,13 @@ const ADD_ONE = 1;
 const MIN_COUNT = 0;
 
 const isImageAttachment = (att: IMessageAttachment) => {
-  const name = (att.originalFileName || att.indexedFileName || '').toLowerCase();
+  const name = (
+    att.originalFileName ||
+    att.indexedFileName ||
+    ""
+  ).toLowerCase();
   const byExt = /\.(jpe?g|png|gif|webp|svg)$/.test(name);
-  const byMime = att?.mimeType?.startsWith?.('image/');
+  const byMime = att?.mimeType?.startsWith?.("image/");
   return Boolean(byExt || byMime);
 };
 
@@ -90,14 +98,17 @@ export const ConversationMessageItem = ({
   const hasImages = () => attachments.some(isImageAttachment);
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
-  const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
   const [reactionSummary, setReactionSummary] = useState(
-    message.reactionSummary || { counts: {}, currentUserReaction: '' },
+    message.reactionSummary || { counts: {}, currentUserReaction: "" },
   );
-  const reactedByCurrentUser = reactionSummary?.currentUserReaction || '';
+  const reactedByCurrentUser = reactionSummary?.currentUserReaction || "";
   const {
     user: { id: userId },
   } = useUserStore();
@@ -107,7 +118,7 @@ export const ConversationMessageItem = ({
   const isForwardedMessage = message.isForwarded;
 
   const messageTime = useMemo(
-    () => format(new Date(message.createdAt), 'h:mm a'),
+    () => format(new Date(message.createdAt), "h:mm a"),
     [message.createdAt],
   );
   useEffect(() => {
@@ -115,7 +126,10 @@ export const ConversationMessageItem = ({
   }, [message.reactionSummary]);
 
   const hasReactions = useMemo(
-    () => Object.values(reactionSummary?.counts || {}).some((count) => (count || 0) > 0),
+    () =>
+      Object.values(reactionSummary?.counts || {}).some(
+        (count) => (count || 0) > 0,
+      ),
     [reactionSummary],
   );
 
@@ -153,22 +167,24 @@ export const ConversationMessageItem = ({
     const options: IOption[] = [
       {
         id: 1,
-        name: isThisMessagePinned ? 'Unpin Message' : 'Pin Message',
-        iconName: (isThisMessagePinned ? 'pin' : 'pin-outline') as keyof typeof Ionicons.glyphMap,
+        name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
+        iconName: (isThisMessagePinned
+          ? "pin"
+          : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
         id: 2,
-        name: 'Select message',
-        iconName: 'checkmark-circle-outline',
+        name: "Select message",
+        iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
       },
     ];
     if (isCurrentUser && !message.isUnsend) {
       options.push({
         id: 3,
-        name: 'Unsend Message',
-        iconName: 'ban' as keyof typeof Ionicons.glyphMap,
+        name: "Unsend Message",
+        iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
     }
@@ -197,7 +213,11 @@ export const ConversationMessageItem = ({
   ]);
 
   const handleOpenPicker = useCallback(() => {
-    if (conversationAPIResponse?.isBlocked || !conversationAPIResponse?.isActive) return;
+    if (
+      conversationAPIResponse?.isBlocked ||
+      !conversationAPIResponse?.isActive
+    )
+      return;
     if (selectionMode) return;
     onOpenPicker(String(message.id));
   }, [
@@ -235,7 +255,7 @@ export const ConversationMessageItem = ({
       if (conversationAPIResponse?.isBlocked) return;
       if (selectionMode) return;
 
-      const previousReaction = reactionSummary?.currentUserReaction || '';
+      const previousReaction = reactionSummary?.currentUserReaction || "";
       const reactionCounts = { ...(reactionSummary?.counts ?? {}) };
       onCloseAllOverlays?.();
 
@@ -246,7 +266,10 @@ export const ConversationMessageItem = ({
               MIN_COUNT,
               (reactionCounts[newReaction] ?? 0) - REMOVE_ONE,
             );
-            setReactionSummary({ counts: reactionCounts, currentUserReaction: '' });
+            setReactionSummary({
+              counts: reactionCounts,
+              currentUserReaction: "",
+            });
           },
         });
         return;
@@ -262,8 +285,12 @@ export const ConversationMessageItem = ({
                 (reactionCounts[previousReaction] ?? 0) - REMOVE_ONE,
               );
             }
-            reactionCounts[newReaction] = (reactionCounts[newReaction] ?? 0) + ADD_ONE;
-            setReactionSummary({ counts: reactionCounts, currentUserReaction: newReaction });
+            reactionCounts[newReaction] =
+              (reactionCounts[newReaction] ?? 0) + ADD_ONE;
+            setReactionSummary({
+              counts: reactionCounts,
+              currentUserReaction: newReaction,
+            });
           },
         },
       );
@@ -281,8 +308,8 @@ export const ConversationMessageItem = ({
   );
 
   const hoverVisibilityClass = PLATFORM.IS_WEB
-    ? 'opacity-0 group-hover:opacity-100 hover:opacity-100'
-    : 'opacity-100';
+    ? "opacity-0 group-hover:opacity-100 hover:opacity-100"
+    : "opacity-100";
 
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
@@ -305,13 +332,13 @@ export const ConversationMessageItem = ({
   const hasText = !!message.messageText;
 
   const ContentBlock = () => (
-    <Animated.View style={{ backgroundColor: 'transparent' }}>
+    <Animated.View style={{ backgroundColor: "transparent" }}>
       <View className="group mb-3">
         <View className="mx-4">
           <View
-            className={classNames('flex-row items-center gap-2 mb-1', {
-              'justify-end': isCurrentUser,
-              'justify-start': !isCurrentUser,
+            className={classNames("flex-row items-center gap-2 mb-1", {
+              "justify-end": isCurrentUser,
+              "justify-start": !isCurrentUser,
             })}
           >
             {isCurrentUser && PLATFORM.IS_WEB && !message.isUnsend && (
@@ -324,7 +351,7 @@ export const ConversationMessageItem = ({
                     minWidth: 24,
                     minHeight: 24,
                     opacity: pressed ? 0.7 : 1,
-                    cursor: 'pointer',
+                    cursor: "pointer",
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
@@ -341,11 +368,15 @@ export const ConversationMessageItem = ({
                     minHeight: 24,
                     marginLeft: 6,
                     opacity: pressed ? 0.7 : 1,
-                    cursor: 'pointer',
+                    cursor: "pointer",
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
+                    <Ionicons
+                      name="chevron-down-outline"
+                      size={16}
+                      color="#9CA3AF"
+                    />
                   </View>
                 </Pressable>
               </View>
@@ -354,9 +385,9 @@ export const ConversationMessageItem = ({
             {conversationAPIResponse?.isGroup && (
               <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
                 {isCurrentUser
-                  ? 'You'
-                  : `${message.senderFirstName || ''} ${message.senderLastName || ''}`.trim() ||
-                    'Unknown User'}
+                  ? "You"
+                  : `${message.senderFirstName || ""} ${message.senderLastName || ""}`.trim() ||
+                    "Unknown User"}
               </AppText>
             )}
 
@@ -374,7 +405,7 @@ export const ConversationMessageItem = ({
                     minWidth: 24,
                     minHeight: 24,
                     opacity: pressed ? 0.7 : 1,
-                    cursor: 'pointer',
+                    cursor: "pointer",
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
@@ -390,11 +421,15 @@ export const ConversationMessageItem = ({
                     minHeight: 24,
                     marginLeft: 6,
                     opacity: pressed ? 0.7 : 1,
-                    cursor: 'pointer',
+                    cursor: "pointer",
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
+                    <Ionicons
+                      name="chevron-down-outline"
+                      size={16}
+                      color="#9CA3AF"
+                    />
                   </View>
                 </Pressable>
               </View>
@@ -403,11 +438,14 @@ export const ConversationMessageItem = ({
 
           {renderParentMessage()}
 
-          <Pressable onPress={handleBubblePress} disabled={!messageContent && !hasAttachments}>
+          <Pressable
+            onPress={handleBubblePress}
+            disabled={!messageContent && !hasAttachments}
+          >
             {selectionMode && (
               <View
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: -6,
                   left: isCurrentUser ? undefined : -6,
                   right: isCurrentUser ? -6 : undefined,
@@ -415,14 +453,19 @@ export const ConversationMessageItem = ({
                 }}
               >
                 <Ionicons
-                  name={selected ? 'checkmark-circle' : 'ellipse-outline'}
+                  name={selected ? "checkmark-circle" : "ellipse-outline"}
                   size={20}
-                  color={selected ? '#3B82F6' : '#9CA3AF'}
+                  color={selected ? "#3B82F6" : "#9CA3AF"}
                 />
               </View>
             )}
 
-            <View className={classNames('rounded-xl', isCurrentUser ? 'items-end' : 'items-start')}>
+            <View
+              className={classNames(
+                "rounded-xl",
+                isCurrentUser ? "items-end" : "items-start",
+              )}
+            >
               <ForwardedLabel
                 isForwardedMessage={isForwardedMessage}
                 isCurrentUser={isCurrentUser}
@@ -430,34 +473,34 @@ export const ConversationMessageItem = ({
 
               <View
                 className={classNames(
-                  'rounded-lg border-2',
+                  "rounded-lg border-2",
                   hasText || hasImages()
                     ? isCurrentUser
-                      ? 'bg-primary-light dark:bg-primary-dark rounded-tr-none'
-                      : 'bg-secondary-light dark:bg-secondary-dark rounded-tl-none'
-                    : 'bg-transparent',
+                      ? "bg-primary-light dark:bg-primary-dark rounded-tr-none"
+                      : "bg-secondary-light dark:bg-secondary-dark rounded-tl-none"
+                    : "bg-transparent",
                   selected && selectionMode
-                    ? 'border-sky-500 dark:border-sky-400'
-                    : 'border-transparent',
-                  isForwardedMessage && 'shadow-sm',
-                  hasImages() && !messageContent ? '' : 'px-3 py-2',
+                    ? "border-sky-500 dark:border-sky-400"
+                    : "border-transparent",
+                  isForwardedMessage && "shadow-sm",
+                  hasImages() && !messageContent ? "" : "px-3 py-2",
                 )}
                 style={{
-                  maxWidth: hasAttachments ? 305 : '70%',
+                  maxWidth: hasAttachments ? 305 : "70%",
                   ...(isForwardedMessage &&
                     !isCurrentUser && {
                       borderLeftWidth: 2,
-                      borderLeftColor: '#9CA3AF30',
+                      borderLeftColor: "#9CA3AF30",
                     }),
                   ...(isForwardedMessage &&
                     isCurrentUser && {
                       borderRightWidth: 2,
-                      borderRightColor: '#60A5FA30',
+                      borderRightColor: "#60A5FA30",
                     }),
                 }}
               >
                 {hasAttachments && (
-                  <View className={messageContent ? 'mb-2' : ''}>
+                  <View className={messageContent ? "mb-2" : ""}>
                     {renderFileGrid(attachments, isCurrentUser)}
                   </View>
                 )}
@@ -465,7 +508,11 @@ export const ConversationMessageItem = ({
                 {!message.isUnsend && messageContent ? (
                   <FormattedText
                     text={message.messageText}
-                    style={{ fontSize: 16, lineHeight: 20, fontFamily: 'Poppins-Regular' }}
+                    style={{
+                      fontSize: 16,
+                      lineHeight: 20,
+                      fontFamily: "Poppins-Regular",
+                    }}
                     mentions={message.mentions}
                     isCurrentUser={isCurrentUser}
                   />
@@ -478,7 +525,11 @@ export const ConversationMessageItem = ({
 
           {!message.isUnsend && (
             <ReactionPicker
-              visible={isPickerOpen && !conversationAPIResponse?.isBlocked && !selectionMode}
+              visible={
+                isPickerOpen &&
+                !conversationAPIResponse?.isBlocked &&
+                !selectionMode
+              }
               reactedByCurrentUser={reactedByCurrentUser}
               onSelect={handleSelectReaction}
               isCurrentUser={isCurrentUser}
@@ -488,9 +539,9 @@ export const ConversationMessageItem = ({
 
           {hasReactions && !message.isUnsend && (
             <View
-              className={classNames('mt-1', {
-                'items-start': !isCurrentUser,
-                'items-end': isCurrentUser,
+              className={classNames("mt-1", {
+                "items-start": !isCurrentUser,
+                "items-end": isCurrentUser,
               })}
             >
               <MessageReactionsSummary
@@ -514,7 +565,7 @@ export const ConversationMessageItem = ({
             try {
               await action();
             } catch (error) {
-              console.error('Error executing context menu action:', error);
+              console.error("Error executing context menu action:", error);
             }
           }}
         />
@@ -530,7 +581,7 @@ export const ConversationMessageItem = ({
           if (conversationAPIResponse?.isBlocked) return;
           onMessageSelect?.(message);
         }}
-        style={{ display: 'contents' }}
+        style={{ display: "contents" }}
       >
         <ContentBlock />
       </div>

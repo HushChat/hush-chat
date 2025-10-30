@@ -1,9 +1,13 @@
-import { StorageFactory } from '@/utils/storage/storageFactory';
-import { USER_TOKEN_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/constants/constants';
-import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
-import { AUTH_API_ENDPOINTS } from '@/constants/apiConstants';
-import { ToastUtils } from '@/utils/toastUtils';
+import { StorageFactory } from "@/utils/storage/storageFactory";
+import {
+  USER_TOKEN_KEY,
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+} from "@/constants/constants";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
+import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
+import { ToastUtils } from "@/utils/toastUtils";
 
 const storage = StorageFactory.createStorage();
 
@@ -33,7 +37,7 @@ export async function getAllTokens(): Promise<{
       refreshToken: refreshToken || null,
     };
   } catch (error) {
-    console.warn('Error reading tokens from AsyncStorage:', error);
+    console.warn("Error reading tokens from AsyncStorage:", error);
     return {
       idToken: null,
       accessToken: null,
@@ -90,7 +94,7 @@ export async function isTokenExpiringSoon(): Promise<boolean> {
     const expiryThreshold = 60 * 2; // Refresh 2 minutes before expiry
     return decoded.exp - currentTime <= expiryThreshold;
   } catch (error) {
-    console.warn('Error decoding token:', error);
+    console.warn("Error decoding token:", error);
     return true; // If decoding fails, assume it's expired
   }
 }
@@ -102,7 +106,7 @@ export async function isTokenExpiringSoon(): Promise<boolean> {
 export async function refreshIdToken(): Promise<string | null> {
   const { refreshToken } = await getAllTokens();
   if (!refreshToken) {
-    ToastUtils.error('No refresh token available. Please log in again.');
+    ToastUtils.error("No refresh token available. Please log in again.");
     return null;
   }
 
@@ -111,14 +115,18 @@ export async function refreshIdToken(): Promise<string | null> {
       refreshToken: refreshToken,
     });
 
-    const { idToken, accessToken, refreshToken: newRefreshToken } = response.data;
+    const {
+      idToken,
+      accessToken,
+      refreshToken: newRefreshToken,
+    } = response.data;
 
     if (idToken) {
       await saveTokens(idToken, accessToken, newRefreshToken);
       return idToken;
     }
   } catch (error) {
-    console.error('Failed to refresh token:', error);
+    console.error("Failed to refresh token:", error);
   }
 
   return null;

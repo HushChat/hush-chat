@@ -1,24 +1,27 @@
-import { Image, TouchableOpacity, View, Dimensions } from 'react-native';
+import { Image, TouchableOpacity, View, Dimensions } from "react-native";
 import Animated, {
   useSharedValue,
   withTiming,
   withDelay,
   useAnimatedStyle,
   Easing,
-} from 'react-native-reanimated';
-import ChatInfoNameBar from '@/components/conversations/conversation-info-panel/common/ChatInfoNameBar';
-import React, { useEffect, useRef, useState } from 'react';
-import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from '@/constants/ui';
-import { Ionicons } from '@expo/vector-icons';
-import { IConversation } from '@/types/chat/types';
-import { useConversationByIdQuery } from '@/query/useConversationByIdQuery';
-import InitialsAvatar from '@/components/InitialsAvatar';
-import { pickAndUploadImage, UploadType } from '@/apis/photo-upload-service/photo-upload-service';
-import UploadIndicator from '@/components/UploadIndicator';
-import { useUserStore } from '@/store/user/useUserStore';
-import { usePatchConversationQuery } from '@/query/post/queries';
-import { ImagePickerResult } from 'expo-image-picker/src/ImagePicker.types';
-import { AppText, AppTextInput } from '@/components/AppText';
+} from "react-native-reanimated";
+import ChatInfoNameBar from "@/components/conversations/conversation-info-panel/common/ChatInfoNameBar";
+import React, { useEffect, useRef, useState } from "react";
+import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { IConversation } from "@/types/chat/types";
+import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
+import InitialsAvatar from "@/components/InitialsAvatar";
+import {
+  pickAndUploadImage,
+  UploadType,
+} from "@/apis/photo-upload-service/photo-upload-service";
+import UploadIndicator from "@/components/UploadIndicator";
+import { useUserStore } from "@/store/user/useUserStore";
+import { usePatchConversationQuery } from "@/query/post/queries";
+import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
+import { AppText, AppTextInput } from "@/components/AppText";
 
 interface GroupSettingsProps {
   conversation: IConversation;
@@ -26,26 +29,35 @@ interface GroupSettingsProps {
   visible: boolean;
 }
 
-export default function GroupSettings({ conversation, onClose, visible }: GroupSettingsProps) {
+export default function GroupSettings({
+  conversation,
+  onClose,
+  visible,
+}: GroupSettingsProps) {
   const { user } = useUserStore();
 
-  const screenWidth = Dimensions.get('window').width;
+  const screenWidth = Dimensions.get("window").width;
   const translateX = useSharedValue(screenWidth);
   const opacity = useSharedValue(0);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [newTitle, setNewTitle] = useState<string>(conversation.name ?? '');
+  const [newTitle, setNewTitle] = useState<string>(conversation.name ?? "");
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [description, setDescription] = useState(conversation.description ?? '');
+  const [description, setDescription] = useState(
+    conversation.description ?? "",
+  );
   const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(conversation.signedImageUrl);
-  const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | undefined>();
+  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(
+    conversation.signedImageUrl,
+  );
+  const [imagePickerResult, setImagePickerResult] = useState<
+    ImagePickerResult | undefined
+  >();
   const isInitialMount = useRef(true);
 
-  const { refetchConversation, conversationAPILoading } = useConversationByIdQuery(
-    conversation?.id,
-  );
+  const { refetchConversation, conversationAPILoading } =
+    useConversationByIdQuery(conversation?.id);
 
   const updateConversation = usePatchConversationQuery(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
@@ -116,10 +128,10 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
 
   return (
     <Animated.View
-      pointerEvents={visible ? 'auto' : 'none'}
+      pointerEvents={visible ? "auto" : "none"}
       style={[
         {
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           bottom: 0,
           left: 0,
@@ -144,7 +156,13 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
           disabled={uploading}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             {imagePickerResult?.assets?.[0]?.uri ? (
               <Image
                 source={{ uri: imagePickerResult.assets[0].uri }}
@@ -160,7 +178,7 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
                 onError={() => setImageError(true)}
               />
             ) : (
-              <InitialsAvatar name={`${conversation.name ?? ''}`} size="lg" />
+              <InitialsAvatar name={`${conversation.name ?? ""}`} size="lg" />
             )}
 
             <UploadIndicator isUploading={uploading} />
@@ -187,8 +205,11 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
                 maxLength={100}
                 submitBehavior="blurAndSubmit"
               />
-              {newTitle.trim() !== (conversation.name ?? '').trim() && (
-                <TouchableOpacity onPress={handleSave} disabled={conversationAPILoading}>
+              {newTitle.trim() !== (conversation.name ?? "").trim() && (
+                <TouchableOpacity
+                  onPress={handleSave}
+                  disabled={conversationAPILoading}
+                >
                   <Ionicons name="checkmark" size={24} color="#10B981" />
                 </TouchableOpacity>
               )}
@@ -222,8 +243,12 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
                 editable={!conversationAPILoading}
               />
 
-              {description.trim() !== (conversation.description ?? '').trim() && (
-                <TouchableOpacity onPress={handleSave} disabled={conversationAPILoading}>
+              {description.trim() !==
+                (conversation.description ?? "").trim() && (
+                <TouchableOpacity
+                  onPress={handleSave}
+                  disabled={conversationAPILoading}
+                >
                   <Ionicons name="checkmark" size={24} color="#10B981" />
                 </TouchableOpacity>
               )}
@@ -239,7 +264,7 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
               numberOfLines={3}
               ellipsizeMode="tail"
             >
-              {description ? description : 'Add group description'}
+              {description ? description : "Add group description"}
             </AppText>
           </TouchableOpacity>
         )}

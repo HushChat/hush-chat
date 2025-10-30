@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { MAX_FILES, validateFiles } from '@/utils/fileValidation';
-import { ToastUtils } from '@/utils/toastUtils';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MAX_FILES, validateFiles } from "@/utils/fileValidation";
+import { ToastUtils } from "@/utils/toastUtils";
 
 type Options = {
   maxFiles?: number;
@@ -12,7 +12,7 @@ export function useImagePreview(options: Options = {}) {
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showImagePreview, setShowImagePreview] = useState(false);
-  const [imageMessage, setImageMessage] = useState('');
+  const [imageMessage, setImageMessage] = useState("");
 
   const filesRef = useRef<File[]>([]);
   useEffect(() => {
@@ -23,7 +23,7 @@ export function useImagePreview(options: Options = {}) {
     (errs: string[]) => {
       if (!errs.length) return;
       if (onError) onError(errs);
-      else ToastUtils.error(errs.join('\n'));
+      else ToastUtils.error(errs.join("\n"));
     },
     [onError],
   );
@@ -34,7 +34,7 @@ export function useImagePreview(options: Options = {}) {
       reportErrors(errors);
       if (validFiles.length > 0) {
         setSelectedFiles(validFiles.slice(0, maxFiles));
-        setImageMessage('');
+        setImageMessage("");
         setShowImagePreview(true);
       }
     },
@@ -44,7 +44,7 @@ export function useImagePreview(options: Options = {}) {
   const close = useCallback(() => {
     setShowImagePreview(false);
     setSelectedFiles([]);
-    setImageMessage('');
+    setImageMessage("");
   }, []);
 
   const removeAt = useCallback((index: number) => {
@@ -52,7 +52,7 @@ export function useImagePreview(options: Options = {}) {
       const next = prev.filter((_, i) => i !== index);
       if (next.length === 0) {
         setShowImagePreview(false);
-        setImageMessage('');
+        setImageMessage("");
       }
       return next;
     });

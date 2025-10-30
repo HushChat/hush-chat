@@ -13,24 +13,28 @@
  * The screen combines conversation browsing and search functionality in a unified interface,
  * ensuring flexibility in UI presentation through the component factory pattern.
  */
-import ConversationListContainer from '@/components/conversations/conversation-list/ConversationListContainer';
-import { useConversationsQuery } from '@/query/useConversationsQuery';
-import useGlobalSearchQuery from '@/query/useGlobalSearchQuery';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { IConversation, IFilter, ConversationType } from '@/types/chat/types';
-import { getCriteria } from '@/utils/conversationUtils';
-import { debounce } from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
+import useGlobalSearchQuery from "@/query/useGlobalSearchQuery";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { IConversation, IFilter, ConversationType } from "@/types/chat/types";
+import { getCriteria } from "@/utils/conversationUtils";
+import { debounce } from "lodash";
+import { useEffect, useMemo, useState } from "react";
 /* eslint-disable import/no-unresolved */
-import ChatInterface from '@/components/conversations/ChatInterface';
+import ChatInterface from "@/components/conversations/ChatInterface";
 
 export default function ConversationScreen() {
   const { selectedConversationType } = useConversationStore();
-  const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
-  const [searchInput, setSearchInput] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedConversation, setSelectedConversation] =
+    useState<IConversation | null>(null);
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
+  const criteria = useMemo(
+    () => getCriteria(selectedConversationType),
+    [selectedConversationType],
+  );
 
   const debouncedSearchQuery = useMemo(
     () =>
@@ -59,22 +63,23 @@ export default function ConversationScreen() {
   const { searchResults, isSearching, searchError, refetchSearch } =
     useGlobalSearchQuery(searchQuery);
 
-  const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+  const conversations =
+    conversationsPages?.pages.flatMap((page) => page.content) ?? [];
 
   const filters: IFilter[] = [
     {
       key: ConversationType.ALL,
-      label: 'All',
+      label: "All",
       isActive: selectedConversationType === ConversationType.ALL,
     },
     {
       key: ConversationType.UNREAD,
-      label: 'Unread',
+      label: "Unread",
       isActive: selectedConversationType === ConversationType.UNREAD,
     },
     {
       key: ConversationType.FAVORITES,
-      label: 'Favorites',
+      label: "Favorites",
       isActive: selectedConversationType === ConversationType.FAVORITES,
     },
   ];

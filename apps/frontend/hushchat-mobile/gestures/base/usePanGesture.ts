@@ -1,10 +1,14 @@
-import { useMemo } from 'react';
-import { Gesture } from 'react-native-gesture-handler';
-import { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
-import { bindExclusivity } from './helpers';
-import { PLATFORM } from '@/constants/platformConstants';
-import { Axis, ExternalGestures, OffsetThresholds } from '@/types/gestures/types';
+import { useMemo } from "react";
+import { Gesture } from "react-native-gesture-handler";
+import { useSharedValue, useAnimatedStyle } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+import { bindExclusivity } from "./helpers";
+import { PLATFORM } from "@/constants/platformConstants";
+import {
+  Axis,
+  ExternalGestures,
+  OffsetThresholds,
+} from "@/types/gestures/types";
 
 type PanEvent = {
   translationX: number;
@@ -34,7 +38,7 @@ const DEFAULT_OFFSETS: OffsetThresholds = {
 
 export function usePanGesture({
   enabled = true,
-  axis = 'free',
+  axis = "free",
   offsets = DEFAULT_OFFSETS,
   onBegin,
   onUpdate,
@@ -54,15 +58,35 @@ export function usePanGesture({
     // keep web on JS; native runs on UI
     if (callbacksRunOnJS) g.runOnJS(true);
 
-    if (axis === 'horizontal') {
-      g.activeOffsetX((offsets.activeX ?? DEFAULT_OFFSETS.activeX) as [number, number] | number);
-      g.failOffsetY((offsets.failY ?? DEFAULT_OFFSETS.failY) as [number, number] | number);
-    } else if (axis === 'vertical') {
-      g.activeOffsetY((offsets.activeY ?? DEFAULT_OFFSETS.activeY) as [number, number] | number);
-      g.failOffsetX((offsets.failX ?? DEFAULT_OFFSETS.failX) as [number, number] | number);
+    if (axis === "horizontal") {
+      g.activeOffsetX(
+        (offsets.activeX ?? DEFAULT_OFFSETS.activeX) as
+          | [number, number]
+          | number,
+      );
+      g.failOffsetY(
+        (offsets.failY ?? DEFAULT_OFFSETS.failY) as [number, number] | number,
+      );
+    } else if (axis === "vertical") {
+      g.activeOffsetY(
+        (offsets.activeY ?? DEFAULT_OFFSETS.activeY) as
+          | [number, number]
+          | number,
+      );
+      g.failOffsetX(
+        (offsets.failX ?? DEFAULT_OFFSETS.failX) as [number, number] | number,
+      );
     } else {
-      g.activeOffsetX((offsets.activeX ?? DEFAULT_OFFSETS.activeX) as [number, number] | number);
-      g.activeOffsetY((offsets.activeY ?? DEFAULT_OFFSETS.activeY) as [number, number] | number);
+      g.activeOffsetX(
+        (offsets.activeX ?? DEFAULT_OFFSETS.activeX) as
+          | [number, number]
+          | number,
+      );
+      g.activeOffsetY(
+        (offsets.activeY ?? DEFAULT_OFFSETS.activeY) as
+          | [number, number]
+          | number,
+      );
     }
 
     if ((g as any).enableTrackpadTwoFingerGesture) {
@@ -70,12 +94,12 @@ export function usePanGesture({
     }
 
     g.onBegin(() => {
-      'worklet';
+      "worklet";
       if (onBegin) scheduleOnRN(onBegin);
     });
 
     g.onUpdate((e) => {
-      'worklet';
+      "worklet";
       translateX.value = e.translationX;
       translateY.value = e.translationY;
       velocityX.value = e.velocityX;
@@ -91,7 +115,7 @@ export function usePanGesture({
     });
 
     g.onEnd((e) => {
-      'worklet';
+      "worklet";
       translateX.value = e.translationX;
       translateY.value = e.translationY;
       velocityX.value = e.velocityX;
@@ -121,8 +145,18 @@ export function usePanGesture({
   ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+    ],
   }));
 
-  return { gesture, animatedStyle, translateX, translateY, velocityX, velocityY };
+  return {
+    gesture,
+    animatedStyle,
+    translateX,
+    translateY,
+    velocityX,
+    velocityY,
+  };
 }

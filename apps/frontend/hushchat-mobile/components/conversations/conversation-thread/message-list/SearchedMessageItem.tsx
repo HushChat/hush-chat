@@ -1,8 +1,8 @@
-import { AppText } from '@/components/AppText';
-import { IConversation, IMessageView } from '@/types/chat/types';
-import { getLastMessageTime, getUserDisplayName } from '@/utils/commonUtils';
-import { TouchableOpacity, View } from 'react-native';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
+import { AppText } from "@/components/AppText";
+import { IConversation, IMessageView } from "@/types/chat/types";
+import { getLastMessageTime, getUserDisplayName } from "@/utils/commonUtils";
+import { TouchableOpacity, View } from "react-native";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 
 interface SearchedMessageItemProps {
   message: IMessageView;
@@ -29,10 +29,11 @@ interface SearchedItemProps {
 
 // Highlight search query in text
 const highlightText = (text: string, query: string) => {
-  if (!query || !text) return <AppText className="text-gray-600">{text || ''}</AppText>;
+  if (!query || !text)
+    return <AppText className="text-gray-600">{text || ""}</AppText>;
 
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escapedQuery})`, "gi"));
 
   return (
     <AppText className="text-gray-600 dark:text-gray-500">
@@ -60,10 +61,14 @@ const SearchedMessageItem = (props: SearchedMessageItemProps) => {
       <View className="flex-1">
         <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">
           {isCurrentUser
-            ? 'From: You'
+            ? "From: You"
             : `From: ${getUserDisplayName(message?.senderFirstName, message?.senderLastName)}`}
         </AppText>
-        <AppText numberOfLines={2} ellipsizeMode="tail" className="text-base leading-5">
+        <AppText
+          numberOfLines={2}
+          ellipsizeMode="tail"
+          className="text-base leading-5"
+        >
           {highlightText(message?.messageText, searchQuery)}
         </AppText>
       </View>
@@ -75,7 +80,8 @@ const SearchedMessageItem = (props: SearchedMessageItemProps) => {
 };
 
 const SearchedConversationItem = (props: SearchedConversationItemProps) => {
-  const { conversation, onPressConversationItem, searchQuery, isCurrentUser } = props;
+  const { conversation, onPressConversationItem, searchQuery, isCurrentUser } =
+    props;
   return (
     <TouchableOpacity
       className="flex-row justify-between py-2.5 px-4 active:bg-gray-50 dark:active:bg-gray-800 rounded-lg"
@@ -84,19 +90,26 @@ const SearchedConversationItem = (props: SearchedConversationItemProps) => {
     >
       <View className="flex-1">
         <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-1">
-          {conversation.name || 'Conversation Name'}
+          {conversation.name || "Conversation Name"}
         </AppText>
         <View className="flex-row items-center gap-1">
           <AppText className="text-sm text-text-primary-light dark:text-text-primary-dark">
             {isCurrentUser
-              ? 'You: '
+              ? "You: "
               : `${getUserDisplayName(
                   conversation?.messages?.[0]?.senderFirstName,
                   conversation?.messages?.[0]?.senderLastName,
                 )}: `}
           </AppText>
-          <AppText numberOfLines={1} ellipsizeMode="tail" className="flex-1 text-base leading-5">
-            {highlightText(conversation?.messages?.[0]?.messageText, searchQuery)}
+          <AppText
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            className="flex-1 text-base leading-5"
+          >
+            {highlightText(
+              conversation?.messages?.[0]?.messageText,
+              searchQuery,
+            )}
           </AppText>
         </View>
       </View>

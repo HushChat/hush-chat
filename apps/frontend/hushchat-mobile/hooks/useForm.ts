@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import type * as yup from 'yup';
+import { useCallback, useMemo, useState } from "react";
+import type * as yup from "yup";
 
 export type YupFormState<T extends Record<string, any>> = {
   values: T;
@@ -42,7 +42,7 @@ export function useForm<T extends Record<string, any>>(
           .catch((err: any) => {
             setErrors((prevErrs) => ({
               ...prevErrs,
-              [String(name)]: err?.message || 'Invalid value',
+              [String(name)]: err?.message || "Invalid value",
             }));
           });
         return next as T;

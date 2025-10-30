@@ -1,16 +1,22 @@
-import React, { useEffect } from 'react';
-import { View, Modal, TouchableOpacity, TouchableWithoutFeedback, Dimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect } from "react";
+import {
+  View,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Dimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   withTiming,
   useAnimatedStyle,
   Easing,
-} from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import { AppText } from '@/components/AppText';
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { AppText } from "@/components/AppText";
 
 export interface BottomSheetOption {
   id: string;
@@ -28,7 +34,7 @@ interface BottomSheetProps {
   showBorders?: boolean;
 }
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const BottomSheet = ({
   visible,
@@ -94,7 +100,7 @@ const BottomSheet = ({
           style={[
             {
               flex: 1,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
             },
             backdropStyle,
           ]}
@@ -103,7 +109,7 @@ const BottomSheet = ({
             <Animated.View
               style={[
                 {
-                  position: 'absolute',
+                  position: "absolute",
                   bottom: 0,
                   left: 0,
                   right: 0,
@@ -124,7 +130,10 @@ const BottomSheet = ({
                 </View>
               )}
 
-              <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
+              <View
+                className="px-4 pb-4"
+                style={{ paddingBottom: insets.bottom + 16 }}
+              >
                 {options.map((option, index) => (
                   <TouchableOpacity
                     key={option.id}
@@ -132,28 +141,28 @@ const BottomSheet = ({
                     activeOpacity={DEFAULT_ACTIVE_OPACITY}
                     className={`flex-row items-center py-4 px-2 ${
                       showBorders && index < options.length - 1
-                        ? 'border-b border-gray-200 dark:border-gray-700'
-                        : ''
+                        ? "border-b border-gray-200 dark:border-gray-700"
+                        : ""
                     }`}
                   >
                     <View
                       className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${
                         option.destructive
-                          ? 'bg-red-100 dark:bg-red-900/30'
-                          : 'bg-gray-100 dark:bg-gray-800'
+                          ? "bg-red-100 dark:bg-red-900/30"
+                          : "bg-gray-100 dark:bg-gray-800"
                       }`}
                     >
                       <Ionicons
                         name={option.icon}
                         size={20}
-                        color={option.destructive ? '#EF4444' : '#6B7280'}
+                        color={option.destructive ? "#EF4444" : "#6B7280"}
                       />
                     </View>
                     <AppText
                       className={`text-base font-medium ${
                         option.destructive
-                          ? 'text-red-500'
-                          : 'text-text-primary-light dark:text-text-primary-dark'
+                          ? "text-red-500"
+                          : "text-text-primary-light dark:text-text-primary-dark"
                       }`}
                     >
                       {option.title}

@@ -2,13 +2,12 @@
 
 <!-- Provide a clear, concise summary of what this PR does. -->
 
--
-
----
+- ***
 
 ## Related Issue
 
 <!-- Link to the issue this PR addresses (if any). -->
+
 Fixes #
 
 ---
@@ -28,7 +27,8 @@ Fixes #
 ## Screenshots / Demo
 
 <!-- Add screenshots, GIFs, or screen recordings to showcase your changes. -->
-*(If applicable, include mobile & web views)*
+
+_(If applicable, include mobile & web views)_
 
 ---
 
