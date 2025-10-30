@@ -447,7 +447,7 @@ export const sendContactUsMessage = async (data: {
   message: string;
 }) => {
   try {
-    const response = await axios.post(SETTINGS_API_ENDPOINTS.CONTACTUS, data);
+    const response = await axios.post(SETTINGS_API_ENDPOINTS.CONTACT_US, data);
     return { data: response.data };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Placeholder from '@/components/Placeholder';
 import { Images } from '@/assets/images';
 
-export default function SettingsIndex() {
+export default function Settings() {
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-1">

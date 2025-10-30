@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, usePathname, Href } from 'expo-router';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import { Stack } from 'expo-router';
-import { AppText } from '@/components/AppText';
+import React from "react";
+import { View, TouchableOpacity, ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, usePathname, Href, Slot } from "expo-router";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { Stack } from "expo-router";
+import { AppText } from "@/components/AppText";
 
 interface SettingsMenuItem {
   key: string;
@@ -15,10 +15,10 @@ interface SettingsMenuItem {
 
 const settingsMenuItems: SettingsMenuItem[] = [
   {
-    key: 'contact-us',
-    title: 'Contact Us',
-    icon: 'mail-outline',
-    route: '/settings/contact-us',
+    key: "contact-us",
+    title: "Contact Us",
+    icon: "mail-outline",
+    route: "/settings/contact-us",
   },
   // Add more menu items here
 ];
@@ -48,13 +48,11 @@ export default function SettingsLayout() {
                 onPress={() => router.push(item.route as Href)}
                 activeOpacity={DEFAULT_ACTIVE_OPACITY}
                 className={`px-6 py-4 flex-row items-center ${
-                  isActive
-                    ? 'bg-primary-light/10 dark:bg-secondary-dark'
-                    : ''
+                  isActive ? "bg-primary-light/10 dark:bg-secondary-dark" : ""
                 }`}
               >
                 <AppText
-                  className={'text-base ml-3 dark:text-white light:text-black'}
+                  className={"text-base ml-3 dark:text-white light:text-black"}
                 >
                   {item.title}
                 </AppText>
@@ -65,9 +63,7 @@ export default function SettingsLayout() {
       </View>
 
       <View className="flex-1">
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="contact-us" />
-        </Stack>
+        <Slot />
       </View>
     </View>
   );

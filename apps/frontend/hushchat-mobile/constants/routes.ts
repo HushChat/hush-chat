@@ -12,3 +12,4 @@ export const SEARCH_VIEW_PATH = "/search-view";
 export const CALL_LOGS_PATH = "/(tabs)/call-history";
 export const PROFILE_PATH = "/(tabs)/profile";
 export const FORWARD_PATH = "/conversations/forward-panel";
+export const SETTINGS_CONTACT_US_PATH = "/settings/contact-us";

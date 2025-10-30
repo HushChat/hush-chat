@@ -88,5 +88,5 @@ export const MESSAGE_API_ENDPOINTS = {
 };
 
 export const SETTINGS_API_ENDPOINTS = {
-  CONTACTUS: `${SETTINGS_API_BASE}/contact-us`,
+  CONTACT_US: `${SETTINGS_API_BASE}/contact-us`,
 };
