@@ -42,6 +42,7 @@ export default function ChatInterface({
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
 
   const {
     activePanel,
@@ -54,6 +55,9 @@ export default function ChatInterface({
 
   const handleSearchMessageClick = useCallback((message: any) => {
     setMessageToJump(message.id);
+    setHighlightedMessageId(message.id);
+    // Clear highlight after animation completes (1.5s)
+    setTimeout(() => setHighlightedMessageId(null), 1500);
   }, []);
 
   useEffect(() => {
@@ -222,6 +226,7 @@ export default function ChatInterface({
               webForwardPress={handleShowForward}
               messageToJump={messageToJump}
               onMessageJumped={() => setMessageToJump(null)}
+              highlightedMessageId={highlightedMessageId} // ADD THIS LINE
             />
           ) : (
             <Placeholder

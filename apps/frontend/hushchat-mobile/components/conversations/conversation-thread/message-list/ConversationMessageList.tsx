@@ -23,6 +23,7 @@ import { useConversationsQuery } from '@/query/useConversationsQuery';
 /* eslint-disable import/no-unresolved */
 // @ts-ignore
 import MessageReactionsModal from '@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface MessagesListProps {
   messages: IMessage[];
@@ -32,6 +33,7 @@ interface MessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  highlightedMessageId?: number | null;
 }
 
 const ConversationMessageList = ({
@@ -42,6 +44,7 @@ const ConversationMessageList = ({
   conversationAPIResponse,
   pickerState,
   selectedConversationId,
+  highlightedMessageId,
 }: MessagesListProps) => {
   const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
   const { user } = useUserStore();
@@ -52,6 +55,7 @@ const ConversationMessageList = ({
   const updateCache = useUpdateCache();
   const [selectedPinnedMessage, setSelectedPinnedMessage] = useState<IBasicMessage | null>(null);
   const [unsendMessage, setUnSendMessage] = useState<IBasicMessage>({} as IBasicMessage);
+  const { isDark } = useAppTheme();
   const { selectionMode, selectedMessageIds, setSelectionMode, setSelectedMessageIds } =
     useConversationStore();
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -198,24 +202,25 @@ const ConversationMessageList = ({
       const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
       const isSelected = selectedMessageIds.has(Number(item.id));
       return (
-        <ConversationMessageItem
-          message={item}
-          isCurrentUser={!!isCurrentUser}
-          currentUserId={String(currentUserId)}
-          isPickerOpen={openPickerMessageId === String(item.id)}
-          onOpenPicker={handleOpenPicker}
-          onMessageSelect={handleMessageSelect}
-          conversationAPIResponse={conversationAPIResponse}
-          selected={isSelected}
-          onStartSelectionWith={handleStartSelectionWith}
-          onToggleSelection={handleToggleSelection}
-          onMessageLongPress={handleMessageLongPress}
-          onCloseAllOverlays={closeAllOverlays}
-          onMessagePin={(message) => togglePin(message)}
-          onUnsendMessage={(message) => unSendMessage(message)}
-          selectedConversationId={selectedConversationId}
-          onViewReactions={handleViewReactions}
-        />
+          <ConversationMessageItem
+            message={item}
+            isCurrentUser={!!isCurrentUser}
+            currentUserId={String(currentUserId)}
+            isPickerOpen={openPickerMessageId === String(item.id)}
+            onOpenPicker={handleOpenPicker}
+            onMessageSelect={handleMessageSelect}
+            conversationAPIResponse={conversationAPIResponse}
+            selected={isSelected}
+            onStartSelectionWith={handleStartSelectionWith}
+            onToggleSelection={handleToggleSelection}
+            onMessageLongPress={handleMessageLongPress}
+            onCloseAllOverlays={closeAllOverlays}
+            onMessagePin={(message) => togglePin(message)}
+            onUnsendMessage={(message) => unSendMessage(message)}
+            selectedConversationId={selectedConversationId}
+            onViewReactions={handleViewReactions}
+            highlightedMessageId={highlightedMessageId ?? null} 
+          />
       );
     },
     [
@@ -233,9 +238,9 @@ const ConversationMessageList = ({
       selectedConversationId,
       unSendMessage,
       handleViewReactions,
+      highlightedMessageId,
     ],
   );
-
   const renderLoadingFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
     return (

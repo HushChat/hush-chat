@@ -35,6 +35,7 @@ import UnsendMessagePreview from '@/components/UnsendMessagePreview';
 import { renderFileGrid } from '@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid';
 import { AppText } from '@/components/AppText';
 import MessageReactionsSummary from '@/components/conversations/conversation-thread/message-list/reaction/MessageReactionSummary';
+import { MessageHighlighter } from '@/components/MessageHighlighter';
 
 interface MessageItemProps {
   message: IMessage;
@@ -53,6 +54,7 @@ interface MessageItemProps {
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
+  highlightedMessageId?: number | null; 
 }
 
 const REMOVE_ONE = 1;
@@ -83,6 +85,7 @@ export const ConversationMessageItem = ({
   selectedConversationId,
   onUnsendMessage,
   onViewReactions,
+  highlightedMessageId,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -421,7 +424,10 @@ export const ConversationMessageItem = ({
                 />
               </View>
             )}
-
+            <MessageHighlighter
+              messageId={message.id}
+              highlightedMessageId={highlightedMessageId ?? null}
+            >
             <View className={classNames('rounded-xl', isCurrentUser ? 'items-end' : 'items-start')}>
               <ForwardedLabel
                 isForwardedMessage={isForwardedMessage}
@@ -474,8 +480,9 @@ export const ConversationMessageItem = ({
                 ) : null}
               </View>
             </View>
+            </MessageHighlighter>
           </Pressable>
-
+                
           {!message.isUnsend && (
             <ReactionPicker
               visible={isPickerOpen && !conversationAPIResponse?.isBlocked && !selectionMode}

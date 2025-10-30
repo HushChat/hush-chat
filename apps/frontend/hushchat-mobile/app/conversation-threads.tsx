@@ -50,6 +50,7 @@ interface ConversationThreadScreenProps {
   webForwardPress?: (messageIds: Set<number>) => void;
   messageToJump?: number | null;
   onMessageJumped?: () => void;
+  highlightedMessageId?: number | null;
 }
 
 const ConversationThreadScreen = ({
@@ -60,6 +61,7 @@ const ConversationThreadScreen = ({
   webForwardPress,
   onMessageJumped,
   messageToJump,
+  highlightedMessageId,
 }: ConversationThreadScreenProps) => {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
@@ -340,6 +342,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={selectedConversationId}
+        highlightedMessageId={highlightedMessageId}
       />
     );
   }, [
