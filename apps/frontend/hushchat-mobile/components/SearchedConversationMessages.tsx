@@ -69,6 +69,7 @@ const SearchedConversationMessages: React.FC<
           params: {
             conversationId,
             messageId: message.id,
+            highlight: message.id,
           },
         });
       }

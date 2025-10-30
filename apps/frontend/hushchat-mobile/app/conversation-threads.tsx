@@ -105,6 +105,10 @@ const ConversationThreadScreen = ({
     ? messageToJump
     : Number(params.messageId);
 
+    const highlightId = PLATFORM.IS_WEB
+  ? highlightedMessageId
+  : (params.highlight ? Number(params.highlight) : null);
+
   const {
     selectedFiles,
     showImagePreview,
@@ -337,7 +341,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={selectedConversationId}
-        highlightedMessageId={highlightedMessageId}
+        highlightedMessageId={highlightId}
       />
     );
   }, [
