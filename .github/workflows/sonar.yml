@@ -1,12 +1,22 @@
 name: SonarQube
 on:
-  pull_request:
+  push:
+    branches:
+      - main
     paths:
-      - "apps/**"
+      - 'apps/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/**'
 jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
+    
+    # Skip job entirely for forked PRs
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    
     steps:
       - uses: actions/checkout@v4
         with:
