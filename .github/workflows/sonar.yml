@@ -41,6 +41,6 @@ jobs:
           cd apps/backend/chat-service
           mvn -B verify -DskipTests \
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=HushChat_chat-service \
+          -Dsonar.projectKey=HushChat_hush-chat \
           -Dsonar.organization=hushchat \
           -Dsonar.host.url=https://sonarcloud.io
