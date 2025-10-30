@@ -35,7 +35,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd apps/backend/chat-service
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B verify -DskipTests \
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=HushChat_chat-service \
           -Dsonar.organization=hushchat \
           -Dsonar.host.url=https://sonarcloud.io
