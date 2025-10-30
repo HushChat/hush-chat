@@ -35,7 +35,7 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { AppText } from "@/components/AppText";
 import MessageReactionsSummary from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionSummary";
-import { MessageHighlighter } from '@/components/MessageHighlighter';
+import { MessageHighlighter } from "@/components/MessageHighlighter";
 
 interface MessageItemProps {
   message: IMessage;
@@ -53,8 +53,12 @@ interface MessageItemProps {
   onMessagePin: (message: IMessage) => void;
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
-  onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
-  highlightedMessageId?: number | null; 
+  onViewReactions: (
+    messageId: number,
+    position: { x: number; y: number },
+    isOpen: boolean
+  ) => void;
+  highlightedMessageId?: number | null;
 }
 
 const REMOVE_ONE = 1;
@@ -105,7 +109,7 @@ export const ConversationMessageItem = ({
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
   const [reactionSummary, setReactionSummary] = useState(
-    message.reactionSummary || { counts: {}, currentUserReaction: "" },
+    message.reactionSummary || { counts: {}, currentUserReaction: "" }
   );
   const reactedByCurrentUser = reactionSummary?.currentUserReaction || "";
   const {
@@ -118,7 +122,7 @@ export const ConversationMessageItem = ({
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
-    [message.createdAt],
+    [message.createdAt]
   );
   useEffect(() => {
     if (message.reactionSummary) setReactionSummary(message.reactionSummary);
@@ -127,9 +131,9 @@ export const ConversationMessageItem = ({
   const hasReactions = useMemo(
     () =>
       Object.values(reactionSummary?.counts || {}).some(
-        (count) => (count || 0) > 0,
+        (count) => (count || 0) > 0
       ),
-    [reactionSummary],
+    [reactionSummary]
   );
 
   const outerGesture = useMemo(() => {
@@ -153,7 +157,7 @@ export const ConversationMessageItem = ({
       setWebMenuPos({ x: pageX ?? 0, y: pageY ?? 0 });
       setWebMenuVisible(true);
     },
-    [selectionMode],
+    [selectionMode]
   );
 
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
@@ -232,7 +236,7 @@ export const ConversationMessageItem = ({
     () => {},
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const removeReaction = useRemoveMessageReactionMutation(
@@ -240,13 +244,13 @@ export const ConversationMessageItem = ({
     () => {},
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const handleViewReactions = useCallback(
     (position: { x: number; y: number }, isOpen: boolean) =>
       onViewReactions(message.id, position, isOpen),
-    [message.id, onViewReactions],
+    [message.id, onViewReactions]
   );
 
   const handleSelectReaction = useCallback(
@@ -263,7 +267,7 @@ export const ConversationMessageItem = ({
           onSuccess: () => {
             reactionCounts[newReaction] = Math.max(
               MIN_COUNT,
-              (reactionCounts[newReaction] ?? 0) - REMOVE_ONE,
+              (reactionCounts[newReaction] ?? 0) - REMOVE_ONE
             );
             setReactionSummary({
               counts: reactionCounts,
@@ -281,7 +285,7 @@ export const ConversationMessageItem = ({
             if (previousReaction) {
               reactionCounts[previousReaction] = Math.max(
                 MIN_COUNT,
-                (reactionCounts[previousReaction] ?? 0) - REMOVE_ONE,
+                (reactionCounts[previousReaction] ?? 0) - REMOVE_ONE
               );
             }
             reactionCounts[newReaction] =
@@ -291,7 +295,7 @@ export const ConversationMessageItem = ({
               currentUserReaction: newReaction,
             });
           },
-        },
+        }
       );
     },
     [
@@ -303,7 +307,7 @@ export const ConversationMessageItem = ({
       selectionMode,
       removeReaction,
       addReaction,
-    ],
+    ]
   );
 
   const hoverVisibilityClass = PLATFORM.IS_WEB
@@ -462,65 +466,70 @@ export const ConversationMessageItem = ({
               messageId={message.id}
               highlightedMessageId={highlightedMessageId ?? null}
             >
-            <View className={classNames('rounded-xl', isCurrentUser ? 'items-end' : 'items-start')}>
-              <ForwardedLabel
-                isForwardedMessage={isForwardedMessage}
-                isCurrentUser={isCurrentUser}
-              />
-
               <View
                 className={classNames(
-                  "rounded-lg border-2",
-                  hasText || hasImages()
-                    ? isCurrentUser
-                      ? "bg-primary-light dark:bg-primary-dark rounded-tr-none"
-                      : "bg-secondary-light dark:bg-secondary-dark rounded-tl-none"
-                    : "bg-transparent",
-                  selected && selectionMode
-                    ? "border-sky-500 dark:border-sky-400"
-                    : "border-transparent",
-                  isForwardedMessage && "shadow-sm",
-                  hasImages() && !messageContent ? "" : "px-3 py-2",
+                  "rounded-xl",
+                  isCurrentUser ? "items-end" : "items-start"
                 )}
-                style={{
-                  maxWidth: hasAttachments ? 305 : "70%",
-                  ...(isForwardedMessage &&
-                    !isCurrentUser && {
-                      borderLeftWidth: 2,
-                      borderLeftColor: "#9CA3AF30",
-                    }),
-                  ...(isForwardedMessage &&
-                    isCurrentUser && {
-                      borderRightWidth: 2,
-                      borderRightColor: "#60A5FA30",
-                    }),
-                }}
               >
-                {hasAttachments && (
-                  <View className={messageContent ? "mb-2" : ""}>
-                    {renderFileGrid(attachments, isCurrentUser)}
-                  </View>
-                )}
+                <ForwardedLabel
+                  isForwardedMessage={isForwardedMessage}
+                  isCurrentUser={isCurrentUser}
+                />
 
-                {!message.isUnsend && messageContent ? (
-                  <FormattedText
-                    text={message.messageText}
-                    style={{
-                      fontSize: 16,
-                      lineHeight: 20,
-                      fontFamily: "Poppins-Regular",
-                    }}
-                    mentions={message.mentions}
-                    isCurrentUser={isCurrentUser}
-                  />
-                ) : message.isUnsend ? (
-                  <UnsendMessagePreview unsendMessage={message} />
-                ) : null}
+                <View
+                  className={classNames(
+                    "rounded-lg border-2",
+                    hasText || hasImages()
+                      ? isCurrentUser
+                        ? "bg-primary-light dark:bg-primary-dark rounded-tr-none"
+                        : "bg-secondary-light dark:bg-secondary-dark rounded-tl-none"
+                      : "bg-transparent",
+                    selected && selectionMode
+                      ? "border-sky-500 dark:border-sky-400"
+                      : "border-transparent",
+                    isForwardedMessage && "shadow-sm",
+                    hasImages() && !messageContent ? "" : "px-3 py-2"
+                  )}
+                  style={{
+                    maxWidth: hasAttachments ? 305 : "70%",
+                    ...(isForwardedMessage &&
+                      !isCurrentUser && {
+                        borderLeftWidth: 2,
+                        borderLeftColor: "#9CA3AF30",
+                      }),
+                    ...(isForwardedMessage &&
+                      isCurrentUser && {
+                        borderRightWidth: 2,
+                        borderRightColor: "#60A5FA30",
+                      }),
+                  }}
+                >
+                  {hasAttachments && (
+                    <View className={messageContent ? "mb-2" : ""}>
+                      {renderFileGrid(attachments, isCurrentUser)}
+                    </View>
+                  )}
+
+                  {!message.isUnsend && messageContent ? (
+                    <FormattedText
+                      text={message.messageText}
+                      style={{
+                        fontSize: 16,
+                        lineHeight: 20,
+                        fontFamily: "Poppins-Regular",
+                      }}
+                      mentions={message.mentions}
+                      isCurrentUser={isCurrentUser}
+                    />
+                  ) : message.isUnsend ? (
+                    <UnsendMessagePreview unsendMessage={message} />
+                  ) : null}
+                </View>
               </View>
-            </View>
             </MessageHighlighter>
           </Pressable>
-                
+
           {!message.isUnsend && (
             <ReactionPicker
               visible={
