@@ -1,29 +1,29 @@
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import React, { useCallback, useEffect } from 'react';
-import { ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { SplashScreen, Stack, Redirect, useSegments } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-worklets';
-import '@/global.css';
-import { setAPIDefaults, setupAuthorizationHeader } from '@/utils/apiUtils';
-import { useAuthStore } from '@/store/auth/authStore';
-import { useUserStore } from '@/store/user/useUserStore';
-import { setupGlobalErrorHandling } from '@/utils/apiErrorUtils';
-import Toast from 'react-native-toast-message';
-import { PLATFORM } from '@/constants/platformConstants';
-import { toastConfig } from '@/utils/config/toastConfig';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { createQueryClient } from '@/query/config/queryClientConfig';
-import { getNavigationTheme } from '@/utils/commonUtils';
-import { ModalProvider } from '@/context/modal-context';
-import { useAppTheme } from '@/hooks/useAppTheme';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import React, { useCallback, useEffect } from "react";
+import { ThemeProvider } from "@react-navigation/native";
+import { useFonts } from "expo-font";
+import { SplashScreen, Stack, Redirect, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import "react-native-worklets";
+import "@/global.css";
+import { setAPIDefaults, setupAuthorizationHeader } from "@/utils/apiUtils";
+import { useAuthStore } from "@/store/auth/authStore";
+import { useUserStore } from "@/store/user/useUserStore";
+import { setupGlobalErrorHandling } from "@/utils/apiErrorUtils";
+import Toast from "react-native-toast-message";
+import { PLATFORM } from "@/constants/platformConstants";
+import { toastConfig } from "@/utils/config/toastConfig";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { createQueryClient } from "@/query/config/queryClientConfig";
+import { getNavigationTheme } from "@/utils/commonUtils";
+import { ModalProvider } from "@/context/modal-context";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { AUTH_LOGIN_PATH, CHATS_PATH } from '@/constants/routes';
-import { isTokenExpiringSoon, refreshIdToken } from '@/utils/authUtils';
-import { NotificationFactory } from '@/utils/notifications/NotificationFactory';
-import { sendTokenToBackend } from '@/apis/user';
+import { AUTH_LOGIN_PATH, CHATS_PATH } from "@/constants/routes";
+import { isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
+import { NotificationFactory } from "@/utils/notifications/NotificationFactory";
+import { sendTokenToBackend } from "@/apis/user";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
@@ -33,7 +33,7 @@ export default function RootLayout() {
   const { isAuthenticated } = useAuthStore();
   const { fetchUserData, loading } = useUserStore();
   const [fontsLoaded] = useFonts({
-    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
+    "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
   });
   const queryClient = createQueryClient();
 
@@ -47,10 +47,10 @@ export default function RootLayout() {
       const token = await handler.registerDevice();
 
       if (token) {
-        const platform = PLATFORM.IS_WEB ? 'WEB' : 'MOBILE';
+        const platform = PLATFORM.IS_WEB ? "WEB" : "MOBILE";
         const response = await sendTokenToBackend({ token, platform });
         if (response.error) {
-          console.error('Token sending failed!', response.error);
+          console.error("Token sending failed!", response.error);
           return;
         }
       }
@@ -113,10 +113,15 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
             <ModalProvider>
-              <Gate ready={!loading && fontsLoaded} isAuthenticated={isAuthenticated} />
+              <Gate
+                ready={!loading && fontsLoaded}
+                isAuthenticated={isAuthenticated}
+              />
               <Toast
                 config={toastConfig}
-                topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                topOffset={
+                  PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID
+                }
               />
               <StatusBar style="auto" />
             </ModalProvider>
@@ -128,14 +133,24 @@ export default function RootLayout() {
 }
 
 /** Central guard: decides where the user can go before screens mount */
-function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boolean }) {
+function Gate({
+  ready,
+  isAuthenticated,
+}: {
+  ready: boolean;
+  isAuthenticated: boolean;
+}) {
   const segments = useSegments();
-  const inAuthGroup = segments[0] === '(auth)';
+  const inAuthGroup = segments[0] === "(auth)";
 
   return (
     <>
-      {ready && !isAuthenticated && !inAuthGroup && <Redirect href={AUTH_LOGIN_PATH} />}
-      {ready && isAuthenticated && inAuthGroup && <Redirect href={CHATS_PATH} />}
+      {ready && !isAuthenticated && !inAuthGroup && (
+        <Redirect href={AUTH_LOGIN_PATH} />
+      )}
+      {ready && isAuthenticated && inAuthGroup && (
+        <Redirect href={CHATS_PATH} />
+      )}
 
       <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />

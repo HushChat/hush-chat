@@ -1,13 +1,13 @@
-import React, { useCallback } from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import InitialsAvatar, { AvatarSize } from '@/components/InitialsAvatar';
-import RefreshButton from '@/components/RefreshButton';
-import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from '@/constants/ui';
-import { PLATFORM } from '@/constants/platformConstants';
-import { handleConversationNavigation } from '@/utils/commonUtils';
-import { ConversationInfo } from '@/types/chat/types';
-import { AppText } from '@/components/AppText';
+import React, { useCallback } from "react";
+import { View, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import RefreshButton from "@/components/RefreshButton";
+import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
+import { PLATFORM } from "@/constants/platformConstants";
+import { handleConversationNavigation } from "@/utils/commonUtils";
+import { ConversationInfo } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
 
 interface ChatHeaderProps {
   conversationInfo: ConversationInfo;
@@ -27,7 +27,10 @@ const ChatHeader = ({
   webPressSearch,
 }: ChatHeaderProps) => {
   const handleProfileNavigate = useCallback(() => {
-    handleConversationNavigation(onShowProfile, conversationInfo.conversationId);
+    handleConversationNavigation(
+      onShowProfile,
+      conversationInfo.conversationId,
+    );
   }, [onShowProfile, conversationInfo.conversationId]);
 
   return (
@@ -69,7 +72,7 @@ const ChatHeader = ({
               className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
               onPress={webPressSearch}
             >
-              <Ionicons name="search" size={20} color={'#6B7280'} />
+              <Ionicons name="search" size={20} color={"#6B7280"} />
             </TouchableOpacity>
             <RefreshButton
               onRefresh={refetchConversationMessages}

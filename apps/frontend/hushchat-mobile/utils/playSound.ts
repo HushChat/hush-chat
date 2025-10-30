@@ -1,11 +1,11 @@
-import { createAudioPlayer } from 'expo-audio';
-import type { AudioPlayer } from 'expo-audio';
+import { createAudioPlayer } from "expo-audio";
+import type { AudioPlayer } from "expo-audio";
 
 let messageSound: AudioPlayer | null = null;
 
 export const loadMessageSound = async () => {
   if (!messageSound) {
-    const audioSource = require('@/assets/sounds/message-pop.mp3');
+    const audioSource = require("@/assets/sounds/message-pop.mp3");
     messageSound = createAudioPlayer(audioSource);
   }
 };
@@ -19,6 +19,6 @@ export const playMessageSound = async () => {
       messageSound.play();
     }
   } catch (error) {
-    console.warn('Failed to play message sound:', error);
+    console.warn("Failed to play message sound:", error);
   }
 };

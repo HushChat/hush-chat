@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 let client: QueryClient | null = null;
 
@@ -6,7 +6,11 @@ export const createQueryClient = () => {
   if (!client) {
     client = new QueryClient({
       defaultOptions: {
-        queries: { retry: 2, refetchOnReconnect: false, refetchOnWindowFocus: false },
+        queries: {
+          retry: 2,
+          refetchOnReconnect: false,
+          refetchOnWindowFocus: false,
+        },
         mutations: { retry: false },
       },
     });

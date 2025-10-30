@@ -1,5 +1,5 @@
-import { searchConversationMessages } from '@/apis/conversation';
-import { useQuery } from '@tanstack/react-query';
+import { searchConversationMessages } from "@/apis/conversation";
+import { useQuery } from "@tanstack/react-query";
 
 export default function useConversationMessagesSearchQuery(
   conversationId: number,
@@ -11,7 +11,7 @@ export default function useConversationMessagesSearchQuery(
     error,
     refetch,
   } = useQuery({
-    queryKey: ['searched-conversation-messages', conversationId, searchQuery],
+    queryKey: ["searched-conversation-messages", conversationId, searchQuery],
     queryFn: () => searchConversationMessages(conversationId, searchQuery),
     enabled: !!conversationId && searchQuery.length > 0,
     staleTime: 0,

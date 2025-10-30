@@ -1,5 +1,5 @@
-import * as SecureStore from 'expo-secure-store';
-import { StorageProvider } from './storageProvider';
+import * as SecureStore from "expo-secure-store";
+import { StorageProvider } from "./storageProvider";
 
 export class SecureStorageProvider implements StorageProvider {
   async save<T>(key: string, value: T): Promise<void> {

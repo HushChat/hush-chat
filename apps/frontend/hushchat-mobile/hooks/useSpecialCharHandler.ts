@@ -1,4 +1,4 @@
-import { TextInputKeyPressEvent } from 'react-native';
+import { TextInputKeyPressEvent } from "react-native";
 
 export interface WebKeyboardEvent extends globalThis.KeyboardEvent {
   key: string;
@@ -26,7 +26,9 @@ export function useSpecialCharHandler(
   { handlers }: UseSpecialCharOptions,
 ) {
   return (e: SupportedKeyboardEvent) => {
-    const key = (e as TextInputKeyPressEvent)?.nativeEvent?.key ?? (e as WebKeyboardEvent)?.key;
+    const key =
+      (e as TextInputKeyPressEvent)?.nativeEvent?.key ??
+      (e as WebKeyboardEvent)?.key;
 
     if (!key) return;
 
@@ -35,7 +37,7 @@ export function useSpecialCharHandler(
 
     const before = message.slice(0, cursorPosition + 1);
     if (before.length === 0 || /\s$/.test(before)) {
-      specialHandler('', e);
+      specialHandler("", e);
     }
   };
 }

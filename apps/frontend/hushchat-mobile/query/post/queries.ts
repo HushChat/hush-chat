@@ -10,17 +10,20 @@ import {
   ToggleMuteConversationParams,
   exitGroupConversation,
   reportConversation,
-} from '@/apis/conversation';
-import { blockUser } from '@/apis/user';
-import { createMutationHook } from '@/query/config/createMutationFactory';
-import { addMessageReaction, pinMessage } from '@/apis/message';
+} from "@/apis/conversation";
+import { blockUser } from "@/apis/user";
+import { createMutationHook } from "@/query/config/createMutationFactory";
+import { addMessageReaction, pinMessage } from "@/apis/message";
 import {
   IConversation,
   IGroupConversation,
   IMessage,
   IMessageReactionRequest,
-} from '@/types/chat/types';
-import { conversationMessageQueryKeys, conversationQueryKeys } from '@/constants/queryKeys';
+} from "@/types/chat/types";
+import {
+  conversationMessageQueryKeys,
+  conversationQueryKeys,
+} from "@/constants/queryKeys";
 
 /**
  * Mutation factory for creating one-to-one conversations.
@@ -41,10 +44,18 @@ import { conversationMessageQueryKeys, conversationQueryKeys } from '@/constants
  * };
  * ```
  */
-export const useCreateOneToOneConversationMutation = createMutationHook<IConversation, number>(
+export const useCreateOneToOneConversationMutation = createMutationHook<
+  IConversation,
+  number
+>(
   createOneToOneConversation,
   (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
-    [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][],
+    [
+      conversationQueryKeys.allConversations(
+        keyParams.userId,
+        keyParams.criteria,
+      ),
+    ] as string[][],
 );
 
 export const usePinMessageMutation = createMutationHook<
@@ -52,10 +63,18 @@ export const usePinMessageMutation = createMutationHook<
   { conversationId: number; messageId: number }
 >(pinMessage);
 
-export const useTogglePinConversationMutation = createMutationHook<void, number>(
+export const useTogglePinConversationMutation = createMutationHook<
+  void,
+  number
+>(
   togglePinConversation,
   (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
-    [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][],
+    [
+      conversationQueryKeys.allConversations(
+        keyParams.userId,
+        keyParams.criteria,
+      ),
+    ] as string[][],
 );
 
 export const useCreateGroupConversationMutation = createMutationHook<
@@ -64,7 +83,12 @@ export const useCreateGroupConversationMutation = createMutationHook<
 >(
   createGroupConversation,
   (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
-    [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][],
+    [
+      conversationQueryKeys.allConversations(
+        keyParams.userId,
+        keyParams.criteria,
+      ),
+    ] as string[][],
 );
 
 export const useCreateAddParticipantsMutation = createMutationHook<
@@ -74,7 +98,10 @@ export const useCreateAddParticipantsMutation = createMutationHook<
   addConversationParticipants,
   (keyParams: { conversationId: number; keyword: string }) => () =>
     [
-      conversationQueryKeys.ConversationParticipants(keyParams.conversationId, keyParams.keyword),
+      conversationQueryKeys.ConversationParticipants(
+        keyParams.conversationId,
+        keyParams.keyword,
+      ),
     ] as string[][],
 );
 
@@ -85,7 +112,12 @@ export const usePatchConversationQuery = createMutationHook<
   ({ conversationId, name, description }) =>
     updateConversationById(conversationId, name, description),
   (keyParams: { userId: number; conversationId: number }) => () =>
-    [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][],
+    [
+      conversationQueryKeys.metaDataById(
+        keyParams.userId,
+        keyParams.conversationId,
+      ),
+    ] as string[][],
 );
 
 export const useSendMessageMutation = createMutationHook<
@@ -94,11 +126,21 @@ export const useSendMessageMutation = createMutationHook<
 >(
   ({ conversationId, message, parentMessageId }) =>
     sendMessageByConversationId(conversationId, message, parentMessageId),
-  (keyParams: { userId: number; conversationId: number; criteria: ConversationFilterCriteria }) =>
+  (keyParams: {
+    userId: number;
+    conversationId: number;
+    criteria: ConversationFilterCriteria;
+  }) =>
     () => {
       return [
-        conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
-        conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria),
+        conversationMessageQueryKeys.messages(
+          keyParams.userId,
+          keyParams.conversationId,
+        ),
+        conversationQueryKeys.allConversations(
+          keyParams.userId,
+          keyParams.criteria,
+        ),
       ] as string[][];
     },
 );
@@ -110,17 +152,30 @@ export const useAddMessageReactionMutation = createMutationHook<
   ({ messageId, reaction }) => addMessageReaction(messageId, reaction),
   (keyParams: { userId: number; conversationId: number }) => () =>
     [
-      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
+      conversationMessageQueryKeys.messages(
+        keyParams.userId,
+        keyParams.conversationId,
+      ),
     ] as string[][],
 );
 
 export const useBlockUserMutation = createMutationHook<void, number>(
   blockUser,
-  (keyParams: { userId: number; conversationId: number; criteria: ConversationFilterCriteria }) =>
+  (keyParams: {
+    userId: number;
+    conversationId: number;
+    criteria: ConversationFilterCriteria;
+  }) =>
     () =>
       [
-        conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId),
-        conversationQueryKeys.participantProfileInfo(keyParams.userId, keyParams.conversationId),
+        conversationQueryKeys.metaDataById(
+          keyParams.userId,
+          keyParams.conversationId,
+        ),
+        conversationQueryKeys.participantProfileInfo(
+          keyParams.userId,
+          keyParams.conversationId,
+        ),
       ] as string[][],
 );
 
@@ -130,15 +185,29 @@ export const useToggleMuteConversationMutation = createMutationHook<
 >(
   toggleMuteConversation,
   (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
-    [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][],
+    [
+      conversationQueryKeys.allConversations(
+        keyParams.userId,
+        keyParams.criteria,
+      ),
+    ] as string[][],
 );
 
-export const useExitGroupConversationMutation = createMutationHook<void, number>(
+export const useExitGroupConversationMutation = createMutationHook<
+  void,
+  number
+>(
   exitGroupConversation,
   (keyParams: { userId: number; conversationId: number }) => () =>
     [
-      conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId),
-      conversationQueryKeys.groupProfileInfo(keyParams.userId, keyParams.conversationId),
+      conversationQueryKeys.metaDataById(
+        keyParams.userId,
+        keyParams.conversationId,
+      ),
+      conversationQueryKeys.groupProfileInfo(
+        keyParams.userId,
+        keyParams.conversationId,
+      ),
     ] as string[][],
 );
 

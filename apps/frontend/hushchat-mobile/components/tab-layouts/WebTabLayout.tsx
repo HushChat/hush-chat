@@ -1,7 +1,7 @@
-import { TabLayoutProps } from '@/types/navigation/types';
-import { View } from 'react-native';
-import WebNavigationInterface from '@/components/tab-layouts/navigations/WebNavigationInterface';
-import { Stack } from 'expo-router';
+import { TabLayoutProps } from "@/types/navigation/types";
+import { View } from "react-native";
+import WebNavigationInterface from "@/components/tab-layouts/navigations/WebNavigationInterface";
+import { Stack } from "expo-router";
 
 const WebTabLayout = (tabLayoutProps: TabLayoutProps) => {
   const { navigationItems } = tabLayoutProps;

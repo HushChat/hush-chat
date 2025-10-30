@@ -1,13 +1,13 @@
-import { ConversationType, IConversation } from '@/types/chat/types';
-import { useCallback } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import ConversationListNavItem from '@/components/conversations/conversation-list/common/ConversationListNavItem';
-import Alert from '@/components/Alert';
-import ConversationListItem from '@/components/conversations/conversation-list/ConversationListItem';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { handleChatPress } from '@/utils/commonUtils';
-import BaseConversationList from './BaseConversationList';
-import { AppText, AppTextInput } from '@/components/AppText';
+import { ConversationType, IConversation } from "@/types/chat/types";
+import { useCallback } from "react";
+import { ActivityIndicator, View } from "react-native";
+import ConversationListNavItem from "@/components/conversations/conversation-list/common/ConversationListNavItem";
+import Alert from "@/components/Alert";
+import ConversationListItem from "@/components/conversations/conversation-list/ConversationListItem";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { handleChatPress } from "@/utils/commonUtils";
+import BaseConversationList from "./BaseConversationList";
+import { AppText, AppTextInput } from "@/components/AppText";
 
 export interface RegularConversationListViewProps {
   conversations: IConversation[];
@@ -36,7 +36,8 @@ export default function RegularConversationListView({
   onArchive,
   onDelete,
 }: RegularConversationListViewProps) {
-  const { selectedConversationType, setSelectedConversationType } = useConversationStore();
+  const { selectedConversationType, setSelectedConversationType } =
+    useConversationStore();
 
   const renderHeader = useCallback(() => {
     if (selectedConversationType === ConversationType.ARCHIVED) {
@@ -51,8 +52,8 @@ export default function RegularConversationListView({
 
     return (
       <ConversationListNavItem
-        title={'Archived'}
-        iconName={'archive-outline'}
+        title={"Archived"}
+        iconName={"archive-outline"}
         action={() => {
           setSelectedConversationType(ConversationType.ARCHIVED);
         }}
@@ -106,7 +107,13 @@ export default function RegularConversationListView({
         />
       );
     },
-    [selectedConversation?.id, onArchive, onDelete, conversationsRefetch, setSelectedConversation],
+    [
+      selectedConversation?.id,
+      onArchive,
+      onDelete,
+      conversationsRefetch,
+      setSelectedConversation,
+    ],
   );
 
   return (
@@ -115,7 +122,9 @@ export default function RegularConversationListView({
       renderItem={renderItem}
       keyExtractor={(item) => item?.id.toString()}
       ListHeaderComponent={
-        selectedConversationType === ConversationType.ALL ? renderHeader() : null
+        selectedConversationType === ConversationType.ALL
+          ? renderHeader()
+          : null
       }
       ListEmptyComponent={renderEmptyComponent()}
       ListFooterComponent={renderFooter()}

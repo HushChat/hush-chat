@@ -1,5 +1,14 @@
-import { useQueryClient, useInfiniteQuery, InfiniteData, QueryKey } from '@tanstack/react-query';
-import type { PaginatedResponse, ApiResponse, PaginatedQueryResult } from '@/types/common/types';
+import {
+  useQueryClient,
+  useInfiniteQuery,
+  InfiniteData,
+  QueryKey,
+} from "@tanstack/react-query";
+import type {
+  PaginatedResponse,
+  ApiResponse,
+  PaginatedQueryResult,
+} from "@/types/common/types";
 
 export interface OffsetPaginatedResponse<T> extends PaginatedResponse<T> {
   pageable: { offset: number; pageSize: number };
@@ -15,7 +24,10 @@ export interface OffsetPaginatedQueryOptions<T> {
   queryFn: OffsetQueryFnType<T>;
   pageSize: number;
   initialOffset?: number;
-  getNextPageParam?: (lastPage: OffsetPaginatedResponse<T>, pageSize: number) => number | undefined;
+  getNextPageParam?: (
+    lastPage: OffsetPaginatedResponse<T>,
+    pageSize: number,
+  ) => number | undefined;
   options?: Record<string, unknown>;
 }
 
@@ -48,7 +60,7 @@ export function usePaginatedQueryWithOffset<T>({
       if (response.data) {
         return response.data;
       }
-      throw new Error(response.error || 'Failed to fetch data');
+      throw new Error(response.error || "Failed to fetch data");
     },
     getNextPageParam: (lastPage: any) => {
       // Backend returns page-based response, not offset-based

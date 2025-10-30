@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
-import classNames from 'classnames';
-import React from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import classNames from "classnames";
+import React from "react";
 import {
   Modal,
   View,
@@ -8,23 +8,23 @@ import {
   TouchableWithoutFeedback,
   useWindowDimensions,
   StyleSheet,
-} from 'react-native';
-import { PLATFORM } from '@/constants/platformConstants';
-import { AppText } from './AppText';
+} from "react-native";
+import { PLATFORM } from "@/constants/platformConstants";
+import { AppText } from "./AppText";
 
 export const MODAL_TYPES = {
-  info: 'info',
-  success: 'success',
-  warning: 'warning',
-  error: 'error',
-  confirm: 'confirm',
-  custom: 'custom',
+  info: "info",
+  success: "success",
+  warning: "warning",
+  error: "error",
+  confirm: "confirm",
+  custom: "custom",
 } as const;
 
 export const MODAL_BUTTON_VARIANTS = {
-  default: 'default',
-  primary: 'primary',
-  destructive: 'destructive',
+  default: "default",
+  primary: "primary",
+  destructive: "destructive",
 } as const;
 
 const MAX_INLINE_BUTTONS = 2;
@@ -56,19 +56,19 @@ const buttonVariantClasses: Record<
   { backgroundColor: string; textColor: string }
 > = {
   default: {
-    backgroundColor: 'bg-gray-200 dark:bg-neutral-800',
-    textColor: 'text-gray-800 dark:text-gray-200',
+    backgroundColor: "bg-gray-200 dark:bg-neutral-800",
+    textColor: "text-gray-800 dark:text-gray-200",
   },
-  primary: { backgroundColor: 'bg-blue-500', textColor: 'text-white' },
-  destructive: { backgroundColor: 'bg-red-500', textColor: 'text-white' },
+  primary: { backgroundColor: "bg-blue-500", textColor: "text-white" },
+  destructive: { backgroundColor: "bg-red-500", textColor: "text-white" },
 };
 
 const typeColor: Partial<Record<ModalType, string>> & { default: string } = {
-  success: 'bg-green-500',
-  warning: 'bg-yellow-500',
-  error: 'bg-red-500',
-  confirm: 'bg-blue-500',
-  default: 'bg-gray-500',
+  success: "bg-green-500",
+  warning: "bg-yellow-500",
+  error: "bg-red-500",
+  confirm: "bg-blue-500",
+  default: "bg-gray-500",
 };
 
 const getTypeColor = (type: ModalType) => typeColor[type] || typeColor.default;
@@ -95,12 +95,14 @@ export default function AppModal({
           key={idx}
           onPress={btn.onPress}
           className={classNames(
-            'px-4 py-2 rounded-lg min-w-[120px]',
+            "px-4 py-2 rounded-lg min-w-[120px]",
             backgroundColor,
             btn.className,
           )}
         >
-          <AppText className={classNames('font-medium text-center', textColor)}>{btn.text}</AppText>
+          <AppText className={classNames("font-medium text-center", textColor)}>
+            {btn.text}
+          </AppText>
         </Pressable>
       );
     });
@@ -108,7 +110,7 @@ export default function AppModal({
   const renderModalContent = () => (
     <View
       style={{
-        width: width > 500 ? 400 : '100%',
+        width: width > 500 ? 400 : "100%",
         maxWidth: 500,
         borderRadius: 12,
         padding: 20,
@@ -116,7 +118,12 @@ export default function AppModal({
       className="bg-white dark:bg-neutral-900"
     >
       {icon && (
-        <View className={classNames('self-center mb-4 p-3 rounded-full', getTypeColor(type))}>
+        <View
+          className={classNames(
+            "self-center mb-4 p-3 rounded-full",
+            getTypeColor(type),
+          )}
+        >
           <Ionicons name={icon} size={28} color="white" />
         </View>
       )}
@@ -137,8 +144,9 @@ export default function AppModal({
 
       {buttons.length > 0 && (
         <View
-          className={classNames('flex-row justify-center gap-2 mt-6', {
-            'flex-col items-center gap-2 mt-6': buttons.length > MAX_INLINE_BUTTONS,
+          className={classNames("flex-row justify-center gap-2 mt-6", {
+            "flex-col items-center gap-2 mt-6":
+              buttons.length > MAX_INLINE_BUTTONS,
           })}
         >
           {renderButtons(buttons)}
@@ -151,7 +159,10 @@ export default function AppModal({
 
   if (PLATFORM.IS_WEB) {
     return (
-      <View style={StyleSheet.absoluteFillObject} className="z-50 justify-center items-center px-5">
+      <View
+        style={StyleSheet.absoluteFillObject}
+        className="z-50 justify-center items-center px-5"
+      >
         <TouchableWithoutFeedback
           onPress={() => {
             if (closeOnBackdropPress) onClose?.();
@@ -175,12 +186,19 @@ export default function AppModal({
       <View style={StyleSheet.absoluteFillObject}>
         <Pressable
           onPress={closeOnBackdropPress ? onClose : undefined}
-          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
         />
         <View
           style={[
             StyleSheet.absoluteFill,
-            { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+            {
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 20,
+            },
           ]}
           pointerEvents="box-none"
         >

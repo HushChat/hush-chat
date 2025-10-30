@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo } from "react";
 import {
   FlatList,
   ListRenderItemInfo,
@@ -6,14 +6,14 @@ import {
   Text,
   View,
   ActivityIndicator,
-} from 'react-native';
-import classNames from 'classnames';
-import { ConversationParticipant } from '@/types/chat/types';
-import InitialsAvatar, { AvatarSize } from '@/components/InitialsAvatar';
-import { useConversationParticipantQuery } from '@/query/useConversationParticipantQuery';
-import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation';
-import useDebounce from '@/hooks/useDebounce';
-import { PLATFORM } from '@/constants/platformConstants';
+} from "react-native";
+import classNames from "classnames";
+import { ConversationParticipant } from "@/types/chat/types";
+import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import { useConversationParticipantQuery } from "@/query/useConversationParticipantQuery";
+import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
+import useDebounce from "@/hooks/useDebounce";
+import { PLATFORM } from "@/constants/platformConstants";
 
 type MentionSuggestionsProps = {
   conversationId: number;
@@ -28,13 +28,15 @@ const MentionSuggestions = ({
   conversationId,
   mentionQuery,
 }: MentionSuggestionsProps) => {
-  const debouncedKeyword = useDebounce(mentionQuery ?? '', DEBOUNCE_DELAY_MS);
+  const debouncedKeyword = useDebounce(mentionQuery ?? "", DEBOUNCE_DELAY_MS);
 
   const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useConversationParticipantQuery(conversationId, debouncedKeyword);
 
   const participants: ConversationParticipant[] = useMemo(
-    () => pages?.pages.flatMap((p) => p?.content as ConversationParticipant[]) ?? [],
+    () =>
+      pages?.pages.flatMap((p) => p?.content as ConversationParticipant[]) ??
+      [],
     [pages],
   );
 
@@ -44,18 +46,22 @@ const MentionSuggestions = ({
     enabled: true,
   });
 
-  const renderItem = ({ item, index }: ListRenderItemInfo<ConversationParticipant>) => {
+  const renderItem = ({
+    item,
+    index,
+  }: ListRenderItemInfo<ConversationParticipant>) => {
     const isActive = index === activeIndex;
     const fullName =
-      `${item.user.firstName ?? ''} ${item.user.lastName ?? ''}`.trim() || `@${item.user.username}`;
+      `${item.user.firstName ?? ""} ${item.user.lastName ?? ""}`.trim() ||
+      `@${item.user.username}`;
 
     return (
       <Pressable
         onPress={() => onSelect(item)}
         {...(PLATFORM.IS_WEB ? { onHoverIn: () => setActiveIndex(index) } : {})}
         className={classNames(
-          'px-3 py-2 flex-row items-center',
-          isActive ? 'bg-primary-light/10 dark:bg-white/10' : 'bg-transparent',
+          "px-3 py-2 flex-row items-center",
+          isActive ? "bg-primary-light/10 dark:bg-white/10" : "bg-transparent",
         )}
       >
         <View className="mr-3">
@@ -69,7 +75,9 @@ const MentionSuggestions = ({
           <Text className="text-sm text-text-primary-light dark:text-text-primary-dark">
             {fullName}
           </Text>
-          <Text className="text-xs text-gray-500 dark:text-gray-400">@{item.user.username}</Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">
+            @{item.user.username}
+          </Text>
         </View>
       </Pressable>
     );
@@ -87,9 +95,12 @@ const MentionSuggestions = ({
     <View className="absolute bottom-24 left-3 z-50 w-[320px] max-w-[80%]">
       <View
         className={classNames(
-          'rounded-lg custom-scrollbar',
-          'bg-background-light dark:bg-background-dark',
-          { 'shadow-xl border border-gray-200 dark:border-gray-700': participants.length !== 0 },
+          "rounded-lg custom-scrollbar",
+          "bg-background-light dark:bg-background-dark",
+          {
+            "shadow-xl border border-gray-200 dark:border-gray-700":
+              participants.length !== 0,
+          },
         )}
       >
         <FlatList

@@ -1,7 +1,14 @@
-import AppModal, { ModalProps } from '@/components/Modal';
-import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
+import AppModal, { ModalProps } from "@/components/Modal";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  ReactNode,
+} from "react";
 
-type ModalConfig = Omit<ModalProps, 'visible' | 'onClose'>;
+type ModalConfig = Omit<ModalProps, "visible" | "onClose">;
 
 interface ModalContextValue {
   openModal: (config: ModalConfig) => void;
@@ -27,13 +34,20 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     setModalConfig(null);
   }, []);
 
-  const contextValue = useMemo(() => ({ openModal, closeModal }), [openModal, closeModal]);
+  const contextValue = useMemo(
+    () => ({ openModal, closeModal }),
+    [openModal, closeModal],
+  );
 
   return (
     <ModalContext.Provider value={contextValue}>
       {children}
       {modalVisible && modalConfig && (
-        <AppModal visible={modalVisible} onClose={closeModal} {...modalConfig} />
+        <AppModal
+          visible={modalVisible}
+          onClose={closeModal}
+          {...modalConfig}
+        />
       )}
     </ModalContext.Provider>
   );

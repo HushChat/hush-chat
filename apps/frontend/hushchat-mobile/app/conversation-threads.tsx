@@ -168,15 +168,11 @@ const ConversationThreadScreen = ({
     setSelectedMessage(null);
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
-
-    if (showImagePreview) {
-      handleCloseImagePreview();
-    }
+    handleCloseImagePreview();
   }, [
     selectedConversationId,
     setSelectionMode,
     setSelectedMessageIds,
-    showImagePreview,
     handleCloseImagePreview,
   ]);
 
@@ -327,7 +323,6 @@ const ConversationThreadScreen = ({
         />
       );
     }
-
     if (conversationMessages.length === 0) {
       return <EmptyChatState />;
     }

@@ -1,15 +1,21 @@
-import { useEffect } from 'react';
-import { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
-import { usePanGesture } from '@/gestures/base/usePanGesture';
-import Toast from 'react-native-toast-message';
+import { useEffect } from "react";
+import {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+import { usePanGesture } from "@/gestures/base/usePanGesture";
+import Toast from "react-native-toast-message";
 
 export const TOAST_POSITION = {
-  TOP: 'top',
-  BOTTOM: 'bottom',
+  TOP: "top",
+  BOTTOM: "bottom",
 } as const;
 
-export type ToastPosition = (typeof TOAST_POSITION)[keyof typeof TOAST_POSITION];
+export type ToastPosition =
+  (typeof TOAST_POSITION)[keyof typeof TOAST_POSITION];
 
 export const useToastAnimation = (
   position: ToastPosition,
@@ -34,7 +40,7 @@ export const useToastAnimation = (
   const hideToast = () => Toast.hide();
 
   const { gesture } = usePanGesture({
-    axis: 'vertical',
+    axis: "vertical",
     offsets: {
       activeY: [-1, 1],
       failX: [-30, 30],
@@ -54,7 +60,9 @@ export const useToastAnimation = (
       const threshold = isTop ? -50 : 50;
       const exitValue = isTop ? -200 : 200;
 
-      if (isTop ? event.translationY < threshold : event.translationY > threshold) {
+      if (
+        isTop ? event.translationY < threshold : event.translationY > threshold
+      ) {
         scheduleOnRN(hideToast);
         translateY.value = withTiming(exitValue, { duration: 150 });
         opacity.value = withTiming(0, { duration: 150 });

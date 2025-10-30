@@ -1,14 +1,14 @@
-import { memo } from 'react';
-import { View, Text } from 'react-native';
+import { memo } from "react";
+import { View, Text } from "react-native";
 import {
   FormHeader,
   FormButton,
   ErrorMessage,
   LinkText,
   FormContainer,
-} from '@/components/FormComponents';
-import TextField from '@/components/forms/TextField';
-import { TForgotPasswordFormProps } from '@/types/login/types';
+} from "@/components/FormComponents";
+import TextField from "@/components/forms/TextField";
+import { TForgotPasswordFormProps } from "@/types/login/types";
 
 export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
   const {
@@ -31,7 +31,9 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
         colors={colors}
       />
 
-      {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
+      {!!errorMessage && (
+        <ErrorMessage message={errorMessage} colors={colors} />
+      )}
 
       {!!successMessage && (
         <View className="mb-4 rounded-xl px-3 py-2 bg-green-100 dark:bg-emerald-950">
@@ -54,7 +56,11 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
           platformAwareDefault
         />
 
-        <FormButton title="Send Verification Code" onPress={onSubmit} colors={colors} />
+        <FormButton
+          title="Send Verification Code"
+          onPress={onSubmit}
+          colors={colors}
+        />
       </View>
       <LinkText
         text="Remember your password?"
@@ -65,4 +71,4 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
     </FormContainer>
   );
 });
-ForgotPasswordForm.displayName = 'ForgotPasswordForm';
+ForgotPasswordForm.displayName = "ForgotPasswordForm";

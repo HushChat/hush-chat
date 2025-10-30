@@ -1,4 +1,3 @@
-
 <h1 align="center">
   Open-Source Chat Platform That’s Simple to Deploy and Easy to Extend
 </h1>
@@ -51,24 +50,21 @@ It’s simple enough to set up in minutes yet structured for developers who want
 
 ### ✨ Highlights
 
-- ⚡ **Fast and responsive:** Real-time messaging built with WebSockets.  
-- 🧩 **Modular design:** Clear separation of backend and mobile frontend.  
-- 🔧 **Easy to host:** Docker-ready and optimized for simple deployments.  
+- ⚡ **Fast and responsive:** Real-time messaging built with WebSockets.
+- 🧩 **Modular design:** Clear separation of backend and mobile frontend.
+- 🔧 **Easy to host:** Docker-ready and optimized for simple deployments.
 - 💬 **Core essentials:** One-to-one and group chats, message reactions, workspace-based data isolation, and all the main features you’d expect in a modern chat platform.
-
 
 ---
 
 ## 🧩 Tech Stack
 
-| Layer | Technology |
-|-------|-------------|
-| **Frontend** | React Native (Expo), React Query, Zustand |
-| **Backend** | Java Spring Boot, PostgreSQL, Redis |
-| **Realtime** | WebSocket |
-| **Auth** | AWS Cognito (JWT-based authentication) |
-| **Deployment** | Docker Compose / Nginx |
- 
+| Layer          | Technology                                |
+| -------------- | ----------------------------------------- |
+| **Frontend**   | React Native (Expo), React Query, Zustand |
+| **Backend**    | Java Spring Boot, PostgreSQL, Redis       |
+| **Realtime**   | WebSocket                                 |
+| **Auth**       | AWS Cognito (JWT-based authentication)    |
+| **Deployment** | Docker Compose / Nginx                    |
 
 ---
-

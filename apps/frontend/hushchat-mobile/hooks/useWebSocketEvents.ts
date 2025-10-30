@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
-import { eventBus } from '@/services/eventBus';
+import { useEffect, useState, useCallback } from "react";
+import { eventBus } from "@/services/eventBus";
 // import { TypingIndicator, UserPresence, WebSocketError } from '@/types/ws/types';
-import { IConversation, IMessage } from '@/types/chat/types';
-import { playMessageSound } from '@/utils/playSound';
+import { IConversation, IMessage } from "@/types/chat/types";
+import { playMessageSound } from "@/utils/playSound";
 
 // Hook for listening to messages for a specific conversation
 export const useConversationMessages = (conversationId: number) => {
@@ -22,10 +22,10 @@ export const useConversationMessages = (conversationId: number) => {
       }
     };
 
-    eventBus.on('conversation:newMessage', handleNewMessage);
+    eventBus.on("conversation:newMessage", handleNewMessage);
 
     return () => {
-      eventBus.off('conversation:newMessage', handleNewMessage);
+      eventBus.off("conversation:newMessage", handleNewMessage);
     };
   }, [conversationId]);
 
@@ -46,8 +46,10 @@ export const useConversationMessages = (conversationId: number) => {
 
 // Hook for listening to notifications for conversations list
 export const useConversationsNotifications = () => {
-  const [notificationReceivedConversation, setNotificationReceivedConversation] =
-    useState<IConversation | null>(null);
+  const [
+    notificationReceivedConversation,
+    setNotificationReceivedConversation,
+  ] = useState<IConversation | null>(null);
 
   useEffect(() => {
     const handleWebSocketMessage = (messageWithConversation: IConversation) => {
@@ -57,11 +59,11 @@ export const useConversationsNotifications = () => {
       }
     };
 
-    eventBus.on('websocket:message', handleWebSocketMessage);
+    eventBus.on("websocket:message", handleWebSocketMessage);
 
     // Cleanup function - removes the event listener
     return () => {
-      eventBus.off('websocket:message', handleWebSocketMessage);
+      eventBus.off("websocket:message", handleWebSocketMessage);
     };
   }, []);
 

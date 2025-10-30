@@ -1,4 +1,4 @@
-import { PLATFORM } from '@/constants/platformConstants';
+import { PLATFORM } from "@/constants/platformConstants";
 
 const DEFAULT_MOBILE_ACTIVE_OPACITY = 0.7;
 const DEFAULT_DESKTOP_ACTIVE_OPACITY = 1;

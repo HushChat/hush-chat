@@ -1,4 +1,4 @@
-import React, { ReactElement, useCallback, useMemo } from 'react';
+import React, { ReactElement, useCallback, useMemo } from "react";
 import {
   View,
   TextInput,
@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   FlatList,
   ListRenderItem,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { PagePaginatedQueryResult } from '@/query/usePaginatedQuery';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
 export interface MultiSelectListProps<T, TPages = unknown> {
   selected: T[];
@@ -20,7 +20,11 @@ export interface MultiSelectListProps<T, TPages = unknown> {
   queryResult: PagePaginatedQueryResult<TPages>;
   getKey: (item: T) => string | number;
   extractData: (pages?: TPages) => T[];
-  renderItemRow: (item: T, isSelected: boolean, toggle: (i: T) => void) => ReactElement;
+  renderItemRow: (
+    item: T,
+    isSelected: boolean,
+    toggle: (i: T) => void,
+  ) => ReactElement;
   renderChip: (item: T, remove: (i: T) => void) => ReactElement;
 }
 
@@ -29,19 +33,29 @@ export function MultiSelectList<T>({
   onChange,
   searchText,
   setSearchText,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = "Search...",
   queryResult,
   getKey,
   extractData,
   renderItemRow,
   renderChip,
 }: MultiSelectListProps<T>) {
-  const { pages, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    queryResult;
+  const {
+    pages,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = queryResult;
 
   const allItems = useMemo(() => extractData(pages), [pages, extractData]);
 
-  const selectedIds = useMemo(() => new Set(selected.map(getKey)), [selected, getKey]);
+  const selectedIds = useMemo(
+    () => new Set(selected.map(getKey)),
+    [selected, getKey],
+  );
 
   const handleToggle = useCallback(
     (item: T) => {
@@ -102,7 +116,7 @@ export function MultiSelectList<T>({
             placeholderTextColor="#9CA3AF"
           />
           {searchText.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchText('')}>
+            <TouchableOpacity onPress={() => setSearchText("")}>
               <Ionicons name="close-circle" size={18} color="#9CA3AF" />
             </TouchableOpacity>
           )}
@@ -118,7 +132,8 @@ export function MultiSelectList<T>({
         }}
         onEndReachedThreshold={0.2}
         ListEmptyComponent={() => {
-          if (isLoading) return <Text className="text-center mt-4">Loading...</Text>;
+          if (isLoading)
+            return <Text className="text-center mt-4">Loading...</Text>;
           if (error)
             return (
               <Text className="text-center mt-4" onPress={refetch}>
@@ -128,7 +143,9 @@ export function MultiSelectList<T>({
           return <Text className="text-center mt-4">No results</Text>;
         }}
         ListFooterComponent={
-          isFetchingNextPage ? <ActivityIndicator size="small" color="#3B82F6" /> : null
+          isFetchingNextPage ? (
+            <ActivityIndicator size="small" color="#3B82F6" />
+          ) : null
         }
       />
     </View>

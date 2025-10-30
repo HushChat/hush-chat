@@ -1,16 +1,16 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, Pressable } from 'react-native';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { View, Pressable } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
-} from 'react-native-reanimated';
-import { REACTION_META } from '@/constants/reactions';
-import classNames from 'classnames';
-import { ReactionType } from '@/types/chat/types';
-import EmojiGlyph from '@/components/conversations/conversation-thread/message-list/reaction/EmojiGlyph';
-import { useOutsideClick } from '@/hooks/useOutsideClick';
+} from "react-native-reanimated";
+import { REACTION_META } from "@/constants/reactions";
+import classNames from "classnames";
+import { ReactionType } from "@/types/chat/types";
+import EmojiGlyph from "@/components/conversations/conversation-thread/message-list/reaction/EmojiGlyph";
+import { useOutsideClick } from "@/hooks/useOutsideClick";
 
 type ReactionPickerProps = {
   visible: boolean;
@@ -80,11 +80,11 @@ const ReactionPicker = memo(
               key={type}
               onPress={() => handleSelect(type)}
               className={classNames(
-                'items-center justify-center px-1 rounded-full',
-                'active:bg-gray-100 dark:active:bg-gray-700',
-                'min-w-[36px] min-h-[36px] overflow-visible',
+                "items-center justify-center px-1 rounded-full",
+                "active:bg-gray-100 dark:active:bg-gray-700",
+                "min-w-[36px] min-h-[36px] overflow-visible",
                 {
-                  'bg-primary-light/40 dark:bg-primary-dark/40 border border-primary-light dark:border-primary-dark scale-110 shadow-md':
+                  "bg-primary-light/40 dark:bg-primary-dark/40 border border-primary-light dark:border-primary-dark scale-110 shadow-md":
                     isSelected,
                 },
               )}
@@ -102,13 +102,13 @@ const ReactionPicker = memo(
       <View
         pointerEvents="box-none"
         style={{
-          position: 'absolute',
+          position: "absolute",
           left: 0,
           right: 0,
           top: 0,
           bottom: 0,
-          justifyContent: 'center',
-          alignItems: isCurrentUser ? 'flex-end' : 'flex-start',
+          justifyContent: "center",
+          alignItems: isCurrentUser ? "flex-end" : "flex-start",
         }}
       >
         <Animated.View
@@ -128,5 +128,5 @@ const ReactionPicker = memo(
   },
 );
 
-ReactionPicker.displayName = 'ReactionPicker';
+ReactionPicker.displayName = "ReactionPicker";
 export default ReactionPicker;
