@@ -1,14 +1,8 @@
 name: SonarQube
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/**'
   pull_request:
-    types: [opened, synchronize, reopened]
     paths:
-      - 'apps/**'
+      - "apps/**"
 jobs:
   build:
     name: Build and analyze
