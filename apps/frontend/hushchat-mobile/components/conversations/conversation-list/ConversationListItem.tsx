@@ -3,20 +3,26 @@
  *
  * Renders a single row in the conversations list (avatar, name, last message preview, timestamp).
  */
-import { View, TouchableOpacity, Pressable, GestureResponderEvent, Modal } from 'react-native';
-import React, { useCallback, useState, useRef } from 'react';
-import { IConversation } from '@/types/chat/types';
-import { getLastMessageTime } from '@/utils/commonUtils';
-import InitialsAvatar from '@/components/InitialsAvatar';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import { PLATFORM } from '@/constants/platformConstants';
-import classNames from 'classnames';
-import ChevronButton from '@/components/ChevronButton';
-import ConversationWebContextMenu from '@/components/conversations/WebConversationContextMenu';
-import { MaterialIcons } from '@expo/vector-icons';
-import ProfilePictureModalContent from '@/components/ProfilePictureModelContent';
-import LastMessagePreview from '@/components/UnsendMessagePreview';
-import { AppText } from '@/components/AppText';
+import {
+  View,
+  TouchableOpacity,
+  Pressable,
+  GestureResponderEvent,
+  Modal,
+} from "react-native";
+import React, { useCallback, useState, useRef } from "react";
+import { IConversation } from "@/types/chat/types";
+import { getLastMessageTime } from "@/utils/commonUtils";
+import InitialsAvatar from "@/components/InitialsAvatar";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { PLATFORM } from "@/constants/platformConstants";
+import classNames from "classnames";
+import ChevronButton from "@/components/ChevronButton";
+import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
+import { MaterialIcons } from "@expo/vector-icons";
+import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
+import LastMessagePreview from "@/components/UnsendMessagePreview";
+import { AppText } from "@/components/AppText";
 
 const ConversationListItem = ({
   conversation,
@@ -40,13 +46,20 @@ const ConversationListItem = ({
   const chevronButtonRef = useRef<View>(null);
   const lastMessage = conversation.messages?.at(-1);
   const lastMessageText = lastMessage?.messageText;
-  const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || '');
+  const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
     e.stopPropagation();
     if (chevronButtonRef.current) {
       chevronButtonRef.current.measure(
-        (fx: number, fy: number, width: number, height: number, px: number, py: number) => {
+        (
+          fx: number,
+          fy: number,
+          width: number,
+          height: number,
+          px: number,
+          py: number,
+        ) => {
           setMenuPosition({
             x: px,
             y: py + height,
@@ -65,11 +78,13 @@ const ConversationListItem = ({
     <>
       <Pressable
         className={classNames(
-          'group flex-row items-center gap-3 px-4 py-3 active:bg-secondary-light dark:active:bg-secondary-dark',
-          PLATFORM.IS_WEB && 'mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark',
+          "group flex-row items-center gap-3 px-4 py-3 active:bg-secondary-light dark:active:bg-secondary-dark",
+          PLATFORM.IS_WEB &&
+            "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
           {
-            'bg-background-light dark:bg-background-dark': !isConversationSelected,
-            'bg-blue-100/60 dark:bg-secondary-dark': isConversationSelected,
+            "bg-background-light dark:bg-background-dark":
+              !isConversationSelected,
+            "bg-blue-100/60 dark:bg-secondary-dark": isConversationSelected,
           },
         )}
         onPress={handleChatPress}
@@ -81,7 +96,10 @@ const ConversationListItem = ({
             setShowProfileModal(true);
           }}
         >
-          <InitialsAvatar name={conversation.name} imageUrl={conversation.signedImageUrl} />
+          <InitialsAvatar
+            name={conversation.name}
+            imageUrl={conversation.signedImageUrl}
+          />
         </TouchableOpacity>
 
         <View className="flex-1 mr-3">
@@ -91,7 +109,7 @@ const ConversationListItem = ({
             </AppText>
             <View className="flex-row items-center gap-1">
               {conversation.pinnedByLoggedInUser && (
-                <View style={{ transform: [{ rotate: '45deg' }] }}>
+                <View style={{ transform: [{ rotate: "45deg" }] }}>
                   <MaterialIcons name="push-pin" size={14} color="#3B82F6" />
                 </View>
               )}
@@ -112,7 +130,12 @@ const ConversationListItem = ({
               )}
             </AppText>
             {conversation.mutedByLoggedInUser && (
-              <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" className="ml-2" />
+              <MaterialIcons
+                name="notifications-off"
+                size={14}
+                color="#9CA3AF"
+                className="ml-2"
+              />
             )}
 
             {PLATFORM.IS_WEB && (
@@ -145,9 +168,9 @@ const ConversationListItem = ({
         <Pressable
           style={{
             flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.7)',
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.7)",
           }}
           onPress={() => setShowProfileModal(false)}
         >

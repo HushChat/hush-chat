@@ -1,5 +1,5 @@
-import { Gesture } from 'react-native-gesture-handler';
-import { ExternalGestures } from '@/types/gestures/types';
+import { Gesture } from "react-native-gesture-handler";
+import { ExternalGestures } from "@/types/gestures/types";
 
 /**
  * Binds gesture exclusivity rules:
@@ -13,7 +13,11 @@ export function bindExclusivity<
     | ReturnType<typeof Gesture.Pan>
     | ReturnType<typeof Gesture.Pinch>
     | ReturnType<typeof Gesture.Rotation>,
->(gesture: T, simultaneousGestures?: ExternalGestures, requiredToFailGestures?: ExternalGestures) {
+>(
+  gesture: T,
+  simultaneousGestures?: ExternalGestures,
+  requiredToFailGestures?: ExternalGestures,
+) {
   const simultaneousList = Array.isArray(simultaneousGestures)
     ? simultaneousGestures
     : simultaneousGestures

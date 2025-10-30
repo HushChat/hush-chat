@@ -1,8 +1,12 @@
-import { TWorkspaceFormProps } from '@/types/login/types';
-import React from 'react';
-import { FormButton, FormContainer, FormHeader } from '@/components/FormComponents';
-import { StyleSheet, View } from 'react-native';
-import TextField from '@/components/forms/TextField';
+import { TWorkspaceFormProps } from "@/types/login/types";
+import React from "react";
+import {
+  FormButton,
+  FormContainer,
+  FormHeader,
+} from "@/components/FormComponents";
+import { StyleSheet, View } from "react-native";
+import TextField from "@/components/forms/TextField";
 
 const WorkspaceForm = ({
   colors,
@@ -44,5 +48,5 @@ const WorkspaceForm = ({
 export default WorkspaceForm;
 
 const styles = StyleSheet.create({
-  formContainer: { flexDirection: 'column', gap: 12 },
+  formContainer: { flexDirection: "column", gap: 12 },
 });

@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View } from 'react-native';
-import { ToastUtils } from '@/utils/toastUtils';
-import { MAX_FILES, validateFiles } from '@/utils/fileValidation';
-import FileList from './FileList';
-import FilePreviewPane from './FilePreviewPane';
-import PreviewFooter from '@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx';
-import { ACCEPT_FILE_TYPES } from '@/constants/mediaConstants';
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { View } from "react-native";
+import { ToastUtils } from "@/utils/toastUtils";
+import { MAX_FILES, validateFiles } from "@/utils/fileValidation";
+import FileList from "./FileList";
+import FilePreviewPane from "./FilePreviewPane";
+import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
+import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
 
 type TFilePreviewOverlayProps = {
   files: File[];
@@ -25,7 +25,7 @@ const FilePreviewOverlay = ({
   onSendFiles,
   onFileSelect,
   isSending = false,
-  message = '',
+  message = "",
   onMessageChange,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -35,7 +35,8 @@ const FilePreviewOverlay = ({
   useEffect(() => setInternalMsg(message), [message]);
 
   useEffect(() => {
-    if (selectedIndex >= files.length) setSelectedIndex(Math.max(0, files.length - 1));
+    if (selectedIndex >= files.length)
+      setSelectedIndex(Math.max(0, files.length - 1));
   }, [files.length, selectedIndex]);
 
   const handleMessageChange = (t: string) => {
@@ -51,7 +52,7 @@ const FilePreviewOverlay = ({
         errors.forEach((err) => ToastUtils.error(err));
         if (validFiles.length > 0) onFileSelect(validFiles);
       }
-      e.target.value = '';
+      e.target.value = "";
     },
     [files.length, onFileSelect],
   );
@@ -96,7 +97,7 @@ const FilePreviewOverlay = ({
         type="file"
         accept={ACCEPT_FILE_TYPES}
         multiple
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onChange={onHiddenPickerChange}
       />
     </View>

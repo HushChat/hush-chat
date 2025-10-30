@@ -4,7 +4,7 @@ export interface WebSocketMessage {
   content: string;
   senderId: string;
   timestamp: string;
-  type: 'text' | 'image' | 'file' | 'system';
+  type: "text" | "image" | "file" | "system";
   metadata?: {
     fileName?: string;
     fileSize?: number;
@@ -22,7 +22,7 @@ export interface TypingIndicator {
 
 export interface UserPresence {
   userId: string;
-  status: 'online' | 'offline' | 'away' | 'busy';
+  status: "online" | "offline" | "away" | "busy";
   lastSeen?: string;
 }
 
@@ -30,7 +30,7 @@ export interface WebSocketError {
   error: Error;
   conversationId?: number;
   timestamp: string;
-  type: 'connection' | 'authentication' | 'message' | 'unknown';
+  type: "connection" | "authentication" | "message" | "unknown";
 }
 
 export interface NotificationPayload {
@@ -38,13 +38,13 @@ export interface NotificationPayload {
   body: string;
   conversationId?: number;
   userId?: string;
-  type: 'message' | 'call' | 'system';
+  type: "message" | "call" | "system";
   data?: any;
 }
 
 export enum WebSocketStatus {
-  Disconnected = 'disconnected',
-  Connecting = 'connecting',
-  Connected = 'connected',
-  Error = 'error',
+  Disconnected = "disconnected",
+  Connecting = "connecting",
+  Connected = "connected",
+  Error = "error",
 }

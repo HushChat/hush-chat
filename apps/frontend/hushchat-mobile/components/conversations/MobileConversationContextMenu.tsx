@@ -1,22 +1,25 @@
-import React, { useMemo, useEffect, useState, useCallback } from 'react';
-import { View } from 'react-native';
-import BottomSheet, { BottomSheetOption } from '@/components/BottomSheet';
-import { TITLES } from '@/constants/constants';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { useConversationFavorites } from '@/hooks/useConversationFavorites';
-import { getCriteria } from '@/utils/conversationUtils';
-import { useDeleteConversationByIdMutation, useUnblockUserMutation } from '@/query/delete/queries';
-import { useUserStore } from '@/store/user/useUserStore';
-import { ToastUtils } from '@/utils/toastUtils';
-import { useModalContext } from '@/context/modal-context';
-import { useConversationsQuery } from '@/query/useConversationsQuery';
+import React, { useMemo, useEffect, useState, useCallback } from "react";
+import { View } from "react-native";
+import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
+import { TITLES } from "@/constants/constants";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { useConversationFavorites } from "@/hooks/useConversationFavorites";
+import { getCriteria } from "@/utils/conversationUtils";
+import {
+  useDeleteConversationByIdMutation,
+  useUnblockUserMutation,
+} from "@/query/delete/queries";
+import { useUserStore } from "@/store/user/useUserStore";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useModalContext } from "@/context/modal-context";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
 import {
   useBlockUserMutation,
   useTogglePinConversationMutation,
   useExitGroupConversationMutation,
-} from '@/query/post/queries';
-import { getAPIErrorMsg } from '@/utils/commonUtils';
-import { useOneToOneConversationInfoQuery } from '@/query/useOneToOneConversationInfoQuery';
+} from "@/query/post/queries";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { useOneToOneConversationInfoQuery } from "@/query/useOneToOneConversationInfoQuery";
 
 interface MobileConversationContextMenuProps {
   conversationId: number;
@@ -43,12 +46,17 @@ const MobileConversationContextMenu = ({
 
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
-  const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
+  const { handleToggleFavorites } = useConversationFavorites(
+    conversationId,
+    criteria,
+  );
   const {
     user: { id: userId },
   } = useUserStore();
   const { closeModal } = useModalContext();
-  const { refetch } = useConversationsQuery(getCriteria(selectedConversationType));
+  const { refetch } = useConversationsQuery(
+    getCriteria(selectedConversationType),
+  );
 
   const { conversationInfo: oneToOneInfo } = useOneToOneConversationInfoQuery(
     !isGroup ? conversationId : 0,
@@ -74,7 +82,7 @@ const MobileConversationContextMenu = ({
       criteria,
     },
     () => {
-      ToastUtils.success('Conversation deleted successfully!');
+      ToastUtils.success("Conversation deleted successfully!");
       closeModal();
       refetch();
     },
@@ -86,7 +94,7 @@ const MobileConversationContextMenu = ({
   const blockUserMutation = useBlockUserMutation(
     { userId: Number(userId), conversationId, criteria },
     () => {
-      ToastUtils.success('User blocked successfully');
+      ToastUtils.success("User blocked successfully");
       refetch();
       closeModal();
       handleClose();
@@ -99,7 +107,7 @@ const MobileConversationContextMenu = ({
   const unblockUserMutation = useUnblockUserMutation(
     { userId: Number(userId), conversationId },
     () => {
-      ToastUtils.success('User unblocked successfully');
+      ToastUtils.success("User unblocked successfully");
       refetch();
       closeModal();
       handleClose();
@@ -112,7 +120,7 @@ const MobileConversationContextMenu = ({
   const exitGroupMutation = useExitGroupConversationMutation(
     { userId: Number(userId), conversationId },
     () => {
-      ToastUtils.success('You have exited the group');
+      ToastUtils.success("You have exited the group");
       refetch();
       closeModal();
       handleClose();
@@ -135,9 +143,9 @@ const MobileConversationContextMenu = ({
     const options: BottomSheetOption[] = [
       isPinned
         ? {
-            id: '1',
-            title: 'Unpin Conversation',
-            icon: 'pin-outline',
+            id: "1",
+            title: "Unpin Conversation",
+            icon: "pin-outline",
             onPress: async () => {
               try {
                 togglePinConversation.mutate(conversationId);
@@ -147,9 +155,9 @@ const MobileConversationContextMenu = ({
             },
           }
         : {
-            id: '1',
-            title: 'Pin Conversation',
-            icon: 'pin',
+            id: "1",
+            title: "Pin Conversation",
+            icon: "pin",
             onPress: async () => {
               try {
                 togglePinConversation.mutate(conversationId);
@@ -160,9 +168,9 @@ const MobileConversationContextMenu = ({
           },
       isFavorite
         ? {
-            id: '2',
+            id: "2",
             title: TITLES.REMOVE_FROM_FAVOURITES,
-            icon: 'heart',
+            icon: "heart",
             onPress: async () => {
               try {
                 await handleToggleFavorites(conversationId);
@@ -172,9 +180,9 @@ const MobileConversationContextMenu = ({
             },
           }
         : {
-            id: '2',
+            id: "2",
             title: TITLES.ADD_TO_FAVOURITES,
-            icon: 'heart-outline',
+            icon: "heart-outline",
             onPress: async () => {
               try {
                 await handleToggleFavorites(conversationId);
@@ -185,9 +193,9 @@ const MobileConversationContextMenu = ({
           },
     ];
     options.push({
-      id: '3',
+      id: "3",
       title: TITLES.DELETE_CHAT,
-      icon: 'trash-outline',
+      icon: "trash-outline",
       destructive: true,
       onPress: () => {
         handleClose();
@@ -198,18 +206,18 @@ const MobileConversationContextMenu = ({
       options.push(
         isBlocked
           ? {
-              id: '4',
-              title: 'Unblock User',
-              icon: 'person-add-outline',
+              id: "4",
+              title: "Unblock User",
+              icon: "person-add-outline",
               onPress: () => {
                 handleClose();
                 unblockUserMutation.mutate(oneToOneInfo.userView.id);
               },
             }
           : {
-              id: '4',
-              title: 'Block User',
-              icon: 'person-remove-outline',
+              id: "4",
+              title: "Block User",
+              icon: "person-remove-outline",
               destructive: true,
               onPress: () => {
                 handleClose();
@@ -220,9 +228,9 @@ const MobileConversationContextMenu = ({
     }
     if (isGroup && isActive) {
       options.push({
-        id: '5',
-        title: 'Exit Group',
-        icon: 'exit-outline',
+        id: "5",
+        title: "Exit Group",
+        icon: "exit-outline",
         destructive: true,
         onPress: () => {
           handleClose();

@@ -4,11 +4,11 @@
  * Mobile (iOS/Android) container for the Calls screen.
  */
 
-import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import FilterButton from '@/components/FilterButton';
-import { CallLogComponentProps } from '@/types/call/types';
+import React from "react";
+import { ScrollView, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import FilterButton from "@/components/FilterButton";
+import { CallLogComponentProps } from "@/types/call/types";
 
 const CallInterface = ({ callItemList, filters }: CallLogComponentProps) => {
   const insets = useSafeAreaInsets();
@@ -30,7 +30,11 @@ const CallInterface = ({ callItemList, filters }: CallLogComponentProps) => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View className="flex-row gap-x-2">
             {filters.map((filter, index) => (
-              <FilterButton key={index} label={filter.title} isActive={filter.isActive} />
+              <FilterButton
+                key={index}
+                label={filter.title}
+                isActive={filter.isActive}
+              />
             ))}
           </View>
         </ScrollView>

@@ -1,9 +1,9 @@
-import React, { useMemo, useEffect, useState, useCallback } from 'react';
-import { View } from 'react-native';
-import BottomSheet, { BottomSheetOption } from '@/components/BottomSheet';
-import { TITLES } from '@/constants/constants';
-import { ToastUtils } from '@/utils/toastUtils';
-import { chatUserRole, ConversationParticipant } from '@/types/chat/types';
+import React, { useMemo, useEffect, useState, useCallback } from "react";
+import { View } from "react-native";
+import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
+import { TITLES } from "@/constants/constants";
+import { ToastUtils } from "@/utils/toastUtils";
+import { chatUserRole, ConversationParticipant } from "@/types/chat/types";
 
 interface MobileParticipantContextMenuProps {
   visible: boolean;
@@ -38,7 +38,7 @@ const MobileParticipantContextMenu = ({
       try {
         await action();
       } catch (error) {
-        ToastUtils.error('Error executing action: ' + error);
+        ToastUtils.error("Error executing action: " + error);
       } finally {
         handleClose();
       }
@@ -49,23 +49,27 @@ const MobileParticipantContextMenu = ({
   const participantOptions: BottomSheetOption[] = useMemo(() => {
     const options: BottomSheetOption[] = [
       {
-        id: '1',
+        id: "1",
         title: TITLES.TOGGLE_ROLE(participant.role),
-        icon: 'shield-checkmark-outline',
+        icon: "shield-checkmark-outline",
         onPress: () =>
           handleOptionPress(() =>
-            handleToggleAdmin(participant.id, participant.role !== chatUserRole.ADMIN),
+            handleToggleAdmin(
+              participant.id,
+              participant.role !== chatUserRole.ADMIN,
+            ),
           ),
       },
     ];
 
     if (!isCurrentUser) {
       options.push({
-        id: '2',
+        id: "2",
         title: TITLES.REMOVE_PARTICIPANT,
-        icon: 'person-remove-outline',
+        icon: "person-remove-outline",
         destructive: true,
-        onPress: () => handleOptionPress(() => handleRemoveParticipant(participant.id)),
+        onPress: () =>
+          handleOptionPress(() => handleRemoveParticipant(participant.id)),
       });
     }
 

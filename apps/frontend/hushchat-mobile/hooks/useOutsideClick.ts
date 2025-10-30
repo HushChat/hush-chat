@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { PLATFORM } from '@/constants/platformConstants';
+import { useEffect } from "react";
+import { PLATFORM } from "@/constants/platformConstants";
 
 /**
  * useOutsideClick
@@ -30,16 +30,16 @@ export function useOutsideClick<T>(
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         handler();
       }
     };
 
-    document.addEventListener('pointerdown', handlePointerDown, true);
-    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("keydown", handleKeyDown, true);
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown, true);
-      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("keydown", handleKeyDown, true);
     };
   }, [enabled, handler, ref]);
 }

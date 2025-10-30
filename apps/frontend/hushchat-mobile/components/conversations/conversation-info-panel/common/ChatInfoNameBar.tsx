@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { PLATFORM } from '@/constants/platformConstants';
-import { AppText } from '@/components/AppText';
+import React from "react";
+import { View, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { PLATFORM } from "@/constants/platformConstants";
+import { AppText } from "@/components/AppText";
 
 type ChatInfoNameBarProps = {
   title: string;
@@ -23,7 +23,7 @@ export default function ChatInfoNameBar({
   return (
     <View className="px-4 py-[14px] flex-row items-center justify-between">
       <AppText
-        className={`font-semibold text-black dark:text-white ${PLATFORM.IS_WEB ? 'text-lg' : 'text-xl'}`}
+        className={`font-semibold text-black dark:text-white ${PLATFORM.IS_WEB ? "text-lg" : "text-xl"}`}
         numberOfLines={1}
       >
         {title}

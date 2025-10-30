@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { ReactNode } from 'react';
-import { TUser } from '@/types/user/types';
-import { PagePaginatedQueryResult } from '@/query/usePaginatedQuery';
+import { Ionicons } from "@expo/vector-icons";
+import React, { ReactNode } from "react";
+import { TUser } from "@/types/user/types";
+import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
 export interface IConversation {
   id: number;
@@ -70,10 +70,10 @@ export interface ChatComponentProps {
 }
 
 export enum ConversationType {
-  ALL = 'ALL',
-  ARCHIVED = 'ARCHIVED',
-  FAVORITES = 'FAVORITES',
-  UNREAD = 'UNREAD',
+  ALL = "ALL",
+  ARCHIVED = "ARCHIVED",
+  FAVORITES = "FAVORITES",
+  UNREAD = "UNREAD",
 }
 
 export interface oneToOneChatInfo {
@@ -103,12 +103,12 @@ export interface IOption {
 }
 
 export enum ReactionType {
-  THUMBS_UP = 'THUMBS_UP',
-  LOVE = 'LOVE',
-  HAHA = 'HAHA',
-  WOW = 'WOW',
-  ANGRY = 'ANGRY',
-  SAD = 'SAD',
+  THUMBS_UP = "THUMBS_UP",
+  LOVE = "LOVE",
+  HAHA = "HAHA",
+  WOW = "WOW",
+  ANGRY = "ANGRY",
+  SAD = "SAD",
 }
 
 export interface IMessageReaction {
@@ -129,7 +129,7 @@ export interface IMessageReactionRequest {
 
 export interface ConversationParticipant {
   id: number;
-  role: 'MEMBER' | 'ADMIN';
+  role: "MEMBER" | "ADMIN";
   user: TUser;
 }
 
@@ -149,7 +149,7 @@ export interface UpdateUserInput {
 export interface Conversation {
   id: number;
   name: string;
-  conversationParticipants: PagePaginatedQueryResult<ConversationParticipant>['pages'];
+  conversationParticipants: PagePaginatedQueryResult<ConversationParticipant>["pages"];
   signedImageUrl: string | null;
 }
 
@@ -189,9 +189,9 @@ export interface IGroupConversation {
 }
 
 export enum ConversationSearchResultKeys {
-  CHATS = 'chats',
-  MESSAGES = 'messages',
-  USERS = 'users',
+  CHATS = "chats",
+  MESSAGES = "messages",
+  USERS = "users",
 }
 
 export interface ISearchResults {
@@ -232,15 +232,15 @@ export type TImagePreviewProps = {
 };
 
 export enum chatUserRole {
-  ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER',
+  ADMIN = "ADMIN",
+  MEMBER = "MEMBER",
 }
 
 export const REACTION_EMOJIS: Record<ReactionType, string> = {
-  THUMBS_UP: '👍',
-  LOVE: '❤️',
-  HAHA: '😂',
-  WOW: '😮',
-  SAD: '😢',
-  ANGRY: '😠',
+  THUMBS_UP: "👍",
+  LOVE: "❤️",
+  HAHA: "😂",
+  WOW: "😮",
+  SAD: "😢",
+  ANGRY: "😠",
 };

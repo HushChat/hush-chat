@@ -1,21 +1,30 @@
-import React, { ReactElement, useCallback } from 'react';
+import React, { ReactElement, useCallback } from "react";
 import {
   ConversationType,
   ConversationSearchResultKeys,
   ISectionedSearchResult,
   IConversation,
-} from '@/types/chat/types';
-import { KeyboardAvoidingView, ListRenderItemInfo, View, FlatList } from 'react-native';
-import SwipeActionItem from '@/components/conversations/conversation-list/common/SwipeActionItem';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PLATFORM } from '@/constants/platformConstants';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { useSwipeGesture } from '@/gestures/base/useSwipeGesture';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { GestureDetector } from 'react-native-gesture-handler';
-import MobileConversationContextMenu from '@/components/conversations/MobileConversationContextMenu';
-import { useGroupConversationInfoQuery } from '@/query/useGroupConversationInfoQuery';
-import { useOneToOneConversationInfoQuery } from '@/query/useOneToOneConversationInfoQuery';
+} from "@/types/chat/types";
+import {
+  KeyboardAvoidingView,
+  ListRenderItemInfo,
+  View,
+  FlatList,
+} from "react-native";
+import SwipeActionItem from "@/components/conversations/conversation-list/common/SwipeActionItem";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PLATFORM } from "@/constants/platformConstants";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { GestureDetector } from "react-native-gesture-handler";
+import MobileConversationContextMenu from "@/components/conversations/MobileConversationContextMenu";
+import { useGroupConversationInfoQuery } from "@/query/useGroupConversationInfoQuery";
+import { useOneToOneConversationInfoQuery } from "@/query/useOneToOneConversationInfoQuery";
 
 const MAX_TO_RENDER_PER_BATCH = 20;
 const WINDOW_SIZE = 20;
@@ -64,11 +73,14 @@ function SwipeableRow<T>({
   const isSwipeable = useCallback(() => {
     if (PLATFORM.IS_WEB || !allowSwipe) return false;
 
-    const hasHeader = typeof sectionedItem._isHeader === 'boolean';
+    const hasHeader = typeof sectionedItem._isHeader === "boolean";
     if (hasHeader && sectionedItem._isHeader) return false;
 
-    const hasSectionType = typeof sectionedItem._sectionType !== 'undefined';
-    if (hasSectionType && sectionedItem._sectionType !== ConversationSearchResultKeys.CHATS)
+    const hasSectionType = typeof sectionedItem._sectionType !== "undefined";
+    if (
+      hasSectionType &&
+      sectionedItem._sectionType !== ConversationSearchResultKeys.CHATS
+    )
       return false;
 
     return true;
@@ -80,7 +92,7 @@ function SwipeableRow<T>({
 
   const { gesture, translateX, progress } = useSwipeGesture({
     enabled: isSwipeable(),
-    direction: 'horizontal',
+    direction: "horizontal",
     trigger: SWIPE_TRIGGER,
     maxDrag: MAX_SWIPE_DISTANCE,
     onSwipeLeft: () => {
@@ -110,7 +122,14 @@ function SwipeableRow<T>({
       }, 100);
     }
     //
-  }, [isSwipeable, conversation.id, translateX, progress, isSwipedOpen, onArchive]);
+  }, [
+    isSwipeable,
+    conversation.id,
+    translateX,
+    progress,
+    isSwipedOpen,
+    onArchive,
+  ]);
 
   const resetSwipe = useCallback(() => {
     translateX.value = withTiming(0, { duration: 200 });
@@ -163,7 +182,11 @@ function SwipeableRow<T>({
           onPress={handleArchivePress}
           backgroundColor="bg-green-600"
           iconName="archive"
-          text={selectedConversationType === ConversationType.ARCHIVED ? 'Unarchive' : 'Archive'}
+          text={
+            selectedConversationType === ConversationType.ARCHIVED
+              ? "Unarchive"
+              : "Archive"
+          }
         />
       </Animated.View>
 
@@ -196,10 +219,11 @@ export default function BaseConversationList<T>({
   const { selectedConversationType } = useConversationStore();
 
   const [contextMenuVisible, setContextMenuVisible] = React.useState(false);
-  const [selectedConversation, setSelectedConversation] = React.useState<IConversation | null>(
+  const [selectedConversation, setSelectedConversation] =
+    React.useState<IConversation | null>(null);
+  const [resetSwipeFn, setResetSwipeFn] = React.useState<(() => void) | null>(
     null,
   );
-  const [resetSwipeFn, setResetSwipeFn] = React.useState<(() => void) | null>(null);
 
   const { conversationInfo: groupInfo } = useGroupConversationInfoQuery(
     selectedConversation?.isGroup ? (selectedConversation?.id ?? 0) : 0,
@@ -209,15 +233,22 @@ export default function BaseConversationList<T>({
     !selectedConversation?.isGroup ? (selectedConversation?.id ?? 0) : 0,
   );
 
-  const isActive = selectedConversation?.isGroup ? (groupInfo?.active ?? true) : true;
+  const isActive = selectedConversation?.isGroup
+    ? (groupInfo?.active ?? true)
+    : true;
 
-  const isBlocked = selectedConversation?.isGroup ? false : (oneToOneInfo?.blocked ?? false);
+  const isBlocked = selectedConversation?.isGroup
+    ? false
+    : (oneToOneInfo?.blocked ?? false);
 
-  const handleMorePress = useCallback((conversation: IConversation, resetSwipe: () => void) => {
-    setSelectedConversation(conversation);
-    setResetSwipeFn(() => resetSwipe);
-    setContextMenuVisible(true);
-  }, []);
+  const handleMorePress = useCallback(
+    (conversation: IConversation, resetSwipe: () => void) => {
+      setSelectedConversation(conversation);
+      setResetSwipeFn(() => resetSwipe);
+      setContextMenuVisible(true);
+    },
+    [],
+  );
 
   const renderSwipeableItem = useCallback(
     ({ item, index }: ListRenderItemInfo<T>) => (
@@ -232,7 +263,14 @@ export default function BaseConversationList<T>({
         onMorePress={handleMorePress}
       />
     ),
-    [renderItem, onArchive, allowSwipe, selectedConversationType, keyExtractor, handleMorePress],
+    [
+      renderItem,
+      onArchive,
+      allowSwipe,
+      selectedConversationType,
+      keyExtractor,
+      handleMorePress,
+    ],
   );
 
   return (
@@ -259,7 +297,7 @@ export default function BaseConversationList<T>({
           }
         }
         keyboardDismissMode="on-drag"
-        contentContainerClassName={`${!data.length && 'flex-1'}`}
+        contentContainerClassName={`${!data.length && "flex-1"}`}
         scrollEnabled={true}
       />
       {selectedConversation && (

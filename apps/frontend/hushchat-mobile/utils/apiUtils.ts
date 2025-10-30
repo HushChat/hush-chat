@@ -1,13 +1,22 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from '@/constants/apiConstants';
-import { BuildConstantKeys, getBuildConstant } from '@/constants/build-constants';
-import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from '@/utils/authUtils';
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from "@/constants/apiConstants";
+import {
+  BuildConstantKeys,
+  getBuildConstant,
+} from "@/constants/build-constants";
+import {
+  getAllTokens,
+  isTokenExpiringSoon,
+  refreshIdToken,
+} from "@/utils/authUtils";
 
 const getAPIBaseURL = () => {
   const host = getBuildConstant(BuildConstantKeys.API_HOST);
   const port = getBuildConstant(BuildConstantKeys.API_PORT);
   const protocol = getBuildConstant(BuildConstantKeys.API_PROTOCOL);
-  const baseURL = port ? `${protocol}://${host}:${port}` : `${protocol}://${host}`;
+  const baseURL = port
+    ? `${protocol}://${host}:${port}`
+    : `${protocol}://${host}`;
   return baseURL;
 };
 
@@ -15,7 +24,9 @@ export const getWSBaseURL = () => {
   const host = getBuildConstant(BuildConstantKeys.API_HOST);
   const port = getBuildConstant(BuildConstantKeys.API_PORT);
   const protocol = getBuildConstant(BuildConstantKeys.WS_PROTOCOL);
-  const baseURL = port ? `${protocol}://${host}:${port}` : `${protocol}://${host}`;
+  const baseURL = port
+    ? `${protocol}://${host}:${port}`
+    : `${protocol}://${host}`;
   return baseURL;
 };
 
@@ -31,7 +42,9 @@ const PUBLIC_ENDPOINTS: string[] = [
 
 export const setAPIDefaults = () => {
   axios.defaults.baseURL = getAPIBaseURL();
-  axios.defaults.headers.common['X-Tenant'] = getBuildConstant(BuildConstantKeys.TENANT);
+  axios.defaults.headers.common["X-Tenant"] = getBuildConstant(
+    BuildConstantKeys.TENANT,
+  );
 };
 
 /**
@@ -65,7 +78,7 @@ export const setupAuthorizationHeader = () => {
           config.headers.Authorization = `${TOKEN_TYPE} ${idToken}`;
         }
       } catch (error) {
-        console.error('Error while setting up authorization header', error);
+        console.error("Error while setting up authorization header", error);
       }
       return config;
     },

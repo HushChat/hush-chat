@@ -1,12 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
-import classNames from 'classnames';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
+import { Ionicons } from "@expo/vector-icons";
+import classNames from "classnames";
+import React, { useEffect, useMemo, useState } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
 
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import { colorScheme } from 'nativewind';
-import { DOC_EXTENSIONS, SIZES } from '@/constants/mediaConstants';
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { colorScheme } from "nativewind";
+import { DOC_EXTENSIONS, SIZES } from "@/constants/mediaConstants";
 
 interface TFilePreviewItemProps {
   file: File;
@@ -24,7 +24,13 @@ const SelectedBadge = () => (
   </View>
 );
 
-const ImagePreview = ({ uri, isSelected }: { uri: string; isSelected: boolean }) => (
+const ImagePreview = ({
+  uri,
+  isSelected,
+}: {
+  uri: string;
+  isSelected: boolean;
+}) => (
   <View className="relative mr-3">
     <Image
       source={{ uri }}
@@ -61,15 +67,15 @@ export const FilePreviewItem = ({
   onSelect,
   onRemove,
 }: TFilePreviewItemProps) => {
-  const [imageUrl, setImageUrl] = useState<string>('');
-  const [fileType, setFileType] = useState<'image' | 'document'>('image');
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [fileType, setFileType] = useState<"image" | "document">("image");
 
   useEffect(() => {
     if (!file) return;
 
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    const isDocument = DOC_EXTENSIONS.includes(ext || '');
-    setFileType(isDocument ? 'document' : 'image');
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    const isDocument = DOC_EXTENSIONS.includes(ext || "");
+    setFileType(isDocument ? "document" : "image");
 
     if (!isDocument) {
       const url = URL.createObjectURL(file);
@@ -80,32 +86,36 @@ export const FilePreviewItem = ({
 
   const prettySize = useMemo(() => {
     const bytes = file?.size ?? 0;
-    if (bytes === 0) return '0 Bytes';
-    const i = Math.min(SIZES.length - 1, Math.floor(Math.log(bytes) / Math.log(K)));
+    if (bytes === 0) return "0 Bytes";
+    const i = Math.min(
+      SIZES.length - 1,
+      Math.floor(Math.log(bytes) / Math.log(K)),
+    );
     return `${parseFloat((bytes / Math.pow(K, i)).toFixed(2))} ${SIZES[i]}`;
   }, [file]);
 
   const fileExtension = useMemo(() => {
-    const ext = file?.name.split('.').pop()?.toUpperCase();
-    return ext || 'FILE';
+    const ext = file?.name.split(".").pop()?.toUpperCase();
+    return ext || "FILE";
   }, [file]);
 
-  const isDark = colorScheme.get() === 'dark';
-  const iconColor = isDark ? '#ffffff' : '#6B4EFF';
+  const isDark = colorScheme.get() === "dark";
+  const iconColor = isDark ? "#ffffff" : "#6B4EFF";
 
   return (
     <TouchableOpacity
       onPress={onSelect}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
       className={classNames(
-        'w-56 relative mb-2 rounded-xl p-2 border',
-        'bg-secondary-light/60 dark:bg-secondary-dark/70',
-        'border-gray-200 dark:border-gray-700',
-        isSelected && 'border border-primary-light dark:border-primary-dark shadow-sm',
+        "w-56 relative mb-2 rounded-xl p-2 border",
+        "bg-secondary-light/60 dark:bg-secondary-dark/70",
+        "border-gray-200 dark:border-gray-700",
+        isSelected &&
+          "border border-primary-light dark:border-primary-dark shadow-sm",
       )}
     >
       <View className="flex-row items-center">
-        {fileType === 'image' ? (
+        {fileType === "image" ? (
           <ImagePreview uri={imageUrl} isSelected={isSelected} />
         ) : (
           <DocumentPreview
@@ -120,7 +130,7 @@ export const FilePreviewItem = ({
             className="text-[12px] leading-[16px] font-semibold text-text-primary-light dark:text-text-primary-dark"
             numberOfLines={2}
           >
-            {file?.name || 'file'}
+            {file?.name || "file"}
           </Text>
 
           <View className="mt-1 flex-row items-center">

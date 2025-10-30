@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StorageProvider } from './storageProvider';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StorageProvider } from "./storageProvider";
 
 export class AsyncStorageProvider implements StorageProvider {
   async save<T>(key: string, value: T): Promise<void> {

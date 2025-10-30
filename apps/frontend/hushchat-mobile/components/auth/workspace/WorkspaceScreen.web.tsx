@@ -1,13 +1,14 @@
-import React from 'react';
-import { useAuthThemeColors } from '@/hooks/useAuthThemeColors';
-import { Images } from '@/assets/images';
-import WorkspaceForm from '@/components/auth/workspace/WorkspaceForm';
-import { useWorkspaceForm } from '@/hooks/auth/useWorkspaceForm';
-import AuthWebLayout from '@/components/auth/AuthWebLayout';
+import React from "react";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
+import { Images } from "@/assets/images";
+import WorkspaceForm from "@/components/auth/workspace/WorkspaceForm";
+import { useWorkspaceForm } from "@/hooks/auth/useWorkspaceForm";
+import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function WorkspaceScreen() {
   const { colors, isDark } = useAuthThemeColors();
-  const { formValues, formErrors, showErrors, onValueChange, handleNext } = useWorkspaceForm();
+  const { formValues, formErrors, showErrors, onValueChange, handleNext } =
+    useWorkspaceForm();
 
   return (
     <AuthWebLayout

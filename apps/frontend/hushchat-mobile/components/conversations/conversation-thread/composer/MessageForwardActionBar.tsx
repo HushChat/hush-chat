@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useMemo } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useRef, useMemo } from "react";
+import { Animated, Pressable, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export interface SelectionActionBarProps {
   visible: boolean;
@@ -38,7 +38,7 @@ const MessageForwardActionBar = ({
 
   return (
     <Animated.View
-      pointerEvents={visible ? 'auto' : 'none'}
+      pointerEvents={visible ? "auto" : "none"}
       className="absolute left-4 right-4 bottom-4"
       style={{
         opacity,
@@ -49,7 +49,7 @@ const MessageForwardActionBar = ({
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark">
         <Text
           className="text-sm font-medium ml-2"
-          style={{ color: isDark ? '#E5E7EB' : '#374151' }}
+          style={{ color: isDark ? "#E5E7EB" : "#374151" }}
         >
           {selectedLabel}
         </Text>
@@ -60,12 +60,25 @@ const MessageForwardActionBar = ({
             disabled={count === 0}
             className="flex-row items-center px-4 py-2 rounded-full bg-primary-light dark:bg-primary-dark"
           >
-            <Ionicons name="arrow-forward" size={16} color="white" style={{ marginRight: 4 }} />
+            <Ionicons
+              name="arrow-forward"
+              size={16}
+              color="white"
+              style={{ marginRight: 4 }}
+            />
             <Text className="text-white text-sm font-medium">Forward</Text>
           </Pressable>
 
-          <Pressable onPress={onCancel} className="p-2" testID="selectionCancel">
-            <Ionicons name="close" size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+          <Pressable
+            onPress={onCancel}
+            className="p-2"
+            testID="selectionCancel"
+          >
+            <Ionicons
+              name="close"
+              size={20}
+              color={isDark ? "#9CA3AF" : "#6B7280"}
+            />
           </Pressable>
         </View>
       </View>

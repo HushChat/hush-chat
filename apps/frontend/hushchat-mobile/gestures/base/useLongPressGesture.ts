@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
-import { Gesture } from 'react-native-gesture-handler';
-import { scheduleOnRN } from 'react-native-worklets';
-import { bindExclusivity } from './helpers';
-import { PLATFORM } from '@/constants/platformConstants';
-import { ExternalGestures } from '@/types/gestures/types';
+import { useMemo } from "react";
+import { Gesture } from "react-native-gesture-handler";
+import { scheduleOnRN } from "react-native-worklets";
+import { bindExclusivity } from "./helpers";
+import { PLATFORM } from "@/constants/platformConstants";
+import { ExternalGestures } from "@/types/gestures/types";
 
 type TLongPressGestureProps = {
   enabled?: boolean;
@@ -28,12 +28,12 @@ export function useLongPressGesture({
     if (PLATFORM.IS_WEB) g.runOnJS(true);
 
     g.onStart(() => {
-      'worklet';
+      "worklet";
       if (onStart) scheduleOnRN(onStart);
     });
 
     g.onEnd(() => {
-      'worklet';
+      "worklet";
       if (onEnd) scheduleOnRN(onEnd);
     });
 

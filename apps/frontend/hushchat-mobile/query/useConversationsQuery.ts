@@ -1,15 +1,18 @@
-import { IConversation } from '@/types/chat/types';
-import { useUserStore } from '@/store/user/useUserStore';
-import { getAllConversations, ConversationFilterCriteria } from '@/apis/conversation';
+import { IConversation } from "@/types/chat/types";
+import { useUserStore } from "@/store/user/useUserStore";
+import {
+  getAllConversations,
+  ConversationFilterCriteria,
+} from "@/apis/conversation";
 import {
   OffsetPaginatedQueryResult,
   usePaginatedQueryWithOffset,
-} from '@/query/usePaginatedQueryWithOffset';
-import { useConversationsNotifications } from '@/hooks/useWebSocketEvents';
-import { useEffect } from 'react';
-import { appendToOffsetPaginatedCache } from '@/query/config/appendToOffsetPaginatedCache';
-import { useQueryClient } from '@tanstack/react-query';
-import { conversationQueryKeys } from '@/constants/queryKeys';
+} from "@/query/usePaginatedQueryWithOffset";
+import { useConversationsNotifications } from "@/hooks/useWebSocketEvents";
+import { useEffect } from "react";
+import { appendToOffsetPaginatedCache } from "@/query/config/appendToOffsetPaginatedCache";
+import { useQueryClient } from "@tanstack/react-query";
+import { conversationQueryKeys } from "@/constants/queryKeys";
 
 const PAGE_SIZE = 20;
 
@@ -17,7 +20,7 @@ export function useConversationsQuery(
   criteria: ConversationFilterCriteria = {},
   initialOffset: number = 0,
 ): {
-  conversationsPages: OffsetPaginatedQueryResult<IConversation>['pages'];
+  conversationsPages: OffsetPaginatedQueryResult<IConversation>["pages"];
   isLoadingConversations: boolean;
   conversationsError: Error | null;
   fetchNextPage: () => Promise<unknown>;
@@ -47,7 +50,7 @@ export function useConversationsQuery(
         },
       );
     }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notificationReceivedConversation, queryClient, userId]);
 
   const {

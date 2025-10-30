@@ -1,27 +1,33 @@
-import { useCallback, useState } from 'react';
-import { router } from 'expo-router';
-import { IRegisterUser, RegisterUser } from '@/types/user/types';
-import { registerUser } from '@/services/authService';
-import { VERIFY_OTP_PATH } from '@/constants/routes';
-import { useForm } from '@/hooks/useForm';
+import { useCallback, useState } from "react";
+import { router } from "expo-router";
+import { IRegisterUser, RegisterUser } from "@/types/user/types";
+import { registerUser } from "@/services/authService";
+import { VERIFY_OTP_PATH } from "@/constants/routes";
+import { useForm } from "@/hooks/useForm";
 
 export function useRegisterForm() {
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } =
-    useForm<IRegisterUser>(RegisterUser, {
-      firstName: '',
-      lastName: '',
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      imageIndexedName: '',
-    });
+  const {
+    values,
+    errors,
+    showErrors,
+    onValueChange,
+    validateAll,
+    setShowErrors,
+  } = useForm<IRegisterUser>(RegisterUser, {
+    firstName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    imageIndexedName: "",
+  });
 
   const submit = useCallback(async () => {
-    setErrorMessage('');
+    setErrorMessage("");
     setShowErrors(true);
     setIsLoading(true);
     try {
@@ -34,9 +40,12 @@ export function useRegisterForm() {
         setErrorMessage(response.message);
         return;
       }
-      router.push({ pathname: VERIFY_OTP_PATH, params: { email: validated.email } });
+      router.push({
+        pathname: VERIFY_OTP_PATH,
+        params: { email: validated.email },
+      });
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Registration failed.');
+      setErrorMessage(err?.message || "Registration failed.");
     } finally {
       setIsLoading(false);
     }

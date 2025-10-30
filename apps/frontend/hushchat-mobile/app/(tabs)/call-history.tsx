@@ -7,11 +7,11 @@
  * and delegates rendering to a factory-selected layout component.
  */
 
-import CallItemList from '@/components/call-history/CallHistoryPanel';
-import { useCallLogsQuery } from '@/query/useCallLogsQuery';
-import React, { useMemo } from 'react';
+import CallItemList from "@/components/call-history/CallHistoryPanel";
+import { useCallLogsQuery } from "@/query/useCallLogsQuery";
+import React, { useMemo } from "react";
 /* eslint-disable import/no-unresolved */
-import CallInterface from '@/components/call-history/CallInterface';
+import CallInterface from "@/components/call-history/CallInterface";
 
 export default function CallHistoryScreen() {
   const {
@@ -30,11 +30,11 @@ export default function CallHistoryScreen() {
   );
 
   const filters = [
-    { title: 'All', isActive: true },
-    { title: 'Answered', isActive: false },
-    { title: 'Missed', isActive: false },
-    { title: 'Video', isActive: false },
-    { title: 'Audio', isActive: false },
+    { title: "All", isActive: true },
+    { title: "Answered", isActive: false },
+    { title: "Missed", isActive: false },
+    { title: "Video", isActive: false },
+    { title: "Audio", isActive: false },
   ];
 
   const callLogList = (

@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { Gesture } from 'react-native-gesture-handler';
-import { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
-import { bindExclusivity } from './helpers';
-import { ExternalGestures } from '@/types/gestures/types';
+import { useMemo } from "react";
+import { Gesture } from "react-native-gesture-handler";
+import { useSharedValue, useAnimatedStyle } from "react-native-reanimated";
+import { bindExclusivity } from "./helpers";
+import { ExternalGestures } from "@/types/gestures/types";
 
 type TPinchGestureProps = {
   enabled?: boolean;
@@ -37,7 +37,15 @@ export function usePinchGesture({
       });
 
     return bindExclusivity(g, simultaneousWith, requireToFail);
-  }, [enabled, simultaneousWith, requireToFail, minScale, maxScale, scale, onChange]);
+  }, [
+    enabled,
+    simultaneousWith,
+    requireToFail,
+    minScale,
+    maxScale,
+    scale,
+    onChange,
+  ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

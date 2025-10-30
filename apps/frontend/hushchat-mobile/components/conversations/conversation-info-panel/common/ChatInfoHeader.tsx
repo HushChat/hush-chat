@@ -1,13 +1,13 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { Image } from 'expo-image';
-import classNames from 'classnames';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from '@/constants/ui';
-import { PLATFORM } from '@/constants/platformConstants';
-import ChatInfoNameBar from '@/components/conversations/conversation-info-panel/common/ChatInfoNameBar';
-import { useAppTheme } from '@/hooks/useAppTheme';
+import React from "react";
+import { View, TouchableOpacity } from "react-native";
+import { Image } from "expo-image";
+import classNames from "classnames";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
+import { PLATFORM } from "@/constants/platformConstants";
+import ChatInfoNameBar from "@/components/conversations/conversation-info-panel/common/ChatInfoNameBar";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 type ChatInfoHeaderProps = {
   title: string;
@@ -38,7 +38,7 @@ export default function ChatInfoHeader({
         style={{
           paddingTop: insets.top,
           height: 320 + insets.top,
-          position: 'relative',
+          position: "relative",
         }}
       >
         <Image
@@ -50,17 +50,17 @@ export default function ChatInfoHeader({
         <TouchableOpacity
           onPress={onBack}
           className={classNames(
-            'absolute m-3 z-2 p-2 rounded-full',
-            PLATFORM.IS_WEB && 'hover:bg-gray-900/20',
-            !PLATFORM.IS_WEB && 'active:bg-gray-900/20',
+            "absolute m-3 z-2 p-2 rounded-full",
+            PLATFORM.IS_WEB && "hover:bg-gray-900/20",
+            !PLATFORM.IS_WEB && "active:bg-gray-900/20",
           )}
           hitSlop={DEFAULT_HIT_SLOP}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
           <Ionicons
-            name={`${PLATFORM.IS_WEB ? 'close' : 'arrow-back'}`}
+            name={`${PLATFORM.IS_WEB ? "close" : "arrow-back"}`}
             size={PLATFORM.IS_WEB ? 26 : 24}
-            color={isDark ? '#ffffff' : '#111827'}
+            color={isDark ? "#ffffff" : "#111827"}
           />
         </TouchableOpacity>
       </View>

@@ -1,16 +1,18 @@
-import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, usePathname } from 'expo-router';
-import { INavigationItem } from '@/types/navigation/types';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import classNames from 'classnames';
+import React from "react";
+import { View, TouchableOpacity, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, usePathname } from "expo-router";
+import { INavigationItem } from "@/types/navigation/types";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import classNames from "classnames";
 
 interface WebNavigationInterfaceProps {
   navigationItems: INavigationItem[];
 }
 
-const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps) => {
+const WebNavigationInterface = ({
+  navigationItems,
+}: WebNavigationInterfaceProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -30,13 +32,16 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
           };
 
           return (
-            <View key={item.name} className="group relative w-full items-center">
+            <View
+              key={item.name}
+              className="group relative w-full items-center"
+            >
               <View className=" absolute left-0 top-1/2 transform -translate-y-1/2 z-10">
                 <View
                   className={`w-1 rounded-r-full ${
                     isFocused
-                      ? 'h-10 opacity-100 bg-primary-light dark:bg-primary-dark'
-                      : 'h-3 group-hover:h-7 group-hover:bg-primary-light group-hover:dark:bg-primary-dark bg-gray-400'
+                      ? "h-10 opacity-100 bg-primary-light dark:bg-primary-dark"
+                      : "h-3 group-hover:h-7 group-hover:bg-primary-light group-hover:dark:bg-primary-dark bg-gray-400"
                   }`}
                 />
               </View>
@@ -47,17 +52,21 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
                 className="group relative"
               >
                 <View
-                  className={classNames('w-12 h-12 items-center justify-center', {
-                    'bg-primary-light dark:bg-primary-dark rounded-2xl': isFocused,
-                    'bg-gray-100 dark:bg-background-dark rounded-3xl hover:rounded-2xl hover:bg-secondary-light hover:dark:bg-secondary-dark':
-                      !isFocused,
-                  })}
+                  className={classNames(
+                    "w-12 h-12 items-center justify-center",
+                    {
+                      "bg-primary-light dark:bg-primary-dark rounded-2xl":
+                        isFocused,
+                      "bg-gray-100 dark:bg-background-dark rounded-3xl hover:rounded-2xl hover:bg-secondary-light hover:dark:bg-secondary-dark":
+                        !isFocused,
+                    },
+                  )}
                 >
                   <Text
                     className={`${
                       isFocused
-                        ? 'text-text-primary-dark'
-                        : 'text-gray-500 group-hover:text-primary-light group-hover:dark:text-text-primary-dark'
+                        ? "text-text-primary-dark"
+                        : "text-gray-500 group-hover:text-primary-light group-hover:dark:text-text-primary-dark"
                     }`}
                   >
                     <Ionicons

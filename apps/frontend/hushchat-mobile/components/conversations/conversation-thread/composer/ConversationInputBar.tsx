@@ -4,7 +4,13 @@
  * Input component for composing and sending chat messages.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -12,23 +18,34 @@ import {
   TextInputContentSizeChangeEvent,
   TextInputSelectionChangeEvent,
   View,
-} from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import classNames from 'classnames';
-import { debounce } from 'lodash';
-import { Ionicons } from '@expo/vector-icons';
-import PrimaryCircularButton from '@/components/conversations/conversation-thread/composer/PrimaryCircularButton';
-import ReplyPreview from '@/components/conversations/conversation-thread/message-list/ReplyPreview';
-import MentionSuggestions from '@/components/conversations/conversation-thread/mentions/MentionSuggestions';
-import { StorageFactory } from '@/utils/storage/storageFactory';
-import { detectMentionToken, replaceMentionAtCaret, setCaretPosition } from '@/utils/mentionUtils';
-import { useEnterSubmit } from '@/utils/commonUtils';
-import { scheduleOnRN } from 'react-native-worklets';
-import { useSpecialCharHandler, WebKeyboardEvent } from '@/hooks/useSpecialCharHandler';
-import { getDraftKey } from '@/constants/constants';
-import { PLATFORM } from '@/constants/platformConstants';
-import { ToastUtils } from '@/utils/toastUtils';
-import { ACCEPT_FILE_TYPES } from '@/constants/mediaConstants';
+} from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import classNames from "classnames";
+import { debounce } from "lodash";
+import { Ionicons } from "@expo/vector-icons";
+import PrimaryCircularButton from "@/components/conversations/conversation-thread/composer/PrimaryCircularButton";
+import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
+import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
+import { StorageFactory } from "@/utils/storage/storageFactory";
+import {
+  detectMentionToken,
+  replaceMentionAtCaret,
+  setCaretPosition,
+} from "@/utils/mentionUtils";
+import { useEnterSubmit } from "@/utils/commonUtils";
+import { scheduleOnRN } from "react-native-worklets";
+import {
+  useSpecialCharHandler,
+  WebKeyboardEvent,
+} from "@/hooks/useSpecialCharHandler";
+import { getDraftKey } from "@/constants/constants";
+import { PLATFORM } from "@/constants/platformConstants";
+import { ToastUtils } from "@/utils/toastUtils";
+import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
 
 import {
   ANIM_EASING,
@@ -45,16 +62,20 @@ import {
   WEB_LINE_HEIGHT_ADJUST,
   WEB_MAX_CONTAINER_PX,
   WEB_MIN_CONTAINER_PX,
-} from '@/constants/composerConstants';
+} from "@/constants/composerConstants";
 
-import type { ConversationParticipant, IMessage } from '@/types/chat/types';
-import WebChatContextMenu from '@/components/WebContextMenu';
-import { validateFiles } from '@/utils/fileValidation';
-import { getConversationMenuOptions } from '@/components/conversations/conversation-thread/composer/menuOptions';
-import { AppText } from '@/components/AppText';
+import type { ConversationParticipant, IMessage } from "@/types/chat/types";
+import WebChatContextMenu from "@/components/WebContextMenu";
+import { validateFiles } from "@/utils/fileValidation";
+import { getConversationMenuOptions } from "@/components/conversations/conversation-thread/composer/menuOptions";
+import { AppText } from "@/components/AppText";
 
 type MessageInputProps = {
-  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onSendMessage: (
+    message: string,
+    parentMessage?: IMessage,
+    files?: File[],
+  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   conversationId: number;
@@ -78,7 +99,7 @@ const ConversationInputBar = ({
   onOpenImagePicker,
   disabled = false,
   isSending = false,
-  placeholder = 'Type a message...',
+  placeholder = "Type a message...",
   minLines = 1,
   maxLines = 6,
   lineHeight = 22,
@@ -96,12 +117,15 @@ const ConversationInputBar = ({
     [lineHeight, minLines, verticalPadding],
   );
 
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>("");
   const [inputHeight, setInputHeight] = useState<number>(initialHeight);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [cursorPosition, setCursorPosition] = useState<number>(0);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
   const textInputRef = useRef<TextInput>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addButtonContainerRef = useRef<View>(null);
@@ -118,7 +142,10 @@ const ConversationInputBar = ({
 
   const animatedHeight = useSharedValue(initialHeight);
   const mentionVisible = mentionQuery !== null;
-  const menuOptions = useMemo(() => getConversationMenuOptions(fileInputRef), [fileInputRef]);
+  const menuOptions = useMemo(
+    () => getConversationMenuOptions(fileInputRef),
+    [fileInputRef],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -127,7 +154,7 @@ const ConversationInputBar = ({
         const saved = await storage.get<string>(getDraftKey(conversationId));
         if (cancelled) return;
 
-        const value = saved ?? '';
+        const value = saved ?? "";
         setMessage(value);
 
         const target = value.trim().length
@@ -137,7 +164,7 @@ const ConversationInputBar = ({
         setInputHeight(target);
         animatedHeight.value = target;
       } catch (e) {
-        console.error('Failed to load draft', e);
+        console.error("Failed to load draft", e);
       }
     };
 
@@ -152,7 +179,7 @@ const ConversationInputBar = ({
   }, [conversationId]);
 
   useEffect(() => {
-    setMessage('');
+    setMessage("");
     setMentionQuery(null);
     setCursorPosition(0);
   }, [conversationId]);
@@ -187,14 +214,17 @@ const ConversationInputBar = ({
     [minHeight, maxHeight, animatedHeight],
   );
 
-  const handleSelectionChange = useCallback((e: TextInputSelectionChangeEvent) => {
-    setCursorPosition(e.nativeEvent.selection.start);
-  }, []);
+  const handleSelectionChange = useCallback(
+    (e: TextInputSelectionChangeEvent) => {
+      setCursorPosition(e.nativeEvent.selection.start);
+    },
+    [],
+  );
 
   const handleChangeText = useCallback(
     (raw: string) => {
       let text = raw;
-      if (typeof maxChars === 'number' && text.length > maxChars) {
+      if (typeof maxChars === "number" && text.length > maxChars) {
         text = text.slice(0, maxChars);
       }
       setMessage(text);
@@ -211,13 +241,24 @@ const ConversationInputBar = ({
         });
       }
     },
-    [cursorPosition, maxChars, minHeight, conversationId, saveDraftDebounced, animatedHeight],
+    [
+      cursorPosition,
+      maxChars,
+      minHeight,
+      conversationId,
+      saveDraftDebounced,
+      animatedHeight,
+    ],
   );
 
   const handleSelectMention = useCallback(
     (participant: ConversationParticipant) => {
       const username = participant.user.username;
-      const { nextText, nextCaret } = replaceMentionAtCaret(message, cursorPosition, username);
+      const { nextText, nextCaret } = replaceMentionAtCaret(
+        message,
+        cursorPosition,
+        username,
+      );
 
       setMessage(nextText);
       setMentionQuery(null);
@@ -233,14 +274,15 @@ const ConversationInputBar = ({
 
   const handleSend = useCallback(
     (messageToSend?: string) => {
-      const finalMessage = messageToSend !== undefined ? messageToSend.trim() : message.trim();
+      const finalMessage =
+        messageToSend !== undefined ? messageToSend.trim() : message.trim();
 
       if (!finalMessage.trim() || disabled) return;
 
       saveDraftDebounced.flush?.();
       onSendMessage(finalMessage, replyToMessage || undefined);
 
-      setMessage('');
+      setMessage("");
       animatedHeight.value = withTiming(
         minHeight,
         { duration: RESET_ANIM_MS, easing: ANIM_EASING },
@@ -273,8 +315,9 @@ const ConversationInputBar = ({
   const handleAddButtonPress = useCallback(async () => {
     if (PLATFORM.IS_WEB) {
       const element =
-        (addButtonContainerRef.current as unknown as { getBoundingClientRect?: () => DOMRect }) ||
-        null;
+        (addButtonContainerRef.current as unknown as {
+          getBoundingClientRect?: () => DOMRect;
+        }) || null;
       if (element?.getBoundingClientRect) {
         const rect = element.getBoundingClientRect();
         setMenuPos({ x: rect.left, y: rect.bottom + 8 });
@@ -300,14 +343,14 @@ const ConversationInputBar = ({
           onOpenImagePicker(validFiles);
         }
       }
-      event.target.value = '';
+      event.target.value = "";
     },
     [onOpenImagePicker],
   );
 
   const enterSubmitHandler = useEnterSubmit(() => handleSend(message));
   const specialCharHandler = useSpecialCharHandler(message, cursorPosition, {
-    handlers: { '@': () => setMentionQuery('') },
+    handlers: { "@": () => setMentionQuery("") },
   });
 
   const showSend = message.trim().length > 0;
@@ -321,12 +364,12 @@ const ConversationInputBar = ({
       paddingVertical: PLATFORM.IS_WEB ? verticalPadding : verticalPadding / 2,
       paddingRight: INPUT_PADDING_RIGHT_PX,
       fontSize: INPUT_FONT_SIZE,
-      fontFamily: 'Poppins-Regular',
+      fontFamily: "Poppins-Regular",
       ...(PLATFORM.IS_WEB && {
         lineHeight: lineHeight + WEB_LINE_HEIGHT_ADJUST,
-        overflowY: 'auto' as const,
+        overflowY: "auto" as const,
         scrollbarGutter: SCROLLBAR_GUTTER,
-        outline: 'none',
+        outline: "none",
       }),
     }),
     [minHeight, maxHeight, inputHeight, lineHeight, verticalPadding],
@@ -335,18 +378,21 @@ const ConversationInputBar = ({
   return (
     <View>
       {replyToMessage && (
-        <ReplyPreview replyToMessage={replyToMessage} onCancelReply={onCancelReply!} />
+        <ReplyPreview
+          replyToMessage={replyToMessage}
+          onCancelReply={onCancelReply!}
+        />
       )}
 
       <View
         className={classNames(
-          'flex-row items-end',
-          'bg-background-light dark:bg-background-dark',
-          'border-gray-200 dark:border-gray-800',
-          PLATFORM.IS_WEB ? 'p-4' : 'p-3',
+          "flex-row items-end",
+          "bg-background-light dark:bg-background-dark",
+          "border-gray-200 dark:border-gray-800",
+          PLATFORM.IS_WEB ? "p-4" : "p-3",
         )}
       >
-        <View ref={addButtonContainerRef} style={{ alignSelf: 'flex-end' }}>
+        <View ref={addButtonContainerRef} style={{ alignSelf: "flex-end" }}>
           <PrimaryCircularButton
             disabled={disabled}
             iconSize={20}
@@ -355,26 +401,33 @@ const ConversationInputBar = ({
           />
         </View>
 
-        <View className={classNames('flex-1', PLATFORM.IS_WEB ? 'mx-4' : 'mx-3')}>
-          <Animated.View style={animatedContainerStyle} className="overflow-hidden">
+        <View
+          className={classNames("flex-1", PLATFORM.IS_WEB ? "mx-4" : "mx-3")}
+        >
+          <Animated.View
+            style={animatedContainerStyle}
+            className="overflow-hidden"
+          >
             <View
               className={classNames(
-                'flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark',
-                PLATFORM.IS_WEB ? 'px-4' : 'px-3',
+                "flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark",
+                PLATFORM.IS_WEB ? "px-4" : "px-3",
               )}
               style={{
-                position: 'relative',
-                alignItems: 'flex-end',
+                position: "relative",
+                alignItems: "flex-end",
                 paddingRight: RIGHT_ICON_GUTTER,
               }}
             >
               <TextInput
                 ref={textInputRef}
                 className={classNames(
-                  'flex-1 text-base text-text-primary-light dark:text-text-primary-dark outline-none',
-                  PLATFORM.IS_WEB ? 'py-4 custom-scrollbar' : 'py-3',
+                  "flex-1 text-base text-text-primary-light dark:text-text-primary-dark outline-none",
+                  PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3",
                 )}
-                placeholder={replyToMessage ? 'Reply to message...' : placeholder}
+                placeholder={
+                  replyToMessage ? "Reply to message..." : placeholder
+                }
                 placeholderTextColor={COLOR_PLACEHOLDER}
                 multiline
                 scrollEnabled
@@ -390,7 +443,7 @@ const ConversationInputBar = ({
                 {...(PLATFORM.IS_WEB
                   ? {
                       onKeyDown: (e: WebKeyboardEvent) => {
-                        if (mentionVisible && e.key === 'Enter') {
+                        if (mentionVisible && e.key === "Enter") {
                           e.preventDefault();
                           return;
                         }
@@ -403,7 +456,7 @@ const ConversationInputBar = ({
                 enablesReturnKeyAutomatically
                 autoFocus={autoFocus}
                 onSubmitEditing={() => handleSend(message)}
-                {...(PLATFORM.IS_WEB ? {} : { textAlignVertical: 'top' })}
+                {...(PLATFORM.IS_WEB ? {} : { textAlignVertical: "top" })}
               />
 
               {isSending ? (
@@ -429,7 +482,7 @@ const ConversationInputBar = ({
               )}
             </View>
 
-            {typeof maxChars === 'number' && (
+            {typeof maxChars === "number" && (
               <View className="absolute bottom-0 right-2">
                 <AppText className="text-xs text-gray-400">
                   {message.length}/{maxChars}
@@ -445,7 +498,7 @@ const ConversationInputBar = ({
             type="file"
             accept={ACCEPT_FILE_TYPES}
             multiple
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
             onChange={handleFileChange}
           />
         )}
@@ -461,7 +514,7 @@ const ConversationInputBar = ({
             try {
               await fn();
             } catch {
-              ToastUtils.error('Error with file selection');
+              ToastUtils.error("Error with file selection");
             } finally {
               setMenuVisible(false);
             }

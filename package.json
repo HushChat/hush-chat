@@ -16,9 +16,13 @@
     "clean:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile reset-project",
     "build:android": "yarn --cwd apps/frontend/hushchat-mobile build-android",
     "build:web": "yarn --cwd apps/frontend/hushchat-mobile prod:build-web",
-    "run:stack": "concurrently \"yarn start:backend\" \"yarn start:hush-chat\""
+    "run:stack": "concurrently \"yarn start:backend\" \"yarn start:hush-chat\"",
+    "format": "prettier --write ."
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "prettier": "^3.6.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6"
   }
 }

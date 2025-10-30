@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -7,17 +7,17 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   withTiming,
   useAnimatedStyle,
   Easing,
-} from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
-import { MessageReact, REACTION_EMOJIS } from '@/types/chat/types';
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+import { MessageReact, REACTION_EMOJIS } from "@/types/chat/types";
 
 interface MessageReactionsBottomSheetProps {
   visible: boolean;
@@ -28,14 +28,14 @@ interface MessageReactionsBottomSheetProps {
   onEndReached: () => void;
 }
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const MessageReactionsBottomSheet = ({
   visible,
   onClose,
   reactions,
   isLoading = false,
-  title = 'Reactions',
+  title = "Reactions",
   onEndReached,
 }: MessageReactionsBottomSheetProps) => {
   const insets = useSafeAreaInsets();
@@ -77,9 +77,19 @@ const MessageReactionsBottomSheet = ({
     transform: [{ translateY: translateY.value }],
   }));
 
-  const renderReactionItem = ({ item, index }: { item: MessageReact; index: number }) => (
-    <View className={`flex-row items-center py-4 px-4 ${index < reactions.length - 1 ? '' : ''}`}>
-      <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
+  const renderReactionItem = ({
+    item,
+    index,
+  }: {
+    item: MessageReact;
+    index: number;
+  }) => (
+    <View
+      className={`flex-row items-center py-4 px-4 ${index < reactions.length - 1 ? "" : ""}`}
+    >
+      <Text className="text-2xl mr-3">
+        {REACTION_EMOJIS[item.reactionType]}
+      </Text>
       <Text
         className="text-base font-medium flex-1 text-text-primary-light dark:text-text-primary-dark"
         numberOfLines={1}
@@ -120,7 +130,7 @@ const MessageReactionsBottomSheet = ({
         style={[
           {
             flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
           },
           backdropStyle,
         ]}
@@ -132,7 +142,7 @@ const MessageReactionsBottomSheet = ({
         <Animated.View
           style={[
             {
-              position: 'absolute',
+              position: "absolute",
               bottom: 0,
               left: 0,
               right: 0,

@@ -1,15 +1,18 @@
-import React, { useEffect } from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
-import { useAppTheme } from '@/hooks/useAppTheme';
-import { useAnimatedEntrance } from '@/hooks/useAnimatedEntrance';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import ErrorView from '@/components/ErrorView';
-import { Images } from '@/assets/images';
-import { useConversationByIdQuery } from '@/query/useConversationByIdQuery';
-import OneToOneChatInfo from '@/components/conversations/conversation-info-panel/OneToOneChatInfo';
-import GroupChatInfo from '@/components/conversations/conversation-info-panel/GroupChatInfo';
+import React, { useEffect } from "react";
+import { View, ActivityIndicator, Text } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  useSafeAreaInsets,
+  SafeAreaView,
+} from "react-native-safe-area-context";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAnimatedEntrance } from "@/hooks/useAnimatedEntrance";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import ErrorView from "@/components/ErrorView";
+import { Images } from "@/assets/images";
+import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
+import OneToOneChatInfo from "@/components/conversations/conversation-info-panel/OneToOneChatInfo";
+import GroupChatInfo from "@/components/conversations/conversation-info-panel/GroupChatInfo";
 
 export interface ChatInfoScreenProps {
   conversationId: number;
@@ -50,7 +53,10 @@ export default function ConversationInfoPanel({
     return (
       <View
         className="flex-1 items-center justify-center"
-        style={{ backgroundColor: colors.background, paddingTop: insets.top + 12 }}
+        style={{
+          backgroundColor: colors.background,
+          paddingTop: insets.top + 12,
+        }}
       >
         <ActivityIndicator size="large" color="#3b82f6" />
         <Text className="mt-4 text-gray-600 dark:text-text-secondary-dark">
@@ -64,7 +70,9 @@ export default function ConversationInfoPanel({
     return (
       <ErrorView
         title="Conversation"
-        message={conversationAPIError?.message || 'Unable to load conversation details'}
+        message={
+          conversationAPIError?.message || "Unable to load conversation details"
+        }
         onBack={goBack}
         onRetry={refetchConversation}
         imageSource={Images.NoConversationFound}

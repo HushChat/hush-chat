@@ -1,8 +1,8 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { ToastUtils } from '@/utils/toastUtils';
-import { router } from 'expo-router';
-import { AUTH_WORKSPACE_FORM_PATH } from '@/constants/routes';
-import { useAuthStore } from '@/store/auth/authStore';
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { ToastUtils } from "@/utils/toastUtils";
+import { router } from "expo-router";
+import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
+import { useAuthStore } from "@/store/auth/authStore";
 
 let isLoggingOut = false;
 const safeLogoutAndRedirect = () => {
@@ -45,14 +45,14 @@ export type ErrorResponse = ErrorResponseWithMessage &
   ErrorResponseWithDetail;
 
 const extractErrorMessage = (responseData: ErrorResponse): string => {
-  if (!responseData) return 'Unknown error';
+  if (!responseData) return "Unknown error";
 
   return (
     responseData.message ||
     responseData.error?.message ||
     responseData.detail ||
     responseData.error ||
-    'Unknown error'
+    "Unknown error"
   );
 };
 
@@ -62,7 +62,7 @@ export const setupGlobalErrorHandling = () => {
       return response;
     },
     (error: AxiosError) => {
-      let errorMessage = 'An unknown error occurred';
+      let errorMessage = "An unknown error occurred";
 
       if (error.response) {
         const responseData = error.response.data as ErrorResponse;
@@ -72,19 +72,22 @@ export const setupGlobalErrorHandling = () => {
         }
 
         if (statusCode === 401 || statusCode === 403) {
-          ToastUtils.error('Session Expired', 'Your session has expired. Logging out...');
+          ToastUtils.error(
+            "Session Expired",
+            "Your session has expired. Logging out...",
+          );
           safeLogoutAndRedirect();
           return Promise.reject(error);
         }
       } else if (error.request) {
         // The request was made but no response was received (network issues)
-        errorMessage = 'Network error. Please check your connection.';
+        errorMessage = "Network error. Please check your connection.";
       } else {
         // Something happened in setting up the request
         // Here, the error is still AxiosError, so error.message should be fine
-        errorMessage = error.message || 'Error preparing request';
+        errorMessage = error.message || "Error preparing request";
       }
-      ToastUtils.error('Error!', errorMessage);
+      ToastUtils.error("Error!", errorMessage);
       return Promise.reject(error);
     },
   );

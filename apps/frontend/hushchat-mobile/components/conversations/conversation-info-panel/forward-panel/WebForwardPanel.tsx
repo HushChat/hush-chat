@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import ConversationForwardPanelBase from '@/components/conversations/conversation-info-panel/forward-panel/ConversationForwardPanel';
-import { useForwardMessageHandler } from '@/hooks/useForwardMessageHandler';
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import ConversationForwardPanelBase from "@/components/conversations/conversation-info-panel/forward-panel/ConversationForwardPanel";
+import { useForwardMessageHandler } from "@/hooks/useForwardMessageHandler";
 
 const ConversationForwardPanelWeb = ({ onClose }: { onClose: () => void }) => {
   const handler = useForwardMessageHandler(onClose);
