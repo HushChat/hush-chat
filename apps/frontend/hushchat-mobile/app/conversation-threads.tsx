@@ -323,7 +323,6 @@ const ConversationThreadScreen = ({
         />
       );
     }
-    console.log("showImagePreview", showImagePreview);
     if (conversationMessages.length === 0) {
       return <EmptyChatState />;
     }
