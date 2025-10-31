@@ -8,15 +8,9 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { getCriteria } from "@/utils/conversationUtils";
 
 export const useForwardMessageHandler = (onSuccess?: () => void) => {
-  const {
-    selectedMessageIds,
-    setSelectionMode,
-    setSelectedMessageIds,
-    selectedConversationType,
-  } = useConversationStore();
-  const [selectedConversations, setSelectedConversations] = useState<
-    TConversation[]
-  >([]);
+  const { selectedMessageIds, setSelectionMode, setSelectedMessageIds, selectedConversationType } =
+    useConversationStore();
+  const [selectedConversations, setSelectedConversations] = useState<TConversation[]>([]);
   const [customText, setCustomText] = useState<string>("");
   const {
     user: { id: userId },
@@ -40,25 +34,21 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
       onSuccess?.();
     },
     () => {
-      ToastUtils.error(
-        `Failed to forward message${selectedCount > 1 ? "s" : ""}`,
-      );
-    },
+      ToastUtils.error(`Failed to forward message${selectedCount > 1 ? "s" : ""}`);
+    }
   );
 
   const handleSend = () => {
     forwardMessage({
       forwardedMessageIds: Array.from(selectedMessageIds),
-      conversationIds: selectedConversations.map((conversation) =>
-        Number(conversation.id),
-      ),
+      conversationIds: selectedConversations.map((conversation) => Number(conversation.id)),
       customText: customText,
     });
   };
 
   const canSend = useMemo(
     () => selectedCount > 0 && selectedConversations.length > 0 && !isPending,
-    [selectedCount, selectedConversations.length, isPending],
+    [selectedCount, selectedConversations.length, isPending]
   );
 
   return {

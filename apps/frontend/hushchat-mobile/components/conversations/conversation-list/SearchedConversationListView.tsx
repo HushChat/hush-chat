@@ -5,12 +5,7 @@ import {
   ISectionedSearchResult,
 } from "@/types/chat/types";
 import { useCallback, useMemo } from "react";
-import {
-  Text,
-  View,
-  ActivityIndicator,
-  ListRenderItemInfo,
-} from "react-native";
+import { Text, View, ActivityIndicator, ListRenderItemInfo } from "react-native";
 import Alert from "@/components/Alert";
 import ConversationListItem from "@/components/conversations/conversation-list/ConversationListItem";
 import { SearchedItem } from "@/components/conversations/conversation-thread/message-list/SearchedMessageItem";
@@ -39,11 +34,7 @@ interface SearchedConversationListProps {
 // Stable empty array reference to avoid unnecessary re-renders
 const EMPTY_ARRAY: ISectionedSearchResult[] = [];
 
-const SectionHeader: React.FC<{ title: string }> = ({
-  title,
-}: {
-  title: string;
-}) => (
+const SectionHeader: React.FC<{ title: string }> = ({ title }: { title: string }) => (
   <View className="bg-gray-100 dark:bg-gray-900 px-4 py-1.5 rounded-md">
     <Text className="text-text-secondary-light dark:text-text-secondary-dark font-medium text-base capitalize">
       {title}
@@ -73,7 +64,7 @@ export default function SearchedConversationList({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const handleOpenOrCreateConversation = useCallback(
@@ -86,15 +77,11 @@ export default function SearchedConversationList({
         } as IConversation);
       }
     },
-    [createConversation, setSelectedConversation],
+    [createConversation, setSelectedConversation]
   );
 
   const preparedDataWithSections = useMemo<ISectionedSearchResult[]>(() => {
-    const {
-      chats = [],
-      messages = [],
-      users = [],
-    } = searchedConversationsResult;
+    const { chats = [], messages = [], users = [] } = searchedConversationsResult;
 
     // Early return with stable empty array
     if (!chats?.length && !messages?.length && !users?.length) {
@@ -138,7 +125,7 @@ export default function SearchedConversationList({
             _isHeader: false,
             _sectionType: section.key,
             _uniqueKey: `${section.key}-${item.id}-${index}`,
-          }) as ISectionedSearchResult,
+          }) as ISectionedSearchResult
       ),
     ]);
   }, [searchedConversationsResult]);
@@ -161,16 +148,13 @@ export default function SearchedConversationList({
         // The item is already a conversation object
         const conversation = item as unknown as IConversation;
         const firstMessage = conversation.messages?.[0];
-        const isCurrentUser =
-          firstMessage && Number(currentUserId) === firstMessage.senderId;
+        const isCurrentUser = firstMessage && Number(currentUserId) === firstMessage.senderId;
 
         return (
           <SearchedItem
             conversation={conversation}
             searchQuery={searchQuery}
-            onConversationItemPress={() =>
-              handleChatPress(setSelectedConversation)(conversation)
-            }
+            onConversationItemPress={() => handleChatPress(setSelectedConversation)(conversation)}
             isCurrentUser={isCurrentUser}
           />
         );
@@ -196,12 +180,8 @@ export default function SearchedConversationList({
         return (
           <ConversationListItem
             conversation={conversation}
-            handleChatPress={() =>
-              handleChatPress(setSelectedConversation)(conversation)
-            }
-            isConversationSelected={
-              selectedConversation?.id === conversation.id
-            }
+            handleChatPress={() => handleChatPress(setSelectedConversation)(conversation)}
+            isConversationSelected={selectedConversation?.id === conversation.id}
             handleArchivePress={onArchive}
             handleDeletePress={onDelete}
             conversationsRefetch={onRefresh}
@@ -220,7 +200,7 @@ export default function SearchedConversationList({
       onArchive,
       onDelete,
       onRefresh,
-    ],
+    ]
   );
 
   const renderEmptyComponent = useCallback(() => {
@@ -247,18 +227,13 @@ export default function SearchedConversationList({
     );
   }, [isSearchingConversations, errorWhileSearchingConversation, searchQuery]);
 
-  const ListEmptyComponent = useMemo(
-    () => renderEmptyComponent(),
-    [renderEmptyComponent],
-  );
+  const ListEmptyComponent = useMemo(() => renderEmptyComponent(), [renderEmptyComponent]);
 
   return (
     <BaseConversationList<ISectionedSearchResult>
       data={preparedDataWithSections}
       renderItem={renderItem}
-      keyExtractor={(item: ISectionedSearchResult) =>
-        item._uniqueKey || item._headerTitle || ""
-      }
+      keyExtractor={(item: ISectionedSearchResult) => item._uniqueKey || item._headerTitle || ""}
       ListEmptyComponent={ListEmptyComponent}
       onRefresh={onRefresh}
       refreshing={false}

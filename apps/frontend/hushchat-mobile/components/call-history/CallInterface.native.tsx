@@ -30,11 +30,7 @@ const CallInterface = ({ callItemList, filters }: CallLogComponentProps) => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View className="flex-row gap-x-2">
             {filters.map((filter, index) => (
-              <FilterButton
-                key={index}
-                label={filter.title}
-                isActive={filter.isActive}
-              />
+              <FilterButton key={index} label={filter.title} isActive={filter.isActive} />
             ))}
           </View>
         </ScrollView>

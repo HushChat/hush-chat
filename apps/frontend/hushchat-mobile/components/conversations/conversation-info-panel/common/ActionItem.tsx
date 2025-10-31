@@ -17,19 +17,14 @@ interface ActionItemProps {
   color?: string;
 }
 
-export default function ActionItem({
-  icon,
-  label,
-  onPress,
-  color,
-}: ActionItemProps) {
+export default function ActionItem({ icon, label, onPress, color }: ActionItemProps) {
   const { isDark } = useAppTheme();
   return (
     <TouchableOpacity
       onPress={onPress}
       className={classNames(
         "flex-row items-center px-[5px]",
-        PLATFORM.IS_WEB ? "py-[10px] gap-[10px]" : "py-[15px] gap-[15px]",
+        PLATFORM.IS_WEB ? "py-[10px] gap-[10px]" : "py-[15px] gap-[15px]"
       )}
     >
       <Ionicons
@@ -38,10 +33,7 @@ export default function ActionItem({
         color={color || (isDark ? "#9CA3AF" : "#6B7280")}
       />
       <Text
-        className={classNames(
-          "font-medium",
-          PLATFORM.IS_WEB ? "text-base" : "text-xl",
-        )}
+        className={classNames("font-medium", PLATFORM.IS_WEB ? "text-base" : "text-xl")}
         style={{
           color: color || (isDark ? "white" : "#1F2937"),
           fontFamily: "Poppins-Regular",

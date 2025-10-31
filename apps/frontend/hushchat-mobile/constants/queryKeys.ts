@@ -56,10 +56,7 @@ export const conversationMessageQueryKeys = {
     userId,
   ],
 
-  messageReactions: (messageId: number) => [
-    MESSAGE_REACTION_QUERY_BASE_KEY,
-    messageId,
-  ],
+  messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
 };
 
 export const userQueryKeys = {

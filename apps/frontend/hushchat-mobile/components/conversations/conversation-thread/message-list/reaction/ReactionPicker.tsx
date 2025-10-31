@@ -68,7 +68,7 @@ const ReactionPicker = memo(
       (type: ReactionType) => {
         onSelect(type);
       },
-      [onSelect],
+      [onSelect]
     );
 
     const emojiButtons = useMemo(
@@ -86,14 +86,14 @@ const ReactionPicker = memo(
                 {
                   "bg-primary-light/40 dark:bg-primary-dark/40 border border-primary-light dark:border-primary-dark scale-110 shadow-md":
                     isSelected,
-                },
+                }
               )}
             >
               <EmojiGlyph size={24}>{REACTION_META[type].emoji}</EmojiGlyph>
             </Pressable>
           );
         }),
-      [reactedByCurrentUser, handleSelect],
+      [reactedByCurrentUser, handleSelect]
     );
 
     if (!visible) return null;
@@ -125,7 +125,7 @@ const ReactionPicker = memo(
         </Animated.View>
       </View>
     );
-  },
+  }
 );
 
 ReactionPicker.displayName = "ReactionPicker";

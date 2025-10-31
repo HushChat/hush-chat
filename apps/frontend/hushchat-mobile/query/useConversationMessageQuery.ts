@@ -4,10 +4,7 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 import { useConversationMessages } from "@/hooks/useWebSocketEvents";
-import {
-  CursorPaginatedResponse,
-  getConversationMessagesByCursor,
-} from "@/apis/conversation";
+import { CursorPaginatedResponse, getConversationMessagesByCursor } from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
 
 const PAGE_SIZE = 20;
@@ -26,7 +23,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
-    [userId, conversationId],
+    [userId, conversationId]
   );
 
   useEffect(() => {
@@ -97,7 +94,7 @@ export function useConversationMessagesQuery(conversationId: number) {
         pageParams: [{ beforeId: messageId }],
       });
     },
-    [conversationId, queryClient, queryKey],
+    [conversationId, queryClient, queryKey]
   );
 
   return {

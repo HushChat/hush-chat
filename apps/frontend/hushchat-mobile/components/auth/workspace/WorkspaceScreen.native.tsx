@@ -7,8 +7,7 @@ import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 
 export default function WorkspaceScreen() {
   const { colors, isDark } = useAuthThemeColors();
-  const { formValues, formErrors, showErrors, onValueChange, handleNext } =
-    useWorkspaceForm();
+  const { formValues, formErrors, showErrors, onValueChange, handleNext } = useWorkspaceForm();
 
   return (
     <AuthMobileLayout colors={colors} image={Images.Workspace}>

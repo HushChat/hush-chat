@@ -1,8 +1,4 @@
-import {
-  withTiming,
-  useSharedValue,
-  type SharedValue,
-} from "react-native-reanimated";
+import { withTiming, useSharedValue, type SharedValue } from "react-native-reanimated";
 import { usePanGesture } from "./usePanGesture";
 import { PLATFORM } from "@/constants/platformConstants";
 import { OffsetThresholds, VelocityThresholds } from "@/types/gestures/types";
@@ -74,9 +70,7 @@ export function useSwipeGesture({
   const { gesture } = usePanGesture({
     enabled,
     axis: direction === "horizontal" ? "horizontal" : "vertical",
-    offsets:
-      offsets ??
-      (direction === "horizontal" ? horizontalOffsets : verticalOffsets),
+    offsets: offsets ?? (direction === "horizontal" ? horizontalOffsets : verticalOffsets),
     callbacksRunOnJS: PLATFORM.IS_WEB,
 
     onUpdate: ({ translationX, translationY }) => {
@@ -91,11 +85,7 @@ export function useSwipeGesture({
         translateX.value = x;
 
         const p =
-          allowLeft && allowRight
-            ? Math.abs(x)
-            : allowRight
-              ? Math.max(0, x)
-              : Math.max(0, -x);
+          allowLeft && allowRight ? Math.abs(x) : allowRight ? Math.max(0, x) : Math.max(0, -x);
         progress.value = Math.min(p / trigger, 1);
       } else {
         const y = Math.max(Math.min(translationY, maxDrag), -maxDrag);
@@ -118,8 +108,7 @@ export function useSwipeGesture({
       } else {
         const vThresh = velocity.vertical ?? 900;
         if (translationY >= trigger || velocityY > vThresh) onSwipeDown?.();
-        else if (translationY <= -trigger || velocityY < -vThresh)
-          onSwipeUp?.();
+        else if (translationY <= -trigger || velocityY < -vThresh) onSwipeUp?.();
       }
 
       translateX.value = withTiming(0, { duration: 150 });

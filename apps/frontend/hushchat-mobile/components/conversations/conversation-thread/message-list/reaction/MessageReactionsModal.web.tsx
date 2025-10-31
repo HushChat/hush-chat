@@ -39,10 +39,8 @@ const MessageReactionsModalWeb = ({
     useMessageReactionsQuery(messageId);
 
   const messageReactions = useMemo(
-    () =>
-      pages?.pages?.flatMap((page) => (page.content as MessageReact[]) || []) ||
-      [],
-    [pages],
+    () => pages?.pages?.flatMap((page) => (page.content as MessageReact[]) || []) || [],
+    [pages]
   );
 
   const handleLoadMore = () => {
@@ -59,7 +57,7 @@ const MessageReactionsModalWeb = ({
     screenWidth,
     screenHeight,
     modalWidth,
-    modalHeight,
+    modalHeight
   );
 
   useEffect(() => {
@@ -86,16 +84,14 @@ const MessageReactionsModalWeb = ({
     <View
       className={classNames(
         "px-4 py-3 flex-row items-center border-b",
-        isDark ? "border-[#2C3650]/40" : "border-[#E5E7EB]/50",
+        isDark ? "border-[#2C3650]/40" : "border-[#E5E7EB]/50"
       )}
     >
-      <Text className="text-2xl mr-3">
-        {REACTION_EMOJIS[item.reactionType]}
-      </Text>
+      <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
       <Text
         className={classNames(
           "text-[15px] font-medium flex-1",
-          isDark ? "text-text-primary-dark" : "text-text-primary-light",
+          isDark ? "text-text-primary-dark" : "text-text-primary-light"
         )}
         numberOfLines={1}
       >
@@ -108,10 +104,7 @@ const MessageReactionsModalWeb = ({
     if (!isFetchingNextPage) return null;
     return (
       <View className="py-4 items-center">
-        <ActivityIndicator
-          size="small"
-          color={isDark ? "#9ca3af" : "#6B7280"}
-        />
+        <ActivityIndicator size="small" color={isDark ? "#9ca3af" : "#6B7280"} />
       </View>
     );
   };
@@ -120,25 +113,18 @@ const MessageReactionsModalWeb = ({
     if (isLoading) {
       return (
         <View className="py-12 items-center justify-center">
-          <ActivityIndicator
-            size="large"
-            color={isDark ? "#9ca3af" : "#6B7280"}
-          />
+          <ActivityIndicator size="large" color={isDark ? "#9ca3af" : "#6B7280"} />
         </View>
       );
     }
 
     return (
       <View className="py-12 items-center justify-center">
-        <Ionicons
-          name="heart-outline"
-          size={48}
-          color={isDark ? "#4B5563" : "#D1D5DB"}
-        />
+        <Ionicons name="heart-outline" size={48} color={isDark ? "#4B5563" : "#D1D5DB"} />
         <Text
           className={classNames(
             "mt-3 text-[15px]",
-            isDark ? "text-text-secondary-dark" : "text-text-secondary-light",
+            isDark ? "text-text-secondary-dark" : "text-text-secondary-light"
           )}
         >
           No reactions yet
@@ -148,16 +134,8 @@ const MessageReactionsModalWeb = ({
   };
 
   return (
-    <Modal
-      transparent={true}
-      visible={shouldRender}
-      onRequestClose={handleClose}
-    >
-      <Pressable
-        className="flex-1"
-        onPress={handleClose}
-        style={{ cursor: "auto" }}
-      >
+    <Modal transparent={true} visible={shouldRender} onRequestClose={handleClose}>
+      <Pressable className="flex-1" onPress={handleClose} style={{ cursor: "auto" }}>
         <View
           ref={modalRef}
           pointerEvents="box-none"
@@ -168,7 +146,7 @@ const MessageReactionsModalWeb = ({
               : "opacity-0 scale-95 translate-y-1.5",
             isDark
               ? "bg-secondary-dark/95 border-[#2C3650]/60 shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
-              : "bg-white/90 border-[#E5E7EB]/70 shadow-[0_4px_10px_rgba(0,0,0,0.08)]",
+              : "bg-white/90 border-[#E5E7EB]/70 shadow-[0_4px_10px_rgba(0,0,0,0.08)]"
           )}
           style={{
             left: adjustedPosition.x,
@@ -180,13 +158,13 @@ const MessageReactionsModalWeb = ({
           <View
             className={classNames(
               "px-4 py-3 border-b",
-              isDark ? "border-[#2C3650]/60" : "border-[#E5E7EB]/70",
+              isDark ? "border-[#2C3650]/60" : "border-[#E5E7EB]/70"
             )}
           >
             <Text
               className={classNames(
                 "text-[16px] font-semibold",
-                isDark ? "text-text-primary-dark" : "text-text-primary-light",
+                isDark ? "text-text-primary-dark" : "text-text-primary-light"
               )}
             >
               Reactions

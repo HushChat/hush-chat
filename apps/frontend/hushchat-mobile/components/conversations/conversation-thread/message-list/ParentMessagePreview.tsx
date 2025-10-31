@@ -19,7 +19,7 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
           "max-w-[75%] border-l-4 px-3 py-2 rounded-md mb-2",
           isCurrentUser
             ? "self-end border-primary-light bg-secondary-light dark:border-primary-dark dark:bg-secondary-dark"
-            : "self-start border-primary-dark bg-secondary-light dark:border-primary-light dark:bg-secondary-dark",
+            : "self-start border-primary-dark bg-secondary-light dark:border-primary-light dark:bg-secondary-dark"
         )}
       >
         <AppText
@@ -27,7 +27,7 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
             "text-xs font-semibold mb-1",
             isCurrentUser
               ? "text-primary-light text-right"
-              : "text-primary-dark dark:text-primary-light text-left",
+              : "text-primary-dark dark:text-primary-light text-left"
           )}
         >
           {message.senderId === Number(currentUserId) &&
@@ -43,7 +43,7 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
             "text-sm",
             isCurrentUser
               ? "text-text-primary-light dark:text-text-primary-dark text-right"
-              : "text-text-primary-light dark:text-text-primary-dark text-left",
+              : "text-text-primary-light dark:text-text-primary-dark text-left"
           )}
           numberOfLines={1}
           ellipsizeMode="tail"
@@ -52,7 +52,7 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
         </AppText>
       </View>
     );
-  },
+  }
 );
 
 ParentMessagePreview.displayName = "ParentMessagePreview";

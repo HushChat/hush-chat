@@ -18,11 +18,7 @@ interface ChatListOptionProps {
   action: () => void;
 }
 
-const ConversationListNavItem = ({
-  title,
-  iconName,
-  action,
-}: ChatListOptionProps) => {
+const ConversationListNavItem = ({ title, iconName, action }: ChatListOptionProps) => {
   const colorScheme = useColorScheme() ?? "light";
   const isDark = colorScheme === "dark";
 
@@ -34,16 +30,10 @@ const ConversationListNavItem = ({
         activeOpacity={DEFAULT_ACTIVE_OPACITY}
       >
         <View className="w-6 h-6 items-center justify-center">
-          <Ionicons
-            name={iconName}
-            size={22}
-            color={isDark ? "#ffffff" : "#000000"}
-          />
+          <Ionicons name={iconName} size={22} color={isDark ? "#ffffff" : "#000000"} />
         </View>
         <View className="flex-1 ml-4 flex-row items-center justify-between">
-          <AppText className="text-gray-900 dark:text-white font-medium text-base">
-            {title}
-          </AppText>
+          <AppText className="text-gray-900 dark:text-white font-medium text-base">{title}</AppText>
         </View>
       </TouchableOpacity>
     </View>

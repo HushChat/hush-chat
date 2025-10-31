@@ -20,11 +20,7 @@ export const AppTextInput = ({ style, ...otherProps }: TextInputProps) => {
 
   return (
     <TextInput
-      style={[
-        styles.defaultText,
-        { color: isDark ? "#FFFFFF" : "#333333" },
-        style,
-      ]}
+      style={[styles.defaultText, { color: isDark ? "#FFFFFF" : "#333333" }, style]}
       placeholderTextColor={isDark ? "#AAAAAA" : "#777777"}
       {...otherProps}
     />
@@ -43,11 +39,7 @@ export const AppText = ({ children, style, ...otherProps }: TextProps) => {
 
   return (
     <Text
-      style={[
-        styles.defaultText,
-        { color: isDark ? "#FFFFFF" : "#333333" },
-        style,
-      ]}
+      style={[styles.defaultText, { color: isDark ? "#FFFFFF" : "#333333" }, style]}
       {...otherProps}
     >
       {children}

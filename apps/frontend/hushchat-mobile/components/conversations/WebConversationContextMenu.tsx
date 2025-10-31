@@ -30,10 +30,7 @@ const ConversationWebChatContextMenu = ({
 }: ConversationWebChatContextMenuProps) => {
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
-  const { handleToggleFavorites } = useConversationFavorites(
-    conversationId,
-    criteria,
-  );
+  const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
 
   const handleOptionSelect = useCallback(
     async (action: () => Promise<void> | void) => {
@@ -46,7 +43,7 @@ const ConversationWebChatContextMenu = ({
         onClose();
       }
     },
-    [conversationsRefetch, onClose],
+    [conversationsRefetch, onClose]
   );
 
   const chatOptions: IOption[] = useMemo(
@@ -85,7 +82,7 @@ const ConversationWebChatContextMenu = ({
       conversationId,
       handleToggleFavorites,
       handleDeletePress,
-    ],
+    ]
   );
 
   return (

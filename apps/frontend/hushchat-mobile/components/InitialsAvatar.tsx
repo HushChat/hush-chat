@@ -18,18 +18,13 @@ interface InitialsAvatarProps {
   imageUrl?: string | null;
 }
 
-const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> =
-  {
-    sm: { container: "w-10 h-10", text: "text-base" },
-    md: { container: "w-12 h-12", text: "text-lg" },
-    lg: { container: "w-40 h-40", text: "text-6xl" },
-  };
+const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> = {
+  sm: { container: "w-10 h-10", text: "text-base" },
+  md: { container: "w-12 h-12", text: "text-lg" },
+  lg: { container: "w-40 h-40", text: "text-6xl" },
+};
 
-const InitialsAvatar = ({
-  name,
-  size = AvatarSize.medium,
-  imageUrl,
-}: InitialsAvatarProps) => {
+const InitialsAvatar = ({ name, size = AvatarSize.medium, imageUrl }: InitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
 
   return (
@@ -44,10 +39,7 @@ const InitialsAvatar = ({
           cachePolicy="memory-disk"
         />
       ) : (
-        <AppText
-          className={`font-medium text-center ${text}`}
-          style={{ color: "#FFFFFF" }}
-        >
+        <AppText className={`font-medium text-center ${text}`} style={{ color: "#FFFFFF" }}>
           {getInitials(name)}
         </AppText>
       )}

@@ -9,7 +9,7 @@ export function useUpdateCache() {
 
   return function updateCache<T>(
     queryKey: QueryKey,
-    updater: (oldData: T | undefined) => T | undefined,
+    updater: (oldData: T | undefined) => T | undefined
   ) {
     queryClient.setQueryData<T>(queryKey, updater);
   };

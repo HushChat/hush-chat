@@ -36,19 +36,13 @@ const FormattedText = ({
       if (onLinkPress) return onLinkPress(finalUrl);
       if (await Linking.canOpenURL(finalUrl)) await Linking.openURL(finalUrl);
     },
-    [onLinkPress],
+    [onLinkPress]
   );
-  const handleEmailPress = useCallback(
-    (email: string) => onEmailPress?.(email),
-    [onEmailPress],
-  );
-  const handlePhonePress = useCallback(
-    (phone: string) => onPhonePress?.(phone),
-    [onPhonePress],
-  );
+  const handleEmailPress = useCallback((email: string) => onEmailPress?.(email), [onEmailPress]);
+  const handlePhonePress = useCallback((phone: string) => onPhonePress?.(phone), [onPhonePress]);
   const handleHashtagPress = useCallback(
     (hashtag: string) => onHashtagPress?.(hashtag.replace("#", "")),
-    [onHashtagPress],
+    [onHashtagPress]
   );
   const handleMentionPress = useCallback(
     (mention: string) => {
@@ -57,7 +51,7 @@ const FormattedText = ({
         onMentionPress?.(username);
       }
     },
-    [mentions, onMentionPress],
+    [mentions, onMentionPress]
   );
 
   const parse = useMemo<ParseShape[]>(
@@ -109,7 +103,7 @@ const FormattedText = ({
       handlePhonePress,
       handleUrlPress,
       isCurrentUser,
-    ],
+    ]
   );
 
   return (
@@ -118,7 +112,7 @@ const FormattedText = ({
       className={classNames(
         "text-base text-text-primary-light dark:text-text-primary-dark",
         isCurrentUser ? "text-white" : "",
-        className,
+        className
       )}
       parse={parse}
       childrenProps={{ allowFontScaling: false }}

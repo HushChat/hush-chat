@@ -85,7 +85,7 @@ export const WebGroupCreation = ({
         },
         () => {
           scheduleOnRN(() => setShowConfigurationForm(false));
-        },
+        }
       );
     } else {
       onClose();
@@ -97,7 +97,7 @@ export const WebGroupCreation = ({
       onCreate?.(conversationId);
       onClose();
     },
-    [onCreate, onClose],
+    [onCreate, onClose]
   );
 
   const participantUserIds = selectedUsers.map((u) => u.id);
@@ -150,9 +150,7 @@ export const WebGroupCreation = ({
           >
             <Text
               className={`text-xs font-medium leading-none ${
-                selectedUsers.length > 0
-                  ? "text-white"
-                  : "text-gray-500 dark:text-gray-300"
+                selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-300"
               }`}
             >
               Continue

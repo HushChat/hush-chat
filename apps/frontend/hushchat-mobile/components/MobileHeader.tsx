@@ -14,11 +14,7 @@ type MobileHeaderProps = {
   rightAction?: RightAction;
 };
 
-export default function MobileHeader({
-  title,
-  onBack,
-  rightAction,
-}: MobileHeaderProps) {
+export default function MobileHeader({ title, onBack, rightAction }: MobileHeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -30,9 +26,7 @@ export default function MobileHeader({
         {/* Left side */}
         <View className="flex-row items-center">
           <BackButton onPress={onBack} />
-          <Text className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
-            {title}
-          </Text>
+          <Text className="ml-3 text-xl font-bold text-gray-900 dark:text-white">{title}</Text>
         </View>
 
         {/* Right side (optional) */}
@@ -49,9 +43,7 @@ export default function MobileHeader({
             >
               <Text
                 className={`font-medium ${
-                  rightAction.disabled
-                    ? "text-gray-500 dark:text-gray-400"
-                    : "text-white"
+                  rightAction.disabled ? "text-gray-500 dark:text-gray-400" : "text-white"
                 }`}
               >
                 {rightAction.label}

@@ -53,8 +53,7 @@ export const UserMultiSelectList = ({
       }}
       getKey={(u) => u.id}
       extractData={(pages) => {
-        const pg =
-          (pages as { pages?: PaginatedResponse<TUser>[] })?.pages ?? [];
+        const pg = (pages as { pages?: PaginatedResponse<TUser>[] })?.pages ?? [];
         return pg.flatMap((p) => p?.content ?? []);
       }}
       renderItemRow={(user, isSelected, toggle) => (

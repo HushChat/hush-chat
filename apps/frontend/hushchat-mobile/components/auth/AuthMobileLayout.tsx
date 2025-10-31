@@ -59,10 +59,7 @@ export default function AuthMobileLayout({
       <View style={style.footerImageWrap}>
         <Image
           source={image}
-          style={[
-            style.image,
-            { height: IMAGE_HEIGHT, opacity: IMAGE_OPACITY },
-          ]}
+          style={[style.image, { height: IMAGE_HEIGHT, opacity: IMAGE_OPACITY }]}
         />
       </View>
     </View>
