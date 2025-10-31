@@ -52,7 +52,7 @@ export default function ChatInfoHeader({
           className={classNames(
             "absolute m-3 z-2 p-2 rounded-full",
             PLATFORM.IS_WEB && "hover:bg-gray-900/20",
-            !PLATFORM.IS_WEB && "active:bg-gray-900/20",
+            !PLATFORM.IS_WEB && "active:bg-gray-900/20"
           )}
           hitSlop={DEFAULT_HIT_SLOP}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}

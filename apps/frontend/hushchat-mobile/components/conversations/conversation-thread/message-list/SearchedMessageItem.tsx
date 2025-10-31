@@ -29,8 +29,7 @@ interface SearchedItemProps {
 
 // Highlight search query in text
 const highlightText = (text: string, query: string) => {
-  if (!query || !text)
-    return <AppText className="text-gray-600">{text || ""}</AppText>;
+  if (!query || !text) return <AppText className="text-gray-600">{text || ""}</AppText>;
 
   const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const parts = text.split(new RegExp(`(${escapedQuery})`, "gi"));
@@ -44,7 +43,7 @@ const highlightText = (text: string, query: string) => {
           </AppText>
         ) : (
           <AppText key={index}>{part}</AppText>
-        ),
+        )
       )}
     </AppText>
   );
@@ -64,11 +63,7 @@ const SearchedMessageItem = (props: SearchedMessageItemProps) => {
             ? "From: You"
             : `From: ${getUserDisplayName(message?.senderFirstName, message?.senderLastName)}`}
         </AppText>
-        <AppText
-          numberOfLines={2}
-          ellipsizeMode="tail"
-          className="text-base leading-5"
-        >
+        <AppText numberOfLines={2} ellipsizeMode="tail" className="text-base leading-5">
           {highlightText(message?.messageText, searchQuery)}
         </AppText>
       </View>
@@ -80,8 +75,7 @@ const SearchedMessageItem = (props: SearchedMessageItemProps) => {
 };
 
 const SearchedConversationItem = (props: SearchedConversationItemProps) => {
-  const { conversation, onPressConversationItem, searchQuery, isCurrentUser } =
-    props;
+  const { conversation, onPressConversationItem, searchQuery, isCurrentUser } = props;
   return (
     <TouchableOpacity
       className="flex-row justify-between py-2.5 px-4 active:bg-gray-50 dark:active:bg-gray-800 rounded-lg"
@@ -98,18 +92,11 @@ const SearchedConversationItem = (props: SearchedConversationItemProps) => {
               ? "You: "
               : `${getUserDisplayName(
                   conversation?.messages?.[0]?.senderFirstName,
-                  conversation?.messages?.[0]?.senderLastName,
+                  conversation?.messages?.[0]?.senderLastName
                 )}: `}
           </AppText>
-          <AppText
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            className="flex-1 text-base leading-5"
-          >
-            {highlightText(
-              conversation?.messages?.[0]?.messageText,
-              searchQuery,
-            )}
+          <AppText numberOfLines={1} ellipsizeMode="tail" className="flex-1 text-base leading-5">
+            {highlightText(conversation?.messages?.[0]?.messageText, searchQuery)}
           </AppText>
         </View>
       </View>

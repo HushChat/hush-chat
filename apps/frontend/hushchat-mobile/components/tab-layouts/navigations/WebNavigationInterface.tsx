@@ -10,9 +10,7 @@ interface WebNavigationInterfaceProps {
   navigationItems: INavigationItem[];
 }
 
-const WebNavigationInterface = ({
-  navigationItems,
-}: WebNavigationInterfaceProps) => {
+const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -32,10 +30,7 @@ const WebNavigationInterface = ({
           };
 
           return (
-            <View
-              key={item.name}
-              className="group relative w-full items-center"
-            >
+            <View key={item.name} className="group relative w-full items-center">
               <View className=" absolute left-0 top-1/2 transform -translate-y-1/2 z-10">
                 <View
                   className={`w-1 rounded-r-full ${
@@ -52,15 +47,11 @@ const WebNavigationInterface = ({
                 className="group relative"
               >
                 <View
-                  className={classNames(
-                    "w-12 h-12 items-center justify-center",
-                    {
-                      "bg-primary-light dark:bg-primary-dark rounded-2xl":
-                        isFocused,
-                      "bg-gray-100 dark:bg-background-dark rounded-3xl hover:rounded-2xl hover:bg-secondary-light hover:dark:bg-secondary-dark":
-                        !isFocused,
-                    },
-                  )}
+                  className={classNames("w-12 h-12 items-center justify-center", {
+                    "bg-primary-light dark:bg-primary-dark rounded-2xl": isFocused,
+                    "bg-gray-100 dark:bg-background-dark rounded-3xl hover:rounded-2xl hover:bg-secondary-light hover:dark:bg-secondary-dark":
+                      !isFocused,
+                  })}
                 >
                   <Text
                     className={`${

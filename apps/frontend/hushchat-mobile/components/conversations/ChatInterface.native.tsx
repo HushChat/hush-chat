@@ -24,8 +24,7 @@ export default function ChatInterface({
 }: ChatComponentProps) {
   const insets = useSafeAreaInsets();
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
-  const { selectedConversationType, setSelectedConversationType } =
-    useConversationStore();
+  const { selectedConversationType, setSelectedConversationType } = useConversationStore();
 
   useEffect(() => {
     if (selectedConversation) {
@@ -60,26 +59,17 @@ export default function ChatInterface({
       >
         <View className="flex-row items-center">
           {selectedConversationType === ConversationType.ARCHIVED && (
-            <BackButton
-              onPress={() => setSelectedConversationType(ConversationType.ALL)}
-            />
+            <BackButton onPress={() => setSelectedConversationType(ConversationType.ALL)} />
           )}
 
           <View className="flex-1">
             <Text
-              className={classNames(
-                "text-text-primary-light dark:text-text-primary-dark",
-                {
-                  "text-xl font-medium":
-                    selectedConversationType === ConversationType.ARCHIVED,
-                  "text-3xl font-bold":
-                    selectedConversationType !== ConversationType.ARCHIVED,
-                },
-              )}
+              className={classNames("text-text-primary-light dark:text-text-primary-dark", {
+                "text-xl font-medium": selectedConversationType === ConversationType.ARCHIVED,
+                "text-3xl font-bold": selectedConversationType !== ConversationType.ARCHIVED,
+              })}
             >
-              {selectedConversationType === ConversationType.ARCHIVED
-                ? "Archived"
-                : "Chats"}
+              {selectedConversationType === ConversationType.ARCHIVED ? "Archived" : "Chats"}
             </Text>
           </View>
 

@@ -4,12 +4,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 
 type Props = TextProps & { size?: number; children: string };
 
-export default function EmojiGlyph({
-  size = 24,
-  style,
-  children,
-  ...rest
-}: Props) {
+export default function EmojiGlyph({ size = 24, style, children, ...rest }: Props) {
   const lineHeight = Math.round(size * 1.2);
 
   return (

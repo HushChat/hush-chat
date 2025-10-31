@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Image,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Image } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
@@ -50,9 +43,7 @@ export default function VerifyOtp() {
 
       router.push(AUTH_LOGIN_PATH);
     } catch (error: any) {
-      setErrorMessage(
-        "OTP verification failed. Please try again." + error.message,
-      );
+      setErrorMessage("OTP verification failed. Please try again." + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -85,10 +76,7 @@ export default function VerifyOtp() {
       className="flex-1 justify-center px-5"
       style={{ backgroundColor: colors.background }}
     >
-      <View
-        className="p-5 rounded-lg shadow-sm"
-        style={{ backgroundColor: colors.background }}
-      >
+      <View className="p-5 rounded-lg shadow-sm" style={{ backgroundColor: colors.background }}>
         <View className="items-center mb-4">
           <Image
             source={{ uri: isDark ? darkLogo : lightLogo }}
@@ -96,10 +84,7 @@ export default function VerifyOtp() {
           />
         </View>
 
-        <Text
-          className="text-2xl font-bold text-center mb-5"
-          style={{ color: colors.text }}
-        >
+        <Text className="text-2xl font-bold text-center mb-5" style={{ color: colors.text }}>
           Verify OTP
         </Text>
 
@@ -126,10 +111,7 @@ export default function VerifyOtp() {
         <View className="pb-3">
           <Text className="text-sm text-center">
             Didn&#39;t receive the verification code?{" "}
-            <TouchableOpacity
-              onPress={handleResendOtp}
-              activeOpacity={DEFAULT_ACTIVE_OPACITY}
-            >
+            <TouchableOpacity onPress={handleResendOtp} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
               <Text className="text-blue-500 underline">Resend</Text>
             </TouchableOpacity>
           </Text>

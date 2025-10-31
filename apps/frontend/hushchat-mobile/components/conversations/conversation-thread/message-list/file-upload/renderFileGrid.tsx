@@ -5,13 +5,7 @@
 
 import React, { useState } from "react";
 import { IMessageAttachment } from "@/types/chat/types";
-import {
-  TouchableOpacity,
-  View,
-  ViewStyle,
-  ImageStyle,
-  Linking,
-} from "react-native";
+import { TouchableOpacity, View, ViewStyle, ImageStyle, Linking } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
@@ -72,22 +66,22 @@ const styles = {
 
   twoImagesImage: createImageStyle(
     (GRID_CONFIG.MAX_WIDTH - GRID_CONFIG.IMAGE_GAP) / 2,
-    GRID_CONFIG.MAX_HEIGHT / 1.5,
+    GRID_CONFIG.MAX_HEIGHT / 1.5
   ),
 
   threeImagesLarge: createImageStyle(
     (GRID_CONFIG.MAX_WIDTH - GRID_CONFIG.IMAGE_GAP) / 2,
-    GRID_CONFIG.MAX_HEIGHT / 1.3,
+    GRID_CONFIG.MAX_HEIGHT / 1.3
   ),
 
   threeImagesSmall: createImageStyle(
     (GRID_CONFIG.MAX_WIDTH - GRID_CONFIG.IMAGE_GAP) / 2,
-    (GRID_CONFIG.MAX_HEIGHT / 1.3 - GRID_CONFIG.IMAGE_GAP) / 2,
+    (GRID_CONFIG.MAX_HEIGHT / 1.3 - GRID_CONFIG.IMAGE_GAP) / 2
   ),
 
   fourImagesImage: createImageStyle(
     (GRID_CONFIG.MAX_WIDTH - GRID_CONFIG.IMAGE_GAP) / 2,
-    (GRID_CONFIG.MAX_HEIGHT - GRID_CONFIG.IMAGE_GAP) / 2,
+    (GRID_CONFIG.MAX_HEIGHT - GRID_CONFIG.IMAGE_GAP) / 2
   ),
 
   overlayContainer: {
@@ -104,14 +98,12 @@ const styles = {
 } as const;
 
 const getFileType = (
-  attachment: IMessageAttachment,
+  attachment: IMessageAttachment
 ): "image" | "pdf" | "word" | "excel" | "unknown" => {
-  const fileName =
-    attachment.originalFileName || attachment.indexedFileName || "";
+  const fileName = attachment.originalFileName || attachment.indexedFileName || "";
   const ext = fileName.toLowerCase().split(".").pop();
 
-  if (["jpg", "jpeg", "png", "svg", "gif", "webp"].includes(ext || ""))
-    return "image";
+  if (["jpg", "jpeg", "png", "svg", "gif", "webp"].includes(ext || "")) return "image";
   if (ext === "pdf") return "pdf";
   if (["doc", "docx"].includes(ext || "")) return "word";
   if (["xls", "xlsx"].includes(ext || "")) return "excel";
@@ -131,10 +123,7 @@ const DocumentCard = ({
   const isDark = colorScheme === "dark";
 
   const fileType = getFileType(attachment);
-  const typeLabels: Record<
-    string,
-    { label: string; icon: string; color: string }
-  > = {
+  const typeLabels: Record<string, { label: string; icon: string; color: string }> = {
     pdf: { label: "PDF", icon: "document-text", color: "#6B4EFF" },
     word: { label: "WORD", icon: "document-text", color: "#2B6CB0" },
     excel: { label: "EXCEL", icon: "document-text", color: "#16A34A" },
@@ -142,12 +131,8 @@ const DocumentCard = ({
   };
 
   const { label, icon, color } = typeLabels[fileType] || typeLabels.unknown;
-  const bgColor = isDark
-    ? "rgba(86, 61, 196, 0.25)"
-    : "rgba(107, 78, 255, 0.15)";
-  const borderColor = isDark
-    ? "rgba(86, 61, 196, 0.4)"
-    : "rgba(107, 78, 255, 0.3)";
+  const bgColor = isDark ? "rgba(86, 61, 196, 0.25)" : "rgba(107, 78, 255, 0.15)";
+  const borderColor = isDark ? "rgba(86, 61, 196, 0.4)" : "rgba(107, 78, 255, 0.3)";
   const textPrimary = isDark ? "#ffffff" : "#111827";
   const textSecondary = isDark ? "#9ca3af" : "#6B7280";
 
@@ -181,9 +166,7 @@ const DocumentCard = ({
           }}
         >
           <Ionicons name={icon as any} size={20} color={color} />
-          <AppText
-            style={{ fontSize: 8, fontWeight: "bold", marginTop: 2, color }}
-          >
+          <AppText style={{ fontSize: 8, fontWeight: "bold", marginTop: 2, color }}>
             {label}
           </AppText>
         </View>
@@ -232,9 +215,7 @@ const ImageItem = ({
     />
     {showOverlay && remainingCount > 0 && (
       <View style={styles.overlayContainer}>
-        <AppText className="text-white font-semibold text-2xl">
-          +{remainingCount}
-        </AppText>
+        <AppText className="text-white font-semibold text-2xl">+{remainingCount}</AppText>
       </View>
     )}
   </TouchableOpacity>
@@ -248,10 +229,7 @@ const ImageGrid = ({
   onImagePress: (index: number) => void;
 }) => {
   const displayImages = images.slice(0, GRID_CONFIG.MAX_DISPLAY_IMAGES);
-  const remainingCount = Math.max(
-    0,
-    images.length - GRID_CONFIG.MAX_DISPLAY_IMAGES,
-  );
+  const remainingCount = Math.max(0, images.length - GRID_CONFIG.MAX_DISPLAY_IMAGES);
   const aspectRatio = 4 / 3;
 
   const renderSingleImage = () => (
@@ -401,7 +379,6 @@ const RenderFileGrid = ({
   );
 };
 
-export const renderFileGrid = (
-  attachments: IMessageAttachment[],
-  isCurrentUser: boolean,
-) => <RenderFileGrid attachments={attachments} isCurrentUser={isCurrentUser} />;
+export const renderFileGrid = (attachments: IMessageAttachment[], isCurrentUser: boolean) => (
+  <RenderFileGrid attachments={attachments} isCurrentUser={isCurrentUser} />
+);

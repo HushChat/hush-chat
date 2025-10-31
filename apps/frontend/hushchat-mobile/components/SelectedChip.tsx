@@ -15,17 +15,11 @@ export const SelectedChip = ({ label, onRemove }: SelectedChipProps) => (
       PLATFORM.IS_WEB ? "px-3 py-1.5 mr-2 mb-3" : "px-3 py-2 mr-2 mb-2"
     } rounded-full`}
   >
-    <Text
-      className={`text-white text-sm font-medium ${PLATFORM.IS_WEB ? "mr-1.5" : "mr-2"}`}
-    >
+    <Text className={`text-white text-sm font-medium ${PLATFORM.IS_WEB ? "mr-1.5" : "mr-2"}`}>
       {label}
     </Text>
     <TouchableOpacity onPress={onRemove} hitSlop={DEFAULT_HIT_SLOP}>
-      <Ionicons
-        name="close-circle"
-        size={PLATFORM.IS_WEB ? 14 : 16}
-        color="white"
-      />
+      <Ionicons name="close-circle" size={PLATFORM.IS_WEB ? 14 : 16} color="white" />
     </TouchableOpacity>
   </View>
 );

@@ -47,23 +47,15 @@ export const ConversationHeader = ({
     <View className="px-6 py-4 flex-row items-center">
       <View className="flex-row items-center flex-1">
         {selectedConversationType === ConversationType.ARCHIVED && (
-          <BackButton
-            onPress={() => setSelectedConversationType(ConversationType.ALL)}
-          />
+          <BackButton onPress={() => setSelectedConversationType(ConversationType.ALL)} />
         )}
         <AppText className="text-2xl font-bold text-gray-900 dark:text-white">
-          {selectedConversationType === ConversationType.ARCHIVED
-            ? "Archived"
-            : "Chats"}
+          {selectedConversationType === ConversationType.ARCHIVED ? "Archived" : "Chats"}
         </AppText>
       </View>
       <View className="flex-row items-center gap-3">
         <WebSocketStatusIndicator />
-        <RefreshButton
-          onRefresh={onRefresh}
-          isLoading={isLoading}
-          color="#6B7280"
-        />
+        <RefreshButton onRefresh={onRefresh} isLoading={isLoading} color="#6B7280" />
         <KebabMenuButton onPress={handleKebabPress} />
         <WebContextMenu
           visible={visible}

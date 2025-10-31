@@ -1,12 +1,7 @@
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import axios, { AxiosError } from "axios";
-import {
-  IConversation,
-  IGroupConversation,
-  IMessage,
-  IMessageView,
-} from "@/types/chat/types";
+import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
@@ -52,11 +47,7 @@ export interface ToggleMuteConversationParams {
   duration: "15m" | "1h" | "1d" | "always";
 }
 
-export type ReportReason =
-  | "SPAM"
-  | "HARASSMENT"
-  | "INAPPROPRIATE_CONTENT"
-  | "OTHER";
+export type ReportReason = "SPAM" | "HARASSMENT" | "INAPPROPRIATE_CONTENT" | "OTHER";
 export interface ReportConversationParams {
   conversationId: number;
   reason: ReportReason;
@@ -65,7 +56,7 @@ export interface ReportConversationParams {
 export const getAllConversations = async (
   criteria: ConversationFilterCriteria = {},
   offset: number = 0,
-  size: number = 10,
+  size: number = 10
 ) => {
   try {
     const response = await axios.get(CONVERSATION_API_ENDPOINTS.ALL, {
@@ -80,52 +71,40 @@ export const getAllConversations = async (
 
 export const getConversationMessagesByCursor = async (
   conversationId: number,
-  {
-    beforeId,
-    afterId,
-    size = 20,
-  }: { beforeId?: number; afterId?: number; size?: number },
+  { beforeId, afterId, size = 20 }: { beforeId?: number; afterId?: number; size?: number }
 ) => {
   try {
     const params: Record<string, number> = { size };
     if (beforeId) params.beforeId = beforeId;
     if (afterId) params.afterId = afterId;
 
-    const response = await axios.get(
-      CONVERSATION_API_ENDPOINTS.MESSAGES(conversationId),
-      {
-        params,
-      },
-    );
+    const response = await axios.get(CONVERSATION_API_ENDPOINTS.MESSAGES(conversationId), {
+      params,
+    });
 
     const data = response.data;
     return { data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<{ error?: string }>;
     return {
-      error:
-        axiosError?.response?.data?.error ||
-        axiosError?.message ||
-        "Unknown error",
+      error: axiosError?.response?.data?.error || axiosError?.message || "Unknown error",
     };
   }
 };
 
 export const getConversationById = async (conversationId: number) => {
-  const response = await axios.get(
-    CONVERSATION_API_ENDPOINTS.GET_BY_ID(conversationId),
-  );
+  const response = await axios.get(CONVERSATION_API_ENDPOINTS.GET_BY_ID(conversationId));
   return response.data;
 };
 
 export const updateConversationById = async (
   conversationId: number,
   name: string,
-  description: string,
+  description: string
 ) => {
   const response = await axios.patch(
     CONVERSATION_API_ENDPOINTS.UPDATE_CONVERSATION(conversationId),
-    { name, description },
+    { name, description }
   );
   return { data: response.data };
 };
@@ -144,9 +123,7 @@ export const getAllCallLogs = async (page: number = 0, size: number = 10) => {
 
 export const archiveConversationById = async (conversationId: number) => {
   try {
-    const response = await axios.patch(
-      CONVERSATION_API_ENDPOINTS.ARCHIVE(conversationId),
-    );
+    const response = await axios.patch(CONVERSATION_API_ENDPOINTS.ARCHIVE(conversationId));
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -157,16 +134,13 @@ export const archiveConversationById = async (conversationId: number) => {
 export const sendMessageByConversationId = async (
   conversationId: number,
   message: string,
-  parentMessageId?: number,
+  parentMessageId?: number
 ): Promise<ApiResponse<IMessage>> => {
   try {
-    const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.MESSAGES(conversationId),
-      {
-        messageText: message,
-        parentMessageId: parentMessageId ?? null,
-      },
-    );
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.MESSAGES(conversationId), {
+      messageText: message,
+      parentMessageId: parentMessageId ?? null,
+    });
     return { data: response.data };
   } catch (error) {
     ToastUtils.error("Failed to send message:" + error);
@@ -178,18 +152,15 @@ export const sendMessageByConversationId = async (
 export const sendMessageByConversationIdFiles = async (
   conversationId: number,
   message: string,
-  fileNames: string[],
+  fileNames: string[]
 ) => {
   try {
-    const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.SIGNED_URLS(conversationId),
-      {
-        messageText: message,
-        files: {
-          fileNames,
-        },
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.SIGNED_URLS(conversationId), {
+      messageText: message,
+      files: {
+        fileNames,
       },
-    );
+    });
     return response.data;
   } catch (error) {
     ToastUtils.error("Failed to send message:" + error);
@@ -199,7 +170,7 @@ export const sendMessageByConversationIdFiles = async (
 export const toggleConversationFavorite = async (conversationId: string) => {
   try {
     const response = await axios.patch(
-      CONVERSATION_API_ENDPOINTS.FAVOURITE(String(conversationId)),
+      CONVERSATION_API_ENDPOINTS.FAVOURITE(String(conversationId))
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -211,7 +182,7 @@ export const toggleConversationFavorite = async (conversationId: string) => {
 export const getOtherParticipantProfile = async (conversationId: number) => {
   try {
     const response = await axios.get(
-      CONVERSATION_API_ENDPOINTS.GET_OTHER_PARTICIPANT(conversationId),
+      CONVERSATION_API_ENDPOINTS.GET_OTHER_PARTICIPANT(conversationId)
     );
     return response.data;
   } catch (error: unknown) {
@@ -222,15 +193,12 @@ export const getOtherParticipantProfile = async (conversationId: number) => {
 
 export const searchConversationMessages = async (
   conversationId: number,
-  searchQuery: string,
+  searchQuery: string
 ): Promise<IMessageView[]> => {
   try {
-    const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.SEARCH_MESSAGES(conversationId),
-      {
-        searchKeyword: searchQuery,
-      },
-    );
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.SEARCH_MESSAGES(conversationId), {
+      searchKeyword: searchQuery,
+    });
 
     return response.data;
   } catch (error: unknown) {
@@ -239,14 +207,9 @@ export const searchConversationMessages = async (
   }
 };
 
-export const createGroupConversation = async (
-  groupInfo: IGroupConversation,
-) => {
+export const createGroupConversation = async (groupInfo: IGroupConversation) => {
   try {
-    const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.GROUP,
-      groupInfo,
-    );
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.GROUP, groupInfo);
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -256,9 +219,7 @@ export const createGroupConversation = async (
 
 export const getGroupProfile = async (conversationId: number) => {
   try {
-    const response = await axios.get(
-      CONVERSATION_API_ENDPOINTS.GET_GROUP_PROFILE(conversationId),
-    );
+    const response = await axios.get(CONVERSATION_API_ENDPOINTS.GET_GROUP_PROFILE(conversationId));
     return response.data;
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -282,14 +243,14 @@ export const getConversationParticipants = async (
   conversationId: number,
   keyword: string = "",
   page: number = 0,
-  size: number = 20,
+  size: number = 20
 ) => {
   try {
     const response = await axios.get(
       CONVERSATION_API_ENDPOINTS.CONVERSATION_PARTICIPANTS(conversationId),
       {
         params: { keyword, page, size },
-      },
+      }
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -305,7 +266,7 @@ export const addConversationParticipants = async ({
   try {
     const response = await axios.post(
       CONVERSATION_API_ENDPOINTS.CONVERSATION_PARTICIPANTS(conversationId),
-      { userIds: newParticipantIds },
+      { userIds: newParticipantIds }
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -316,9 +277,7 @@ export const addConversationParticipants = async ({
 
 export const togglePinConversation = async (conversationId: number) => {
   try {
-    const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.PIN_CONVERSATION(conversationId),
-    );
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.PIN_CONVERSATION(conversationId));
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -329,9 +288,7 @@ export const togglePinConversation = async (conversationId: number) => {
 export const deleteConversationByID = async (conversationId: number) => {
   try {
     const response = await axios.delete(
-      CONVERSATION_API_ENDPOINTS.DELETE_CONVERSATION_PARTICIPANT(
-        conversationId,
-      ),
+      CONVERSATION_API_ENDPOINTS.DELETE_CONVERSATION_PARTICIPANT(conversationId)
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -341,9 +298,7 @@ export const deleteConversationByID = async (conversationId: number) => {
 
 export const exitGroupConversation = async (conversationId: number) => {
   try {
-    const response = await axios.patch(
-      CONVERSATION_API_ENDPOINTS.EXIT_GROUP(conversationId),
-    );
+    const response = await axios.patch(CONVERSATION_API_ENDPOINTS.EXIT_GROUP(conversationId));
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -354,15 +309,12 @@ export const exitGroupConversation = async (conversationId: number) => {
 };
 
 export const createOneToOneConversation = async (
-  targetUserId: number,
+  targetUserId: number
 ): Promise<ApiResponse<IConversation>> => {
   try {
-    const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.CREATE_ONE_TO_ONE,
-      {
-        targetUserId: targetUserId,
-      },
-    );
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.CREATE_ONE_TO_ONE, {
+      targetUserId: targetUserId,
+    });
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -370,15 +322,11 @@ export const createOneToOneConversation = async (
   }
 };
 
-export const toggleMuteConversation = async (
-  params: ToggleMuteConversationParams,
-) => {
+export const toggleMuteConversation = async (params: ToggleMuteConversationParams) => {
   try {
     const response = await axios.patch(
-      CONVERSATION_API_ENDPOINTS.TOGGLE_MUTE_CONVERSATION(
-        params.conversationId,
-      ),
-      { duration: params.duration },
+      CONVERSATION_API_ENDPOINTS.TOGGLE_MUTE_CONVERSATION(params.conversationId),
+      { duration: params.duration }
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -389,14 +337,11 @@ export const toggleMuteConversation = async (
 
 export const removeConversationParticipant = async (
   conversationId: number,
-  participantId: number,
+  participantId: number
 ) => {
   try {
     const response = await axios.delete(
-      CONVERSATION_API_ENDPOINTS.REMOVE_CONVERSATION_PARTICIPANT(
-        conversationId,
-        participantId,
-      ),
+      CONVERSATION_API_ENDPOINTS.REMOVE_CONVERSATION_PARTICIPANT(conversationId, participantId)
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -407,14 +352,12 @@ export const removeConversationParticipant = async (
 export const updateConversationParticipantRole = async (
   conversationId: number,
   userId: number,
-  makeAdmin: boolean,
+  makeAdmin: boolean
 ) => {
   try {
     const response = await axios.patch(
-      CONVERSATION_API_ENDPOINTS.UPDATE_CONVERSATION_PARTICIPANT_ROLE(
-        conversationId,
-      ),
-      { userId, makeAdmin },
+      CONVERSATION_API_ENDPOINTS.UPDATE_CONVERSATION_PARTICIPANT_ROLE(conversationId),
+      { userId, makeAdmin }
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -433,8 +376,7 @@ export const reportConversation = async ({
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
     const errorMsg =
-      axiosError?.response?.data?.error ||
-      "Failed to report group. Please try again later.";
+      axiosError?.response?.data?.error || "Failed to report group. Please try again later.";
     throw new Error(errorMsg);
   }
 };

@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { IConversation, IGroupConversation } from "@/types/chat/types";
@@ -46,14 +40,12 @@ const GroupConfigurationForm = ({
   const [groupName, setGroupName] = useState(initialName);
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [imagePickerResult, setImagePickerResult] = useState<
-    ImagePickerResult | undefined
-  >();
+  const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | undefined>();
   const [groupDescription, setGroupDescription] = useState("");
   const [imageAssetData, setImageAssetData] = useState(null);
   const isValid = useMemo(
     () => groupName.trim().length > 0 && participantUserIds.length > 0,
-    [groupName, participantUserIds],
+    [groupName, participantUserIds]
   );
 
   const {
@@ -61,44 +53,37 @@ const GroupConfigurationForm = ({
   } = useUserStore();
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
-  const { mutate: createGroup, isPending: submitting } =
-    useCreateGroupConversationMutation(
-      {
-        userId: Number(userId),
-        criteria,
-      },
-      (conversation) => {
-        onSuccess?.(conversation.id);
+  const { mutate: createGroup, isPending: submitting } = useCreateGroupConversationMutation(
+    {
+      userId: Number(userId),
+      criteria,
+    },
+    (conversation) => {
+      onSuccess?.(conversation.id);
 
-        if (conversation.signedImageUrl && imageAssetData !== null) {
-          uploadImageToSignedUrl(
-            imageAssetData?.fileUri,
-            conversation?.signedImageUrl,
-          );
-        }
+      if (conversation.signedImageUrl && imageAssetData !== null) {
+        uploadImageToSignedUrl(imageAssetData?.fileUri, conversation?.signedImageUrl);
+      }
 
-        if (!PLATFORM.IS_WEB) {
-          router.push({
-            pathname: CHAT_VIEW_PATH,
-            params: {
-              conversationId: conversation.id,
-              conversationName: conversation.name,
-            },
-          });
-        } else {
-          setSelectedConversation(conversation);
-        }
-      },
-      () => {
-        ToastUtils.error("Failed to create group!");
-      },
-    );
+      if (!PLATFORM.IS_WEB) {
+        router.push({
+          pathname: CHAT_VIEW_PATH,
+          params: {
+            conversationId: conversation.id,
+            conversationName: conversation.name,
+          },
+        });
+      } else {
+        setSelectedConversation(conversation);
+      }
+    },
+    () => {
+      ToastUtils.error("Failed to create group!");
+    }
+  );
 
   const onCreate = useCallback(() => {
-    const imageAssetData = getImagePickerAsset(
-      imagePickerResult,
-      UploadType.GROUP,
-    );
+    const imageAssetData = getImagePickerAsset(imagePickerResult, UploadType.GROUP);
     setImageAssetData(imageAssetData);
 
     if (!isValid || submitting) return;
@@ -135,9 +120,7 @@ const GroupConfigurationForm = ({
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
           <View style={{ position: "relative" }}>
-            {imagePickerResult?.assets &&
-            imagePickerResult.assets.length > 0 &&
-            !imageError ? (
+            {imagePickerResult?.assets && imagePickerResult.assets.length > 0 && !imageError ? (
               <View className="w-160 h-160 rounded-full bg-white dark:bg-gray-800 items-center justify-center overflow-hidden">
                 <Image
                   source={{ uri: imagePickerResult?.assets[0].uri }}
@@ -222,9 +205,7 @@ const GroupConfigurationForm = ({
         {submitting ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
-          <Text className="text-white font-medium cursor-pointer">
-            {submitLabel}
-          </Text>
+          <Text className="text-white font-medium cursor-pointer">{submitLabel}</Text>
         )}
       </TouchableOpacity>
     </View>

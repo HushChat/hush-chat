@@ -1,24 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  Dimensions,
-  ScrollView,
-  Image,
-} from "react-native";
+import { Modal, View, Text, Pressable, Dimensions, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  GestureDetector,
-  Gesture,
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { TImagePreviewProps } from "@/types/chat/types";
 import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
 import { usePanGesture } from "@/gestures/base/usePanGesture";
@@ -27,12 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-export const ImagePreview = ({
-  visible,
-  images,
-  initialIndex,
-  onClose,
-}: TImagePreviewProps) => {
+export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const isZoomed = useSharedValue(false);
@@ -147,10 +126,7 @@ export const ImagePreview = ({
   });
 
   const panZoom = Gesture.Simultaneous(pinchGesture, panGesture);
-  const composedGesture = Gesture.Exclusive(
-    swipeGesture,
-    Gesture.Race(doubleTapGesture, panZoom),
-  );
+  const composedGesture = Gesture.Exclusive(swipeGesture, Gesture.Race(doubleTapGesture, panZoom));
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -188,10 +164,7 @@ export const ImagePreview = ({
             <View className="flex-1 justify-center items-center">
               <GestureDetector gesture={composedGesture}>
                 <Animated.View
-                  style={[
-                    { width: SCREEN_WIDTH, height: SCREEN_HEIGHT },
-                    animatedStyle,
-                  ]}
+                  style={[{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }, animatedStyle]}
                 >
                   <Image
                     source={{ uri: currentImage?.fileUrl }}

@@ -36,22 +36,14 @@ export default function ChatInterface({
   } = useConversationStore();
 
   const [showProfilePanel, setShowProfilePanel] = useState<boolean>(false);
-  const [screenWidth, setScreenWidth] = useState<number>(
-    Dimensions.get("window").width,
-  );
+  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
 
-  const {
-    activePanel,
-    isPanelContentReady,
-    contentOpacity,
-    widthAnim,
-    openPanel,
-    closePanel,
-  } = usePanelManager(screenWidth);
+  const { activePanel, isPanelContentReady, contentOpacity, widthAnim, openPanel, closePanel } =
+    usePanelManager(screenWidth);
 
   const handleSearchMessageClick = useCallback((message: any) => {
     setMessageToJump(message.id);
@@ -91,7 +83,7 @@ export default function ChatInterface({
       if (ids && ids.size) setSelectedMessageIds(ids);
       openPanel(PanelType.FORWARD);
     },
-    [openPanel, setSelectedMessageIds],
+    [openPanel, setSelectedMessageIds]
   );
 
   useEffect(() => {
@@ -129,9 +121,7 @@ export default function ChatInterface({
           />
         );
       case PanelType.FORWARD:
-        return (
-          <ConversationForwardPanelWeb onClose={handleForwardPanelClose} />
-        );
+        return <ConversationForwardPanelWeb onClose={handleForwardPanelClose} />;
       default:
         return null;
     }
@@ -153,9 +143,7 @@ export default function ChatInterface({
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-row h-full relative">
         <View
-          onLayout={(event) =>
-            setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))
-          }
+          onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
           style={{ position: "relative" }}
           className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
         >
@@ -194,9 +182,7 @@ export default function ChatInterface({
           )}
 
           <View className="flex-1 min-h-0">
-            <View className="max-w-md mx-auto w-full flex-1 min-h-0">
-              {chatItemList}
-            </View>
+            <View className="max-w-md mx-auto w-full flex-1 min-h-0">{chatItemList}</View>
           </View>
 
           {showCreateGroup && (

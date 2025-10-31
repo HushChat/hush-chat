@@ -21,11 +21,7 @@ export default function ForgotPasswordResetScreen() {
   } = useForgotPasswordReset();
 
   return (
-    <AuthMobileLayout
-      colors={colors}
-      image={Images.Workspace}
-      onBack={() => router.back()}
-    >
+    <AuthMobileLayout colors={colors} image={Images.Workspace} onBack={() => router.back()}>
       <ForgotPasswordResetForm
         colors={colors}
         errorMessage={errorMessage}

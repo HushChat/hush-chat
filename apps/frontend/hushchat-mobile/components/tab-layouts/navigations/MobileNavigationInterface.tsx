@@ -26,9 +26,7 @@ const MobileNavigationInterface = ({
     >
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
-        const navigationItem = navigationItems.find(
-          (item) => item.name === route.name,
-        );
+        const navigationItem = navigationItems.find((item) => item.name === route.name);
 
         const label =
           options.tabBarLabel !== undefined
@@ -66,16 +64,10 @@ const MobileNavigationInterface = ({
           >
             <View
               className={`p-2 rounded-2xl ${
-                isFocused
-                  ? "bg-primary-light dark:bg-primary-dark"
-                  : "bg-transparent"
+                isFocused ? "bg-primary-light dark:bg-primary-dark" : "bg-transparent"
               }`}
             >
-              <Ionicons
-                name={iconName}
-                size={24}
-                color={isFocused ? "#ffffff" : "#6B7280"}
-              />
+              <Ionicons name={iconName} size={24} color={isFocused ? "#ffffff" : "#6B7280"} />
             </View>
 
             <Text
@@ -95,11 +87,7 @@ const MobileNavigationInterface = ({
 
   if (PLATFORM.IS_IOS) {
     return (
-      <BlurView
-        intensity={100}
-        tint="light"
-        className="absolute bottom-0 left-0 right-0"
-      >
+      <BlurView intensity={100} tint="light" className="absolute bottom-0 left-0 right-0">
         <TabBarContent />
       </BlurView>
     );

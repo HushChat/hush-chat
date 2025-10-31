@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function useConversationMessagesSearchQuery(
   conversationId: number,
-  searchQuery: string,
+  searchQuery: string
 ) {
   const {
     data: messages = [],

@@ -17,12 +17,34 @@
     "build:android": "yarn --cwd apps/frontend/hushchat-mobile build-android",
     "build:web": "yarn --cwd apps/frontend/hushchat-mobile prod:build-web",
     "run:stack": "concurrently \"yarn start:backend\" \"yarn start:hush-chat\"",
-    "format": "prettier --write ."
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:check": "eslint . --max-warnings 0",
+    "prettier": "prettier --write .",
+    "prettier:check": "prettier --check .",
+    "format": "prettier --write . && eslint . --fix",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "prettier": "^3.6.2",
+    "eslint": "^9.38.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.6"
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.38.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-native": "^5.0.0",
+    "globals": "^16.4.0",
+    "typescript-eslint": "^8.46.2"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }

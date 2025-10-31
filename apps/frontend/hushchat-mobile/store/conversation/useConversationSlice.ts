@@ -12,16 +12,14 @@ export interface ConversationState {
 }
 
 export const createConversationSlice: StateCreator<ConversationState> = (
-  set,
+  set
 ): ConversationState => ({
   selectedConversationType: ConversationType.ALL,
-  setSelectedConversationType: (type: ConversationType) =>
-    set({ selectedConversationType: type }),
+  setSelectedConversationType: (type: ConversationType) => set({ selectedConversationType: type }),
   selectionMode: false,
   setSelectionMode: (mode: boolean) => set({ selectionMode: mode }),
   selectedMessageIds: new Set<number>(),
-  setSelectedMessageIds: (ids: Set<number>) =>
-    set({ selectedMessageIds: new Set(ids) }),
+  setSelectedMessageIds: (ids: Set<number>) => set({ selectedMessageIds: new Set(ids) }),
   resetState: () =>
     set({
       selectedConversationType: ConversationType.ALL,

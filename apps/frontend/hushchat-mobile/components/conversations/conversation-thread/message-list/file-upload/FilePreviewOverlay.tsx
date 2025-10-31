@@ -35,8 +35,7 @@ const FilePreviewOverlay = ({
   useEffect(() => setInternalMsg(message), [message]);
 
   useEffect(() => {
-    if (selectedIndex >= files.length)
-      setSelectedIndex(Math.max(0, files.length - 1));
+    if (selectedIndex >= files.length) setSelectedIndex(Math.max(0, files.length - 1));
   }, [files.length, selectedIndex]);
 
   const handleMessageChange = (t: string) => {
@@ -54,7 +53,7 @@ const FilePreviewOverlay = ({
       }
       e.target.value = "";
     },
-    [files.length, onFileSelect],
+    [files.length, onFileSelect]
   );
 
   const handleAddMore = () => {

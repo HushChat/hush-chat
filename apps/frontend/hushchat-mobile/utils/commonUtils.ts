@@ -11,11 +11,7 @@ type KeyEvent = KeyboardEvent | TextInputKeyPressEvent;
 
 const getDateOnly = (daysAgo: number = 0): Date => {
   const date = new Date();
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate() - daysAgo,
-  );
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() - daysAgo);
 };
 
 const getLastMessageTime = (isoString: string): string => {
@@ -27,7 +23,7 @@ const getLastMessageTime = (isoString: string): string => {
   const inputDateOnly = new Date(
     inputDate.getFullYear(),
     inputDate.getMonth(),
-    inputDate.getDate(),
+    inputDate.getDate()
   );
 
   const today = getDateOnly(0);
@@ -72,10 +68,7 @@ const getInitials = (name: string): string => {
     .join("");
 };
 
-const handleConversationNavigation = (
-  isWebAction: () => void,
-  conversationId: number,
-) => {
+const handleConversationNavigation = (isWebAction: () => void, conversationId: number) => {
   if (PLATFORM.IS_WEB) {
     isWebAction();
   } else {
@@ -90,9 +83,7 @@ const handleConversationNavigation = (
 
 // }
 
-const handleChatPress = (
-  setSelectedConversation: (conversation: IConversation | null) => void,
-) => {
+const handleChatPress = (setSelectedConversation: (conversation: IConversation | null) => void) => {
   const handleChatPress = (item: IConversation) => {
     if (!PLATFORM.IS_WEB) {
       router.push({
@@ -138,9 +129,7 @@ const formatRelativeTime = (iso?: string): string => {
 const useEnterSubmit = (onSubmit: () => void) => {
   return useCallback(
     (e: KeyEvent) => {
-      const key =
-        (e as TextInputKeyPressEvent).nativeEvent?.key ??
-        (e as KeyboardEvent).key;
+      const key = (e as TextInputKeyPressEvent).nativeEvent?.key ?? (e as KeyboardEvent).key;
 
       const shiftPressed = (e as KeyboardEvent).shiftKey ?? false;
 
@@ -151,7 +140,7 @@ const useEnterSubmit = (onSubmit: () => void) => {
         onSubmit();
       }
     },
-    [onSubmit],
+    [onSubmit]
   );
 };
 
@@ -167,13 +156,10 @@ const getAdjustedPosition = (
   screenWidth: number,
   screenHeight: number,
   modalWidth: number,
-  modalHeight: number,
+  modalHeight: number
 ) => ({
   x: Math.max(12, Math.min(position.x, screenWidth - modalWidth - 12)),
-  y:
-    position.y + modalHeight > screenHeight - 30
-      ? position.y - modalHeight - 12
-      : position.y,
+  y: position.y + modalHeight > screenHeight - 30 ? position.y - modalHeight - 12 : position.y,
 });
 
 export {

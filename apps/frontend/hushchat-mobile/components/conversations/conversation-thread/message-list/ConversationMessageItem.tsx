@@ -66,11 +66,7 @@ const ADD_ONE = 1;
 const MIN_COUNT = 0;
 
 const isImageAttachment = (att: IMessageAttachment) => {
-  const name = (
-    att.originalFileName ||
-    att.indexedFileName ||
-    ""
-  ).toLowerCase();
+  const name = (att.originalFileName || att.indexedFileName || "").toLowerCase();
   const byExt = /\.(jpe?g|png|gif|webp|svg)$/.test(name);
   const byMime = att?.mimeType?.startsWith?.("image/");
   return Boolean(byExt || byMime);
@@ -171,9 +167,7 @@ export const ConversationMessageItem = ({
       {
         id: 1,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
-        iconName: (isThisMessagePinned
-          ? "pin"
-          : "pin-outline") as keyof typeof Ionicons.glyphMap,
+        iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
@@ -216,11 +210,7 @@ export const ConversationMessageItem = ({
   ]);
 
   const handleOpenPicker = useCallback(() => {
-    if (
-      conversationAPIResponse?.isBlocked ||
-      !conversationAPIResponse?.isActive
-    )
-      return;
+    if (conversationAPIResponse?.isBlocked || !conversationAPIResponse?.isActive) return;
     if (selectionMode) return;
     onOpenPicker(String(message.id));
   }, [
@@ -288,8 +278,7 @@ export const ConversationMessageItem = ({
                 (reactionCounts[previousReaction] ?? 0) - REMOVE_ONE
               );
             }
-            reactionCounts[newReaction] =
-              (reactionCounts[newReaction] ?? 0) + ADD_ONE;
+            reactionCounts[newReaction] = (reactionCounts[newReaction] ?? 0) + ADD_ONE;
             setReactionSummary({
               counts: reactionCounts,
               currentUserReaction: newReaction,
@@ -375,11 +364,7 @@ export const ConversationMessageItem = ({
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons
-                      name="chevron-down-outline"
-                      size={16}
-                      color="#9CA3AF"
-                    />
+                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
                   </View>
                 </Pressable>
               </View>
@@ -428,11 +413,7 @@ export const ConversationMessageItem = ({
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons
-                      name="chevron-down-outline"
-                      size={16}
-                      color="#9CA3AF"
-                    />
+                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
                   </View>
                 </Pressable>
               </View>
@@ -441,10 +422,7 @@ export const ConversationMessageItem = ({
 
           {renderParentMessage()}
 
-          <Pressable
-            onPress={handleBubblePress}
-            disabled={!messageContent && !hasAttachments}
-          >
+          <Pressable onPress={handleBubblePress} disabled={!messageContent && !hasAttachments}>
             {selectionMode && (
               <View
                 style={{
@@ -532,11 +510,7 @@ export const ConversationMessageItem = ({
 
           {!message.isUnsend && (
             <ReactionPicker
-              visible={
-                isPickerOpen &&
-                !conversationAPIResponse?.isBlocked &&
-                !selectionMode
-              }
+              visible={isPickerOpen && !conversationAPIResponse?.isBlocked && !selectionMode}
               reactedByCurrentUser={reactedByCurrentUser}
               onSelect={handleSelectReaction}
               isCurrentUser={isCurrentUser}

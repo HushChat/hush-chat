@@ -26,10 +26,7 @@ const getDisplayName = (conversation: TConversation) => {
     return (conversation.name ?? "").trim() || "Untitled Conversation";
   }
   if ("username" in conversation) {
-    return (
-      `${conversation.firstName} ${conversation.lastName}`.trim() ||
-      "Unknown User"
-    );
+    return `${conversation.firstName} ${conversation.lastName}`.trim() || "Unknown User";
   }
   return "Unknown";
 };
@@ -73,9 +70,7 @@ export const ConversationsMultiSelect = ({
       queryResult={{
         pages: debouncedSearch ? searchResults : conversationsPages,
         isLoading: debouncedSearch ? isSearching : isLoadingConversations,
-        error: debouncedSearch
-          ? (searchError ?? null)
-          : (conversationsError ?? null),
+        error: debouncedSearch ? (searchError ?? null) : (conversationsError ?? null),
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
@@ -86,14 +81,11 @@ export const ConversationsMultiSelect = ({
         if (!dataPages) return [];
 
         if (debouncedSearch) {
-          const { chats = [], users = [] } =
-            (dataPages as ISearchResults) ?? {};
+          const { chats = [], users = [] } = (dataPages as ISearchResults) ?? {};
           return [...chats, ...users];
         }
 
-        const pages =
-          (dataPages as { pages?: PaginatedResponse<IConversation>[] })
-            ?.pages ?? [];
+        const pages = (dataPages as { pages?: PaginatedResponse<IConversation>[] })?.pages ?? [];
         return pages.flatMap((page) => page?.content ?? []);
       }}
       renderItemRow={(conversation, isSelected, toggle) => (

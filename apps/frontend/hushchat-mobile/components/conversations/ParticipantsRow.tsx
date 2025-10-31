@@ -26,27 +26,19 @@ export const ParticipantRow = ({
   const [showOptions, setShowOptions] = useState(false);
   const [showMobileOptions, setShowMobileOptions] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
-  const isCurrentUser =
-    Number(useUserStore.getState().user.id) === participant.user.id;
+  const isCurrentUser = Number(useUserStore.getState().user.id) === participant.user.id;
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
     e.stopPropagation();
     if (chevronButtonRef.current) {
       chevronButtonRef.current.measure(
-        (
-          fx: number,
-          fy: number,
-          width: number,
-          height: number,
-          px: number,
-          py: number,
-        ) => {
+        (fx: number, fy: number, width: number, height: number, px: number, py: number) => {
           setMenuPosition({
             x: px,
             y: py + height,
           });
           setShowOptions(true);
-        },
+        }
       );
     }
   }, []);
@@ -72,7 +64,7 @@ export const ParticipantRow = ({
           "group flex-row items-center px-6 py-4 active:bg-gray-100 dark:active:bg-gray-800",
           PLATFORM.IS_WEB &&
             showMenu &&
-            "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
+            "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark"
         )}
         onLongPress={handleLongPress}
       >

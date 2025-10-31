@@ -60,25 +60,12 @@ const MessageForwardActionBar = ({
             disabled={count === 0}
             className="flex-row items-center px-4 py-2 rounded-full bg-primary-light dark:bg-primary-dark"
           >
-            <Ionicons
-              name="arrow-forward"
-              size={16}
-              color="white"
-              style={{ marginRight: 4 }}
-            />
+            <Ionicons name="arrow-forward" size={16} color="white" style={{ marginRight: 4 }} />
             <Text className="text-white text-sm font-medium">Forward</Text>
           </Pressable>
 
-          <Pressable
-            onPress={onCancel}
-            className="p-2"
-            testID="selectionCancel"
-          >
-            <Ionicons
-              name="close"
-              size={20}
-              color={isDark ? "#9CA3AF" : "#6B7280"}
-            />
+          <Pressable onPress={onCancel} className="p-2" testID="selectionCancel">
+            <Ionicons name="close" size={20} color={isDark ? "#9CA3AF" : "#6B7280"} />
           </Pressable>
         </View>
       </View>

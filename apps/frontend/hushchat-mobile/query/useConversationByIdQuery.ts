@@ -14,20 +14,14 @@ export const useConversationByIdQuery = (conversationId: number) => {
     isLoading: conversationAPILoading,
     error: conversationAPIError,
   } = useQuery({
-    queryKey: conversationQueryKeys.metaDataById(
-      Number(userId),
-      conversationId,
-    ),
+    queryKey: conversationQueryKeys.metaDataById(Number(userId), conversationId),
     queryFn: () => getConversationById(conversationId),
     staleTime: 5 * 60 * 1000, // 5 minutes stale time
   });
 
   const refetchConversation = () => {
     queryClient.invalidateQueries({
-      queryKey: conversationQueryKeys.metaDataById(
-        Number(userId),
-        conversationId,
-      ),
+      queryKey: conversationQueryKeys.metaDataById(Number(userId), conversationId),
     });
   };
 

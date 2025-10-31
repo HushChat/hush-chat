@@ -25,7 +25,7 @@ export function useImagePreview(options: Options = {}) {
       if (onError) onError(errs);
       else ToastUtils.error(errs.join("\n"));
     },
-    [onError],
+    [onError]
   );
 
   const open = useCallback(
@@ -38,7 +38,7 @@ export function useImagePreview(options: Options = {}) {
         setShowImagePreview(true);
       }
     },
-    [maxFiles, reportErrors],
+    [maxFiles, reportErrors]
   );
 
   const close = useCallback(() => {
@@ -70,7 +70,7 @@ export function useImagePreview(options: Options = {}) {
         });
       }
     },
-    [maxFiles, reportErrors],
+    [maxFiles, reportErrors]
   );
 
   return {

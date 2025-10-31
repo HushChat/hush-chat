@@ -1,9 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import axios, { AxiosError } from "axios";
-import {
-  CONVERSATION_API_ENDPOINTS,
-  USER_API_ENDPOINTS,
-} from "@/constants/apiConstants";
+import { CONVERSATION_API_ENDPOINTS, USER_API_ENDPOINTS } from "@/constants/apiConstants";
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
@@ -31,27 +28,16 @@ const ALLOWED_DOCUMENT_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
-const ALLOWED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-];
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
 
 export const pickAndUploadImage = async (
   id: string,
   fetchData: () => void,
   setUploading: (v: boolean) => void,
-  uploadType: UploadType,
+  uploadType: UploadType
 ) => {
   const getSignedUrlAndInfo = async (fileName: string, fileType: string) => {
-    const { data, error } = await getImageSignedUrl(
-      id,
-      fileName,
-      fileType,
-      uploadType,
-    );
+    const { data, error } = await getImageSignedUrl(id, fileName, fileType, uploadType);
     if (error) throw new Error(error);
     return data;
   };
@@ -64,9 +50,7 @@ export const pickAndUploadImage = async (
 
     // Check file size is below 5mb
     const asset =
-      pickerResult.assets && pickerResult.assets.length > 0
-        ? pickerResult.assets[0]
-        : null;
+      pickerResult.assets && pickerResult.assets.length > 0 ? pickerResult.assets[0] : null;
     if (!asset) return;
 
     const response = await fetch(asset.uri);
@@ -104,10 +88,7 @@ export const pickAndUploadImage = async (
   }
 };
 
-export const uploadImageToSignedUrl = async (
-  fileUri: string,
-  signedUrl: string,
-) => {
+export const uploadImageToSignedUrl = async (fileUri: string, signedUrl: string) => {
   const blob = await (await fetch(fileUri)).blob();
   await fetch(signedUrl, {
     method: "PUT",
@@ -122,7 +103,7 @@ export const getImageSignedUrl = async (
   id: string,
   fileName: string,
   fileType: string,
-  uploadType: UploadType,
+  uploadType: UploadType
 ) => {
   try {
     const endpoint =
@@ -133,9 +114,7 @@ export const getImageSignedUrl = async (
       fileNames: [fileName],
       fileType,
     });
-    const data = Array.isArray(response.data)
-      ? response.data[0]
-      : response.data;
+    const data = Array.isArray(response.data) ? response.data[0] : response.data;
     return { data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -144,8 +123,7 @@ export const getImageSignedUrl = async (
 };
 
 export const uploadImage = async (): Promise<ImagePickerResult | undefined> => {
-  const permissionResult =
-    await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permissionResult.granted) {
     alert("Permission to access media library is required!");
     return;
@@ -161,54 +139,35 @@ export const uploadImage = async (): Promise<ImagePickerResult | undefined> => {
   return pickerResult;
 };
 
-export const getImagePickerAsset = (
-  pickerResult: ImagePickerResult,
-  uploadType: UploadType,
-) => {
+export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType: UploadType) => {
   const asset =
-    pickerResult?.assets && pickerResult?.assets.length > 0
-      ? pickerResult.assets[0]
-      : null;
+    pickerResult?.assets && pickerResult?.assets.length > 0 ? pickerResult.assets[0] : null;
   if (!asset) {
     return;
   }
 
-  const defaultFileName =
-    uploadType === UploadType.GROUP ? "group.jpg" : "profile.jpg";
+  const defaultFileName = uploadType === UploadType.GROUP ? "group.jpg" : "profile.jpg";
   const fileUri = asset.uri;
-  const fileName = fileUri
-    ? fileUri.split("/").pop() || defaultFileName
-    : defaultFileName;
+  const fileName = fileUri ? fileUri.split("/").pop() || defaultFileName : defaultFileName;
   const fileType = asset.type || "image";
 
   return { fileUri, fileName, fileType };
 };
 
-export function useMessageAttachmentUploader(
-  conversationId: number,
-  messageToSend: string,
-) {
-  const getSignedUrls = async (
-    files: LocalFile[],
-  ): Promise<SignedUrl[] | null> => {
+export function useMessageAttachmentUploader(conversationId: number, messageToSend: string) {
+  const getSignedUrls = async (files: LocalFile[]): Promise<SignedUrl[] | null> => {
     const fileNames = files.map((file) => file.name);
     const response = await sendMessageByConversationIdFiles(
       conversationId,
       messageToSend,
-      fileNames,
+      fileNames
     );
     const signed = response?.signedURLs || [];
-    return signed.map(
-      (s: {
-        originalFileName: string;
-        url: string;
-        indexedFileName: string;
-      }) => ({
-        originalFileName: s.originalFileName,
-        url: s.url,
-        indexedFileName: s.indexedFileName,
-      }),
-    );
+    return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
+      originalFileName: s.originalFileName,
+      url: s.url,
+      indexedFileName: s.indexedFileName,
+    }));
   };
 
   const hook = useNativePickerUpload(getSignedUrls);
@@ -240,7 +199,7 @@ export function useMessageAttachmentUploader(
     for (const file of files) {
       const fileType = file.type || "";
       const isImage = ALLOWED_IMAGE_TYPES.some(
-        (type) => fileType === type || fileType.startsWith("image/"),
+        (type) => fileType === type || fileType.startsWith("image/")
       );
       const isDocument = ALLOWED_DOCUMENT_TYPES.includes(fileType);
 

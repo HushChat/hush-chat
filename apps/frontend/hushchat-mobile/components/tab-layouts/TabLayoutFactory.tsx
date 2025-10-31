@@ -5,9 +5,7 @@ import { TabLayoutProps } from "@/types/navigation/types";
 
 type PlatformValue = (typeof PLATFORM_NAMES)[keyof typeof PLATFORM_NAMES];
 
-const tabLayoutsFactory: Partial<
-  Record<PlatformValue, (props: TabLayoutProps) => JSX.Element>
-> & {
+const tabLayoutsFactory: Partial<Record<PlatformValue, (props: TabLayoutProps) => JSX.Element>> & {
   default: (props: TabLayoutProps) => JSX.Element;
 } = {
   [PLATFORM_NAMES.WEB]: (props: TabLayoutProps) => <WebTabLayout {...props} />,

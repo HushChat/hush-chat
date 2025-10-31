@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQueryClient } from "@tanstack/react-query";
 
 import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
@@ -28,16 +26,13 @@ import { EMPTY_SET } from "@/constants/constants";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 
-import type {
-  ConversationInfo,
-  IMessage,
-  TPickerState,
-} from "@/types/chat/types";
+import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 
 import { format } from "date-fns";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+import { useUserStore } from "@/store/user/useUserStore";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -67,21 +62,13 @@ const ConversationThreadScreen = ({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
 
-  const selectedConversationId =
-    conversationId || Number(params.conversationId);
+  const selectedConversationId = conversationId || Number(params.conversationId);
 
-  const {
-    selectionMode,
-    setSelectionMode,
-    selectedMessageIds,
-    setSelectedMessageIds,
-  } = useConversationStore();
+  const { selectionMode, setSelectionMode, selectedMessageIds, setSelectedMessageIds } =
+    useConversationStore();
 
-  const {
-    conversationAPIResponse,
-    conversationAPILoading,
-    conversationAPIError,
-  } = useConversationByIdQuery(selectedConversationId);
+  const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
+    useConversationByIdQuery(selectedConversationId);
 
   const isGroupChat = conversationAPIResponse?.isGroup;
 
@@ -94,16 +81,13 @@ const ConversationThreadScreen = ({
     hasNextPage,
     refetchConversationMessages,
     jumpToMessage,
+    updateConversationMessagesCache,
   } = useConversationMessagesQuery(selectedConversationId);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
-  const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(
-    null,
-  );
+  const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
 
-  const searchedMessage = PLATFORM.IS_WEB
-    ? messageToJump
-    : Number(params.messageId);
+  const searchedMessage = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
 
     const highlightId = PLATFORM.IS_WEB
   ? highlightedMessageId
@@ -156,29 +140,23 @@ const ConversationThreadScreen = ({
     uploadError,
   ]);
 
-  const { mutate: sendMessage, isPending: isSendingMessage } =
-    useSendMessageMutation(
-      undefined,
-      () => {
-        setSelectedMessage(null);
-        refetchConversationMessages();
-      },
-      (error) => {
-        ToastUtils.error(getAPIErrorMsg(error));
-      },
-    );
+  const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
+    undefined,
+    (newMessage) => {
+      setSelectedMessage(null);
+      updateConversationMessagesCache(newMessage);
+    },
+    (error) => {
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  );
 
   useEffect(() => {
     setSelectedMessage(null);
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-  }, [
-    selectedConversationId,
-    setSelectionMode,
-    setSelectedMessageIds,
-    handleCloseImagePreview,
-  ]);
+  }, [selectedConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
 
   const handleBackPress = useCallback(() => {
     if (webBackPress) {
@@ -206,11 +184,7 @@ const ConversationThreadScreen = ({
     async (message: string, parentMessage?: IMessage, files?: File[]) => {
       const messageToSend = message;
       const filesToSend = files || [];
-      if (
-        (!messageToSend.trim() && filesToSend.length === 0) ||
-        isSendingMessage
-      )
-        return;
+      if ((!messageToSend.trim() && filesToSend.length === 0) || isSendingMessage) return;
 
       const validFiles = filesToSend.filter((f) => f instanceof File);
       const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg"];
@@ -232,7 +206,6 @@ const ConversationThreadScreen = ({
           });
 
           await uploadFilesFromWeb(renamedFiles);
-
           refetchConversationMessages();
           setSelectedMessage(null);
         } else {
@@ -252,17 +225,13 @@ const ConversationThreadScreen = ({
       selectedConversationId,
       sendMessage,
       uploadFilesFromWeb,
-    ],
+    ]
   );
 
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;
 
-    void handleSendMessage(
-      imageMessage,
-      selectedMessage ?? undefined,
-      selectedFiles,
-    );
+    void handleSendMessage(imageMessage, selectedMessage ?? undefined, selectedFiles);
 
     handleCloseImagePreview();
     setImageMessage("");
@@ -286,9 +255,8 @@ const ConversationThreadScreen = ({
   }, [selectedMessageIds, webForwardPress]);
 
   const conversationMessages = useMemo(
-    () =>
-      conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [],
-    [conversationMessagesPages],
+    () => conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [],
+    [conversationMessagesPages]
   );
 
   const conversationInfo: ConversationInfo = useMemo(
@@ -297,11 +265,7 @@ const ConversationThreadScreen = ({
       conversationName: conversationAPIResponse?.name,
       signedImageUrl: conversationAPIResponse?.signedImageUrl,
     }),
-    [
-      selectedConversationId,
-      conversationAPIResponse?.name,
-      conversationAPIResponse?.signedImageUrl,
-    ],
+    [selectedConversationId, conversationAPIResponse?.name, conversationAPIResponse?.signedImageUrl]
   );
 
   const pickerState: TPickerState = useMemo(
@@ -309,7 +273,7 @@ const ConversationThreadScreen = ({
       openPickerMessageId,
       setOpenPickerMessageId,
     }),
-    [openPickerMessageId],
+    [openPickerMessageId]
   );
 
   const renderContent = useCallback(() => {
@@ -421,10 +385,7 @@ const ConversationThreadScreen = ({
         webPressSearch={webSearchPress}
       />
 
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={PLATFORM.IS_IOS ? "padding" : "height"}
-      >
+      <KeyboardAvoidingView className="flex-1" behavior={PLATFORM.IS_IOS ? "padding" : "height"}>
         <ImageBackground
           source={Images.chatBackground}
           className="flex-1"

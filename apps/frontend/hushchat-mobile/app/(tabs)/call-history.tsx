@@ -26,7 +26,7 @@ export default function CallHistoryScreen() {
 
   const calls = useMemo(
     () => callLogsPages?.pages.flatMap((page) => page.content) ?? [],
-    [callLogsPages],
+    [callLogsPages]
   );
 
   const filters = [

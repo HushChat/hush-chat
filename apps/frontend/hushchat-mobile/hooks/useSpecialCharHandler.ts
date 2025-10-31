@@ -7,7 +7,7 @@ export interface WebKeyboardEvent extends globalThis.KeyboardEvent {
 
 export type SpecialCharHandler = (
   query: string,
-  event: KeyboardEvent | TextInputKeyPressEvent,
+  event: KeyboardEvent | TextInputKeyPressEvent
 ) => void;
 
 export interface UseSpecialCharOptions {
@@ -23,12 +23,10 @@ type SupportedKeyboardEvent = TextInputKeyPressEvent | WebKeyboardEvent;
 export function useSpecialCharHandler(
   message: string,
   cursorPosition: number,
-  { handlers }: UseSpecialCharOptions,
+  { handlers }: UseSpecialCharOptions
 ) {
   return (e: SupportedKeyboardEvent) => {
-    const key =
-      (e as TextInputKeyPressEvent)?.nativeEvent?.key ??
-      (e as WebKeyboardEvent)?.key;
+    const key = (e as TextInputKeyPressEvent)?.nativeEvent?.key ?? (e as WebKeyboardEvent)?.key;
 
     if (!key) return;
 

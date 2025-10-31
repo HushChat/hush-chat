@@ -3,13 +3,7 @@
  *
  * Renders a single row in the conversations list (avatar, name, last message preview, timestamp).
  */
-import {
-  View,
-  TouchableOpacity,
-  Pressable,
-  GestureResponderEvent,
-  Modal,
-} from "react-native";
+import { View, TouchableOpacity, Pressable, GestureResponderEvent, Modal } from "react-native";
 import React, { useCallback, useState, useRef } from "react";
 import { IConversation } from "@/types/chat/types";
 import { getLastMessageTime } from "@/utils/commonUtils";
@@ -52,20 +46,13 @@ const ConversationListItem = ({
     e.stopPropagation();
     if (chevronButtonRef.current) {
       chevronButtonRef.current.measure(
-        (
-          fx: number,
-          fy: number,
-          width: number,
-          height: number,
-          px: number,
-          py: number,
-        ) => {
+        (fx: number, fy: number, width: number, height: number, px: number, py: number) => {
           setMenuPosition({
             x: px,
             y: py + height,
           });
           setShowOptions(true);
-        },
+        }
       );
     }
   }, []);
@@ -79,13 +66,11 @@ const ConversationListItem = ({
       <Pressable
         className={classNames(
           "group flex-row items-center gap-3 px-4 py-3 active:bg-secondary-light dark:active:bg-secondary-dark",
-          PLATFORM.IS_WEB &&
-            "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
+          PLATFORM.IS_WEB && "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
           {
-            "bg-background-light dark:bg-background-dark":
-              !isConversationSelected,
+            "bg-background-light dark:bg-background-dark": !isConversationSelected,
             "bg-blue-100/60 dark:bg-secondary-dark": isConversationSelected,
-          },
+          }
         )}
         onPress={handleChatPress}
       >
@@ -96,10 +81,7 @@ const ConversationListItem = ({
             setShowProfileModal(true);
           }}
         >
-          <InitialsAvatar
-            name={conversation.name}
-            imageUrl={conversation.signedImageUrl}
-          />
+          <InitialsAvatar name={conversation.name} imageUrl={conversation.signedImageUrl} />
         </TouchableOpacity>
 
         <View className="flex-1 mr-3">
@@ -130,12 +112,7 @@ const ConversationListItem = ({
               )}
             </AppText>
             {conversation.mutedByLoggedInUser && (
-              <MaterialIcons
-                name="notifications-off"
-                size={14}
-                color="#9CA3AF"
-                className="ml-2"
-              />
+              <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" className="ml-2" />
             )}
 
             {PLATFORM.IS_WEB && (

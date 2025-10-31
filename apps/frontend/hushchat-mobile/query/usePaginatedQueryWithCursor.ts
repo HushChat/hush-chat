@@ -1,8 +1,5 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  CursorPaginatedQueryOptions,
-  CursorPaginatedResponse,
-} from "@/apis/conversation";
+import { CursorPaginatedQueryOptions, CursorPaginatedResponse } from "@/apis/conversation";
 
 /**
  * A simplified hook for paginating (older) messages.
@@ -34,8 +31,7 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
         beforeId: Number(pageParam),
         size: pageSize,
       });
-      if (!response.data)
-        throw new Error(response.error || "Failed to fetch data");
+      if (!response.data) throw new Error(response.error || "Failed to fetch data");
       return response.data;
     },
     getNextPageParam: (lastPage) => {

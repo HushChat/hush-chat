@@ -1,9 +1,5 @@
 import { StorageFactory } from "@/utils/storage/storageFactory";
-import {
-  USER_TOKEN_KEY,
-  ACCESS_TOKEN_KEY,
-  REFRESH_TOKEN_KEY,
-} from "@/constants/constants";
+import { USER_TOKEN_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants/constants";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
@@ -52,7 +48,7 @@ export async function getAllTokens(): Promise<{
 export async function saveTokens(
   idToken?: string,
   accessToken?: string,
-  refreshToken?: string,
+  refreshToken?: string
 ): Promise<void> {
   const savePromises = [];
   if (idToken) {
@@ -115,11 +111,7 @@ export async function refreshIdToken(): Promise<string | null> {
       refreshToken: refreshToken,
     });
 
-    const {
-      idToken,
-      accessToken,
-      refreshToken: newRefreshToken,
-    } = response.data;
+    const { idToken, accessToken, refreshToken: newRefreshToken } = response.data;
 
     if (idToken) {
       await saveTokens(idToken, accessToken, newRefreshToken);
