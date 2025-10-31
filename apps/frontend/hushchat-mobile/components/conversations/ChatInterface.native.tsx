@@ -39,7 +39,7 @@ export default function ChatInterface({
     }
   }, [selectedConversation, setSelectedConversation]);
 
-   const sheetOptions = [
+  const sheetOptions = [
     {
       id: "create-group",
       title: "New group",
@@ -127,6 +127,7 @@ export default function ChatInterface({
         onClose={() => setSheetVisible(false)}
         options={sheetOptions}
         title="Actions"
+        showBorders={false}
       />
     </View>
   );
