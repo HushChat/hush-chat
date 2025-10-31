@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQueryClient } from "@tanstack/react-query";
 
 import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
@@ -28,16 +26,13 @@ import { EMPTY_SET } from "@/constants/constants";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 
-import type {
-  ConversationInfo,
-  IMessage,
-  TPickerState,
-} from "@/types/chat/types";
+import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 
 import { format } from "date-fns";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+import { useUserStore } from "@/store/user/useUserStore";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -92,6 +87,7 @@ const ConversationThreadScreen = ({
     hasNextPage,
     refetchConversationMessages,
     jumpToMessage,
+    updateConversationMessagesCache
   } = useConversationMessagesQuery(selectedConversationId);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
@@ -150,17 +146,16 @@ const ConversationThreadScreen = ({
     uploadError,
   ]);
 
-  const { mutate: sendMessage, isPending: isSendingMessage } =
-    useSendMessageMutation(
-      undefined,
-      () => {
-        setSelectedMessage(null);
-        refetchConversationMessages();
-      },
-      (error) => {
-        ToastUtils.error(getAPIErrorMsg(error));
-      },
-    );
+  const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
+    undefined,
+    (newMessage) => {
+      setSelectedMessage(null);
+      updateConversationMessagesCache(newMessage);
+    },
+    (error) => {
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  );
 
   useEffect(() => {
     setSelectedMessage(null);
@@ -226,7 +221,6 @@ const ConversationThreadScreen = ({
           });
 
           await uploadFilesFromWeb(renamedFiles);
-
           refetchConversationMessages();
           setSelectedMessage(null);
         } else {
