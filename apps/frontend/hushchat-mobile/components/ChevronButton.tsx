@@ -9,10 +9,7 @@ interface ChevronButtonProps {
   handleOptionsPress: (e: GestureResponderEvent) => void;
 }
 
-const ChevronButton = ({
-  chevronButtonRef,
-  handleOptionsPress,
-}: ChevronButtonProps) => {
+const ChevronButton = ({ chevronButtonRef, handleOptionsPress }: ChevronButtonProps) => {
   const { isDark } = useAppTheme();
   return (
     <TouchableOpacity
@@ -22,11 +19,7 @@ const ChevronButton = ({
       className="p-1 ml-1 opacity-0 group-hover:opacity-100"
     >
       <View className="w-4 h-4 items-center justify-center dark:bg-primary">
-        <Ionicons
-          name="chevron-down"
-          size={20}
-          color={isDark ? "#9ca3af" : "#6B7280"}
-        />
+        <Ionicons name="chevron-down" size={20} color={isDark ? "#9ca3af" : "#6B7280"} />
       </View>
     </TouchableOpacity>
   );

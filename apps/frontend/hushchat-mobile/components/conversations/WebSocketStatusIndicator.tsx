@@ -43,9 +43,7 @@ export default function WebSocketStatusIndicator() {
           className={`w-2 h-2 rounded-full ${config.bgClass} shadow-lg ${config.shadowClass}`}
         />
       </View>
-      <Text className="text-xs text-gray-600 dark:text-gray-400">
-        {config.text}
-      </Text>
+      <Text className="text-xs text-gray-600 dark:text-gray-400">{config.text}</Text>
     </View>
   );
 }

@@ -1,11 +1,7 @@
 import { ActivityIndicator, View } from "react-native";
 import React from "react";
 
-export default function UploadIndicator({
-  isUploading,
-}: {
-  isUploading: boolean;
-}) {
+export default function UploadIndicator({ isUploading }: { isUploading: boolean }) {
   if (!isUploading) return null;
   return (
     <View

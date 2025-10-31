@@ -44,17 +44,12 @@ export default function ChatInfoCommonAction({
   const [isPinnedState, setIsPinnedState] = React.useState(isPinned);
   const [isMutedState, setIsMutedState] = React.useState(isMuted);
   const { selectedConversationType } = useConversationStore();
-  const { refetch } = useConversationsQuery(
-    getCriteria(selectedConversationType),
-  );
+  const { refetch } = useConversationsQuery(getCriteria(selectedConversationType));
   const {
     user: { id: userId },
   } = useUserStore();
   const criteria = getCriteria(selectedConversationType);
-  const { handleToggleFavorites } = useConversationFavorites(
-    conversationId,
-    criteria,
-  );
+  const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
 
   const togglePinConversation = useTogglePinConversationMutation(
     {
@@ -68,7 +63,7 @@ export default function ChatInfoCommonAction({
     (error) => {
       setIsPinnedState(isPinnedState);
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const toggleMuteConversation = useToggleMuteConversationMutation(
@@ -76,7 +71,7 @@ export default function ChatInfoCommonAction({
     () => setIsMutedState(!isMutedState),
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   useEffect(() => {
@@ -100,10 +95,7 @@ export default function ChatInfoCommonAction({
     { label: "Always", value: "always" },
   ];
 
-  const performMuteMutation = (payload: {
-    conversationId: number;
-    duration: string | null;
-  }) =>
+  const performMuteMutation = (payload: { conversationId: number; duration: string | null }) =>
     toggleMuteConversation.mutate(payload, {
       onSuccess: () => setIsMutedState(payload.duration !== null),
       onError: (error) => ToastUtils.error(getAPIErrorMsg(error)),
@@ -135,14 +127,7 @@ export default function ChatInfoCommonAction({
       ],
       icon: "volume-off-outline",
     });
-  }, [
-    isMutedState,
-    openModal,
-    MUTE_OPTIONS,
-    closeModal,
-    performMuteMutation,
-    conversationId,
-  ]);
+  }, [isMutedState, openModal, MUTE_OPTIONS, closeModal, performMuteMutation, conversationId]);
 
   const deleteConversation = useDeleteConversationByIdMutation(
     {
@@ -158,7 +143,7 @@ export default function ChatInfoCommonAction({
     },
     (error) => {
       ToastUtils.error(error as string);
-    },
+    }
   );
 
   const handleDeleteConversation = useCallback(() => {
@@ -193,9 +178,7 @@ export default function ChatInfoCommonAction({
         onPress={handleToggleFavorite}
       />
       <ActionItem
-        icon={
-          isMutedState ? "notifications-off-outline" : "notifications-outline"
-        }
+        icon={isMutedState ? "notifications-off-outline" : "notifications-outline"}
         label={isMutedState ? "Unmute Conversation" : "Mute Conversation"}
         onPress={handleToggleMuteConversation}
       />

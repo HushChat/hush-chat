@@ -43,7 +43,7 @@ const MobileParticipantContextMenu = ({
         handleClose();
       }
     },
-    [handleClose],
+    [handleClose]
   );
 
   const participantOptions: BottomSheetOption[] = useMemo(() => {
@@ -54,10 +54,7 @@ const MobileParticipantContextMenu = ({
         icon: "shield-checkmark-outline",
         onPress: () =>
           handleOptionPress(() =>
-            handleToggleAdmin(
-              participant.id,
-              participant.role !== chatUserRole.ADMIN,
-            ),
+            handleToggleAdmin(participant.id, participant.role !== chatUserRole.ADMIN)
           ),
       },
     ];
@@ -68,8 +65,7 @@ const MobileParticipantContextMenu = ({
         title: TITLES.REMOVE_PARTICIPANT,
         icon: "person-remove-outline",
         destructive: true,
-        onPress: () =>
-          handleOptionPress(() => handleRemoveParticipant(participant.id)),
+        onPress: () => handleOptionPress(() => handleRemoveParticipant(participant.id)),
       });
     }
 

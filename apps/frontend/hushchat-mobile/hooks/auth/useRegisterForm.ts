@@ -9,22 +9,16 @@ export function useRegisterForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    values,
-    errors,
-    showErrors,
-    onValueChange,
-    validateAll,
-    setShowErrors,
-  } = useForm<IRegisterUser>(RegisterUser, {
-    firstName: "",
-    lastName: "",
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    imageIndexedName: "",
-  });
+  const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } =
+    useForm<IRegisterUser>(RegisterUser, {
+      firstName: "",
+      lastName: "",
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      imageIndexedName: "",
+    });
 
   const submit = useCallback(async () => {
     setErrorMessage("");

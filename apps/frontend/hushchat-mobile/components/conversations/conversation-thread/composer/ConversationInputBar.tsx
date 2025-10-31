@@ -4,13 +4,7 @@
  * Input component for composing and sending chat messages.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -19,11 +13,7 @@ import {
   TextInputSelectionChangeEvent,
   View,
 } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,17 +21,10 @@ import PrimaryCircularButton from "@/components/conversations/conversation-threa
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import { StorageFactory } from "@/utils/storage/storageFactory";
-import {
-  detectMentionToken,
-  replaceMentionAtCaret,
-  setCaretPosition,
-} from "@/utils/mentionUtils";
+import { detectMentionToken, replaceMentionAtCaret, setCaretPosition } from "@/utils/mentionUtils";
 import { useEnterSubmit } from "@/utils/commonUtils";
 import { scheduleOnRN } from "react-native-worklets";
-import {
-  useSpecialCharHandler,
-  WebKeyboardEvent,
-} from "@/hooks/useSpecialCharHandler";
+import { useSpecialCharHandler, WebKeyboardEvent } from "@/hooks/useSpecialCharHandler";
 import { getDraftKey } from "@/constants/constants";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ToastUtils } from "@/utils/toastUtils";
@@ -71,11 +54,7 @@ import { getConversationMenuOptions } from "@/components/conversations/conversat
 import { AppText } from "@/components/AppText";
 
 type MessageInputProps = {
-  onSendMessage: (
-    message: string,
-    parentMessage?: IMessage,
-    files?: File[],
-  ) => void;
+  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   conversationId: number;
@@ -114,7 +93,7 @@ const ConversationInputBar = ({
   const storage = useMemo(() => StorageFactory.createStorage(), []);
   const initialHeight = useMemo(
     () => lineHeight * minLines + verticalPadding,
-    [lineHeight, minLines, verticalPadding],
+    [lineHeight, minLines, verticalPadding]
   );
 
   const [message, setMessage] = useState<string>("");
@@ -142,10 +121,7 @@ const ConversationInputBar = ({
 
   const animatedHeight = useSharedValue(initialHeight);
   const mentionVisible = mentionQuery !== null;
-  const menuOptions = useMemo(
-    () => getConversationMenuOptions(fileInputRef),
-    [fileInputRef],
-  );
+  const menuOptions = useMemo(() => getConversationMenuOptions(fileInputRef), [fileInputRef]);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,7 +163,7 @@ const ConversationInputBar = ({
   const saveDraftDebounced = useRef(
     debounce((id: number, text: string) => {
       void storage.save(getDraftKey(id), text);
-    }, DEBOUNCE_DELAY),
+    }, DEBOUNCE_DELAY)
   ).current;
 
   useEffect(() => {
@@ -211,15 +187,12 @@ const ConversationInputBar = ({
         easing: ANIM_EASING,
       });
     },
-    [minHeight, maxHeight, animatedHeight],
+    [minHeight, maxHeight, animatedHeight]
   );
 
-  const handleSelectionChange = useCallback(
-    (e: TextInputSelectionChangeEvent) => {
-      setCursorPosition(e.nativeEvent.selection.start);
-    },
-    [],
-  );
+  const handleSelectionChange = useCallback((e: TextInputSelectionChangeEvent) => {
+    setCursorPosition(e.nativeEvent.selection.start);
+  }, []);
 
   const handleChangeText = useCallback(
     (raw: string) => {
@@ -241,24 +214,13 @@ const ConversationInputBar = ({
         });
       }
     },
-    [
-      cursorPosition,
-      maxChars,
-      minHeight,
-      conversationId,
-      saveDraftDebounced,
-      animatedHeight,
-    ],
+    [cursorPosition, maxChars, minHeight, conversationId, saveDraftDebounced, animatedHeight]
   );
 
   const handleSelectMention = useCallback(
     (participant: ConversationParticipant) => {
       const username = participant.user.username;
-      const { nextText, nextCaret } = replaceMentionAtCaret(
-        message,
-        cursorPosition,
-        username,
-      );
+      const { nextText, nextCaret } = replaceMentionAtCaret(message, cursorPosition, username);
 
       setMessage(nextText);
       setMentionQuery(null);
@@ -269,13 +231,12 @@ const ConversationInputBar = ({
         setCursorPosition(nextCaret);
       }
     },
-    [message, cursorPosition],
+    [message, cursorPosition]
   );
 
   const handleSend = useCallback(
     (messageToSend?: string) => {
-      const finalMessage =
-        messageToSend !== undefined ? messageToSend.trim() : message.trim();
+      const finalMessage = messageToSend !== undefined ? messageToSend.trim() : message.trim();
 
       if (!finalMessage.trim() || disabled) return;
 
@@ -290,7 +251,7 @@ const ConversationInputBar = ({
           if (finished) {
             scheduleOnRN(setInputHeight, minHeight);
           }
-        },
+        }
       );
 
       void storage.remove(getDraftKey(conversationId));
@@ -309,7 +270,7 @@ const ConversationInputBar = ({
       animatedHeight,
       storage,
       onCancelReply,
-    ],
+    ]
   );
 
   const handleAddButtonPress = useCallback(async () => {
@@ -345,7 +306,7 @@ const ConversationInputBar = ({
       }
       event.target.value = "";
     },
-    [onOpenImagePicker],
+    [onOpenImagePicker]
   );
 
   const enterSubmitHandler = useEnterSubmit(() => handleSend(message));
@@ -372,16 +333,13 @@ const ConversationInputBar = ({
         outline: "none",
       }),
     }),
-    [minHeight, maxHeight, inputHeight, lineHeight, verticalPadding],
+    [minHeight, maxHeight, inputHeight, lineHeight, verticalPadding]
   );
 
   return (
     <View>
       {replyToMessage && (
-        <ReplyPreview
-          replyToMessage={replyToMessage}
-          onCancelReply={onCancelReply!}
-        />
+        <ReplyPreview replyToMessage={replyToMessage} onCancelReply={onCancelReply!} />
       )}
 
       <View
@@ -389,7 +347,7 @@ const ConversationInputBar = ({
           "flex-row items-end",
           "bg-background-light dark:bg-background-dark",
           "border-gray-200 dark:border-gray-800",
-          PLATFORM.IS_WEB ? "p-4" : "p-3",
+          PLATFORM.IS_WEB ? "p-4" : "p-3"
         )}
       >
         <View ref={addButtonContainerRef} style={{ alignSelf: "flex-end" }}>
@@ -401,17 +359,12 @@ const ConversationInputBar = ({
           />
         </View>
 
-        <View
-          className={classNames("flex-1", PLATFORM.IS_WEB ? "mx-4" : "mx-3")}
-        >
-          <Animated.View
-            style={animatedContainerStyle}
-            className="overflow-hidden"
-          >
+        <View className={classNames("flex-1", PLATFORM.IS_WEB ? "mx-4" : "mx-3")}>
+          <Animated.View style={animatedContainerStyle} className="overflow-hidden">
             <View
               className={classNames(
                 "flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark",
-                PLATFORM.IS_WEB ? "px-4" : "px-3",
+                PLATFORM.IS_WEB ? "px-4" : "px-3"
               )}
               style={{
                 position: "relative",
@@ -423,11 +376,9 @@ const ConversationInputBar = ({
                 ref={textInputRef}
                 className={classNames(
                   "flex-1 text-base text-text-primary-light dark:text-text-primary-dark outline-none",
-                  PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3",
+                  PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3"
                 )}
-                placeholder={
-                  replyToMessage ? "Reply to message..." : placeholder
-                }
+                placeholder={replyToMessage ? "Reply to message..." : placeholder}
                 placeholderTextColor={COLOR_PLACEHOLDER}
                 multiline
                 scrollEnabled

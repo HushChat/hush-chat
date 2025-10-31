@@ -63,7 +63,7 @@ export default function ConversationListContainer({
     },
     (error) => {
       ToastUtils.error(error as string);
-    },
+    }
   );
 
   const archiveConversation = useArchiveConversationMutation(
@@ -78,14 +78,14 @@ export default function ConversationListContainer({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const handleArchivePress = useCallback(
     async (conversationId: number) => {
       archiveConversation.mutate(conversationId);
     },
-    [archiveConversation],
+    [archiveConversation]
   );
 
   const handleDeleteConversation = useCallback(
@@ -113,13 +113,7 @@ export default function ConversationListContainer({
         icon: "trash-bin",
       });
     },
-    [
-      openModal,
-      closeModal,
-      deleteConversation,
-      selectedConversation?.id,
-      setSelectedConversation,
-    ],
+    [openModal, closeModal, deleteConversation, selectedConversation?.id, setSelectedConversation]
   );
 
   const isSearchActive = searchQuery && searchQuery.length > 0;

@@ -7,14 +7,8 @@ import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function LoginScreen() {
   const { colors } = useAuthThemeColors();
-  const {
-    formValues,
-    formErrors,
-    showErrors,
-    errorMessage,
-    onValueChange,
-    submit,
-  } = useLoginForm();
+  const { formValues, formErrors, showErrors, errorMessage, onValueChange, submit } =
+    useLoginForm();
 
   return (
     <AuthWebLayout

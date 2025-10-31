@@ -77,19 +77,9 @@ const MessageReactionsBottomSheet = ({
     transform: [{ translateY: translateY.value }],
   }));
 
-  const renderReactionItem = ({
-    item,
-    index,
-  }: {
-    item: MessageReact;
-    index: number;
-  }) => (
-    <View
-      className={`flex-row items-center py-4 px-4 ${index < reactions.length - 1 ? "" : ""}`}
-    >
-      <Text className="text-2xl mr-3">
-        {REACTION_EMOJIS[item.reactionType]}
-      </Text>
+  const renderReactionItem = ({ item, index }: { item: MessageReact; index: number }) => (
+    <View className={`flex-row items-center py-4 px-4 ${index < reactions.length - 1 ? "" : ""}`}>
+      <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
       <Text
         className="text-base font-medium flex-1 text-text-primary-light dark:text-text-primary-dark"
         numberOfLines={1}

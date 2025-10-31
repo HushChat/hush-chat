@@ -97,12 +97,10 @@ export default function AppModal({
           className={classNames(
             "px-4 py-2 rounded-lg min-w-[120px]",
             backgroundColor,
-            btn.className,
+            btn.className
           )}
         >
-          <AppText className={classNames("font-medium text-center", textColor)}>
-            {btn.text}
-          </AppText>
+          <AppText className={classNames("font-medium text-center", textColor)}>{btn.text}</AppText>
         </Pressable>
       );
     });
@@ -118,12 +116,7 @@ export default function AppModal({
       className="bg-white dark:bg-neutral-900"
     >
       {icon && (
-        <View
-          className={classNames(
-            "self-center mb-4 p-3 rounded-full",
-            getTypeColor(type),
-          )}
-        >
+        <View className={classNames("self-center mb-4 p-3 rounded-full", getTypeColor(type))}>
           <Ionicons name={icon} size={28} color="white" />
         </View>
       )}
@@ -145,8 +138,7 @@ export default function AppModal({
       {buttons.length > 0 && (
         <View
           className={classNames("flex-row justify-center gap-2 mt-6", {
-            "flex-col items-center gap-2 mt-6":
-              buttons.length > MAX_INLINE_BUTTONS,
+            "flex-col items-center gap-2 mt-6": buttons.length > MAX_INLINE_BUTTONS,
           })}
         >
           {renderButtons(buttons)}
@@ -159,10 +151,7 @@ export default function AppModal({
 
   if (PLATFORM.IS_WEB) {
     return (
-      <View
-        style={StyleSheet.absoluteFillObject}
-        className="z-50 justify-center items-center px-5"
-      >
+      <View style={StyleSheet.absoluteFillObject} className="z-50 justify-center items-center px-5">
         <TouchableWithoutFeedback
           onPress={() => {
             if (closeOnBackdropPress) onClose?.();
@@ -186,10 +175,7 @@ export default function AppModal({
       <View style={StyleSheet.absoluteFillObject}>
         <Pressable
           onPress={closeOnBackdropPress ? onClose : undefined}
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: "rgba(0,0,0,0.5)" },
-          ]}
+          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.5)" }]}
         />
         <View
           style={[

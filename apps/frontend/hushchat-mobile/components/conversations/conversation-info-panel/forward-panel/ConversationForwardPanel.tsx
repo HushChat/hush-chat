@@ -1,9 +1,6 @@
 import React from "react";
 import { View, Text, TextInput } from "react-native";
-import {
-  ConversationsMultiSelect,
-  TConversation,
-} from "@/components/ConversationsMultiSelect";
+import { ConversationsMultiSelect, TConversation } from "@/components/ConversationsMultiSelect";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ForwardPanelFooter } from "@/components/conversations/conversation-info-panel/forward-panel/ForwardPanelFooter";
 

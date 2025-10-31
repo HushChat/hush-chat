@@ -1,14 +1,5 @@
-import {
-  useQueryClient,
-  useInfiniteQuery,
-  InfiniteData,
-  QueryKey,
-} from "@tanstack/react-query";
-import type {
-  PaginatedResponse,
-  ApiResponse,
-  PaginatedQueryResult,
-} from "@/types/common/types";
+import { useQueryClient, useInfiniteQuery, InfiniteData, QueryKey } from "@tanstack/react-query";
+import type { PaginatedResponse, ApiResponse, PaginatedQueryResult } from "@/types/common/types";
 
 export interface PagePaginatedResponse<T> extends PaginatedResponse<T> {
   total: number;
@@ -16,7 +7,7 @@ export interface PagePaginatedResponse<T> extends PaginatedResponse<T> {
 }
 
 export type PageQueryFnType<T> = (
-  pageParam: number,
+  pageParam: number
 ) => Promise<ApiResponse<PagePaginatedResponse<T>>>;
 
 export interface PagePaginatedQueryOptions<T> {

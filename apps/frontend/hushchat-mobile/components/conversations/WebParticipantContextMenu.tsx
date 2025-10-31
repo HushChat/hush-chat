@@ -1,9 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import {
-  chatUserRole,
-  ConversationParticipant,
-  IOption,
-} from "@/types/chat/types";
+import { chatUserRole, ConversationParticipant, IOption } from "@/types/chat/types";
 import { TITLES } from "@/constants/constants";
 import { ToastUtils } from "@/utils/toastUtils";
 import WebChatContextMenu from "@/components/WebContextMenu";
@@ -37,7 +33,7 @@ const WebParticipantContextMenu = ({
         onClose();
       }
     },
-    [onClose],
+    [onClose]
   );
 
   const participantOptions: IOption[] = useMemo(
@@ -46,11 +42,7 @@ const WebParticipantContextMenu = ({
         id: 1,
         name: TITLES.TOGGLE_ROLE(participant.role),
         iconName: "shield-checkmark-outline",
-        action: () =>
-          handleToggleAdmin(
-            participant.id,
-            participant.role !== chatUserRole.ADMIN,
-          ),
+        action: () => handleToggleAdmin(participant.id, participant.role !== chatUserRole.ADMIN),
       },
       ...(!isCurrentUser
         ? ([
@@ -64,13 +56,7 @@ const WebParticipantContextMenu = ({
           ] as IOption[])
         : []),
     ],
-    [
-      handleRemoveParticipant,
-      handleToggleAdmin,
-      isCurrentUser,
-      participant.id,
-      participant.role,
-    ],
+    [handleRemoveParticipant, handleToggleAdmin, isCurrentUser, participant.id, participant.role]
   );
 
   return (

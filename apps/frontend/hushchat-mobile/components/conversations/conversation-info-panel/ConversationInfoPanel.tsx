@@ -1,10 +1,7 @@
 import React, { useEffect } from "react";
 import { View, ActivityIndicator, Text } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  useSafeAreaInsets,
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useAnimatedEntrance } from "@/hooks/useAnimatedEntrance";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
@@ -70,9 +67,7 @@ export default function ConversationInfoPanel({
     return (
       <ErrorView
         title="Conversation"
-        message={
-          conversationAPIError?.message || "Unable to load conversation details"
-        }
+        message={conversationAPIError?.message || "Unable to load conversation details"}
         onBack={goBack}
         onRetry={refetchConversation}
         imageSource={Images.NoConversationFound}

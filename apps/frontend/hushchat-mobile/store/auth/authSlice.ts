@@ -8,11 +8,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   logout: () => Promise<void>;
   hasHydrated: boolean;
-  saveUserAuthData: (
-    idToken: string,
-    accessToken: string,
-    refreshToken: string,
-  ) => Promise<void>;
+  saveUserAuthData: (idToken: string, accessToken: string, refreshToken: string) => Promise<void>;
   setHasHydrated: (hydrated: boolean) => void;
 }
 

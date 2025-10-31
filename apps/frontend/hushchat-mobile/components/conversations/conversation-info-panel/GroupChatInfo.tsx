@@ -39,31 +39,24 @@ export default function GroupChatInfo({
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
 
-  const [screenWidth, setScreenWidth] = useState<number>(
-    Dimensions.get("window").width,
-  );
-  const [allParticipants, setAllParticipants] = useState<
-    ConversationParticipant[]
-  >([]);
+  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
+  const [allParticipants, setAllParticipants] = useState<ConversationParticipant[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  const { conversationInfo, isLoadingConversationInfo, refetch } =
-    useGroupConversationInfoQuery(conversation.id);
+  const { conversationInfo, isLoadingConversationInfo, refetch } = useGroupConversationInfoQuery(
+    conversation.id
+  );
 
   const {
     user: { id: userId },
   } = useUserStore();
 
-  const { pages: participantsPages, error: participantsError } =
-    useConversationParticipantQuery(conversation.id);
+  const { pages: participantsPages, error: participantsError } = useConversationParticipantQuery(
+    conversation.id
+  );
 
-  const {
-    panelWidth,
-    activePanel,
-    isPanelContentReady,
-    openPanel,
-    closePanel,
-  } = useWebPanelManager(screenWidth);
+  const { panelWidth, activePanel, isPanelContentReady, openPanel, closePanel } =
+    useWebPanelManager(screenWidth);
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
@@ -82,11 +75,9 @@ export default function GroupChatInfo({
   useEffect(() => {
     if (participantsPages?.pages?.length) {
       const firstPage = participantsPages.pages[0];
-      const participantsList =
-        (firstPage.content as ConversationParticipant[]) || [];
+      const participantsList = (firstPage.content as ConversationParticipant[]) || [];
       setAllParticipants(participantsList.slice(0, 3));
-      const total =
-        firstPage.totalElements || firstPage.total || participantsList.length;
+      const total = firstPage.totalElements || firstPage.total || participantsList.length;
       setTotalCount(total);
     }
   }, [participantsPages]);
@@ -112,7 +103,7 @@ export default function GroupChatInfo({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const reportConversationMutation = useReportConversationMutation(
@@ -123,15 +114,14 @@ export default function GroupChatInfo({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const handleExitGroup = () =>
     openModal({
       type: MODAL_TYPES.confirm,
       title: "Exit Group",
-      description:
-        "Are you sure you want to exit? You won't be able to see new messages.",
+      description: "Are you sure you want to exit? You won't be able to see new messages.",
       buttons: [
         { text: "Cancel", onPress: closeModal },
         {
@@ -278,10 +268,7 @@ export default function GroupChatInfo({
 
           <View>
             {allParticipants.map((participant) => (
-              <ParticipantRow
-                key={participant.id.toString()}
-                participant={participant}
-              />
+              <ParticipantRow key={participant.id.toString()} participant={participant} />
             ))}
           </View>
           <Pressable

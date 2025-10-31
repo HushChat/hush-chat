@@ -23,14 +23,11 @@ const UserListItem = ({ user, isSelected, onToggle }: UserListItemProps) => {
         PLATFORM.IS_WEB && "hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
         {
           "bg-blue-100/60 dark:bg-secondary-dark": isSelected,
-        },
+        }
       )}
       onPress={handlePress}
     >
-      <TouchableOpacity
-        onPress={handlePress}
-        activeOpacity={DEFAULT_ACTIVE_OPACITY}
-      >
+      <TouchableOpacity onPress={handlePress} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
         <InitialsAvatar name={fullName || "Unknown User"} />
       </TouchableOpacity>
 

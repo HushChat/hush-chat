@@ -1,11 +1,7 @@
 import React, { ReactNode, useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  Extrapolation,
-} from "react-native-reanimated";
+import Animated, { interpolate, useAnimatedStyle, Extrapolation } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
@@ -60,7 +56,7 @@ export function SwipeableMessageRow({
 
   const composedGesture = useMemo(
     () => Gesture.Simultaneous(swipeGesture, longPressGesture),
-    [swipeGesture, longPressGesture],
+    [swipeGesture, longPressGesture]
   );
 
   const swipeGroupStyle = useAnimatedStyle(() => ({
@@ -68,18 +64,8 @@ export function SwipeableMessageRow({
   }));
 
   const iconStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      progress.value,
-      [0, 1],
-      [0, 1],
-      Extrapolation.CLAMP,
-    );
-    const scale = interpolate(
-      progress.value,
-      [0, 1],
-      [0.8, 1],
-      Extrapolation.CLAMP,
-    );
+    const opacity = interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP);
+    const scale = interpolate(progress.value, [0, 1], [0.8, 1], Extrapolation.CLAMP);
     return { opacity, transform: [{ scale }] };
   });
 

@@ -14,8 +14,8 @@ exec("npm ls --depth=0", (error, stdout, stderr) => {
       .filter(
         (line) =>
           !line.match(
-            /(react-native-web|react-native-gesture-handler|react-native-reanimated|react-native-safe-area-context|react-native-screens)/,
-          ),
+            /(react-native-web|react-native-gesture-handler|react-native-reanimated|react-native-safe-area-context|react-native-screens)/
+          )
       );
 
     if (webIncompatible.length > 0) {
@@ -46,17 +46,9 @@ exec("npm ls --depth=0", (error, stdout, stderr) => {
     const distPath = path.join(process.cwd(), "dist");
     if (fs.existsSync(distPath)) {
       try {
-        const staticJsPath = path.join(
-          distPath,
-          "_expo",
-          "static",
-          "js",
-          "web",
-        );
+        const staticJsPath = path.join(distPath, "_expo", "static", "js", "web");
         if (fs.existsSync(staticJsPath)) {
-          const files = fs
-            .readdirSync(staticJsPath)
-            .filter((f) => f.startsWith("entry-"));
+          const files = fs.readdirSync(staticJsPath).filter((f) => f.startsWith("entry-"));
           if (files.length > 0) {
             const stats = fs.statSync(path.join(staticJsPath, files[0]));
             const sizeInMB = (stats.size / 1024 / 1024).toFixed(2);
@@ -80,7 +72,7 @@ exec("npm ls --depth=0", (error, stdout, stderr) => {
                 console.log(`   ${file}`);
               });
           }
-        },
+        }
       );
     }
 

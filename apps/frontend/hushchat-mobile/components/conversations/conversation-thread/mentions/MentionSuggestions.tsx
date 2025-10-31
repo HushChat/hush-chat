@@ -34,10 +34,8 @@ const MentionSuggestions = ({
     useConversationParticipantQuery(conversationId, debouncedKeyword);
 
   const participants: ConversationParticipant[] = useMemo(
-    () =>
-      pages?.pages.flatMap((p) => p?.content as ConversationParticipant[]) ??
-      [],
-    [pages],
+    () => pages?.pages.flatMap((p) => p?.content as ConversationParticipant[]) ?? [],
+    [pages]
   );
 
   const { activeIndex, setActiveIndex } = useKeyboardNavigation({
@@ -46,14 +44,10 @@ const MentionSuggestions = ({
     enabled: true,
   });
 
-  const renderItem = ({
-    item,
-    index,
-  }: ListRenderItemInfo<ConversationParticipant>) => {
+  const renderItem = ({ item, index }: ListRenderItemInfo<ConversationParticipant>) => {
     const isActive = index === activeIndex;
     const fullName =
-      `${item.user.firstName ?? ""} ${item.user.lastName ?? ""}`.trim() ||
-      `@${item.user.username}`;
+      `${item.user.firstName ?? ""} ${item.user.lastName ?? ""}`.trim() || `@${item.user.username}`;
 
     return (
       <Pressable
@@ -61,7 +55,7 @@ const MentionSuggestions = ({
         {...(PLATFORM.IS_WEB ? { onHoverIn: () => setActiveIndex(index) } : {})}
         className={classNames(
           "px-3 py-2 flex-row items-center",
-          isActive ? "bg-primary-light/10 dark:bg-white/10" : "bg-transparent",
+          isActive ? "bg-primary-light/10 dark:bg-white/10" : "bg-transparent"
         )}
       >
         <View className="mr-3">
@@ -75,9 +69,7 @@ const MentionSuggestions = ({
           <Text className="text-sm text-text-primary-light dark:text-text-primary-dark">
             {fullName}
           </Text>
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
-            @{item.user.username}
-          </Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">@{item.user.username}</Text>
         </View>
       </Pressable>
     );
@@ -98,9 +90,8 @@ const MentionSuggestions = ({
           "rounded-lg custom-scrollbar",
           "bg-background-light dark:bg-background-dark",
           {
-            "shadow-xl border border-gray-200 dark:border-gray-700":
-              participants.length !== 0,
-          },
+            "shadow-xl border border-gray-200 dark:border-gray-700": participants.length !== 0,
+          }
         )}
       >
         <FlatList

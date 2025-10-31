@@ -18,10 +18,7 @@ export function useGroupConversationInfoQuery(conversationId: number): {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch } = useQuery<GroupProfile>({
-    queryKey: conversationQueryKeys.groupProfileInfo(
-      Number(userId),
-      conversationId,
-    ),
+    queryKey: conversationQueryKeys.groupProfileInfo(Number(userId), conversationId),
     queryFn: () => getGroupProfile(conversationId),
     enabled: !!conversationId,
     staleTime: 5 * 60 * 1000, // 5 minutes stale time
@@ -29,10 +26,7 @@ export function useGroupConversationInfoQuery(conversationId: number): {
 
   const invalidateConversationInfo = () => {
     queryClient.invalidateQueries({
-      queryKey: conversationQueryKeys.groupProfileInfo(
-        Number(userId),
-        conversationId,
-      ),
+      queryKey: conversationQueryKeys.groupProfileInfo(Number(userId), conversationId),
     });
   };
 

@@ -61,26 +61,20 @@ const MobileNavigationInterface = ({
               : (`${navigationItem.icon}-outline` as keyof typeof Ionicons.glyphMap)
             : ("help-circle-outline" as keyof typeof Ionicons.glyphMap);
 
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
-              className="items-center px-4 py-2"
-              activeOpacity={DEFAULT_ACTIVE_OPACITY}
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            className="items-center px-4 py-2"
+            activeOpacity={DEFAULT_ACTIVE_OPACITY}
+          >
+            <View
+              className={`p-2 rounded-2xl ${
+                isFocused ? "bg-primary-light dark:bg-primary-dark" : "bg-transparent"
+              }`}
             >
-              <View
-                className={`p-2 rounded-2xl ${
-                  isFocused
-                    ? "bg-primary-light dark:bg-primary-dark"
-                    : "bg-transparent"
-                }`}
-              >
-                <Ionicons
-                  name={iconName}
-                  size={24}
-                  color={isFocused ? "#ffffff" : "#6B7280"}
-                />
-              </View>
+              <Ionicons name={iconName} size={24} color={isFocused ? "#ffffff" : "#6B7280"} />
+            </View>
 
               <Text
                 className={`text-xs mt-1 font-medium ${
@@ -99,11 +93,7 @@ const MobileNavigationInterface = ({
 
   if (PLATFORM.IS_IOS) {
     return (
-      <BlurView
-        intensity={100}
-        tint="light"
-        className="absolute bottom-0 left-0 right-0"
-      >
+      <BlurView intensity={100} tint="light" className="absolute bottom-0 left-0 right-0">
         <TabBarContent />
       </BlurView>
     );

@@ -15,7 +15,7 @@ export type YupFormState<T extends Record<string, any>> = {
 
 export function useForm<T extends Record<string, any>>(
   schema: yup.ObjectSchema<any>,
-  initialValues: T,
+  initialValues: T
 ): YupFormState<T> {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -48,7 +48,7 @@ export function useForm<T extends Record<string, any>>(
         return next as T;
       });
     },
-    [schema],
+    [schema]
   );
 
   const clearErrors = useCallback(() => setErrors({}), []);
@@ -95,6 +95,6 @@ export function useForm<T extends Record<string, any>>(
       setShowErrors,
       clearErrors,
       validateAll,
-    ],
+    ]
   );
 }

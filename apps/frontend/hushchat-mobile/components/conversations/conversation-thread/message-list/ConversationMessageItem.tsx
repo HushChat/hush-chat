@@ -52,11 +52,7 @@ interface MessageItemProps {
   onMessagePin: (message: IMessage) => void;
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
-  onViewReactions: (
-    messageId: number,
-    position: { x: number; y: number },
-    isOpen: boolean,
-  ) => void;
+  onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -64,11 +60,7 @@ const ADD_ONE = 1;
 const MIN_COUNT = 0;
 
 const isImageAttachment = (att: IMessageAttachment) => {
-  const name = (
-    att.originalFileName ||
-    att.indexedFileName ||
-    ""
-  ).toLowerCase();
+  const name = (att.originalFileName || att.indexedFileName || "").toLowerCase();
   const byExt = /\.(jpe?g|png|gif|webp|svg)$/.test(name);
   const byMime = att?.mimeType?.startsWith?.("image/");
   return Boolean(byExt || byMime);
@@ -106,7 +98,7 @@ export const ConversationMessageItem = ({
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
   const [reactionSummary, setReactionSummary] = useState(
-    message.reactionSummary || { counts: {}, currentUserReaction: "" },
+    message.reactionSummary || { counts: {}, currentUserReaction: "" }
   );
   const reactedByCurrentUser = reactionSummary?.currentUserReaction || "";
   const {
@@ -119,18 +111,15 @@ export const ConversationMessageItem = ({
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
-    [message.createdAt],
+    [message.createdAt]
   );
   useEffect(() => {
     if (message.reactionSummary) setReactionSummary(message.reactionSummary);
   }, [message.reactionSummary]);
 
   const hasReactions = useMemo(
-    () =>
-      Object.values(reactionSummary?.counts || {}).some(
-        (count) => (count || 0) > 0,
-      ),
-    [reactionSummary],
+    () => Object.values(reactionSummary?.counts || {}).some((count) => (count || 0) > 0),
+    [reactionSummary]
   );
 
   const outerGesture = useMemo(() => {
@@ -154,7 +143,7 @@ export const ConversationMessageItem = ({
       setWebMenuPos({ x: pageX ?? 0, y: pageY ?? 0 });
       setWebMenuVisible(true);
     },
-    [selectionMode],
+    [selectionMode]
   );
 
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
@@ -168,9 +157,7 @@ export const ConversationMessageItem = ({
       {
         id: 1,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
-        iconName: (isThisMessagePinned
-          ? "pin"
-          : "pin-outline") as keyof typeof Ionicons.glyphMap,
+        iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
@@ -213,11 +200,7 @@ export const ConversationMessageItem = ({
   ]);
 
   const handleOpenPicker = useCallback(() => {
-    if (
-      conversationAPIResponse?.isBlocked ||
-      !conversationAPIResponse?.isActive
-    )
-      return;
+    if (conversationAPIResponse?.isBlocked || !conversationAPIResponse?.isActive) return;
     if (selectionMode) return;
     onOpenPicker(String(message.id));
   }, [
@@ -233,7 +216,7 @@ export const ConversationMessageItem = ({
     () => {},
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const removeReaction = useRemoveMessageReactionMutation(
@@ -241,13 +224,13 @@ export const ConversationMessageItem = ({
     () => {},
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const handleViewReactions = useCallback(
     (position: { x: number; y: number }, isOpen: boolean) =>
       onViewReactions(message.id, position, isOpen),
-    [message.id, onViewReactions],
+    [message.id, onViewReactions]
   );
 
   const handleSelectReaction = useCallback(
@@ -264,7 +247,7 @@ export const ConversationMessageItem = ({
           onSuccess: () => {
             reactionCounts[newReaction] = Math.max(
               MIN_COUNT,
-              (reactionCounts[newReaction] ?? 0) - REMOVE_ONE,
+              (reactionCounts[newReaction] ?? 0) - REMOVE_ONE
             );
             setReactionSummary({
               counts: reactionCounts,
@@ -282,17 +265,16 @@ export const ConversationMessageItem = ({
             if (previousReaction) {
               reactionCounts[previousReaction] = Math.max(
                 MIN_COUNT,
-                (reactionCounts[previousReaction] ?? 0) - REMOVE_ONE,
+                (reactionCounts[previousReaction] ?? 0) - REMOVE_ONE
               );
             }
-            reactionCounts[newReaction] =
-              (reactionCounts[newReaction] ?? 0) + ADD_ONE;
+            reactionCounts[newReaction] = (reactionCounts[newReaction] ?? 0) + ADD_ONE;
             setReactionSummary({
               counts: reactionCounts,
               currentUserReaction: newReaction,
             });
           },
-        },
+        }
       );
     },
     [
@@ -304,7 +286,7 @@ export const ConversationMessageItem = ({
       selectionMode,
       removeReaction,
       addReaction,
-    ],
+    ]
   );
 
   const hoverVisibilityClass = PLATFORM.IS_WEB
@@ -372,11 +354,7 @@ export const ConversationMessageItem = ({
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons
-                      name="chevron-down-outline"
-                      size={16}
-                      color="#9CA3AF"
-                    />
+                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
                   </View>
                 </Pressable>
               </View>
@@ -425,11 +403,7 @@ export const ConversationMessageItem = ({
                   })}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons
-                      name="chevron-down-outline"
-                      size={16}
-                      color="#9CA3AF"
-                    />
+                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
                   </View>
                 </Pressable>
               </View>
@@ -438,10 +412,7 @@ export const ConversationMessageItem = ({
 
           {renderParentMessage()}
 
-          <Pressable
-            onPress={handleBubblePress}
-            disabled={!messageContent && !hasAttachments}
-          >
+          <Pressable onPress={handleBubblePress} disabled={!messageContent && !hasAttachments}>
             {selectionMode && (
               <View
                 style={{
@@ -460,12 +431,7 @@ export const ConversationMessageItem = ({
               </View>
             )}
 
-            <View
-              className={classNames(
-                "rounded-xl",
-                isCurrentUser ? "items-end" : "items-start",
-              )}
-            >
+            <View className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}>
               <ForwardedLabel
                 isForwardedMessage={isForwardedMessage}
                 isCurrentUser={isCurrentUser}
@@ -483,7 +449,7 @@ export const ConversationMessageItem = ({
                     ? "border-sky-500 dark:border-sky-400"
                     : "border-transparent",
                   isForwardedMessage && "shadow-sm",
-                  hasImages() && !messageContent ? "" : "px-3 py-2",
+                  hasImages() && !messageContent ? "" : "px-3 py-2"
                 )}
                 style={{
                   maxWidth: hasAttachments ? 305 : "70%",
@@ -525,11 +491,7 @@ export const ConversationMessageItem = ({
 
           {!message.isUnsend && (
             <ReactionPicker
-              visible={
-                isPickerOpen &&
-                !conversationAPIResponse?.isBlocked &&
-                !selectionMode
-              }
+              visible={isPickerOpen && !conversationAPIResponse?.isBlocked && !selectionMode}
               reactedByCurrentUser={reactedByCurrentUser}
               onSelect={handleSelectReaction}
               isCurrentUser={isCurrentUser}

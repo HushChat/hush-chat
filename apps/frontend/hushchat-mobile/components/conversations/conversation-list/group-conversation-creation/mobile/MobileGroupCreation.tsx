@@ -6,11 +6,7 @@ import BackButton from "@/components/BackButton";
 import { CHAT_VIEW_PATH } from "@/constants/routes";
 import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
 
-const MobileGroupCreation = ({
-  participantUserIds,
-}: {
-  participantUserIds: number[];
-}) => {
+const MobileGroupCreation = ({ participantUserIds }: { participantUserIds: number[] }) => {
   const insets = useSafeAreaInsets();
 
   return (

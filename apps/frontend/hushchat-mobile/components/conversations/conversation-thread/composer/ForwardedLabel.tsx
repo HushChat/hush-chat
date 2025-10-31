@@ -16,22 +16,18 @@ export const ForwardedLabel = ({
     <View
       className={classNames(
         "flex-row items-center gap-1 mb-1",
-        isCurrentUser ? "self-end" : "self-start",
+        isCurrentUser ? "self-end" : "self-start"
       )}
     >
       <Ionicons
         name="arrow-redo-outline"
         size={12}
-        className={classNames(
-          isCurrentUser ? "text-primary-light" : "text-gray-500",
-        )}
+        className={classNames(isCurrentUser ? "text-primary-light" : "text-gray-500")}
       />
       <Text
         className={classNames(
           "text-xs italic",
-          isCurrentUser
-            ? "text-primary-light"
-            : "text-gray-500 dark:text-gray-400",
+          isCurrentUser ? "text-primary-light" : "text-gray-500 dark:text-gray-400"
         )}
         style={{ fontStyle: "italic" }}
       >

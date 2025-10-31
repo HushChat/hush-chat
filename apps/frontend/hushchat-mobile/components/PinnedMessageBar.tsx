@@ -62,11 +62,7 @@ export const PinnedMessageBar = ({
         className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 items-center justify-center ml-3"
         hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
       >
-        <Ionicons
-          name="close"
-          size={14}
-          color={isDark ? "#FAFAF9" : "#050506"}
-        />
+        <Ionicons name="close" size={14} color={isDark ? "#FAFAF9" : "#050506"} />
       </Pressable>
     </Pressable>
   );

@@ -1,11 +1,7 @@
 // firebase-messaging-sw.js
 /* eslint-disable */
-importScripts(
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",
-);
-importScripts(
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js",
-);
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
 
 firebase.initializeApp({
   apiKey: "__FIREBASE_API_KEY__",
@@ -19,10 +15,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log(
-    "[firebase-messaging-sw.js] Received background message ",
-    payload,
-  );
+  console.log("[firebase-messaging-sw.js] Received background message ", payload);
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,

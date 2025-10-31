@@ -15,10 +15,7 @@ export function useOneToOneConversationInfoQuery(conversationId: number): {
   } = useUserStore();
 
   const { data, isLoading, error, refetch } = useQuery<oneToOneChatInfo>({
-    queryKey: conversationQueryKeys.participantProfileInfo(
-      Number(userId),
-      conversationId,
-    ),
+    queryKey: conversationQueryKeys.participantProfileInfo(Number(userId), conversationId),
     queryFn: () => getOtherParticipantProfile(conversationId),
     enabled: !!conversationId,
     staleTime: 5 * 60 * 1000, // 5 minutes stale time

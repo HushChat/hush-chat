@@ -7,7 +7,7 @@ import type { IOption } from "@/types/chat/types";
  * Keep UI config separate from the input component logic.
  */
 export const getConversationMenuOptions = (
-  fileInputRef: React.RefObject<HTMLInputElement | null>,
+  fileInputRef: React.RefObject<HTMLInputElement | null>
 ): IOption[] => [
   {
     id: 1,
