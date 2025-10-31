@@ -32,7 +32,6 @@ import { format } from "date-fns";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
-import { useUserStore } from "@/store/user/useUserStore";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -80,6 +79,9 @@ const ConversationThreadScreen = ({
     refetchConversationMessages,
     jumpToMessage,
     updateConversationMessagesCache,
+    hasPreviousPage,
+    fetchPreviousPage,
+    isFetchingPreviousPage,
   } = useConversationMessagesQuery(selectedConversationId);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
@@ -117,7 +119,7 @@ const ConversationThreadScreen = ({
       const results = await pickAndUploadImages();
 
       if (results?.some((r) => r.success)) {
-        refetchConversationMessages();
+        void refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
@@ -166,6 +168,12 @@ const ConversationThreadScreen = ({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const handleLoadNewer = useCallback(async () => {
+    if (hasPreviousPage && !isFetchingPreviousPage) {
+      await fetchPreviousPage();
+    }
+  }, [hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage]);
+
   const handleMessageSelect = useCallback((message: IMessage) => {
     setSelectedMessage(message);
   }, []);
@@ -213,13 +221,7 @@ const ConversationThreadScreen = ({
         console.error("Failed to send message:", error);
       }
     },
-    [
-      isSendingMessage,
-      refetchConversationMessages,
-      selectedConversationId,
-      sendMessage,
-      uploadFilesFromWeb,
-    ]
+    [isSendingMessage, selectedConversationId, sendMessage, uploadFilesFromWeb]
   );
 
   const handleSendFiles = useCallback(() => {
@@ -294,6 +296,7 @@ const ConversationThreadScreen = ({
       <ConversationMessageList
         messages={conversationMessages}
         onLoadMore={handleLoadMore}
+        onEndReached={handleLoadNewer}
         isFetchingNextPage={isFetchingNextPage}
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
@@ -313,6 +316,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse,
     pickerState,
     selectedConversationId,
+    handleLoadNewer,
   ]);
 
   const renderTextInput = useCallback(() => {

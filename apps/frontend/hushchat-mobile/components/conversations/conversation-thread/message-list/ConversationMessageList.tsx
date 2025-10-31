@@ -26,12 +26,13 @@ import MessageReactionsModal from "@/components/conversations/conversation-threa
 
 interface MessagesListProps {
   messages: IMessage[];
-  onLoadMore: () => void;
+  onLoadMore: () => Promise<void>;
   isFetchingNextPage: boolean;
   onMessageSelect?: (message: IMessage) => void;
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  onEndReached?: () => void;
 }
 
 const ConversationMessageList = ({
@@ -42,6 +43,7 @@ const ConversationMessageList = ({
   conversationAPIResponse,
   pickerState,
   selectedConversationId,
+  onEndReached
 }: MessagesListProps) => {
   const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
   const { user } = useUserStore();
@@ -277,6 +279,7 @@ const ConversationMessageList = ({
         showsVerticalScrollIndicator={false}
         inverted
         onEndReached={onLoadMore}
+        onStartReached={onEndReached}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
         onScrollBeginDrag={closeAllOverlays}
