@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { PLATFORM } from '@/constants/platformConstants';
+import { useState, useEffect } from "react";
+import { PLATFORM } from "@/constants/platformConstants";
 
 type UseKeyboardNavigationProps<T> = {
   items: T[];
@@ -29,7 +29,7 @@ export function useKeyboardNavigation<T>({
       let handled = false;
 
       switch (e.key) {
-        case 'ArrowDown':
+        case "ArrowDown":
           e.preventDefault();
           e.stopPropagation();
           setActiveIndex((current) => {
@@ -39,7 +39,7 @@ export function useKeyboardNavigation<T>({
           handled = true;
           break;
 
-        case 'ArrowUp':
+        case "ArrowUp":
           e.preventDefault();
           e.stopPropagation();
           setActiveIndex((current) => {
@@ -49,7 +49,7 @@ export function useKeyboardNavigation<T>({
           handled = true;
           break;
 
-        case 'Enter':
+        case "Enter":
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -59,28 +59,28 @@ export function useKeyboardNavigation<T>({
           handled = true;
           break;
 
-        case 'Escape':
+        case "Escape":
           e.preventDefault();
           e.stopPropagation();
           onClose?.();
           handled = true;
           break;
 
-        case 'Home':
+        case "Home":
           e.preventDefault();
           e.stopPropagation();
           setActiveIndex(0);
           handled = true;
           break;
 
-        case 'End':
+        case "End":
           e.preventDefault();
           e.stopPropagation();
           setActiveIndex(items.length - 1);
           handled = true;
           break;
 
-        case 'Tab':
+        case "Tab":
           e.preventDefault();
           e.stopPropagation();
           if (items[activeIndex]) {
@@ -95,10 +95,10 @@ export function useKeyboardNavigation<T>({
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener("keydown", handleKeyDown, true);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener("keydown", handleKeyDown, true);
     };
   }, [enabled, items, activeIndex, onSelect, onClose]);
 

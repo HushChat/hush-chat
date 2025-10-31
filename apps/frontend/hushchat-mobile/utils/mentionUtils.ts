@@ -1,9 +1,12 @@
-import type { RefObject } from 'react';
-import type { TextInput } from 'react-native';
-import { MENTION_PREFIX } from '@/constants/constants';
-import { MENTION_TOKEN_REGEX } from '@/constants/regex';
+import type { RefObject } from "react";
+import type { TextInput } from "react-native";
+import { MENTION_PREFIX } from "@/constants/constants";
+import { MENTION_TOKEN_REGEX } from "@/constants/regex";
 
-export function setCaretPosition(ref: RefObject<TextInput | null>, index: number) {
+export function setCaretPosition(
+  ref: RefObject<TextInput | null>,
+  index: number,
+) {
   ref.current?.setSelection?.(index, index);
 }
 
@@ -18,8 +21,10 @@ export function detectMentionToken(text: string, caret: number): string | null {
   const match = uptoCaret.match(MENTION_TOKEN_REGEX);
   if (!match) return null;
 
-  const token = match[2] ?? '';
-  return token.startsWith(MENTION_PREFIX) ? token.slice(MENTION_PREFIX.length) : null;
+  const token = match[2] ?? "";
+  return token.startsWith(MENTION_PREFIX)
+    ? token.slice(MENTION_PREFIX.length)
+    : null;
 }
 
 /**
@@ -47,8 +52,8 @@ export function replaceMentionAtCaret(
   const inserted = `${MENTION_PREFIX}${username}`;
 
   // Ensure exactly one space after the inserted mention
-  const needsSpace = afterCaret.length === 0 || !afterCaret.startsWith(' ');
-  const tail = needsSpace ? ` ${afterCaret}` : afterCaret.replace(/^ +/, ' ');
+  const needsSpace = afterCaret.length === 0 || !afterCaret.startsWith(" ");
+  const tail = needsSpace ? ` ${afterCaret}` : afterCaret.replace(/^ +/, " ");
 
   const nextText = `${beforeToken}${inserted}${tail}`;
   const nextCaret = beforeToken.length + inserted.length + 1; // position after the single space

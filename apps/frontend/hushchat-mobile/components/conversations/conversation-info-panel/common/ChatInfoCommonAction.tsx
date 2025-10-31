@@ -4,23 +4,23 @@
  * Shared action row used inside conversation info panels (one-to-one and group).
  */
 
-import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
-import ActionItem from '@/components/conversations/conversation-info-panel/common/ActionItem';
-import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from '@/components/Modal';
-import { ToastUtils } from '@/utils/toastUtils';
-import { useModalContext } from '@/context/modal-context';
-import { useConversationsQuery } from '@/query/useConversationsQuery';
-import { getCriteria } from '@/utils/conversationUtils';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import { useConversationFavorites } from '@/hooks/useConversationFavorites';
+import React, { useCallback, useEffect } from "react";
+import { View } from "react-native";
+import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useModalContext } from "@/context/modal-context";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
+import { getCriteria } from "@/utils/conversationUtils";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { useConversationFavorites } from "@/hooks/useConversationFavorites";
 import {
   useTogglePinConversationMutation,
   useToggleMuteConversationMutation,
-} from '@/query/post/queries';
-import { useDeleteConversationByIdMutation } from '@/query/delete/queries';
-import { useUserStore } from '@/store/user/useUserStore';
-import { getAPIErrorMsg } from '@/utils/commonUtils';
+} from "@/query/post/queries";
+import { useDeleteConversationByIdMutation } from "@/query/delete/queries";
+import { useUserStore } from "@/store/user/useUserStore";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
 
 type ChatInfoActionProps = {
   conversationId: number;
@@ -44,12 +44,17 @@ export default function ChatInfoCommonAction({
   const [isPinnedState, setIsPinnedState] = React.useState(isPinned);
   const [isMutedState, setIsMutedState] = React.useState(isMuted);
   const { selectedConversationType } = useConversationStore();
-  const { refetch } = useConversationsQuery(getCriteria(selectedConversationType));
+  const { refetch } = useConversationsQuery(
+    getCriteria(selectedConversationType),
+  );
   const {
     user: { id: userId },
   } = useUserStore();
   const criteria = getCriteria(selectedConversationType);
-  const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
+  const { handleToggleFavorites } = useConversationFavorites(
+    conversationId,
+    criteria,
+  );
 
   const togglePinConversation = useTogglePinConversationMutation(
     {
@@ -89,13 +94,16 @@ export default function ChatInfoCommonAction({
   }, [conversationId, togglePinConversation]);
 
   const MUTE_OPTIONS = [
-    { label: '15 mins', value: '15m' },
-    { label: '1 hour', value: '1h' },
-    { label: '1 day', value: '1d' },
-    { label: 'Always', value: 'always' },
+    { label: "15 mins", value: "15m" },
+    { label: "1 hour", value: "1h" },
+    { label: "1 day", value: "1d" },
+    { label: "Always", value: "always" },
   ];
 
-  const performMuteMutation = (payload: { conversationId: number; duration: string | null }) =>
+  const performMuteMutation = (payload: {
+    conversationId: number;
+    duration: string | null;
+  }) =>
     toggleMuteConversation.mutate(payload, {
       onSuccess: () => setIsMutedState(payload.duration !== null),
       onError: (error) => ToastUtils.error(getAPIErrorMsg(error)),
@@ -109,8 +117,8 @@ export default function ChatInfoCommonAction({
 
     openModal({
       type: MODAL_TYPES.confirm,
-      title: 'Mute Conversation',
-      description: 'Select how long you want to mute this conversation',
+      title: "Mute Conversation",
+      description: "Select how long you want to mute this conversation",
       buttons: [
         ...MUTE_OPTIONS.map((option) => ({
           text: option.label,
@@ -119,11 +127,22 @@ export default function ChatInfoCommonAction({
             closeModal();
           },
         })),
-        { text: 'Cancel', onPress: closeModal, variant: MODAL_BUTTON_VARIANTS.destructive },
+        {
+          text: "Cancel",
+          onPress: closeModal,
+          variant: MODAL_BUTTON_VARIANTS.destructive,
+        },
       ],
-      icon: 'volume-off-outline',
+      icon: "volume-off-outline",
     });
-  }, [isMutedState, openModal, MUTE_OPTIONS, closeModal, performMuteMutation, conversationId]);
+  }, [
+    isMutedState,
+    openModal,
+    MUTE_OPTIONS,
+    closeModal,
+    performMuteMutation,
+    conversationId,
+  ]);
 
   const deleteConversation = useDeleteConversationByIdMutation(
     {
@@ -131,7 +150,7 @@ export default function ChatInfoCommonAction({
       criteria,
     },
     () => {
-      ToastUtils.success('Conversation deleted successfully!');
+      ToastUtils.success("Conversation deleted successfully!");
       closeModal();
       setSelectedConversation(null);
       refetch();
@@ -145,42 +164,44 @@ export default function ChatInfoCommonAction({
   const handleDeleteConversation = useCallback(() => {
     openModal({
       type: MODAL_TYPES.confirm,
-      title: 'Delete Conversation?',
-      description: 'Are you sure you want to delete this conversation?',
+      title: "Delete Conversation?",
+      description: "Are you sure you want to delete this conversation?",
       buttons: [
-        { text: 'Cancel', onPress: closeModal },
+        { text: "Cancel", onPress: closeModal },
         {
-          text: 'Delete',
+          text: "Delete",
           onPress: () => {
             deleteConversation.mutate(conversationId);
           },
           variant: MODAL_BUTTON_VARIANTS.destructive,
         },
       ],
-      icon: 'trash-bin',
+      icon: "trash-bin",
     });
   }, [openModal, closeModal, deleteConversation, conversationId]);
 
   return (
     <View>
       <ActionItem
-        icon={isPinnedState ? 'pin-outline' : 'pin'}
-        label={isPinnedState ? 'Unpin Conversation' : 'Pin Conversation'}
+        icon={isPinnedState ? "pin-outline" : "pin"}
+        label={isPinnedState ? "Unpin Conversation" : "Pin Conversation"}
         onPress={handleTogglePinConversation}
       />
       <ActionItem
-        icon={isFavoriteState ? 'heart' : 'heart-outline'}
-        label={isFavoriteState ? 'Remove from Favorites' : 'Add to Favorites'}
+        icon={isFavoriteState ? "heart" : "heart-outline"}
+        label={isFavoriteState ? "Remove from Favorites" : "Add to Favorites"}
         onPress={handleToggleFavorite}
       />
       <ActionItem
-        icon={isMutedState ? 'notifications-off-outline' : 'notifications-outline'}
-        label={isMutedState ? 'Unmute Conversation' : 'Mute Conversation'}
+        icon={
+          isMutedState ? "notifications-off-outline" : "notifications-outline"
+        }
+        label={isMutedState ? "Unmute Conversation" : "Mute Conversation"}
         onPress={handleToggleMuteConversation}
       />
       <ActionItem
-        icon={'trash-bin-outline'}
-        label={'Delete Conversation'}
+        icon={"trash-bin-outline"}
+        label={"Delete Conversation"}
         onPress={handleDeleteConversation}
         color="#EF4444"
       />

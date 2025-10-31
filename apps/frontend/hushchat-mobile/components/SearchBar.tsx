@@ -1,7 +1,7 @@
-import { PLATFORM } from '@/constants/platformConstants';
-import { useAppTheme } from '@/hooks/useAppTheme';
-import { Ionicons } from '@expo/vector-icons';
-import { Platform, Pressable, TextInput, View } from 'react-native';
+import { PLATFORM } from "@/constants/platformConstants";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { Ionicons } from "@expo/vector-icons";
+import { Platform, Pressable, TextInput, View } from "react-native";
 
 interface SearchBarProps {
   ref?: React.RefObject<TextInput>;
@@ -15,7 +15,7 @@ const SearchBar = ({
   ref,
   value,
   onChangeText,
-  placeholder = 'Search...',
+  placeholder = "Search...",
   onClear,
 }: SearchBarProps) => {
   const { isDark } = useAppTheme();
@@ -32,15 +32,15 @@ const SearchBar = ({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+        placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
         className="py-2 flex-1 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 rounded-full px-2"
         style={{
           borderWidth: 0,
-          borderColor: 'transparent',
+          borderColor: "transparent",
           // Additional properties to ensure no focus styling
-          ...(Platform.OS === 'web' && {
-            outline: 'none',
-            boxShadow: 'none',
+          ...(Platform.OS === "web" && {
+            outline: "none",
+            boxShadow: "none",
           }),
         }}
         autoCapitalize="none"
@@ -48,7 +48,7 @@ const SearchBar = ({
         returnKeyType="search"
         // Additional iOS-specific props to remove focus styling
         {...(PLATFORM.IS_IOS && {
-          clearButtonMode: 'never',
+          clearButtonMode: "never",
         })}
       />
       {value && (

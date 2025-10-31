@@ -22,9 +22,11 @@ If you discover a security vulnerability, please **do not open a public issue**.
 Instead, report it **privately** to the HushChat core team.
 
 ### Contact:
-**gethushchat@gmail.com**  
+
+**gethushchat@gmail.com**
 
 Please include:
+
 - A clear description of the vulnerability
 - Steps to reproduce the issue
 - Affected versions or environments
@@ -46,6 +48,7 @@ We aim to resolve verified vulnerabilities within **7–14 days**, depending on 
 ## Responsible Disclosure
 
 We kindly ask you to:
+
 - Give us a reasonable time to address the issue before making it public.
 - Avoid publicly sharing exploit details until an official fix is released.
 - Never use found vulnerabilities to access, modify, or destroy data.

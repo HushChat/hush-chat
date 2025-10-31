@@ -1,9 +1,9 @@
-import React from 'react';
-import { useAuthThemeColors } from '@/hooks/useAuthThemeColors';
-import { Images } from '@/assets/images';
-import { useForgotPasswordReset } from '@/hooks/auth/useForgotPasswordReset';
-import { ForgotPasswordResetForm } from '@/components/auth/reset-password/ForgotPasswordResetForm';
-import AuthWebLayout from '@/components/auth/AuthWebLayout';
+import React from "react";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
+import { Images } from "@/assets/images";
+import { useForgotPasswordReset } from "@/hooks/auth/useForgotPasswordReset";
+import { ForgotPasswordResetForm } from "@/components/auth/reset-password/ForgotPasswordResetForm";
+import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function ForgotPasswordResetScreen() {
   const { colors } = useAuthThemeColors();

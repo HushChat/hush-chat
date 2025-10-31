@@ -1,11 +1,14 @@
-import { useUserStore } from '@/store/user/useUserStore';
-import { usePaginatedQuery, PagePaginatedQueryResult } from '@/query/usePaginatedQuery';
-import { getAllCallLogs } from '@/apis/conversation';
-import { ICallLog } from '@/types/call/types';
-import { userQueryKeys } from '@/constants/queryKeys';
+import { useUserStore } from "@/store/user/useUserStore";
+import {
+  usePaginatedQuery,
+  PagePaginatedQueryResult,
+} from "@/query/usePaginatedQuery";
+import { getAllCallLogs } from "@/apis/conversation";
+import { ICallLog } from "@/types/call/types";
+import { userQueryKeys } from "@/constants/queryKeys";
 
 export function useCallLogsQuery(): {
-  callLogsPages: PagePaginatedQueryResult<ICallLog>['pages'];
+  callLogsPages: PagePaginatedQueryResult<ICallLog>["pages"];
   isLoadingCallLogs: boolean;
   callLogsError: Error | null;
   fetchNextPage: () => Promise<unknown>;

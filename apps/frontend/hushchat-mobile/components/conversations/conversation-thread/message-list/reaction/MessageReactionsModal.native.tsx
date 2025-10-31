@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { View } from 'react-native';
-import MessageReactionsBottomSheet from '@/components/MessageReactionsBottomSheet';
-import { useMessageReactionsQuery } from '@/query/useMessageReactionsQuery';
-import { MessageReact } from '@/types/chat/types';
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { View } from "react-native";
+import MessageReactionsBottomSheet from "@/components/MessageReactionsBottomSheet";
+import { useMessageReactionsQuery } from "@/query/useMessageReactionsQuery";
+import { MessageReact } from "@/types/chat/types";
 
 interface MobileConversationContextMenuProps {
   messageId: number;
@@ -31,7 +31,9 @@ const MessageReactionsModal = ({
     useMessageReactionsQuery(messageId);
 
   const messageReactions = useMemo(
-    () => pages?.pages?.flatMap((page) => (page.content as MessageReact[]) || []) || [],
+    () =>
+      pages?.pages?.flatMap((page) => (page.content as MessageReact[]) || []) ||
+      [],
     [pages],
   );
 

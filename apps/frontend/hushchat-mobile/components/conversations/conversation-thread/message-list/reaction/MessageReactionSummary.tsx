@@ -1,9 +1,9 @@
-import React, { memo, useMemo, useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import classNames from 'classnames';
-import { ReactionSummary, ReactionType } from '@/types/chat/types';
-import { REACTION_META } from '@/constants/reactions';
-import { PLATFORM } from '@/constants/platformConstants';
+import React, { memo, useMemo, useRef } from "react";
+import { Pressable, Text, View } from "react-native";
+import classNames from "classnames";
+import { ReactionSummary, ReactionType } from "@/types/chat/types";
+import { REACTION_META } from "@/constants/reactions";
+import { PLATFORM } from "@/constants/platformConstants";
 
 const ORDER: ReactionType[] = [
   ReactionType.THUMBS_UP,
@@ -29,12 +29,17 @@ const MessageReactionsSummary = memo(
         return { topEmojis: [] as string[], totalReactions: 0 };
       }
 
-      const reactionCounts: { type: ReactionType; count: number }[] = ORDER.map((reactionType) => ({
-        type: reactionType,
-        count: reactions.counts[reactionType] ?? 0,
-      })).filter((reaction) => reaction.count > 0);
+      const reactionCounts: { type: ReactionType; count: number }[] = ORDER.map(
+        (reactionType) => ({
+          type: reactionType,
+          count: reactions.counts[reactionType] ?? 0,
+        }),
+      ).filter((reaction) => reaction.count > 0);
 
-      const totalReactions = reactionCounts.reduce((sum, reaction) => sum + reaction.count, 0);
+      const totalReactions = reactionCounts.reduce(
+        (sum, reaction) => sum + reaction.count,
+        0,
+      );
 
       if (totalReactions === 0) {
         return { topEmojis: [], totalReactions: 0 };
@@ -81,9 +86,9 @@ const MessageReactionsSummary = memo(
         accessibilityRole="button"
         accessibilityLabel={`Reactions, total ${totalReactions}`}
         className={classNames(
-          'flex-row rounded-2xl items-center px-2 py-1',
-          'bg-secondary-light dark:bg-secondary-dark',
-          isCurrentUser ? 'self-end' : 'self-start',
+          "flex-row rounded-2xl items-center px-2 py-1",
+          "bg-secondary-light dark:bg-secondary-dark",
+          isCurrentUser ? "self-end" : "self-start",
         )}
       >
         <View className="flex-row items-center gap-2">
@@ -94,12 +99,14 @@ const MessageReactionsSummary = memo(
               </Text>
             ))}
           </View>
-          <Text className="text-sm text-gray-700 dark:text-gray-200">{totalReactions}</Text>
+          <Text className="text-sm text-gray-700 dark:text-gray-200">
+            {totalReactions}
+          </Text>
         </View>
       </Pressable>
     );
   },
 );
 
-MessageReactionsSummary.displayName = 'MessageReactionsSummary';
+MessageReactionsSummary.displayName = "MessageReactionsSummary";
 export default MessageReactionsSummary;

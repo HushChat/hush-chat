@@ -1,18 +1,18 @@
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import FilterButton from '@/components/FilterButton';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { CHAT_VIEW_PATH } from '@/constants/routes';
-import classNames from 'classnames';
-import BackButton from '@/components/BackButton';
-import BottomSheet from '@/components/BottomSheet';
-import { Ionicons } from '@expo/vector-icons';
-import { DEFAULT_ACTIVE_OPACITY } from '@/constants/ui';
-import { useConversationStore } from '@/store/conversation/useConversationStore';
-import SearchBar from '@/components/SearchBar';
-import { ChatComponentProps, ConversationType } from '@/types/chat/types';
-import WebSocketStatusIndicator from '@/components/conversations/WebSocketStatusIndicator';
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import FilterButton from "@/components/FilterButton";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { CHAT_VIEW_PATH } from "@/constants/routes";
+import classNames from "classnames";
+import BackButton from "@/components/BackButton";
+import BottomSheet from "@/components/BottomSheet";
+import { Ionicons } from "@expo/vector-icons";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import SearchBar from "@/components/SearchBar";
+import { ChatComponentProps, ConversationType } from "@/types/chat/types";
+import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 
 export default function ChatInterface({
   chatItemList,
@@ -20,11 +20,12 @@ export default function ChatInterface({
   selectedConversation,
   setSelectedConversation,
   onSearchQueryInserting = () => {},
-  searchQuery = '',
+  searchQuery = "",
 }: ChatComponentProps) {
   const insets = useSafeAreaInsets();
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
-  const { selectedConversationType, setSelectedConversationType } = useConversationStore();
+  const { selectedConversationType, setSelectedConversationType } =
+    useConversationStore();
 
   useEffect(() => {
     if (selectedConversation) {
@@ -41,12 +42,12 @@ export default function ChatInterface({
 
   const sheetOptions = [
     {
-      id: 'create-group',
-      title: 'New group',
-      icon: 'people-outline' as const,
+      id: "create-group",
+      title: "New group",
+      icon: "people-outline" as const,
       onPress: () => {
         setSheetVisible(false);
-        router.push('/group-conversation/select-participants');
+        router.push("/group-conversation/select-participants");
       },
     },
   ];
@@ -59,17 +60,26 @@ export default function ChatInterface({
       >
         <View className="flex-row items-center">
           {selectedConversationType === ConversationType.ARCHIVED && (
-            <BackButton onPress={() => setSelectedConversationType(ConversationType.ALL)} />
+            <BackButton
+              onPress={() => setSelectedConversationType(ConversationType.ALL)}
+            />
           )}
 
           <View className="flex-1">
             <Text
-              className={classNames('text-text-primary-light dark:text-text-primary-dark', {
-                'text-xl font-medium': selectedConversationType === ConversationType.ARCHIVED,
-                'text-3xl font-bold': selectedConversationType !== ConversationType.ARCHIVED,
-              })}
+              className={classNames(
+                "text-text-primary-light dark:text-text-primary-dark",
+                {
+                  "text-xl font-medium":
+                    selectedConversationType === ConversationType.ARCHIVED,
+                  "text-3xl font-bold":
+                    selectedConversationType !== ConversationType.ARCHIVED,
+                },
+              )}
             >
-              {selectedConversationType === ConversationType.ARCHIVED ? 'Archived' : 'Chats'}
+              {selectedConversationType === ConversationType.ARCHIVED
+                ? "Archived"
+                : "Chats"}
             </Text>
           </View>
 
@@ -89,7 +99,7 @@ export default function ChatInterface({
           <SearchBar
             value={searchQuery}
             onChangeText={onSearchQueryInserting}
-            onClear={() => onSearchQueryInserting('')}
+            onClear={() => onSearchQueryInserting("")}
           />
         </View>
       )}

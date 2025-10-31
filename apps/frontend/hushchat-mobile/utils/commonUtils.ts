@@ -1,24 +1,28 @@
-import { PLATFORM } from '@/constants/platformConstants';
-import { CHAT_VIEW_PATH, CONVERSATION_DETAIL } from '@/constants/routes';
-import { IConversation } from '@/types/chat/types';
-import { DarkTheme, DefaultTheme } from '@react-navigation/native';
-import { isSameDay } from 'date-fns';
-import { router } from 'expo-router';
-import { KeyboardEvent, useCallback } from 'react';
-import { ColorSchemeName, TextInputKeyPressEvent } from 'react-native';
+import { PLATFORM } from "@/constants/platformConstants";
+import { CHAT_VIEW_PATH, CONVERSATION_DETAIL } from "@/constants/routes";
+import { IConversation } from "@/types/chat/types";
+import { DarkTheme, DefaultTheme } from "@react-navigation/native";
+import { isSameDay } from "date-fns";
+import { router } from "expo-router";
+import { KeyboardEvent, useCallback } from "react";
+import { ColorSchemeName, TextInputKeyPressEvent } from "react-native";
 
 type KeyEvent = KeyboardEvent | TextInputKeyPressEvent;
 
 const getDateOnly = (daysAgo: number = 0): Date => {
   const date = new Date();
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate() - daysAgo);
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate() - daysAgo,
+  );
 };
 
 const getLastMessageTime = (isoString: string): string => {
-  if (!isoString) return '';
+  if (!isoString) return "";
 
   const inputDate = new Date(isoString);
-  if (isNaN(inputDate.getTime())) return '';
+  if (isNaN(inputDate.getTime())) return "";
 
   const inputDateOnly = new Date(
     inputDate.getFullYear(),
@@ -31,44 +35,47 @@ const getLastMessageTime = (isoString: string): string => {
 
   // Check if it's today
   if (inputDateOnly.getTime() === today.getTime()) {
-    return inputDate.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return inputDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: true,
     });
   }
 
   // Check if it's yesterday
   if (inputDateOnly.getTime() === yesterday.getTime()) {
-    return 'Yesterday';
+    return "Yesterday";
   }
 
   // Otherwise return the date
-  return inputDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  return inputDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 };
 
 const getNavigationTheme = (colorScheme: ColorSchemeName) => {
-  return colorScheme === 'dark' ? DarkTheme : DefaultTheme;
+  return colorScheme === "dark" ? DarkTheme : DefaultTheme;
 };
 
 const getInitials = (name: string): string => {
-  if (!name || typeof name !== 'string') {
-    return '';
+  if (!name || typeof name !== "string") {
+    return "";
   }
 
   return name
     .trim()
-    .split(' ')
+    .split(" ")
     .filter((word) => word.length > 0)
-    .map((word) => word[0]?.toUpperCase() || '')
-    .join('');
+    .map((word) => word[0]?.toUpperCase() || "")
+    .join("");
 };
 
-const handleConversationNavigation = (isWebAction: () => void, conversationId: number) => {
+const handleConversationNavigation = (
+  isWebAction: () => void,
+  conversationId: number,
+) => {
   if (PLATFORM.IS_WEB) {
     isWebAction();
   } else {
@@ -83,7 +90,9 @@ const handleConversationNavigation = (isWebAction: () => void, conversationId: n
 
 // }
 
-const handleChatPress = (setSelectedConversation: (conversation: IConversation | null) => void) => {
+const handleChatPress = (
+  setSelectedConversation: (conversation: IConversation | null) => void,
+) => {
   const handleChatPress = (item: IConversation) => {
     if (!PLATFORM.IS_WEB) {
       router.push({
@@ -102,36 +111,41 @@ const handleChatPress = (setSelectedConversation: (conversation: IConversation |
 };
 
 const formatRelativeTime = (iso?: string): string => {
-  if (!iso) return '';
+  if (!iso) return "";
   const date = new Date(iso);
-  if (isNaN(date.getTime())) return '';
+  if (isNaN(date.getTime())) return "";
 
   const today = getDateOnly(0);
   const yesterday = getDateOnly(1);
 
-  const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const timeStr = date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   if (isSameDay(date, today)) return timeStr;
   if (isSameDay(date, yesterday)) return `Yesterday, ${timeStr}`;
 
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
 const useEnterSubmit = (onSubmit: () => void) => {
   return useCallback(
     (e: KeyEvent) => {
-      const key = (e as TextInputKeyPressEvent).nativeEvent?.key ?? (e as KeyboardEvent).key;
+      const key =
+        (e as TextInputKeyPressEvent).nativeEvent?.key ??
+        (e as KeyboardEvent).key;
 
       const shiftPressed = (e as KeyboardEvent).shiftKey ?? false;
 
-      if (key === 'Enter' && !shiftPressed) {
-        if ('preventDefault' in e) {
+      if (key === "Enter" && !shiftPressed) {
+        if ("preventDefault" in e) {
           e.preventDefault?.();
         }
         onSubmit();
@@ -142,7 +156,7 @@ const useEnterSubmit = (onSubmit: () => void) => {
 };
 
 const getUserDisplayName = (firstName: string, lastName: string) => {
-  return [firstName, lastName].filter(Boolean).join(' ') || 'Unknown User';
+  return [firstName, lastName].filter(Boolean).join(" ") || "Unknown User";
 };
 
 const getAPIErrorMsg = (error: any) =>
@@ -156,7 +170,10 @@ const getAdjustedPosition = (
   modalHeight: number,
 ) => ({
   x: Math.max(12, Math.min(position.x, screenWidth - modalWidth - 12)),
-  y: position.y + modalHeight > screenHeight - 30 ? position.y - modalHeight - 12 : position.y,
+  y:
+    position.y + modalHeight > screenHeight - 30
+      ? position.y - modalHeight - 12
+      : position.y,
 });
 
 export {

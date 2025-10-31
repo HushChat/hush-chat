@@ -1,17 +1,38 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Modal, View, Text, Pressable, Dimensions, ScrollView, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { TImagePreviewProps } from '@/types/chat/types';
-import { useSwipeGesture } from '@/gestures/base/useSwipeGesture';
-import { usePanGesture } from '@/gestures/base/usePanGesture';
-import { useDoubleTapGesture } from '@/gestures/base/useDoubleTapGesture';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Modal,
+  View,
+  Text,
+  Pressable,
+  Dimensions,
+  ScrollView,
+  Image,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  GestureDetector,
+  Gesture,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { TImagePreviewProps } from "@/types/chat/types";
+import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
+import { usePanGesture } from "@/gestures/base/usePanGesture";
+import { useDoubleTapGesture } from "@/gestures/base/useDoubleTapGesture";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
+export const ImagePreview = ({
+  visible,
+  images,
+  initialIndex,
+  onClose,
+}: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const isZoomed = useSharedValue(false);
@@ -51,7 +72,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
 
   const { gesture: swipeGesture } = useSwipeGesture({
     enabled: images.length > 1 && !isZoomed.value,
-    direction: 'horizontal',
+    direction: "horizontal",
     trigger: 80,
     maxDrag: 100,
     onSwipeRight: () => {
@@ -93,7 +114,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
 
   const { gesture: panGesture } = usePanGesture({
     enabled: true,
-    axis: 'free',
+    axis: "free",
     onUpdate: ({ translationX: tx, translationY: ty }) => {
       if (scale.value > 1) {
         translateX.value = tx;
@@ -126,7 +147,10 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
   });
 
   const panZoom = Gesture.Simultaneous(pinchGesture, panGesture);
-  const composedGesture = Gesture.Exclusive(swipeGesture, Gesture.Race(doubleTapGesture, panZoom));
+  const composedGesture = Gesture.Exclusive(
+    swipeGesture,
+    Gesture.Race(doubleTapGesture, panZoom),
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -150,7 +174,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
       presentationStyle="overFullScreen"
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
           <View className="flex-1 bg-white dark:bg-black">
             <View className="absolute left-0 right-0 flex-row justify-between items-center px-5 py-4 z-10 bg-white dark:bg-black backdrop-blur-sm">
               <Text className="text-gray-900 dark:text-white text-base font-semibold">
@@ -164,7 +188,10 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
             <View className="flex-1 justify-center items-center">
               <GestureDetector gesture={composedGesture}>
                 <Animated.View
-                  style={[{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }, animatedStyle]}
+                  style={[
+                    { width: SCREEN_WIDTH, height: SCREEN_HEIGHT },
+                    animatedStyle,
+                  ]}
                 >
                   <Image
                     source={{ uri: currentImage?.fileUrl }}
@@ -195,8 +222,8 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                         source={{ uri: img.fileUrl }}
                         className={`w-[60px] h-[60px] rounded-lg border-2 ${
                           currentIndex === idx
-                            ? 'border-4 border-primary-light dark:border-primary-dark'
-                            : 'border-transparent'
+                            ? "border-4 border-primary-light dark:border-primary-dark"
+                            : "border-transparent"
                         }`}
                         resizeMode="cover"
                       />
