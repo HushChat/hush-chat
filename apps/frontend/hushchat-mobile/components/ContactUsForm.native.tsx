@@ -4,6 +4,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,12 +16,9 @@ import { AppText, AppTextInput } from "@/components/AppText";
 import { sendContactUsMessage } from "@/apis/conversation";
 import { ToastUtils } from "@/utils/toastUtils";
 
-const contactSchema = Yup.object().shape({
+const contactSchema = Yup.object({
   name: Yup.string().trim().required("Name is required"),
-  email: Yup.string()
-    .trim()
-    .email("Invalid email")
-    .required("Email is required"),
+  email: Yup.string().trim().email("Invalid email").required("Email is required"),
   subject: Yup.string().trim().required("Subject is required"),
   message: Yup.string().trim().required("Message is required"),
 });
@@ -43,19 +42,20 @@ export function ContactUsForm({
   const mutation = useMutation({
     mutationFn: sendContactUsMessage,
     onSuccess: (response) => {
-      ToastUtils.success(response.data);
-      setFormData((prev) => ({
-        ...prev,
+      ToastUtils.success(response.data || "Message sent successfully!");
+      setFormData({
+        name: initialName,
+        email: initialEmail,
         subject: "",
         message: "",
-      }));
+      });
     },
     onError: (error: any) => {
       ToastUtils.error(error.response?.data?.error || error.message);
     },
   });
 
-  const handleFieldChange = (field: keyof typeof formData, value: string) => {
+  const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -85,12 +85,24 @@ export function ContactUsForm({
     formData.message.trim();
 
   return (
-    <View className="flex-1 justify-center">
-      <View className="w-full max-w-2xl mx-auto">
-        <View className="bg-gray-100 dark:bg-gray-800 rounded-xl p-6 mb-6">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "flex-start",
+          paddingHorizontal: 24,
+          paddingTop: 10,
+          paddingBottom: 60,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 mb-6">
           <View className="flex-row items-center">
-            <Ionicons name="mail" size={20} color="#6b7280" />
-            <AppText className="text-text-primary-light dark:text-text-primary-dark ml-3">
+            <Ionicons name="mail-outline" size={20} color="#6b7280" />
+            <AppText className="text-text-primary-light dark:text-text-primary-dark ml-3 text-sm">
               gethushchat@gmail.com
             </AppText>
           </View>
@@ -103,7 +115,7 @@ export function ContactUsForm({
             </AppText>
             <AppTextInput
               value={formData.name}
-              onChangeText={(value) => handleFieldChange("name", value)}
+              onChangeText={(v) => handleChange("name", v)}
               placeholder="Your name"
               placeholderTextColor="#9ca3af"
               className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
@@ -112,12 +124,12 @@ export function ContactUsForm({
           </View>
 
           <View>
-            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+            <AppText className="mt-5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
               Email
             </AppText>
             <AppTextInput
               value={formData.email}
-              onChangeText={(value) => handleFieldChange("email", value)}
+              onChangeText={(v) => handleChange("email", v)}
               placeholder="your.email@example.com"
               placeholderTextColor="#9ca3af"
               keyboardType="email-address"
@@ -128,12 +140,12 @@ export function ContactUsForm({
           </View>
 
           <View>
-            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+            <AppText className="mt-5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
               Subject
             </AppText>
             <AppTextInput
               value={formData.subject}
-              onChangeText={(value) => handleFieldChange("subject", value)}
+              onChangeText={(v) => handleChange("subject", v)}
               placeholder="What is this about?"
               placeholderTextColor="#9ca3af"
               className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
@@ -142,19 +154,19 @@ export function ContactUsForm({
           </View>
 
           <View>
-            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+            <AppText className="mt-5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
               Message
             </AppText>
             <AppTextInput
               value={formData.message}
-              onChangeText={(value) => handleFieldChange("message", value)}
+              onChangeText={(v) => handleChange("message", v)}
               placeholder="Tell us more..."
               placeholderTextColor="#9ca3af"
               multiline
               numberOfLines={6}
               textAlignVertical="top"
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
               style={{ minHeight: 120 }}
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
               editable={!mutation.isPending}
             />
           </View>
@@ -163,22 +175,22 @@ export function ContactUsForm({
             onPress={handleSubmit}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
             disabled={!isFormValid || mutation.isPending}
-            className={`rounded-lg py-4 items-center mt-2 ${
+            className={`rounded-lg py-4 items-center mt-5 ${
               !isFormValid || mutation.isPending
                 ? "bg-gray-400"
                 : "bg-primary-light dark:bg-primary-dark"
             }`}
           >
             {mutation.isPending ? (
-              <ActivityIndicator size={20} />
+              <ActivityIndicator color="#ffffff" size={20} />
             ) : (
-              <AppText className="font-semibold text-base">
+              <AppText className="text-white font-semibold text-base">
                 Send Message
               </AppText>
             )}
           </TouchableOpacity>
         </View>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

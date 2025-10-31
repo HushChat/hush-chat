@@ -40,7 +40,7 @@ export default function ChatInterface({
     }
   }, [selectedConversation, setSelectedConversation]);
 
-  const sheetOptions = [
+   const sheetOptions = [
     {
       id: "create-group",
       title: "New group",
@@ -48,6 +48,15 @@ export default function ChatInterface({
       onPress: () => {
         setSheetVisible(false);
         router.push("/group-conversation/select-participants");
+      },
+    },
+    {
+      id: "settings",
+      title: "Settings",
+      icon: "settings-outline" as const,
+      onPress: () => {
+        setSheetVisible(false);
+        router.push("/(tabs)/settings");
       },
     },
   ];

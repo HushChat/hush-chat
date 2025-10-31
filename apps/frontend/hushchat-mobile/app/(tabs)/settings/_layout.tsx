@@ -3,8 +3,8 @@ import { View, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname, Href, Slot } from "expo-router";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-import { Stack } from "expo-router";
 import { AppText } from "@/components/AppText";
+import { PLATFORM } from "@/constants/platformConstants";
 
 interface SettingsMenuItem {
   key: string;
@@ -17,15 +17,22 @@ const settingsMenuItems: SettingsMenuItem[] = [
   {
     key: "contact-us",
     title: "Contact Us",
-    icon: "mail-outline",
+    icon: "person-circle-outline",
     route: "/settings/contact-us",
   },
-  // Add more menu items here
 ];
 
 export default function SettingsLayout() {
   const router = useRouter();
   const pathname = usePathname();
+
+  if (!PLATFORM.IS_WEB) {
+    return (
+      <View className="flex-1 bg-background-light dark:bg-background-dark">
+        <Slot />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 flex-row bg-background-light dark:bg-background-dark">
@@ -51,9 +58,8 @@ export default function SettingsLayout() {
                   isActive ? "bg-primary-light/10 dark:bg-secondary-dark" : ""
                 }`}
               >
-                <AppText
-                  className={"text-base ml-3 dark:text-white light:text-black"}
-                >
+                <Ionicons name={item.icon} size={20} color="grey" />
+                <AppText className={"text-base ml-3 dark:text-white light:text-black"}>
                   {item.title}
                 </AppText>
               </TouchableOpacity>
