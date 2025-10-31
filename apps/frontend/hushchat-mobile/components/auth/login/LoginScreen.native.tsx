@@ -9,21 +9,11 @@ import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 export default function LoginScreen() {
   const { colors } = useAuthThemeColors();
   const router = useRouter();
-  const {
-    formValues,
-    formErrors,
-    showErrors,
-    errorMessage,
-    onValueChange,
-    submit,
-  } = useLoginForm();
+  const { formValues, formErrors, showErrors, errorMessage, onValueChange, submit } =
+    useLoginForm();
 
   return (
-    <AuthMobileLayout
-      colors={colors}
-      image={Images.LoginPeople}
-      onBack={() => router.back()}
-    >
+    <AuthMobileLayout colors={colors} image={Images.LoginPeople} onBack={() => router.back()}>
       <LoginForm
         colors={colors}
         errorMessage={errorMessage}

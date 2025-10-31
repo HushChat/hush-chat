@@ -13,10 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { IConversation } from "@/types/chat/types";
 import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
 import InitialsAvatar from "@/components/InitialsAvatar";
-import {
-  pickAndUploadImage,
-  UploadType,
-} from "@/apis/photo-upload-service/photo-upload-service";
+import { pickAndUploadImage, UploadType } from "@/apis/photo-upload-service/photo-upload-service";
 import UploadIndicator from "@/components/UploadIndicator";
 import { useUserStore } from "@/store/user/useUserStore";
 import { usePatchConversationQuery } from "@/query/post/queries";
@@ -29,11 +26,7 @@ interface GroupSettingsProps {
   visible: boolean;
 }
 
-export default function GroupSettings({
-  conversation,
-  onClose,
-  visible,
-}: GroupSettingsProps) {
+export default function GroupSettings({ conversation, onClose, visible }: GroupSettingsProps) {
   const { user } = useUserStore();
 
   const screenWidth = Dimensions.get("window").width;
@@ -44,27 +37,22 @@ export default function GroupSettings({
   const [newTitle, setNewTitle] = useState<string>(conversation.name ?? "");
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [description, setDescription] = useState(
-    conversation.description ?? "",
-  );
+  const [description, setDescription] = useState(conversation.description ?? "");
   const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(
-    conversation.signedImageUrl,
-  );
-  const [imagePickerResult, setImagePickerResult] = useState<
-    ImagePickerResult | undefined
-  >();
+  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(conversation.signedImageUrl);
+  const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | undefined>();
   const isInitialMount = useRef(true);
 
-  const { refetchConversation, conversationAPILoading } =
-    useConversationByIdQuery(conversation?.id);
+  const { refetchConversation, conversationAPILoading } = useConversationByIdQuery(
+    conversation?.id
+  );
 
   const updateConversation = usePatchConversationQuery(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
     () => {
       setIsEditing(false);
       setIsEditingDescription(false);
-    },
+    }
   );
 
   const handlePickImage = async () => {
@@ -73,7 +61,7 @@ export default function GroupSettings({
       conversation.id.toString(),
       refetchConversation,
       setUploading,
-      UploadType.GROUP,
+      UploadType.GROUP
     );
     if (imageResponse) {
       setImagePickerResult(imageResponse?.pickerResult);
@@ -107,7 +95,7 @@ export default function GroupSettings({
       });
       opacity.value = withDelay(
         40,
-        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) })
       );
     } else {
       translateX.value = withTiming(screenWidth, {
@@ -206,10 +194,7 @@ export default function GroupSettings({
                 submitBehavior="blurAndSubmit"
               />
               {newTitle.trim() !== (conversation.name ?? "").trim() && (
-                <TouchableOpacity
-                  onPress={handleSave}
-                  disabled={conversationAPILoading}
-                >
+                <TouchableOpacity onPress={handleSave} disabled={conversationAPILoading}>
                   <Ionicons name="checkmark" size={24} color="#10B981" />
                 </TouchableOpacity>
               )}
@@ -243,12 +228,8 @@ export default function GroupSettings({
                 editable={!conversationAPILoading}
               />
 
-              {description.trim() !==
-                (conversation.description ?? "").trim() && (
-                <TouchableOpacity
-                  onPress={handleSave}
-                  disabled={conversationAPILoading}
-                >
+              {description.trim() !== (conversation.description ?? "").trim() && (
+                <TouchableOpacity onPress={handleSave} disabled={conversationAPILoading}>
                   <Ionicons name="checkmark" size={24} color="#10B981" />
                 </TouchableOpacity>
               )}

@@ -1,8 +1,5 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  CursorPaginatedQueryOptions,
-  CursorPaginatedResponse,
-} from "@/apis/conversation";
+import { CursorPaginatedQueryOptions, CursorPaginatedResponse } from "@/apis/conversation";
 
 type TPageParam = {
   beforeId?: number;

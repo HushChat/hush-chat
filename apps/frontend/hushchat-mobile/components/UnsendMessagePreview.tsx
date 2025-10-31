@@ -8,9 +8,7 @@ interface UnsendMessagePreviewProps {
   unsendMessage?: IMessage;
 }
 
-export default function UnsendMessagePreview({
-  unsendMessage,
-}: UnsendMessagePreviewProps) {
+export default function UnsendMessagePreview({ unsendMessage }: UnsendMessagePreviewProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const { user } = useUserStore();
@@ -24,19 +22,13 @@ export default function UnsendMessagePreview({
           borderRadius: 4,
         }}
       >
-        <MaterialIcons
-          name="block"
-          size={14}
-          color={isDark ? "#9ca3af" : "#111827"}
-        />
+        <MaterialIcons name="block" size={14} color={isDark ? "#9ca3af" : "#111827"} />
       </View>
       <Text
         className="text-text-primary-light dark:text-text-secondary-dark pb-1"
         style={{ marginLeft: 4, fontStyle: "italic" }}
       >
-        {unsendMessage?.senderId !== Number(user.id)
-          ? unsendMessage?.senderFirstName
-          : "You"}{" "}
+        {unsendMessage?.senderId !== Number(user.id) ? unsendMessage?.senderFirstName : "You"}{" "}
         unsent this message
       </Text>
     </View>

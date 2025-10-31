@@ -20,11 +20,7 @@ export interface MultiSelectListProps<T, TPages = unknown> {
   queryResult: PagePaginatedQueryResult<TPages>;
   getKey: (item: T) => string | number;
   extractData: (pages?: TPages) => T[];
-  renderItemRow: (
-    item: T,
-    isSelected: boolean,
-    toggle: (i: T) => void,
-  ) => ReactElement;
+  renderItemRow: (item: T, isSelected: boolean, toggle: (i: T) => void) => ReactElement;
   renderChip: (item: T, remove: (i: T) => void) => ReactElement;
 }
 
@@ -40,22 +36,12 @@ export function MultiSelectList<T>({
   renderItemRow,
   renderChip,
 }: MultiSelectListProps<T>) {
-  const {
-    pages,
-    isLoading,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
-  } = queryResult;
+  const { pages, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    queryResult;
 
   const allItems = useMemo(() => extractData(pages), [pages, extractData]);
 
-  const selectedIds = useMemo(
-    () => new Set(selected.map(getKey)),
-    [selected, getKey],
-  );
+  const selectedIds = useMemo(() => new Set(selected.map(getKey)), [selected, getKey]);
 
   const handleToggle = useCallback(
     (item: T) => {
@@ -65,7 +51,7 @@ export function MultiSelectList<T>({
         : [...selected, item];
       onChange(next);
     },
-    [selected, selectedIds, onChange, getKey],
+    [selected, selectedIds, onChange, getKey]
   );
 
   const handleRemove = useCallback(
@@ -73,7 +59,7 @@ export function MultiSelectList<T>({
       const next = selected.filter((s) => getKey(s) !== getKey(item));
       onChange(next);
     },
-    [selected, onChange, getKey],
+    [selected, onChange, getKey]
   );
 
   const clearAll = useCallback(() => onChange([]), [onChange]);
@@ -132,8 +118,7 @@ export function MultiSelectList<T>({
         }}
         onEndReachedThreshold={0.2}
         ListEmptyComponent={() => {
-          if (isLoading)
-            return <Text className="text-center mt-4">Loading...</Text>;
+          if (isLoading) return <Text className="text-center mt-4">Loading...</Text>;
           if (error)
             return (
               <Text className="text-center mt-4" onPress={refetch}>
@@ -143,9 +128,7 @@ export function MultiSelectList<T>({
           return <Text className="text-center mt-4">No results</Text>;
         }}
         ListFooterComponent={
-          isFetchingNextPage ? (
-            <ActivityIndicator size="small" color="#3B82F6" />
-          ) : null
+          isFetchingNextPage ? <ActivityIndicator size="small" color="#3B82F6" /> : null
         }
       />
     </View>

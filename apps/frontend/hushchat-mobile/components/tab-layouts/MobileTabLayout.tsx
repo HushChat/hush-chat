@@ -7,12 +7,7 @@ const MobileTabLayout = (tabLayoutProps: TabLayoutProps) => {
 
   return (
     <Tabs
-      tabBar={(props) => (
-        <MobileNavigationInterface
-          navigationItems={navigationItems}
-          {...props}
-        />
-      )}
+      tabBar={(props) => <MobileNavigationInterface navigationItems={navigationItems} {...props} />}
       screenOptions={{
         headerShown: false,
       }}

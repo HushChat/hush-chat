@@ -28,8 +28,9 @@ export default function OneToOneChatInfo({
   setSelectedConversation,
 }: OneToOneChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
-  const { conversationInfo, isLoadingConversationInfo, refetch } =
-    useOneToOneConversationInfoQuery(conversation.id);
+  const { conversationInfo, isLoadingConversationInfo, refetch } = useOneToOneConversationInfoQuery(
+    conversation.id
+  );
   const {
     user: { id: userId },
   } = useUserStore();
@@ -38,28 +39,28 @@ export default function OneToOneChatInfo({
     { userId: Number(userId), conversationId: conversation.id },
     () => {
       ToastUtils.success(
-        `Blocked ${conversationInfo?.userView.firstName} ${conversationInfo?.userView.lastName}`,
+        `Blocked ${conversationInfo?.userView.firstName} ${conversationInfo?.userView.lastName}`
       );
       refetch();
       closeModal();
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const unblockUserMutation = useUnblockUserMutation(
     { userId: Number(userId), conversationId: conversation.id },
     () => {
       ToastUtils.success(
-        `Unblocked ${conversationInfo?.userView.firstName} ${conversationInfo?.userView.lastName}`,
+        `Unblocked ${conversationInfo?.userView.firstName} ${conversationInfo?.userView.lastName}`
       );
       refetch();
       closeModal();
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const handleBlockUser = () => {
@@ -71,8 +72,7 @@ export default function OneToOneChatInfo({
         { text: "Cancel", onPress: closeModal },
         {
           text: "Block",
-          onPress: () =>
-            blockUserMutation.mutate(conversationInfo?.userView.id || 0),
+          onPress: () => blockUserMutation.mutate(conversationInfo?.userView.id || 0),
           variant: MODAL_BUTTON_VARIANTS.destructive,
         },
       ],
@@ -89,8 +89,7 @@ export default function OneToOneChatInfo({
         { text: "Cancel", onPress: closeModal },
         {
           text: "Unblock",
-          onPress: () =>
-            unblockUserMutation.mutate(conversationInfo?.userView.id || 0),
+          onPress: () => unblockUserMutation.mutate(conversationInfo?.userView.id || 0),
           variant: MODAL_BUTTON_VARIANTS.destructive,
         },
       ],
@@ -144,9 +143,7 @@ export default function OneToOneChatInfo({
           <ActionItem
             icon="ban-outline"
             label={`${conversationInfo?.blocked ? "Unblock" : "Block"} ${conversationInfo?.userView.firstName} ${conversationInfo?.userView.lastName}`}
-            onPress={
-              conversationInfo?.blocked ? handleUnblockUser : handleBlockUser
-            }
+            onPress={conversationInfo?.blocked ? handleUnblockUser : handleBlockUser}
             color="#EF4444"
           />
         </View>

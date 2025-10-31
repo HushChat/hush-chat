@@ -19,9 +19,7 @@ interface WebSearchedConversationMessages {
   onMessageClicked?: (message: any) => void;
 }
 
-const SearchedConversationMessages: React.FC<
-  WebSearchedConversationMessages
-> = ({
+const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = ({
   conversationName,
   conversationId,
   onClose = () => {},
@@ -35,7 +33,7 @@ const SearchedConversationMessages: React.FC<
       debounce((value: string) => {
         setSearchQuery(value);
       }, 500),
-    [],
+    []
   );
 
   const handleSearchInputChange = useCallback(
@@ -43,7 +41,7 @@ const SearchedConversationMessages: React.FC<
       setInputValue(value);
       debouncedSearch(value);
     },
-    [debouncedSearch],
+    [debouncedSearch]
   );
 
   useEffect(() => {
@@ -73,7 +71,7 @@ const SearchedConversationMessages: React.FC<
         });
       }
     },
-    [conversationId, onMessageClicked],
+    [conversationId, onMessageClicked]
   );
 
   const renderEmptyState = useCallback(() => {
@@ -106,17 +104,10 @@ const SearchedConversationMessages: React.FC<
 
     return (
       <View className="flex-1 justify-center items-center px-8">
-        <Text className="text-center text-gray-500">
-          Type to search for messages
-        </Text>
+        <Text className="text-center text-gray-500">Type to search for messages</Text>
       </View>
     );
-  }, [
-    inputValue.length,
-    isLoadingSearchedMessages,
-    searchQuery,
-    searchedMessages.length,
-  ]);
+  }, [inputValue.length, isLoadingSearchedMessages, searchQuery, searchedMessages.length]);
 
   const handleCancel = useCallback(() => {
     debouncedSearch.cancel();

@@ -7,8 +7,7 @@ import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function WorkspaceScreen() {
   const { colors, isDark } = useAuthThemeColors();
-  const { formValues, formErrors, showErrors, onValueChange, handleNext } =
-    useWorkspaceForm();
+  const { formValues, formErrors, showErrors, onValueChange, handleNext } = useWorkspaceForm();
 
   return (
     <AuthWebLayout

@@ -3,10 +3,7 @@ import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { useConversationMessages } from "@/hooks/useWebSocketEvents";
-import {
-  CursorPaginatedResponse,
-  getConversationMessagesByCursor,
-} from "@/apis/conversation";
+import { CursorPaginatedResponse, getConversationMessagesByCursor } from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 
@@ -26,7 +23,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
-    [userId, conversationId],
+    [userId, conversationId]
   );
 
   useEffect(() => {
@@ -50,40 +47,43 @@ export function useConversationMessagesQuery(conversationId: number) {
     invalidateQuery,
   } = usePaginatedQueryWithCursor<IMessage>({
     queryKey,
-    queryFn: (params) =>
-      getConversationMessagesByCursor(conversationId, params),
+    queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
   });
+
+  const updateConversationMessagesCache = useCallback(
+    (newMessage: IMessage) => {
+      queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+        queryKey,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          const firstPage = oldData.pages[0];
+          const alreadyExists = firstPage.content.some((msg) => msg.id === newMessage.id);
+          if (alreadyExists) return oldData;
+
+          const updatedFirstPage = {
+            ...firstPage,
+            content: [newMessage, ...firstPage.content],
+          };
+
+          return {
+            ...oldData,
+            pages: [updatedFirstPage, ...oldData.pages.slice(1)],
+          };
+        }
+      );
+    },
+    [queryClient, queryKey]
+  );
 
   const { lastMessage } = useConversationMessages(conversationId);
 
   useEffect(() => {
     if (!lastMessage) return;
-
-    queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
-      queryKey,
-      (oldData) => {
-        if (!oldData) return undefined;
-
-        const firstPageMessages = oldData.pages[0]?.content ?? [];
-
-        if (firstPageMessages.some((msg) => msg.id === lastMessage.id)) {
-          return oldData;
-        }
-
-        const newFirstPage = {
-          ...oldData.pages[0],
-          content: [lastMessage, ...firstPageMessages],
-        };
-
-        return {
-          ...oldData,
-          pages: [newFirstPage, ...oldData.pages.slice(1)],
-        };
-      },
-    );
-  }, [lastMessage, queryClient, queryKey]);
+    updateConversationMessagesCache(lastMessage);
+  }, [lastMessage, updateConversationMessagesCache]);
 
   const jumpToMessage = useCallback(
     async (messageId: number) => {
@@ -97,7 +97,7 @@ export function useConversationMessagesQuery(conversationId: number) {
         pageParams: [{ beforeId: messageId }],
       });
     },
-    [conversationId, queryClient, queryKey],
+    [conversationId, queryClient, queryKey]
   );
 
   return {
@@ -113,5 +113,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     isFetchingPreviousPage: isFetchingNewer,
     refetch,
     jumpToMessage,
+    updateConversationMessagesCache,
   } as const;
 }

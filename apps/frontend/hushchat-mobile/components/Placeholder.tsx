@@ -1,10 +1,6 @@
 import React, { useEffect } from "react";
 import { View, Text, ImageSourcePropType } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { useAnimatedEntrance } from "@/hooks/useAnimatedEntrance";
 import { AppText } from "@/components/AppText";
 

@@ -2,10 +2,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "expo-router";
 import * as yup from "yup";
 import { sendForgotPasswordCode } from "@/services/forgotPasswordService";
-import {
-  AUTH_LOGIN_PATH,
-  AUTH_FORGOT_PASSWORD_RESET_PATH,
-} from "@/constants/routes";
+import { AUTH_LOGIN_PATH, AUTH_FORGOT_PASSWORD_RESET_PATH } from "@/constants/routes";
 import { useForm } from "@/hooks/useForm";
 
 const forgotPasswordSchema = yup.object({
@@ -22,12 +19,9 @@ export function useForgotPassword() {
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { values, onValueChange, validateAll, setShowErrors } = useForm(
-    forgotPasswordSchema,
-    {
-      email: "",
-    },
-  );
+  const { values, onValueChange, validateAll, setShowErrors } = useForm(forgotPasswordSchema, {
+    email: "",
+  });
 
   const handleSendCode = useCallback(async () => {
     setErrorMessage("");

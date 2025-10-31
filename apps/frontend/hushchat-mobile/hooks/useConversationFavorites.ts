@@ -6,7 +6,7 @@ import { useUserStore } from "@/store/user/useUserStore";
 
 export function useConversationFavorites(
   conversationId: number,
-  criteria: ConversationFilterCriteria,
+  criteria: ConversationFilterCriteria
 ) {
   const {
     user: { id: userId },
@@ -25,7 +25,7 @@ export function useConversationFavorites(
         ToastUtils.error("Failed to update favorites!");
       }
     },
-    [toggleFavorite],
+    [toggleFavorite]
   );
 
   return { handleToggleFavorites };

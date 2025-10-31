@@ -45,9 +45,7 @@ export function SwipeableCard({
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View style={style}>
-        <View className="rounded-lg shadow-lg bg-white dark:bg-neutral-800">
-          {children}
-        </View>
+        <View className="rounded-lg shadow-lg bg-white dark:bg-neutral-800">{children}</View>
       </Animated.View>
     </GestureDetector>
   );

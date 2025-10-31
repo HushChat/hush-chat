@@ -39,7 +39,7 @@ export default function AddMoreGroupParticipants({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const saveAddParticipants = async () => {
@@ -59,7 +59,7 @@ export default function AddMoreGroupParticipants({
       });
       opacity.value = withDelay(
         40,
-        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) })
       );
     } else {
       translateX.value = withTiming(screenWidth, {
@@ -115,9 +115,7 @@ export default function AddMoreGroupParticipants({
         >
           <Text
             className={`text-xs font-medium leading-none ${
-              selectedUsers.length > 0
-                ? "text-white"
-                : "text-gray-500 dark:text-gray-300"
+              selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-300"
             }`}
           >
             Add

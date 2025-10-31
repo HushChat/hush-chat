@@ -27,11 +27,7 @@ export function useAuth() {
       return;
     }
 
-    await saveUserAuthData(
-      response.idToken,
-      response.accessToken,
-      response.refreshToken,
-    );
+    await saveUserAuthData(response.idToken, response.accessToken, response.refreshToken);
 
     // small delay to ensure storage flushes on slower devices
     await new Promise((resolve) => setTimeout(resolve, 300));

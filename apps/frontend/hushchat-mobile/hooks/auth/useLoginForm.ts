@@ -4,11 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useForm } from "@/hooks/useForm";
 
 const loginSchema = yup.object({
-  email: yup
-    .string()
-    .trim()
-    .email("Invalid email address")
-    .required("Email is required"),
+  email: yup.string().trim().email("Invalid email address").required("Email is required"),
   password: yup
     .string()
     .min(6, "Password must be at least 6 characters")
@@ -18,14 +14,10 @@ const loginSchema = yup.object({
 export function useLoginForm() {
   const { errorMessage, setErrorMessage, handleLogin } = useAuth();
 
-  const {
-    values,
-    errors,
-    showErrors,
-    onValueChange,
-    validateAll,
-    setShowErrors,
-  } = useForm(loginSchema, { email: "", password: "" });
+  const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } = useForm(
+    loginSchema,
+    { email: "", password: "" }
+  );
 
   const submit = useCallback(async () => {
     setShowErrors(true);

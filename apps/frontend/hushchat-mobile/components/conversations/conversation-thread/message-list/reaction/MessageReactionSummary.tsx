@@ -29,17 +29,12 @@ const MessageReactionsSummary = memo(
         return { topEmojis: [] as string[], totalReactions: 0 };
       }
 
-      const reactionCounts: { type: ReactionType; count: number }[] = ORDER.map(
-        (reactionType) => ({
-          type: reactionType,
-          count: reactions.counts[reactionType] ?? 0,
-        }),
-      ).filter((reaction) => reaction.count > 0);
+      const reactionCounts: { type: ReactionType; count: number }[] = ORDER.map((reactionType) => ({
+        type: reactionType,
+        count: reactions.counts[reactionType] ?? 0,
+      })).filter((reaction) => reaction.count > 0);
 
-      const totalReactions = reactionCounts.reduce(
-        (sum, reaction) => sum + reaction.count,
-        0,
-      );
+      const totalReactions = reactionCounts.reduce((sum, reaction) => sum + reaction.count, 0);
 
       if (totalReactions === 0) {
         return { topEmojis: [], totalReactions: 0 };
@@ -69,7 +64,7 @@ const MessageReactionsSummary = memo(
               x: x,
               y: y + height + 8,
             },
-            true,
+            true
           );
         });
       } else {
@@ -88,7 +83,7 @@ const MessageReactionsSummary = memo(
         className={classNames(
           "flex-row rounded-2xl items-center px-2 py-1",
           "bg-secondary-light dark:bg-secondary-dark",
-          isCurrentUser ? "self-end" : "self-start",
+          isCurrentUser ? "self-end" : "self-start"
         )}
       >
         <View className="flex-row items-center gap-2">
@@ -99,13 +94,11 @@ const MessageReactionsSummary = memo(
               </Text>
             ))}
           </View>
-          <Text className="text-sm text-gray-700 dark:text-gray-200">
-            {totalReactions}
-          </Text>
+          <Text className="text-sm text-gray-700 dark:text-gray-200">{totalReactions}</Text>
         </View>
       </Pressable>
     );
-  },
+  }
 );
 
 MessageReactionsSummary.displayName = "MessageReactionsSummary";

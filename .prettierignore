@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+*.lock
+
+# Build outputs
+build/
+dist/
+coverage/
+
+# Mobile platforms
+android/
+ios/
+
+# Git hooks
+.husky/
+
+# Environment variables
+.env
+
+# Documentation & configs
+*.md
+*.json
+*.snap
+*.yml
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+
+# Linting & formatting
+eslint.config.mjs
+.prettierignore
+
+# Backend
+*.java

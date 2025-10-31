@@ -15,7 +15,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 export function useOutsideClick<T>(
   ref: React.RefObject<T>,
   handler: () => void,
-  enabled: boolean = true,
+  enabled: boolean = true
 ) {
   useEffect(() => {
     if (!enabled || !PLATFORM.IS_WEB) return;

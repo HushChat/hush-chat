@@ -16,7 +16,7 @@ const showToast = (
   type: ToastType,
   text1: string,
   text2: string = "",
-  options: ToastOptions = {},
+  options: ToastOptions = {}
 ): void => {
   Toast.show({
     type,
@@ -28,10 +28,8 @@ const showToast = (
 };
 
 export const ToastUtils: ToastFunctions = {
-  success: (text1, text2, options) =>
-    showToast(SUCCESS_TOAST, text1, text2, options),
-  error: (text1, text2, options) =>
-    showToast(ERROR_TOAST, text1, text2, options),
+  success: (text1, text2, options) => showToast(SUCCESS_TOAST, text1, text2, options),
+  error: (text1, text2, options) => showToast(ERROR_TOAST, text1, text2, options),
   info: (text1, text2, options) => showToast(INFO_TOAST, text1, text2, options),
   warn: (text1, text2, options) => showToast(WARN_TOAST, text1, text2, options),
 };

@@ -31,10 +31,8 @@ const MessageReactionsModal = ({
     useMessageReactionsQuery(messageId);
 
   const messageReactions = useMemo(
-    () =>
-      pages?.pages?.flatMap((page) => (page.content as MessageReact[]) || []) ||
-      [],
-    [pages],
+    () => pages?.pages?.flatMap((page) => (page.content as MessageReact[]) || []) || [],
+    [pages]
   );
 
   const handleLoadMore = () => {
