@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - includeAll:
+      path: "hush-chat/infra/db-migrations/platform/changeLogs"
+      filter:
+        includeChangeLogFileNamePattern: ^db\.changelog-\d{3}\.\d+\.yaml$
