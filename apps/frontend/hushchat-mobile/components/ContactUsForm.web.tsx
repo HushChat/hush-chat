@@ -82,40 +82,45 @@ export function ContactUsForm({
     formData.message.trim();
 
   return (
-    <View className="flex-1 justify-center">
-      <View className="w-full max-w-2xl mx-auto">
-        <View className="bg-gray-100 dark:bg-gray-800 rounded-xl p-6 mb-6">
-          <View className="flex-row items-center">
+    <View className="flex-1 justify-center px-4 sm:px-6 md:px-8">
+      <View className="w-full max-w-[700px] mx-auto">
+        <View className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 sm:p-6 mb-6">
+          <View className="flex-row items-center flex-wrap">
             <Ionicons name="mail-outline" size={20} color="#6b7280" />
-            <AppText className="text-text-primary-light dark:text-text-primary-dark ml-3">
+            <AppText
+              className="ml-2 text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark flex-shrink"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               gethushchat@gmail.com
             </AppText>
           </View>
         </View>
 
+        {/* Form fields */}
         <View className="space-y-5">
           {[
-            { label: 'Name', key: 'name', placeholder: 'Your name' },
+            { label: "Name", key: "name", placeholder: "Your name" },
             {
-              label: 'Email',
-              key: 'email',
-              placeholder: 'your.email@example.com',
-              keyboardType: 'email-address',
+              label: "Email",
+              key: "email",
+              placeholder: "your.email@example.com",
+              keyboardType: "email-address",
             },
-            { label: 'Subject', key: 'subject', placeholder: 'What is this about?' },
+            { label: "Subject", key: "subject", placeholder: "What is this about?" },
           ].map(({ label, key, ...rest }) => (
             <View key={key}>
-              <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2 mt-4">
+              <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
                 {label}
               </AppText>
               <AppTextInput
                 value={formData[key as keyof typeof formData]}
-                onChangeText={(value) => handleChange(key as keyof typeof formData, value)}
+                onChangeText={(v) => handleChange(key as keyof typeof formData, v)}
                 placeholder={rest.placeholder}
                 placeholderTextColor="#9ca3af"
                 keyboardType={rest.keyboardType as any}
                 autoCapitalize="none"
-                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark w-full"
                 editable={!mutation.isPending}
               />
               {errors[key] && (
@@ -125,19 +130,19 @@ export function ContactUsForm({
           ))}
 
           <View>
-            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2 mt-5">
+            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
               Message
             </AppText>
             <AppTextInput
               value={formData.message}
-              onChangeText={(value) => handleChange('message', value)}
+              onChangeText={(v) => handleChange("message", v)}
               placeholder="Tell us more..."
               placeholderTextColor="#9ca3af"
               multiline
               numberOfLines={6}
               textAlignVertical="top"
               style={{ minHeight: 120 }}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark w-full"
               editable={!mutation.isPending}
             />
             {errors.message && (
@@ -151,8 +156,8 @@ export function ContactUsForm({
             disabled={!isFormValid || mutation.isPending}
             className={`rounded-lg py-4 items-center mt-3 ${
               !isFormValid || mutation.isPending
-                ? 'bg-gray-300 dark:bg-gray-700'
-                : 'bg-primary-light dark:bg-primary-dark'
+                ? "bg-gray-300 dark:bg-gray-700"
+                : "bg-primary-light dark:bg-primary-dark"
             }`}
           >
             {mutation.isPending ? (
@@ -161,8 +166,8 @@ export function ContactUsForm({
               <AppText
                 className={`text-base ${
                   !isFormValid || mutation.isPending
-                    ? 'text-gray-500 dark:text-gray-400'
-                    : 'text-white'
+                    ? "text-gray-500 dark:text-gray-400"
+                    : "text-white"
                 }`}
               >
                 Send Message
