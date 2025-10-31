@@ -25,7 +25,7 @@ type AppendOptions<T> = {
 function normalizeMetadata<T extends Record<string, any>>(
   pages: T[],
   pageSize: number,
-  prev?: any,
+  prev?: any
 ) {
   const totalElements = pages.reduce((sum, p) => {
     const len = Array.isArray(p.content)
@@ -113,7 +113,7 @@ export function appendToOffsetPaginatedCache<T>(
   queryClient: QueryClient,
   queryKey: QueryKey,
   incoming: T | T[],
-  opts: AppendOptions<T>,
+  opts: AppendOptions<T>
 ) {
   const {
     getId,
@@ -132,16 +132,11 @@ export function appendToOffsetPaginatedCache<T>(
     // If there is no cache yet and allowed to create, seed it
     if (!data?.pages?.length) {
       if (!createIfEmpty) return data;
-      const first = setPageItems(
-        {},
-        items.slice(0, Math.min(items.length, pageSize)),
-      );
+      const first = setPageItems({}, items.slice(0, Math.min(items.length, pageSize)));
       const pages = [{ ...first }];
       // Carry any overflow beyond pageSize down the chain
       let carry =
-        getPageItems(pages[0]).length > pageSize
-          ? getPageItems(pages[0]).splice(pageSize)
-          : [];
+        getPageItems(pages[0]).length > pageSize ? getPageItems(pages[0]).splice(pageSize) : [];
       while (carry.length) {
         const nextChunk = carry.splice(0, pageSize);
         pages.push(setPageItems({}, nextChunk));

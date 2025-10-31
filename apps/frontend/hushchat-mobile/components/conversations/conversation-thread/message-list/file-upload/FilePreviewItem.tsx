@@ -24,13 +24,7 @@ const SelectedBadge = () => (
   </View>
 );
 
-const ImagePreview = ({
-  uri,
-  isSelected,
-}: {
-  uri: string;
-  isSelected: boolean;
-}) => (
+const ImagePreview = ({ uri, isSelected }: { uri: string; isSelected: boolean }) => (
   <View className="relative mr-3">
     <Image
       source={{ uri }}
@@ -87,10 +81,7 @@ export const FilePreviewItem = ({
   const prettySize = useMemo(() => {
     const bytes = file?.size ?? 0;
     if (bytes === 0) return "0 Bytes";
-    const i = Math.min(
-      SIZES.length - 1,
-      Math.floor(Math.log(bytes) / Math.log(K)),
-    );
+    const i = Math.min(SIZES.length - 1, Math.floor(Math.log(bytes) / Math.log(K)));
     return `${parseFloat((bytes / Math.pow(K, i)).toFixed(2))} ${SIZES[i]}`;
   }, [file]);
 
@@ -110,8 +101,7 @@ export const FilePreviewItem = ({
         "w-56 relative mb-2 rounded-xl p-2 border",
         "bg-secondary-light/60 dark:bg-secondary-dark/70",
         "border-gray-200 dark:border-gray-700",
-        isSelected &&
-          "border border-primary-light dark:border-primary-dark shadow-sm",
+        isSelected && "border border-primary-light dark:border-primary-dark shadow-sm"
       )}
     >
       <View className="flex-row items-center">

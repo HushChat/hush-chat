@@ -31,9 +31,7 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
         colors={colors}
       />
 
-      {!!errorMessage && (
-        <ErrorMessage message={errorMessage} colors={colors} />
-      )}
+      {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
 
       {!!successMessage && (
         <View className="mb-4 rounded-xl px-3 py-2 bg-green-100 dark:bg-emerald-950">
@@ -56,11 +54,7 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
           platformAwareDefault
         />
 
-        <FormButton
-          title="Send Verification Code"
-          onPress={onSubmit}
-          colors={colors}
-        />
+        <FormButton title="Send Verification Code" onPress={onSubmit} colors={colors} />
       </View>
       <LinkText
         text="Remember your password?"

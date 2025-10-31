@@ -1,9 +1,6 @@
 import { IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
-import {
-  getAllConversations,
-  ConversationFilterCriteria,
-} from "@/apis/conversation";
+import { getAllConversations, ConversationFilterCriteria } from "@/apis/conversation";
 import {
   OffsetPaginatedQueryResult,
   usePaginatedQueryWithOffset,
@@ -18,7 +15,7 @@ const PAGE_SIZE = 20;
 
 export function useConversationsQuery(
   criteria: ConversationFilterCriteria = {},
-  initialOffset: number = 0,
+  initialOffset: number = 0
 ): {
   conversationsPages: OffsetPaginatedQueryResult<IConversation>["pages"];
   isLoadingConversations: boolean;
@@ -47,7 +44,7 @@ export function useConversationsQuery(
           getPageItems: (p) => p?.content,
           setPageItems: (p, items) => ({ ...p, content: items }),
           dedupeAcrossPages: true,
-        },
+        }
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

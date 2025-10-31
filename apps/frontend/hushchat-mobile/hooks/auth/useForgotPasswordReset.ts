@@ -5,16 +5,9 @@ import * as yup from "yup";
 import { useForm } from "@/hooks/useForm";
 
 const resetPasswordSchema = yup.object({
-  email: yup
-    .string()
-    .trim()
-    .email("Invalid email")
-    .required("Email is required"),
+  email: yup.string().trim().email("Invalid email").required("Email is required"),
   code: yup.string().trim().required("Verification code is required"),
-  password: yup
-    .string()
-    .required("Password is required")
-    .min(6, "Min 6 characters"),
+  password: yup.string().required("Password is required").min(6, "Min 6 characters"),
   confirmPassword: yup
     .string()
     .required("Please confirm your password")
@@ -23,31 +16,24 @@ const resetPasswordSchema = yup.object({
 
 export function useForgotPasswordReset() {
   const { email: routeEmail } = useLocalSearchParams();
-  const emailParam = Array.isArray(routeEmail)
-    ? routeEmail[0]
-    : (routeEmail as string | undefined);
+  const emailParam = Array.isArray(routeEmail) ? routeEmail[0] : (routeEmail as string | undefined);
 
-  const {
-    values,
-    errors,
-    showErrors,
-    onValueChange,
-    validateAll,
-    setShowErrors,
-  } = useForm(resetPasswordSchema, {
-    email: emailParam ?? "",
-    code: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } = useForm(
+    resetPasswordSchema,
+    {
+      email: emailParam ?? "",
+      code: "",
+      password: "",
+      confirmPassword: "",
+    }
+  );
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (emailParam)
-      setSuccessMessage("Reset code has been sent to your email!");
+    if (emailParam) setSuccessMessage("Reset code has been sent to your email!");
   }, [emailParam]);
 
   const onSubmit = useCallback(async () => {
@@ -66,11 +52,7 @@ export function useForgotPasswordReset() {
       });
       router.replace("/login");
     } catch (err: any) {
-      setErrorMessage(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to reset password",
-      );
+      setErrorMessage(err?.response?.data?.message || err?.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }

@@ -18,20 +18,14 @@ export const RegisterUser = yup.object({
     .required("Username is required")
     .matches(
       /^[a-zA-Z0-9_]+$/,
-      "username must contain only letters, numbers, and underscores, no spaces or other special characters",
+      "username must contain only letters, numbers, and underscores, no spaces or other special characters"
     ),
-  email: yup
-    .string()
-    .email("Invalid email format")
-    .required("Email is required"),
+  email: yup.string().email("Invalid email format").required("Email is required"),
   password: yup
     .string()
     .min(6, "Password must be at least 6 characters")
     .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .matches(
-      /[!@#$%^&*(),.?":{}|<>]/,
-      "Password must contain at least one special character",
-    )
+    .matches(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character")
     .required("Password is required"),
   confirmPassword: yup
     .string()

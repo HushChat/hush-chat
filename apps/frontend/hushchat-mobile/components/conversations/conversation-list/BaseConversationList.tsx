@@ -5,22 +5,13 @@ import {
   ISectionedSearchResult,
   IConversation,
 } from "@/types/chat/types";
-import {
-  KeyboardAvoidingView,
-  ListRenderItemInfo,
-  View,
-  FlatList,
-} from "react-native";
+import { KeyboardAvoidingView, ListRenderItemInfo, View, FlatList } from "react-native";
 import SwipeActionItem from "@/components/conversations/conversation-list/common/SwipeActionItem";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { GestureDetector } from "react-native-gesture-handler";
 import MobileConversationContextMenu from "@/components/conversations/MobileConversationContextMenu";
 import { useGroupConversationInfoQuery } from "@/query/useGroupConversationInfoQuery";
@@ -77,10 +68,7 @@ function SwipeableRow<T>({
     if (hasHeader && sectionedItem._isHeader) return false;
 
     const hasSectionType = typeof sectionedItem._sectionType !== "undefined";
-    if (
-      hasSectionType &&
-      sectionedItem._sectionType !== ConversationSearchResultKeys.CHATS
-    )
+    if (hasSectionType && sectionedItem._sectionType !== ConversationSearchResultKeys.CHATS)
       return false;
 
     return true;
@@ -122,14 +110,7 @@ function SwipeableRow<T>({
       }, 100);
     }
     //
-  }, [
-    isSwipeable,
-    conversation.id,
-    translateX,
-    progress,
-    isSwipedOpen,
-    onArchive,
-  ]);
+  }, [isSwipeable, conversation.id, translateX, progress, isSwipedOpen, onArchive]);
 
   const resetSwipe = useCallback(() => {
     translateX.value = withTiming(0, { duration: 200 });
@@ -182,11 +163,7 @@ function SwipeableRow<T>({
           onPress={handleArchivePress}
           backgroundColor="bg-green-600"
           iconName="archive"
-          text={
-            selectedConversationType === ConversationType.ARCHIVED
-              ? "Unarchive"
-              : "Archive"
-          }
+          text={selectedConversationType === ConversationType.ARCHIVED ? "Unarchive" : "Archive"}
         />
       </Animated.View>
 
@@ -219,36 +196,28 @@ export default function BaseConversationList<T>({
   const { selectedConversationType } = useConversationStore();
 
   const [contextMenuVisible, setContextMenuVisible] = React.useState(false);
-  const [selectedConversation, setSelectedConversation] =
-    React.useState<IConversation | null>(null);
-  const [resetSwipeFn, setResetSwipeFn] = React.useState<(() => void) | null>(
-    null,
+  const [selectedConversation, setSelectedConversation] = React.useState<IConversation | null>(
+    null
   );
+  const [resetSwipeFn, setResetSwipeFn] = React.useState<(() => void) | null>(null);
 
   const { conversationInfo: groupInfo } = useGroupConversationInfoQuery(
-    selectedConversation?.isGroup ? (selectedConversation?.id ?? 0) : 0,
+    selectedConversation?.isGroup ? (selectedConversation?.id ?? 0) : 0
   );
 
   const { conversationInfo: oneToOneInfo } = useOneToOneConversationInfoQuery(
-    !selectedConversation?.isGroup ? (selectedConversation?.id ?? 0) : 0,
+    !selectedConversation?.isGroup ? (selectedConversation?.id ?? 0) : 0
   );
 
-  const isActive = selectedConversation?.isGroup
-    ? (groupInfo?.active ?? true)
-    : true;
+  const isActive = selectedConversation?.isGroup ? (groupInfo?.active ?? true) : true;
 
-  const isBlocked = selectedConversation?.isGroup
-    ? false
-    : (oneToOneInfo?.blocked ?? false);
+  const isBlocked = selectedConversation?.isGroup ? false : (oneToOneInfo?.blocked ?? false);
 
-  const handleMorePress = useCallback(
-    (conversation: IConversation, resetSwipe: () => void) => {
-      setSelectedConversation(conversation);
-      setResetSwipeFn(() => resetSwipe);
-      setContextMenuVisible(true);
-    },
-    [],
-  );
+  const handleMorePress = useCallback((conversation: IConversation, resetSwipe: () => void) => {
+    setSelectedConversation(conversation);
+    setResetSwipeFn(() => resetSwipe);
+    setContextMenuVisible(true);
+  }, []);
 
   const renderSwipeableItem = useCallback(
     ({ item, index }: ListRenderItemInfo<T>) => (
@@ -263,14 +232,7 @@ export default function BaseConversationList<T>({
         onMorePress={handleMorePress}
       />
     ),
-    [
-      renderItem,
-      onArchive,
-      allowSwipe,
-      selectedConversationType,
-      keyExtractor,
-      handleMorePress,
-    ],
+    [renderItem, onArchive, allowSwipe, selectedConversationType, keyExtractor, handleMorePress]
   );
 
   return (

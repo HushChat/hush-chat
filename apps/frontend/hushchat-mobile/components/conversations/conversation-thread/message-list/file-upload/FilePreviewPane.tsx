@@ -12,12 +12,7 @@ type TFilePreviewPaneProps = {
   isSending: boolean;
 };
 
-const FilePreviewPane = ({
-  file,
-  message,
-  onMessageChange,
-  isSending,
-}: TFilePreviewPaneProps) => {
+const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
   const [fileType, setFileType] = useState<"image" | "document">("image");
 
@@ -43,10 +38,7 @@ const FilePreviewPane = ({
   const prettySize = useMemo(() => {
     const bytes = file?.size ?? 0;
     if (bytes === 0) return "0 Bytes";
-    const i = Math.min(
-      SIZES.length - 1,
-      Math.floor(Math.log(bytes) / Math.log(K)),
-    );
+    const i = Math.min(SIZES.length - 1, Math.floor(Math.log(bytes) / Math.log(K)));
     return `${parseFloat((bytes / Math.pow(K, i)).toFixed(2))} ${SIZES[i]}`;
   }, [file]);
 
@@ -63,11 +55,7 @@ const FilePreviewPane = ({
           />
         ) : (
           <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
-            <Ionicons
-              name="document-text-outline"
-              size={64}
-              color={iconColor}
-            />
+            <Ionicons name="document-text-outline" size={64} color={iconColor} />
             <Text className="mt-4 text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
               {file.name}
             </Text>

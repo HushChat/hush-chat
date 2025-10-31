@@ -7,14 +7,8 @@ import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function ForgotPasswordScreen() {
   const { colors } = useAuthThemeColors();
-  const {
-    email,
-    setEmail,
-    errorMessage,
-    successMessage,
-    handleSendCode,
-    goBackToLogin,
-  } = useForgotPassword();
+  const { email, setEmail, errorMessage, successMessage, handleSendCode, goBackToLogin } =
+    useForgotPassword();
 
   return (
     <AuthWebLayout

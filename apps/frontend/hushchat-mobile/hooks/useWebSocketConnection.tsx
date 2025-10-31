@@ -25,7 +25,7 @@ const MESSAGE_RESPONSE = "MESSAGE";
 const CONNECTED_RESPONSE = "CONNECTED";
 
 const decodeAndValidateToken = (
-  tokenToDecode: string,
+  tokenToDecode: string
 ): {
   isValid: boolean;
   decodedToken?: DecodedJWTPayload;
@@ -56,7 +56,7 @@ export default function useWebSocketConnection() {
   const shouldStopRetrying = useRef(false);
 
   const [connectionStatus, setConnectionStatus] = useState<WebSocketStatus>(
-    WebSocketStatus.Disconnected,
+    WebSocketStatus.Disconnected
   );
 
   const validateToken = (token: string): boolean => {
@@ -82,9 +82,7 @@ export default function useWebSocketConnection() {
 
     const fetchAndSubscribe = async () => {
       if (shouldStopRetrying.current || isCancelled) {
-        console.info(
-          "Stopping WebSocket connection attempts due to authentication failure",
-        );
+        console.info("Stopping WebSocket connection attempts due to authentication failure");
         setConnectionStatus(WebSocketStatus.Disconnected);
         return;
       }
@@ -101,9 +99,7 @@ export default function useWebSocketConnection() {
         }
 
         if (!validateToken(idToken)) {
-          console.error(
-            "aborting web socket connection due to invalid or expired token",
-          );
+          console.error("aborting web socket connection due to invalid or expired token");
           shouldStopRetrying.current = true;
           setConnectionStatus(WebSocketStatus.Error);
           return;
@@ -117,13 +113,9 @@ export default function useWebSocketConnection() {
           // Send CONNECT frame
           const connectFrameBytes = [
             ...Array.from(new TextEncoder().encode("CONNECT\n")),
+            ...Array.from(new TextEncoder().encode(`Authorization:Bearer ${idToken}\n`)),
             ...Array.from(
-              new TextEncoder().encode(`Authorization:Bearer ${idToken}\n`),
-            ),
-            ...Array.from(
-              new TextEncoder().encode(
-                `Workspace-Id:${process.env.EXPO_PUBLIC_TENANT}\n`,
-              ),
+              new TextEncoder().encode(`Workspace-Id:${process.env.EXPO_PUBLIC_TENANT}\n`)
             ),
             ...Array.from(new TextEncoder().encode("accept-version:1.2\n")),
             ...Array.from(new TextEncoder().encode("heart-beat:0,0\n")),
@@ -147,8 +139,8 @@ export default function useWebSocketConnection() {
               ...Array.from(new TextEncoder().encode("SUBSCRIBE\n")),
               ...Array.from(
                 new TextEncoder().encode(
-                  `destination:${MESSAGE_RECEIVED_TOPIC}${encodeURIComponent(email)}\n`,
-                ),
+                  `destination:${MESSAGE_RECEIVED_TOPIC}${encodeURIComponent(email)}\n`
+                )
               ),
               ...Array.from(new TextEncoder().encode("id:sub-0\n")),
               0x0a, // empty line
@@ -168,9 +160,7 @@ export default function useWebSocketConnection() {
               errorMessage.includes("expired") ||
               errorMessage.includes("auth")
             ) {
-              console.error(
-                "Authentication error detected, stopping reconnection attempts",
-              );
+              console.error("Authentication error detected, stopping reconnection attempts");
               shouldStopRetrying.current = true;
             }
           } else if (event.data.startsWith(MESSAGE_RESPONSE)) {
@@ -184,9 +174,7 @@ export default function useWebSocketConnection() {
                 .replace(/\0$/, "");
 
               try {
-                const wsMessageWithConversation = JSON.parse(
-                  body,
-                ) as IConversation;
+                const wsMessageWithConversation = JSON.parse(body) as IConversation;
                 if (wsMessageWithConversation.messages?.length !== 0) {
                   emitNewMessage(wsMessageWithConversation);
                 }
@@ -207,11 +195,7 @@ export default function useWebSocketConnection() {
           setConnectionStatus(WebSocketStatus.Disconnected);
 
           // Check if it's an auth failure and stop retrying
-          if (
-            event.code === 1002 ||
-            event.code === 1008 ||
-            event.code === 3401
-          ) {
+          if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
             console.error("Connection closed due to authentication failure");
             shouldStopRetrying.current = true;
           }

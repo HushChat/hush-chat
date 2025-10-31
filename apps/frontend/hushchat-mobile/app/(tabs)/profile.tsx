@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  Image,
-} from "react-native";
+import { View, TouchableOpacity, ActivityIndicator, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "@/store/user/useUserStore";
 import { router } from "expo-router";
@@ -56,9 +50,7 @@ const ProfileField = ({
         placeholderTextColor="#9ca3af"
       />
     ) : (
-      <AppText className="text-base dark:text-white text-black">
-        {value || "Not provided"}
-      </AppText>
+      <AppText className="text-base dark:text-white text-black">{value || "Not provided"}</AppText>
     )}
   </View>
 );
@@ -71,8 +63,7 @@ export default function Profile() {
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [imagePickerResult, setImagePickerResult] =
-    useState<ImagePickerResult | null>(null);
+  const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | null>(null);
   const [imageAssetData, setImageAssetData] = useState({
     fileUri: "",
     fileName: "",
@@ -80,22 +71,21 @@ export default function Profile() {
   });
   const queryClient = useQueryClient();
 
-  const { mutate: updateUser, isPending: isUpdatingUser } =
-    useUpdateUserMutation(
-      { userId: Number(user?.id) },
-      (user) => {
-        const imageSignedUrl = user.signedImageUrl;
+  const { mutate: updateUser, isPending: isUpdatingUser } = useUpdateUserMutation(
+    { userId: Number(user?.id) },
+    (user) => {
+      const imageSignedUrl = user.signedImageUrl;
 
-        if (imageSignedUrl && imageAssetData !== null) {
-          uploadImageToSignedUrl(imageAssetData?.fileUri, imageSignedUrl);
-        }
+      if (imageSignedUrl && imageAssetData !== null) {
+        uploadImageToSignedUrl(imageAssetData?.fileUri, imageSignedUrl);
+      }
 
-        fetchUserData();
-      },
-      (error) => {
-        ToastUtils.error(error as string);
-      },
-    );
+      fetchUserData();
+    },
+    (error) => {
+      ToastUtils.error(error as string);
+    }
+  );
 
   useEffect(() => {
     setFirstName(user?.firstName || "");
@@ -121,10 +111,7 @@ export default function Profile() {
     )
       return;
 
-    const imageAssetData = getImagePickerAsset(
-      imagePickerResult,
-      UploadType.PROFILE,
-    );
+    const imageAssetData = getImagePickerAsset(imagePickerResult, UploadType.PROFILE);
     setImageAssetData(imageAssetData);
 
     updateUser({
@@ -234,9 +221,7 @@ export default function Profile() {
             {isUpdatingUser ? (
               <ActivityIndicator size={20} color="#ffffff" />
             ) : (
-              <AppText className="text-white text-base font-semibold">
-                Update Profile
-              </AppText>
+              <AppText className="text-white text-base font-semibold">Update Profile</AppText>
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -244,9 +229,7 @@ export default function Profile() {
             disabled={isUpdatingUser}
             className="bg-red-500 py-4 rounded-xl items-center"
           >
-            <AppText className="text-white text-base font-semibold">
-              Logout
-            </AppText>
+            <AppText className="text-white text-base font-semibold">Logout</AppText>
           </TouchableOpacity>
         </View>
       </View>

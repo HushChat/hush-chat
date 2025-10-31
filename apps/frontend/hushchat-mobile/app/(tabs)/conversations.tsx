@@ -26,22 +26,18 @@ import ChatInterface from "@/components/conversations/ChatInterface";
 
 export default function ConversationScreen() {
   const { selectedConversationType } = useConversationStore();
-  const [selectedConversation, setSelectedConversation] =
-    useState<IConversation | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const criteria = useMemo(
-    () => getCriteria(selectedConversationType),
-    [selectedConversationType],
-  );
+  const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
 
   const debouncedSearchQuery = useMemo(
     () =>
       debounce((value: string) => {
         setSearchQuery(value);
       }, 500),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -63,8 +59,7 @@ export default function ConversationScreen() {
   const { searchResults, isSearching, searchError, refetchSearch } =
     useGlobalSearchQuery(searchQuery);
 
-  const conversations =
-    conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+  const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
 
   const filters: IFilter[] = [
     {

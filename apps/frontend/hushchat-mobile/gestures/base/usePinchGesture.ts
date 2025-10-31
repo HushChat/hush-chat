@@ -37,15 +37,7 @@ export function usePinchGesture({
       });
 
     return bindExclusivity(g, simultaneousWith, requireToFail);
-  }, [
-    enabled,
-    simultaneousWith,
-    requireToFail,
-    minScale,
-    maxScale,
-    scale,
-    onChange,
-  ]);
+  }, [enabled, simultaneousWith, requireToFail, minScale, maxScale, scale, onChange]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

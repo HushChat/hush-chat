@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  Modal,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  Dimensions,
-} from "react-native";
+import { View, Modal, TouchableOpacity, TouchableWithoutFeedback, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
@@ -130,10 +124,7 @@ const BottomSheet = ({
                 </View>
               )}
 
-              <View
-                className="px-4 pb-4"
-                style={{ paddingBottom: insets.bottom + 16 }}
-              >
+              <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
                 {options.map((option, index) => (
                   <TouchableOpacity
                     key={option.id}

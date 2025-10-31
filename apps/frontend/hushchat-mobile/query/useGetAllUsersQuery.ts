@@ -1,7 +1,4 @@
-import {
-  PaginatedQueryResult,
-  usePaginatedQuery,
-} from "@/query/usePaginatedQuery";
+import { PaginatedQueryResult, usePaginatedQuery } from "@/query/usePaginatedQuery";
 import { TUser } from "@/types/user/types";
 import { getAllUsers } from "@/apis/user";
 
@@ -18,7 +15,7 @@ type TUseGetAllUsersQueryResult = {
 
 export const useGetAllUsersQuery = (
   keyword: string = "",
-  excludeUsersInConversationId?: number,
+  excludeUsersInConversationId?: number
 ): TUseGetAllUsersQueryResult => {
   const {
     pages,

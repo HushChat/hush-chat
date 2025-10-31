@@ -1,11 +1,5 @@
 import React, { useMemo, useEffect } from "react";
-import {
-  View,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Dimensions,
-} from "react-native";
+import { View, TouchableOpacity, FlatList, ActivityIndicator, Dimensions } from "react-native";
 import { ParticipantRow } from "@/components/conversations/ParticipantsRow";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
@@ -34,31 +28,18 @@ interface AllParticipantsProps {
   panelWidth?: number;
 }
 
-export const AllParticipants = ({
-  conversationId,
-  visible,
-  onClose,
-}: AllParticipantsProps) => {
+export const AllParticipants = ({ conversationId, visible, onClose }: AllParticipantsProps) => {
   const screenWidth = Dimensions.get("window").width;
 
   const translateX = useSharedValue(screenWidth);
   const opacity = useSharedValue(0);
 
-  const {
-    pages,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    refetch,
-  } = useConversationParticipantQuery(conversationId);
+  const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
+    useConversationParticipantQuery(conversationId);
 
   const allParticipants = useMemo(
-    () =>
-      pages?.pages?.flatMap(
-        (page) => (page.content as ConversationParticipant[]) || [],
-      ) || [],
-    [pages],
+    () => pages?.pages?.flatMap((page) => (page.content as ConversationParticipant[]) || []) || [],
+    [pages]
   );
 
   const { openModal, closeModal } = useModalContext();
@@ -73,7 +54,7 @@ export const AllParticipants = ({
       });
       opacity.value = withDelay(
         40,
-        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) })
       );
     } else {
       translateX.value = withTiming(screenWidth, {
@@ -102,8 +83,7 @@ export const AllParticipants = ({
     openModal({
       type: MODAL_TYPES.confirm,
       title: "Remove Participant",
-      description:
-        "Are you sure you want to remove this participant from the conversation?",
+      description: "Are you sure you want to remove this participant from the conversation?",
       buttons: [
         { text: "Cancel", onPress: closeModal },
         {
@@ -132,13 +112,10 @@ export const AllParticipants = ({
     (error) => {
       closeModal();
       ToastUtils.error((error as string) || "Failed to remove participant.");
-    },
+    }
   );
 
-  const updateConversationParticipantRole = (
-    participantId: number,
-    makeAdmin: boolean,
-  ) => {
+  const updateConversationParticipantRole = (participantId: number, makeAdmin: boolean) => {
     openModal({
       type: MODAL_TYPES.confirm,
       title: "Update Participant Role",
@@ -160,23 +137,20 @@ export const AllParticipants = ({
     });
   };
 
-  const handleUpdateConversationParticipantRole =
-    useUpdateConversationParticipantRoleMutation(
-      {
-        conversationId,
-      },
-      async () => {
-        closeModal();
-        ToastUtils.success("Participant role updated successfully!");
-        await refetch();
-      },
-      (error) => {
-        closeModal();
-        ToastUtils.error(
-          (error as string) || "Failed to update participant role.",
-        );
-      },
-    );
+  const handleUpdateConversationParticipantRole = useUpdateConversationParticipantRoleMutation(
+    {
+      conversationId,
+    },
+    async () => {
+      closeModal();
+      ToastUtils.success("Participant role updated successfully!");
+      await refetch();
+    },
+    (error) => {
+      closeModal();
+      ToastUtils.error((error as string) || "Failed to update participant role.");
+    }
+  );
 
   return (
     <Animated.View

@@ -13,11 +13,7 @@ export function bindExclusivity<
     | ReturnType<typeof Gesture.Pan>
     | ReturnType<typeof Gesture.Pinch>
     | ReturnType<typeof Gesture.Rotation>,
->(
-  gesture: T,
-  simultaneousGestures?: ExternalGestures,
-  requiredToFailGestures?: ExternalGestures,
-) {
+>(gesture: T, simultaneousGestures?: ExternalGestures, requiredToFailGestures?: ExternalGestures) {
   const simultaneousList = Array.isArray(simultaneousGestures)
     ? simultaneousGestures
     : simultaneousGestures
@@ -31,11 +27,11 @@ export function bindExclusivity<
       : [];
 
   simultaneousList.forEach((externalGesture) =>
-    gesture.simultaneousWithExternalGesture(externalGesture),
+    gesture.simultaneousWithExternalGesture(externalGesture)
   );
 
   requiredToFailList.forEach((externalGesture) =>
-    gesture.requireExternalGestureToFail(externalGesture),
+    gesture.requireExternalGestureToFail(externalGesture)
   );
 
   return gesture;

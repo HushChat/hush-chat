@@ -66,8 +66,7 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
         isAuthenticatedAndDataFetched: true,
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to fetch user data";
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch user data";
       console.error("Error fetching user data:", errorMessage);
       set({
         error: errorMessage,

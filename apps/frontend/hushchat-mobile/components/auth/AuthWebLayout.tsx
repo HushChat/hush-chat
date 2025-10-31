@@ -37,16 +37,11 @@ export default function AuthWebLayout({
         <View style={[s.left, { width: isWide ? "60%" : "100%" }]}>
           <View style={s.leftInner}>
             <View style={s.headerBlock}>
-              <Text
-                style={[s.title, { color: colors.primary }]}
-                numberOfLines={2}
-              >
+              <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
                 {title}
               </Text>
               {subtitle ? (
-                <Text style={[s.subtitle, { color: colors.textSecondary }]}>
-                  {subtitle}
-                </Text>
+                <Text style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
               ) : null}
             </View>
 
@@ -56,9 +51,7 @@ export default function AuthWebLayout({
           </View>
         </View>
 
-        <View style={[s.right, { width: isWide ? "40%" : "100%" }]}>
-          {children}
-        </View>
+        <View style={[s.right, { width: isWide ? "40%" : "100%" }]}>{children}</View>
       </View>
     </View>
   );

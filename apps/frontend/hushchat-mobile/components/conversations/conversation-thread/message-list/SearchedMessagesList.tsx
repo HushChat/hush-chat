@@ -45,8 +45,7 @@ const groupMessagesByDate = (messages: IMessageView[]) => {
       dateKey = date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
-        year:
-          date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+        year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
       });
     }
 
@@ -96,19 +95,14 @@ export const SearchedMessagesList: React.FC<SearchResultsListProps> = ({
           </View>
         );
       }}
-      renderSectionHeader={({ section }) => (
-        <SectionHeader title={section.title} />
-      )}
+      renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
       className="bg-background-light dark:bg-background-dark"
       stickySectionHeadersEnabled={true}
       onEndReached={onEndReached}
       onEndReachedThreshold={onEndReachedThreshold}
       ListFooterComponent={ListFooterComponent}
       ItemSeparatorComponent={() => (
-        <View
-          className="bg-gray-200 dark:bg-gray-900"
-          style={{ width: "100%", height: 1 }}
-        />
+        <View className="bg-gray-200 dark:bg-gray-900" style={{ width: "100%", height: 1 }} />
       )}
     />
   );

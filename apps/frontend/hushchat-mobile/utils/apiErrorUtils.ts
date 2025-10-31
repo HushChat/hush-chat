@@ -72,10 +72,7 @@ export const setupGlobalErrorHandling = () => {
         }
 
         if (statusCode === 401 || statusCode === 403) {
-          ToastUtils.error(
-            "Session Expired",
-            "Your session has expired. Logging out...",
-          );
+          ToastUtils.error("Session Expired", "Your session has expired. Logging out...");
           safeLogoutAndRedirect();
           return Promise.reject(error);
         }
@@ -89,6 +86,6 @@ export const setupGlobalErrorHandling = () => {
       }
       ToastUtils.error("Error!", errorMessage);
       return Promise.reject(error);
-    },
+    }
   );
 };

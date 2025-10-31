@@ -40,9 +40,7 @@ const ProfilePictureModalContent: React.FC<ProfilePictureModalContentProps> = ({
         {conversation.isGroup && (
           <View className="flex-row items-center gap-1 mb-3">
             <Ionicons name="people" size={16} color={iconColor} />
-            <Text className="text-gray-500 dark:text-gray-400 text-sm">
-              Group Chat
-            </Text>
+            <Text className="text-gray-500 dark:text-gray-400 text-sm">Group Chat</Text>
           </View>
         )}
       </View>

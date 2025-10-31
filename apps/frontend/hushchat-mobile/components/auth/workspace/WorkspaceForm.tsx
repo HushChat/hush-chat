@@ -1,10 +1,6 @@
 import { TWorkspaceFormProps } from "@/types/login/types";
 import React from "react";
-import {
-  FormButton,
-  FormContainer,
-  FormHeader,
-} from "@/components/FormComponents";
+import { FormButton, FormContainer, FormHeader } from "@/components/FormComponents";
 import { StyleSheet, View } from "react-native";
 import TextField from "@/components/forms/TextField";
 

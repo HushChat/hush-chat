@@ -84,30 +84,21 @@ async function ensureLocalFile(meta: {
 function passesFilters(
   file: LocalFile,
   maxSizeKB?: number,
-  allow?: string[],
+  allow?: string[]
 ): { ok: boolean; reason?: string } {
-  if (
-    typeof maxSizeKB === "number" &&
-    file.size &&
-    file.size / 1024 > maxSizeKB
-  ) {
+  if (typeof maxSizeKB === "number" && file.size && file.size / 1024 > maxSizeKB) {
     return { ok: false, reason: `File too large (> ${maxSizeKB} KB)` };
   }
   if (allow && allow.length > 0) {
     const ok = allow.some((m) =>
-      m.includes("*")
-        ? file.type.startsWith(m.split("/")[0] + "/")
-        : file.type === m,
+      m.includes("*") ? file.type.startsWith(m.split("/")[0] + "/") : file.type === m
     );
     if (!ok) return { ok: false, reason: `Blocked MIME type: ${file.type}` };
   }
   return { ok: true };
 }
 
-async function putToSignedUrl(
-  file: LocalFile,
-  signedUrl: string,
-): Promise<void> {
+async function putToSignedUrl(file: LocalFile, signedUrl: string): Promise<void> {
   const blob = await readAsBlob(file.uri);
   await fetch(signedUrl, {
     method: "PUT",
@@ -123,7 +114,7 @@ async function putToSignedUrl(
  * You inject how to get signed URLs (per your endpoint), we handle the rest.
  */
 export function useNativePickerUpload(
-  getSignedUrls: (files: LocalFile[]) => Promise<SignedUrl[] | null>,
+  getSignedUrls: (files: LocalFile[]) => Promise<SignedUrl[] | null>
 ) {
   const [state, setState] = useState<State>({
     isPicking: false,
@@ -151,9 +142,7 @@ export function useNativePickerUpload(
   }, []);
 
   const pick = useCallback(
-    async (
-      opts?: Partial<PickAndUploadOptions>,
-    ): Promise<LocalFile[] | null> => {
+    async (opts?: Partial<PickAndUploadOptions>): Promise<LocalFile[] | null> => {
       const o: PickAndUploadOptions = {
         ...defaultOpts,
         source: "media",
@@ -175,9 +164,7 @@ export function useNativePickerUpload(
                 ? "videos"
                 : ["images", "videos"];
 
-          const supportsMultiple = Boolean(
-            o.multiple && (PLATFORM.IS_IOS || PLATFORM.IS_ANDROID),
-          );
+          const supportsMultiple = Boolean(o.multiple && (PLATFORM.IS_IOS || PLATFORM.IS_ANDROID));
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes,
             allowsEditing: o.allowsEditing,
@@ -194,11 +181,8 @@ export function useNativePickerUpload(
           for (const a of assets) {
             const file = await ensureLocalFile({
               uri: a.uri,
-              mime:
-                a.mimeType || (a.type === "video" ? "video/mp4" : "image/jpeg"),
-              name:
-                a.fileName ||
-                guessNameFromUri(a.uri, a.type === "video" ? "video" : "image"),
+              mime: a.mimeType || (a.type === "video" ? "video/mp4" : "image/jpeg"),
+              name: a.fileName || guessNameFromUri(a.uri, a.type === "video" ? "video" : "image"),
               size: a.fileSize,
             });
             const check = passesFilters(file, o.maxSizeKB, o.allowedMimeTypes);
@@ -238,7 +222,7 @@ export function useNativePickerUpload(
         setState((s) => ({ ...s, isPicking: false }));
       }
     },
-    [],
+    []
   );
 
   const upload = useCallback(
@@ -254,8 +238,7 @@ export function useNativePickerUpload(
       }));
       try {
         const signed = await getSignedUrls(files);
-        if (!signed || signed.length === 0)
-          throw new Error("No signed URLs returned from server");
+        if (!signed || signed.length === 0) throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];
         for (let i = 0; i < files.length; i++) {
@@ -303,7 +286,7 @@ export function useNativePickerUpload(
         setState((s) => ({ ...s, isUploading: false }));
       }
     },
-    [getSignedUrls],
+    [getSignedUrls]
   );
 
   const pickAndUpload = useCallback(
@@ -312,7 +295,7 @@ export function useNativePickerUpload(
       if (!picked || picked.length === 0) return [];
       return await upload(picked);
     },
-    [pick, upload],
+    [pick, upload]
   );
 
   return useMemo(
@@ -324,6 +307,6 @@ export function useNativePickerUpload(
       upload,
       pickAndUpload,
     }),
-    [state, reset, cancel, pick, upload, pickAndUpload],
+    [state, reset, cancel, pick, upload, pickAndUpload]
   );
 }

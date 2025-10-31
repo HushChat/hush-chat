@@ -4,11 +4,7 @@ import { useSharedValue, useAnimatedStyle } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { bindExclusivity } from "./helpers";
 import { PLATFORM } from "@/constants/platformConstants";
-import {
-  Axis,
-  ExternalGestures,
-  OffsetThresholds,
-} from "@/types/gestures/types";
+import { Axis, ExternalGestures, OffsetThresholds } from "@/types/gestures/types";
 
 type PanEvent = {
   translationX: number;
@@ -59,34 +55,14 @@ export function usePanGesture({
     if (callbacksRunOnJS) g.runOnJS(true);
 
     if (axis === "horizontal") {
-      g.activeOffsetX(
-        (offsets.activeX ?? DEFAULT_OFFSETS.activeX) as
-          | [number, number]
-          | number,
-      );
-      g.failOffsetY(
-        (offsets.failY ?? DEFAULT_OFFSETS.failY) as [number, number] | number,
-      );
+      g.activeOffsetX((offsets.activeX ?? DEFAULT_OFFSETS.activeX) as [number, number] | number);
+      g.failOffsetY((offsets.failY ?? DEFAULT_OFFSETS.failY) as [number, number] | number);
     } else if (axis === "vertical") {
-      g.activeOffsetY(
-        (offsets.activeY ?? DEFAULT_OFFSETS.activeY) as
-          | [number, number]
-          | number,
-      );
-      g.failOffsetX(
-        (offsets.failX ?? DEFAULT_OFFSETS.failX) as [number, number] | number,
-      );
+      g.activeOffsetY((offsets.activeY ?? DEFAULT_OFFSETS.activeY) as [number, number] | number);
+      g.failOffsetX((offsets.failX ?? DEFAULT_OFFSETS.failX) as [number, number] | number);
     } else {
-      g.activeOffsetX(
-        (offsets.activeX ?? DEFAULT_OFFSETS.activeX) as
-          | [number, number]
-          | number,
-      );
-      g.activeOffsetY(
-        (offsets.activeY ?? DEFAULT_OFFSETS.activeY) as
-          | [number, number]
-          | number,
-      );
+      g.activeOffsetX((offsets.activeX ?? DEFAULT_OFFSETS.activeX) as [number, number] | number);
+      g.activeOffsetY((offsets.activeY ?? DEFAULT_OFFSETS.activeY) as [number, number] | number);
     }
 
     if ((g as any).enableTrackpadTwoFingerGesture) {
@@ -145,10 +121,7 @@ export function usePanGesture({
   ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-    ],
+    transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
   }));
 
   return {
