@@ -49,6 +49,15 @@ export default function ChatInterface({
         router.push("/group-conversation/select-participants");
       },
     },
+    {
+      id: "settings",
+      title: "Settings",
+      icon: "settings-outline" as const,
+      onPress: () => {
+        setSheetVisible(false);
+        router.push("/(tabs)/settings");
+      },
+    },
   ];
 
   return (
@@ -118,6 +127,7 @@ export default function ChatInterface({
         onClose={() => setSheetVisible(false)}
         options={sheetOptions}
         title="Actions"
+        showBorders={false}
       />
     </View>
   );
