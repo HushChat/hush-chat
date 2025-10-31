@@ -154,7 +154,7 @@ export function ContactUsForm({
             onPress={handleSubmit}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
             disabled={!isFormValid || mutation.isPending}
-            className={`rounded-lg py-4 items-center mt-3 ${
+            className={`rounded-lg py-4 items-center mt-3 w-full ${
               !isFormValid || mutation.isPending
                 ? "bg-gray-300 dark:bg-gray-700"
                 : "bg-primary-light dark:bg-primary-dark"
@@ -164,16 +164,23 @@ export function ContactUsForm({
               <ActivityIndicator color="#ffffff" size={20} />
             ) : (
               <AppText
-                className={`text-base ${
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                className={`text-base font-semibold ${
                   !isFormValid || mutation.isPending
                     ? "text-gray-500 dark:text-gray-400"
                     : "text-white"
                 }`}
+                style={{
+                  textAlign: "center",
+                  flexShrink: 1,
+                  width: "100%",
+                }}
               >
                 Send Message
               </AppText>
             )}
-          </TouchableOpacity>
+        </TouchableOpacity>
         </View>
       </View>
     </View>
