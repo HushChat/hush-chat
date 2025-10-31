@@ -45,6 +45,7 @@ interface ConversationThreadScreenProps {
   webForwardPress?: (messageIds: Set<number>) => void;
   messageToJump?: number | null;
   onMessageJumped?: () => void;
+  highlightedMessageId?: number | null;
 }
 
 const ConversationThreadScreen = ({
@@ -55,6 +56,7 @@ const ConversationThreadScreen = ({
   webForwardPress,
   onMessageJumped,
   messageToJump,
+  highlightedMessageId,
 }: ConversationThreadScreenProps) => {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
@@ -86,6 +88,10 @@ const ConversationThreadScreen = ({
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
 
   const searchedMessage = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
+
+    const highlightId = PLATFORM.IS_WEB
+  ? highlightedMessageId
+  : (params.highlight ? Number(params.highlight) : null);
 
   const {
     selectedFiles,
@@ -299,6 +305,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={selectedConversationId}
+        highlightedMessageId={highlightId}
       />
     );
   }, [

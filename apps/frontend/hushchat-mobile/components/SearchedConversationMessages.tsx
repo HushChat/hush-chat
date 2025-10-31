@@ -67,6 +67,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
           params: {
             conversationId,
             messageId: message.id,
+            highlight: message.id,
           },
         });
       }
