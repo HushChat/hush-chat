@@ -14,9 +14,7 @@ export const getUserInfo = async () => {
 
 export const blockUser = async (blockedUserId: number) => {
   try {
-    const response = await axios.post(
-      USER_API_ENDPOINTS.BLOCK_USER(blockedUserId),
-    );
+    const response = await axios.post(USER_API_ENDPOINTS.BLOCK_USER(blockedUserId));
     return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
@@ -25,9 +23,7 @@ export const blockUser = async (blockedUserId: number) => {
 
 export const unblockUser = async (blockedUserId: number) => {
   try {
-    const response = await axios.delete(
-      USER_API_ENDPOINTS.UNBLOCK_USER(blockedUserId),
-    );
+    const response = await axios.delete(USER_API_ENDPOINTS.UNBLOCK_USER(blockedUserId));
     return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
@@ -57,7 +53,7 @@ export const getAllUsers = async (
   keyword: string = "",
   excludeUsersInConversationId?: number,
   page: number = 0,
-  size: number = 20,
+  size: number = 20
 ) => {
   try {
     const response = await axios.get(USER_API_ENDPOINTS.GET, {

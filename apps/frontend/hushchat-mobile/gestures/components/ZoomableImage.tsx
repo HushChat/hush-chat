@@ -1,11 +1,7 @@
 import React from "react";
 import { ImageProps } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { usePinchGesture } from "@/gestures/base/usePinchGesture";
 import { usePanGesture } from "@/gestures/base/usePanGesture";
 import { useDoubleTapGesture } from "@/gestures/base/useDoubleTapGesture";
@@ -65,11 +61,7 @@ export function ZoomableImage({
   const composed = Gesture.Simultaneous(pinch, pan, doubleTap);
 
   const style = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: tx.value },
-      { translateY: ty.value },
-      { scale: scale.value },
-    ],
+    transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }],
   }));
 
   return (

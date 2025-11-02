@@ -9,21 +9,11 @@ import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 export default function ForgotPasswordScreen() {
   const { colors } = useAuthThemeColors();
   const router = useRouter();
-  const {
-    email,
-    setEmail,
-    errorMessage,
-    successMessage,
-    handleSendCode,
-    goBackToLogin,
-  } = useForgotPassword();
+  const { email, setEmail, errorMessage, successMessage, handleSendCode, goBackToLogin } =
+    useForgotPassword();
 
   return (
-    <AuthMobileLayout
-      colors={colors}
-      image={Images.LoginPeople}
-      onBack={() => router.back()}
-    >
+    <AuthMobileLayout colors={colors} image={Images.LoginPeople} onBack={() => router.back()}>
       <ForgotPasswordForm
         colors={colors}
         errorMessage={errorMessage}

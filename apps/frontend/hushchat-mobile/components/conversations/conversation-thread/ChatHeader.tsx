@@ -27,10 +27,7 @@ const ChatHeader = ({
   webPressSearch,
 }: ChatHeaderProps) => {
   const handleProfileNavigate = useCallback(() => {
-    handleConversationNavigation(
-      onShowProfile,
-      conversationInfo.conversationId,
-    );
+    handleConversationNavigation(onShowProfile, conversationInfo.conversationId);
   }, [onShowProfile, conversationInfo.conversationId]);
 
   return (

@@ -49,15 +49,11 @@ export default function CallHistoryPanel({
         String(item.initiator?.id) === String(currentUserId)
           ? CallDirection.outgoing
           : CallDirection.incoming;
-      const missed =
-        item.status === CallStatus.MISSED ||
-        item.status === CallStatus.REJECTED;
+      const missed = item.status === CallStatus.MISSED || item.status === CallStatus.REJECTED;
 
-      return (
-        <CallLogItem callLog={item} direction={direction} missed={missed} />
-      );
+      return <CallLogItem callLog={item} direction={direction} missed={missed} />;
     },
-    [currentUserId],
+    [currentUserId]
   );
 
   const renderFooter = useCallback(() => {
@@ -80,9 +76,7 @@ export default function CallHistoryPanel({
     }
     return (
       <View className="flex-1 items-center justify-center p-4">
-        <Text className="text-gray-500 dark:text-text-secondary-dark">
-          No conversations yet
-        </Text>
+        <Text className="text-gray-500 dark:text-text-secondary-dark">No conversations yet</Text>
       </View>
     );
   }, [isCallLogsLoading, callLogsError]);

@@ -5,10 +5,7 @@ import { TITLES } from "@/constants/constants";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useConversationFavorites } from "@/hooks/useConversationFavorites";
 import { getCriteria } from "@/utils/conversationUtils";
-import {
-  useDeleteConversationByIdMutation,
-  useUnblockUserMutation,
-} from "@/query/delete/queries";
+import { useDeleteConversationByIdMutation, useUnblockUserMutation } from "@/query/delete/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useModalContext } from "@/context/modal-context";
@@ -46,20 +43,15 @@ const MobileConversationContextMenu = ({
 
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
-  const { handleToggleFavorites } = useConversationFavorites(
-    conversationId,
-    criteria,
-  );
+  const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
   const {
     user: { id: userId },
   } = useUserStore();
   const { closeModal } = useModalContext();
-  const { refetch } = useConversationsQuery(
-    getCriteria(selectedConversationType),
-  );
+  const { refetch } = useConversationsQuery(getCriteria(selectedConversationType));
 
   const { conversationInfo: oneToOneInfo } = useOneToOneConversationInfoQuery(
-    !isGroup ? conversationId : 0,
+    !isGroup ? conversationId : 0
   );
 
   const togglePinConversation = useTogglePinConversationMutation(
@@ -73,7 +65,7 @@ const MobileConversationContextMenu = ({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const deleteConversation = useDeleteConversationByIdMutation(
@@ -88,7 +80,7 @@ const MobileConversationContextMenu = ({
     },
     (error) => {
       ToastUtils.error(error as string);
-    },
+    }
   );
 
   const blockUserMutation = useBlockUserMutation(
@@ -101,7 +93,7 @@ const MobileConversationContextMenu = ({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const unblockUserMutation = useUnblockUserMutation(
@@ -114,7 +106,7 @@ const MobileConversationContextMenu = ({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   const exitGroupMutation = useExitGroupConversationMutation(
@@ -127,7 +119,7 @@ const MobileConversationContextMenu = ({
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
-    },
+    }
   );
 
   useEffect(() => {
@@ -223,7 +215,7 @@ const MobileConversationContextMenu = ({
                 handleClose();
                 blockUserMutation.mutate(oneToOneInfo.userView.id);
               },
-            },
+            }
       );
     }
     if (isGroup && isActive) {

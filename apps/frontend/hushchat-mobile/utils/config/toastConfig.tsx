@@ -4,11 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import {
-  useToastAnimation,
-  TOAST_POSITION,
-  ToastPosition,
-} from "@/hooks/useToastAnimation";
+import { useToastAnimation, TOAST_POSITION, ToastPosition } from "@/hooks/useToastAnimation";
 
 const TOAST_ICONS = {
   success: { name: "checkmark-circle" as const, color: "#22c55e" },
@@ -27,19 +23,9 @@ interface BaseToastContainerProps {
 function BaseToastContainer({ type, params }: BaseToastContainerProps) {
   const { isDark } = useAppTheme();
 
-  const {
-    text1: title,
-    text2: message,
-    position = TOAST_POSITION.TOP,
-    isVisible,
-  } = params;
+  const { text1: title, text2: message, position = TOAST_POSITION.TOP, isVisible } = params;
 
-  const { gesture, animatedStyle } = useToastAnimation(
-    position,
-    title,
-    message,
-    isVisible,
-  );
+  const { gesture, animatedStyle } = useToastAnimation(position, title, message, isVisible);
 
   const { name, color } = TOAST_ICONS[type];
 
@@ -52,12 +38,7 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
         style={animatedStyle}
       >
         <View className="flex-row items-center">
-          <Ionicons
-            name={name}
-            size={26}
-            color={color}
-            style={{ marginRight: 12 }}
-          />
+          <Ionicons name={name} size={26} color={color} style={{ marginRight: 12 }} />
           <View style={{ flexShrink: 1 }}>
             <Text
               className={`font-semibold text-base ${
@@ -69,9 +50,7 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
             {message && (
               <Text
                 className={`text-sm mt-1 ${
-                  isDark
-                    ? "text-text-secondary-light"
-                    : "text-text-secondary-dark"
+                  isDark ? "text-text-secondary-light" : "text-text-secondary-dark"
                 }`}
               >
                 {message}

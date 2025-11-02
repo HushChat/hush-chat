@@ -9,22 +9,11 @@ import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 export default function RegisterScreen() {
   const { colors } = useAuthThemeColors();
   const router = useRouter();
-  const {
-    formValues,
-    formErrors,
-    showErrors,
-    errorMessage,
-    onValueChange,
-    submit,
-    isLoading,
-  } = useRegisterForm();
+  const { formValues, formErrors, showErrors, errorMessage, onValueChange, submit, isLoading } =
+    useRegisterForm();
 
   return (
-    <AuthMobileLayout
-      colors={colors}
-      image={Images.Workspace}
-      onBack={() => router.back()}
-    >
+    <AuthMobileLayout colors={colors} image={Images.Workspace} onBack={() => router.back()}>
       <RegisterForm
         colors={colors}
         errorMessage={errorMessage}

@@ -14,14 +14,10 @@ const workspaceSchema = yup.object({
 export function useWorkspaceForm() {
   const router = useRouter();
 
-  const {
-    values,
-    errors,
-    showErrors,
-    onValueChange,
-    validateAll,
-    setShowErrors,
-  } = useForm(workspaceSchema, { workspaceName: "" });
+  const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } = useForm(
+    workspaceSchema,
+    { workspaceName: "" }
+  );
 
   const handleNext = useCallback(async () => {
     setShowErrors(true);

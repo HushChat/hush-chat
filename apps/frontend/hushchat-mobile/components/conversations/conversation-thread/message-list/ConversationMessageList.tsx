@@ -5,12 +5,7 @@
  */
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
-import {
-  ConversationAPIResponse,
-  IBasicMessage,
-  IMessage,
-  TPickerState,
-} from "@/types/chat/types";
+import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
@@ -21,10 +16,7 @@ import { usePinMessageMutation } from "@/query/post/queries";
 import { usePatchUnsendMessageMutation } from "@/query/patch/queries";
 import { useUpdateCache } from "@/query/config/useUpdateCache";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import {
-  conversationQueryKeys,
-  conversationMessageQueryKeys,
-} from "@/constants/queryKeys";
+import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
@@ -51,28 +43,17 @@ const ConversationMessageList = ({
   pickerState,
   selectedConversationId,
 }: MessagesListProps) => {
-  const [selectedActionMessage, setSelectedActionMessage] =
-    useState<IMessage | null>(null);
+  const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
   const { user } = useUserStore();
   const currentUserId = user?.id;
   const { openPickerMessageId, setOpenPickerMessageId } = pickerState;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
-  const handleCloseActions = useCallback(
-    () => setSelectedActionMessage(null),
-    [],
-  );
+  const handleCloseActions = useCallback(() => setSelectedActionMessage(null), []);
   const updateCache = useUpdateCache();
-  const [selectedPinnedMessage, setSelectedPinnedMessage] =
-    useState<IBasicMessage | null>(null);
-  const [unsendMessage, setUnSendMessage] = useState<IBasicMessage>(
-    {} as IBasicMessage,
-  );
-  const {
-    selectionMode,
-    selectedMessageIds,
-    setSelectionMode,
-    setSelectedMessageIds,
-  } = useConversationStore();
+  const [selectedPinnedMessage, setSelectedPinnedMessage] = useState<IBasicMessage | null>(null);
+  const [unsendMessage, setUnSendMessage] = useState<IBasicMessage>({} as IBasicMessage);
+  const { selectionMode, selectedMessageIds, setSelectionMode, setSelectedMessageIds } =
+    useConversationStore();
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [reactionsModal, setReactionsModal] = useState<{
     visible: boolean;
@@ -90,21 +71,15 @@ const ConversationMessageList = ({
       setSelectedActionMessage(null);
       setOpenPickerMessageId(null);
       const pinnedMessageState =
-        pinnedMessage?.id === selectedPinnedMessage?.id
-          ? null
-          : selectedPinnedMessage;
+        pinnedMessage?.id === selectedPinnedMessage?.id ? null : selectedPinnedMessage;
       updateCache(
-        conversationQueryKeys.metaDataById(
-          +!!currentUserId,
-          Number(conversationAPIResponse?.id),
-        ),
-        (prev) =>
-          prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev,
+        conversationQueryKeys.metaDataById(+!!currentUserId, Number(conversationAPIResponse?.id)),
+        (prev) => (prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev)
       );
     },
     (error) => {
       ToastUtils.error(error as string);
-    },
+    }
   );
 
   const togglePin = useCallback(
@@ -115,7 +90,7 @@ const ConversationMessageList = ({
       togglePinMessage({ conversationId, messageId: message.id });
       setSelectedPinnedMessage(message);
     },
-    [conversationAPIResponse?.id, togglePinMessage],
+    [conversationAPIResponse?.id, togglePinMessage]
   );
 
   const { mutate: unsend } = usePatchUnsendMessageMutation(undefined, () => {
@@ -123,7 +98,7 @@ const ConversationMessageList = ({
     updateCache(
       conversationMessageQueryKeys.messages(
         Number(currentUserId),
-        Number(conversationAPIResponse?.id),
+        Number(conversationAPIResponse?.id)
       ),
       (prev: { pages: PaginatedResponse<IMessage>[] } | undefined) => {
         if (!prev) return prev;
@@ -135,11 +110,11 @@ const ConversationMessageList = ({
             content: page.content.map((message: IMessage) =>
               message.id === unsendMessage.id
                 ? { ...message, isUnsend: true, messageAttachments: [] }
-                : message,
+                : message
             ),
           })),
         };
-      },
+      }
     );
 
     void refetchConversationList();
@@ -150,7 +125,7 @@ const ConversationMessageList = ({
       setUnSendMessage(message);
       unsend({ messageId: message.id });
     },
-    [unsend],
+    [unsend]
   );
 
   const closeAllOverlays = useCallback(() => {
@@ -162,7 +137,7 @@ const ConversationMessageList = ({
     (messageId: string) => {
       setOpenPickerMessageId(messageId);
     },
-    [setOpenPickerMessageId],
+    [setOpenPickerMessageId]
   );
 
   const handleMessageSelect = useCallback(
@@ -170,7 +145,7 @@ const ConversationMessageList = ({
       setOpenPickerMessageId(null);
       onMessageSelect?.(message);
     },
-    [onMessageSelect, setOpenPickerMessageId],
+    [onMessageSelect, setOpenPickerMessageId]
   );
 
   const handleMessageLongPress = useCallback(
@@ -179,7 +154,7 @@ const ConversationMessageList = ({
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setSelectedActionMessage(message);
     },
-    [conversationAPIResponse?.isBlocked],
+    [conversationAPIResponse?.isBlocked]
   );
 
   const handleStartSelectionWith = useCallback(
@@ -189,7 +164,7 @@ const ConversationMessageList = ({
       setSelectedMessageIds(new Set([messageId]));
       setSelectedActionMessage(null);
     },
-    [conversationAPIResponse?.id, setSelectionMode, setSelectedMessageIds],
+    [conversationAPIResponse?.id, setSelectionMode, setSelectedMessageIds]
   );
 
   const handleToggleSelection = useCallback(
@@ -200,22 +175,18 @@ const ConversationMessageList = ({
       if (messageIds.size === 0) setSelectionMode(false);
       setSelectedMessageIds(messageIds);
     },
-    [selectedMessageIds, setSelectedMessageIds, setSelectionMode],
+    [selectedMessageIds, setSelectedMessageIds, setSelectionMode]
   );
 
   const handleViewReactions = useCallback(
-    (
-      messageId: number,
-      position: { x: number; y: number },
-      isOpen: boolean,
-    ) => {
+    (messageId: number, position: { x: number; y: number }, isOpen: boolean) => {
       setMenuPosition(position);
       setReactionsModal({
         visible: isOpen,
         messageId,
       });
     },
-    [],
+    []
   );
 
   const handleCloseReactions = useCallback(() => {
@@ -224,8 +195,7 @@ const ConversationMessageList = ({
 
   const renderMessage = useCallback(
     ({ item }: { item: IMessage }) => {
-      const isCurrentUser =
-        currentUserId && Number(currentUserId) === item.senderId;
+      const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
       const isSelected = selectedMessageIds.has(Number(item.id));
       return (
         <ConversationMessageItem
@@ -263,7 +233,7 @@ const ConversationMessageList = ({
       selectedConversationId,
       unSendMessage,
       handleViewReactions,
-    ],
+    ]
   );
 
   const renderLoadingFooter = useCallback(() => {

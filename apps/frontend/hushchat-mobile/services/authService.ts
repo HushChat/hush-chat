@@ -18,8 +18,7 @@ export async function loginUser(email: string, password: string) {
   } catch (error: unknown) {
     return {
       success: false,
-      message:
-        error.response?.data?.message || "Login failed. Please try again.",
+      message: error.response?.data?.message || "Login failed. Please try again.",
     };
   }
 }
@@ -31,8 +30,7 @@ export async function registerUser(userData: IRegisterUserPayload) {
   } catch (error: unknown) {
     return {
       success: false,
-      message:
-        error.response?.data?.message || "Register failed. Please try again.",
+      message: error.response?.data?.message || "Register failed. Please try again.",
     };
   }
 }
@@ -46,9 +44,7 @@ export async function confirmSignup(email: string, confirmationCode: number) {
   } catch (error: unknown) {
     return {
       success: false,
-      message:
-        error.response?.data?.message ||
-        "OTP confirmation failed. Please try again.",
+      message: error.response?.data?.message || "OTP confirmation failed. Please try again.",
     };
   }
 }
@@ -62,9 +58,7 @@ export async function resendOtp(email: string) {
   } catch (error: unknown) {
     return {
       success: false,
-      message:
-        error.response?.data?.message ||
-        "OTP confirmation failed. Please try again.",
+      message: error.response?.data?.message || "OTP confirmation failed. Please try again.",
     };
   }
 }

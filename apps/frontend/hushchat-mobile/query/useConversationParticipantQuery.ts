@@ -2,10 +2,7 @@ import { usePaginatedQuery } from "@/query/usePaginatedQuery";
 import { getConversationParticipants } from "@/apis/conversation";
 import { conversationQueryKeys } from "@/constants/queryKeys";
 
-export const useConversationParticipantQuery = (
-  conversationId: number,
-  keyword: string = "",
-) => {
+export const useConversationParticipantQuery = (conversationId: number, keyword: string = "") => {
   const {
     pages,
     isLoading,
@@ -16,10 +13,7 @@ export const useConversationParticipantQuery = (
     invalidateQuery,
     refetch,
   } = usePaginatedQuery({
-    queryKey: conversationQueryKeys.ConversationParticipants(
-      conversationId,
-      keyword,
-    ),
+    queryKey: conversationQueryKeys.ConversationParticipants(conversationId, keyword),
     queryFn: (pageParam: number) =>
       getConversationParticipants(conversationId, keyword, pageParam, 10),
     options: {

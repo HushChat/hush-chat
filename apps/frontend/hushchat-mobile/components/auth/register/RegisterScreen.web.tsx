@@ -7,15 +7,8 @@ import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function RegisterScreen() {
   const { colors } = useAuthThemeColors();
-  const {
-    formValues,
-    formErrors,
-    showErrors,
-    errorMessage,
-    onValueChange,
-    submit,
-    isLoading,
-  } = useRegisterForm();
+  const { formValues, formErrors, showErrors, errorMessage, onValueChange, submit, isLoading } =
+    useRegisterForm();
 
   return (
     <AuthWebLayout

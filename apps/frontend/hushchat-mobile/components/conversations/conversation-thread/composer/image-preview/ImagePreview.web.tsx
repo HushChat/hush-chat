@@ -4,12 +4,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { TImagePreviewProps } from "@/types/chat/types";
 
-export const ImagePreview = ({
-  visible,
-  images,
-  initialIndex,
-  onClose,
-}: TImagePreviewProps) => {
+export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const thumbnailScrollRef = useRef<ScrollView>(null);
 
@@ -21,8 +16,7 @@ export const ImagePreview = ({
     if (thumbnailScrollRef.current && images.length > 1) {
       const thumbnailWidth = 80;
       const gap = 8;
-      const offset =
-        currentIndex * (thumbnailWidth + gap) - (thumbnailWidth + gap);
+      const offset = currentIndex * (thumbnailWidth + gap) - (thumbnailWidth + gap);
       thumbnailScrollRef.current.scrollTo({ x: offset, animated: true });
     }
   }, [currentIndex, images.length]);
@@ -42,7 +36,7 @@ export const ImagePreview = ({
       if (e.key === "ArrowLeft") handlePrevious();
       if (e.key === "ArrowRight") handleNext();
     },
-    [visible, onClose, handlePrevious, handleNext],
+    [visible, onClose, handlePrevious, handleNext]
   );
 
   useEffect(() => {
@@ -67,20 +61,14 @@ export const ImagePreview = ({
       <View className="flex-1 bg-background-light dark:bg-background-dark">
         <View className="bg-background-light dark:bg-background-dark px-6 py-4 flex-row justify-between items-center">
           <View className="flex-1">
-            <Text
-              className="text-gray-900 dark:text-white text-base font-normal"
-              numberOfLines={1}
-            >
+            <Text className="text-gray-900 dark:text-white text-base font-normal" numberOfLines={1}>
               {currentImage?.originalFileName || "Image"}
             </Text>
             <Text className="text-gray-500 dark:text-[#8696A0] text-sm mt-0.5">
               {currentIndex + 1} of {images.length}
             </Text>
           </View>
-          <Pressable
-            onPress={onClose}
-            className="p-2 active:opacity-60 cursor-pointer ml-4"
-          >
+          <Pressable onPress={onClose} className="p-2 active:opacity-60 cursor-pointer ml-4">
             <Ionicons name="close" size={24} color="#8696A0" />
           </Pressable>
         </View>

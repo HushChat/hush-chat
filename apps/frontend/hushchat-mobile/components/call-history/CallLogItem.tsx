@@ -14,10 +14,7 @@ import InitialsAvatar from "@/components/InitialsAvatar";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { PLATFORM } from "@/constants/platformConstants";
 import { CallDirection, Direction, ICallLog } from "@/types/call/types";
-import {
-  formatRelativeTime,
-  handleConversationNavigation,
-} from "@/utils/commonUtils";
+import { formatRelativeTime, handleConversationNavigation } from "@/utils/commonUtils";
 
 type CallItemProps = {
   callLog: ICallLog | null | undefined;
@@ -26,16 +23,13 @@ type CallItemProps = {
 };
 
 const CallLogItem = ({ callLog, direction, missed }: CallItemProps) => {
-  const participants = Array.isArray(callLog?.participants)
-    ? callLog!.participants
-    : [];
+  const participants = Array.isArray(callLog?.participants) ? callLog!.participants : [];
   const first = participants[0];
-  const name =
-    `${first?.firstName ?? ""} ${first?.lastName ?? ""}`.trim() || "Unknown";
+  const name = `${first?.firstName ?? ""} ${first?.lastName ?? ""}`.trim() || "Unknown";
 
   const timeText = useMemo(
     () => formatRelativeTime(callLog?.callStartedAt),
-    [callLog?.callStartedAt],
+    [callLog?.callStartedAt]
   );
 
   const handleAvatarPress = useCallback(() => {
@@ -44,8 +38,7 @@ const CallLogItem = ({ callLog, direction, missed }: CallItemProps) => {
 
   const arrowColor = missed ? "#ef4444" : "#22c55e";
   const arrowName = "arrow-up-outline";
-  const arrowRotation =
-    direction === CallDirection.outgoing ? "45deg" : "-135deg";
+  const arrowRotation = direction === CallDirection.outgoing ? "45deg" : "-135deg";
 
   const rightIconName = callLog?.isVideo ? "videocam-outline" : "call-outline";
   const rightIconColor = "#9ca3af";
@@ -55,13 +48,10 @@ const CallLogItem = ({ callLog, direction, missed }: CallItemProps) => {
       className={classNames(
         "flex-row items-center px-4 py-3",
         PLATFORM.IS_WEB &&
-          "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark cursor-pointer",
+          "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark cursor-pointer"
       )}
     >
-      <TouchableOpacity
-        onPress={handleAvatarPress}
-        activeOpacity={DEFAULT_ACTIVE_OPACITY}
-      >
+      <TouchableOpacity onPress={handleAvatarPress} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
         <InitialsAvatar name={name} />
       </TouchableOpacity>
 

@@ -10,11 +10,7 @@ interface FilterButtonProps {
   onPress?: () => void;
 }
 
-const FilterButton = ({
-  label,
-  isActive = false,
-  onPress,
-}: FilterButtonProps) => {
+const FilterButton = ({ label, isActive = false, onPress }: FilterButtonProps) => {
   return (
     <TouchableOpacity
       className={classNames("px-4 py-2 rounded-full", {

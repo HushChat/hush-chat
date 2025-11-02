@@ -82,15 +82,8 @@ const PasswordVisibilityToggle = ({
   iconSize: number;
 }) => {
   return (
-    <Pressable
-      className="absolute top-1/2 -translate-y-1/2 right-4"
-      onPress={onToggle}
-    >
-      <Ionicons
-        name={isPasswordVisible ? "eye" : "eye-off"}
-        color={"#9CA3AF"}
-        size={iconSize}
-      />
+    <Pressable className="absolute top-1/2 -translate-y-1/2 right-4" onPress={onToggle}>
+      <Ionicons name={isPasswordVisible ? "eye" : "eye-off"} color={"#9CA3AF"} size={iconSize} />
     </Pressable>
   );
 };
@@ -111,9 +104,7 @@ const TextField = (props: FormTextInputProps) => {
     ...rest
   } = props;
 
-  const [isPasswordField, setIsPasswordField] = useState<boolean>(
-    secureTextEntry ?? false,
-  );
+  const [isPasswordField, setIsPasswordField] = useState<boolean>(secureTextEntry ?? false);
 
   // Decide effective size with platform-aware default
   const effectiveSize: SizeKey = useMemo(() => {
@@ -132,9 +123,7 @@ const TextField = (props: FormTextInputProps) => {
   return (
     <View className="flex-col gap-y-1">
       {label && (
-        <Text
-          className={`text-gray-900 dark:text-gray-100 font-medium ${tokens.label}`}
-        >
+        <Text className={`text-gray-900 dark:text-gray-100 font-medium ${tokens.label}`}>
           {label}
         </Text>
       )}
@@ -146,9 +135,7 @@ const TextField = (props: FormTextInputProps) => {
             className={`${inputBase} ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.font} ${tokens.radius} ${className || ""}`}
             secureTextEntry={isPasswordField}
             placeholderTextColor={placeholderTextColor || "#9CA3AF"}
-            onChangeText={(text) =>
-              props?.onValueChange?.({ name, value: text })
-            }
+            onChangeText={(text) => props?.onValueChange?.({ name, value: text })}
             enablesReturnKeyAutomatically
             {...rest}
           />
@@ -162,9 +149,7 @@ const TextField = (props: FormTextInputProps) => {
         </View>
 
         {formErrors?.[name] && showErrors && (
-          <Text className={`text-red-600 ${tokens.error}`}>
-            {formErrors?.[name]}
-          </Text>
+          <Text className={`text-red-600 ${tokens.error}`}>{formErrors?.[name]}</Text>
         )}
       </View>
     </View>

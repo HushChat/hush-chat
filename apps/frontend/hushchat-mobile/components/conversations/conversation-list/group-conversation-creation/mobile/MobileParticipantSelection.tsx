@@ -43,9 +43,7 @@ export default function MobileParticipantSelection() {
             >
               <Text
                 className={`font-medium ${
-                  selectedUsers.length > 0
-                    ? "text-white"
-                    : "text-gray-500 dark:text-gray-400"
+                  selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 Continue
@@ -55,10 +53,7 @@ export default function MobileParticipantSelection() {
         </View>
       </View>
 
-      <UserMultiSelectList
-        selectedUsers={selectedUsers}
-        onChange={setSelectedUsers}
-      />
+      <UserMultiSelectList selectedUsers={selectedUsers} onChange={setSelectedUsers} />
     </View>
   );
 }

@@ -23,10 +23,7 @@ const ConversationForwardPanelNative = () => {
         }}
       />
 
-      <ConversationForwardPanelBase
-        onClose={() => router.back()}
-        {...handler}
-      />
+      <ConversationForwardPanelBase onClose={() => router.back()} {...handler} />
     </View>
   );
 };

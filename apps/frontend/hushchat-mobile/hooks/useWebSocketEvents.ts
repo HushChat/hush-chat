@@ -46,10 +46,8 @@ export const useConversationMessages = (conversationId: number) => {
 
 // Hook for listening to notifications for conversations list
 export const useConversationsNotifications = () => {
-  const [
-    notificationReceivedConversation,
-    setNotificationReceivedConversation,
-  ] = useState<IConversation | null>(null);
+  const [notificationReceivedConversation, setNotificationReceivedConversation] =
+    useState<IConversation | null>(null);
 
   useEffect(() => {
     const handleWebSocketMessage = (messageWithConversation: IConversation) => {

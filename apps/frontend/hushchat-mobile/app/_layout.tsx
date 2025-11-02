@@ -113,15 +113,10 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
             <ModalProvider>
-              <Gate
-                ready={!loading && fontsLoaded}
-                isAuthenticated={isAuthenticated}
-              />
+              <Gate ready={!loading && fontsLoaded} isAuthenticated={isAuthenticated} />
               <Toast
                 config={toastConfig}
-                topOffset={
-                  PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID
-                }
+                topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
               />
               <StatusBar style="auto" />
             </ModalProvider>
@@ -133,24 +128,14 @@ export default function RootLayout() {
 }
 
 /** Central guard: decides where the user can go before screens mount */
-function Gate({
-  ready,
-  isAuthenticated,
-}: {
-  ready: boolean;
-  isAuthenticated: boolean;
-}) {
+function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boolean }) {
   const segments = useSegments();
   const inAuthGroup = segments[0] === "(auth)";
 
   return (
     <>
-      {ready && !isAuthenticated && !inAuthGroup && (
-        <Redirect href={AUTH_LOGIN_PATH} />
-      )}
-      {ready && isAuthenticated && inAuthGroup && (
-        <Redirect href={CHATS_PATH} />
-      )}
+      {ready && !isAuthenticated && !inAuthGroup && <Redirect href={AUTH_LOGIN_PATH} />}
+      {ready && isAuthenticated && inAuthGroup && <Redirect href={CHATS_PATH} />}
 
       <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
