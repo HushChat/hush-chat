@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, ActivityIndicator, ScrollView, Image } from "react-native";
+import { View, TouchableOpacity, ActivityIndicator, ScrollView, Image, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "@/store/user/useUserStore";
 import { router } from "expo-router";
@@ -237,25 +237,36 @@ export default function Profile() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
-      {isMobile ? (
-        <ProfileContent />
-      ) : (
-        <View className="flex-1 flex-row">
-          <View className="w-full max-w-[460px] border-r border-gray-200 dark:border-gray-800">
-            <ProfileContent />
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+        {isMobile ? (
+          <ProfileContent />
+        ) : (
+          <View className="flex-1 flex-row">
+            <View className="w-full max-w-[460px] border-r border-gray-200 dark:border-gray-800">
+              <ProfileContent />
+            </View>
+            <View className="flex-1">
+              <Placeholder
+                image={Images.userProfile}
+                title="My Profile"
+                showBackground={false}
+                imageWidth={50}
+                imageHeight={80}
+              />
+            </View>
           </View>
-          <View className="flex-1">
-            <Placeholder
-              image={Images.userProfile}
-              title="My Profile"
-              showBackground={false}
-              imageWidth={50}
-              imageHeight={80}
-            />
-          </View>
-        </View>
-      )}
-    </SafeAreaView>
+        )}
+      </SafeAreaView>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    flexGrow: 1,
+  },
+});
