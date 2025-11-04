@@ -151,6 +151,11 @@ public class MessageService {
     ) {
         Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
+
+        MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+        messagePublisherService.invokeNewMessageToParticipants(
+                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+        );
         return signedURLResponseDTO;
     }
 

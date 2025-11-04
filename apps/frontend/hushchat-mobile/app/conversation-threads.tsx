@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+import { useUserStore } from "@/store/user/useUserStore";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -58,6 +59,9 @@ const ConversationThreadScreen = ({
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
+  const {
+    user: { id: currentUserId },
+  } = useUserStore();
 
   const selectedConversationId = conversationId || Number(params.conversationId);
 
@@ -119,7 +123,6 @@ const ConversationThreadScreen = ({
       const results = await pickAndUploadImages();
 
       if (results?.some((r) => r.success)) {
-        void refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
@@ -136,15 +139,18 @@ const ConversationThreadScreen = ({
     uploadError,
   ]);
 
+  const queryClient = useQueryClient();
+
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
     (newMessage) => {
       setSelectedMessage(null);
+
       updateConversationMessagesCache(newMessage);
+
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
+    (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
   useEffect(() => {
@@ -207,9 +213,25 @@ const ConversationThreadScreen = ({
             });
           });
 
+          const newMessage: IMessage = {
+            senderId: Number(currentUserId),
+            senderFirstName: useUserStore.getState().user.firstName,
+            senderLastName: useUserStore.getState().user.lastName,
+            messageText: imageMessage || "",
+            createdAt: new Date().toISOString(),
+            conversationId: selectedConversationId,
+            messageAttachments: renamedFiles.map((file) => ({
+              fileUrl: URL.createObjectURL(file),
+              originalFileName: file.name,
+              indexedFileName: '',
+              mimeType: file.type
+            }))
+          };
+
+          updateConversationMessagesCache(newMessage);
           await uploadFilesFromWeb(renamedFiles);
-          refetchConversationMessages();
           setSelectedMessage(null);
+          setImageMessage("");
         } else {
           sendMessage({
             conversationId: selectedConversationId,
@@ -221,7 +243,15 @@ const ConversationThreadScreen = ({
         console.error("Failed to send message:", error);
       }
     },
-    [isSendingMessage, selectedConversationId, sendMessage, uploadFilesFromWeb]
+    [
+      isSendingMessage,
+      selectedConversationId,
+      sendMessage,
+      uploadFilesFromWeb,
+      updateConversationMessagesCache,
+      currentUserId,
+      imageMessage,
+    ]
   );
 
   const handleSendFiles = useCallback(() => {
