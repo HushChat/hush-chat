@@ -156,9 +156,6 @@ export default function Profile() {
       }
 
       fetchUserData();
-    },
-    (error) => {
-      ToastUtils.error(error as string);
     }
   );
 
