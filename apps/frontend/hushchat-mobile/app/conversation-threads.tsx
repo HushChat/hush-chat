@@ -59,6 +59,9 @@ const ConversationThreadScreen = ({
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
+  const {
+    user: { id: currentUserId },
+  } = useUserStore();
 
   const selectedConversationId = conversationId || Number(params.conversationId);
 
@@ -117,7 +120,6 @@ const ConversationThreadScreen = ({
       const results = await pickAndUploadImages();
 
       if (results?.some((r) => r.success)) {
-        refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
@@ -202,9 +204,25 @@ const ConversationThreadScreen = ({
             });
           });
 
+          const newMessage: IMessage = {
+            senderId: Number(currentUserId),
+            senderFirstName: useUserStore.getState().user.firstName,
+            senderLastName: useUserStore.getState().user.lastName,
+            messageText: imageMessage || "",
+            createdAt: new Date().toISOString(),
+            conversationId: selectedConversationId,
+            messageAttachments: renamedFiles.map((file) => ({
+              fileUrl: URL.createObjectURL(file),
+              originalFileName: file.name,
+              indexedFileName: '',
+              mimeType: file.type
+            }))
+          };
+
+          updateConversationMessagesCache(newMessage);
           await uploadFilesFromWeb(renamedFiles);
-          refetchConversationMessages();
           setSelectedMessage(null);
+          setImageMessage("");
         } else {
           sendMessage({
             conversationId: selectedConversationId,
@@ -218,12 +236,15 @@ const ConversationThreadScreen = ({
     },
     [
       isSendingMessage,
-      refetchConversationMessages,
       selectedConversationId,
       sendMessage,
       uploadFilesFromWeb,
+      updateConversationMessagesCache,
+      currentUserId,
+      imageMessage,
     ]
   );
+
 
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;

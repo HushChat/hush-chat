@@ -2,7 +2,10 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -22,15 +25,20 @@ public class MessagePublisherService {
     private final ConversationUtilService conversationUtilService;
     private final WebSocketSessionManager webSocketSessionManager;
     private final SimpMessagingTemplate template;
+    private final MessageAttachmentRepository messageAttachmentRepository;
+    private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessagePublisherService(
         ConversationUtilService conversationUtilService,
         WebSocketSessionManager webSocketSessionManager,
-        SimpMessagingTemplate template
-    ) {
+        SimpMessagingTemplate template,
+        MessageAttachmentRepository messageAttachmentRepository,
+        CloudPhotoHandlingService cloudPhotoHandlingService) {
         this.conversationUtilService = conversationUtilService;
         this.webSocketSessionManager = webSocketSessionManager;
         this.template = template;
+        this.messageAttachmentRepository = messageAttachmentRepository;
+        this.cloudPhotoHandlingService = cloudPhotoHandlingService;
     }
 
     /**
@@ -54,7 +62,22 @@ public class MessagePublisherService {
                 });
         }
 
+        // TODO: This is a quick fix, refactor this later
+        List<MessageAttachmentDTO> attachmentDTOs = messageAttachmentRepository.findByMessageId(messageViewDTO.getId())
+                .stream()
+                .map(attachment -> {
+                    MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO(attachment);
+
+                    String fileViewSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
+
+                    messageAttachmentDTO.setFileUrl(fileViewSignedURL);
+
+                    return messageAttachmentDTO;
+                })
+                .toList();
         messageViewDTO.setConversationId(conversationId);
+        messageViewDTO.setMessageAttachments(attachmentDTOs);
 
         conversationDTO.setMessages(List.of(messageViewDTO));
 
