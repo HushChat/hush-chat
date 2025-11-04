@@ -33,6 +33,8 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
+import { updateConversationsCache } from "@/hooks/updateConversationCache";
+import { conversationQueryKeys } from "@/constants/queryKeys";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -134,19 +136,28 @@ const ConversationThreadScreen = ({
     uploadError,
   ]);
 
+  const {
+    user: { id: userId },
+  } = useUserStore();
+  
   const queryClient = useQueryClient();
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
-    undefined,
-    (newMessage) => {
-      setSelectedMessage(null);
-
-      updateConversationMessagesCache(newMessage);
-
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    },
-    (error) => ToastUtils.error(getAPIErrorMsg(error))
-  );
+  undefined,
+  (newMessage) => {
+    setSelectedMessage(null);
+    
+    updateConversationMessagesCache(newMessage);
+    
+    updateConversationsCache(
+      queryClient,
+      conversationQueryKeys.allConversations(Number(userId), {}),
+      newMessage,
+      selectedConversationId
+    );
+  },
+  (error) => ToastUtils.error(getAPIErrorMsg(error))
+);
 
   useEffect(() => {
     setSelectedMessage(null);
