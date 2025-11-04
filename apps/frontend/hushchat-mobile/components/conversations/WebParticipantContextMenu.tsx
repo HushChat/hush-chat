@@ -43,7 +43,7 @@ const WebParticipantContextMenu = ({
         name: TITLES.TOGGLE_ROLE(participant.role),
         iconName: "shield-checkmark-outline",
         action: () =>
-          handleToggleAdmin(participant.user.id, participant.role !== chatUserRole.ADMIN),
+          handleToggleAdmin(participant?.user.id, participant.role !== chatUserRole.ADMIN),
       },
       ...(!isCurrentUser
         ? ([
