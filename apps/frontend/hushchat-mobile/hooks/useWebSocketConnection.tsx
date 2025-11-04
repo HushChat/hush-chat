@@ -166,7 +166,7 @@ export default function useWebSocketConnection() {
           } else if (event.data.startsWith(MESSAGE_RESPONSE)) {
             // Parse message body (everything after empty line)
             const lines = event.data.split("\n");
-            const emptyLineIndex = lines.findIndex((line) => line === "");
+            const emptyLineIndex = lines.findIndex((line: string) => line === "");
             if (emptyLineIndex > -1) {
               const body = lines
                 .slice(emptyLineIndex + 1)
@@ -209,7 +209,7 @@ export default function useWebSocketConnection() {
       }
     };
 
-    fetchAndSubscribe();
+    void fetchAndSubscribe();
 
     return () => {
       isCancelled = true;
