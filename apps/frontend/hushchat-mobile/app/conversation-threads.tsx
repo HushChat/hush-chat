@@ -120,7 +120,6 @@ const ConversationThreadScreen = ({
       const results = await pickAndUploadImages();
 
       if (results?.some((r) => r.success)) {
-        // refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
