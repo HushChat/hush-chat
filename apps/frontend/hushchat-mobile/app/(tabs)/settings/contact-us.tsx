@@ -8,20 +8,11 @@ import { PLATFORM } from "@/constants/platformConstants";
 import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
 
-export default function ContactUsPage() {
-  const { user } = useUserStore();
-
-  const initialName =
-    user?.firstName && user?.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : "";
-  const initialEmail = user?.email || "";
-
   const Container = ({ children }: { children: React.ReactNode }) => {
     if (!PLATFORM.IS_WEB) {
       return (
         <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={PLATFORM.IS_IOS ? "padding" : "height"}
           className="flex-1 bg-background-light dark:bg-background-dark"
         >
           {children}
@@ -31,6 +22,17 @@ export default function ContactUsPage() {
 
     return <View className="flex-1 bg-background-light dark:bg-background-dark">{children}</View>;
   };
+
+export default function ContactUsPage() {
+  const { user } = useUserStore();
+
+  const initialName =
+    user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : "";
+  const initialEmail = user?.email || "";
+
+
 
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">

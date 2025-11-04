@@ -219,6 +219,11 @@ export interface ConversationInfo {
   signedImageUrl: string;
 }
 
+export interface ContactUsInfo {
+  initialName?: string;
+  initialEmail?: string;
+}
+
 export type TPickerState = {
   openPickerMessageId: string | null;
   setOpenPickerMessageId: React.Dispatch<React.SetStateAction<string | null>>;

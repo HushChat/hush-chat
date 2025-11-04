@@ -25,14 +25,10 @@ const MobileNavigationInterface = ({
       style={{ paddingBottom: insets.bottom }}
     >
       {state.routes
-        .filter((route) => 
-          navigationItems.some((item) => item.name === route.name)
-        )
+        .filter((route) => navigationItems.some((item) => item.name === route.name))
         .map((route, index) => {
           const { options } = descriptors[route.key];
-          const navigationItem = navigationItems.find(
-            (item) => item.name === route.name,
-          );
+          const navigationItem = navigationItems.find((item) => item.name === route.name);
 
           const label =
             options.tabBarLabel !== undefined
@@ -61,20 +57,20 @@ const MobileNavigationInterface = ({
               : (`${navigationItem.icon}-outline` as keyof typeof Ionicons.glyphMap)
             : ("help-circle-outline" as keyof typeof Ionicons.glyphMap);
 
-        return (
-          <TouchableOpacity
-            key={route.key}
-            onPress={onPress}
-            className="items-center px-4 py-2"
-            activeOpacity={DEFAULT_ACTIVE_OPACITY}
-          >
-            <View
-              className={`p-2 rounded-2xl ${
-                isFocused ? "bg-primary-light dark:bg-primary-dark" : "bg-transparent"
-              }`}
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              className="items-center px-4 py-2"
+              activeOpacity={DEFAULT_ACTIVE_OPACITY}
             >
-              <Ionicons name={iconName} size={24} color={isFocused ? "#ffffff" : "#6B7280"} />
-            </View>
+              <View
+                className={`p-2 rounded-2xl ${
+                  isFocused ? "bg-primary-light dark:bg-primary-dark" : "bg-transparent"
+                }`}
+              >
+                <Ionicons name={iconName} size={24} color={isFocused ? "#ffffff" : "#6B7280"} />
+              </View>
 
               <Text
                 className={`text-xs mt-1 font-medium ${
