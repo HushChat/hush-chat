@@ -117,7 +117,7 @@ const ConversationThreadScreen = ({
       const results = await pickAndUploadImages();
 
       if (results?.some((r) => r.success)) {
-        refetchConversationMessages();
+        // refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
@@ -200,8 +200,8 @@ const ConversationThreadScreen = ({
           });
 
           await uploadFilesFromWeb(renamedFiles);
-          refetchConversationMessages();
           setSelectedMessage(null);
+          setImageMessage("");
         } else {
           sendMessage({
             conversationId: selectedConversationId,
