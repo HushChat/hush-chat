@@ -134,15 +134,18 @@ const ConversationThreadScreen = ({
     uploadError,
   ]);
 
+  const queryClient = useQueryClient();
+
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
     (newMessage) => {
       setSelectedMessage(null);
+
       updateConversationMessagesCache(newMessage);
+
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
+    (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
   useEffect(() => {
