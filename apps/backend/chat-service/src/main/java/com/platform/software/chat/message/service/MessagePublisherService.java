@@ -62,7 +62,7 @@ public class MessagePublisherService {
                 });
         }
 
-        // this is a quick fix
+        // TODO: This is a quick fix, refactor this later
         List<MessageAttachmentDTO> attachmentDTOs = messageAttachmentRepository.findByMessageId(messageViewDTO.getId())
                 .stream()
                 .map(attachment -> {
