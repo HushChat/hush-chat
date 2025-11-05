@@ -1,8 +1,8 @@
 version: "2"
 services:
-  postgres:
+  postgres_staging:
     image: postgres:15
-    container_name: db_postgres
+    container_name: db_postgres_staging
     restart: always
     environment:
       POSTGRES_USER: admin
@@ -10,14 +10,14 @@ services:
     ports:
       - 5433:5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_staging:/var/lib/postgresql/data
       - ./init-schemas.sql:/docker-entrypoint-initdb.d/init-schemas.sql
     networks:
       - infra_network_staging
 
-  redis:
+  redis_staging:
     image: redis:7.2.4
-    container_name: redis
+    container_name: redis_staging
     restart: always
     ports:
       - 6380:6379
@@ -33,5 +33,4 @@ networks:
     driver: bridge
 
 volumes:
-  influxdb_data:
-  postgres_data:
+  postgres_data_staging:
