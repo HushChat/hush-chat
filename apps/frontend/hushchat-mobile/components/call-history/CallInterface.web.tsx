@@ -36,11 +36,11 @@ const CallInterface = ({
       contentContainerStyle={{ flexGrow: 1 }}
     >
       <ScrollView
-        className="flex-1 custom-scrollar"
+        className="flex-1 custom-scrollbar"
         horizontal={true}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        <View className="flex-1 bg-background-light dark:bg-background-dark ">
+        <View className="flex-1 bg-background-light dark:bg-background-dark">
           <View className="flex-row h-full">
             <View className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-secondary-light dark:border-secondary-dark">
               <View className="px-4 sm:px-6 py-4 flex-row items-center justify-between">
