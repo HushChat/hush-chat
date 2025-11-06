@@ -8,31 +8,26 @@ import { PLATFORM } from "@/constants/platformConstants";
 import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
 
-  const Container = ({ children }: { children: React.ReactNode }) => {
-    if (!PLATFORM.IS_WEB) {
-      return (
-        <KeyboardAvoidingView
-      behavior={PLATFORM.IS_IOS ? "padding" : "height"}
-          className="flex-1 bg-background-light dark:bg-background-dark"
-        >
-          {children}
-        </KeyboardAvoidingView>
-      );
-    }
+const Container = ({ children }: { children: React.ReactNode }) => {
+  if (!PLATFORM.IS_WEB) {
+    return (
+      <KeyboardAvoidingView
+        behavior={PLATFORM.IS_IOS ? "padding" : "height"}
+        className="flex-1 bg-background-light dark:bg-background-dark"
+      >
+        {children}
+      </KeyboardAvoidingView>
+    );
+  }
 
-    return <View className="flex-1 bg-background-light dark:bg-background-dark">{children}</View>;
-  };
+  return <View className="flex-1 bg-background-light dark:bg-background-dark">{children}</View>;
+};
 
 export default function ContactUsPage() {
   const { user } = useUserStore();
 
-  const initialName =
-    user?.firstName && user?.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : "";
+  const initialName = user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "";
   const initialEmail = user?.email || "";
-
-
 
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
@@ -48,9 +43,7 @@ export default function ContactUsPage() {
           <View className="w-full mx-auto max-w-[900px]">
             <View className="mb-6">
               <View className="flex-row items-center mb-2">
-                {!PLATFORM.IS_WEB && (
-                <BackButton onPress={() => router.back()} />
-                )}
+                {!PLATFORM.IS_WEB && <BackButton onPress={() => router.back()} />}
                 <AppText className="text-xl font-bold text-gray-900 dark:text-white">
                   Contact Us
                 </AppText>
@@ -62,7 +55,7 @@ export default function ContactUsPage() {
               </View>
             </View>
 
-            <View className={`w-full ${PLATFORM.IS_WEB ? 'max-w-[600px] mx-auto' : 'max-w-full'}`}>
+            <View className={`w-full ${PLATFORM.IS_WEB ? "max-w-[600px] mx-auto" : "max-w-full"}`}>
               <ContactUsForm initialName={initialName} initialEmail={initialEmail} />
             </View>
           </View>

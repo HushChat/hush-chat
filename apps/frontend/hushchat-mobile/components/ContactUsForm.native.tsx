@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   TouchableOpacity,
@@ -6,87 +6,33 @@ import {
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useMutation } from "@tanstack/react-query";
-import * as Yup from "yup";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText, AppTextInput } from "@/components/AppText";
-import { sendContactUsMessage } from "@/apis/conversation";
-import { ToastUtils } from "@/utils/toastUtils";
-
-const contactSchema = Yup.object({
-  name: Yup.string().trim().required("Name is required"),
-  email: Yup.string().trim().email("Invalid email").required("Email is required"),
-  subject: Yup.string().trim().required("Subject is required"),
-  message: Yup.string().trim().required("Message is required"),
-});
-
-interface ContactUsFormProps {
-  initialName?: string;
-  initialEmail?: string;
-}
+import { useContactUsForm } from "@/hooks/useContactUsForm"; 
+import { ContactUsInfo } from "@/types/chat/types";
+import { PLATFORM } from "@/constants/platformConstants";
 
 export function ContactUsForm({
   initialName = "",
   initialEmail = "",
-}: ContactUsFormProps) {
-  const [formData, setFormData] = useState({
-    name: initialName,
-    email: initialEmail,
-    subject: "",
-    message: "",
-  });
+}: ContactUsInfo) {
+  const {
+    formData,
+    errors,
+    mutation,
+    handleChange,
+    handleSubmit,
+    isFormValid,
+  } = useContactUsForm({ initialName, initialEmail, onSuccessCallback: () => Alert.alert("Success", "Your message has been sent!") }); 
 
-  const mutation = useMutation({
-    mutationFn: sendContactUsMessage,
-    onSuccess: (response) => {
-      ToastUtils.success(response.data || "Message sent successfully!");
-      setFormData({
-        name: initialName,
-        email: initialEmail,
-        subject: "",
-        message: "",
-      });
-    },
-    onError: (error: any) => {
-      ToastUtils.error(error.response?.data?.error || error.message);
-    },
-  });
-
-  const handleChange = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async () => {
-    try {
-      await contactSchema.validate(formData, { abortEarly: false });
-
-      const payload = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        subject: formData.subject.trim(),
-        message: formData.message.trim(),
-      };
-
-      mutation.mutate(payload);
-    } catch (error) {
-      if (error instanceof Yup.ValidationError) {
-        Alert.alert("Validation Error", error.errors[0]);
-      }
-    }
-  };
-
-  const isFormValid =
-    formData.name.trim() &&
-    formData.email.trim() &&
-    formData.subject.trim() &&
-    formData.message.trim();
+  const isPending = mutation.isPending;
+  const isButtonDisabled = !isFormValid || isPending;
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={PLATFORM.IS_IOS ? "padding" : "height"}
       className="flex-1"
     >
       <ScrollView
@@ -109,49 +55,35 @@ export function ContactUsForm({
         </View>
 
         <View className="space-y-4">
-          <View>
-            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
-              Name
-            </AppText>
-            <AppTextInput
-              value={formData.name}
-              onChangeText={(v) => handleChange("name", v)}
-              placeholder="Your name"
-              placeholderTextColor="#9ca3af"
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
-              editable={!mutation.isPending}
-            />
-          </View>
-
-          <View>
-            <AppText className="mt-5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
-              Email
-            </AppText>
-            <AppTextInput
-              value={formData.email}
-              onChangeText={(v) => handleChange("email", v)}
-              placeholder="your.email@example.com"
-              placeholderTextColor="#9ca3af"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
-              editable={!mutation.isPending}
-            />
-          </View>
-
-          <View>
-            <AppText className="mt-5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
-              Subject
-            </AppText>
-            <AppTextInput
-              value={formData.subject}
-              onChangeText={(v) => handleChange("subject", v)}
-              placeholder="What is this about?"
-              placeholderTextColor="#9ca3af"
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
-              editable={!mutation.isPending}
-            />
-          </View>
+          {[
+            { label: "Name", key: "name", placeholder: "Your name" },
+            {
+              label: "Email",
+              key: "email",
+              placeholder: "your.email@example.com",
+              keyboardType: "email-address",
+            },
+            { label: "Subject", key: "subject", placeholder: "What is this about?" },
+          ].map(({ label, key, ...rest }) => (
+            <View key={key}>
+              <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+                {label}
+              </AppText>
+              <AppTextInput
+                value={formData[key as keyof typeof formData]}
+                onChangeText={(v) => handleChange(key as keyof typeof formData, v)}
+                placeholder={rest.placeholder}
+                placeholderTextColor="#9ca3af"
+                keyboardType={rest.keyboardType as any}
+                autoCapitalize="none"
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
+                editable={!isPending}
+              />
+              {errors[key] && (
+                <AppText className="text-red-500 text-xs mt-1">{errors[key]}</AppText>
+              )}
+            </View>
+          ))}
 
           <View>
             <AppText className="mt-5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
@@ -167,21 +99,24 @@ export function ContactUsForm({
               textAlignVertical="top"
               style={{ minHeight: 120 }}
               className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
-              editable={!mutation.isPending}
+              editable={!isPending}
             />
+            {errors.message && (
+              <AppText className="text-red-500 text-xs mt-1">{errors.message}</AppText>
+            )}
           </View>
 
           <TouchableOpacity
             onPress={handleSubmit}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
-            disabled={!isFormValid || mutation.isPending}
+            disabled={isButtonDisabled}
             className={`rounded-lg py-4 items-center mt-5 ${
-              !isFormValid || mutation.isPending
+              isButtonDisabled
                 ? "bg-gray-400"
                 : "bg-primary-light dark:bg-primary-dark"
             }`}
           >
-            {mutation.isPending ? (
+            {isPending ? (
               <ActivityIndicator color="#ffffff" size={20} />
             ) : (
               <AppText className="text-white font-semibold text-base">
