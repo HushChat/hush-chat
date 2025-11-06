@@ -72,10 +72,10 @@ const ConversationMessageList = ({
       setOpenPickerMessageId(null);
       const pinnedMessageState =
         pinnedMessage?.id === selectedPinnedMessage?.id ? null : selectedPinnedMessage;
-        updateCache(
+      updateCache(
             conversationQueryKeys.metaDataById( Number(currentUserId ?? 0), Number(conversationAPIResponse?.id)),
             (prev) => prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev
-        );
+      );
     },
     (error) => {
       ToastUtils.error(error as string);
@@ -88,38 +88,42 @@ const ConversationMessageList = ({
       if (!conversationId || !message) return;
 
       togglePinMessage({ conversationId, messageId: message.id });
-      console.log(message)
       setSelectedPinnedMessage(message);
     },
     [conversationAPIResponse?.id, togglePinMessage]
   );
 
   const { mutate: unsend } = usePatchUnsendMessageMutation(undefined, () => {
-    // update conversation message in cache
-    updateCache(
-      conversationMessageQueryKeys.messages(
-        Number(currentUserId),
-        Number(conversationAPIResponse?.id)
-      ),
-      (prev: { pages: PaginatedResponse<IMessage>[] } | undefined) => {
-        if (!prev) return prev;
+  // update conversation message in cache
+  updateCache(
+    conversationMessageQueryKeys.messages(
+      Number(currentUserId),
+      Number(conversationAPIResponse?.id)
+    ),
+    (prev: { pages: PaginatedResponse<IMessage>[] } | undefined) => {
+      if (!prev) return prev;
 
-        return {
-          ...prev,
-          pages: prev?.pages.map((page: PaginatedResponse<IMessage>) => ({
-            ...page,
-            content: page.content.map((message: IMessage) =>
-              message.id === unsendMessage.id
-                ? { ...message, isUnsend: true, messageAttachments: [] }
-                : message
-            ),
-          })),
-        };
-      }
-    );
+      return {
+        ...prev,
+        pages: prev?.pages.map((page: PaginatedResponse<IMessage>) => ({
+          ...page,
+          content: page.content.map((message: IMessage) =>
+            message.id === unsendMessage.id
+              ? { 
+                  ...message, 
+                  isUnsend: true, 
+                  messageAttachments: [],
+                  isForwarded: false, 
+                }
+              : message
+          ),
+        })),
+      };
+    }
+  );
 
-    void refetchConversationList();
-  });
+  void refetchConversationList();
+});
 
   const unSendMessage = useCallback(
     (message: IBasicMessage) => {

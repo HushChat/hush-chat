@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
         Optional<ChatUser> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty() || !userOptional.get().getActive() || userOptional.get().getDeleted()) {
             logger.warn("invalid user provided {}", email);
-            throw new CustomBadRequestException("Invalid email address. Please check and try again.");
+            throw new CustomBadRequestException("Invalid Login Credentials. Please Check and Try Again");
         }
         return userOptional.get();
     }
