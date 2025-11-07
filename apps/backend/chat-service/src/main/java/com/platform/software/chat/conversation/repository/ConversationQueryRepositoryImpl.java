@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
+import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.dto.MessageViewDTO;
@@ -218,8 +219,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         if (loggedInParticipant != null) {
                             dto.setFavoriteByLoggedInUser(loggedInParticipant.getIsFavorite());
                             dto.setPinnedByLoggedInUser(loggedInParticipant.getIsPinned());
-                            dto.setMutedByLoggedInUser(loggedInParticipant.getMutedUntil() != null && loggedInParticipant.getMutedUntil()
-                                    .isAfter(ZonedDateTime.now()));
+                            dto.setMutedByLoggedInUser(ConversationUtilService.isMuted(loggedInParticipant.getMutedUntil()));
                         }
 
                         if (needOtherParticipant && otherParticipant != null) {

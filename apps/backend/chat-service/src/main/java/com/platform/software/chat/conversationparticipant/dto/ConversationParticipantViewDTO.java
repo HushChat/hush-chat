@@ -13,6 +13,11 @@ public class ConversationParticipantViewDTO {
     private ConversationParticipantRoleEnum role;
     private UserViewDTO user;
 
+    private Boolean isPinnedByParticipant;
+    private Boolean isArchivedByParticipant;
+    private Boolean isMutedByParticipant;
+    private Boolean isFavoriteByParticipant;
+
     public ConversationParticipantViewDTO(ConversationParticipant conversationParticipant) {
         this.id = conversationParticipant.getId();
         this.role = conversationParticipant.getRole();

@@ -3,6 +3,7 @@ package com.platform.software.chat.conversationparticipant.repository;
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.QConversation;
+import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
@@ -10,6 +11,7 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.QChatUser;
+import com.platform.software.chat.user.service.UserUtilService;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -172,6 +174,12 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                     viewDTO.setId(participant.getId());
                     viewDTO.setRole(participant.getRole());
                     viewDTO.setUser(new UserViewDTO(user));
+
+                    viewDTO.setIsArchivedByParticipant(participant.getArchived());
+                    viewDTO.setIsPinnedByParticipant(participant.getIsPinned());
+                    viewDTO.setIsFavoriteByParticipant(participant.getIsFavorite());
+                    viewDTO.setIsMutedByParticipant(ConversationUtilService.isMuted(participant.getMutedUntil()));
+
                     return viewDTO;
                 }
 
@@ -183,14 +191,7 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         conversationDTO.setParticipants(participantViewDTOs);
 
         // Set conversation name logic for non-group conversations (only if userId provided)
-        if (userId != null && !conversationDTO.getIsGroup()) {
-            conversationDTO.getParticipants().stream()
-                .filter(p -> !p.getUser().getId().equals(userId))
-                .findFirst()
-                .ifPresent(otherParticipant ->
-                    conversationDTO.setName(otherParticipant.getUser().getFirstName() + " " + otherParticipant.getUser().getLastName())
-                );
-        }
+        UserUtilService.setConversationNameForNonGroup(userId, conversationDTO, false);
 
         return conversationDTO;
     }

@@ -1,5 +1,7 @@
 package com.platform.software.chat.user.service;
 
+import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -77,5 +79,25 @@ public class UserUtilService {
           userDTO.setSignedImageUrl(imageSignedDTO.getUrl());
 
           return userDTO;
+    }
+
+    /**
+     * set conversation name, only if 1-to-1 conversation
+     *
+     * @param includeSender true - To set name as the sender's name,
+     *                      false - To set name as the OTHER participant's name
+     */
+    public static void setConversationNameForNonGroup(Long userId, ConversationDTO conversationDTO, boolean includeSender) {
+        if(userId != null && !conversationDTO.getIsGroup()) {
+            conversationDTO.getParticipants().stream()
+                .filter(participant -> includeSender == participant.getUser().getId().equals(userId))
+                .findFirst()
+                .ifPresent(participant -> {
+                    conversationDTO.setName("%s %s".formatted(
+                        participant.getUser().getFirstName(),
+                        participant.getUser().getLastName()
+                    ));
+                });
+        }
     }
 }
