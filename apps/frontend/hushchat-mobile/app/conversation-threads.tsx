@@ -90,15 +90,16 @@ const ConversationThreadScreen = ({
 
   const { updateConversation } = useConversationsQuery();
 
-  const { lastSeenMessageInfo } = useFetchLastSeenMessageStatusForConversation(conversationId);
+  const { lastSeenMessageInfo } =
+    useFetchLastSeenMessageStatusForConversation(selectedConversationId);
 
   const { mutate: setLastSeenMessageForConversation } = useSetLastSeenMessageMutation(
     {
-      conversationId,
+      conversationId: selectedConversationId,
       currentUserId,
     },
     (data) => {
-      updateConversation(conversationId, {
+      updateConversation(selectedConversationId, {
         unreadCount: data.unreadCount || 0,
       });
     },
@@ -110,21 +111,22 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
-    if (messages.length > 0 && lastSeenMessageInfo?.lastSeenMessageId !== undefined) {
+    if (
+      selectedConversationId &&
+      messages.length > 0 &&
+      lastSeenMessageInfo?.lastSeenMessageId !== undefined
+    ) {
       const firstMessage = messages[0];
       const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
 
-      console.log("First message ID:", firstMessage.id);
-      console.log("Last seen message ID:", lastSeenMessageInfo.lastSeenMessageId);
-      console.log("Is first message the last seen?", isFirstMessageLastSeen);
       if (!isFirstMessageLastSeen) {
         setLastSeenMessageForConversation({
           messageId: firstMessage.id,
-          conversationId,
+          conversationId: selectedConversationId,
         });
       }
     }
-  }, [conversationId, conversationMessagesPages, lastSeenMessageInfo]);
+  }, [selectedConversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);

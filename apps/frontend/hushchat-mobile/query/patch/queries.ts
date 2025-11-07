@@ -47,10 +47,4 @@ export const usePatchUnsendMessageMutation = createMutationHook<void, { messageI
 export const useSetLastSeenMessageMutation = createMutationHook<
   { data: ConversationReadInfo },
   { messageId: number; conversationId: number }
->(
-  ({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId),
-  (keyParams: { conversationId: number; userId: number }) => () =>
-    [
-      conversationQueryKeys.lastSeenMessage(keyParams.conversationId, keyParams.userId),
-    ] as string[][]
-);
+>(({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId));

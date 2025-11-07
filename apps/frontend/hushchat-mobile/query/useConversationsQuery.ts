@@ -81,7 +81,7 @@ export function useConversationsQuery(
       }
     };
 
-    if (notificationReceivedConversation) {
+    if (notificationReceivedConversation && notificationReceivedConversation.id) {
       getConversationUpdateViaWS(notificationReceivedConversation.id);
     }
   }, [notificationReceivedConversation, queryClient, userId]);

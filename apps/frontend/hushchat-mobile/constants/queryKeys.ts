@@ -48,10 +48,9 @@ export const conversationQueryKeys = {
     participantId,
   ],
 
-  lastSeenMessage: (conversationId: number, userId: number) => [
+  lastSeenMessage: (conversationId: number) => [
     CONVERSATION_MESSAGE_QUERY_BASE_KEY,
     conversationId,
-    userId,
   ],
 };
 
