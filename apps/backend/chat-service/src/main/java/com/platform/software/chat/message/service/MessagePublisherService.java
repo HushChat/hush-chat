@@ -2,9 +2,11 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
+import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -47,7 +49,7 @@ public class MessagePublisherService {
      * @param conversationId the conversation id
      * @param messageViewDTO the message view dto
      * @param senderId       the sender id
-     * @param workspaceId       the tenant id
+     * @param workspaceId    the tenant id
      */
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, readOnly = true)
@@ -58,7 +60,7 @@ public class MessagePublisherService {
                 .filter(participant -> participant.getUser().getId().equals(senderId))
                 .findFirst()
                 .ifPresent(participant -> {
-                    conversationDTO.setName("%s %s".formatted(participant.getUser().getFirstName(), participant.getUser().getLastName()));
+                    UserUtilService.setConversationName(participant, conversationDTO);
                 });
         }
 
@@ -83,16 +85,31 @@ public class MessagePublisherService {
 
         conversationDTO.getParticipants().stream()
             .filter(p -> !p.getUser().getId().equals(senderId))
-            .map(p -> p.getUser().getEmail())
-            .forEach(email -> {
+            .forEach(participant -> {
+                String email = participant.getUser().getEmail();
                 String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
                 String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
+
+                ConversationDTO participantDTO = getConversationDTO(participant, conversationDTO);
 
                 webSocketSessionManager.getValidSession(sessionKey)
                     .ifPresent(session -> template.convertAndSend(
                         "%s/%s".formatted(MESSAGE_INVOKE_PATH, encodedEmail),
-                        conversationDTO
+                        participantDTO
                     ));
             });
+    }
+
+    private static ConversationDTO getConversationDTO(ConversationParticipantViewDTO participant, ConversationDTO conversationDTO) {
+        ConversationDTO participantDTO = new ConversationDTO(conversationDTO);
+
+        participantDTO.setPinnedByLoggedInUser(participant.getIsPinnedByParticipant());
+        participantDTO.setArchivedByLoggedInUser(participant.getIsArchivedByParticipant());
+        participantDTO.setMutedByLoggedInUser(participant.getIsMutedByParticipant());
+        participantDTO.setFavoriteByLoggedInUser(participant.getIsFavoriteByParticipant());
+
+        // Remove participant details to minimize WebSocket payload size
+        participantDTO.setParticipants(null);
+        return participantDTO;
     }
 }

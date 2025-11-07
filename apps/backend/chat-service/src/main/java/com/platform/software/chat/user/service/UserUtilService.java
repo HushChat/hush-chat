@@ -1,5 +1,7 @@
 package com.platform.software.chat.user.service;
 
+import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -77,5 +79,9 @@ public class UserUtilService {
           userDTO.setSignedImageUrl(imageSignedDTO.getUrl());
 
           return userDTO;
+    }
+
+    public static void setConversationName(ConversationParticipantViewDTO participant, ConversationDTO conversationDTO) {
+        conversationDTO.setName("%s %s".formatted(participant.getUser().getFirstName(), participant.getUser().getLastName()));
     }
 }

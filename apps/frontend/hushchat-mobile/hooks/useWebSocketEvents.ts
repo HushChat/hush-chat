@@ -51,9 +51,14 @@ export const useConversationsNotifications = () => {
 
   useEffect(() => {
     const handleWebSocketMessage = (messageWithConversation: IConversation) => {
-      if (messageWithConversation?.id) {
+      const doesConversationListShouldBeUpdated =
+        messageWithConversation?.id && !messageWithConversation.archivedByLoggedInUser;
+      if (doesConversationListShouldBeUpdated) {
         setNotificationReceivedConversation(messageWithConversation);
-        playMessageSound();
+
+        if (!messageWithConversation.mutedByLoggedInUser) {
+          playMessageSound();
+        }
       }
     };
 
