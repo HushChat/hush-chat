@@ -14,6 +14,7 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 // @ts-ignore
 // eslint-disable-next-line import/no-unresolved
 import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
+import { PLATFORM } from "@/constants/platformConstants";
 
 const GRID_CONFIG = {
   MAX_WIDTH: 280,
@@ -140,50 +141,105 @@ const DocumentCard = ({
     if (attachment.fileUrl) Linking.openURL(attachment.fileUrl);
   };
 
+  if (PLATFORM.IS_WEB) {
+    return (
+      <TouchableOpacity
+        onPress={handlePress}
+        activeOpacity={DEFAULT_ACTIVE_OPACITY}
+        style={{
+          maxWidth: GRID_CONFIG.MAX_WIDTH,
+          padding: 12,
+          backgroundColor: bgColor,
+          borderRadius: GRID_CONFIG.BORDER_RADIUS,
+          borderWidth: 1,
+          borderColor,
+          alignSelf: isCurrentUser ? "flex-end" : "flex-start",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 12,
+            }}
+          >
+            <Ionicons name={icon as any} size={20} color={color} />
+            <AppText style={{ fontSize: 8, fontWeight: "bold", marginTop: 2, color }}>
+              {label}
+            </AppText>
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <AppText
+              numberOfLines={2}
+              style={{ fontSize: 12, fontWeight: "200", color: textPrimary }}
+            >
+              {attachment.originalFileName || "Document"}
+            </AppText>
+            <AppText style={{ fontSize: 10, marginTop: 2, color: textSecondary }}>
+              {label} Document
+            </AppText>
+          </View>
+          <View style={{ marginLeft: 8 }}>
+            <Ionicons name="download-outline" size={16} color={color} />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
       style={{
-        maxWidth: GRID_CONFIG.MAX_WIDTH,
-        padding: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
         backgroundColor: bgColor,
         borderRadius: GRID_CONFIG.BORDER_RADIUS,
         borderWidth: 1,
         borderColor,
-        alignSelf: isCurrentUser ? "flex-end" : "flex-start",
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        marginVertical: 6,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <View
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 10,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#F3F4F6",
+          marginRight: 12,
+        }}
+      >
+        <Ionicons name={icon as any} size={22} color={color} />
+      </View>
+
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <AppText numberOfLines={2} style={{ fontSize: 12, fontWeight: "600", color: textPrimary }}>
+          {attachment.originalFileName || "Document"}
+        </AppText>
+        <AppText
+          numberOfLines={1}
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 12,
+            fontSize: 12,
+            marginTop: 3,
+            color: textSecondary,
           }}
         >
-          <Ionicons name={icon as any} size={20} color={color} />
-          <AppText style={{ fontSize: 8, fontWeight: "bold", marginTop: 2, color }}>
-            {label}
-          </AppText>
-        </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <AppText
-            numberOfLines={2}
-            style={{ fontSize: 12, fontWeight: "600", color: textPrimary }}
-          >
-            {attachment.originalFileName || "Document"}
-          </AppText>
-          <AppText style={{ fontSize: 10, marginTop: 2, color: textSecondary }}>
-            {label} Document
-          </AppText>
-        </View>
-        <View style={{ marginLeft: 8 }}>
-          <Ionicons name="download-outline" size={16} color={color} />
-        </View>
+          {label} file
+        </AppText>
+      </View>
+
+      <View style={{ marginLeft: 8 }}>
+        <Ionicons name="download-outline" size={16} color={color} />
       </View>
     </TouchableOpacity>
   );
