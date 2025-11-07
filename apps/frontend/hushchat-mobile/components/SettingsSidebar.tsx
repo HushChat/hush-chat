@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname, Href } from "expo-router";
 import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-import { MENU_ITEMS } from "@/app/(tabs)/settings/settingsNavigation";
+import { MENU_ITEMS } from "@/constants/settingsNavigation";
 
 export default function SettingsSidebar() {
   const router = useRouter();

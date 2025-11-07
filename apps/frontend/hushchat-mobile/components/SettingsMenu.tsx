@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Href, router } from "expo-router";
 import BackButton from "@/components/BackButton";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-import { MENU_ITEMS } from "@/app/(tabs)/settings/settingsNavigation";
+import { MENU_ITEMS } from "@/constants/settingsNavigation";
 
 
 export default function SettingsMenuMobile() {
