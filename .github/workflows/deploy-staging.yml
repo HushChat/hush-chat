@@ -1,0 +1,35 @@
+name: Deploy Hush Chat Staging
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Hush Chat Staging
+    runs-on: ubuntu-latest
+    concurrency:
+      group: build-and-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Deploy Hush Chat Staging
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_HOST_SSH_KEY }}
+          timeout: 15m
+          command_timeout: 20m
+          script: |
+            set -e
+            echo "Starting staging deployment of Hush Chat..."
+            git -C ~/staging/hush-chat pull
+            mvn -f ~/staging/hush-chat/apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=prod -DskipTests
+            mvn -f ~/staging/hush-chat/apps/backend/chat-service/pom.xml compile package -Dspring.profiles.active=prod -DskipTests
+            docker compose -f ~/staging/hush-chat/docker-compose.yml build --no-cache \
+            && docker compose -f ~/staging/hush-chat/docker-compose.yml down --remove-orphans \
+            && docker compose -f ~/staging/hush-chat/docker-compose.yml up -d
+            echo "Deployment completed successfully."
