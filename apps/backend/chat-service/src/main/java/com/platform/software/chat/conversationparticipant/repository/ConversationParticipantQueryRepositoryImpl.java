@@ -191,14 +191,7 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         conversationDTO.setParticipants(participantViewDTOs);
 
         // Set conversation name logic for non-group conversations (only if userId provided)
-        if (userId != null && !conversationDTO.getIsGroup()) {
-            conversationDTO.getParticipants().stream()
-                .filter(p -> !p.getUser().getId().equals(userId))
-                .findFirst()
-                .ifPresent(otherParticipant ->
-                    UserUtilService.setConversationName(otherParticipant, conversationDTO)
-                );
-        }
+        UserUtilService.setConversationNameForNonGroup(userId, conversationDTO, false);
 
         return conversationDTO;
     }

@@ -55,14 +55,9 @@ public class MessagePublisherService {
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, readOnly = true)
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId, String workspaceId) {
         ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
-        if (!conversationDTO.getIsGroup()) { // when sending ws message, conversation name need to be named of the message sender for non group conversations
-            conversationDTO.getParticipants().stream()
-                .filter(participant -> participant.getUser().getId().equals(senderId))
-                .findFirst()
-                .ifPresent(participant -> {
-                    UserUtilService.setConversationName(participant, conversationDTO);
-                });
-        }
+
+        // when sending ws message, conversation name need to be named of the message sender for non group conversations
+        UserUtilService.setConversationNameForNonGroup(senderId, conversationDTO, true);
 
         // TODO: This is a quick fix, refactor this later
         List<MessageAttachmentDTO> attachmentDTOs = messageAttachmentRepository.findByMessageId(messageViewDTO.getId())

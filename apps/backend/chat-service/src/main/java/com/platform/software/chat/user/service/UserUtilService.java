@@ -81,7 +81,23 @@ public class UserUtilService {
           return userDTO;
     }
 
-    public static void setConversationName(ConversationParticipantViewDTO participant, ConversationDTO conversationDTO) {
-        conversationDTO.setName("%s %s".formatted(participant.getUser().getFirstName(), participant.getUser().getLastName()));
+    /**
+     * set conversation name, only if 1-to-1 conversation
+     *
+     * @param includeSender true - To set name as the sender's name,
+     *                      false - To set name as the OTHER participant's name
+     */
+    public static void setConversationNameForNonGroup(Long userId, ConversationDTO conversationDTO, boolean includeSender) {
+        if(userId != null && !conversationDTO.getIsGroup()) {
+            conversationDTO.getParticipants().stream()
+                .filter(participant -> includeSender == participant.getUser().getId().equals(userId))
+                .findFirst()
+                .ifPresent(participant -> {
+                    conversationDTO.setName("%s %s".formatted(
+                        participant.getUser().getFirstName(),
+                        participant.getUser().getLastName()
+                    ));
+                });
+        }
     }
 }

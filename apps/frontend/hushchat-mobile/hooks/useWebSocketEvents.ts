@@ -18,7 +18,6 @@ export const useConversationMessages = (conversationId: number) => {
     }) => {
       if (msgConversationId === conversationId) {
         setLastMessage(messageWithConversation.messages[0]);
-        playMessageSound();
       }
     };
 
