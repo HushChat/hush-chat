@@ -23,6 +23,7 @@ jobs:
           script: |
             set -e
             echo "Starting deployment of Hush Chat backend..."
+            git -C ~/hush-chat pull
             mvn -f ~/hush-chat/apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=prod -DskipTests
             mvn -f ~/hush-chat/apps/backend/chat-service/pom.xml compile package -Dspring.profiles.active=prod -DskipTests
             docker compose -f ~/hush-chat/docker-compose.yml build --no-cache \
