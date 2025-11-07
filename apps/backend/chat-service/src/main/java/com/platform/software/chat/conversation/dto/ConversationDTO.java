@@ -15,19 +15,38 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private String name;
     private Boolean isGroup;
     private Date createdAt;
-    private boolean isFavoriteByLoggedInUser;
     private String imageIndexedName;
     private String signedImageUrl;
     private List<MessageViewDTO> messages;
     private List<ConversationParticipantViewDTO> participants;
     private String description;
+
     private boolean isPinnedByLoggedInUser;
+    private boolean isArchivedByLoggedInUser;
     private boolean isMutedByLoggedInUser;
+    private boolean isFavoriteByLoggedInUser;
 
     private Long unreadCount;
 
     public ConversationDTO(Conversation conversation) {
         this.mapToSelf(conversation);
+    }
+
+    // Shallow copy constructor
+    public ConversationDTO(ConversationDTO other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.isGroup = other.isGroup;
+        this.createdAt = other.createdAt;
+        this.imageIndexedName = other.imageIndexedName;
+        this.signedImageUrl = other.signedImageUrl;
+        this.messages = other.messages; // shared reference
+        this.participants = other.participants; // shared reference
+        this.description = other.description;
+        this.isPinnedByLoggedInUser = other.isPinnedByLoggedInUser;
+        this.isArchivedByLoggedInUser = other.isArchivedByLoggedInUser;
+        this.isMutedByLoggedInUser = other.isMutedByLoggedInUser;
+        this.isFavoriteByLoggedInUser = other.isFavoriteByLoggedInUser;
     }
 
     @Override
