@@ -6,10 +6,10 @@ import {
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { updateUser } from "@/apis/user";
-import { IMessageReactionRequest, TMessageForward, UpdateUserInput } from "@/types/chat/types";
+import { ConversationReadInfo, TMessageForward, UpdateUserInput } from "@/types/chat/types";
 import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
-import { addMessageReaction, forwardMessages, unsendMessage } from "@/apis/message";
+import { forwardMessages, unsendMessage } from "@/apis/message";
 
 export const useArchiveConversationMutation = createMutationHook<void, number>(
   archiveConversationById,
@@ -45,7 +45,7 @@ export const usePatchUnsendMessageMutation = createMutationHook<void, { messageI
 );
 
 export const useSetLastSeenMessageMutation = createMutationHook<
-  void,
+  { data: ConversationReadInfo },
   { messageId: number; conversationId: number }
 >(
   ({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId),

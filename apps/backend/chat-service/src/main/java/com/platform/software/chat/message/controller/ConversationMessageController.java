@@ -112,15 +112,16 @@ public class ConversationMessageController {
      * @param messageLastSeenRequestDTO the request DTO containing last seen message details
      * @return ResponseEntity with status OK
      */
-    @ApiOperation(value = "set last seen message of the conversation")
+    @ApiOperation(value = "set last seen message of the conversation", response = ConversationReadInfo.class)
     @PutMapping("last-read-status")
-    public ResponseEntity<Void> setConversationLastSeenMessage(
+    public ResponseEntity<ConversationReadInfo> setConversationLastSeenMessage(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails,
             @RequestBody MessageLastSeenRequestDTO messageLastSeenRequestDTO
     ) {
-        conversationReadStatusService.setConversationLastSeenMessage(conversationId, userDetails.getId(), messageLastSeenRequestDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
+        ConversationReadInfo conversationReadInfo = conversationReadStatusService
+            .setConversationLastSeenMessage(conversationId, userDetails.getId(), messageLastSeenRequestDTO);
+        return new ResponseEntity<>(conversationReadInfo, HttpStatus.OK);
     }
 
     /** pin a message in a conversation

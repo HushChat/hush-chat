@@ -34,7 +34,7 @@ import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
-import { useArchiveConversationMutation, useSetLastSeenMessageMutation } from "@/query/patch/queries";
+import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
@@ -88,7 +88,7 @@ const ConversationThreadScreen = ({
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(selectedConversationId);
 
-  const { refetch: refetchConversationList } = useConversationsQuery();
+  const { updateConversation } = useConversationsQuery();
 
   const { lastSeenMessageInfo } = useFetchLastSeenMessageStatusForConversation(conversationId);
 
@@ -97,8 +97,10 @@ const ConversationThreadScreen = ({
       conversationId,
       currentUserId,
     },
-    () => {
-      refetchConversationList(); // TODO: see if we can change last seen count from conversation list from frontend, without re-triggering conversation list
+    (data) => {
+      updateConversation(conversationId, {
+        unreadCount: data.unreadCount || 0,
+      });
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
@@ -115,10 +117,12 @@ const ConversationThreadScreen = ({
       console.log("First message ID:", firstMessage.id);
       console.log("Last seen message ID:", lastSeenMessageInfo.lastSeenMessageId);
       console.log("Is first message the last seen?", isFirstMessageLastSeen);
-      setLastSeenMessageForConversation({
-        messageId: firstMessage.id,
-        conversationId,
-      });
+      if (!isFirstMessageLastSeen) {
+        setLastSeenMessageForConversation({
+          messageId: firstMessage.id,
+          conversationId,
+        });
+      }
     }
   }, [conversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
@@ -251,9 +255,9 @@ const ConversationThreadScreen = ({
             messageAttachments: renamedFiles.map((file) => ({
               fileUrl: URL.createObjectURL(file),
               originalFileName: file.name,
-              indexedFileName: '',
-              mimeType: file.type
-            }))
+              indexedFileName: "",
+              mimeType: file.type,
+            })),
           };
 
           updateConversationMessagesCache(newMessage);
@@ -281,7 +285,6 @@ const ConversationThreadScreen = ({
       imageMessage,
     ]
   );
-
 
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;

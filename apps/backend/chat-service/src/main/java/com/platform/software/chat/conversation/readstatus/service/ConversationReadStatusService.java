@@ -1,5 +1,6 @@
 package com.platform.software.chat.conversation.readstatus.service;
 
+import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.dto.MessageLastSeenRequestDTO;
 import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
@@ -30,7 +31,7 @@ public class ConversationReadStatusService {
         this.conversationUtilService = conversationUtilService;
     }
 
-    public void setConversationLastSeenMessage(Long conversationId, Long loggedInUserId, MessageLastSeenRequestDTO messageLastSeenRequestDTO) {
+    public ConversationReadInfo setConversationLastSeenMessage(Long conversationId, Long loggedInUserId, MessageLastSeenRequestDTO messageLastSeenRequestDTO) {
         ConversationParticipant conversationParticipant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
         Message message = messageService.getMessageOrThrow(conversationId, messageLastSeenRequestDTO.getMessageId());
 
@@ -46,7 +47,10 @@ public class ConversationReadStatusService {
         // Early return if the message is already set to avoid unnecessary updates
         if (updatingStatus.getMessage() != null &&
             updatingStatus.getMessage().getId().equals(message.getId())) {
-            return;
+            return conversationReadStatusRepository.findConversationReadInfoByConversationIdAndUserId(
+                conversationId,
+                loggedInUserId
+            );
         }
 
         updatingStatus.setMessage(message);
@@ -57,6 +61,11 @@ public class ConversationReadStatusService {
             logger.error("failed set message as read: {}", messageLastSeenRequestDTO.getMessageId(), exception);
             throw new CustomBadRequestException("Failed to mark as read");
         }
+
+        return conversationReadStatusRepository.findConversationReadInfoByConversationIdAndUserId(
+            conversationId,
+            loggedInUserId
+        );
     }
 
     public Message getLastSeenMessageOrNull(Long conversationId, Long loggedInUserId) {
