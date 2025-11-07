@@ -77,15 +77,8 @@ const MentionSuggestions = ({
 
   if (isLoading) {
     return (
-      <View className="absolute bottom-24 left-3 z-50 w-[320px] max-w-[80%]">
-        <View
-          className={classNames(
-            "rounded-lg custom-scrollbar py-2 items-center", 
-            "bg-background-light dark:bg-background-dark",
-          )}
-        >
-          <ActivityIndicator size="small" />
-        </View>
+      <View className="py-2 items-center">
+        <ActivityIndicator size="small" />
       </View>
     );
   }
