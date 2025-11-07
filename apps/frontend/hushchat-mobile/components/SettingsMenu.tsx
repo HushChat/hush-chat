@@ -5,15 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Href, router } from "expo-router";
 import BackButton from "@/components/BackButton";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { MENU_ITEMS } from "@/app/(tabs)/settings/settingsNavigation";
 
-const settingsMenuItems = [
-  {
-    key: "contact-us",
-    title: "Contact Us",
-    icon: "person-circle-outline" as const,
-    route: "/(tabs)/settings/contact-us",
-  },
-];
 
 export default function SettingsMenuMobile() {
   const insets = useSafeAreaInsets();
@@ -33,7 +26,7 @@ export default function SettingsMenuMobile() {
       </View>
 
       <ScrollView className="flex-1 bg-white dark:bg-background-dark">
-        {settingsMenuItems.map((item) => (
+        {MENU_ITEMS.map((item) => (
           <TouchableOpacity
             key={item.key}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}

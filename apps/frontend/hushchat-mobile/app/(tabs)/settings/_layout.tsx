@@ -4,15 +4,6 @@ import { Slot } from "expo-router";
 import { PLATFORM } from "@/constants/platformConstants";
 import SettingsSidebar from "@/components/SettingsSidebar";
 
-const MENU_ITEMS = [
-  {
-    key: "contact-us",
-    title: "Contact Us",
-    icon: "person-circle-outline" as const,
-    route: "/settings/contact-us",
-  },
-];
-
 export default function SettingsLayout() {
   if (!PLATFORM.IS_WEB) {
     return (
@@ -24,7 +15,7 @@ export default function SettingsLayout() {
 
   return (
     <View className="flex-1 flex-row bg-background-light dark:bg-background-dark">
-      <SettingsSidebar menuItems={MENU_ITEMS} />
+      <SettingsSidebar />
       <View className="flex-1">
         <Slot />
       </View>

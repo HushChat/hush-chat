@@ -3,30 +3,20 @@ import { View, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText, AppTextInput } from "@/components/AppText";
-import { useContactUsForm } from "@/hooks/useContactUsForm"; 
-import { ContactUsInfo } from "@/types/chat/types";
+import { useContactUsForm } from "@/hooks/useContactUsForm";
 
-
-export function ContactUsForm({
-  initialName = "",
-  initialEmail = "",
-}: ContactUsInfo) {
+export function ContactUsForm() {
   const {
     formData,
     errors,
-    mutation,
     handleChange,
     handleSubmit,
-    isFormValid,
+    isPending,
+    isButtonDisabled,
   } = useContactUsForm({ 
-    initialName, 
-    initialEmail,
     onSuccessCallback: () => {
     }
   });
-
-  const isPending = mutation.isPending;
-  const isButtonDisabled = !isFormValid || isPending;
 
   return (
     <View className="flex-1 justify-start"> 
@@ -44,37 +34,61 @@ export function ContactUsForm({
           </View>
         </View>
 
-        {/* Form fields */}
         <View className="space-y-5">
-          {[
-            { label: "Name", key: "name", placeholder: "Your name" },
-            {
-              label: "Email",
-              key: "email",
-              placeholder: "your.email@example.com",
-              keyboardType: "email-address",
-            },
-            { label: "Subject", key: "subject", placeholder: "What is this about?" },
-          ].map(({ label, key, ...rest }) => (
-            <View key={key}>
-              <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
-                {label}
-              </AppText>
-              <AppTextInput
-                value={formData[key as keyof typeof formData]}
-                onChangeText={(v) => handleChange(key as keyof typeof formData, v)}
-                placeholder={rest.placeholder}
-                placeholderTextColor="#9ca3af"
-                keyboardType={rest.keyboardType as any}
-                autoCapitalize="none"
-                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark w-full" 
-                editable={!isPending}
-              />
-              {errors[key] && (
-                <AppText className="text-red-500 text-xs mt-1">{errors[key]}</AppText>
-              )}
-            </View>
-          ))}
+          <View>
+            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+              Name
+            </AppText>
+            <AppTextInput
+              value={formData.name}
+              onChangeText={(v) => handleChange("name", v)}
+              placeholder="Your name"
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark w-full" 
+              editable={!isPending}
+            />
+            {errors.name && (
+              <AppText className="text-red-500 text-xs mt-1">{errors.name}</AppText>
+            )}
+          </View>
+
+          <View>
+            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+              Email
+            </AppText>
+            <AppTextInput
+              value={formData.email}
+              onChangeText={(v) => handleChange("email", v)}
+              placeholder="your.email@example.com"
+              placeholderTextColor="#9ca3af"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark w-full" 
+              editable={!isPending}
+            />
+            {errors.email && (
+              <AppText className="text-red-500 text-xs mt-1">{errors.email}</AppText>
+            )}
+          </View>
+
+          <View>
+            <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+              Subject
+            </AppText>
+            <AppTextInput
+              value={formData.subject}
+              onChangeText={(v) => handleChange("subject", v)}
+              placeholder="What is this about?"
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-text-primary-light dark:text-text-primary-dark w-full" 
+              editable={!isPending}
+            />
+            {errors.subject && (
+              <AppText className="text-red-500 text-xs mt-1">{errors.subject}</AppText>
+            )}
+          </View>
 
           <View>
             <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">

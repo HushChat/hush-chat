@@ -1,7 +1,6 @@
 import React from "react";
-import { View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, KeyboardAvoidingView, ScrollView } from "react-native";
 import { AppText } from "@/components/AppText";
-import { useUserStore } from "@/store/user/useUserStore";
 import { ContactUsForm } from "@/components/ContactUsForm";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -24,11 +23,6 @@ const Container = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function ContactUsPage() {
-  const { user } = useUserStore();
-
-  const initialName = user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "";
-  const initialEmail = user?.email || "";
-
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
       <Container>
@@ -56,7 +50,7 @@ export default function ContactUsPage() {
             </View>
 
             <View className={`w-full ${PLATFORM.IS_WEB ? "max-w-[600px] mx-auto" : "max-w-full"}`}>
-              <ContactUsForm initialName={initialName} initialEmail={initialEmail} />
+              <ContactUsForm />
             </View>
           </View>
         </ScrollView>

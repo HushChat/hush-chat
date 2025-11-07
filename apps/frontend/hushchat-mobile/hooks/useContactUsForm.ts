@@ -3,7 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import * as Yup from "yup";
 import { sendContactUsMessage } from "@/apis/conversation";
 import { ToastUtils } from "@/utils/toastUtils";
-import { contactUsSchema } from "@/schemas/ContactUsSchema"; 
+import { contactUsSchema } from "@/schemas/ContactUsSchema";
+import { useUserStore } from "@/store/user/useUserStore";
 
 interface FormData {
   name: string;
@@ -13,16 +14,17 @@ interface FormData {
 }
 
 interface UseContactUsFormProps {
-  initialName?: string;
-  initialEmail?: string;
   onSuccessCallback?: () => void;
 }
 
 export function useContactUsForm({
-  initialName = "",
-  initialEmail = "",
   onSuccessCallback,
 }: UseContactUsFormProps) {
+  const { user } = useUserStore();
+  
+  const initialName = user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "";
+  const initialEmail = user?.email || "";
+
   const [formData, setFormData] = useState<FormData>({
     name: initialName,
     email: initialEmail,
@@ -63,7 +65,7 @@ export function useContactUsForm({
   const handleSubmit = async () => {
     setErrors({});
     try {
-      await contactUsSchema.validate(formData, { abortEarly: false }); 
+      await contactUsSchema.validate(formData, { abortEarly: false });
 
       const payload = {
         name: formData.name.trim(),
@@ -83,12 +85,9 @@ export function useContactUsForm({
       }
     }
   };
-    
-  const isFormValid =
-    formData.name.trim() &&
-    formData.email.trim() &&
-    formData.subject.trim() &&
-    formData.message.trim();
+
+  const isPending = mutation.isPending;
+  const isButtonDisabled = !formData.name || !formData.email || !formData.subject || !formData.message || isPending;
 
   return {
     formData,
@@ -96,6 +95,7 @@ export function useContactUsForm({
     mutation,
     handleChange,
     handleSubmit,
-    isFormValid,
+    isPending,
+    isButtonDisabled,
   };
 }
