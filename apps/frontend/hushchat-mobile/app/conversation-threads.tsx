@@ -33,6 +33,9 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
+import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
+import { useArchiveConversationMutation, useSetLastSeenMessageMutation } from "@/query/patch/queries";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -84,6 +87,40 @@ const ConversationThreadScreen = ({
     jumpToMessage,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(selectedConversationId);
+
+  const { refetch: refetchConversationList } = useConversationsQuery();
+
+  const { lastSeenMessageInfo } = useFetchLastSeenMessageStatusForConversation(conversationId);
+
+  const { mutate: setLastSeenMessageForConversation } = useSetLastSeenMessageMutation(
+    {
+      conversationId,
+      currentUserId,
+    },
+    () => {
+      refetchConversationList(); // TODO: see if we can change last seen count from conversation list from frontend, without re-triggering conversation list
+    },
+    (error) => {
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  );
+
+  useEffect(() => {
+    const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
+
+    if (messages.length > 0 && lastSeenMessageInfo?.lastSeenMessageId !== undefined) {
+      const firstMessage = messages[0];
+      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
+
+      console.log("First message ID:", firstMessage.id);
+      console.log("Last seen message ID:", lastSeenMessageInfo.lastSeenMessageId);
+      console.log("Is first message the last seen?", isFirstMessageLastSeen);
+      setLastSeenMessageForConversation({
+        messageId: firstMessage.id,
+        conversationId,
+      });
+    }
+  }, [conversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);

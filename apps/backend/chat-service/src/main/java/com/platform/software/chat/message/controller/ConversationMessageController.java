@@ -1,5 +1,6 @@
 package com.platform.software.chat.message.controller;
 
+import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.dto.MessageLastSeenRequestDTO;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.service.ConversationService;
@@ -87,6 +88,22 @@ public class ConversationMessageController {
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 
+    /**
+     * Get conversation last read status for a user.
+     *
+     * @param conversationId the conversation id
+     * @param userDetails    the user details
+     * @return the conversation last read status
+     */
+    @ApiOperation(value = "Get conversation last read status for a user", response = ConversationReadInfo.class)
+    @GetMapping("last-read-status")
+    public ResponseEntity<ConversationReadInfo> getConversationLastReadStatus(
+        @PathVariable Long conversationId,
+        @AuthenticatedUser UserDetails userDetails
+    ) {
+        ConversationReadInfo conversationReadInfo = conversationService.getConversationReadInfo(conversationId, userDetails.getId());
+        return new ResponseEntity<>(conversationReadInfo, HttpStatus.OK);
+    }
 
     /** set last seen message of the conversation
      *
@@ -96,7 +113,7 @@ public class ConversationMessageController {
      * @return ResponseEntity with status OK
      */
     @ApiOperation(value = "set last seen message of the conversation")
-    @PutMapping("")
+    @PutMapping("last-read-status")
     public ResponseEntity<Void> setConversationLastSeenMessage(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails,

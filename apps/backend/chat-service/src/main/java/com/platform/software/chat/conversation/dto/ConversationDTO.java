@@ -24,6 +24,8 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private boolean isPinnedByLoggedInUser;
     private boolean isMutedByLoggedInUser;
 
+    private Long unreadCount;
+
     public ConversationDTO(Conversation conversation) {
         this.mapToSelf(conversation);
     }

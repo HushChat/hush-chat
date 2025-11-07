@@ -1,14 +1,15 @@
 import {
   archiveConversationById,
   ConversationFilterCriteria,
+  setLastSeenMessageByConversationId,
   toggleConversationFavorite,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { updateUser } from "@/apis/user";
-import { TMessageForward, UpdateUserInput } from "@/types/chat/types";
+import { IMessageReactionRequest, TMessageForward, UpdateUserInput } from "@/types/chat/types";
 import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
-import { forwardMessages, unsendMessage } from "@/apis/message";
+import { addMessageReaction, forwardMessages, unsendMessage } from "@/apis/message";
 
 export const useArchiveConversationMutation = createMutationHook<void, number>(
   archiveConversationById,
@@ -41,4 +42,15 @@ export const useForwardMessageMutation = createMutationHook<void, TMessageForwar
 
 export const usePatchUnsendMessageMutation = createMutationHook<void, { messageId: number }>(
   unsendMessage
+);
+
+export const useSetLastSeenMessageMutation = createMutationHook<
+  void,
+  { messageId: number; conversationId: number }
+>(
+  ({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId),
+  (keyParams: { conversationId: number; userId: number }) => () =>
+    [
+      conversationQueryKeys.lastSeenMessage(keyParams.conversationId, keyParams.userId),
+    ] as string[][]
 );

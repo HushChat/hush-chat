@@ -51,6 +51,8 @@ export const CONVERSATION_API_ENDPOINTS = {
   UPDATE_CONVERSATION: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}`,
   UPDATE_CONVERSATION_PARTICIPANT_ROLE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/admins`,
+  SET_LAST_SEEN_MESSAGE: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
+  GET_LAST_SEEN_MESSAGE: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
 };
 
 export const USER_API_ENDPOINTS = {

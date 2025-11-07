@@ -121,6 +121,16 @@ const ConversationListItem = ({
                 handleOptionsPress={handleOptionsPress}
               />
             )}
+            {conversation.unreadCount > 0 && (
+              <View className="bg-blue-500 dark:bg-blue-600 rounded-full min-w-[20px] h-5 px-1.5 items-center justify-center ml-2">
+                <AppText
+                  className="text-xs font-semibold"
+                  style={{ color: '#FFFFFF' }} // Use the style, AppText component's default styles might be overriding the text color
+                >
+                  {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                </AppText>
+              </View>
+            )}
           </View>
         </View>
       </Pressable>
