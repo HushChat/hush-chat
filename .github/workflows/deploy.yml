@@ -25,5 +25,7 @@ jobs:
             echo "Starting deployment of Hush Chat backend..."
             mvn -f ~/hush-chat/apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=prod -DskipTests
             mvn -f ~/hush-chat/apps/backend/chat-service/pom.xml compile package -Dspring.profiles.active=prod -DskipTests
-            docker-compose -f ~/hush-chat/docker-compose.yml up -d --build --remove-orphans
+            docker compose -f ~/hush-chat/docker-compose.yml build --no-cache \
+            && docker compose -f ~/hush-chat/docker-compose.yml down --remove-orphans \
+            && docker compose -f ~/hush-chat/docker-compose.yml up -d
             echo "Deployment completed successfully."
