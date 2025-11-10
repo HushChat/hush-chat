@@ -11,6 +11,8 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { useContactUsForm } from "@/hooks/useContactUsForm";
 import { PLATFORM } from "@/constants/platformConstants";
+import BackButton from "@/components/BackButton";
+import { Href, router } from "expo-router";
 
 export function ContactUsForm() {
   const { formData, errors, handleChange, handleSubmit, isPending, isButtonDisabled } =
@@ -18,7 +20,23 @@ export function ContactUsForm() {
 
   const FormFields = (
     <>
-      <View className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 mb-6">
+      {/* Header Section */}
+      <View className="mb-6">
+        <View className="flex-row items-center mb-2 mt-2">
+          {!PLATFORM.IS_WEB &&  <BackButton onPress={() => router.push("/(tabs)/settings" as Href)} />}
+          <AppText className="text-xl font-bold text-gray-900 dark:text-white">
+            Contact Us
+          </AppText>
+        </View>
+        <View>
+          <AppText className="text-gray-600 dark:text-gray-400 max-w-[600px]">
+            Have a question or feedback? We would love to hear from you.
+          </AppText>
+        </View>
+      </View>
+
+      {/* Email Display */}
+      <View className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 mb-6 mt-6">
         <View className="flex-row items-center">
           <Ionicons name="mail-outline" size={20} color="#6b7280" />
           <AppText className="text-text-primary-light dark:text-text-primary-dark ml-3 text-sm">
