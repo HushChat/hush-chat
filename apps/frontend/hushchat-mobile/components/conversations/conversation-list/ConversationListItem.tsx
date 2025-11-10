@@ -18,6 +18,8 @@ import ProfilePictureModalContent from "@/components/ProfilePictureModelContent"
 import LastMessagePreview from "@/components/UnsendMessagePreview";
 import { AppText } from "@/components/AppText";
 
+const MORE_THAN_99_MESSAGES_TEXT = "99+";
+
 const ConversationListItem = ({
   conversation,
   handleChatPress,
@@ -120,6 +122,18 @@ const ConversationListItem = ({
                 chevronButtonRef={chevronButtonRef}
                 handleOptionsPress={handleOptionsPress}
               />
+            )}
+            {conversation.unreadCount > 0 && (
+              <View className="bg-blue-500 dark:bg-blue-600 rounded-full min-w-[20px] h-5 px-1.5 items-center justify-center ml-2">
+                <AppText
+                  className="text-xs font-semibold"
+                  style={{ color: "#FFFFFF" }} // Use the style, AppText component's default styles might be overriding the text color
+                >
+                  {conversation.unreadCount > 99
+                    ? MORE_THAN_99_MESSAGES_TEXT
+                    : conversation.unreadCount}
+                </AppText>
+              </View>
             )}
           </View>
         </View>
