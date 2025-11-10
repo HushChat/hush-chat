@@ -1,6 +1,7 @@
 package com.platform.software.controller.external;
 
 import com.platform.software.common.dto.LoginDTO;
+import com.platform.software.platform.workspace.service.WorkspaceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,19 +17,23 @@ import com.platform.software.config.security.LoginResponseDTO;
 import io.swagger.annotations.ApiOperation;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/public/user")
 public class PublicUserController {
 
     private final UserService userService;
     private final CognitoService cognitoService;
+    private final WorkspaceService workspaceService;
 
     public PublicUserController(
             UserService userService,
-            CognitoService cognitoService
+            CognitoService cognitoService, WorkspaceService workspaceService
     ) {
         this.userService = userService;
         this.cognitoService = cognitoService;
+        this.workspaceService = workspaceService;
     }
 
     @ApiOperation(value = "Create a new user", response = UserDTO.class)
@@ -99,4 +104,10 @@ public class PublicUserController {
         return ResponseEntity.ok("Resend signUp confirmation code request initiated");
     }
 
+    @ApiOperation(value = "Get all workspaces", response = String.class)
+    @GetMapping("workspaces")
+    public ResponseEntity<List<String>> getWorkspaces(
+    ) {
+        return ResponseEntity.ok(workspaceService.getAllWorkspaces());
+    }
 }
