@@ -10,7 +10,6 @@
 import CallItemList from "@/components/call-history/CallHistoryPanel";
 import { useCallLogsQuery } from "@/query/useCallLogsQuery";
 import React, { useMemo } from "react";
-/* eslint-disable import/no-unresolved */
 import CallInterface from "@/components/call-history/CallInterface";
 
 export default function CallHistoryScreen() {
