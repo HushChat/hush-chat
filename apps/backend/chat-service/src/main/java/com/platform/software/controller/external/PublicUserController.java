@@ -104,10 +104,9 @@ public class PublicUserController {
         return ResponseEntity.ok("Resend signUp confirmation code request initiated");
     }
 
-    @ApiOperation(value = "Get all workspaces", response = String.class)
+    @ApiOperation(value = "Get all workspaces", response = List.class)
     @GetMapping("workspaces")
-    public ResponseEntity<List<String>> getWorkspaces(
-    ) {
+    public ResponseEntity<List<String>> getWorkspaces() {
         return ResponseEntity.ok(workspaceService.getAllWorkspaces());
     }
 }
