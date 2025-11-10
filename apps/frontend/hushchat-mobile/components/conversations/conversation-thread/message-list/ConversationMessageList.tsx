@@ -72,10 +72,10 @@ const ConversationMessageList = ({
       setOpenPickerMessageId(null);
       const pinnedMessageState =
         pinnedMessage?.id === selectedPinnedMessage?.id ? null : selectedPinnedMessage;
-      updateCache(
-        conversationQueryKeys.metaDataById(+!!currentUserId, Number(conversationAPIResponse?.id)),
-        (prev) => (prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev)
-      );
+        updateCache(
+            conversationQueryKeys.metaDataById( Number(currentUserId ?? 0), Number(conversationAPIResponse?.id)),
+            (prev) => prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev
+        );
     },
     (error) => {
       ToastUtils.error(error as string);
@@ -88,6 +88,7 @@ const ConversationMessageList = ({
       if (!conversationId || !message) return;
 
       togglePinMessage({ conversationId, messageId: message.id });
+      console.log(message)
       setSelectedPinnedMessage(message);
     },
     [conversationAPIResponse?.id, togglePinMessage]
