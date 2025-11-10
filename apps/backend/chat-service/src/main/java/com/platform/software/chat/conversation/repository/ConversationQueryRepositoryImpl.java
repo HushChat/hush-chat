@@ -161,7 +161,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 JPAExpressions.select(qMessage2.id.max())
                                         .from(qMessage2)
                                         .where(qMessage2.conversation.eq(qConversation)))))
-                // ✅ include attachments for the last message
                 .leftJoin(qMessageAttachment).on(qMessageAttachment.message.eq(qMessage))
                 .where(whereConditions);
 
@@ -191,7 +190,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .offset(pageable.getOffset())
                 .fetch();
 
-        // ✅ Group attachments by message ID
         Map<Long, List<MessageAttachment>> attachmentsByMessageId = results.stream()
                 .filter(t -> t.get(qMessage) != null)
                 .filter(t -> t.get(qMessageAttachment) != null)
@@ -247,7 +245,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     if (latestMessage != null) {
                         MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
 
-                        // ✅ Attach fetched attachments
                         List<MessageAttachmentDTO> attachmentDTOs = attachmentsByMessageId
                                 .getOrDefault(latestMessage.getId(), List.of())
                                 .stream()
