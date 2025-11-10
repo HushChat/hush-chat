@@ -2,6 +2,7 @@ package com.platform.software.platform.workspace.service;
 
 import com.platform.software.common.service.newschema.SchemaCopyService;
 import com.platform.software.config.workspace.WorkspaceContext;
+import com.platform.software.exception.CustomAccessDeniedException;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
@@ -23,6 +24,9 @@ public class WorkspaceService {
 
     @Value("${spring.datasource.default.schema}")
     private String defaultSchema;
+
+    @Value("${workspaces.api.security.token}")
+    private String securityToken;
 
     private final SchemaCopyService schemaCopyService;
     private final WorkspaceRepository workspaceRepository;
@@ -72,7 +76,11 @@ public class WorkspaceService {
         }
     }
 
-    public List<String> getAllWorkspaces(){
+    public List<String> getAllWorkspaces(String token){
+        if(!securityToken.equals(token)){
+            throw new CustomAccessDeniedException("Access Denied!");
+        }
+
         return WorkspaceUtils.runInGlobalSchema(() -> workspaceRepository.findAllByWorkspaceIdentifierIsNotNull()
                 .stream()
                 .map(Workspace::getWorkspaceIdentifier)
