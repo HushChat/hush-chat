@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
-import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 import { useConversationMessages } from "@/hooks/useWebSocketEvents";
 import { CursorPaginatedResponse, getConversationMessagesByCursor } from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
+import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 
 const PAGE_SIZE = 20;
 
@@ -38,10 +38,14 @@ export function useConversationMessagesQuery(conversationId: number) {
     isLoading,
     error,
     fetchOlder,
+    fetchNewer,
     hasMoreOlder,
+    hasMoreNewer,
     isFetchingOlder,
-    invalidateQuery,
+    isFetchingNewer,
     refetch,
+    setJumping,
+    invalidateQuery,
   } = usePaginatedQueryWithCursor<IMessage>({
     queryKey,
     queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
@@ -84,17 +88,23 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const jumpToMessage = useCallback(
     async (messageId: number) => {
-      const response = await getConversationMessagesByCursor(conversationId, {
-        beforeId: messageId,
-        size: PAGE_SIZE,
-      });
+      try {
+        setJumping(true);
 
-      queryClient.setQueryData(queryKey, {
-        pages: [response.data],
-        pageParams: [{ beforeId: messageId }],
-      });
+        const response = await getConversationMessagesByCursor(conversationId, {
+          beforeId: messageId,
+          size: PAGE_SIZE,
+        });
+
+        queryClient.setQueryData(queryKey, {
+          pages: [response.data],
+          pageParams: [{ beforeId: messageId }],
+        });
+      } finally {
+        setJumping(false);
+      }
     },
-    [conversationId, queryClient, queryKey]
+    [conversationId, queryClient, queryKey, setJumping]
   );
 
   return {
@@ -105,6 +115,9 @@ export function useConversationMessagesQuery(conversationId: number) {
     hasNextPage: hasMoreOlder,
     isFetchingNextPage: isFetchingOlder,
     refetchConversationMessages: invalidateQuery,
+    fetchPreviousPage: fetchNewer,
+    hasPreviousPage: hasMoreNewer,
+    isFetchingPreviousPage: isFetchingNewer,
     refetch,
     jumpToMessage,
     updateConversationMessagesCache,

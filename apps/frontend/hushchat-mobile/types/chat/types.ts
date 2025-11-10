@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { ReactNode } from "react";
+import React, { JSX, ReactNode } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
@@ -32,7 +32,7 @@ export interface IMessageAttachment {
 }
 
 export interface IMessage {
-  id?: number;
+  id: number;
   senderId: number;
   senderFirstName: string;
   senderLastName: string;

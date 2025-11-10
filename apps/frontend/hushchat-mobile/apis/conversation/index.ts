@@ -19,6 +19,7 @@ export interface ConversationFilterCriteria {
 }
 
 export interface CursorPaginatedResponse<T> {
+  totalElements: number;
   content: T[];
   size?: number;
   number?: number;

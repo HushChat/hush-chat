@@ -26,12 +26,13 @@ import MessageReactionsModal from "@/components/conversations/conversation-threa
 
 interface MessagesListProps {
   messages: IMessage[];
-  onLoadMore: () => void;
+  onLoadMore: () => Promise<void>;
   isFetchingNextPage: boolean;
   onMessageSelect?: (message: IMessage) => void;
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  onEndReached?: () => void;
 }
 
 const ConversationMessageList = ({
@@ -42,6 +43,7 @@ const ConversationMessageList = ({
   conversationAPIResponse,
   pickerState,
   selectedConversationId,
+  onEndReached,
 }: MessagesListProps) => {
   const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
   const { user } = useUserStore();
@@ -72,10 +74,13 @@ const ConversationMessageList = ({
       setOpenPickerMessageId(null);
       const pinnedMessageState =
         pinnedMessage?.id === selectedPinnedMessage?.id ? null : selectedPinnedMessage;
-        updateCache(
-            conversationQueryKeys.metaDataById( Number(currentUserId ?? 0), Number(conversationAPIResponse?.id)),
-            (prev) => prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev
-        );
+      updateCache(
+        conversationQueryKeys.metaDataById(
+          Number(currentUserId ?? 0),
+          Number(conversationAPIResponse?.id)
+        ),
+        (prev) => (prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev)
+      );
     },
     (error) => {
       ToastUtils.error(error as string);
@@ -88,7 +93,6 @@ const ConversationMessageList = ({
       if (!conversationId || !message) return;
 
       togglePinMessage({ conversationId, messageId: message.id });
-      console.log(message)
       setSelectedPinnedMessage(message);
     },
     [conversationAPIResponse?.id, togglePinMessage]
@@ -122,8 +126,8 @@ const ConversationMessageList = ({
   });
 
   const unSendMessage = useCallback(
-    (message: IBasicMessage) => {
-      setUnSendMessage(message);
+    (message: IMessage) => {
+      setUnSendMessage(message as IBasicMessage);
       unsend({ messageId: message.id });
     },
     [unsend]
@@ -212,7 +216,7 @@ const ConversationMessageList = ({
           onToggleSelection={handleToggleSelection}
           onMessageLongPress={handleMessageLongPress}
           onCloseAllOverlays={closeAllOverlays}
-          onMessagePin={(message) => togglePin(message)}
+          onMessagePin={(message) => togglePin(message as IBasicMessage)}
           onUnsendMessage={(message) => unSendMessage(message)}
           selectedConversationId={selectedConversationId}
           onViewReactions={handleViewReactions}
@@ -253,9 +257,9 @@ const ConversationMessageList = ({
           message={selectedActionMessage}
           conversation={conversationAPIResponse}
           onClose={handleCloseActions}
-          onPinToggle={(message) => togglePin(message)}
+          onPinToggle={(message) => togglePin(message as IBasicMessage)}
           onForward={(message) => {
-            handleStartSelectionWith(message?.id);
+            handleStartSelectionWith(Number(message?.id));
             handleCloseActions();
           }}
           onUnsend={(messages) => unSendMessage(messages)}
@@ -273,12 +277,14 @@ const ConversationMessageList = ({
       <FlatList
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id?.toString()}
+        keyExtractor={(item, index) => item.id?.toString() ?? index.toString()}
         className="flex-1 px-4"
         showsVerticalScrollIndicator={false}
         inverted
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
+        onStartReached={onEndReached}
+        onStartReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
         onScrollBeginDrag={closeAllOverlays}
         onTouchEnd={closeAllOverlays}
@@ -288,6 +294,7 @@ const ConversationMessageList = ({
           selectedMessageIdsSize: selectedMessageIds.size,
         }}
       />
+
       {reactionsModal.visible && (
         <MessageReactionsModal
           messageId={reactionsModal.messageId}

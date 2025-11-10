@@ -83,6 +83,9 @@ const ConversationThreadScreen = ({
     refetchConversationMessages,
     jumpToMessage,
     updateConversationMessagesCache,
+    hasPreviousPage,
+    fetchPreviousPage,
+    isFetchingPreviousPage,
   } = useConversationMessagesQuery(selectedConversationId);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
@@ -171,6 +174,12 @@ const ConversationThreadScreen = ({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const handleLoadNewer = useCallback(async () => {
+    if (hasPreviousPage && !isFetchingPreviousPage) {
+      await fetchPreviousPage();
+    }
+  }, [hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage]);
+
   const handleMessageSelect = useCallback((message: IMessage) => {
     setSelectedMessage(message);
   }, []);
@@ -245,7 +254,6 @@ const ConversationThreadScreen = ({
     ]
   );
 
-
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;
 
@@ -318,6 +326,7 @@ const ConversationThreadScreen = ({
       <ConversationMessageList
         messages={conversationMessages}
         onLoadMore={handleLoadMore}
+        onEndReached={handleLoadNewer}
         isFetchingNextPage={isFetchingNextPage}
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
@@ -337,6 +346,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse,
     pickerState,
     selectedConversationId,
+    handleLoadNewer,
   ]);
 
   const renderTextInput = useCallback(() => {
