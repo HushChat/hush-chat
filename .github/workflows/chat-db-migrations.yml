@@ -1,0 +1,68 @@
+name: Chat Liquibase migrations
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/db-migrations/**'
+  workflow_dispatch:
+
+jobs:
+  liquibase-migration-chat-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run platform schemas Liquibase update
+        env:
+          JDBC_URL: ${{ secrets.CHAT_SPRING_DATASOURCE_URL }}
+          JDBC_USERNAME: ${{ secrets.CHAT_SPRING_DATASOURCE_USERNAME }}
+          JDBC_PASSWORD: ${{ secrets.CHAT_SPRING_DATASOURCE_PASSWORD }}
+          CHANGELOG_FILE: 'hush-chat/infra/db-migrations/platform/db.changelog-root.yaml'
+          CLASSPATH: '/home/runner/liquibase/postgresql-42.2.25.jar'
+          SCHEMA: 'platform'
+        run: |
+          liquibase \
+            --driver=org.postgresql.Driver \
+            --changeLogFile=$CHANGELOG_FILE \
+            --classpath=$CLASSPATH \
+            --url=$JDBC_URL \
+            --username=$JDBC_USERNAME \
+            --password=$JDBC_PASSWORD \
+            --defaultSchemaName=$SCHEMA \
+            --liquibaseSchemaName=$SCHEMA \
+            --logLevel=debug \
+            update
+        shell: bash
+
+      - name: Run workspace Liquibase update for all schemas
+        env:
+          JDBC_URL: ${{ secrets.CHAT_SPRING_DATASOURCE_URL }}
+          JDBC_USERNAME: ${{ secrets.CHAT_SPRING_DATASOURCE_USERNAME }}
+          JDBC_PASSWORD: ${{ secrets.CHAT_SPRING_DATASOURCE_PASSWORD }}
+          CHANGELOG_FILE: 'hush-chat/infra/db-migrations/workspaces/db.changelog-root.yaml'
+          CLASSPATH: '/home/skynet/liquibase/postgresql-42.2.25.jar'
+          SCHEMA_API_URL: ${{ secrets.SCHEMA_API_URL }}
+          API_TOKEN: ${{ secrets.WORKSPACES_API_TOKEN }}
+        run: |
+          echo "Fetching list of schemas..."
+          schemas=$(curl -s -H "X-API-TOKEN: $API_TOKEN" $SCHEMA_API_URL | jq -r '.[]')
+
+          for SCHEMA in $schemas; do
+            echo "Running Liquibase update for schema: $SCHEMA"
+            liquibase \
+              --driver=org.postgresql.Driver \
+              --changeLogFile=$CHANGELOG_FILE \
+              --classpath=$CLASSPATH \
+              --url=$JDBC_URL \
+              --username=$JDBC_USERNAME \
+              --password=$JDBC_PASSWORD \
+              --defaultSchemaName=$SCHEMA \
+              --liquibaseSchemaName=$SCHEMA \
+              --logLevel=debug \
+              update
+          done
+        shell: bash
+
