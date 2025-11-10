@@ -44,6 +44,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     isFetchingOlder,
     isFetchingNewer,
     refetch,
+    setJumping,
     invalidateQuery,
   } = usePaginatedQueryWithCursor<IMessage>({
     queryKey,
@@ -87,17 +88,23 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const jumpToMessage = useCallback(
     async (messageId: number) => {
-      const response = await getConversationMessagesByCursor(conversationId, {
-        beforeId: messageId,
-        size: PAGE_SIZE,
-      });
+      try {
+        setJumping(true);
 
-      queryClient.setQueryData(queryKey, {
-        pages: [response.data],
-        pageParams: [{ beforeId: messageId }],
-      });
+        const response = await getConversationMessagesByCursor(conversationId, {
+          beforeId: messageId,
+          size: PAGE_SIZE,
+        });
+
+        queryClient.setQueryData(queryKey, {
+          pages: [response.data],
+          pageParams: [{ beforeId: messageId }],
+        });
+      } finally {
+        setJumping(false);
+      }
     },
-    [conversationId, queryClient, queryKey]
+    [conversationId, queryClient, queryKey, setJumping]
   );
 
   return {
