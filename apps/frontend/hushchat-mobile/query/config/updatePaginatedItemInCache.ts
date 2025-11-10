@@ -16,7 +16,7 @@ type UpdateOptions<T> = {
 };
 
 /**
- * updateInOffsetPaginatedCache
+ * updatePaginatedItemInCache
  *
  * Updates an existing item in offset-paginated React Query cache by ID.
  * Only updates fields that exist in the provided data (partial update).
@@ -27,7 +27,7 @@ type UpdateOptions<T> = {
  * @param updates - Partial data to merge with existing item
  * @param opts - Configuration options
  */
-export function updateInOffsetPaginatedCache<T extends Record<string, any>>(
+export function updatePaginatedItemInCache<T extends Record<string, any>>(
   queryClient: QueryClient,
   queryKey: QueryKey,
   id: string | number,

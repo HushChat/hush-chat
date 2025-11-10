@@ -12,6 +12,7 @@ import com.platform.software.exception.CustomBadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ConversationReadStatusService {
@@ -31,6 +32,7 @@ public class ConversationReadStatusService {
         this.conversationUtilService = conversationUtilService;
     }
 
+    @Transactional
     public ConversationReadInfo setConversationLastSeenMessage(Long conversationId, Long loggedInUserId, MessageLastSeenRequestDTO messageLastSeenRequestDTO) {
         ConversationParticipant conversationParticipant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
         Message message = messageService.getMessageOrThrow(conversationId, messageLastSeenRequestDTO.getMessageId());

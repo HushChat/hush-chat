@@ -14,7 +14,8 @@ import { useEffect } from "react";
 import { appendToOffsetPaginatedCache } from "@/query/config/appendToOffsetPaginatedCache";
 import { useQueryClient } from "@tanstack/react-query";
 import { conversationQueryKeys } from "@/constants/queryKeys";
-import { updateInOffsetPaginatedCache } from "@/query/config/updateInOffsetPaginatedCache";
+import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
+import { getPaginationConfig } from "@/utils/commonUtils";
 
 const PAGE_SIZE = 20;
 
@@ -28,7 +29,7 @@ export function useConversationsQuery(
   fetchNextPage: () => Promise<unknown>;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
-  refetchConversations: () => void;
+  refetchConversations: (() => void) | undefined;
   refetch: () => Promise<unknown>;
   updateConversation: (conversationId: string | number, updates: Partial<IConversation>) => void;
 } {
@@ -56,16 +57,12 @@ export function useConversationsQuery(
   }, [notificationReceivedConversation, queryClient, userId]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
-    updateInOffsetPaginatedCache<IConversation>(
+    updatePaginatedItemInCache<IConversation>(
       queryClient,
       conversationQueryKeys.allConversations(Number(userId), criteria),
       conversationId,
       updates,
-      {
-        getId: (m) => m?.id,
-        getPageItems: (p) => p?.content,
-        setPageItems: (p, items) => ({ ...p, content: items }),
-      }
+      getPaginationConfig<IConversation>()
     );
   };
 
@@ -84,7 +81,7 @@ export function useConversationsQuery(
     if (notificationReceivedConversation && notificationReceivedConversation.id) {
       getConversationUpdateViaWS(notificationReceivedConversation.id);
     }
-  }, [notificationReceivedConversation, queryClient, userId]);
+  }, [notificationReceivedConversation]);
 
   const {
     pages,
