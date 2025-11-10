@@ -33,9 +33,6 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
-import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
-import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
-import { useConversationsQuery } from "@/query/useConversationsQuery";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -87,46 +84,6 @@ const ConversationThreadScreen = ({
     jumpToMessage,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(selectedConversationId);
-
-  const { updateConversation } = useConversationsQuery();
-
-  const { lastSeenMessageInfo } =
-    useFetchLastSeenMessageStatusForConversation(selectedConversationId);
-
-  const { mutate: setLastSeenMessageForConversation } = useSetLastSeenMessageMutation(
-    {
-      conversationId: selectedConversationId,
-      currentUserId,
-    },
-    (data) => {
-      updateConversation(selectedConversationId, {
-        unreadCount: data.unreadCount || 0,
-      });
-    },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
-  );
-
-  useEffect(() => {
-    const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
-
-    if (
-      selectedConversationId &&
-      messages.length > 0 &&
-      lastSeenMessageInfo?.lastSeenMessageId !== undefined
-    ) {
-      const firstMessage = messages[0];
-      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
-
-      if (!isFirstMessageLastSeen) {
-        setLastSeenMessageForConversation({
-          messageId: firstMessage.id,
-          conversationId: selectedConversationId,
-        });
-      }
-    }
-  }, [selectedConversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
@@ -257,9 +214,9 @@ const ConversationThreadScreen = ({
             messageAttachments: renamedFiles.map((file) => ({
               fileUrl: URL.createObjectURL(file),
               originalFileName: file.name,
-              indexedFileName: "",
-              mimeType: file.type,
-            })),
+              indexedFileName: '',
+              mimeType: file.type
+            }))
           };
 
           updateConversationMessagesCache(newMessage);
@@ -287,6 +244,7 @@ const ConversationThreadScreen = ({
       imageMessage,
     ]
   );
+
 
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;
