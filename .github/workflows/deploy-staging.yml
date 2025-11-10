@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-staging:
     name: Build and Deploy Hush Chat Staging
     runs-on: ubuntu-latest
     concurrency:
-      group: build-and-deploy
+      group: build-and-deploy-staging
       cancel-in-progress: false
 
     steps:
@@ -31,7 +31,7 @@ jobs:
             git -C ~/staging/hush-chat pull
             mvn -f ~/staging/hush-chat/apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=prod -DskipTests
             mvn -f ~/staging/hush-chat/apps/backend/chat-service/pom.xml compile package -Dspring.profiles.active=prod -DskipTests
-            docker compose -f ~/staging/hush-chat/docker-compose.yml build --no-cache \
-            && docker compose -f ~/staging/hush-chat/docker-compose.yml down --remove-orphans \
-            && docker compose -f ~/staging/hush-chat/docker-compose.yml up -d
+            docker compose -f ~/staging/hush-chat/docker-compose.staging.yml build --no-cache \
+            && docker compose -f ~/staging/hush-chat/docker-compose.staging.yml down \
+            && docker compose -f ~/staging/hush-chat/docker-compose.staging.yml up -d
             echo "Deployment completed successfully."
