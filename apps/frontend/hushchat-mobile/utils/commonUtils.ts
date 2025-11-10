@@ -162,14 +162,6 @@ const getAdjustedPosition = (
   y: position.y + modalHeight > screenHeight - 30 ? position.y - modalHeight - 12 : position.y,
 });
 
-const getPaginationConfig = <T extends { id: any }>() => {
-  return {
-    getId: (m: T) => m?.id,
-    getPageItems: (p: { content: T[] }) => p?.content,
-    setPageItems: (p: { content: T[] }, items: T[]) => ({ ...p, content: items }),
-  }
-}
-
 export {
   getLastMessageTime,
   getNavigationTheme,
@@ -181,5 +173,4 @@ export {
   getUserDisplayName,
   getAPIErrorMsg,
   getAdjustedPosition,
-  getPaginationConfig,
 };
