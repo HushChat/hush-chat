@@ -28,6 +28,7 @@ export function useRegisterForm() {
       const validated = await validateAll();
       if (!validated) return;
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...payload } = validated;
       const response = await registerUser(payload);
       if (!response.success) {

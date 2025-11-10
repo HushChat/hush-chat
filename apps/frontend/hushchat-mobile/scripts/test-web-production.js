@@ -6,7 +6,7 @@ console.log("🔍 Analyzing dependencies before build...");
 
 // Check for web-incompatible dependencies
 console.log("📋 Checking for potential web compatibility issues...");
-exec("npm ls --depth=0", (error, stdout, stderr) => {
+exec("npm ls --depth=0", (error, stdout) => {
   if (stdout) {
     const lines = stdout.split("\n");
     const webIncompatible = lines
