@@ -10,6 +10,9 @@ import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
+import com.platform.software.chat.message.attachment.entity.MessageAttachment;
+import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
@@ -23,17 +26,14 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConversationQueryRepositoryImpl implements ConversationQueryRepository {
 
@@ -42,7 +42,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QConversation qConversation = QConversation.conversation;
     private static final QConversationParticipant qConversationParticipant = QConversationParticipant.conversationParticipant;
     private static final QMessage qMessage = QMessage.message;
-    private static final QMessage qMessage2 = QMessage.message;
+    private static final QMessage qMessage2 = new QMessage("message2");
+    private static final QMessageAttachment qMessageAttachment = QMessageAttachment.messageAttachment;
 
     public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
@@ -127,9 +128,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
 
     public Page<ConversationDTO> findAllConversationsByUserIdWithLatestMessages(
-        Long userId,
-        ConversationFilterCriteriaDTO conversationFilterCriteria,
-        Pageable pageable
+            Long userId,
+            ConversationFilterCriteriaDTO conversationFilterCriteria,
+            Pageable pageable
     ) {
 
         boolean isArchived = conversationFilterCriteria.getIsArchived() != null
@@ -147,7 +148,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
         } else if (isFavorite) {
             whereConditions = whereConditions.and(qConversationParticipant.isFavorite.eq(true))
-                                             .and(qConversationParticipant.archived.eq(false));
+                    .and(qConversationParticipant.archived.eq(false));
         } else {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(false));
         }
@@ -160,12 +161,14 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 JPAExpressions.select(qMessage2.id.max())
                                         .from(qMessage2)
                                         .where(qMessage2.conversation.eq(qConversation)))))
+                // ✅ include attachments for the last message
+                .leftJoin(qMessageAttachment).on(qMessageAttachment.message.eq(qMessage))
                 .where(whereConditions);
 
         boolean isValidSearchKey = StringUtils.hasText(conversationFilterCriteria.getSearchKeyword());
         if (isValidSearchKey) {
             baseQuery.where(qConversation.isGroup.isTrue()
-                .and(qConversation.name.containsIgnoreCase(conversationFilterCriteria.getSearchKeyword())));
+                    .and(qConversation.name.containsIgnoreCase(conversationFilterCriteria.getSearchKeyword())));
         }
 
         Long totalCount = baseQuery.clone()
@@ -174,7 +177,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
         // Get all conversations where user is a participant
         List<Tuple> results = baseQuery.clone()
-                .select(qConversation, qMessage, qConversationParticipant)
+                .select(qConversation, qMessage, qConversationParticipant, qMessageAttachment)
                 .orderBy(
                         // Primary sort: Pinned conversations first
                         qConversationParticipant.isPinned.desc().nullsLast(),
@@ -187,6 +190,15 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetch();
+
+        // ✅ Group attachments by message ID
+        Map<Long, List<MessageAttachment>> attachmentsByMessageId = results.stream()
+                .filter(t -> t.get(qMessage) != null)
+                .filter(t -> t.get(qMessageAttachment) != null)
+                .collect(Collectors.groupingBy(
+                        t -> t.get(qMessage).getId(),
+                        Collectors.mapping(t -> t.get(qMessageAttachment), Collectors.toList())
+                ));
 
         List<ConversationDTO> conversationDTOs = results.stream()
                 .map(tuple -> {
@@ -234,6 +246,19 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
                     if (latestMessage != null) {
                         MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
+
+                        // ✅ Attach fetched attachments
+                        List<MessageAttachmentDTO> attachmentDTOs = attachmentsByMessageId
+                                .getOrDefault(latestMessage.getId(), List.of())
+                                .stream()
+                                .filter(Objects::nonNull)
+                                .map(MessageAttachmentDTO::new)
+                                .collect(Collectors.toList());
+
+                        if (!attachmentDTOs.isEmpty()) {
+                            messageViewDTO.setMessageAttachments(attachmentDTOs);
+                        }
+
                         dto.setMessages(List.of(messageViewDTO));
                     }
 

@@ -221,6 +221,7 @@ const ConversationThreadScreen = ({
 
           updateConversationMessagesCache(newMessage);
           await uploadFilesFromWeb(renamedFiles);
+          queryClient.invalidateQueries({ queryKey: ["conversations"] });
           setSelectedMessage(null);
           setImageMessage("");
         } else {
