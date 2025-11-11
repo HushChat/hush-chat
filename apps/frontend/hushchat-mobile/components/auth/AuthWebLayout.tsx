@@ -59,13 +59,6 @@ export default function AuthWebLayout({
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  backButton: {
-    position: "absolute",
-    top: 24,
-    left: 20,
-    zIndex: 1000,
-    padding: 8,
-  },
 
   shell: {
     flex: 1,

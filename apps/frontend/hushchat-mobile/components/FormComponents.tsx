@@ -47,23 +47,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  textInput: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 16,
-  },
   button: {
     borderRadius: 12,
     paddingVertical: 16,
@@ -113,10 +96,6 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
   },
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
 });
 
 export const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle, colors }) => (
@@ -153,7 +132,7 @@ export const FormButton: React.FC<FormButtonProps> = ({
   </TouchableOpacity>
 );
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, colors }) => (
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => (
   <View style={styles.errorContainer}>
     <Text style={styles.errorText}>{message}</Text>
   </View>

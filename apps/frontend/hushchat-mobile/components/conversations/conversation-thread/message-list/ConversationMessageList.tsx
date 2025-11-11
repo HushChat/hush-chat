@@ -20,8 +20,6 @@ import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants
 import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
-/* eslint-disable import/no-unresolved */
-// @ts-ignore
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 
 interface MessagesListProps {
@@ -72,10 +70,13 @@ const ConversationMessageList = ({
       setOpenPickerMessageId(null);
       const pinnedMessageState =
         pinnedMessage?.id === selectedPinnedMessage?.id ? null : selectedPinnedMessage;
-        updateCache(
-            conversationQueryKeys.metaDataById( Number(currentUserId ?? 0), Number(conversationAPIResponse?.id)),
-            (prev) => prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev
-        );
+      updateCache(
+        conversationQueryKeys.metaDataById(
+          Number(currentUserId ?? 0),
+          Number(conversationAPIResponse?.id)
+        ),
+        (prev) => (prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev)
+      );
     },
     (error) => {
       ToastUtils.error(error as string);
@@ -88,7 +89,7 @@ const ConversationMessageList = ({
       if (!conversationId || !message) return;
 
       togglePinMessage({ conversationId, messageId: message.id });
-      console.log(message)
+      console.log(message);
       setSelectedPinnedMessage(message);
     },
     [conversationAPIResponse?.id, togglePinMessage]

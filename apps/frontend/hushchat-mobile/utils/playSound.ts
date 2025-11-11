@@ -1,5 +1,4 @@
-import { createAudioPlayer } from "expo-audio";
-import type { AudioPlayer } from "expo-audio";
+import { createAudioPlayer, type AudioPlayer } from "expo-audio";
 
 let messageSound: AudioPlayer | null = null;
 
