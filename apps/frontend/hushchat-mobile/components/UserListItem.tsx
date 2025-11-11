@@ -28,7 +28,7 @@ const UserListItem = ({ user, isSelected, onToggle }: UserListItemProps) => {
       onPress={handlePress}
     >
       <TouchableOpacity onPress={handlePress} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
-        <InitialsAvatar name={fullName || "Unknown User"} />
+        <InitialsAvatar name={fullName || "Unknown User"} imageUrl={user.signedImageUrl} />
       </TouchableOpacity>
 
       <View className="flex-1 flex-row justify-between items-center mr-3">
