@@ -235,43 +235,50 @@ const ConversationInputBar = ({
   );
 
   const handleSend = useCallback(
-    (messageToSend?: string) => {
-      const finalMessage = messageToSend !== undefined ? messageToSend.trim() : message.trim();
+  (messageToSend?: string) => {
+    const finalMessage = messageToSend !== undefined ? messageToSend.trim() : message.trim();
 
-      if (!finalMessage.trim() || disabled) return;
+    if (!finalMessage.trim() || disabled) return;
 
-      saveDraftDebounced.flush?.();
-      onSendMessage(finalMessage, replyToMessage || undefined);
+    saveDraftDebounced.flush?.();
+    onSendMessage(finalMessage, replyToMessage || undefined);
 
-      setMessage("");
-      animatedHeight.value = withTiming(
-        minHeight,
-        { duration: RESET_ANIM_MS, easing: ANIM_EASING },
-        (finished) => {
-          if (finished) {
-            scheduleOnRN(setInputHeight, minHeight);
-          }
-        }
-      );
-
-      void storage.remove(getDraftKey(conversationId));
-      if (!PLATFORM.IS_WEB) Keyboard.dismiss();
-      onCancelReply?.();
-      setMentionQuery(null);
-    },
-    [
-      message,
-      disabled,
-      replyToMessage,
+    setMessage("");
+    animatedHeight.value = withTiming(
       minHeight,
-      conversationId,
-      saveDraftDebounced,
-      onSendMessage,
-      animatedHeight,
-      storage,
-      onCancelReply,
-    ]
-  );
+      { duration: RESET_ANIM_MS, easing: ANIM_EASING },
+      (finished) => {
+        if (finished) {
+          scheduleOnRN(setInputHeight, minHeight);
+        }
+      }
+    );
+
+    void storage.remove(getDraftKey(conversationId));
+
+    if (replyToMessage) {
+      onCancelReply?.();
+    }
+
+    requestAnimationFrame(() => {
+      textInputRef.current?.focus();
+    });
+
+    setMentionQuery(null);
+  },
+  [
+    message,
+    disabled,
+    replyToMessage,
+    minHeight,
+    conversationId,
+    saveDraftDebounced,
+    onSendMessage,
+    animatedHeight,
+    storage,
+    onCancelReply,
+  ]
+);
 
   const handleAddButtonPress = useCallback(async () => {
     if (PLATFORM.IS_WEB) {
