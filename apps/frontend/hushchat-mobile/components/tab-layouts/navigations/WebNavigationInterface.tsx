@@ -15,7 +15,7 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
   const pathname = usePathname();
 
   const SideBarContent = () => (
-    <View className="bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 h-full flex-col items-center py-3 w-80">
+    <View className="bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 h-full flex-col items-center py-3 w-[80px]">
       <View className="flex-1 w-full items-center space-y-2">
         {navigationItems.map((item) => {
           const isFocused = pathname.startsWith(item.route as string);
