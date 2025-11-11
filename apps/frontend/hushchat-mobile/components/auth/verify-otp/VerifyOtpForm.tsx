@@ -42,7 +42,7 @@ export const VerifyOtpForm = ({
           formValues={{ otp: confirmationCode }}
           formErrors={{ otp: "" }}
           showErrors={false}
-          onValueChange={({ name, value }) => onCodeChange(value)}
+          onValueChange={({ value }) => onCodeChange(value)}
         />
       </View>
 
