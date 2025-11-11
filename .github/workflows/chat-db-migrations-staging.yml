@@ -11,8 +11,6 @@ on:
 jobs:
   liquibase-migration-chat-db:
     runs-on: ubuntu-latest
-    env:
-      SCHEMA_API_URL: ${{ secrets.SCHEMA_API_URL }}
     steps:
       - name: Run Liquibase updates
         uses: appleboy/ssh-action@master
@@ -30,8 +28,7 @@ jobs:
               
             export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
             export PATH=$JAVA_HOME/bin:$PATH
-            export CLASSPATH=$HOME/liquibase/postgresql-42.2.25.jar
-            export SCHEMA_API_URL=https://staging-api.gethush.chat/public/user/workspaces            
+            export CLASSPATH=$HOME/liquibase/postgresql-42.2.25.jar         
             
             echo "Run platform schemas Liquibase update"
             
@@ -51,7 +48,7 @@ jobs:
             echo "Run workspace Liquibase update for all schemas"
             
             echo "Fetching list of schemas..."
-            schemas=$(curl -s $SCHEMA_API_URL | jq -r '.[]')
+            schemas=$(curl -s ${{ secrets.SCHEMA_API_URL }} | jq -r '.[]')
   
             for SCHEMA in $schemas; do
             echo "Running Liquibase update for schema: $SCHEMA"
