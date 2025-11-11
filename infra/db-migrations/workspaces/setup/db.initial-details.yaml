@@ -1,6 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1761728537199-1
+    id: 1762862486469-1
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -40,7 +40,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: conversation_report
 - changeSet:
-    id: 1761728537199-2
+    id: 1762862486469-2
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -88,7 +88,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: call_log
 - changeSet:
-    id: 1761728537199-3
+    id: 1762862486469-3
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -127,7 +127,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: chat_notification
 - changeSet:
-    id: 1761728537199-4
+    id: 1762862486469-4
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -193,7 +193,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: conversation_participant
 - changeSet:
-    id: 1761728537199-5
+    id: 1762862486469-5
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -232,7 +232,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: message_reaction
 - changeSet:
-    id: 1761728537199-6
+    id: 1762862486469-6
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -281,7 +281,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: chat_user
 - changeSet:
-    id: 1761728537199-7
+    id: 1762862486469-7
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -315,7 +315,7 @@ databaseChangeLog:
             type: BIGINT
         tableName: favourite_message
 - changeSet:
-    id: 1761728537199-8
+    id: 1762862486469-8
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -349,7 +349,7 @@ databaseChangeLog:
             type: TIMESTAMP WITHOUT TIME ZONE
         tableName: user_block
 - changeSet:
-    id: 1761728537199-9
+    id: 1762862486469-9
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -357,7 +357,7 @@ databaseChangeLog:
         constraintName: chat_notification_token_key
         tableName: chat_notification
 - changeSet:
-    id: 1761728537199-10
+    id: 1762862486469-10
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -365,7 +365,7 @@ databaseChangeLog:
         constraintName: uk_conversation_participant
         tableName: conversation_participant
 - changeSet:
-    id: 1761728537199-11
+    id: 1762862486469-11
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -373,7 +373,7 @@ databaseChangeLog:
         constraintName: uk_reaction_message_user_type
         tableName: message_reaction
 - changeSet:
-    id: 1761728537199-12
+    id: 1762862486469-12
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -381,7 +381,7 @@ databaseChangeLog:
         constraintName: chat_user_username_key
         tableName: chat_user
 - changeSet:
-    id: 1761728537199-13
+    id: 1762862486469-13
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -389,7 +389,7 @@ databaseChangeLog:
         constraintName: uk_favourite_message_user_message
         tableName: favourite_message
 - changeSet:
-    id: 1761728537199-14
+    id: 1762862486469-14
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -397,7 +397,7 @@ databaseChangeLog:
         constraintName: uk_user_block_blocker_blocked
         tableName: user_block
 - changeSet:
-    id: 1761728537199-15
+    id: 1762862486469-15
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -410,7 +410,7 @@ databaseChangeLog:
         sequenceName: call_log_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-16
+    id: 1762862486469-16
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -423,7 +423,7 @@ databaseChangeLog:
         sequenceName: call_participant_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-17
+    id: 1762862486469-17
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -436,7 +436,7 @@ databaseChangeLog:
         sequenceName: chat_user_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-18
+    id: 1762862486469-18
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -449,7 +449,7 @@ databaseChangeLog:
         sequenceName: conversation_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-19
+    id: 1762862486469-19
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -462,7 +462,7 @@ databaseChangeLog:
         sequenceName: conversation_participant_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-20
+    id: 1762862486469-20
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -475,7 +475,7 @@ databaseChangeLog:
         sequenceName: conversation_read_status_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-21
+    id: 1762862486469-21
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -488,7 +488,7 @@ databaseChangeLog:
         sequenceName: device_token_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-22
+    id: 1762862486469-22
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -501,7 +501,7 @@ databaseChangeLog:
         sequenceName: favourite_message_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-23
+    id: 1762862486469-23
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -514,7 +514,7 @@ databaseChangeLog:
         sequenceName: message_attachment_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-24
+    id: 1762862486469-24
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -527,7 +527,7 @@ databaseChangeLog:
         sequenceName: message_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-25
+    id: 1762862486469-25
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -540,7 +540,7 @@ databaseChangeLog:
         sequenceName: message_mention_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-26
+    id: 1762862486469-26
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -553,7 +553,7 @@ databaseChangeLog:
         sequenceName: message_reaction_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-27
+    id: 1762862486469-27
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -566,7 +566,7 @@ databaseChangeLog:
         sequenceName: user_block_generator
         startValue: 1
 - changeSet:
-    id: 1761728537199-28
+    id: 1762862486469-28
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -606,7 +606,7 @@ databaseChangeLog:
             type: TIMESTAMP WITHOUT TIME ZONE
         tableName: call_participant
 - changeSet:
-    id: 1761728537199-29
+    id: 1762862486469-29
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -657,7 +657,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: conversation
 - changeSet:
-    id: 1761728537199-30
+    id: 1762862486469-30
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -692,7 +692,7 @@ databaseChangeLog:
             type: BIGINT
         tableName: conversation_read_status
 - changeSet:
-    id: 1761728537199-31
+    id: 1762862486469-31
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -743,7 +743,7 @@ databaseChangeLog:
             type: TSVECTOR
         tableName: message
 - changeSet:
-    id: 1761728537199-32
+    id: 1762862486469-32
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -780,7 +780,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: message_attachment
 - changeSet:
-    id: 1761728537199-33
+    id: 1762862486469-33
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -814,7 +814,7 @@ databaseChangeLog:
             type: TIMESTAMP WITHOUT TIME ZONE
         tableName: message_mention
 - changeSet:
-    id: 1761728537199-34
+    id: 1762862486469-34
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -829,7 +829,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-35
+    id: 1762862486469-35
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -844,7 +844,7 @@ databaseChangeLog:
         referencedTableName: call_log
         validate: true
 - changeSet:
-    id: 1761728537199-36
+    id: 1762862486469-36
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -859,7 +859,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-37
+    id: 1762862486469-37
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -874,7 +874,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-38
+    id: 1762862486469-38
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -889,7 +889,7 @@ databaseChangeLog:
         referencedTableName: conversation
         validate: true
 - changeSet:
-    id: 1761728537199-39
+    id: 1762862486469-39
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -904,7 +904,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-40
+    id: 1762862486469-40
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -919,7 +919,7 @@ databaseChangeLog:
         referencedTableName: conversation
         validate: true
 - changeSet:
-    id: 1761728537199-41
+    id: 1762862486469-41
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -934,7 +934,7 @@ databaseChangeLog:
         referencedTableName: message
         validate: true
 - changeSet:
-    id: 1761728537199-42
+    id: 1762862486469-42
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -949,7 +949,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-43
+    id: 1762862486469-43
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -964,7 +964,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-44
+    id: 1762862486469-44
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -979,7 +979,7 @@ databaseChangeLog:
         referencedTableName: conversation
         validate: true
 - changeSet:
-    id: 1761728537199-45
+    id: 1762862486469-45
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -994,7 +994,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-46
+    id: 1762862486469-46
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1009,7 +1009,7 @@ databaseChangeLog:
         referencedTableName: message
         validate: true
 - changeSet:
-    id: 1761728537199-47
+    id: 1762862486469-47
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1024,7 +1024,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-48
+    id: 1762862486469-48
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1039,7 +1039,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-49
+    id: 1762862486469-49
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1054,7 +1054,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-50
+    id: 1762862486469-50
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1069,7 +1069,7 @@ databaseChangeLog:
         referencedTableName: conversation
         validate: true
 - changeSet:
-    id: 1761728537199-51
+    id: 1762862486469-51
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1084,7 +1084,7 @@ databaseChangeLog:
         referencedTableName: message
         validate: true
 - changeSet:
-    id: 1761728537199-52
+    id: 1762862486469-52
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1099,7 +1099,7 @@ databaseChangeLog:
         referencedTableName: message
         validate: true
 - changeSet:
-    id: 1761728537199-53
+    id: 1762862486469-53
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1114,7 +1114,7 @@ databaseChangeLog:
         referencedTableName: message
         validate: true
 - changeSet:
-    id: 1761728537199-54
+    id: 1762862486469-54
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1129,7 +1129,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-55
+    id: 1762862486469-55
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1144,7 +1144,7 @@ databaseChangeLog:
         referencedTableName: message
         validate: true
 - changeSet:
-    id: 1761728537199-56
+    id: 1762862486469-56
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1159,7 +1159,7 @@ databaseChangeLog:
         referencedTableName: message
         validate: true
 - changeSet:
-    id: 1761728537199-57
+    id: 1762862486469-57
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1174,7 +1174,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-58
+    id: 1762862486469-58
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1189,7 +1189,7 @@ databaseChangeLog:
         referencedTableName: conversation
         validate: true
 - changeSet:
-    id: 1761728537199-59
+    id: 1762862486469-59
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1204,7 +1204,7 @@ databaseChangeLog:
         referencedTableName: chat_user
         validate: true
 - changeSet:
-    id: 1761728537199-60
+    id: 1762862486469-60
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
