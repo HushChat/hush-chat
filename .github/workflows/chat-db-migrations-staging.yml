@@ -12,12 +12,12 @@ jobs:
   liquibase-migration-chat-db:
     runs-on: ubuntu-latest
     env:
-      SCHEMA_API_URL: ${{ secrets.SCHEMA_API_URL }}
+      SCHEMA_API_URL: ${{ vars.SCHEMA_API_URL }}
     steps:
       - name: Run Liquibase updates
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST_IP-ADDRESS }}
+          host: ${{ secrets.HOST_IP_ADDRESS }}
           username: ${{ secrets.HOST_USERNAME }}
           key: ${{ secrets.HOST_SSH_KEY_CHAT_SERVER }}
           timeout: 20m
