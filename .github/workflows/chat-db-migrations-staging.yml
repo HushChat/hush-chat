@@ -11,6 +11,8 @@ on:
 jobs:
   liquibase-migration-chat-db:
     runs-on: ubuntu-latest
+    env:
+      SCHEMA_API_URL: ${{ secrets.SCHEMA_API_URL }}
     steps:
       - name: Run Liquibase updates
         uses: appleboy/ssh-action@master
@@ -48,7 +50,7 @@ jobs:
             echo "Run workspace Liquibase update for all schemas"
             
             echo "Fetching list of schemas..."
-            schemas=$(curl -s ${{ secrets.SCHEMA_API_URL }} | jq -r '.[]')
+            schemas=$(curl -s ${{ env.SCHEMA_API_URL }} | jq -r '.[]')
   
             for SCHEMA in $schemas; do
             echo "Running Liquibase update for schema: $SCHEMA"
