@@ -82,7 +82,7 @@ const ConversationInputBar = ({
   minLines = 1,
   maxLines = 6,
   lineHeight = 22,
-  verticalPadding = 12,
+  verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
   maxChars,
   autoFocus = false,
   replyToMessage,
