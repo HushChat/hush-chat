@@ -137,6 +137,7 @@ const ConversationThreadScreen = ({
       const results = await pickAndUploadImages();
 
       if (results?.some((r) => r.success)) {
+        await refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
