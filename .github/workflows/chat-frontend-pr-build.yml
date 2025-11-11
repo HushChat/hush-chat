@@ -66,6 +66,10 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: android-actions/setup-android@v3
 
+      - name: Install Expo and EAS CLIs
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: yarn add -W expo-cli eas-cli
+
       - name: Build Android
         if: steps.changed-files.outputs.any_changed == 'true'
         run: yarn build-android
