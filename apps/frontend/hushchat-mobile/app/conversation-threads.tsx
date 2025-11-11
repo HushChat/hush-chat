@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -104,12 +104,20 @@ const ConversationThreadScreen = ({
     addMore: handleAddMoreFiles,
   } = useImagePreview();
 
+  const jumpBlockRef = useRef(false);
+
   useEffect(() => {
     if (searchedMessage && jumpToMessage) {
+      jumpBlockRef.current = true;
       void jumpToMessage(searchedMessage);
       onMessageJumped?.();
+
+      setTimeout(() => {
+        jumpBlockRef.current = false;
+      }, 1500);
     }
   }, [searchedMessage, jumpToMessage, onMessageJumped]);
+
 
   const {
     pickAndUploadImages,
@@ -175,9 +183,10 @@ const ConversationThreadScreen = ({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleLoadNewer = useCallback(async () => {
-    if (hasPreviousPage && !isFetchingPreviousPage) {
-      await fetchPreviousPage();
-    }
+    if (jumpBlockRef.current) return;
+
+    if (!hasPreviousPage || isFetchingPreviousPage) return;
+    await fetchPreviousPage();
   }, [hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage]);
 
   const handleMessageSelect = useCallback((message: IMessage) => {
@@ -327,7 +336,6 @@ const ConversationThreadScreen = ({
         messages={conversationMessages}
         onLoadMore={handleLoadMore}
         onEndReached={handleLoadNewer}
-        isFetchingNextPage={isFetchingNextPage}
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}

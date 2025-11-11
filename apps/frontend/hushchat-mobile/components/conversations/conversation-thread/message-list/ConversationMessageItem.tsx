@@ -370,7 +370,7 @@ export const ConversationMessageItem = ({
             )}
 
             <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-              {messageTime}
+              {messageTime} {message.id}
             </AppText>
 
             {!isCurrentUser && PLATFORM.IS_WEB && !message.isUnsend && (

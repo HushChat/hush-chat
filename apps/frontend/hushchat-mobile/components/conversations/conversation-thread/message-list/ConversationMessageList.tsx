@@ -4,7 +4,7 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
@@ -27,7 +27,6 @@ import MessageReactionsModal from "@/components/conversations/conversation-threa
 interface MessagesListProps {
   messages: IMessage[];
   onLoadMore: () => Promise<void>;
-  isFetchingNextPage: boolean;
   onMessageSelect?: (message: IMessage) => void;
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
@@ -38,7 +37,6 @@ interface MessagesListProps {
 const ConversationMessageList = ({
   messages,
   onLoadMore,
-  isFetchingNextPage,
   onMessageSelect,
   conversationAPIResponse,
   pickerState,
@@ -241,14 +239,12 @@ const ConversationMessageList = ({
     ]
   );
 
-  const renderLoadingFooter = useCallback(() => {
-    if (!isFetchingNextPage) return null;
-    return (
-      <View className="py-4">
-        <ActivityIndicator />
-      </View>
-    );
-  }, [isFetchingNextPage]);
+  // const renderLoadingFooter = useCallback(() => {
+  //
+  //   return (
+  //
+  //   );
+  // }, []);
 
   return (
     <>
@@ -285,7 +281,8 @@ const ConversationMessageList = ({
         onEndReachedThreshold={0.1}
         onStartReached={onEndReached}
         onStartReachedThreshold={0.1}
-        ListFooterComponent={renderLoadingFooter}
+        ListFooterComponent={<View style={{ height: 10 }} />}
+        ListHeaderComponent={<View style={{ height: 10 }} />}
         onScrollBeginDrag={closeAllOverlays}
         onTouchEnd={closeAllOverlays}
         onMomentumScrollBegin={closeAllOverlays}

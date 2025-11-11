@@ -100,12 +100,11 @@ export function useConversationMessagesQuery(conversationId: number) {
           pages: [response.data],
           pageParams: [{ beforeId: messageId }],
         });
-      } finally {
-        setJumping(false);
-      }
+      } finally {}
     },
     [conversationId, queryClient, queryKey, setJumping]
   );
+  console.log('has new',hasMoreNewer)
 
   return {
     conversationMessagesPages: pages,

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { CursorPaginatedQueryOptions, CursorPaginatedResponse } from "@/apis/conversation";
 
@@ -41,24 +41,38 @@ export function usePaginatedQueryWithCursor<T extends { id: number | undefined }
     getNextPageParam: (lastPage) => {
       const content = lastPage?.content ?? [];
       if (content.length < pageSize) return undefined;
-
       const oldestMessage = content[content.length - 1];
-      return { beforeId: Number(oldestMessage?.id), afterId: undefined };
+      return { beforeId: oldestMessage.id };
     },
 
     getPreviousPageParam: (firstPage) => {
+      console.log("[DEBUG] getPreviousPageParam called", { isJumping: isJumpingRef.current });
       if (!isJumpingRef.current) return undefined;
 
       const content = firstPage?.content ?? [];
       if (content.length < pageSize) return undefined;
 
       const newestMessage = content[0];
-      return { beforeId: undefined, afterId: Number(newestMessage?.id) };
+      console.log("[DEBUG] fetching afterId", newestMessage.id);
+      return { afterId: newestMessage.id };
     },
+
 
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    // Once newer messages fetched, disable jump mode
+    if (isJumpingRef.current && isFetchingPreviousPage) {
+      // once fetch finishes, reset
+      const timeout = setTimeout(() => {
+        isJumpingRef.current = false;
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isFetchingPreviousPage]);
+
 
   const setJumping = (state: boolean) => {
     isJumpingRef.current = state;
@@ -71,11 +85,11 @@ export function usePaginatedQueryWithCursor<T extends { id: number | undefined }
     fetchOlder: fetchNextPage,
     fetchNewer: fetchPreviousPage,
     hasMoreOlder: hasNextPage ?? false,
-    hasMoreNewer: hasPreviousPage ?? false,
+    hasMoreNewer: isJumpingRef.current ? (hasPreviousPage) : false,
     isFetchingOlder: isFetchingNextPage,
     isFetchingNewer: isFetchingPreviousPage,
-    refetch,
     setJumping,
+    refetch,
     invalidateQuery: () => queryClient.invalidateQueries({ queryKey }),
   };
 }
