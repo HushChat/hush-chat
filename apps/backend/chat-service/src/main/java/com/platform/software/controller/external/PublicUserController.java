@@ -106,9 +106,7 @@ public class PublicUserController {
 
     @ApiOperation(value = "Get all workspaces", response = List.class)
     @GetMapping("workspaces")
-    public ResponseEntity<List<String>> getWorkspaces(
-            @RequestHeader("X-API-TOKEN") String token
-    ) {
-        return ResponseEntity.ok(workspaceService.getAllWorkspaces(token));
+    public ResponseEntity<List<String>> getWorkspaces() {
+        return ResponseEntity.ok(workspaceService.getAllWorkspaces());
     }
 }
