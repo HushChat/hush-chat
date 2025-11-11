@@ -135,7 +135,7 @@ export function appendToOffsetPaginatedCache<T>(
       const first = setPageItems({}, items.slice(0, Math.min(items.length, pageSize)));
       const pages = [{ ...first }];
       // Carry any overflow beyond pageSize down the chain
-      let carry =
+      const carry =
         getPageItems(pages[0]).length > pageSize ? getPageItems(pages[0]).splice(pageSize) : [];
       while (carry.length) {
         const nextChunk = carry.splice(0, pageSize);
@@ -177,7 +177,7 @@ export function appendToOffsetPaginatedCache<T>(
         pages[i] = setPageItems(pages[i], [...carry, ...curr]);
       }
 
-      let pageItems = [...getPageItems(pages[i])];
+      const pageItems = [...getPageItems(pages[i])];
       if (pageItems.length > pageSize) {
         // Pop from the end (oldest within this page) to carry to the next
         carry = pageItems.splice(pageSize);
