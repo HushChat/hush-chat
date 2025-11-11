@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
-    Optional<Workspace> findByWorkspaceIdentifier(String name);
+    boolean existsByName(String name);
 }

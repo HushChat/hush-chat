@@ -1,5 +1,8 @@
 package com.platform.software.platform.workspace.controller;
 
+import com.platform.software.chat.user.dto.UserDTO;
+import com.platform.software.chat.user.dto.WorkSpaceUserUpsertDTO;
+import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.platform.workspace.dto.WorkspaceDTO;
@@ -13,36 +16,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/workspaces")
 public class WorkspaceController {
 
     private final WorkspaceUserService workspaceUserService;
+    private final UserService userService;
     private final WorkspaceService workspaceService;
 
-    public WorkspaceController(WorkspaceUserService workspaceUserService, WorkspaceService workspaceService) {
+    public WorkspaceController(WorkspaceUserService workspaceUserService, UserService userService, WorkspaceService workspaceService) {
         this.workspaceUserService = workspaceUserService;
+        this.userService = userService;
         this.workspaceService = workspaceService;
     }
 
-    @ApiOperation(value = "switch workspaces", response = WorkspaceDTO.class)
-    @PostMapping("{workspaceId}/switch")
-    public ResponseEntity<WorkspaceDTO> switchWorkspaces(
-        @PathVariable Long workspaceId,
-        @AuthenticatedUser UserDetails userDetails
-    ) {
-        WorkspaceDTO workspace = workspaceUserService.verifyUserAccessToWorkspace(userDetails.getEmail(), workspaceId);
-        return new ResponseEntity<>(workspace, HttpStatus.OK);
-    }
-
-    @ApiOperation(value = "create workspaces")
+    @ApiOperation(value = "Create new workspace")
     @PostMapping
     public ResponseEntity<Void> createWorkspace(
-        @RequestBody WorkspaceUpsertDTO workspaceUpsertDTO,
-        @AuthenticatedUser UserDetails userDetails
-    ) {
+            @Valid @RequestBody WorkspaceUpsertDTO workspaceUpsertDTO,
+            @AuthenticatedUser UserDetails userDetails
+    ){
         workspaceService.createWorkspace(workspaceUpsertDTO, userDetails.getEmail());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @ApiOperation(value = "invite to workspaces")
@@ -54,5 +51,21 @@ public class WorkspaceController {
     ) {
         workspaceUserService.inviteUserToWorkspace(userDetails.getEmail(), workspaceIdentifier, workspaceUserInviteDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @ApiOperation(value = "Create a new workspace user", response = UserDTO.class)
+    @PostMapping("/register-workspace")
+    public ResponseEntity<UserDTO> createWorkSpaceUser(
+            @Valid @RequestBody WorkSpaceUserUpsertDTO workSpaceUserUpsertDTO,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        UserDTO createdEmployee = userService.createWorkSpaceUser(workSpaceUserUpsertDTO, userDetails.getEmail());
+        return new ResponseEntity<>(createdEmployee, HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "Get Active/Pending Workspaces by email")
+    @GetMapping
+    public ResponseEntity<List<WorkspaceDTO>> getMyWorkspaces(@AuthenticatedUser UserDetails userDetails) {
+        return new ResponseEntity<>(workspaceUserService.getAllWorkspaceDTO(userDetails.getEmail()), HttpStatus.OK);
     }
 }

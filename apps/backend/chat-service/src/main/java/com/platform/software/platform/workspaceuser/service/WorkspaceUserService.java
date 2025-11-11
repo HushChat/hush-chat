@@ -29,13 +29,6 @@ public class WorkspaceUserService {
         this.transactionTemplate = transactionTemplate;
     }
 
-    public WorkspaceDTO verifyUserAccessToWorkspace(String email, Long workspaceId) {
-        WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_Id(email, workspaceId)
-            .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid workspace id"));
-
-        return new WorkspaceDTO(user.getWorkspace());
-    }
-
     public WorkspaceDTO verifyUserAccessToWorkspace(String email, String workspaceName) {
         WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_Name(email, workspaceName)
             .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid name"));
@@ -50,8 +43,8 @@ public class WorkspaceUserService {
         });
     }
 
-    public Workspace getInvitedWorkspace(String email) {
-        return WorkspaceUtils.runInGlobalSchema(() -> workspaceUserRepository.findPendingWorkspaceByUserEmailOrThrow(email));
+    public Workspace getInvitedWorkspace(String email, String currantTenant) {
+        return WorkspaceUtils.runInGlobalSchema(() -> workspaceUserRepository.findPendingWorkspaceByUserEmailOrThrow(email, currantTenant));
     }
 
     public void markInvitationAsAccepted(String email, Long workspaceId) {
@@ -85,5 +78,20 @@ public class WorkspaceUserService {
             });
         });
 
+    }
+
+    public List<WorkspaceDTO> getAllWorkspaceDTO(String email) {
+        return WorkspaceUtils.runInGlobalSchema(() -> {
+            List<WorkspaceUser> workspaceUsers = workspaceUserRepository.findAllByEmail(email);
+
+            return workspaceUsers.stream()
+                    .map(workspaceUser ->
+                            new WorkspaceDTO(
+                                    workspaceUser.getWorkspace(),
+                                    workspaceUser.getStatus()
+                            )
+                    )
+                    .toList();
+        });
     }
 }
