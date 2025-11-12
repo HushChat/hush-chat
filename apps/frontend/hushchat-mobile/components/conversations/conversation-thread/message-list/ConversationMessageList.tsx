@@ -44,8 +44,6 @@ const SectionFooter = (({ title }: { title: string }) => (
   </View>
 ));
 
-
-
 const ConversationMessageList = ({
   messages,
   onLoadMore,
