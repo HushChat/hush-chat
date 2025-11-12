@@ -10,6 +10,5 @@ import java.util.Optional;
 @Repository
 public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     boolean existsByName(String name);
-    Optional<Workspace> findByWorkspaceIdentifier(String name);
     List<Workspace> findAllByWorkspaceIdentifierIsNotNull();
 }
