@@ -3,8 +3,8 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { ActivityIndicator, SectionList, View } from "react-native";
 import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
@@ -20,6 +20,10 @@ import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants
 import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
+import { AppText } from "@/components/AppText";
+import { groupMessagesByDate } from "@/utils/messageUtils";
+// @ts-ignore
+// eslint-disable-next-line import/no-unresolved
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 
 interface MessagesListProps {
@@ -31,6 +35,16 @@ interface MessagesListProps {
   pickerState: TPickerState;
   selectedConversationId: number;
 }
+
+const SectionFooter = (({ title }: { title: string }) => (
+  <View className="items-center my-2">
+    <View className="dark:bg-secondary-dark bg-secondary-light rounded-full px-3 py-1">
+      <AppText className="text-xs dark:!text-gray-300 text-gray-700 font-medium">{title}</AppText>
+    </View>
+  </View>
+));
+
+
 
 const ConversationMessageList = ({
   messages,
@@ -195,6 +209,10 @@ const ConversationMessageList = ({
     setReactionsModal((prev) => ({ ...prev, visible: false }));
   }, []);
 
+  const groupedSections = useMemo(() => {
+    return groupMessagesByDate(messages);
+  }, [messages]);
+
   const renderMessage = useCallback(
     ({ item }: { item: IMessage }) => {
       const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -271,13 +289,13 @@ const ConversationMessageList = ({
         />
       )}
 
-      <FlatList
-        data={messages}
+      <SectionList
+        sections={groupedSections}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id?.toString()}
-        className="flex-1 px-4"
-        showsVerticalScrollIndicator={false}
+        renderSectionFooter={({ section }) => <SectionFooter title={section.title} />}
         inverted
+        showsVerticalScrollIndicator={false}
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
@@ -300,5 +318,4 @@ const ConversationMessageList = ({
     </>
   );
 };
-
 export default ConversationMessageList;
