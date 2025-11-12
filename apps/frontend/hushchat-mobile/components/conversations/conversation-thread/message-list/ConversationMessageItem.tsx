@@ -128,7 +128,8 @@ export const ConversationMessageItem = ({
   );
 
   const senderName = useMemo(
-    () => `${message.senderFirstName || ""} ${message.senderLastName || ""}`.trim() || "Unknown User",
+    () =>
+      `${message.senderFirstName || ""} ${message.senderLastName || ""}`.trim() || "Unknown User",
     [message.senderFirstName, message.senderLastName]
   );
 
@@ -343,7 +344,7 @@ export const ConversationMessageItem = ({
         <View className={classNames("flex-row", showAvatar ? "mx-2" : "mx-4")}>
           {showAvatar && (
             <View className="mr-2 pt-1">
-              <InitialsAvatar 
+              <InitialsAvatar
                 name={senderName}
                 size={AvatarSize.small}
                 imageUrl={message.senderSignedImageUrl}
@@ -463,7 +464,9 @@ export const ConversationMessageItem = ({
                 </View>
               )}
 
-              <View className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}>
+              <View
+                className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
+              >
                 <ForwardedLabel
                   isForwardedMessage={isForwardedMessage}
                   isCurrentUser={isCurrentUser}
