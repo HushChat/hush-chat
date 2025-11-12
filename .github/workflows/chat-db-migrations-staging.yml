@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'infra/db-migrations/**'
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -17,9 +18,9 @@ jobs:
       - name: Run Liquibase updates
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST_IP_ADDRESS }}
-          username: ${{ secrets.HOST_USERNAME }}
-          key: ${{ secrets.HOST_SSH_KEY_CHAT_SERVER }}
+          host: ${{ vars.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_HOST_SSH_KEY }}
           timeout: 20m
           script: |
             set -e
