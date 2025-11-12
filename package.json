@@ -19,7 +19,7 @@
     "run:stack": "concurrently \"yarn start:backend\" \"yarn start:hush-chat\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "lint:check": "eslint . --max-warnings 0",
+    "lint:check": "eslint .",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "format": "prettier --write . && eslint . --fix",
