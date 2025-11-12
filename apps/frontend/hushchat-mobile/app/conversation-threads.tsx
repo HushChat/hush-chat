@@ -427,7 +427,7 @@ const ConversationThreadScreen = ({
                   {renderContent()}
                   <View
                     style={{
-                      paddingBottom: PLATFORM.IS_IOS ? undefined : 0, 
+                      paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
                     }}
                   >
                     {renderTextInput()}
