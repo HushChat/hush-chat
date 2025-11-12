@@ -51,7 +51,7 @@ export const useGenericMutation = <TData, TVariables = void>(
 
   return useMutation({
     mutationFn,
-    onSuccess: async (response, variables, context) => {
+    onSuccess: async (response, variables) => {
       const { isSuccess, data } = isSuccessResponse(response);
 
       if (isSuccess) {

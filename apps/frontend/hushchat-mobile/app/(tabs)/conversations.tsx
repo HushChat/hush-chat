@@ -21,7 +21,6 @@ import { IConversation, IFilter, ConversationType } from "@/types/chat/types";
 import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
 import { useEffect, useMemo, useState } from "react";
-/* eslint-disable import/no-unresolved */
 import ChatInterface from "@/components/conversations/ChatInterface";
 
 export default function ConversationScreen() {
