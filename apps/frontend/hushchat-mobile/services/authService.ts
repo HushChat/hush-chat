@@ -4,10 +4,14 @@ import { ICreateWorkspace, IRegisterUserPayload, IWorkspaceRegister } from "@/ty
 
 export async function loginUser(email: string, password: string) {
   try {
-    const { data } = await axios.post(AUTH_API_ENDPOINTS.LOGIN, {
-      email,
-      password,
-    });
+    const { data } = await axios.post(
+      AUTH_API_ENDPOINTS.LOGIN,
+      {
+        email,
+        password,
+      },
+      { skipErrorToast: true }
+    );
     return {
       success: true,
       idToken: data.idToken,

@@ -4,6 +4,12 @@ import { router } from "expo-router";
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAuthStore } from "@/store/auth/authStore";
 
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    skipErrorToast?: boolean;
+  }
+}
+
 let isLoggingOut = false;
 const safeLogoutAndRedirect = () => {
   if (isLoggingOut) return;
@@ -84,7 +90,11 @@ export const setupGlobalErrorHandling = () => {
         // Here, the error is still AxiosError, so error.message should be fine
         errorMessage = error.message || "Error preparing request";
       }
-      ToastUtils.error("Error!", errorMessage);
+
+      if (!error.config?.skipErrorToast) {
+        ToastUtils.error("Error!", errorMessage);
+      }
+
       return Promise.reject(error);
     }
   );
