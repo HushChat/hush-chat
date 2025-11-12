@@ -35,7 +35,7 @@ jobs:
             export DATASOURCE_URL=jdbc:postgresql://localhost:5433/chat_system
             
             echo "Backup Database"
-            docker exec -t db_postgres_staging pg_dumpall -U postgres | tee ~/staging/db-backup/full_backup_staging.sql > /dev/null
+            docker exec -t db_postgres_staging pg_dumpall -U postgres | tee ~/staging/db-backup/full_backup_staging_$(date +"%Y%m%d_%H%M%S").sql
             
             echo "Run platform schemas Liquibase update"
             
