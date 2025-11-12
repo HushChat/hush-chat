@@ -30,4 +30,9 @@ jobs:
         uses: ./.github/actions/setup-node-yarn-install
 
       - name: Compile the chat service
+        if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        run: mvn -f apps/backend/chat-service/pom.xml clean compile -DskipTests
+
+      - name: Compile and test the chat service
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         run: mvn -f apps/backend/chat-service/pom.xml clean compile

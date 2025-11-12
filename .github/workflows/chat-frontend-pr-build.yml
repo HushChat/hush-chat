@@ -3,7 +3,7 @@ name: Chat Service Frontend PR Build
 on:
   pull_request:
     paths:
-      - "apps/frontend/hushchat-mobile/**"
+      - "apps/frontend/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
