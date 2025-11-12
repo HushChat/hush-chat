@@ -31,10 +31,10 @@
     <!--  Root Logger                              -->
     <!-- ========================================== -->
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="CONSOLE" />
         <if condition='property("logElkEnabled").contains("true")'>
             <then>
-                <appender-ref ref="LOGSTASH"/>
+                <appender-ref ref="LOGSTASH" />
             </then>
         </if>
     </root>

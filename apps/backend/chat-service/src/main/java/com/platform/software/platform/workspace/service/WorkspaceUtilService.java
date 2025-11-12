@@ -21,9 +21,9 @@ public class WorkspaceUtilService {
     private final WorkspaceRepository workspaceRepository;
 
     public WorkspaceUtilService(
-            WorkspaceRepository workspaceRepository,
-            UserService userService,
-            WorkspaceUserRepository workspaceUserRepository
+        WorkspaceRepository workspaceRepository,
+        UserService userService,
+        WorkspaceUserRepository workspaceUserRepository
     ) {
         this.workspaceRepository = workspaceRepository;
         this.userService = userService;

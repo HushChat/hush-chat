@@ -2,13 +2,6 @@ package com.platform.software.controller.external;
 
 import com.platform.software.config.logging.GitLoggingConfiguration;
 import com.platform.software.more.seeder.SeederStatus;
-import io.swagger.annotations.ApiOperation;
-import jakarta.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +10,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import jakarta.annotation.Nullable;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-
-import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import io.swagger.annotations.ApiOperation;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/health-check")
@@ -33,10 +37,10 @@ public class HealthCheckController {
     private final RedisTemplate<String, Object> redisTemplate;
 
     public HealthCheckController(
-            SeederStatus seederStatus,
-            TemplateEngine templateEngine,
-            GitLoggingConfiguration gitConfiguration,
-            @Nullable RedisTemplate<String, Object> redisTemplate
+        SeederStatus seederStatus,
+        TemplateEngine templateEngine,
+        GitLoggingConfiguration gitConfiguration,
+        @Nullable RedisTemplate<String, Object> redisTemplate
     ) {
         this.seederStatus = seederStatus;
         this.templateEngine = templateEngine;

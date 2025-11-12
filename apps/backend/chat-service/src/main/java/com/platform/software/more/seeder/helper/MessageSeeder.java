@@ -1,6 +1,5 @@
 package com.platform.software.more.seeder.helper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
@@ -16,10 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class MessageSeeder {
@@ -59,7 +60,7 @@ public class MessageSeeder {
             }
 
             List<Message> conversationMessages = createMessagesForConversation(
-                    conversation, participants, messageCount);
+                conversation, participants, messageCount);
             messagesToSave.addAll(conversationMessages);
             totalMessages += messageCount;
 
@@ -75,7 +76,7 @@ public class MessageSeeder {
             }
         }
         logger.info("Finished seeding {} messages across {} conversations",
-                totalMessages, conversations.size());
+            totalMessages, conversations.size());
     }
 
     @Transactional
@@ -102,9 +103,9 @@ public class MessageSeeder {
 
     private List<ChatUser> getConversationParticipants(Conversation conversation) {
         return conversation.getConversationParticipants()
-                .stream()
-                .map(ConversationParticipant::getUser)
-                .collect(Collectors.toList());
+            .stream()
+            .map(ConversationParticipant::getUser)
+            .collect(Collectors.toList());
     }
 
     private List<Message> createMessagesForConversation(Conversation conversation,
@@ -153,24 +154,24 @@ public class MessageSeeder {
 
     private String generateRandomMessageText() {
         String[] messageTypes = {
-                faker.lorem().sentence(),
-                faker.chuckNorris().fact(),
-                faker.shakespeare().hamletQuote(),
-                faker.rickAndMorty().quote(),
-                faker.howIMetYourMother().quote(),
-                faker.gameOfThrones().quote(),
-                faker.lebowski().quote(),
-                faker.yoda().quote(),
-                faker.harryPotter().quote(),
-                faker.starTrek().location() + " " + faker.starTrek().character(),
-                faker.programmingLanguage().name() + " is " + faker.hacker().adjective(),
-                faker.company().catchPhrase(),
-                "Meeting at " + faker.date().future(7, TimeUnit.DAYS),
-                faker.weather().description() + " today!",
-                faker.music().genre() + " music is the best",
-                faker.food().dish() + " for lunch?",
-                faker.color().name() + " is my favorite color",
-                faker.book().title() + " - great read!"
+            faker.lorem().sentence(),
+            faker.chuckNorris().fact(),
+            faker.shakespeare().hamletQuote(),
+            faker.rickAndMorty().quote(),
+            faker.howIMetYourMother().quote(),
+            faker.gameOfThrones().quote(),
+            faker.lebowski().quote(),
+            faker.yoda().quote(),
+            faker.harryPotter().quote(),
+            faker.starTrek().location() + " " + faker.starTrek().character(),
+            faker.programmingLanguage().name() + " is " + faker.hacker().adjective(),
+            faker.company().catchPhrase(),
+            "Meeting at " + faker.date().future(7, TimeUnit.DAYS),
+            faker.weather().description() + " today!",
+            faker.music().genre() + " music is the best",
+            faker.food().dish() + " for lunch?",
+            faker.color().name() + " is my favorite color",
+            faker.book().title() + " - great read!"
         };
 
         return messageTypes[random.nextInt(messageTypes.length)];

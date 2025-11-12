@@ -8,7 +8,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import java.util.List;
 import java.util.Set;
 
@@ -18,7 +17,7 @@ public class RedisCacheService implements CacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final CacheManager cacheManager;
-
+    
     public RedisCacheService(RedisTemplate<String, Object> redisTemplate, CacheManager cacheManager) {
         this.redisTemplate = redisTemplate;
         this.cacheManager = cacheManager;
@@ -62,7 +61,7 @@ public class RedisCacheService implements CacheService {
     public void evictByLastPartsForCurrentWorkspace(List<String> lastParts) {
         String workspaceId = WorkspaceContext.getCurrentWorkspace();
         for (String lastPart : lastParts) {
-            String pattern = "*" + "::" + workspaceId + "::" + "*" + lastPart + ":" + "*";
+            String pattern = "*" + "::" + workspaceId + "::" + "*" + lastPart+ ":" + "*";
             Set<String> keys = redisTemplate.keys(pattern);
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
@@ -82,7 +81,7 @@ public class RedisCacheService implements CacheService {
             cache.evict(key);
         }
     }
-
+    
     @Override
     public <T> T get(List<String> cacheNames) {
         String workspaceId = WorkspaceContext.getCurrentWorkspace();
@@ -140,18 +139,18 @@ public class RedisCacheService implements CacheService {
     public boolean isAllowedToResendSignupCode(String email, Long projectId, long ttlInMinutes) {
         String cacheName = "resend_signup_rate_limit";
         String key = generateCacheKey(cacheName, email.toLowerCase(), projectId);
-
+        
         Boolean hasKey = redisTemplate.hasKey(key);
         if (Boolean.TRUE.equals(hasKey)) {
             return false;
         }
-
+    
         try {
             redisTemplate.opsForValue().set(key, "1", java.time.Duration.ofMinutes(ttlInMinutes));
         } catch (Exception e) {
             logger.error("failed to set resend signup rate limit key: {}", key, e);
         }
-
+    
         return true;
-    }
+    }    
 }

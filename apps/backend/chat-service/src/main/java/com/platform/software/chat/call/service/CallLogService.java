@@ -35,10 +35,10 @@ public class CallLogService {
     private final CallParticipantRepository callParticipantRepository;
 
     public CallLogService(
-            ConversationUtilService conversationUtilService,
-            UserService userService,
-            CallLogRepository callLogRepository,
-            CallParticipantRepository callParticipantRepository
+        ConversationUtilService conversationUtilService,
+        UserService userService,
+        CallLogRepository callLogRepository,
+        CallParticipantRepository callParticipantRepository
     ) {
         this.conversationUtilService = conversationUtilService;
         this.userService = userService;
@@ -102,15 +102,15 @@ public class CallLogService {
 
     private Map<Long, ChatUser> validateAndGetConversationParticipants(Long conversationId, List<CallParticipantUpsertDTO> participantRequests) {
         Set<Long> participantIds = participantRequests
-                .stream().map(CallParticipantUpsertDTO::getUserId)
-                .collect(Collectors.toSet());
-        if (participantIds.isEmpty()) {
+            .stream().map(CallParticipantUpsertDTO::getUserId)
+            .collect(Collectors.toSet());
+        if(participantIds.isEmpty()) {
             throw new CustomBadRequestException("Cannot log a call with no participants");
         }
 
         Map<Long, ConversationParticipant> participantMap = conversationUtilService
-                .getConversationParticipantMap(conversationId, participantIds);
-        if (participantMap.isEmpty()) {
+            .getConversationParticipantMap(conversationId, participantIds);
+        if(participantMap.isEmpty()) {
             throw new CustomBadRequestException("None of the participants are in the conversation");
         }
 

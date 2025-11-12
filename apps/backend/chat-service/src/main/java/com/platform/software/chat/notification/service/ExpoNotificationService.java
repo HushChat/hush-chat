@@ -4,20 +4,20 @@ import com.platform.software.chat.notification.dto.NotificationRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import org.springframework.http.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class ExpoNotificationService implements NotificationService {
+public class ExpoNotificationService implements NotificationService{
 
     private static final String EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 

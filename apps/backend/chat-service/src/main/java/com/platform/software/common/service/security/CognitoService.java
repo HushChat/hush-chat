@@ -29,8 +29,8 @@ public class CognitoService {
     private final CognitoIdentityProviderClient cognitoClient;
 
     public CognitoService(
-            AWSCognitoConfig awsCognitoConfig,
-            CognitoIdentityProviderClient cognitoClient
+        AWSCognitoConfig awsCognitoConfig,
+        CognitoIdentityProviderClient cognitoClient
     ) {
         this.awsCognitoConfig = awsCognitoConfig;
         this.cognitoClient = cognitoClient;
@@ -202,33 +202,33 @@ public class CognitoService {
     }
 
     public void forgotPassword(String email) {
-        String normalizedEmail = email.toLowerCase();
+    String normalizedEmail = email.toLowerCase();
 
-        boolean userExists = userExistsByEmail(normalizedEmail);
+    boolean userExists = userExistsByEmail(normalizedEmail);
 
-        if (!userExists) {
-            throw new CustomBadRequestException("User with the specified email does not exist.");
-        }
-
-        ForgotPasswordRequest forgotPasswordRequest = ForgotPasswordRequest.builder()
-                .clientId(awsCognitoConfig.getClientId())
-                .username(normalizedEmail)
-                .build();
-
-        try {
-            cognitoClient.forgotPassword(forgotPasswordRequest);
-        } catch (LimitExceededException e) {
-            logger.error("Rate exceeded for forgot password: {}", normalizedEmail, e);
-            throw new CustomBadRequestException("You have exceeded the rate limit. Please try again later.");
-        } catch (CognitoIdentityProviderException e) {
-            String errorMessage = e.awsErrorDetails().errorMessage();
-            logger.error("Cognito exception for {}: {}", normalizedEmail, errorMessage, e);
-            throw new CustomBadRequestException("Unable to process forgot password request. Please try again later.");
-        } catch (Exception e) {
-            logger.error("Unexpected error during forgot password for: {}", normalizedEmail, e);
-            throw new CustomBadRequestException("Something went wrong while initiating forgot password.");
-        }
+    if (!userExists) {
+        throw new CustomBadRequestException("User with the specified email does not exist.");
     }
+
+    ForgotPasswordRequest forgotPasswordRequest = ForgotPasswordRequest.builder()
+            .clientId(awsCognitoConfig.getClientId())
+            .username(normalizedEmail)
+            .build();
+
+    try {
+        cognitoClient.forgotPassword(forgotPasswordRequest);
+    } catch (LimitExceededException e) {
+        logger.error("Rate exceeded for forgot password: {}", normalizedEmail, e);
+        throw new CustomBadRequestException("You have exceeded the rate limit. Please try again later.");
+    } catch (CognitoIdentityProviderException e) {
+        String errorMessage = e.awsErrorDetails().errorMessage();
+        logger.error("Cognito exception for {}: {}", normalizedEmail, errorMessage, e);
+        throw new CustomBadRequestException("Unable to process forgot password request. Please try again later.");
+    } catch (Exception e) {
+        logger.error("Unexpected error during forgot password for: {}", normalizedEmail, e);
+        throw new CustomBadRequestException("Something went wrong while initiating forgot password.");
+    }
+}
 
 
     public void confirmForgotPassword(PasswordResetDTO passwordResetDTO) {
@@ -273,7 +273,7 @@ public class CognitoService {
 
         InitiateAuthResponse authResponse = cognitoClient.initiateAuth(initiateAuthRequest);
 
-        if (authResponse.challengeParameters().keySet().isEmpty()) {
+        if(authResponse.challengeParameters().keySet().isEmpty()) {
             AuthenticationResultType authenticationResultType = authResponse.authenticationResult();
 
             LoginResponseDTO loginResponseDTO = LoginResponseDTO.builder()
@@ -295,10 +295,10 @@ public class CognitoService {
 
     public void changePassword(String accessToken, String oldPassword, String newPassword) {
         ChangePasswordRequest request = ChangePasswordRequest.builder()
-                .accessToken(accessToken)
-                .previousPassword(oldPassword)
-                .proposedPassword(newPassword)
-                .build();
+            .accessToken(accessToken)
+            .previousPassword(oldPassword)
+            .proposedPassword(newPassword)
+            .build();
 
         cognitoClient.changePassword(request);
     }

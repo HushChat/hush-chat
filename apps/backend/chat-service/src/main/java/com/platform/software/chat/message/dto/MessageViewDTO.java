@@ -5,7 +5,6 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +27,7 @@ public class MessageViewDTO {
     private Boolean isForwarded;
     private Boolean isUnsend;
 
-    public MessageViewDTO(Message message) {
+     public MessageViewDTO(Message message) {
         initializeFromMessage(message);
 
         Message parent = message.getParentMessage();
@@ -43,7 +42,7 @@ public class MessageViewDTO {
         this.isSeen = lastSeenMessageId != null && message.getId() <= lastSeenMessageId;
     }
 
-    public MessageViewDTO(Message message, boolean includeParent) {
+       public MessageViewDTO(Message message, boolean includeParent) {
         initializeFromMessage(message);
 
         Message parent = message.getParentMessage();

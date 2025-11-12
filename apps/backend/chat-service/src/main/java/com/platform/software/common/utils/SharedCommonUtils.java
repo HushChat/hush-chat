@@ -2,7 +2,6 @@ package com.platform.software.common.utils;
 
 
 import com.google.common.io.Resources;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +14,7 @@ public class SharedCommonUtils {
         URL url = SharedCommonUtils.class.getClassLoader().getResource(resourcePath);
         return Resources.toString(url, StandardCharsets.UTF_8);
     }
+
 
 
 }

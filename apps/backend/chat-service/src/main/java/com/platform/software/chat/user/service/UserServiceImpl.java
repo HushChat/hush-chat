@@ -1,34 +1,30 @@
 package com.platform.software.chat.user.service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
-import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
-import com.platform.software.chat.user.dto.UserUpsertDTO;
-import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
-import com.platform.software.chat.user.entity.UserBlock;
-import com.platform.software.chat.user.repository.UserBlockRepository;
 import com.platform.software.chat.user.repository.UserQueryRepository;
-import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.dto.LoginDTO;
 import com.platform.software.common.model.MediaPathEnum;
-import com.platform.software.common.service.security.CognitoService;
 import com.platform.software.config.aws.AWSconfig;
-import com.platform.software.config.aws.CloudPhotoHandlingService;
-import com.platform.software.config.aws.DocUploadRequestDTO;
-import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
-import com.platform.software.config.security.LoginResponseDTO;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
-import com.platform.software.utils.CommonUtils;
-import com.platform.software.utils.ValidationUtils;
+import com.platform.software.chat.user.entity.UserBlock;
+import com.platform.software.chat.user.repository.UserBlockRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -36,6 +32,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import com.platform.software.chat.user.dto.UserDTO;
+import com.platform.software.chat.user.dto.UserUpsertDTO;
+import com.platform.software.chat.user.dto.UserViewDTO;
+import com.platform.software.chat.user.repository.UserRepository;
+import com.platform.software.common.service.security.CognitoService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
+import com.platform.software.config.aws.DocUploadRequestDTO;
+import com.platform.software.config.aws.SignedURLDTO;
+import com.platform.software.config.security.LoginResponseDTO;
+import com.platform.software.utils.CommonUtils;
+import com.platform.software.utils.ValidationUtils;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,12 +51,6 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.platform.software.common.constants.GeneralConstants.USER_NOT_CONFIRMED;
 
@@ -115,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponseDTO authenticateUser(LoginDTO loginDTO) {
-
+        
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
 
@@ -128,7 +129,7 @@ public class UserServiceImpl implements UserService {
             loginResponseDTO.setWorkspaces(workspaces);
             return loginResponseDTO;
         } catch (AwsServiceException awsServiceException) {
-            if (awsServiceException.awsErrorDetails().errorCode().equals(USER_NOT_CONFIRMED)) {
+            if(awsServiceException.awsErrorDetails().errorCode().equals(USER_NOT_CONFIRMED)){
                 throw new CustomCognitoServerErrorException("Please confirm your account.");
             }
             throw new CustomCognitoServerErrorException(awsServiceException.awsErrorDetails().errorMessage());
@@ -140,7 +141,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ChatUser getUserOrThrow(Long userId) {
         ChatUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomBadRequestException("Cannot find user with id %s".formatted(userId)));
+            .orElseThrow(() -> new CustomBadRequestException("Cannot find user with id %s".formatted(userId)));
         return user;
     }
 
@@ -157,11 +158,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getUserByIdWithProfileImage(Long id) {
         ChatUser user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.warn("invalid user id {} provided", id);
-                    return new CustomBadRequestException("user does not exist!");
-                });
-
+        .orElseThrow(() -> {
+            logger.warn("invalid user id {} provided", id);
+            return new CustomBadRequestException("user does not exist!");
+        });
+        
         UserDTO userDTO = new UserDTO(user);
         return userDTO;
     }
@@ -171,11 +172,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserViewDTO findUserById(Long id) {
         ChatUser user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.warn("invalid user id {} provided", id);
-                    return new CustomBadRequestException("user does not exist!");
-                });
-
+        .orElseThrow(() -> {
+            logger.warn("invalid user id {} provided", id);
+            return new CustomBadRequestException("user does not exist!");
+        });
+        
         UserViewDTO userViewDTO = new UserViewDTO(user);
         userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
         return userViewDTO;
@@ -195,7 +196,7 @@ public class UserServiceImpl implements UserService {
                 .map(AttributeType::value)
                 .orElse(null);
 
-        if (cognitoService.signOut(accessToken)) {
+        if(cognitoService.signOut(accessToken)){
             chatNotificationRepository.deleteChatNotificationsByChatUser_Email(email);
         }
     }
@@ -219,8 +220,8 @@ public class UserServiceImpl implements UserService {
         try {
             updatedUser = userRepository.save(user);
 
-            if (userDTO.getImageIndexedName() != null) {
-                UserDTO updatedUserDTO = new UserDTO(updatedUser);
+            if(userDTO.getImageIndexedName() != null) {
+                UserDTO updatedUserDTO = new  UserDTO(updatedUser);
 
                 UserDTO userDTOWithSignedUrl = userUtilService.addSignedImageUrlToUser(updatedUserDTO, userDTO.getImageIndexedName());
                 // save again with userID_imageFileName
@@ -230,7 +231,7 @@ public class UserServiceImpl implements UserService {
                 updatedUser = userRepository.save(updatedUser);
             }
 
-            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID + ":" + user.getId()));
+            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
             List<Conversation> conversations = conversationRepository.getOneToOneConversationsForCurrentUser(user.getId());
             for (Conversation conversation : conversations) {
                 cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
@@ -345,9 +346,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserDTO> getAllUsersWithConversations(Pageable pageable, UserFilterCriteriaDTO userFilterCriteriaDTO,
-                                                      Long loggedInUserId) {
+            Long loggedInUserId) {
         Page<ChatUser> userPage = userQueryRepository.findAllUsersByCriteria(
-                pageable, userFilterCriteriaDTO, loggedInUserId
+            pageable, userFilterCriteriaDTO, loggedInUserId
         );
 
         if (userPage.getContent().isEmpty()) {

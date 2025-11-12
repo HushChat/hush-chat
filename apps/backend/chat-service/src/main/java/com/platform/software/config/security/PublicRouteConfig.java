@@ -16,6 +16,6 @@ public class PublicRouteConfig {
                     .requestMatchers("/swagger-ui/**")
                     .requestMatchers("/swagger-ui.html")
                     .requestMatchers("/v3/api-docs/**");
-        };
+         };
     }
 }

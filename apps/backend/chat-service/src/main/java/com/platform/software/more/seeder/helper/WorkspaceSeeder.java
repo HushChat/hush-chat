@@ -36,7 +36,7 @@ public class WorkspaceSeeder {
                 return;
             }
             List<Workspace> workspaces = objectMapper.readValue(inputStream,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, Workspace.class));
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Workspace.class));
 
             workspaceRepository.saveAll(workspaces);
 
@@ -58,7 +58,7 @@ public class WorkspaceSeeder {
                 return;
             }
             List<ChatUser> users = objectMapper.readValue(inputStream,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, ChatUser.class));
+                objectMapper.getTypeFactory().constructCollectionType(List.class, ChatUser.class));
             List<WorkspaceUser> workspaceUsers = users.stream().map(wu -> {
                 WorkspaceUser workspaceUser = new WorkspaceUser();
                 workspaceUser.setWorkspace(workspaces.stream().findFirst().get());

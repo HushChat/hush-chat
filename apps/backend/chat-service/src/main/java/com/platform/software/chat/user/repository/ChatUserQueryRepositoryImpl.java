@@ -14,7 +14,7 @@ public class ChatUserQueryRepositoryImpl implements ChatUserQueryRepository {
 
     public List<ChatUser> getAllUsersIgnoringFilters() {
         Query query = entityManager.createNativeQuery(
-                "SELECT * FROM chat_user", ChatUser.class);
+            "SELECT * FROM chat_user", ChatUser.class);
         return query.getResultList();
     }
 }

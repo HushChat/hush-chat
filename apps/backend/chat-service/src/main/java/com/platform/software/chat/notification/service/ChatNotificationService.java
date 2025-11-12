@@ -47,17 +47,17 @@ public class ChatNotificationService {
     /**
      * Save new device token in database
      *
-     * @param userId               logged in user id
+     * @param userId logged in user id
      * @param deviceTokenUpsertDTO device token details
      */
     @Transactional
-    public void saveDeviceToken(Long userId, DeviceTokenUpsertDTO deviceTokenUpsertDTO) {
+    public void saveDeviceToken( Long userId, DeviceTokenUpsertDTO deviceTokenUpsertDTO){
         ChatUser user = userService.getUserOrThrow(userId);
         Optional<ChatNotification> isExist =
                 chatNotificationRepository.findByToken(deviceTokenUpsertDTO.getToken());
 
         try {
-            if (isExist.isEmpty()) {
+            if(isExist.isEmpty()){
                 ChatNotification chatNotification = DeviceTokenUpsertDTO.toChatNotification(deviceTokenUpsertDTO);
                 chatNotification.setChatUser(user);
                 chatNotificationRepository.save(chatNotification);
@@ -73,7 +73,7 @@ public class ChatNotificationService {
      * @param email user email
      */
     @Transactional
-    public void deleteDeviceTokens(String email) {
+    public void deleteDeviceTokens(String email){
         chatNotificationRepository.deleteChatNotificationsByChatUser_Email(email);
     }
 
@@ -82,12 +82,12 @@ public class ChatNotificationService {
      *
      * @param conversationId conversation id
      * @param loggedInUserId logged in user id
-     * @param message        message
+     * @param message message
      */
-    public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message) {
+    public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message ){
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false);
 
-        if (!tokens.isEmpty()) {
+        if(!tokens.isEmpty()){
             boolean isGroup = message.getConversation().getIsGroup();
             String title = chatNotificationUtilService.getNotificationTitle(message);
             String body = isGroup ? message.getSender().getFirstName() + ": " + message.getMessageText() : message.getMessageText();
@@ -96,10 +96,10 @@ public class ChatNotificationService {
         }
     }
 
-    public void sendMessageReactionNotifications(com.platform.software.chat.message.entity.Message message, ChatUser loggedInUser) {
+    public void sendMessageReactionNotifications(com.platform.software.chat.message.entity.Message  message, ChatUser loggedInUser){
         List<String> tokens = chatNotificationRepository.findNonMutedTokensByUserId(message.getSender().getId());
 
-        if (!tokens.isEmpty()) {
+        if(!tokens.isEmpty()){
             String title = chatNotificationUtilService.getNotificationTitle(message);
             String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
 

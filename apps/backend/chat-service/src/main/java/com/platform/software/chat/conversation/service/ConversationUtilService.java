@@ -38,10 +38,10 @@ public class ConversationUtilService {
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public ConversationUtilService(
-            ConversationParticipantRepository conversationParticipantRepository,
-            UserRepository userRepository,
-            ConversationRepository conversationRepository,
-            CloudPhotoHandlingService cloudPhotoHandlingService
+        ConversationParticipantRepository conversationParticipantRepository,
+        UserRepository userRepository,
+        ConversationRepository conversationRepository,
+        CloudPhotoHandlingService cloudPhotoHandlingService
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
@@ -58,23 +58,23 @@ public class ConversationUtilService {
      */
     public Conversation getConversationOrThrow(Long conversationId) {
         return conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new CustomBadRequestException("Conversation not found"));
+            .orElseThrow(() -> new CustomBadRequestException("Conversation not found"));
     }
 
     /**
      * Retrieves a conversation participant by conversation ID and user ID, throwing an exception if not found.
      *
      * @param conversationId the ID of the conversation
-     * @param userId         the ID of the user
+     * @param userId the ID of the user
      * @return the ConversationParticipant object if found
      * @throws CustomBadRequestException if the participant is not found or does not have permission
      */
     public ConversationParticipant getConversationParticipantOrThrow(Long conversationId, Long userId) {
-        return conversationParticipantRepository
-                .findByConversationIdAndUser_IdAndConversationDeletedFalse(conversationId, userId)
-                .orElseThrow(() -> new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
-                        .formatted(conversationId))
-                );
+        return  conversationParticipantRepository
+            .findByConversationIdAndUser_IdAndConversationDeletedFalse(conversationId, userId)
+            .orElseThrow(() -> new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
+                .formatted(conversationId))
+            );
     }
 
     /**
@@ -87,49 +87,48 @@ public class ConversationUtilService {
      */
     public ConversationDTO getConversationDTOOrThrow(Long loggedInUserId, Long conversationId) {
         return conversationParticipantRepository
-                .findConversationByUserIdAndConversationId(loggedInUserId, conversationId)
-                .orElseThrow(() ->
-                        new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
-                                .formatted(conversationId))
-                );
+            .findConversationByUserIdAndConversationId(loggedInUserId, conversationId)
+            .orElseThrow(() ->
+                new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
+                    .formatted(conversationId))
+            );
     }
 
-    /**
-     * Returns the conversation participant if the given user is an admin of the specified group conversation and the conversation is not deleted; otherwise, throws an exception.
+    /** Returns the conversation participant if the given user is an admin of the specified group conversation and the conversation is not deleted; otherwise, throws an exception.
      *
-     * @param userId         the ID of the user
+     * @param userId the ID of the user
      * @param conversationId the ID of the conversation
      * @return the ConversationParticipant if found
      * @throws CustomBadRequestException if the participant is not found or does not have the required role
      */
     public ConversationParticipant getLoggedInUserIfAdminAndValidConversation(Long userId, Long conversationId) {
         return conversationParticipantRepository
-                .findByConversationIdAndUser_IdAndConversationDeletedFalseAndRoleAndConversation_IsGroup(
-                        conversationId, userId, ConversationParticipantRoleEnum.ADMIN, true
-                )
-                .orElseThrow(() ->
-                        new CustomBadRequestException("You don't have permission manage this conversation")
-                );
+            .findByConversationIdAndUser_IdAndConversationDeletedFalseAndRoleAndConversation_IsGroup(
+                conversationId, userId, ConversationParticipantRoleEnum.ADMIN, true
+            )
+            .orElseThrow(() ->
+                new CustomBadRequestException("You don't have permission manage this conversation")
+            );
     }
 
     /**
      * Verifies that the given user has access to every conversation in the message forward request.
      *
-     * @param userId                   the ID of the logged-in user
+     * @param userId the ID of the logged-in user
      * @param messageForwardRequestDTO the DTO containing conversation IDs to forward messages to
-     * @param conversation             the current conversation
+     * @param conversation the current conversation
      * @return a list of ConversationDTOs that the user has access to
      * @throws CustomBadRequestException if the user is not a member of any of the conversations
      */
     public List<ConversationDTO> verifyLoggedInUserHasAccessToEveryConversation(
-            Long userId,
-            MessageForwardRequestDTO messageForwardRequestDTO,
-            Conversation conversation
+        Long userId,
+        MessageForwardRequestDTO messageForwardRequestDTO,
+        Conversation conversation
     ) {
         Set<Long> conversationIds = new HashSet<>(messageForwardRequestDTO.getConversationIds());
         conversationIds.add(conversation.getId());
         List<ConversationDTO> joinedConversations = conversationParticipantRepository
-                .findAllConversationByUserIdAndConversationIds(userId, conversationIds);
+            .findAllConversationByUserIdAndConversationIds(userId, conversationIds);
         if (joinedConversations.size() != conversationIds.size()) {
             throw new CustomBadRequestException("You need to be a member of every conversation you are trying to forward");
         }
@@ -142,9 +141,9 @@ public class ConversationUtilService {
      */
     public Map<Long, ConversationParticipant> getConversationParticipantMap(Long conversationId, Collection<Long> userIds) {
         Map<Long, ConversationParticipant> participantMap = conversationParticipantRepository
-                .findAllByConversationIdAndUser_IdInAndConversationDeletedFalse(conversationId, userIds)
-                .stream()
-                .collect(Collectors.toMap(p -> p.getUser().getId(), Function.identity()));
+            .findAllByConversationIdAndUser_IdInAndConversationDeletedFalse(conversationId, userIds)
+            .stream()
+            .collect(Collectors.toMap(p -> p.getUser().getId(), Function.identity()));
         return participantMap;
     }
 
@@ -157,8 +156,8 @@ public class ConversationUtilService {
      */
     public Map<Long, ChatUser> validateUsersTryingToAdd(Collection<Long> userIds) {
         Map<Long, ChatUser> participantUserMap = userRepository.findByIdInAndActiveTrueAndDeletedFalse(userIds)
-                .stream()
-                .collect(Collectors.toMap(ChatUser::getId, Function.identity()));
+            .stream()
+            .collect(Collectors.toMap(ChatUser::getId, Function.identity()));
 
         if (userIds.size() != participantUserMap.size()) {
             // there are inactive users in join participants request
@@ -171,14 +170,14 @@ public class ConversationUtilService {
      * Retrieves the metadata of a conversation for a given conversation ID and participant, utilizing caching for performance.
      *
      * @param conversationId the ID of the conversation
-     * @param userId         the participant requesting the metadata
+     * @param userId the participant requesting the metadata
      * @return a ConversationMetaDataDTO containing the conversation metadata
      * @throws CustomBadRequestException if the participant has deleted the conversation
      */
     @Cacheable(value = CacheNames.GET_CONVERSATION_META_DATA, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     public ConversationMetaDataDTO getConversationMetaDataDTO(Long conversationId, Long userId) {
         ConversationParticipant conversationParticipant = getConversationParticipantOrThrow(conversationId, userId);
-        if (conversationParticipant.getIsDeleted()) {
+        if(conversationParticipant.getIsDeleted()){
             throw new CustomBadRequestException("Can,t find conversation with ID %s".formatted(conversationId));
         }
         Conversation conversation = getConversationOrThrow(conversationId);
@@ -196,10 +195,10 @@ public class ConversationUtilService {
      * Retrieves the metadata of a conversation for a specific user, updated image index and signed url
      *
      * @param conversationDTO the conversation
-     * @param fileName        the name of the image eg:- imageName
+     * @param fileName the name of the image eg:- imageName
      * @return a conversationDTO containing the conversation's metadata and updated image index and signed url
      */
-    public ConversationDTO addSignedImageUrlToConversationDTO(ConversationDTO conversationDTO, String fileName) {
+    public ConversationDTO addSignedImageUrlToConversationDTO(ConversationDTO conversationDTO,String fileName) {
         String newFileName = (conversationDTO.getId()) + "_" + fileName;
         String imageIndexName = String.format("chat-service/conversation/%s", newFileName);
         conversationDTO.setImageIndexedName(imageIndexName);
