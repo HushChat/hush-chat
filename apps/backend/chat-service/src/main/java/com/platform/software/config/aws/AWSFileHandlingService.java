@@ -2,14 +2,14 @@ package com.platform.software.config.aws;
 
 import com.amazonaws.HttpMethod;
 import com.platform.software.common.model.MediaPathEnum;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.platform.software.exception.CustomInternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class AWSFileHandlingService implements CloudPhotoHandlingService {
@@ -61,13 +61,13 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
 
             @SuppressWarnings("unchecked")
             List<String> files = (List<String>) getFileNamesMethod.invoke(uploadedFileRequest);
-            
+
             List<SignedURLDTO> signedURLDTOS = new ArrayList<>();
             for (String f : files) {
                 long timestamp = System.currentTimeMillis();
                 String objectKey = folderPath + "/" + timestamp + "_" + f;
                 String signedURL = s3Service.getPrivateBucketSignedURL(objectKey, HttpMethod.PUT);
-                
+
                 SignedURLDTO signedURLDTO = new SignedURLDTO(signedURL, f, objectKey);
                 signedURLDTOS.add(signedURLDTO);
             }

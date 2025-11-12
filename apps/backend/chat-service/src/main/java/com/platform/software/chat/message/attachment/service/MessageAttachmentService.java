@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,8 @@ public class MessageAttachmentService {
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessageAttachmentService(
-        MessageAttachmentRepository messageAttachmentRepository,
-        CloudPhotoHandlingService cloudPhotoHandlingService
+            MessageAttachmentRepository messageAttachmentRepository,
+            CloudPhotoHandlingService cloudPhotoHandlingService
     ) {
         this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
@@ -42,7 +43,7 @@ public class MessageAttachmentService {
         }
 
         SignedURLResponseDTO signedURLResponse = cloudPhotoHandlingService
-            .generateSignedURLForMessageAttachmentsUpload(files, savedMessage.getId());
+                .generateSignedURLForMessageAttachmentsUpload(files, savedMessage.getId());
 
         if (signedURLResponse != null && signedURLResponse.getSignedURLs() != null && !signedURLResponse.getSignedURLs().isEmpty()) {
             List<MessageAttachment> messageAttachments = createMessageAttachments(signedURLResponse.getSignedURLs(), savedMessage);
@@ -58,8 +59,8 @@ public class MessageAttachmentService {
 
     private List<MessageAttachment> createMessageAttachments(List<SignedURLDTO> signedURLs, Message message) {
         return signedURLs.stream()
-            .map(signedURL -> createMessageAttachment(signedURL, message))
-            .collect(Collectors.toList());
+                .map(signedURL -> createMessageAttachment(signedURL, message))
+                .collect(Collectors.toList());
     }
 
     private MessageAttachment createMessageAttachment(SignedURLDTO signedURL, Message message) {

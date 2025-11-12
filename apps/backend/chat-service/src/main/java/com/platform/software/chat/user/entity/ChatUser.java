@@ -2,12 +2,11 @@ package com.platform.software.chat.user.entity;
 
 import com.platform.software.chat.message.entity.FavouriteMessage;
 import com.platform.software.common.model.AuditModel;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import jakarta.persistence.*;
-import org.hibernate.annotations.Where;
 
 import java.util.Set;
 
@@ -16,7 +15,7 @@ import java.util.Set;
 @Setter
 @Getter
 // TODO: @Where(clause = "active = true AND deleted = false")
-public class ChatUser extends AuditModel{
+public class ChatUser extends AuditModel {
 
     @Id
     @GeneratedValue(generator = "chat_user_generator")

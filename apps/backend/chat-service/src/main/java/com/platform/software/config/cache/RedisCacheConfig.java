@@ -12,6 +12,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,25 +22,26 @@ public class RedisCacheConfig {
     private static final Logger logger = LoggerFactory.getLogger(RedisCacheConfig.class);
 
 
-    public RedisCacheConfig() {}
+    public RedisCacheConfig() {
+    }
 
     @Bean
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
         try {
             RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60))  // Set a default TTL of 30 minutes
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-                .disableCachingNullValues();
+                    .entryTtl(Duration.ofMinutes(60))  // Set a default TTL of 30 minutes
+                    .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+                    .disableCachingNullValues();
 
             Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
             cacheConfigurations.put("companyInfo", defaultConfig.entryTtl(Duration.ofHours(24)));
             cacheConfigurations.put("selectedInstrumentSymbol", defaultConfig.entryTtl(Duration.ofDays(30)));
 
             return RedisCacheManager.builder(redisConnectionFactory)
-                .cacheDefaults(defaultConfig)
-                .withInitialCacheConfigurations(cacheConfigurations)
-                .build();
+                    .cacheDefaults(defaultConfig)
+                    .withInitialCacheConfigurations(cacheConfigurations)
+                    .build();
         } catch (Exception e) {
             logger.error("failed to create redis cache manager.", e);
             return null;

@@ -1,6 +1,7 @@
 package com.platform.software.config.workspace;
 
-/** This class manages the current workspace context using a ThreadLocal variable.
+/**
+ * This class manages the current workspace context using a ThreadLocal variable.
  * It allows setting, getting, and clearing the current workspace identifier.
  * The use of InheritableThreadLocal allows child threads to inherit the value from the parent thread.
  */

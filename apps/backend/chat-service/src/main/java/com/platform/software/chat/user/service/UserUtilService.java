@@ -1,13 +1,15 @@
 package com.platform.software.chat.user.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
-import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
-import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.dto.UserDTO;
+import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
+import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.model.UserTypeEnum;
 import com.platform.software.common.service.security.CognitoService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
+import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
@@ -16,9 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.platform.software.common.model.MediaPathEnum;
-import com.platform.software.config.aws.CloudPhotoHandlingService;
-import com.platform.software.config.aws.SignedURLDTO;
 
 @Service
 public class UserUtilService {
@@ -68,17 +67,17 @@ public class UserUtilService {
             throw new CustomInternalServerErrorException("Failed to persist user");
         }
     }
-  
+
     public UserDTO addSignedImageUrlToUser(UserDTO userDTO, String finalName) {
-          String newFileName = (userDTO.getId() + "_" + finalName);
-          String imageIndexName = String.format(MediaPathEnum.PROFILE_PICTURE.getName(), newFileName);
+        String newFileName = (userDTO.getId() + "_" + finalName);
+        String imageIndexName = String.format(MediaPathEnum.PROFILE_PICTURE.getName(), newFileName);
 
-          userDTO.setImageIndexedName(imageIndexName);
+        userDTO.setImageIndexedName(imageIndexName);
 
-          SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.PROFILE_PICTURE, newFileName);
-          userDTO.setSignedImageUrl(imageSignedDTO.getUrl());
+        SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.PROFILE_PICTURE, newFileName);
+        userDTO.setSignedImageUrl(imageSignedDTO.getUrl());
 
-          return userDTO;
+        return userDTO;
     }
 
     /**
@@ -88,16 +87,16 @@ public class UserUtilService {
      *                      false - To set name as the OTHER participant's name
      */
     public static void setConversationNameForNonGroup(Long userId, ConversationDTO conversationDTO, boolean includeSender) {
-        if(userId != null && !conversationDTO.getIsGroup()) {
+        if (userId != null && !conversationDTO.getIsGroup()) {
             conversationDTO.getParticipants().stream()
-                .filter(participant -> includeSender == participant.getUser().getId().equals(userId))
-                .findFirst()
-                .ifPresent(participant -> {
-                    conversationDTO.setName("%s %s".formatted(
-                        participant.getUser().getFirstName(),
-                        participant.getUser().getLastName()
-                    ));
-                });
+                    .filter(participant -> includeSender == participant.getUser().getId().equals(userId))
+                    .findFirst()
+                    .ifPresent(participant -> {
+                        conversationDTO.setName("%s %s".formatted(
+                                participant.getUser().getFirstName(),
+                                participant.getUser().getLastName()
+                        ));
+                    });
         }
     }
 }

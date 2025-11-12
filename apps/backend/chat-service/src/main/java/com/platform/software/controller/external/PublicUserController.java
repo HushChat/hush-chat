@@ -1,20 +1,18 @@
 package com.platform.software.controller.external;
 
-import com.platform.software.common.dto.LoginDTO;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.dto.LoginDTO;
 import com.platform.software.common.service.security.CognitoService;
 import com.platform.software.common.service.security.PasswordResetDTO;
 import com.platform.software.config.security.LoginResponseDTO;
-
 import io.swagger.annotations.ApiOperation;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/public/user")
@@ -62,8 +60,8 @@ public class PublicUserController {
     @ApiOperation(value = "handle confirm sign up", response = String.class)
     @PostMapping("/auth/confirm-signup")
     public ResponseEntity<String> confirmSignUp(
-        @RequestParam String email,
-        @RequestParam String confirmationCode
+            @RequestParam String email,
+            @RequestParam String confirmationCode
     ) {
         cognitoService.confirmSignUpOtp(email, confirmationCode);
         return ResponseEntity.ok("Confirm sign up request initiated");

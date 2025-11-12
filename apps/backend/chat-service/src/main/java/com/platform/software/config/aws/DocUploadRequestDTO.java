@@ -1,9 +1,10 @@
 package com.platform.software.config.aws;
 
-import java.util.List;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor

@@ -13,19 +13,19 @@ import java.time.ZonedDateTime;
 @Data
 @NoArgsConstructor
 public class ConversationGroupProfileDTO {
-     private ConversationViewDTO conversation;
-     private boolean isFavorite;
-     private boolean isPinned;
-     private ZonedDateTime mutedUntil;
-     private long participantCount;
-     private boolean isAdmin;
-     private boolean isActive;
+    private ConversationViewDTO conversation;
+    private boolean isFavorite;
+    private boolean isPinned;
+    private ZonedDateTime mutedUntil;
+    private long participantCount;
+    private boolean isAdmin;
+    private boolean isActive;
 
-     public ConversationGroupProfileDTO(
-             Conversation conversation,
-             ConversationParticipant participant,
-             Page<ConversationParticipantViewDTO> conversationParticipants
-     ){
+    public ConversationGroupProfileDTO(
+            Conversation conversation,
+            ConversationParticipant participant,
+            Page<ConversationParticipantViewDTO> conversationParticipants
+    ) {
         this.conversation = new ConversationViewDTO(conversation);
         this.conversation.setConversationParticipants(conversationParticipants);
         this.isFavorite = participant.getIsFavorite();
@@ -34,5 +34,5 @@ public class ConversationGroupProfileDTO {
         this.participantCount = conversationParticipants.getTotalElements();
         this.isAdmin = participant.getRole() == ConversationParticipantRoleEnum.ADMIN;
         this.isActive = participant.getIsActive();
-     }
+    }
 }

@@ -1,19 +1,18 @@
 package com.platform.software.more.seeder.helper;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
+import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.platform.software.chat.user.entity.ChatUser;
-import com.platform.software.chat.user.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 @Service
 public class UserSeeder {

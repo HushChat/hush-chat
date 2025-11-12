@@ -21,9 +21,9 @@ public class ConversationReadStatusService {
     private final ConversationUtilService conversationUtilService;
 
     public ConversationReadStatusService(
-        ConversationReadStatusRepository conversationReadStatusRepository,
-        MessageService messageService,
-        ConversationUtilService conversationUtilService
+            ConversationReadStatusRepository conversationReadStatusRepository,
+            MessageService messageService,
+            ConversationUtilService conversationUtilService
     ) {
         this.conversationReadStatusRepository = conversationReadStatusRepository;
         this.messageService = messageService;
@@ -35,17 +35,17 @@ public class ConversationReadStatusService {
         Message message = messageService.getMessageOrThrow(conversationId, messageLastSeenRequestDTO.getMessageId());
 
         ConversationReadStatus updatingStatus = conversationReadStatusRepository
-            .findByConversationIdAndUserId(conversationId, loggedInUserId)
-            .orElseGet(() -> {
-                ConversationReadStatus newStatus = new ConversationReadStatus();
-                newStatus.setUser(conversationParticipant.getUser());
-                newStatus.setConversation(conversationParticipant.getConversation());
-                return newStatus;
-            });
+                .findByConversationIdAndUserId(conversationId, loggedInUserId)
+                .orElseGet(() -> {
+                    ConversationReadStatus newStatus = new ConversationReadStatus();
+                    newStatus.setUser(conversationParticipant.getUser());
+                    newStatus.setConversation(conversationParticipant.getConversation());
+                    return newStatus;
+                });
 
         // Early return if the message is already set to avoid unnecessary updates
         if (updatingStatus.getMessage() != null &&
-            updatingStatus.getMessage().getId().equals(message.getId())) {
+                updatingStatus.getMessage().getId().equals(message.getId())) {
             return;
         }
 

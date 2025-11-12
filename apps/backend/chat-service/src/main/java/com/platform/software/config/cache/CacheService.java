@@ -17,7 +17,7 @@ public interface CacheService {
     void clearAllCache();
 
     void setWithTTL(String cacheName, Object value, long ttlInMinutes, Object... cacheKeyParams);
-    
+
     <T> T getByExactKey(String cacheName, Object... cacheKeyParams);
 
     void deleteByExactKey(String cacheName, Object... cacheKeyParams);

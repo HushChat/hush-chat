@@ -15,7 +15,7 @@ public class DeviceTokenUpsertDTO {
     @NotNull
     private DeviceType platform;
 
-    public static ChatNotification toChatNotification(DeviceTokenUpsertDTO deviceTokenUpsertDTO){
+    public static ChatNotification toChatNotification(DeviceTokenUpsertDTO deviceTokenUpsertDTO) {
         ChatNotification chatNotification = new ChatNotification();
         chatNotification.setToken(deviceTokenUpsertDTO.getToken());
         chatNotification.setPlatform(deviceTokenUpsertDTO.getPlatform());

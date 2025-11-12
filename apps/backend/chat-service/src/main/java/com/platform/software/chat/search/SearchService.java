@@ -33,10 +33,10 @@ public class SearchService {
     private final UserService userService;
 
     public SearchService(
-        ConversationParticipantRepository conversationParticipantRepository,
-        MessageRepository messageRepository,
-        ConversationRepository conversationRepository,
-        UserService userService
+            ConversationParticipantRepository conversationParticipantRepository,
+            MessageRepository messageRepository,
+            ConversationRepository conversationRepository,
+            UserService userService
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.messageRepository = messageRepository;
@@ -49,7 +49,7 @@ public class SearchService {
      * 1. find by conversation name - if conversation is one to one, then search by other participant's name
      * 2. find by messages
      *
-     * @param userId          the user id
+     * @param userId           the user id
      * @param searchRequestDTO the message search request dto
      * @return the list of conversations
      */
@@ -64,14 +64,14 @@ public class SearchService {
         List<ConversationDTO> conversationsWithNameMatched = conversationsWithNameMatched(searchKeyword, userId, pageable);
         List<ConversationDTO> conversationsWithMessagesMatched = new ArrayList<>();
 
-        if(searchRequestDTO.isIncludeMessages()){
+        if (searchRequestDTO.isIncludeMessages()) {
             conversationsWithMessagesMatched = conversationsWithMessagesMatched(searchKeyword, userId, pageable);
         }
 
         ConversationSearchResults conversationSearchResults = new ConversationSearchResults(
-            userWithNameMatched, conversationsWithNameMatched, conversationsWithMessagesMatched
+                userWithNameMatched, conversationsWithNameMatched, conversationsWithMessagesMatched
         );
-        
+
         return conversationSearchResults;
     }
 
@@ -80,9 +80,9 @@ public class SearchService {
         userFilterCriteriaDTO.setKeyword(searchKeyword);
 
         Page<UserDTO> userDTOPage = userService.getAllUsersWithConversations(
-            pageable, userFilterCriteriaDTO, loggedInUserId
+                pageable, userFilterCriteriaDTO, loggedInUserId
         );
-        
+
         return userDTOPage.getContent();
     }
 
@@ -90,11 +90,11 @@ public class SearchService {
      * Finds conversations containing messages that match the search keyword.
      * Only searches within conversations that the logged-in user participates in.
      *
-     * @param searchKeyword the keyword to search for in message content
+     * @param searchKeyword  the keyword to search for in message content
      * @param loggedInUserId the ID of the currently logged-in user
-     * @param pageable pagination information for limiting and sorting results
+     * @param pageable       pagination information for limiting and sorting results
      * @return a list of ConversationDTO objects containing the matched messages,
-     *         where each conversation includes only the matching message(s)
+     * where each conversation includes only the matching message(s)
      */
     private List<ConversationDTO> conversationsWithMessagesMatched(String searchKeyword, Long loggedInUserId, Pageable pageable) {
         List<ConversationDTO> loggedInUserAllConversations = conversationParticipantRepository.findAllConversationsByUserId(loggedInUserId);
@@ -103,7 +103,7 @@ public class SearchService {
                 .map(ConversationDTO::getId).collect(Collectors.toSet());
         Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, pageable);
 
-        List<ConversationDTO> conversationsFromMessages  = messagePage.getContent()
+        List<ConversationDTO> conversationsFromMessages = messagePage.getContent()
                 .stream()
                 .map(m -> {
                     ConversationDTO conversationDTO = new ConversationDTO(m.getConversation());
@@ -116,9 +116,9 @@ public class SearchService {
                 .filter(c -> c.getId() != null && c.getName() != null)
                 .collect(Collectors.toMap(ConversationDTO::getId, ConversationDTO::getName));
 
-        List<ConversationDTO> updatedConversations  = conversationsFromMessages .stream()
+        List<ConversationDTO> updatedConversations = conversationsFromMessages.stream()
                 .map(dto -> {
-                    if(!dto.getIsGroup()) {
+                    if (!dto.getIsGroup()) {
                         String name = nameById.get(dto.getId());
                         dto.setName(name);
                     }
@@ -132,18 +132,18 @@ public class SearchService {
      * Searches for conversations whose names/titles match the given search keyword.
      * Only returns conversations that the logged-in user participates in.
      *
-     * @param searchKeyword the keyword to search for in conversation names
+     * @param searchKeyword  the keyword to search for in conversation names
      * @param loggedInUserId the ID of the currently logged-in user
-     * @param pageable pagination information for limiting and sorting results
+     * @param pageable       pagination information for limiting and sorting results
      * @return a list of ConversationDTO objects representing conversations with matching names,
-     *         including their latest messages
+     * including their latest messages
      */
     private List<ConversationDTO> conversationsWithNameMatched(String searchKeyword, Long loggedInUserId, Pageable pageable) {
         ConversationFilterCriteriaDTO conversationFilterCriteria = new ConversationFilterCriteriaDTO();
         conversationFilterCriteria.setSearchKeyword(searchKeyword);
 
         Page<ConversationDTO> conversationDTOPage = conversationRepository.findAllConversationsByUserIdWithLatestMessages(
-            loggedInUserId, conversationFilterCriteria, pageable
+                loggedInUserId, conversationFilterCriteria, pageable
         );
 
         return conversationDTOPage.getContent();

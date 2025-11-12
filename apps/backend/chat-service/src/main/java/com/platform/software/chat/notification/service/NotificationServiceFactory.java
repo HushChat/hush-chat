@@ -23,6 +23,7 @@ public class NotificationServiceFactory {
 
     /**
      * Sends notifications by grouping tokens by their supported service
+     *
      * @param request The notification request containing tokens, title, and body
      */
     public void sendNotification(NotificationRequestDTO request) {
@@ -51,6 +52,7 @@ public class NotificationServiceFactory {
 
     /**
      * Gets the appropriate notification service for a single token
+     *
      * @param token The push notification token
      * @return The matching NotificationService or null if none found
      */
@@ -63,6 +65,7 @@ public class NotificationServiceFactory {
 
     /**
      * Groups tokens by their supported notification service
+     *
      * @param tokens List of push notification tokens
      * @return Map of NotificationService to their supported tokens
      */

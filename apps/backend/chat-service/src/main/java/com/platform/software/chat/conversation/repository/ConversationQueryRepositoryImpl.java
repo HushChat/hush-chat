@@ -1,12 +1,8 @@
 package com.platform.software.chat.conversation.repository;
 
-import com.platform.software.chat.conversation.dto.ConversationDTO;
-import com.platform.software.chat.conversation.dto.ConversationFilterCriteriaDTO;
-import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
-import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
+import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.QConversation;
-import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
@@ -23,6 +19,10 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.util.StringUtils;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -30,10 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.util.StringUtils;
 
 public class ConversationQueryRepositoryImpl implements ConversationQueryRepository {
 
@@ -127,9 +123,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
 
     public Page<ConversationDTO> findAllConversationsByUserIdWithLatestMessages(
-        Long userId,
-        ConversationFilterCriteriaDTO conversationFilterCriteria,
-        Pageable pageable
+            Long userId,
+            ConversationFilterCriteriaDTO conversationFilterCriteria,
+            Pageable pageable
     ) {
 
         boolean isArchived = conversationFilterCriteria.getIsArchived() != null
@@ -147,7 +143,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
         } else if (isFavorite) {
             whereConditions = whereConditions.and(qConversationParticipant.isFavorite.eq(true))
-                                             .and(qConversationParticipant.archived.eq(false));
+                    .and(qConversationParticipant.archived.eq(false));
         } else {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(false));
         }
@@ -165,7 +161,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         boolean isValidSearchKey = StringUtils.hasText(conversationFilterCriteria.getSearchKeyword());
         if (isValidSearchKey) {
             baseQuery.where(qConversation.isGroup.isTrue()
-                .and(qConversation.name.containsIgnoreCase(conversationFilterCriteria.getSearchKeyword())));
+                    .and(qConversation.name.containsIgnoreCase(conversationFilterCriteria.getSearchKeyword())));
         }
 
         Long totalCount = baseQuery.clone()
@@ -250,8 +246,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .selectFrom(qConversationParticipant)
                 .where(
                         qConversationParticipant.conversation.id.eq(conversationId)
-                        .and(qConversationParticipant.conversation.isGroup.isFalse())
-                        .and(qConversationParticipant.user.id.ne(userId))
+                                .and(qConversationParticipant.conversation.isGroup.isFalse())
+                                .and(qConversationParticipant.user.id.ne(userId))
                 )
                 .fetchOne();
 
@@ -275,7 +271,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
 
     @Override
-    public ConversationMetaDataDTO findConversationMetaData(Long conversationId, Long userId){
+    public ConversationMetaDataDTO findConversationMetaData(Long conversationId, Long userId) {
         Conversation conversation = jpaQueryFactory
                 .select(qConversation)
                 .from(qConversation)
@@ -286,7 +282,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         .and(qConversationParticipant.isDeleted.isFalse()))
                 .fetchFirst();
 
-        if(conversation == null) {
+        if (conversation == null) {
             throw new CustomBadRequestException("Conversation not found or you don't have access to it.");
         }
 
@@ -294,7 +290,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
 
     @Override
-    public boolean getIsActiveByConversationIdAndUserId(Long conversationId, Long userId){
+    public boolean getIsActiveByConversationIdAndUserId(Long conversationId, Long userId) {
         return jpaQueryFactory
                 .selectFrom(qConversationParticipant)
                 .where(qConversationParticipant.conversation.id.eq(conversationId)
@@ -302,59 +298,59 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         .and(qConversationParticipant.isActive.isTrue()))
                 .fetchFirst() != null;
     }
-  
+
     public Optional<DirectOtherMetaDTO> findDirectOtherMeta(Long conversationId, Long userId) {
-          QConversation c = QConversation.conversation;
-          QConversationParticipant cpSelf = QConversationParticipant.conversationParticipant;
-          QConversationParticipant cpOther = new QConversationParticipant("cpOther");
-          QChatUser uOther = QChatUser.chatUser;
-          QUserBlock b = QUserBlock.userBlock;
+        QConversation c = QConversation.conversation;
+        QConversationParticipant cpSelf = QConversationParticipant.conversationParticipant;
+        QConversationParticipant cpOther = new QConversationParticipant("cpOther");
+        QChatUser uOther = QChatUser.chatUser;
+        QUserBlock b = QUserBlock.userBlock;
 
-          DirectOtherMetaDTO row = jpaQueryFactory
-                  .select(Projections.bean(DirectOtherMetaDTO.class,
-                          uOther.id.as("otherUserId"),
-                          uOther.firstName.as("firstName"),
-                          uOther.lastName.as("lastName"),
-                          uOther.imageIndexedName.as("imageIndexedName"),
-                          b.id.isNotNull().as("blocked")
-                  ))
-                  .from(c)
-                  // ensure requester is an active participant of this conversation
-                  .join(cpSelf).on(
-                          cpSelf.conversation.eq(c)
-                                  .and(cpSelf.user.id.eq(userId))
-                                  .and(cpSelf.isDeleted.isFalse())
-                  )
-                  // get the other active participant
-                  //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
-                  .join(cpOther).on(
-                          cpOther.conversation.eq(c)
-                                  .and(cpOther.user.id.ne(userId))
-                  )
-                  .join(uOther).on(uOther.eq(cpOther.user))
-                  .leftJoin(b).on( // here we are only checking if the logged-in user has blocked the other user
-                          b.blocker.id.eq(userId)
-                                  .and(b.blocked.id.eq(uOther.id))
-                  )
-                  .where(
-                          c.id.eq(conversationId),
-                          c.isGroup.isFalse() // direct chat only
-                  )
-                  .fetchOne();
+        DirectOtherMetaDTO row = jpaQueryFactory
+                .select(Projections.bean(DirectOtherMetaDTO.class,
+                        uOther.id.as("otherUserId"),
+                        uOther.firstName.as("firstName"),
+                        uOther.lastName.as("lastName"),
+                        uOther.imageIndexedName.as("imageIndexedName"),
+                        b.id.isNotNull().as("blocked")
+                ))
+                .from(c)
+                // ensure requester is an active participant of this conversation
+                .join(cpSelf).on(
+                        cpSelf.conversation.eq(c)
+                                .and(cpSelf.user.id.eq(userId))
+                                .and(cpSelf.isDeleted.isFalse())
+                )
+                // get the other active participant
+                //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
+                .join(cpOther).on(
+                        cpOther.conversation.eq(c)
+                                .and(cpOther.user.id.ne(userId))
+                )
+                .join(uOther).on(uOther.eq(cpOther.user))
+                .leftJoin(b).on( // here we are only checking if the logged-in user has blocked the other user
+                        b.blocker.id.eq(userId)
+                                .and(b.blocked.id.eq(uOther.id))
+                )
+                .where(
+                        c.id.eq(conversationId),
+                        c.isGroup.isFalse() // direct chat only
+                )
+                .fetchOne();
 
-          return Optional.ofNullable(row);
-      }
+        return Optional.ofNullable(row);
+    }
 
     /**
      * Finds direct conversations between a logged-in user and multiple target users.
-     * 
+     *
      * @param loggedInUserId ID of the logged-in user
-     * @param targetUserIds List of user IDs to check for existing conversations
+     * @param targetUserIds  List of user IDs to check for existing conversations
      * @return Map where:
-     *         - Key: Target user ID (from targetUserIds list)
-     *         - Value: Conversation ID of the direct conversation between 
-     *                  loggedInUserId and the target user
-     *         - Note: Users without existing conversations are NOT included in the map
+     * - Key: Target user ID (from targetUserIds list)
+     * - Value: Conversation ID of the direct conversation between
+     * loggedInUserId and the target user
+     * - Note: Users without existing conversations are NOT included in the map
      */
     @Override
     public Map<Long, Long> findDirectConversationsBatch(Long loggedInUserId, List<Long> targetUserIds) {
@@ -366,29 +362,29 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         }
 
         List<Tuple> results = jpaQueryFactory
-            .select(cp2.user.id, qConversation.id)
-            .from(qConversation)
-            .join(cp1).on(cp1.conversation.id.eq(qConversation.id))
-            .join(cp2).on(cp2.conversation.id.eq(qConversation.id))
-            .where(
-                qConversation.isGroup.eq(false)
-                    .and(qConversation.deleted.eq(false))
-                    .and(cp1.user.id.eq(loggedInUserId))
-                    .and(cp2.user.id.in(targetUserIds))
-                    .and(cp1.user.id.ne(cp2.user.id))
-                    .and(cp1.isActive.eq(true))
-                    .and(cp1.isDeleted.eq(false))
-                    .and(cp2.isActive.eq(true))
-                    .and(cp2.isDeleted.eq(false))
-            )
-            .fetch();
+                .select(cp2.user.id, qConversation.id)
+                .from(qConversation)
+                .join(cp1).on(cp1.conversation.id.eq(qConversation.id))
+                .join(cp2).on(cp2.conversation.id.eq(qConversation.id))
+                .where(
+                        qConversation.isGroup.eq(false)
+                                .and(qConversation.deleted.eq(false))
+                                .and(cp1.user.id.eq(loggedInUserId))
+                                .and(cp2.user.id.in(targetUserIds))
+                                .and(cp1.user.id.ne(cp2.user.id))
+                                .and(cp1.isActive.eq(true))
+                                .and(cp1.isDeleted.eq(false))
+                                .and(cp2.isActive.eq(true))
+                                .and(cp2.isDeleted.eq(false))
+                )
+                .fetch();
 
         return results.stream()
-            .collect(Collectors.toMap(
-                tuple -> tuple.get(cp2.user.id),
-                tuple -> tuple.get(qConversation.id),
-                (existing, replacement) -> existing
-            ));
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(cp2.user.id),
+                        tuple -> tuple.get(qConversation.id),
+                        (existing, replacement) -> existing
+                ));
     }
 
 }

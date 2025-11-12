@@ -1,7 +1,5 @@
 package com.platform.software.chat.conversationparticipant.entity;
 
-import java.time.ZonedDateTime;
-
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.common.model.AuditModel;
@@ -9,6 +7,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.ZonedDateTime;
 
 @Entity
 @Setter

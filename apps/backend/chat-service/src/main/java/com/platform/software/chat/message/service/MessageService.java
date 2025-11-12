@@ -15,8 +15,8 @@ import com.platform.software.chat.message.repository.MessageRepository.MessageTh
 import com.platform.software.chat.notification.service.ChatNotificationService;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
-import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.config.aws.SignedURLResponseDTO;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomForbiddenException;
@@ -26,7 +26,6 @@ import com.platform.software.utils.ValidationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
@@ -76,12 +75,12 @@ public class MessageService {
 
     public Message getMessageOrThrow(Long conversationId, Long messageId) {
         Message message = messageRepository
-            .findByConversation_IdAndId(conversationId, messageId)
-            .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to this message!"));
+                .findByConversation_IdAndId(conversationId, messageId)
+                .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to this message!"));
         return message;
     }
 
-    public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
+    public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
@@ -118,9 +117,9 @@ public class MessageService {
      */
     @Transactional
     public MessageViewDTO createMessage(
-        MessageUpsertDTO messageDTO,
-        Long conversationId,
-        Long loggedInUserId
+            MessageUpsertDTO messageDTO,
+            Long conversationId,
+            Long loggedInUserId
     ) {
         Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO);
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
@@ -133,7 +132,7 @@ public class MessageService {
             @Override
             public void afterCommit() {
                 messagePublisherService.invokeNewMessageToParticipants(
-                    conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                        conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
                 );
 
                 chatNotificationService.sendMessageNotificationsToParticipants(conversationId, loggedInUserId, savedMessage);
@@ -145,9 +144,9 @@ public class MessageService {
 
     @Transactional
     public SignedURLResponseDTO getSignedURLResponseDTOAndCreateMessage(
-        MessageUpsertDTO messageDTO,
-        Long conversationId,
-        Long loggedInUserId
+            MessageUpsertDTO messageDTO,
+            Long conversationId,
+            Long loggedInUserId
     ) {
         Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
@@ -195,8 +194,8 @@ public class MessageService {
      * Creates a new text message in the specified conversation.
      *
      * @param conversationId the ID of the conversation
-     * @param senderUserId the ID of the user sending the message
-     * @param message the message details
+     * @param senderUserId   the ID of the user sending the message
+     * @param message        the message details
      * @return the saved Message entity
      */
     public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message) {
@@ -217,11 +216,12 @@ public class MessageService {
         }
     }
 
-    /** Adds a parent message to the new message if it is a reply.
+    /**
+     * Adds a parent message to the new message if it is a reply.
      *
-     * @param conversationId the ID of the conversation
+     * @param conversationId  the ID of the conversation
      * @param parentMessageId the ID of the parent message if this is a reply (optional)
-     * @param newMessage the new message to which the parent message will be added
+     * @param newMessage      the new message to which the parent message will be added
      */
     private void addParentMessageIfReply(Long conversationId, Long parentMessageId, Message newMessage) {
         if (parentMessageId != null) {
@@ -233,7 +233,7 @@ public class MessageService {
     /**
      * Retrieves the recipient ID for a one-to-one conversation.
      *
-     * @param senderId the ID of the sender
+     * @param senderId     the ID of the sender
      * @param conversation the conversation object
      * @return the ID of the recipient
      */
@@ -255,7 +255,7 @@ public class MessageService {
     /**
      * Forwards a message to multiple conversations.
      *
-     * @param loggedInUserId the ID of the logged-in user
+     * @param loggedInUserId           the ID of the logged-in user
      * @param messageForwardRequestDTO the DTO containing forwarding details
      */
     @Transactional
@@ -271,7 +271,7 @@ public class MessageService {
 
         // validating if the logged-in user is in every conversation involved in this forwarding
         List<ConversationDTO> joinedConversations = conversationUtilService.verifyLoggedInUserHasAccessToEveryConversation(
-            loggedInUserId, messageForwardRequestDTO, conversation
+                loggedInUserId, messageForwardRequestDTO, conversation
         );
 
         // TODO: Exclude the source conversation from forwarding target conversations
@@ -312,7 +312,7 @@ public class MessageService {
     /**
      * validate messages and their conversation - must be from same conversation
      *
-     * @param messages - requested messages entity
+     * @param messages            - requested messages entity
      * @param forwardedMessageIds - requested message ids
      */
     private static void validateMessagesAndConversation(List<Message> messages, Set<Long> forwardedMessageIds) {
@@ -336,7 +336,7 @@ public class MessageService {
     /**
      * Retrieves a message if the user is a participant in the conversation.
      *
-     * @param userId the ID of the user
+     * @param userId    the ID of the user
      * @param messageId the ID of the message
      * @return the Message entity if the user is a participant
      */
@@ -345,27 +345,28 @@ public class MessageService {
 
         Long conversationId = message.getConversation().getId();
         boolean isParticipant = conversationParticipantRepository
-            .existsByConversationIdAndUserId(conversationId, userId);
+                .existsByConversationIdAndUserId(conversationId, userId);
 
         if (!isParticipant) {
             logger.warn("user {} attempted to view message {} but is not a participant in conversation {}",
-                userId, messageId, conversationId);
+                    userId, messageId, conversationId);
             throw new CustomBadRequestException("User is not a participant of this conversation.");
         }
         return message;
     }
 
-    /** Retrieves a message by its ID.
+    /**
+     * Retrieves a message by its ID.
      *
      * @param messageId the ID of the message
      * @return the Message entity
      */
     private Message getMessageOrThrow(Long messageId) {
         return messageRepository.findById(messageId)
-            .orElseThrow(() -> {
-                logger.error("message with id {} not found when creating favorite message", messageId);
-                return new CustomResourceNotFoundException("Message not found!");
-            });
+                .orElseThrow(() -> {
+                    logger.error("message with id {} not found when creating favorite message", messageId);
+                    return new CustomResourceNotFoundException("Message not found!");
+                });
     }
 
     /**
@@ -394,7 +395,7 @@ public class MessageService {
      *
      * @param messageId the ID of the message
      * @return the MessageThreadResponseDTO containing the message and full parent
-     *         chain
+     * chain
      */
     private MessageThreadResponseDTO getMessageThreadWithFullParentChain(Long messageId) {
         List<MessageThreadProjection> chainResults = messageRepository.getMessageWithParentChain(messageId);
@@ -419,7 +420,7 @@ public class MessageService {
      *
      * @param targetMessage the target message
      * @return the MessageThreadResponseDTO containing the message and immediate
-     *         parent only
+     * parent only
      */
     private MessageThreadResponseDTO getMessageThreadWithImmediateParent(Message targetMessage) {
         MessageViewDTO targetMessageDto = new MessageViewDTO(targetMessage);
@@ -457,14 +458,14 @@ public class MessageService {
         conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
         return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId)
-            .stream().map(MessageViewDTO::new).toList();
+                .stream().map(MessageViewDTO::new).toList();
     }
 
     /**
      * unsend messages from conversation list.
      *
      * @param loggedInUserId the logged in user id
-     * @param messageId the message id to unsend
+     * @param messageId      the message id to unsend
      */
     @Transactional
     public void unsendMessage(Long loggedInUserId, Long messageId) {

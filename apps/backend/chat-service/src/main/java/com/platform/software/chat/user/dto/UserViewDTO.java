@@ -1,9 +1,9 @@
 package com.platform.software.chat.user.dto;
 
 import com.platform.software.chat.user.entity.ChatUser;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor

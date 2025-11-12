@@ -12,13 +12,14 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Setter
 @Getter
-public class Message extends AuditModel{
+public class Message extends AuditModel {
     @Id
     @GeneratedValue(generator = "message_generator")
     private Long id;
@@ -45,12 +46,12 @@ public class Message extends AuditModel{
     @JoinColumn(name = "forwarded_message_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Message forwardedMessage;
-  
+
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
     private List<FavouriteMessage> favouriteMessages;
 
     @Type(PostgreSQLTSVectorType.class)
-    @Column(name = "search_vector",columnDefinition = "tsvector")
+    @Column(name = "search_vector", columnDefinition = "tsvector")
     private String searchVector;
 
     @NotNull

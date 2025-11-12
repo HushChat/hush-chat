@@ -1,15 +1,16 @@
 package com.platform.software.more.seeder.helper;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.platform.software.chat.call.entity.CallParticipant;
 import com.platform.software.chat.call.repository.CallParticipantRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 @Service
 public class CallParticipantSeeder {
@@ -34,7 +35,7 @@ public class CallParticipantSeeder {
                 return;
             }
             List<CallParticipant> callParticipants = objectMapper.readValue(inputStream,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, CallParticipant.class));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, CallParticipant.class));
             callParticipantRepository.saveAll(callParticipants);
             logger.info("finished seeding call participants: {}", callParticipants.size());
 

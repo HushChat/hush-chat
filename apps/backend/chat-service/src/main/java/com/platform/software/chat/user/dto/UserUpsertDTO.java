@@ -22,8 +22,8 @@ public class UserUpsertDTO {
 
     @NotBlank(message = "username is required!")
     @Pattern(
-        regexp = "^[a-zA-Z0-9_]+$",
-        message = "username must contain only letters, numbers, and underscores, no spaces or other special characters"
+            regexp = "^[a-zA-Z0-9_]+$",
+            message = "username must contain only letters, numbers, and underscores, no spaces or other special characters"
     )
     private String username;
 

@@ -4,6 +4,7 @@ import com.platform.software.chat.call.entity.CallStatusEnum;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -20,13 +21,13 @@ public class CallLogViewDTO {
     private List<CallParticipantViewDTO> participants;
 
     public CallLogViewDTO(
-        Long callLogId, 
-        Long conversationId,
-        UserViewDTO initiator,
-        Boolean isVideo,
-        CallStatusEnum callStatusEnum,
-        ZonedDateTime callStartedAt,
-        ZonedDateTime callEndedAt
+            Long callLogId,
+            Long conversationId,
+            UserViewDTO initiator,
+            Boolean isVideo,
+            CallStatusEnum callStatusEnum,
+            ZonedDateTime callStartedAt,
+            ZonedDateTime callEndedAt
     ) {
         this.callLogId = callLogId;
         this.conversationId = conversationId;

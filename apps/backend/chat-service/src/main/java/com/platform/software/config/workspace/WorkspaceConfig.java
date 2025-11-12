@@ -8,16 +8,18 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
+
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Loads workspace configuration from a YAML file.
  *
  * @deprecated This is only used in the local development environment
- *             for seeding data or other local setup tasks. It should not be used
- *             in production or for runtime workspace resolution.
+ * for seeding data or other local setup tasks. It should not be used
+ * in production or for runtime workspace resolution.
  */
 @Component
 public class WorkspaceConfig {
@@ -36,7 +38,7 @@ public class WorkspaceConfig {
     private void loadYamlConfig() {
 //        String activeProfile = environment.getActiveProfiles().length > 0 ?
 //                environment.getActiveProfiles()[0] : "local";
-        String configFileName ="chat-workspace-config-local.yml";
+        String configFileName = "chat-workspace-config-local.yml";
 
         try {
             String yamlContent = SharedCommonUtils.getFileContents(configFileName);
@@ -59,7 +61,7 @@ public class WorkspaceConfig {
         }
     }
 
-    
+
     private WorkspaceEntityDTO mapToWorkspaceEntityDTO(Map<String, Object> map) {
         WorkspaceEntityDTO dto = new WorkspaceEntityDTO();
         dto.setSchema((String) map.get("schema"));

@@ -1,7 +1,7 @@
 package com.platform.software.platform.workspaceuser.entity;
 
-import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.common.model.AuditModel;
+import com.platform.software.platform.workspace.entity.Workspace;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +14,7 @@ import org.hibernate.annotations.Where;
 @Getter
 @Where(clause = "deleted = false")
 @Table(name = "workspace_user", schema = "platform")
-public class WorkspaceUser extends AuditModel{
+public class WorkspaceUser extends AuditModel {
     @Id
     @GeneratedValue(generator = "platform.workspace_user_generator")
     private Long id;

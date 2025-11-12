@@ -3,10 +3,8 @@ package com.platform.software.chat.notification.repository;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.notification.entity.QChatNotification;
 import com.platform.software.chat.user.entity.QChatUser;
-import com.platform.software.config.cache.CacheNames;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -28,8 +26,8 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
      * Optionally includes muted users based on the includeMutedUsers flag.
      * The token of the logged-in user is always excluded.
      *
-     * @param conversationId the unique identifier of the conversation
-     * @param loggedInUserId the ID of the currently logged-in user to be excluded from results
+     * @param conversationId    the unique identifier of the conversation
+     * @param loggedInUserId    the ID of the currently logged-in user to be excluded from results
      * @param includeMutedUsers if true, includes muted participants;
      *                          if false, excludes them
      * @return a list of distinct notification tokens of conversation participants
@@ -67,7 +65,7 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
      * @return available tokens of given userId
      */
     @Override
-    public List<String> findNonMutedTokensByUserId(Long userId){
+    public List<String> findNonMutedTokensByUserId(Long userId) {
         return jpaQueryFactory
                 .select(qChatNotification.token)
                 .distinct()

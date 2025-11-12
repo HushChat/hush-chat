@@ -10,7 +10,7 @@ public class PaginatedResponse<T> {
     private List<T> content;
     private long totalElements;
     private int totalPages;
-    private PageableResponse pageable; 
+    private PageableResponse pageable;
 
     @JsonProperty("content")
     public List<T> getContent() {
