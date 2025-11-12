@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.net.URL;
 import java.time.Instant;
 
@@ -35,8 +34,7 @@ public class S3Service {
     private AmazonS3 s3Client;
 
 
-    public S3Service() {
-    }
+    public S3Service() {}
 
     public String getPrivateBucketSignedURL(String objectKey, HttpMethod httpMethod) {
         return getSignedURL(objectKey, httpMethod);
@@ -52,9 +50,9 @@ public class S3Service {
             expiration.setTime(expTimeMillis);
 
             GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                    new GeneratePresignedUrlRequest(privateBucketName, objectKey)
-                            .withMethod(httpMethod)
-                            .withExpiration(expiration);
+                new GeneratePresignedUrlRequest(privateBucketName, objectKey)
+                    .withMethod(httpMethod)
+                    .withExpiration(expiration);
             URL url = s3Client.generatePresignedUrl(generatePresignedUrlRequest);
             return url.toString();
         } catch (AmazonServiceException e) {
@@ -67,14 +65,14 @@ public class S3Service {
     @PostConstruct
     private void init() {
         AWSCredentials credentials = new BasicAWSCredentials(
-                accessKey,
-                secretKey
+            accessKey,
+            secretKey
         );
         s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .withRegion(Regions.AP_SOUTH_1)
-                .build();
+            .standard()
+            .withCredentials(new AWSStaticCredentialsProvider(credentials))
+            .withRegion(Regions.AP_SOUTH_1)
+            .build();
     }
 
     public String getPrivateBucketViewSignedURL(String objectKey) {

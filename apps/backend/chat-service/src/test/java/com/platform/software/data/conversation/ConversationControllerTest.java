@@ -3,6 +3,7 @@ package com.platform.software.data.conversation;
 import com.platform.software.BaseAccessTest;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.common.dto.PaginatedResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

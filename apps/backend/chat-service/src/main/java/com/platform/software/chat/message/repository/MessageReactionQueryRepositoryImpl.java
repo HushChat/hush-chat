@@ -5,6 +5,8 @@ import com.platform.software.chat.message.entity.QMessageReaction;
 import com.platform.software.chat.message.entity.ReactionTypeEnum;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;

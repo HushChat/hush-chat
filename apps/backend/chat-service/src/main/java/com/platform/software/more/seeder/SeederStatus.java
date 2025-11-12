@@ -1,8 +1,8 @@
 package com.platform.software.more.seeder;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class SeederStatus {

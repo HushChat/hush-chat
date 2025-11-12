@@ -1,12 +1,12 @@
 package com.platform.software.utils;
 
+import java.util.Set;
+
 import com.platform.software.exception.CustomBadRequestException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-
-import java.util.Set;
 
 public class ValidationUtils {
 

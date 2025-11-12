@@ -3,6 +3,7 @@ package com.platform.software.config.interceptors.websocket;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.aws.AWSCognitoConfig;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +28,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final WorkspaceUserService workspaceUserService;
 
     public WebSocketConfig(
-            AWSCognitoConfig awsCognitoConfig,
-            @Lazy WebSocketSessionManager sessionManager,
-            UserService userService,
-            WorkspaceUserService workspaceUserService
+        AWSCognitoConfig awsCognitoConfig,
+        @Lazy WebSocketSessionManager sessionManager,
+        UserService userService,
+        WorkspaceUserService workspaceUserService
     ) {
         this.awsCognitoConfig = awsCognitoConfig;
         this.sessionManager = sessionManager;
@@ -53,16 +54,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         long heartbeatClient = 10000;
 
         config.enableSimpleBroker("/topic")
-                .setHeartbeatValue(new long[]{heartbeatServer, heartbeatClient})
-                .setTaskScheduler(websocketTaskScheduler());
+            .setHeartbeatValue(new long[]{heartbeatServer, heartbeatClient})
+            .setTaskScheduler(websocketTaskScheduler());
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
-                .addEndpoint("/ws-message-subscription")
-                .setAllowedOrigins(wsAllowedOrigins);
+            .addEndpoint("/ws-message-subscription")
+            .setAllowedOrigins(wsAllowedOrigins);
     }
 
     @Override

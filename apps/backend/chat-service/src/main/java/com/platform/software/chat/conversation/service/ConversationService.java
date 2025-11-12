@@ -15,19 +15,18 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantCommandRepository;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
-import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
-import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.MessageReactionSummaryDTO;
 import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
-import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageMentionService;
+import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
-import com.platform.software.common.constants.GeneralConstants;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.utils.StringUtils;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
@@ -49,12 +48,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.platform.software.common.constants.GeneralConstants;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 @Service
 public class ConversationService {
@@ -84,9 +83,9 @@ public class ConversationService {
             ConversationUtilService conversationUtilService,
             ConversationReadStatusService conversationReadStatusService,
             MessageReactionRepository messageReactionRepository,
-            MessageMentionService messageMentionService,
+            MessageMentionService messageMentionService, 
             RedisCacheService cacheService,
-            ConversationReportRepository reportRepository
+            ConversationReportRepository reportRepository 
     ) {
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
@@ -128,7 +127,7 @@ public class ConversationService {
      *
      * @param loggedInUserId the ID of the user creating the conversation
      * @param participantIds the IDs of the participants in the conversation
-     * @param isGroup        whether the conversation is a group conversation
+     * @param isGroup whether the conversation is a group conversation
      * @return a new Conversation entity
      */
     private Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
@@ -437,7 +436,7 @@ public class ConversationService {
      *
      * @param conversationId the ID of the conversation
      * @param userId         the ID of the user
-     * @param durationKey    the datetime until which the conversation should be
+     * @param durationKey     the datetime until which the conversation should be
      *                       muted; null to unmute
      * @return true if the mute status was updated, false if no change was needed
      */
@@ -479,19 +478,18 @@ public class ConversationService {
 
         return true;
     }
-
     /**
      * Retrieves messages from a specific conversation with pagination.
      * Each message includes seen status and reaction summary with current user's reaction types.
      *
-     * @param idBasedPageRequest the pagination information
-     * @param conversationId     the ID of the conversation
-     * @param loggedInUserId     the ID of the logged-in user
+     * @param idBasedPageRequest       the pagination information
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
     public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId) {
         ConversationParticipant loggedInParticipant =
-                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+            conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
         Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
@@ -504,45 +502,45 @@ public class ConversationService {
 
         List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap);
         messageMentionService.appendMessageMentions(messageViewDTOS);
-
+        
         Map<Long, Message> messageMap = messages.getContent().stream()
-                .collect(Collectors.toMap(Message::getId, Function.identity()));
+        .collect(Collectors.toMap(Message::getId, Function.identity()));
+    
+         List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
+            .map(dto -> {
+                Message matchedMessage = messageMap.get(dto.getId());
+                List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
 
-        List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
-                .map(dto -> {
-                    Message matchedMessage = messageMap.get(dto.getId());
-                    List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
-
-                    if (matchedMessage == null || matchedMessage.getIsUnsend()) {
-                        return dto;
-                    }
-
-                    List<MessageAttachment> attachments = matchedMessage.getAttachments();
-
-                    if (attachments == null || attachments.isEmpty()) {
-                        return dto;
-                    }
-
-                    for (MessageAttachment attachment : attachments) {
-                        try {
-                            String fileViewSignedURL = cloudPhotoHandlingService
-                                    .getPhotoViewSignedURL(attachment.getIndexedFileName());
-
-                            MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
-                            messageAttachmentDTO.setId(attachment.getId());
-                            messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                            messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
-                            messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
-                            attachmentDTOs.add(messageAttachmentDTO);
-                        } catch (Exception e) {
-                            logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
-                            throw new CustomInternalServerErrorException("Failed to get conversation!");
-                        }
-                    }
-                    dto.setMessageAttachments(attachmentDTOs);
+                if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
                     return dto;
-                })
-                .collect(Collectors.toList());
+                }
+
+                List<MessageAttachment> attachments = matchedMessage.getAttachments();
+
+                if (attachments == null || attachments.isEmpty()) {
+                    return dto;
+                }
+
+                for (MessageAttachment attachment : attachments) {
+                    try {
+                        String fileViewSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
+
+                        MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
+                        messageAttachmentDTO.setId(attachment.getId());
+                        messageAttachmentDTO.setFileUrl(fileViewSignedURL);
+                        messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
+                        messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
+                        attachmentDTOs.add(messageAttachmentDTO);
+                    } catch (Exception e) {
+                        logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
+                        throw new CustomInternalServerErrorException("Failed to get conversation!");
+                    }
+                }
+                dto.setMessageAttachments(attachmentDTOs);
+                return dto;
+            })
+            .collect(Collectors.toList());
         return new PageImpl<>(enrichedDTOs, messages.getPageable(), messages.getTotalElements());
     }
 
@@ -652,9 +650,9 @@ public class ConversationService {
     /**
      * Adds new participants to a conversation, ensuring no duplicates and that the user exists.
      *
-     * @param initiatorUserId the ID of the initiator user
-     * @param conversationId  the ID of the conversation to add participants to
-     * @param joinRequest     the request DTO containing user IDs to add
+     * @param initiatorUserId        the ID of the initiator user
+     * @param conversationId         the ID of the conversation to add participants to
+     * @param joinRequest the request DTO containing user IDs to add
      */
     @Transactional
     public void addParticipantsToConversation(Long initiatorUserId, Long conversationId, JoinParticipantRequestDTO joinRequest) {
@@ -693,7 +691,7 @@ public class ConversationService {
 
     /**
      * Processes a list of existing participants in a conversation.
-     * <p>
+     *
      * This method does the following:
      * - Collects all user IDs from the given participants.
      * - Reactivates participants that are inactive by setting them active and clearing their inactiveFrom field.
@@ -730,6 +728,7 @@ public class ConversationService {
     }
 
 
+
     /**
      * Creates a ConversationParticipant entity for a user in a conversation.
      *
@@ -755,7 +754,7 @@ public class ConversationService {
         Map<Long, ConversationParticipant> participantMap = conversationUtilService
                 .getConversationParticipantMap(conversationId, joinParticipantRequest.getUserIds());
 
-        return new ArrayList<>(participantMap.values());
+       return new ArrayList<>(participantMap.values());
     }
 
     /**
@@ -819,8 +818,8 @@ public class ConversationService {
     /**
      * generate signed image url for uploading the image s3 bucket.
      *
-     * @param loggedInUserId      the ID of the user updating the group info
-     * @param conversationId      the ID of the conversation to update
+     * @param loggedInUserId       the ID of the user updating the group info
+     * @param conversationId       the ID of the conversation to update
      * @param docUploadRequestDTO the DTO containing image details
      * @return a SignedURLDTO with signed url and new index
      */
@@ -1061,7 +1060,7 @@ public class ConversationService {
             participant.setIsDeleted(true);
             participant.setLastDeletedTime(ZonedDateTime.now());
             conversationParticipantRepository.save(participant);
-            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversationId));
+            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA+":" + conversationId));
         } catch (Exception e) {
             logger.error("Failed to delete conversation participant for userId: {} in conversationId: {}", userId, conversationId, e);
             throw new CustomBadRequestException("Failed to delete conversation participant");
@@ -1123,7 +1122,7 @@ public class ConversationService {
             throw new CustomForbiddenException("Only admins can remove participants");
         }
 
-        if (Objects.equals(requestedParticipant.getId(), participantIdToRemove)) {
+        if(Objects.equals(requestedParticipant.getId(), participantIdToRemove)){
             throw new CustomBadRequestException("You cannot remove yourself. Use leave conversation instead.");
         }
 

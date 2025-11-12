@@ -23,12 +23,12 @@ public class StringUtils {
     }
 
     /**
-     * @param seconds - provide epoch time in seconds
+     * @param seconds  - provide epoch time in seconds
      * @return human-readable date string
      */
     public static String convertEpochToDateTime(Long seconds) {
         return getDateTimeFormatter().format(Date.from(Instant.ofEpochMilli(seconds) // converting to milliseconds
-                .atZone(ZoneId.of(Constants.TIME_ZONE_IST)).toInstant()));
+            .atZone(ZoneId.of(Constants.TIME_ZONE_IST)).toInstant()));
     }
 
     public static boolean isNotEmptyStr(String value) {
@@ -41,8 +41,8 @@ public class StringUtils {
 
     public static boolean isValidEmail(String email) {
         Pattern pattern = Pattern.compile(Constants.EMAIL_REGEX, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(email);
-        boolean result = matcher.matches();
+        Matcher matcher = pattern.matcher(email);   
+        boolean result = matcher.matches(); 
         return result;
     }
 

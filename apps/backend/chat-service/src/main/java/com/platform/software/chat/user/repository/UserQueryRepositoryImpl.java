@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository
@@ -21,7 +20,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     private final JPAQueryFactory queryFactory;
     private static final QChatUser chatUser = QChatUser.chatUser;
     private static final QConversation conversation = QConversation.conversation;
-    private static final QConversationParticipant conversationParticipant = QConversationParticipant.conversationParticipant;
+    private static final QConversationParticipant  conversationParticipant = QConversationParticipant.conversationParticipant;
 
     public UserQueryRepositoryImpl(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
@@ -34,7 +33,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
         where.and(chatUser.id.ne(loggedInUserId));
 
         //TODO: Refactor this and move it to full text search
-        if (userFilterCriteriaDTO.getKeyword() != null && !userFilterCriteriaDTO.getKeyword().isEmpty()) {
+        if(userFilterCriteriaDTO.getKeyword() != null && !userFilterCriteriaDTO.getKeyword().isEmpty()) {
             String keyword = userFilterCriteriaDTO.getKeyword().trim();
             String[] keywordParts = keyword.split("\\s+");
 

@@ -1,7 +1,6 @@
 package com.platform.software.chat.call.dto;
 
 import lombok.Data;
-
 import java.time.ZonedDateTime;
 
 @Data

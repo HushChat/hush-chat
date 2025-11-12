@@ -97,7 +97,7 @@ class MessageControllerTest extends BaseAccessTest {
     }
 
     @Test
-    void test_unsendMessage_whenUserIsSender() {
+    void test_unsendMessage_whenUserIsSender(){
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -112,7 +112,7 @@ class MessageControllerTest extends BaseAccessTest {
     }
 
     @Test
-    void test_unsendMessage_whenUserIsNotSender() {
+    void test_unsendMessage_whenUserIsNotSender(){
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -127,7 +127,7 @@ class MessageControllerTest extends BaseAccessTest {
     }
 
     @Test
-    void test_unsendMessage_whenUserIsNotSenderAndNotParticipant() {
+    void test_unsendMessage_whenUserIsNotSenderAndNotParticipant(){
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Void> response = restTemplate.exchange(

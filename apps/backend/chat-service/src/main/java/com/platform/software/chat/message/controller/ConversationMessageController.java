@@ -10,6 +10,7 @@ import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.controller.external.IdBasedPageRequest;
+import com.platform.software.controller.external.OffsetBasedPageRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -37,8 +38,8 @@ public class ConversationMessageController {
      * Create messages for a specific conversation.
      *
      * @param conversationId the ID of the conversation
-     * @param messageDTO     the message data transfer object containing message details
-     * @param userDetails    the authenticated user details
+     * @param messageDTO the message data transfer object containing message details
+     * @param userDetails the authenticated user details
      * @return ResponseEntity containing the created MessageViewDTO
      */
     @ApiOperation(value = "create messages for a conversation", response = MessageViewDTO.class)
@@ -70,8 +71,8 @@ public class ConversationMessageController {
     /**
      * Get messages from a specific conversation.
      *
-     * @param conversationId     the ID of the conversation
-     * @param userDetails        the authenticated user details
+     * @param conversationId the ID of the conversation
+     * @param userDetails the authenticated user details
      * @param idBasedPageRequest pagination information
      * @return ResponseEntity containing a page of MessageViewDTOs
      */
@@ -87,11 +88,10 @@ public class ConversationMessageController {
     }
 
 
-    /**
-     * set last seen message of the conversation
+    /** set last seen message of the conversation
      *
-     * @param conversationId            the ID of the conversation
-     * @param userDetails               the authenticated user details
+     * @param conversationId the ID of the conversation
+     * @param userDetails the authenticated user details
      * @param messageLastSeenRequestDTO the request DTO containing last seen message details
      * @return ResponseEntity with status OK
      */
@@ -106,12 +106,11 @@ public class ConversationMessageController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    /**
-     * pin a message in a conversation
+    /** pin a message in a conversation
      *
      * @param conversationId the ID of the conversation
-     * @param messageId      the ID of the message to pin
-     * @param userDetails    the authenticated user details
+     * @param messageId the ID of the message to pin
+     * @param userDetails the authenticated user details
      * @return ResponseEntity with status OK
      */
     @ApiOperation(value = "pin/unpin a message")
@@ -129,11 +128,10 @@ public class ConversationMessageController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * unpin a message in a conversation
+    /** unpin a message in a conversation
      *
      * @param conversationId the ID of the conversation
-     * @param userDetails    the authenticated user details
+     * @param userDetails the authenticated user details
      * @return ResponseEntity with status NO_CONTENT
      */
     @ApiOperation(value = "unpin message")

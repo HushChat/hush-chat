@@ -15,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,7 +55,7 @@ public class RateLimiterConfig implements WebMvcConfigurer {
             if (auth != null && auth.getName() != null) {
                 username = auth.getName();
             }
-
+           
             UserRateLimit rateLimit = rateLimitMap.computeIfAbsent(username, k -> new UserRateLimit());
 
             if (!rateLimit.tryAcquire()) {
@@ -70,12 +69,12 @@ public class RateLimiterConfig implements WebMvcConfigurer {
         private void handleRateLimitExceeded(HttpServletResponse response, String username, UserRateLimit rateLimit) throws Exception {
             if (rateLimit.shouldLogViolation()) {
                 RateLimitStats stats = rateLimit.getStats();
-                logger.warn("Rate limit exceeded for user: {}. Stats: requests={}, timeFrame={}s, requestRate={}/s, firstViolationAt={}",
-                        username,
-                        stats.getTotalRequests(),
-                        stats.getTimeFrameSeconds(),
-                        stats.getRequestsPerSecond(),
-                        stats.getFirstViolationTime()
+                logger.warn("Rate limit exceeded for user: {}. Stats: requests={}, timeFrame={}s, requestRate={}/s, firstViolationAt={}", 
+                    username,
+                    stats.getTotalRequests(),
+                    stats.getTimeFrameSeconds(),
+                    stats.getRequestsPerSecond(),
+                    stats.getFirstViolationTime()
                 );
             }
 
@@ -87,8 +86,8 @@ public class RateLimiterConfig implements WebMvcConfigurer {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
             Map<String, String> errorResponse = Map.of(
-                    "error", "RATE_LIMIT_ERROR: Too Many Requests",
-                    "message", "RATE_LIMIT_ERROR: You have reached the maximum number of requests. Please wait a moment before trying again."
+                "error", "RATE_LIMIT_ERROR: Too Many Requests",
+                "message", "RATE_LIMIT_ERROR: You have reached the maximum number of requests. Please wait a moment before trying again."
             );
 
             response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
@@ -117,7 +116,7 @@ public class RateLimiterConfig implements WebMvcConfigurer {
             if (firstViolationInWindow == null) {
                 firstViolationInWindow = currentTime;
             }
-
+            
             return false;
         }
 
@@ -142,10 +141,10 @@ public class RateLimiterConfig implements WebMvcConfigurer {
             double requestsPerSecond = requestCount / timeFrameSeconds;
 
             return new RateLimitStats(
-                    requestCount,
-                    timeFrameSeconds,
-                    requestsPerSecond,
-                    firstViolationInWindow != null ? Instant.ofEpochMilli(firstViolationInWindow) : null
+                requestCount,
+                timeFrameSeconds,
+                requestsPerSecond,
+                firstViolationInWindow != null ? Instant.ofEpochMilli(firstViolationInWindow) : null
             );
         }
     }

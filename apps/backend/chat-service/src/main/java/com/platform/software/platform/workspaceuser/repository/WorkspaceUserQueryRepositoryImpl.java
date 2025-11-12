@@ -25,12 +25,12 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
     @Override
     public Workspace findPendingWorkspaceByUserEmailOrThrow(String email) {
         Workspace workspace = jpaQueryFactory
-                .select(qWorkspace)
-                .from(qWorkspaceUser)
-                .join(qWorkspaceUser.workspace, qWorkspace)
-                .where(qWorkspaceUser.email.eq(email)
-                        .and(qWorkspaceUser.status.eq(WorkspaceUserStatus.PENDING)))
-                .fetchOne();
+            .select(qWorkspace)
+            .from(qWorkspaceUser)
+            .join(qWorkspaceUser.workspace, qWorkspace)
+            .where(qWorkspaceUser.email.eq(email)
+                    .and(qWorkspaceUser.status.eq(WorkspaceUserStatus.PENDING)))
+            .fetchOne();
 
         if (workspace == null) {
             logger.info("No pending invitation found for email: {}", email);
@@ -41,7 +41,7 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
     }
 
     @Override
-    public Workspace validateWorkspaceMembershipOrThrow(String inviterEmail, String workspaceIdentifier) {
+    public Workspace validateWorkspaceMembershipOrThrow(String inviterEmail, String workspaceIdentifier){
         Workspace workspace = jpaQueryFactory
                 .select(qWorkspace)
                 .from(qWorkspaceUser)

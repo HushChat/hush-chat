@@ -1,6 +1,7 @@
 package com.platform.software.chat.search;
 
 import com.platform.software.chat.conversation.dto.ConversationSearchResults;
+import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import io.swagger.annotations.ApiOperation;
@@ -29,11 +30,11 @@ public class SearchController {
     @ApiOperation(value = "search keyword from conversations, users and messages", response = ConversationSearchResults.class)
     @PostMapping("search")
     public ResponseEntity<ConversationSearchResults> searchKeywordAcrossConversations(
-            @AuthenticatedUser UserDetails userDetails,
-            @RequestBody SearchRequestDTO searchRequestDTO
+        @AuthenticatedUser UserDetails userDetails,
+        @RequestBody SearchRequestDTO searchRequestDTO
     ) {
         ConversationSearchResults results = searchService.searchKeywordAcrossConversations(
-                userDetails.getId(), searchRequestDTO
+            userDetails.getId(), searchRequestDTO
         );
         return new ResponseEntity<>(results, HttpStatus.OK);
     }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,11 +34,11 @@ public class WebSocketSessionManager {
      */
     public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor) {
         WebSocketSessionInfoDAO webSocketSessionInfoDAO = WebSocketSessionInfoDAO.builder()
-                .stompSessionId(accessor.getSessionId())
-                .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
-                .connectedTime(ZonedDateTime.now())
-                .createdTime(ZonedDateTime.now())
-                .build();
+            .stompSessionId(accessor.getSessionId())
+            .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
+            .connectedTime(ZonedDateTime.now())
+            .createdTime(ZonedDateTime.now())
+            .build();
 
         webSocketSessionInfos.put(userId, webSocketSessionInfoDAO);
         logger.info("registered stomp session for user: {}", userId);
@@ -129,8 +130,8 @@ public class WebSocketSessionManager {
      */
     public Optional<WebSocketSessionInfoDAO> getSessionByStompId(String stompSessionId) {
         return webSocketSessionInfos.values().stream()
-                .filter(session -> stompSessionId.equals(session.getStompSessionId()))
-                .findFirst();
+            .filter(session -> stompSessionId.equals(session.getStompSessionId()))
+            .findFirst();
     }
 
     /**
@@ -138,7 +139,7 @@ public class WebSocketSessionManager {
      */
     public void removeSessionByStompId(String stompSessionId) {
         webSocketSessionInfos.entrySet().removeIf(entry ->
-                stompSessionId.equals(entry.getValue().getStompSessionId()));
+            stompSessionId.equals(entry.getValue().getStompSessionId()));
         logger.debug("removed session with stomp id: {}", stompSessionId);
     }
 
@@ -156,8 +157,8 @@ public class WebSocketSessionManager {
         Map<String, WebSocketSessionInfoDAO> tenantSessions = new HashMap<>();
 
         webSocketSessionInfos.entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith(tenantId + ":"))
-                .forEach(entry -> tenantSessions.put(entry.getKey(), entry.getValue()));
+            .filter(entry -> entry.getKey().startsWith(tenantId + ":"))
+            .forEach(entry -> tenantSessions.put(entry.getKey(), entry.getValue()));
 
         return tenantSessions;
     }

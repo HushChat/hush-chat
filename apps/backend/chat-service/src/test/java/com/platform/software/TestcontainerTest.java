@@ -26,9 +26,9 @@ public abstract class TestcontainerTest {
 
         registry.add("spring.datasource.default.schema", () -> "localhost");
 
-        // Redis properties
-        registry.add("spring.data.redis.host", () -> redisContainer.getHost());
-        registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379));
+         // Redis properties
+         registry.add("spring.data.redis.host", () -> redisContainer.getHost());
+         registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379));
     }
 
     @BeforeAll

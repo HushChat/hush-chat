@@ -25,7 +25,7 @@ public class UserDTO implements ModelMapper<ChatUser> {
     public UserDTO(ChatUser user) {
         this.mapToSelf(user);
     }
-
+    
     @Override
     @JsonIgnore
     public ChatUser getModel() {
@@ -33,7 +33,7 @@ public class UserDTO implements ModelMapper<ChatUser> {
         mapToModel(user);
         return user;
     }
-
+    
     @Override
     public ChatUser mapToModel(ChatUser dao) {
         dao.setId(this.id);
@@ -49,7 +49,6 @@ public class UserDTO implements ModelMapper<ChatUser> {
         }
         return dao;
     }
-
     @Override
     public void mapToSelf(ChatUser dao) {
         this.id = dao.getId();

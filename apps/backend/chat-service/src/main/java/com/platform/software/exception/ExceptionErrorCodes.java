@@ -12,4 +12,5 @@ public class ExceptionErrorCodes {
     public static final String TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS";
 
 
+    
 }

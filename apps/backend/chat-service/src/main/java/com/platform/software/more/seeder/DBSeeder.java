@@ -1,5 +1,6 @@
 package com.platform.software.more.seeder;
 
+import java.io.IOException;
 import com.platform.software.config.cache.RedisCacheService;
 import com.platform.software.config.workspace.WorkspaceConfig;
 import com.platform.software.config.workspace.WorkspaceContext;
@@ -12,10 +13,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 @Component
-public class DBSeeder implements ApplicationListener<ApplicationReadyEvent> {
+public class  DBSeeder implements ApplicationListener<ApplicationReadyEvent> {
     Logger logger = LoggerFactory.getLogger(DBSeeder.class);
 
     @Value("${spring.datasource.global.schema}")

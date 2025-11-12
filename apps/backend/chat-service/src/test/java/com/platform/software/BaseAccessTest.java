@@ -34,7 +34,7 @@ public abstract class BaseAccessTest extends TestcontainerTest {
 
     protected void assertForbidden(ResponseEntity<?> response) {
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(),
-                "Expected status code FORBIDDEN, but got: " + response.getStatusCode());
+            "Expected status code FORBIDDEN, but got: " + response.getStatusCode());
     }
 
     protected void assertOk(ResponseEntity<?> response) {
@@ -71,11 +71,11 @@ public abstract class BaseAccessTest extends TestcontainerTest {
         assertNotNull(items, message + " should not be null.");
         assertFalse(items.isEmpty(), message + " should contain at least one item.");
     }
-
+     
     protected <T> void assertPaginatedResponse(PaginatedResponse<T> paginatedResponse) {
         List<T> content = paginatedResponse.getContent();
-        assertNotNull(content, "Expected paginated response content to be not null, but it was null.");
-        assertFalse(content.isEmpty(), "Expected paginated response content to not be empty, but it was empty.");
+        assertNotNull(content,"Expected paginated response content to be not null, but it was null.");
+        assertFalse(content.isEmpty(),"Expected paginated response content to not be empty, but it was empty.");
     }
 
     protected void assertUnauthorizedAccess(ResponseEntity<?> response) {

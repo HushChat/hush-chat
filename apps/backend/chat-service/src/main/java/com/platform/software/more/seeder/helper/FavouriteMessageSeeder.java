@@ -71,14 +71,14 @@ public class FavouriteMessageSeeder {
         }
 
         logger.info("Finished seeding {} favourite messages across {} messages",
-                totalFavourites, messages.size());
+            totalFavourites, messages.size());
     }
 
     private List<ChatUser> getConversationParticipants(Conversation conversation) {
         return conversation.getConversationParticipants()
-                .stream()
-                .map(ConversationParticipant::getUser)
-                .collect(Collectors.toList());
+            .stream()
+            .map(ConversationParticipant::getUser)
+            .collect(Collectors.toList());
     }
 
     private List<FavouriteMessage> createFavouritesForMessage(Message message, List<ChatUser> participants) {
@@ -98,7 +98,7 @@ public class FavouriteMessageSeeder {
         // Shuffle participants to get random favouriters
         Collections.shuffle(potentialFavouriters, random);
         List<ChatUser> favouriters = potentialFavouriters.subList(0,
-                Math.min(favouriteCount, potentialFavouriters.size()));
+            Math.min(favouriteCount, potentialFavouriters.size()));
 
         // Create favourites
         for (ChatUser favouriter : favouriters) {
@@ -132,17 +132,17 @@ public class FavouriteMessageSeeder {
 
     private boolean isImportantMessage(String messageText) {
         return containsAny(messageText,
-                "important", "urgent", "deadline", "meeting", "announcement",
-                "reminder", "action required", "please", "asap", "priority",
-                "schedule", "appointment", "conference", "project", "milestone"
+            "important", "urgent", "deadline", "meeting", "announcement",
+            "reminder", "action required", "please", "asap", "priority",
+            "schedule", "appointment", "conference", "project", "milestone"
         );
     }
 
     private boolean isInformationalMessage(String messageText) {
         return containsAny(messageText,
-                "info", "update", "news", "link", "http", "document", "file",
-                "report", "summary", "guide", "tutorial", "how to", "instructions",
-                "location", "address", "phone", "email", "contact"
+            "info", "update", "news", "link", "http", "document", "file",
+            "report", "summary", "guide", "tutorial", "how to", "instructions",
+            "location", "address", "phone", "email", "contact"
         );
     }
 
@@ -192,7 +192,7 @@ public class FavouriteMessageSeeder {
         // Higher chance to favourite if:
         // 1. Message mentions their name
         if (messageText.contains(user.getFirstName().toLowerCase()) ||
-                messageText.contains(user.getLastName().toLowerCase())) {
+            messageText.contains(user.getLastName().toLowerCase())) {
             return random.nextDouble() < 0.8; // 80% chance
         }
 

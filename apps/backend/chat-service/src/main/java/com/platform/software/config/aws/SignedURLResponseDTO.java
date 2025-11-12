@@ -1,16 +1,15 @@
 package com.platform.software.config.aws;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class SignedURLResponseDTO {
     private List<SignedURLDTO> signedUrls;
 
     public List<SignedURLDTO> getSignedURLs() {
-        if (signedUrls == null) {
+        if(signedUrls == null){
             signedUrls = new ArrayList<>();
         }
         return signedUrls;

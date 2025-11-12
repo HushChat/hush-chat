@@ -31,14 +31,14 @@ public class WorkspaceUserService {
 
     public WorkspaceDTO verifyUserAccessToWorkspace(String email, Long workspaceId) {
         WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_Id(email, workspaceId)
-                .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid workspace id"));
+            .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid workspace id"));
 
         return new WorkspaceDTO(user.getWorkspace());
     }
 
     public WorkspaceDTO verifyUserAccessToWorkspace(String email, String workspaceName) {
         WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_Name(email, workspaceName)
-                .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid name"));
+            .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid name"));
 
         return new WorkspaceDTO(user.getWorkspace());
     }

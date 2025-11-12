@@ -26,7 +26,7 @@ public class ChatNotificationController {
     public ResponseEntity<Void> saveDeviceToken(
             @AuthenticatedUser UserDetails userDetails,
             @Valid @RequestBody DeviceTokenUpsertDTO deviceTokenUpsertDTO
-    ) {
+    ){
         chatNotificationService.saveDeviceToken(userDetails.getId(), deviceTokenUpsertDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

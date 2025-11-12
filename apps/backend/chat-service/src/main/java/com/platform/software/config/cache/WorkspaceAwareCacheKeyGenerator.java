@@ -3,7 +3,6 @@ package com.platform.software.config.cache;
 import com.platform.software.config.workspace.WorkspaceContext;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.util.StringUtils;
-
 import java.lang.reflect.Method;
 
 public class WorkspaceAwareCacheKeyGenerator implements KeyGenerator {
