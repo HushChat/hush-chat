@@ -10,10 +10,12 @@ export interface IConversation {
   createdAt: string;
   signedImageUrl: string | null;
   messages: IMessage[];
-  favoriteByLoggedInUser: boolean;
   description: string;
+
   pinnedByLoggedInUser: boolean;
   mutedByLoggedInUser: boolean;
+  favoriteByLoggedInUser: boolean;
+  archivedByLoggedInUser: boolean;
 }
 
 export interface ReactionSummary {

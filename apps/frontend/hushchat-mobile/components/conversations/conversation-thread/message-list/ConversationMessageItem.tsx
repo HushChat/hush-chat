@@ -35,6 +35,8 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { AppText } from "@/components/AppText";
 import MessageReactionsSummary from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionSummary";
+import { useQueryClient } from "@tanstack/react-query";
+import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 
 interface MessageItemProps {
   message: IMessage;
@@ -86,6 +88,8 @@ export const ConversationMessageItem = ({
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
+
+  const queryClient = useQueryClient();
 
   const hasImages = () => attachments.some(isImageAttachment);
 
@@ -213,7 +217,13 @@ export const ConversationMessageItem = ({
 
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
-    () => {},
+    () => {
+      if (message.id) {
+        queryClient.invalidateQueries({
+          queryKey: conversationMessageQueryKeys.messageReactions(message.id),
+        });
+      }
+    },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
     }
@@ -221,7 +231,13 @@ export const ConversationMessageItem = ({
 
   const removeReaction = useRemoveMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
-    () => {},
+    () => {
+      if (message.id) {
+        queryClient.invalidateQueries({
+          queryKey: conversationMessageQueryKeys.messageReactions(message.id),
+        });
+      }
+    },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
     }

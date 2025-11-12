@@ -380,6 +380,7 @@ public class UserServiceImpl implements UserService {
         userDTO.setDeleted(user.getDeleted());
         userDTO.setImageIndexedName(user.getImageIndexedName());
         userDTO.setConversationId(conversationMap.get(user.getId()));
+        userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
 
         return userDTO;
     }
