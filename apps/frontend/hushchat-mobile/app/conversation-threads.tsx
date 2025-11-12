@@ -214,9 +214,9 @@ const ConversationThreadScreen = ({
             messageAttachments: renamedFiles.map((file) => ({
               fileUrl: URL.createObjectURL(file),
               originalFileName: file.name,
-              indexedFileName: '',
-              mimeType: file.type
-            }))
+              indexedFileName: "",
+              mimeType: file.type,
+            })),
           };
 
           updateConversationMessagesCache(newMessage);
@@ -244,7 +244,6 @@ const ConversationThreadScreen = ({
       imageMessage,
     ]
   );
-
 
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;
