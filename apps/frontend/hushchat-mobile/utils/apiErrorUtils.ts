@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
 import { useAuthStore } from "@/store/auth/authStore";
 
-declare module 'axios' {
+declare module "axios" {
   export interface AxiosRequestConfig {
     skipErrorToast?: boolean;
   }
@@ -89,11 +89,11 @@ export const setupGlobalErrorHandling = () => {
         // Here, the error is still AxiosError, so error.message should be fine
         errorMessage = error.message || "Error preparing request";
       }
-      
+
       if (!error.config?.skipErrorToast) {
         ToastUtils.error("Error!", errorMessage);
       }
-      
+
       return Promise.reject(error);
     }
   );
