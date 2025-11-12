@@ -27,4 +27,23 @@ public class MessageAttachment extends AuditModel {
 
     @NotNull
     private String indexedFileName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AttachmentType attachmentType;
+
+    @PrePersist
+    @PreUpdate
+    private void setAttachmentTypeFromFileName() {
+        if (originalFileName != null) {
+            String extension = originalFileName.substring(
+                    originalFileName.lastIndexOf('.') + 1).toLowerCase();
+
+            if (extension.matches("jpg|jpeg|png|gif|bmp|webp|svg")) {
+                this.attachmentType = AttachmentType.IMAGE;
+            } else {
+                this.attachmentType = AttachmentType.DOCUMENT;
+            }
+        }
+    }
 }

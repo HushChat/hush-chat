@@ -23,9 +23,15 @@ export interface ReactionSummary {
   currentUserReaction: string;
 }
 
+export enum AttachmentType {
+  IMAGE = "IMAGE",
+  DOCUMENT = "DOCUMENT",
+}
+
 export interface IMessageAttachment {
   mimeType: string;
   id?: number;
+  attachmentType?: AttachmentType;
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;

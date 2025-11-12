@@ -5,7 +5,7 @@
  */
 import { View, TouchableOpacity, Pressable, GestureResponderEvent, Modal } from "react-native";
 import React, { useCallback, useState, useRef, useMemo } from "react";
-import { IConversation } from "@/types/chat/types";
+import { AttachmentType, IConversation } from "@/types/chat/types";
 import { getLastMessageTime } from "@/utils/commonUtils";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
@@ -17,7 +17,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
 import { AppText } from "@/components/AppText";
-import { DOC_EXTENSIONS } from "@/constants/mediaConstants";
 
 const ConversationListItem = ({
   conversation,
@@ -53,21 +52,25 @@ const ConversationListItem = ({
       let imageCount = 0;
       let docCount = 0;
 
-      attachments.forEach((a: any) => {
-        const fileName = a.originalFileName?.toLowerCase() || "";
-        const ext = fileName.split(".").pop();
-        if (ext) {
-          if (DOC_EXTENSIONS.includes(ext)) docCount++;
-          else if (fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/)) imageCount++;
+      attachments.forEach((attachment: any) => {
+        if (attachment.attachmentType === AttachmentType.IMAGE) {
+          imageCount++;
+        } else if (attachment.attachmentType === AttachmentType.DOCUMENT) {
+          docCount++;
         }
       });
 
-      if (imageCount > 0 && docCount === 0)
+      if (imageCount > 0 && docCount === 0) {
         return imageCount === 1 ? "Photo" : `${imageCount} Photos`;
-      if (docCount > 0 && imageCount === 0)
+      }
+      if (docCount > 0 && imageCount === 0) {
         return docCount === 1 ? "Document" : `${docCount} Documents`;
-      if (imageCount > 0 && docCount > 0)
-        return `${imageCount} Photo${imageCount > 1 ? "s" : ""} & ${docCount} Document${docCount > 1 ? "s" : ""}`;
+      }
+      if (imageCount > 0 && docCount > 0) {
+        return `${imageCount} Photo${imageCount > 1 ? "s" : ""} & ${docCount} Document${
+          docCount > 1 ? "s" : ""
+        }`;
+      }
     }
 
     return "";
@@ -93,6 +96,37 @@ const ConversationListItem = ({
   const handleOptionsClose = useCallback(() => {
     setShowOptions(false);
   }, []);
+
+  const attachmentIconInfo = useMemo(() => {
+    if (!lastMessage) return null;
+
+    const attachments = (lastMessage as any).attachments || lastMessage.messageAttachments || [];
+
+    if (attachments.length === 0) return null;
+
+    let hasImages = false;
+    let hasDocs = false;
+
+    attachments.forEach((attachment: any) => {
+      if (attachment.attachmentType === AttachmentType.IMAGE) {
+        hasImages = true;
+      } else if (attachment.attachmentType === AttachmentType.DOCUMENT) {
+        hasDocs = true;
+      }
+    });
+
+    if (hasImages && !hasDocs) {
+      return { name: "photo" as const, show: true };
+    }
+    if (hasDocs && !hasImages) {
+      return { name: "insert-drive-file" as const, show: true };
+    }
+    if (hasImages && hasDocs) {
+      return { name: "photo" as const, show: true };
+    }
+
+    return null;
+  }, [lastMessage]);
 
   return (
     <>
@@ -139,17 +173,9 @@ const ConversationListItem = ({
                 <LastMessagePreview unsendMessage={lastMessage} />
               ) : (
                 <>
-                  {lastMessageText.toLowerCase().includes("photo") && (
+                  {attachmentIconInfo?.show && (
                     <MaterialIcons
-                      name="photo"
-                      size={16}
-                      color="#6B7280"
-                      style={{ marginRight: 4 }}
-                    />
-                  )}
-                  {lastMessageText.toLowerCase().includes("document") && (
-                    <MaterialIcons
-                      name="insert-drive-file"
+                      name={attachmentIconInfo.name}
                       size={16}
                       color="#6B7280"
                       style={{ marginRight: 4 }}
