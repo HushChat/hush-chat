@@ -1,0 +1,28 @@
+name: Chat Service Frontend PR Build
+
+on:
+  pull_request:
+    paths:
+      - "apps/frontend/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-prettier-check:
+    name: Lint & Prettier Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js + Install dependencies
+        uses: ./.github/actions/setup-node-yarn-install
+
+      - name: Run ESLint check
+        run: yarn lint:check
+
+      - name: Run Prettier check
+        run: yarn prettier:check

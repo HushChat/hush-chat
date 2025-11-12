@@ -98,5 +98,4 @@ public class PublicUserController {
         cognitoService.resendSignUp(email);
         return ResponseEntity.ok("Resend signUp confirmation code request initiated");
     }
-
 }
