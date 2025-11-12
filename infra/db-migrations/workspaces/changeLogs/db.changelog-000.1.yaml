@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: test_changeset_1
+      author: moditha
+      tag: release-0.1
+      comment: "Simple test query - no database changes"
+      changes:
+        - sql:
+            sql: SELECT 1 as test_column

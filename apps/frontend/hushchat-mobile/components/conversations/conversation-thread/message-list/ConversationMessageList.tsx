@@ -111,7 +111,12 @@ const ConversationMessageList = ({
             ...page,
             content: page.content.map((message: IMessage) =>
               message.id === unsendMessage.id
-                ? { ...message, isUnsend: true, messageAttachments: [] }
+                ? {
+                    ...message,
+                    isUnsend: true,
+                    messageAttachments: [],
+                    isForwarded: false,
+                  }
                 : message
             ),
           })),
