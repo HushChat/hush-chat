@@ -11,8 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-// @ts-ignore
-// eslint-disable-next-line import/no-unresolved
 import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
 
 const GRID_CONFIG = {
