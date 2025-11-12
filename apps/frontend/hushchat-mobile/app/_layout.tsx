@@ -20,7 +20,7 @@ import { ModalProvider } from "@/context/modal-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { AUTH_LOGIN_PATH, CHATS_PATH } from "@/constants/routes";
+import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 import { NotificationFactory } from "@/utils/notifications/NotificationFactory";
 import { sendTokenToBackend } from "@/apis/user";
@@ -137,7 +137,6 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
   return (
     <>
       {ready && !isAuthenticated && !inAuthGroup && <Redirect href={AUTH_LOGIN_PATH} />}
-      {ready && isAuthenticated && inAuthGroup && <Redirect href={CHATS_PATH} />}
 
       <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
