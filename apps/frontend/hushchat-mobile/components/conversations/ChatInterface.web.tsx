@@ -236,19 +236,15 @@ export default function ChatInterface({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       {screenWidth < 1024 ? (
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           contentContainerStyle={{ flexGrow: 1 }}
           showsHorizontalScrollIndicator={false}
         >
-          <View className="flex-row h-full min-w-full">
-            {renderMainContent()}
-          </View>
+          <View className="flex-row h-full min-w-full">{renderMainContent()}</View>
         </ScrollView>
       ) : (
-        <View className="flex-row h-full">
-          {renderMainContent()}
-        </View>
+        <View className="flex-row h-full">{renderMainContent()}</View>
       )}
     </View>
   );

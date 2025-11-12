@@ -16,11 +16,11 @@ import { ScrollView } from "react-native-gesture-handler";
 
 function CallComponentPlaceHolder() {
   return (
-      <Placeholder
-        title="Start a call"
-        subtitle="Select a call from the list or place a new one."
-        image={Images.CallLogPlaceholder}
-      />
+    <Placeholder
+      title="Start a call"
+      subtitle="Select a call from the list or place a new one."
+      image={Images.CallLogPlaceholder}
+    />
   );
 }
 
@@ -31,10 +31,7 @@ const CallInterface = ({
   refetchCallLogs,
 }: CallLogComponentProps) => {
   return (
-    <ScrollView
-      className="flex-1 custom-scrollbar"
-      contentContainerStyle={{ flexGrow: 1 }}
-    >
+    <ScrollView className="flex-1 custom-scrollbar" contentContainerStyle={{ flexGrow: 1 }}>
       <ScrollView
         className="flex-1 custom-scrollbar"
         horizontal={true}
@@ -52,15 +49,15 @@ const CallInterface = ({
 
               <View className="px-4 sm:px-6 py-3">
                 <View className="flex-row flex-wrap gap-2">
-                <View className="flex-row space-x-2">
-                  {filters.map((filter, index) => (
-                    <FilterButton key={index} label={filter.title} isActive={filter.isActive} />
-                  ))}
-                </View>
+                  <View className="flex-row space-x-2">
+                    {filters.map((filter, index) => (
+                      <FilterButton key={index} label={filter.title} isActive={filter.isActive} />
+                    ))}
+                  </View>
                 </View>
               </View>
 
-            <View>
+              <View>
                 <View className="max-w-md mx-auto w-full">{callItemList}</View>
               </View>
             </View>

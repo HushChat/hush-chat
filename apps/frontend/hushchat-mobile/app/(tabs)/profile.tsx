@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, ActivityIndicator, ScrollView, Image, StyleSheet } from "react-native";
+import { View, TouchableOpacity, ActivityIndicator, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "@/store/user/useUserStore";
 import { router } from "expo-router";
@@ -237,10 +237,7 @@ export default function Profile() {
   );
 
   return (
-    <ScrollView
-      className="flex-1 custom-scrollbar"
-      contentContainerStyle={{ flexGrow: 1 }}
-    >
+    <ScrollView className="flex-1 custom-scrollbar" contentContainerStyle={{ flexGrow: 1 }}>
       <ScrollView
         className="flex-1 custom-scrollbar"
         horizontal={true}
