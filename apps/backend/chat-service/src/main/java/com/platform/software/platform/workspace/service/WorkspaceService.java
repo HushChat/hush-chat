@@ -5,12 +5,17 @@ import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
+import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.utils.ValidationUtils;
+import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class WorkspaceService {
@@ -65,5 +70,13 @@ public class WorkspaceService {
         } finally {
             WorkspaceContext.setCurrentWorkspace(originalTenant);
         }
+    }
+
+    public List<String> getAllWorkspaces(){
+        return WorkspaceUtils.runInGlobalSchema(() -> workspaceRepository.findAllByWorkspaceIdentifierIsNotNull()
+                .stream()
+                .map(Workspace::getWorkspaceIdentifier)
+                .filter(id -> !id.isBlank())
+                .toList());
     }
 }
