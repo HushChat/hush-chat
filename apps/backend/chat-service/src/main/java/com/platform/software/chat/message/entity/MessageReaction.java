@@ -13,8 +13,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @Setter
 @Getter
 @Table(
-    name = "message_reaction",
-    uniqueConstraints = @UniqueConstraint(name = "uk_reaction_message_user_type", columnNames = {"message_id", "user_id"})
+        name = "message_reaction",
+        uniqueConstraints = @UniqueConstraint(name = "uk_reaction_message_user_type", columnNames = {"message_id", "user_id"})
 )
 public class MessageReaction extends AuditModel {
 

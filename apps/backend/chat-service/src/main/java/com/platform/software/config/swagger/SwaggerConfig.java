@@ -18,16 +18,16 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-            .addSecurityItem(new SecurityRequirement().addList(BEARER_KEY_SECURITY_SCHEME))
-            .components(new Components()
-                .addSecuritySchemes(BEARER_KEY_SECURITY_SCHEME, new SecurityScheme()
-                    .name(BEARER_KEY_SECURITY_SCHEME)
-                    .type(SecurityScheme.Type.HTTP)
-                    .scheme("bearer")
-                    .bearerFormat("JWT")))
-            .info(new Info()
-                .title("Chat App API")
-                .version("1.0")
-                .description("API documentation for Chat Application"));
+                .addSecurityItem(new SecurityRequirement().addList(BEARER_KEY_SECURITY_SCHEME))
+                .components(new Components()
+                        .addSecuritySchemes(BEARER_KEY_SECURITY_SCHEME, new SecurityScheme()
+                                .name(BEARER_KEY_SECURITY_SCHEME)
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")))
+                .info(new Info()
+                        .title("Chat App API")
+                        .version("1.0")
+                        .description("API documentation for Chat Application"));
     }
 }

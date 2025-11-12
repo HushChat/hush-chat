@@ -7,7 +7,6 @@ import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
-import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.utils.ValidationUtils;
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
@@ -29,9 +28,9 @@ public class WorkspaceService {
     private final WorkspaceUtilService workspaceUtilService;
 
     public WorkspaceService(
-        SchemaCopyService schemaCopyService,
-        WorkspaceRepository workspaceRepository,
-        WorkspaceUtilService workspaceUtilService
+            SchemaCopyService schemaCopyService,
+            WorkspaceRepository workspaceRepository,
+            WorkspaceUtilService workspaceUtilService
     ) {
         this.schemaCopyService = schemaCopyService;
         this.workspaceRepository = workspaceRepository;
@@ -72,7 +71,7 @@ public class WorkspaceService {
         }
     }
 
-    public List<String> getAllWorkspaces(){
+    public List<String> getAllWorkspaces() {
         return WorkspaceUtils.runInGlobalSchema(() -> workspaceRepository.findAllByWorkspaceIdentifierIsNotNull()
                 .stream()
                 .map(Workspace::getWorkspaceIdentifier)

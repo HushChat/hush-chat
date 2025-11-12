@@ -28,8 +28,8 @@ public class WorkspaceController {
     @ApiOperation(value = "switch workspaces", response = WorkspaceDTO.class)
     @PostMapping("{workspaceId}/switch")
     public ResponseEntity<WorkspaceDTO> switchWorkspaces(
-        @PathVariable Long workspaceId,
-        @AuthenticatedUser UserDetails userDetails
+            @PathVariable Long workspaceId,
+            @AuthenticatedUser UserDetails userDetails
     ) {
         WorkspaceDTO workspace = workspaceUserService.verifyUserAccessToWorkspace(userDetails.getEmail(), workspaceId);
         return new ResponseEntity<>(workspace, HttpStatus.OK);
@@ -38,8 +38,8 @@ public class WorkspaceController {
     @ApiOperation(value = "create workspaces")
     @PostMapping
     public ResponseEntity<Void> createWorkspace(
-        @RequestBody WorkspaceUpsertDTO workspaceUpsertDTO,
-        @AuthenticatedUser UserDetails userDetails
+            @RequestBody WorkspaceUpsertDTO workspaceUpsertDTO,
+            @AuthenticatedUser UserDetails userDetails
     ) {
         workspaceService.createWorkspace(workspaceUpsertDTO, userDetails.getEmail());
         return new ResponseEntity<>(HttpStatus.OK);

@@ -1,9 +1,19 @@
 package com.platform.software.config.interceptors;
 
+import com.auth0.jwk.JwkException;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.constants.Constants;
+import com.platform.software.common.model.UserTypeEnum;
 import com.platform.software.common.service.ErrorResponseHandler;
 import com.platform.software.common.utils.AuthUtils;
 import com.platform.software.config.aws.AWSCognitoConfig;
+import com.platform.software.config.security.model.UserDetails;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.ErrorResponses;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,17 +28,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.auth0.jwk.JwkException;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.platform.software.chat.user.entity.ChatUser;
-import com.platform.software.chat.user.service.UserService;
-import com.platform.software.common.model.UserTypeEnum;
-import com.platform.software.config.security.model.UserDetails;
-import com.platform.software.config.workspace.WorkspaceContext;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -45,8 +44,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private static final List<String> PUBLIC_PATTERNS = List.of(
-        "/health-check/**", "/public/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
-        "/swagger-ui.html/**", "/swagger-resources/**", "/webjars/**", "/public/workspaces/**", "/ws-message-subscription/**"
+            "/health-check/**", "/public/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
+            "/swagger-ui.html/**", "/swagger-resources/**", "/webjars/**", "/public/workspaces/**", "/ws-message-subscription/**"
     );
 
     private final UserService userService;
@@ -54,8 +53,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final Map<String, RSAPublicKey> cachedPublicKeys = new ConcurrentHashMap<>();
 
     public JwtAuthorizationFilter(
-        UserService userService,
-        AWSCognitoConfig awsCognitoConfig
+            UserService userService,
+            AWSCognitoConfig awsCognitoConfig
     ) {
         this.userService = userService;
         this.awsCognitoConfig = awsCognitoConfig;
@@ -76,8 +75,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private void handleTokenVerificationForUsers(
-        DecodedJWT decodedJwt,
-        String token
+            DecodedJWT decodedJwt,
+            String token
     ) throws JwkException, MalformedURLException {
         RSAPublicKey publicKey = AuthUtils.getPublicKey(decodedJwt.getKeyId(), awsCognitoConfig.getJwks(), cachedPublicKeys);
         AuthUtils.verifyToken(publicKey, token);
@@ -86,55 +85,55 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                setCurrentWorkspace(request);
+        setCurrentWorkspace(request);
 
-                // Allow through for public routes
-                if (isPublicEndpoint(request)) {
-                    filterChain.doFilter(request, response); 
-                    return;
-                }
+        // Allow through for public routes
+        if (isPublicEndpoint(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-                String token = AuthUtils.extractTokenFromHeader(request);
-                if (token == null) {
-                    ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.JWT_TOKEN_MISSING_RESPONSE);
-                    return;
-                }
+        String token = AuthUtils.extractTokenFromHeader(request);
+        if (token == null) {
+            ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.JWT_TOKEN_MISSING_RESPONSE);
+            return;
+        }
 
-                try {
-                    DecodedJWT decodedJwt = JWT.decode(token);
-                    Map<String, Claim> claims = decodedJwt.getClaims();
-                    String email = claims.get(Constants.EMAIL_ATTR).asString().replace("\"", "");
-                    String userType = claims.get(Constants.COGNITO_CUSTOM_USER_TYPE_KEY).asString();
+        try {
+            DecodedJWT decodedJwt = JWT.decode(token);
+            Map<String, Claim> claims = decodedJwt.getClaims();
+            String email = claims.get(Constants.EMAIL_ATTR).asString().replace("\"", "");
+            String userType = claims.get(Constants.COGNITO_CUSTOM_USER_TYPE_KEY).asString();
 
-                    if (userType == null) {
-                        ErrorResponseHandler.sendErrorResponse(response, HttpStatus.FORBIDDEN, ErrorResponses.USER_TYPE_IS_NULL_RESPONSE);
-                        return;
-                    }
+            if (userType == null) {
+                ErrorResponseHandler.sendErrorResponse(response, HttpStatus.FORBIDDEN, ErrorResponses.USER_TYPE_IS_NULL_RESPONSE);
+                return;
+            }
 
-                    ChatUser user = userService.getUserByEmail(email);
-                    if (user == null) {
-                        ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.UNAUTHORIZED_ACCESS_RESPONSE);
-                        return;
-                    }
+            ChatUser user = userService.getUserByEmail(email);
+            if (user == null) {
+                ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.UNAUTHORIZED_ACCESS_RESPONSE);
+                return;
+            }
 
-                    UserDetails userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace());
+            UserDetails userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace());
 
-                    handleTokenVerificationForUsers(
-                        decodedJwt,
-                        token
-                    );
+            handleTokenVerificationForUsers(
+                    decodedJwt,
+                    token
+            );
 
-                    //handle permissions later
-                    Set<GrantedAuthority> authorities = new HashSet<>();
+            //handle permissions later
+            Set<GrantedAuthority> authorities = new HashSet<>();
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, userType, authorities);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userDetails, userType, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    filterChain.doFilter(request, response);
-                } catch (JWTVerificationException | JwkException e) {
-                    ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INVALID_TOKEN_PROVIDED_RESPONSE);
-                }
+            filterChain.doFilter(request, response);
+        } catch (JWTVerificationException | JwkException e) {
+            ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INVALID_TOKEN_PROVIDED_RESPONSE);
+        }
 
     }
 

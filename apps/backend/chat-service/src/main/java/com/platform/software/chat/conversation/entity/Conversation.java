@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.entity;
 
-import java.util.List;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -9,13 +8,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
+
+import java.util.List;
 
 @Entity
 @Setter
 @Getter
 // TODO: remove @Where(clause = "deleted = false")
-public class Conversation extends AuditModel{
+public class Conversation extends AuditModel {
     @Id
     @GeneratedValue(generator = "conversation_generator")
     private Long id;

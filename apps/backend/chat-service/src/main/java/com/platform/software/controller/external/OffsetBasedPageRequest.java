@@ -1,12 +1,11 @@
 package com.platform.software.controller.external;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @Data
 @NoArgsConstructor
@@ -64,7 +63,7 @@ public class OffsetBasedPageRequest implements Pageable {
     @JsonIgnore
     public Pageable previousOrFirst() {
         return hasPrevious() ?
-            new OffsetBasedPageRequest(Math.max(0, offset - size), size, sort) : this;
+                new OffsetBasedPageRequest(Math.max(0, offset - size), size, sort) : this;
     }
 
     @Override

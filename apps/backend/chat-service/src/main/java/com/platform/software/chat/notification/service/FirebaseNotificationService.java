@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FirebaseNotificationService implements NotificationService{
+public class FirebaseNotificationService implements NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(FirebaseNotificationService.class);
 
@@ -28,11 +28,11 @@ public class FirebaseNotificationService implements NotificationService{
                     .build();
 
             BatchResponse response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
-            if(response!= null){
+            if (response != null) {
                 logger.info("Notification sent: {} succeeded, {} failed", response.getSuccessCount(), response.getFailureCount());
             }
         } catch (Exception e) {
-            logger.error("Firebase initialization failed!",e);
+            logger.error("Firebase initialization failed!", e);
         }
     }
 

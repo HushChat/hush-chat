@@ -1,13 +1,9 @@
 package com.platform.software.more.seeder.helper;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
+import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
@@ -18,8 +14,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.platform.software.chat.conversation.entity.Conversation;
-import com.platform.software.chat.conversation.repository.ConversationRepository;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class ConversationSeeder {
@@ -54,14 +54,14 @@ public class ConversationSeeder {
 
     private List<ChatUser> removeDuplicateUsers(List<ChatUser> participants) {
         return participants.stream()
-            .collect(Collectors.toMap(
-                ChatUser::getId,
-                Function.identity(),
-                (existing, replacement) -> existing,
-                LinkedHashMap::new))
-            .values()
-            .stream()
-            .toList();
+                .collect(Collectors.toMap(
+                        ChatUser::getId,
+                        Function.identity(),
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new))
+                .values()
+                .stream()
+                .toList();
     }
 
     private ConversationParticipant createParticipant(ChatUser user, ConversationParticipantRoleEnum role) {
@@ -73,8 +73,8 @@ public class ConversationSeeder {
 
     private ConversationParticipant createRandomRoleParticipant(ChatUser user) {
         ConversationParticipantRoleEnum role = random.nextBoolean()
-            ? ConversationParticipantRoleEnum.ADMIN
-            : ConversationParticipantRoleEnum.MEMBER;
+                ? ConversationParticipantRoleEnum.ADMIN
+                : ConversationParticipantRoleEnum.MEMBER;
         return createParticipant(user, role);
     }
 
@@ -85,8 +85,8 @@ public class ConversationSeeder {
         conversation.setName(faker.company().buzzword() + " " + faker.hacker().noun());
 
         List<ConversationParticipant> conversationParticipants = participants.stream()
-            .map(this::createRandomRoleParticipant)
-            .collect(Collectors.toList());
+                .map(this::createRandomRoleParticipant)
+                .collect(Collectors.toList());
 
         conversation.setConversationParticipants(conversationParticipants);
         return conversation;
@@ -98,7 +98,7 @@ public class ConversationSeeder {
         conversation.setCreatedBy(createdBy);
 
         List<ConversationParticipant> participants = Arrays.asList(
-            createParticipant(otherUser, ConversationParticipantRoleEnum.MEMBER)
+                createParticipant(otherUser, ConversationParticipantRoleEnum.MEMBER)
         );
         conversation.setConversationParticipants(participants);
         return conversation;
@@ -131,8 +131,8 @@ public class ConversationSeeder {
             return createGroupConversation(createdBy, participants);
         } else {
             ChatUser otherUser = createdBy.getId().equals(loggedInUser.getId())
-                ? loggedInUser
-                : getRandomUserExcluding(chatUsers, loggedInUser.getId());
+                    ? loggedInUser
+                    : getRandomUserExcluding(chatUsers, loggedInUser.getId());
 
             Conversation conversation = createDirectConversation(createdBy, otherUser);
 
@@ -173,7 +173,7 @@ public class ConversationSeeder {
                 return;
             }
             List<Conversation> conversations = objectMapper.readValue(inputStream,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, Conversation.class));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, Conversation.class));
             conversationRepository.saveAll(conversations);
             logger.info("finished seeding conversations: {}", conversations.size());
 
@@ -190,7 +190,7 @@ public class ConversationSeeder {
                 return;
             }
             List<ConversationParticipant> conversationParticipants = objectMapper.readValue(inputStream,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, ConversationParticipant.class));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ConversationParticipant.class));
             conversationParticipantRepository.saveAll(conversationParticipants);
             logger.info("finished seeding conversation participants: {}", conversationParticipants.size());
 
@@ -202,7 +202,7 @@ public class ConversationSeeder {
     }
 
     @Transactional
-    public void seedGeneratedConversationsAndParticipants(){
+    public void seedGeneratedConversationsAndParticipants() {
         logger.info("Started seeding Generated conversations");
 
         List<ChatUser> chatUsers = userRepository.getAllUsersIgnoringFilters();

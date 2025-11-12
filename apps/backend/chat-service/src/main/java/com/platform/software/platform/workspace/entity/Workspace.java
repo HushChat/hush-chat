@@ -12,9 +12,9 @@ import org.hibernate.annotations.Where;
 @Getter
 @Where(clause = "deleted = false")
 @Table(
-    name = "workspace",
-    schema = "platform",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"workspace_identifier"})
+        name = "workspace",
+        schema = "platform",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"workspace_identifier"})
 )
 public class Workspace extends AuditModel {
     @Id

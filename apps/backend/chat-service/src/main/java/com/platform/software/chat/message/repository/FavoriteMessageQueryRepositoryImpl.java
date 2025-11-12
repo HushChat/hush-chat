@@ -1,19 +1,16 @@
 package com.platform.software.chat.message.repository;
 
 import com.platform.software.chat.message.dto.MessageViewDTO;
-import com.platform.software.chat.message.entity.FavouriteMessage;
 import com.platform.software.chat.message.entity.QFavouriteMessage;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.querydsl.core.Tuple;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;

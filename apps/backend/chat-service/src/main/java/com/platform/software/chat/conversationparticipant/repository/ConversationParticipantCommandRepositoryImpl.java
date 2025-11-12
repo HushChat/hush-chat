@@ -23,7 +23,7 @@ public class ConversationParticipantCommandRepositoryImpl implements Conversatio
     public long toggleFavorite(Long conversationId, Long userId) {
         QConversationParticipant cp = QConversationParticipant.conversationParticipant;
 
-         return queryFactory
+        return queryFactory
                 .update(cp)
                 .set(cp.isFavorite, cp.isFavorite.not())
                 .where(memberOfConversation(cp, conversationId, userId))

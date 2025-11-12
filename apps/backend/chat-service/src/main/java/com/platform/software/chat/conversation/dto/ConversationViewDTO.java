@@ -2,7 +2,6 @@ package com.platform.software.chat.conversation.dto;
 
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
-import com.platform.software.chat.message.entity.Message;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;

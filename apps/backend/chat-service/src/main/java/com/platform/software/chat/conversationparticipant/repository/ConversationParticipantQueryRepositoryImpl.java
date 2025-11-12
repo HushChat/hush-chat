@@ -44,24 +44,24 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
 
     private JPQLQuery<Long> getActiveConversationIdsForUser(Long userId) {
         return queryFactory.selectDistinct(qConversationParticipant.conversation.id)
-            .from(qConversationParticipant)
-            .where(qConversationParticipant.user.id.eq(userId)
-                .and(qConversationParticipant.archived.isFalse()))
-            .where(qConversationParticipant.isActive.isTrue())
-            .where(qConversationParticipant.isDeleted.isFalse());
+                .from(qConversationParticipant)
+                .where(qConversationParticipant.user.id.eq(userId)
+                        .and(qConversationParticipant.archived.isFalse()))
+                .where(qConversationParticipant.isActive.isTrue())
+                .where(qConversationParticipant.isDeleted.isFalse());
     }
 
     @Override
     public List<ConversationDTO> findAllConversationsByUserId(Long userId) {
         // Single query to get all participants for user's conversations
         List<Tuple> results = queryFactory
-            .select(qConversationParticipant, qConversation, qUser)
-            .from(qConversationParticipant)
-            .leftJoin(qConversationParticipant.conversation, qConversation)
-            .leftJoin(qConversationParticipant.user, qUser)
-            .where(qConversationParticipant.isActive.isTrue())
-            .where(qConversationParticipant.conversation.id.in(getActiveConversationIdsForUser(userId)))
-            .fetch();
+                .select(qConversationParticipant, qConversation, qUser)
+                .from(qConversationParticipant)
+                .leftJoin(qConversationParticipant.conversation, qConversation)
+                .leftJoin(qConversationParticipant.user, qUser)
+                .where(qConversationParticipant.isActive.isTrue())
+                .where(qConversationParticipant.conversation.id.in(getActiveConversationIdsForUser(userId)))
+                .fetch();
 
         if (results.isEmpty()) {
             return new ArrayList<>();
@@ -74,20 +74,20 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     public Optional<ConversationDTO> findConversationByUserIdAndConversationId(Long userId, Long conversationId) {
         // Single query to check participation and get all participants
         List<Tuple> results = queryFactory
-            .select(qConversationParticipant, qConversation, qUser)
-            .from(qConversationParticipant)
-            .leftJoin(qConversationParticipant.conversation, qConversation)
-            .leftJoin(qConversationParticipant.user, qUser)
-            .where(qConversationParticipant.isActive.isTrue())
-            .where(qConversationParticipant.conversation.id.eq(
-                    queryFactory.select(qConversationParticipant.conversation.id) // inner query to check if the user is in the conversation
-                        .from(qConversationParticipant)
-                        .where(qConversationParticipant.user.id.eq(userId)
-                            .and(qConversationParticipant.conversation.id.eq(conversationId)))
-                        .where(qConversationParticipant.isActive.isTrue())
-                        .limit(1)
+                .select(qConversationParticipant, qConversation, qUser)
+                .from(qConversationParticipant)
+                .leftJoin(qConversationParticipant.conversation, qConversation)
+                .leftJoin(qConversationParticipant.user, qUser)
+                .where(qConversationParticipant.isActive.isTrue())
+                .where(qConversationParticipant.conversation.id.eq(
+                        queryFactory.select(qConversationParticipant.conversation.id) // inner query to check if the user is in the conversation
+                                .from(qConversationParticipant)
+                                .where(qConversationParticipant.user.id.eq(userId)
+                                        .and(qConversationParticipant.conversation.id.eq(conversationId)))
+                                .where(qConversationParticipant.isActive.isTrue())
+                                .limit(1)
                 ))
-            .fetch();
+                .fetch();
 
         if (results.isEmpty()) {
             return Optional.empty();
@@ -101,15 +101,15 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     public List<ConversationDTO> findAllConversationByUserIdAndConversationIds(Long userId, Set<Long> conversationIds) {
         // Single query to check participation and get all participants
         List<Tuple> results = queryFactory
-            .select(qConversationParticipant, qConversation, qUser)
-            .from(qConversationParticipant)
-            .leftJoin(qConversationParticipant.conversation, qConversation)
-            .leftJoin(qConversationParticipant.user, qUser)
-            .where(
-                qConversationParticipant.user.id.eq(userId),
-                qConversationParticipant.conversation.id.in(conversationIds)
-            )
-            .fetch();
+                .select(qConversationParticipant, qConversation, qUser)
+                .from(qConversationParticipant)
+                .leftJoin(qConversationParticipant.conversation, qConversation)
+                .leftJoin(qConversationParticipant.user, qUser)
+                .where(
+                        qConversationParticipant.user.id.eq(userId),
+                        qConversationParticipant.conversation.id.in(conversationIds)
+                )
+                .fetch();
 
         if (results.isEmpty()) {
             return new ArrayList<>();
@@ -133,15 +133,15 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                 .execute();
 
         List<Tuple> results = queryFactory
-            .select(cp, qConversation, qUser)
-            .from(cp)
-            .leftJoin(cp.conversation, qConversation)
-            .leftJoin(cp.user, qUser)
-            .where(cp.conversation.id.eq(conversationId)
-                .and(cp.archived.eq(false)))
-            .where(cp.isActive.isTrue())
-            .distinct()
-            .fetch();
+                .select(cp, qConversation, qUser)
+                .from(cp)
+                .leftJoin(cp.conversation, qConversation)
+                .leftJoin(cp.user, qUser)
+                .where(cp.conversation.id.eq(conversationId)
+                        .and(cp.archived.eq(false)))
+                .where(cp.isActive.isTrue())
+                .distinct()
+                .fetch();
 
         if (results.isEmpty()) {
             return Optional.empty();
@@ -152,12 +152,12 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
 
     private List<ConversationDTO> buildConversationDTOs(List<Tuple> results, Long userId) {
         Map<Long, List<Tuple>> conversationGroups = results.stream()
-            .filter(tuple -> tuple.get(qConversation) != null)
-            .collect(Collectors.groupingBy(tuple -> tuple.get(qConversation).getId()));
+                .filter(tuple -> tuple.get(qConversation) != null)
+                .collect(Collectors.groupingBy(tuple -> tuple.get(qConversation).getId()));
 
         return conversationGroups.values().stream()
-            .map(conversationData -> buildConversationDTO(conversationData, userId))
-            .collect(Collectors.toList());
+                .map(conversationData -> buildConversationDTO(conversationData, userId))
+                .collect(Collectors.toList());
     }
 
     private ConversationDTO buildConversationDTO(List<Tuple> conversationData, Long userId) {
@@ -165,28 +165,28 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         ConversationDTO conversationDTO = new ConversationDTO(conv);
 
         List<ConversationParticipantViewDTO> participantViewDTOs = conversationData.stream()
-            .map(tuple -> {
-                ConversationParticipant participant = tuple.get(qConversationParticipant);
-                ChatUser user = tuple.get(qUser);
+                .map(tuple -> {
+                    ConversationParticipant participant = tuple.get(qConversationParticipant);
+                    ChatUser user = tuple.get(qUser);
 
-                if(user != null) {
-                    ConversationParticipantViewDTO viewDTO = new ConversationParticipantViewDTO();
-                    viewDTO.setId(participant.getId());
-                    viewDTO.setRole(participant.getRole());
-                    viewDTO.setUser(new UserViewDTO(user));
+                    if (user != null) {
+                        ConversationParticipantViewDTO viewDTO = new ConversationParticipantViewDTO();
+                        viewDTO.setId(participant.getId());
+                        viewDTO.setRole(participant.getRole());
+                        viewDTO.setUser(new UserViewDTO(user));
 
-                    viewDTO.setIsArchivedByParticipant(participant.getArchived());
-                    viewDTO.setIsPinnedByParticipant(participant.getIsPinned());
-                    viewDTO.setIsFavoriteByParticipant(participant.getIsFavorite());
-                    viewDTO.setIsMutedByParticipant(ConversationUtilService.isMuted(participant.getMutedUntil()));
+                        viewDTO.setIsArchivedByParticipant(participant.getArchived());
+                        viewDTO.setIsPinnedByParticipant(participant.getIsPinned());
+                        viewDTO.setIsFavoriteByParticipant(participant.getIsFavorite());
+                        viewDTO.setIsMutedByParticipant(ConversationUtilService.isMuted(participant.getMutedUntil()));
 
-                    return viewDTO;
-                }
+                        return viewDTO;
+                    }
 
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         conversationDTO.setParticipants(participantViewDTOs);
 
@@ -200,11 +200,11 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     @Transactional
     public long updateIsActiveById(Long id, Boolean isActive) {
         return queryFactory
-            .update(qConversationParticipant)
-            .set(qConversationParticipant.isActive, isActive)
-            .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now())
-            .where(qConversationParticipant.id.eq(id))
-            .execute();
+                .update(qConversationParticipant)
+                .set(qConversationParticipant.isActive, isActive)
+                .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now())
+                .where(qConversationParticipant.id.eq(id))
+                .execute();
     }
 
     @Override
@@ -292,56 +292,56 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     public Page<ConversationDTO> findConversationsByMatchingKeyword(String searchKeyword, Long loggedInUser, Pageable pageable) {
 
         BooleanExpression searchCondition = qConversation.id.in(getActiveConversationIdsForUser(loggedInUser))
-            .and(
-                qConversation.isGroup.isFalse()
-                    .and(JPAExpressions.selectOne()
-                        .from(qConversationParticipant)
-                        .leftJoin(qConversationParticipant.user, qUser)
-                        .where(qConversationParticipant.conversation.id.eq(qConversation.id)
-                            .and(qConversationParticipant.user.id.ne(loggedInUser))
-                            .and(qConversationParticipant.isActive.isTrue())
-                            .and(qUser.firstName.containsIgnoreCase(searchKeyword)
-                                .or(qUser.lastName.containsIgnoreCase(searchKeyword))))
-                        .exists())
-                    .or(
-                        qConversation.isGroup.isTrue()
-                            .and(qConversation.name.containsIgnoreCase(searchKeyword))
-                    )
-            );
+                .and(
+                        qConversation.isGroup.isFalse()
+                                .and(JPAExpressions.selectOne()
+                                        .from(qConversationParticipant)
+                                        .leftJoin(qConversationParticipant.user, qUser)
+                                        .where(qConversationParticipant.conversation.id.eq(qConversation.id)
+                                                .and(qConversationParticipant.user.id.ne(loggedInUser))
+                                                .and(qConversationParticipant.isActive.isTrue())
+                                                .and(qUser.firstName.containsIgnoreCase(searchKeyword)
+                                                        .or(qUser.lastName.containsIgnoreCase(searchKeyword))))
+                                        .exists())
+                                .or(
+                                        qConversation.isGroup.isTrue()
+                                                .and(qConversation.name.containsIgnoreCase(searchKeyword))
+                                )
+                );
 
         Long total = queryFactory
-            .select(qConversation.count())
-            .from(qConversation)
-            .where(searchCondition)
-            .fetchOne();
+                .select(qConversation.count())
+                .from(qConversation)
+                .where(searchCondition)
+                .fetchOne();
         long totalCount = Objects.requireNonNullElse(total, 0L);
 
         JPAQuery<Conversation> baseQuery = queryFactory
-            .selectDistinct(qConversation)
-            .from(qConversation)
-            .where(searchCondition);
+                .selectDistinct(qConversation)
+                .from(qConversation)
+                .where(searchCondition);
 
         if (totalCount == 0) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
 
         List<Conversation> conversations = baseQuery
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
         List<ConversationDTO> conversationDTOs = conversations.stream()
-            .map(ConversationDTO::new)
-            .collect(Collectors.toList());
+                .map(ConversationDTO::new)
+                .collect(Collectors.toList());
 
         return new PageImpl<>(conversationDTOs, pageable, totalCount);
     }
 
     @Override
     public Page<ConversationParticipant> findConversationParticipantsByCriteria(
-        Long conversationId,
-        Pageable pageable,
-        ConversationParticipantFilterCriteriaDTO filterCriteria
+            Long conversationId,
+            Pageable pageable,
+            ConversationParticipantFilterCriteriaDTO filterCriteria
     ) {
         BooleanBuilder where = new BooleanBuilder();
 
@@ -352,10 +352,10 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         if (StringUtils.hasText(filterCriteria.getKeyword())) {
             String keyword = filterCriteria.getKeyword().trim();
             where.and(
-                qUser.firstName.containsIgnoreCase(keyword)
-                        .or(qUser.lastName.containsIgnoreCase(keyword))
-                        .or(qUser.email.containsIgnoreCase(keyword))
-                        .or(qUser.username.containsIgnoreCase(keyword))
+                    qUser.firstName.containsIgnoreCase(keyword)
+                            .or(qUser.lastName.containsIgnoreCase(keyword))
+                            .or(qUser.email.containsIgnoreCase(keyword))
+                            .or(qUser.username.containsIgnoreCase(keyword))
             );
         }
 
@@ -379,7 +379,7 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     }
 
     @Override
-    public void restoreParticipantsByConversationId(Long conversationId){
+    public void restoreParticipantsByConversationId(Long conversationId) {
         queryFactory.update(qConversationParticipant)
                 .set(qConversationParticipant.isDeleted, false)
                 .where(qConversationParticipant.conversation.id.eq(conversationId)

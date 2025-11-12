@@ -3,10 +3,11 @@ package com.platform.software.chat.conversation.readstatus.repository;
 import com.platform.software.chat.conversation.readstatus.entity.QConversationReadStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
 @Repository
-public class ConversationReadStatusQueryRepositoryImpl  implements ConversationReadStatusQueryRepository {
+public class ConversationReadStatusQueryRepositoryImpl implements ConversationReadStatusQueryRepository {
     private static final QConversationReadStatus qConversationReadStatus = QConversationReadStatus.conversationReadStatus;
     private final JPAQueryFactory queryFactory;
 

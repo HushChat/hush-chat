@@ -1,9 +1,5 @@
 package com.platform.software.config.workspace;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Map;
-import javax.sql.DataSource;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +7,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.stereotype.Component;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * TenantConnectionProvider manages and customizes database connections for multi-tenancy,

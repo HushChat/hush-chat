@@ -21,6 +21,7 @@ public interface ModelMapper<T> {
 
     /**
      * Warning! Only map shallowly. Any nested mappings should be handled at the business logic level not inside a DTO.
+     *
      * @param dao The JPA entity to be mapped.
      * @return Return above DAO
      */
@@ -28,6 +29,7 @@ public interface ModelMapper<T> {
 
     /**
      * Warning! Only map shallowly. Any nested mappings should be handled at the business logic level not inside a DTO.
+     *
      * @param dao The JPA entity to be mapped from.
      */
     void mapToSelf(T dao);

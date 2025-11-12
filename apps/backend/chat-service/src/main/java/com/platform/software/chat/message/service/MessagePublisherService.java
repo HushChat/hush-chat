@@ -31,11 +31,11 @@ public class MessagePublisherService {
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessagePublisherService(
-        ConversationUtilService conversationUtilService,
-        WebSocketSessionManager webSocketSessionManager,
-        SimpMessagingTemplate template,
-        MessageAttachmentRepository messageAttachmentRepository,
-        CloudPhotoHandlingService cloudPhotoHandlingService) {
+            ConversationUtilService conversationUtilService,
+            WebSocketSessionManager webSocketSessionManager,
+            SimpMessagingTemplate template,
+            MessageAttachmentRepository messageAttachmentRepository,
+            CloudPhotoHandlingService cloudPhotoHandlingService) {
         this.conversationUtilService = conversationUtilService;
         this.webSocketSessionManager = webSocketSessionManager;
         this.template = template;
@@ -79,20 +79,20 @@ public class MessagePublisherService {
         conversationDTO.setMessages(List.of(messageViewDTO));
 
         conversationDTO.getParticipants().stream()
-            .filter(p -> !p.getUser().getId().equals(senderId))
-            .forEach(participant -> {
-                String email = participant.getUser().getEmail();
-                String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-                String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
+                .filter(p -> !p.getUser().getId().equals(senderId))
+                .forEach(participant -> {
+                    String email = participant.getUser().getEmail();
+                    String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+                    String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
 
-                ConversationDTO participantDTO = getConversationDTO(participant, conversationDTO);
+                    ConversationDTO participantDTO = getConversationDTO(participant, conversationDTO);
 
-                webSocketSessionManager.getValidSession(sessionKey)
-                    .ifPresent(session -> template.convertAndSend(
-                        "%s/%s".formatted(MESSAGE_INVOKE_PATH, encodedEmail),
-                        participantDTO
-                    ));
-            });
+                    webSocketSessionManager.getValidSession(sessionKey)
+                            .ifPresent(session -> template.convertAndSend(
+                                    "%s/%s".formatted(MESSAGE_INVOKE_PATH, encodedEmail),
+                                    participantDTO
+                            ));
+                });
     }
 
     private static ConversationDTO getConversationDTO(ConversationParticipantViewDTO participant, ConversationDTO conversationDTO) {

@@ -84,7 +84,7 @@ public class MessageReactionSeeder {
         }
 
         logger.info("Finished seeding {} message reactions across {} messages",
-            totalReactions, messages.size());
+                totalReactions, messages.size());
     }
 
     @Transactional
@@ -110,9 +110,9 @@ public class MessageReactionSeeder {
 
     private List<ChatUser> getConversationParticipants(Conversation conversation) {
         return conversation.getConversationParticipants()
-            .stream()
-            .map(ConversationParticipant::getUser)
-            .collect(Collectors.toList());
+                .stream()
+                .map(ConversationParticipant::getUser)
+                .collect(Collectors.toList());
     }
 
     private List<MessageReaction> createReactionsForMessage(Message message, List<ChatUser> participants) {
@@ -120,8 +120,8 @@ public class MessageReactionSeeder {
 
         // Exclude the sender from reacting to their own message (80% of the time)
         List<ChatUser> potentialReactors = participants.stream()
-            .filter(user -> !user.getId().equals(message.getSender().getId()) || random.nextDouble() < 0.2)
-            .collect(Collectors.toList());
+                .filter(user -> !user.getId().equals(message.getSender().getId()) || random.nextDouble() < 0.2)
+                .collect(Collectors.toList());
 
         if (potentialReactors.isEmpty()) {
             return reactions;

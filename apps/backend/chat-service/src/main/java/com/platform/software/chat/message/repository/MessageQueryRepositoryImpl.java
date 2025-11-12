@@ -7,20 +7,12 @@ import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
-import com.platform.software.common.model.CustomPageImpl;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +20,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     Logger logger = LoggerFactory.getLogger(MessageQueryRepositoryImpl.class);
@@ -98,10 +94,10 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         // Better approach might be to use a custom converter if you want to abstract it
         String tsvectorString = null;
         Object result = entityManager.createNativeQuery(
-                "SELECT to_tsvector('english', :messageText)"
-            )
-            .setParameter("messageText", message.getMessageText())
-            .getSingleResult();
+                        "SELECT to_tsvector('english', :messageText)"
+                )
+                .setParameter("messageText", message.getMessageText())
+                .getSingleResult();
 
         if (result instanceof PGobject) {
             PGobject pgObject = (PGobject) result;
@@ -120,44 +116,44 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
-            .and(message.sender.isNotNull())
-            .and(message.conversation.deleted.eq(false));
+                .and(message.sender.isNotNull())
+                .and(message.conversation.deleted.eq(false));
 
-        if(!participant.getIsActive()) {
+        if (!participant.getIsActive()) {
             conditions = conditions.and(message.createdAt.before(Date.from(participant.getInactiveFrom().toInstant())));
         }
 
-        if(participant.getLastDeletedTime() != null) {
+        if (participant.getLastDeletedTime() != null) {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
         // Add cursor-based pagination conditions
-        if(idBasedPageRequest.getAfterId() != null) {
+        if (idBasedPageRequest.getAfterId() != null) {
             conditions = conditions.and(message.id.gt(idBasedPageRequest.getAfterId()));
         }
 
-        if(idBasedPageRequest.getBeforeId() != null) {
+        if (idBasedPageRequest.getBeforeId() != null) {
             conditions = conditions.and(message.id.loe(idBasedPageRequest.getBeforeId()));
         }
 
         Long total = queryFactory
-            .select(message.id.countDistinct())
-            .from(message)
-            .innerJoin(message.conversation, conversation)
-            .innerJoin(message.sender, sender)
-            .where(conditions)
-            .fetchOne();
+                .select(message.id.countDistinct())
+                .from(message)
+                .innerJoin(message.conversation, conversation)
+                .innerJoin(message.sender, sender)
+                .where(conditions)
+                .fetchOne();
 
         List<Message> messages = queryFactory
-            .selectDistinct(message)
-            .from(message)
-            .leftJoin(message.attachments, messageAttachment).fetchJoin()
-            .innerJoin(message.conversation, conversation).fetchJoin()
-            .innerJoin(message.sender, sender).fetchJoin()
-            .where(conditions)
-            .orderBy(message.id.desc())
-            .limit(idBasedPageRequest.getSize())
-            .fetch();
+                .selectDistinct(message)
+                .from(message)
+                .leftJoin(message.attachments, messageAttachment).fetchJoin()
+                .innerJoin(message.conversation, conversation).fetchJoin()
+                .innerJoin(message.sender, sender).fetchJoin()
+                .where(conditions)
+                .orderBy(message.id.desc())
+                .limit(idBasedPageRequest.getSize())
+                .fetch();
 
         Pageable pageable = PageRequest.of(0, idBasedPageRequest.getSize().intValue());
 

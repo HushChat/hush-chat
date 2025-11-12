@@ -37,7 +37,8 @@ public class MessageMentionService {
 
     /**
      * Save Message with their user mentions
-     * @param savedMessage - save message
+     *
+     * @param savedMessage   - save message
      * @param messageViewDTO - returns with mentioned user details
      */
     @Transactional
@@ -65,46 +66,48 @@ public class MessageMentionService {
 
     private static List<MessageMention> buildMessageMentions(Message savedMessage, List<ChatUser> mentionedUsers) {
         List<MessageMention> messageMentions = mentionedUsers.stream()
-            .map(u -> {
-                MessageMention messageMention = new MessageMention();
-                messageMention.setMentionedUser(u);
-                messageMention.setMessage(savedMessage);
-                return messageMention;
-            })
-            .toList();
+                .map(u -> {
+                    MessageMention messageMention = new MessageMention();
+                    messageMention.setMentionedUser(u);
+                    messageMention.setMessage(savedMessage);
+                    return messageMention;
+                })
+                .toList();
         return messageMentions;
     }
 
     /**
      * Append message mentions for the mentioned messages
+     *
      * @param messageViewDTOS - requested messages for appending mentions users
      */
     public void appendMessageMentions(List<MessageViewDTO> messageViewDTOS) {
         Set<Long> messageIds = messageViewDTOS.stream()
-            .map(MessageViewDTO::getId)
-            .collect(Collectors.toSet());
+                .map(MessageViewDTO::getId)
+                .collect(Collectors.toSet());
 
         Map<Long, List<UserViewDTO>> mentionMap = messageMentionRepository.findByMessageIdIn(messageIds)
-            .stream()
-            .collect(Collectors.groupingBy(
-                mention -> mention.getMessage().getId(),
-                Collectors.mapping(
-                    mention -> new UserViewDTO(mention.getMentionedUser()),
-                    Collectors.toList()
-                )
-            ));
+                .stream()
+                .collect(Collectors.groupingBy(
+                        mention -> mention.getMessage().getId(),
+                        Collectors.mapping(
+                                mention -> new UserViewDTO(mention.getMentionedUser()),
+                                Collectors.toList()
+                        )
+                ));
 
         if (mentionMap.isEmpty()) {
             return;
         }
 
         messageViewDTOS.forEach(messageViewDTO ->
-            messageViewDTO.setMentions(mentionMap.getOrDefault(messageViewDTO.getId(), Collections.emptyList()))
+                messageViewDTO.setMentions(mentionMap.getOrDefault(messageViewDTO.getId(), Collections.emptyList()))
         );
     }
 
     /**
      * Extracts all @username mentions from a message text
+     *
      * @param messageText the text to parse for username mentions
      * @return List of usernames (without the @ symbol)
      */

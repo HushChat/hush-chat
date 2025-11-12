@@ -25,9 +25,9 @@ public class FavoriteMessageService {
     private final MessageService messageService;
 
     public FavoriteMessageService(
-        FavoriteMessageRepository favoriteMessageRepository,
-        UserService userService,
-        MessageService messageService
+            FavoriteMessageRepository favoriteMessageRepository,
+            UserService userService,
+            MessageService messageService
     ) {
         this.favoriteMessageRepository = favoriteMessageRepository;
         this.userService = userService;
@@ -37,7 +37,7 @@ public class FavoriteMessageService {
     /**
      * Creates a favorite message for the user.
      *
-     * @param userId the ID of the user
+     * @param userId    the ID of the user
      * @param messageId the ID of the message to be favorited
      * @return MessageViewDTO containing the details of the favorited message
      */
@@ -65,7 +65,7 @@ public class FavoriteMessageService {
     /**
      * Retrieves favorite messages for a user with pagination.
      *
-     * @param userId the ID of the user
+     * @param userId   the ID of the user
      * @param pageable the pagination information
      * @return a paginated list of MessageViewDTOs representing the user's favorite messages
      */
@@ -77,7 +77,7 @@ public class FavoriteMessageService {
     /**
      * Deletes a favorite message for the user.
      *
-     * @param userId the ID of the user
+     * @param userId    the ID of the user
      * @param messageId the ID of the message to be unfavorited
      */
     public void deleteFavoriteMessage(Long userId, Long messageId) {
