@@ -17,6 +17,11 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.DirectoryResourceAccessor;
+import com.platform.software.platform.workspace.entity.Workspace;
+import com.platform.software.platform.workspace.repository.WorkspaceRepository;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.utils.ValidationUtils;
+import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,6 +35,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import java.util.List;
 
 @Service
 public class WorkspaceService {
@@ -133,5 +140,13 @@ public class WorkspaceService {
             logger.error("Failed to apply database migrations for schema: {}", schemaName, e);
             throw new SQLException("Failed to apply migrations", e);
         }
+    }
+    
+    public List<String> getAllWorkspaces(){
+        return WorkspaceUtils.runInGlobalSchema(() -> workspaceRepository.findAllByWorkspaceIdentifierIsNotNull()
+                .stream()
+                .map(Workspace::getWorkspaceIdentifier)
+                .filter(id -> !id.isBlank())
+                .toList());
     }
 }
