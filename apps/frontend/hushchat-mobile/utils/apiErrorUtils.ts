@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { ToastUtils } from "@/utils/toastUtils";
 import { router } from "expo-router";
 import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
