@@ -7,7 +7,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Keyboard,
   TextInput,
   TextInputContentSizeChangeEvent,
   TextInputSelectionChangeEvent,
@@ -151,7 +150,6 @@ const ConversationInputBar = ({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   useEffect(() => {
@@ -235,50 +233,50 @@ const ConversationInputBar = ({
   );
 
   const handleSend = useCallback(
-  (messageToSend?: string) => {
-    const finalMessage = messageToSend !== undefined ? messageToSend.trim() : message.trim();
+    (messageToSend?: string) => {
+      const finalMessage = messageToSend !== undefined ? messageToSend.trim() : message.trim();
 
-    if (!finalMessage.trim() || disabled) return;
+      if (!finalMessage.trim() || disabled) return;
 
-    saveDraftDebounced.flush?.();
-    onSendMessage(finalMessage, replyToMessage || undefined);
+      saveDraftDebounced.flush?.();
+      onSendMessage(finalMessage, replyToMessage || undefined);
 
-    setMessage("");
-    animatedHeight.value = withTiming(
-      minHeight,
-      { duration: RESET_ANIM_MS, easing: ANIM_EASING },
-      (finished) => {
-        if (finished) {
-          scheduleOnRN(setInputHeight, minHeight);
+      setMessage("");
+      animatedHeight.value = withTiming(
+        minHeight,
+        { duration: RESET_ANIM_MS, easing: ANIM_EASING },
+        (finished) => {
+          if (finished) {
+            scheduleOnRN(setInputHeight, minHeight);
+          }
         }
+      );
+
+      void storage.remove(getDraftKey(conversationId));
+
+      if (replyToMessage) {
+        onCancelReply?.();
       }
-    );
 
-    void storage.remove(getDraftKey(conversationId));
+      requestAnimationFrame(() => {
+        textInputRef.current?.focus();
+      });
 
-    if (replyToMessage) {
-      onCancelReply?.();
-    }
-
-    requestAnimationFrame(() => {
-      textInputRef.current?.focus();
-    });
-
-    setMentionQuery(null);
-  },
-  [
-    message,
-    disabled,
-    replyToMessage,
-    minHeight,
-    conversationId,
-    saveDraftDebounced,
-    onSendMessage,
-    animatedHeight,
-    storage,
-    onCancelReply,
-  ]
-);
+      setMentionQuery(null);
+    },
+    [
+      message,
+      disabled,
+      replyToMessage,
+      minHeight,
+      conversationId,
+      saveDraftDebounced,
+      onSendMessage,
+      animatedHeight,
+      storage,
+      onCancelReply,
+    ]
+  );
 
   const handleAddButtonPress = useCallback(async () => {
     if (PLATFORM.IS_WEB) {
