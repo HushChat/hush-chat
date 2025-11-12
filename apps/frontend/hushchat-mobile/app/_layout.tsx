@@ -30,7 +30,7 @@ const TOAST_OFFSET_ANDROID = 40;
 
 export default function RootLayout() {
   const { colorScheme } = useAppTheme();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isWorkspaceSelected } = useAuthStore();
   const { fetchUserData, loading } = useUserStore();
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
@@ -60,8 +60,10 @@ export default function RootLayout() {
       // });
     };
 
-    initNotifications();
-  }, []);
+    if (isWorkspaceSelected) {
+      initNotifications();
+    }
+  }, [isWorkspaceSelected]);
 
   const initializeUserData = useCallback(async () => {
     if (isAuthenticated) {
@@ -72,10 +74,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (!fontsLoaded) return;
 
-    if (isAuthenticated) {
+    if (isAuthenticated && isWorkspaceSelected) {
       initializeUserData();
     }
-  }, [fontsLoaded, isAuthenticated, initializeUserData]);
+  }, [fontsLoaded, isAuthenticated, initializeUserData, isWorkspaceSelected]);
 
   // Hide splash screen only when everything is loaded
   useEffect(() => {

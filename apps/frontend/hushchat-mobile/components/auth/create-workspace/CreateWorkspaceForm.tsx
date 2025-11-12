@@ -2,9 +2,9 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { FormHeader, FormButton, ErrorMessage, FormContainer } from "@/components/FormComponents";
 import TextField from "@/components/forms/TextField";
-import { TRegisterFormProps } from "@/types/login/types";
+import { TCreateWorkspaceFormProps } from "@/types/login/types";
 
-export const RegisterForm = ({
+export const CreateWorkspaceForm = ({
   colors,
   errorMessage,
   formValues,
@@ -13,7 +13,7 @@ export const RegisterForm = ({
   onValueChange,
   onSubmit,
   isLoading,
-}: TRegisterFormProps) => {
+}: TCreateWorkspaceFormProps) => {
   const sharedProps = {
     formValues,
     formErrors,
@@ -23,36 +23,34 @@ export const RegisterForm = ({
 
   return (
     <FormContainer>
-      <FormHeader title="Register" subtitle="Create your account to get started." colors={colors} />
+      <FormHeader
+        title="Create Your Workspace"
+        subtitle="Set up a new workspace to organize your projects and collaborate with your team."
+        colors={colors}
+      />
 
       {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
 
       <View style={styles.fieldsContainer}>
         <TextField
-          name="email"
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
+          name="name"
+          placeholder="Workspace Name"
+          label="Workspace Name"
           {...sharedProps}
         />
 
-        <View style={styles.row}>
-          <View style={styles.halfWidth}>
-            <TextField name="password" placeholder="Password" secureTextEntry {...sharedProps} />
-          </View>
-          <View style={styles.halfWidth}>
-            <TextField
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              secureTextEntry
-              {...sharedProps}
-            />
-          </View>
-        </View>
+        <TextField
+          name="description"
+          placeholder="Brief description of your workspace"
+          label="Description (Optional)"
+          multiline
+          numberOfLines={3}
+          {...sharedProps}
+        />
       </View>
 
       <FormButton
-        title={isLoading ? "Registering..." : "Register"}
+        title={isLoading ? "Creating Workspace..." : "Create Workspace"}
         onPress={onSubmit}
         disabled={isLoading}
         colors={colors}
@@ -67,13 +65,5 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
     width: "100%",
-  },
-  row: {
-    flexDirection: "row",
-    gap: 10,
-    width: "100%",
-  },
-  halfWidth: {
-    flex: 1,
   },
 });

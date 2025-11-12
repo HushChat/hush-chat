@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from "@/constants/apiConstants";
+import { AUTH_API_ENDPOINTS, TOKEN_TYPE, WORKSPACE_ENDPOINTS } from "@/constants/apiConstants";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 
@@ -25,13 +25,13 @@ const PUBLIC_ENDPOINTS: string[] = [
   AUTH_API_ENDPOINTS.FORGOT_PASSWORD,
   AUTH_API_ENDPOINTS.CONFIRM_FORGOT_PASSWORD,
   AUTH_API_ENDPOINTS.REGISTER,
+  WORKSPACE_ENDPOINTS.REGISTER_WORKSPACE,
   AUTH_API_ENDPOINTS.VERIFY_OTP,
   AUTH_API_ENDPOINTS.RESEND_OTP,
 ];
 
 export const setAPIDefaults = () => {
   axios.defaults.baseURL = getAPIBaseURL();
-  axios.defaults.headers.common["X-Tenant"] = getBuildConstant(BuildConstantKeys.TENANT);
 };
 
 /**
@@ -59,10 +59,13 @@ export const setupAuthorizationHeader = () => {
           await refreshIdToken();
         }
 
-        const { idToken } = await getAllTokens();
+        const { idToken, tenant } = await getAllTokens();
 
         if (idToken) {
           config.headers.Authorization = `${TOKEN_TYPE} ${idToken}`;
+        }
+        if (tenant) {
+          config.headers["X-Tenant"] = tenant;
         }
       } catch (error) {
         console.error("Error while setting up authorization header", error);

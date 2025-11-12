@@ -1,19 +1,20 @@
 import { useCallback, useState } from "react";
 import { router } from "expo-router";
-import { IRegisterUser, RegisterUser } from "@/types/user/types";
-import { registerUser } from "@/services/authService";
-import { VERIFY_OTP_PATH } from "@/constants/routes";
+import { IWorkspaceRegister, WorkspaceRegister } from "@/types/user/types";
+import { registerWorkspaceUser } from "@/services/authService";
+import { CHATS_PATH } from "@/constants/routes";
 import { useForm } from "@/hooks/useForm";
 
-export function useRegisterForm() {
+export function useWorkspaceRegisterForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } =
-    useForm<IRegisterUser>(RegisterUser, {
-      email: "",
-      password: "",
-      confirmPassword: "",
+    useForm<IWorkspaceRegister>(WorkspaceRegister, {
+      imageIndexedName: "",
+      firstName: "",
+      lastName: "",
+      username: "",
     });
 
   const submit = useCallback(async () => {
@@ -24,17 +25,12 @@ export function useRegisterForm() {
       const validated = await validateAll();
       if (!validated) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { confirmPassword, ...payload } = validated;
-      const response = await registerUser(payload);
+      const response = await registerWorkspaceUser(validated);
       if (!response.success) {
         setErrorMessage(response.message);
         return;
       }
-      router.push({
-        pathname: VERIFY_OTP_PATH,
-        params: { email: validated.email },
-      });
+      router.push({ pathname: CHATS_PATH });
     } catch (err: any) {
       setErrorMessage(err?.message || "Registration failed.");
     } finally {
