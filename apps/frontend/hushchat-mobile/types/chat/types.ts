@@ -36,6 +36,7 @@ export interface IMessage {
   senderId: number;
   senderFirstName: string;
   senderLastName: string;
+  senderSignedImageUrl?: string | null;
   parentMessageId?: number | null;
   messageText: string;
   createdAt?: string;

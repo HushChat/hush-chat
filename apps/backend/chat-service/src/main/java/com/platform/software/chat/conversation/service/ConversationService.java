@@ -502,6 +502,27 @@ public class ConversationService {
 
         List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap);
         messageMentionService.appendMessageMentions(messageViewDTOS);
+
+        for (MessageViewDTO dto : messageViewDTOS) {
+            Message matchedMessage = messages.getContent().stream()
+                    .filter(m -> Objects.equals(m.getId(), dto.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (matchedMessage != null && matchedMessage.getSender() != null) {
+                ChatUser sender = matchedMessage.getSender();
+                String imageIndexedName = sender.getImageIndexedName();
+                if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
+                    try {
+                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                        dto.setSenderSignedImageUrl(signedUrl);
+                    } catch (Exception e) {
+                        logger.warn("Failed to generate signed URL for user {}: {}", sender.getId(), e.getMessage());
+                        dto.setSenderSignedImageUrl(null);
+                    }
+                }
+            }
+        }
         
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));

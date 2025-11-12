@@ -26,6 +26,7 @@ public class MessageViewDTO {
     private BasicMessageDTO parentMessage;
     private Boolean isForwarded;
     private Boolean isUnsend;
+    private String senderSignedImageUrl;
 
      public MessageViewDTO(Message message) {
         initializeFromMessage(message);
