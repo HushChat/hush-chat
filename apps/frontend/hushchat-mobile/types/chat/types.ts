@@ -32,13 +32,13 @@ export interface IMessageAttachment {
 }
 
 export interface IMessage {
-  id: number;
+  id?: number;
   senderId: number;
   senderFirstName: string;
   senderLastName: string;
   parentMessageId?: number | null;
   messageText: string;
-  createdAt: string;
+  createdAt?: string;
   reactionSummary?: ReactionSummary;
   conversationId: number;
   parentMessage?: IMessage;
