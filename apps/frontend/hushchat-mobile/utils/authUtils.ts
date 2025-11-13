@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
 import { ToastUtils } from "@/utils/toastUtils";
+import { logWarn, logError } from "@/utils/logger";
 
 const storage = StorageFactory.createStorage();
 
@@ -36,7 +37,7 @@ export async function getAllTokens(): Promise<{
       tenant: tenant || null,
     };
   } catch (error) {
-    console.warn("Error reading tokens from AsyncStorage:", error);
+    logWarn("Error reading tokens from AsyncStorage:", error);
     return {
       idToken: null,
       accessToken: null,
@@ -95,7 +96,7 @@ export async function isTokenExpiringSoon(): Promise<boolean> {
     const expiryThreshold = 60 * 2; // Refresh 2 minutes before expiry
     return decoded.exp - currentTime <= expiryThreshold;
   } catch (error) {
-    console.warn("Error decoding token:", error);
+    logWarn("Error decoding token:", error);
     return true; // If decoding fails, assume it's expired
   }
 }
@@ -123,7 +124,7 @@ export async function refreshIdToken(): Promise<string | null> {
       return idToken;
     }
   } catch (error) {
-    console.error("Failed to refresh token:", error);
+    logError("Failed to refresh token:", error);
   }
 
   return null;

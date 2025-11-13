@@ -1,4 +1,5 @@
 import { createAudioPlayer, type AudioPlayer } from "expo-audio";
+import { logError } from "@/utils/logger";
 
 let messageSound: AudioPlayer | null = null;
 
@@ -18,6 +19,6 @@ export const playMessageSound = async () => {
       messageSound.play();
     }
   } catch (error) {
-    console.warn("Failed to play message sound:", error);
+    logError("Failed to play message sound:", error);
   }
 };

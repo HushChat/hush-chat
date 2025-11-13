@@ -2,6 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from "@/constants/apiConstants";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
+import { logError } from "@/utils/logger";
 
 const getAPIBaseURL = () => {
   const host = getBuildConstant(BuildConstantKeys.API_HOST);
@@ -67,7 +68,7 @@ export const setupAuthorizationHeader = () => {
           config.headers["X-Tenant"] = tenant;
         }
       } catch (error) {
-        console.error("Error while setting up authorization header", error);
+        logError("Error while setting up authorization header", error);
       }
       return config;
     },
