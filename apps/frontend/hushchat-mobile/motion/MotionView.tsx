@@ -1,13 +1,11 @@
 import React from "react";
-import Animated from "react-native-reanimated";
+import Animated, { AnimatedProps } from "react-native-reanimated";
 import { IMotionOptions } from "@/motion/types";
 import { useMotion } from "@/motion/useMotion";
+import { ViewProps } from "react-native";
 
-interface MotionViewProps extends IMotionOptions {
+interface MotionViewProps extends IMotionOptions, AnimatedProps<ViewProps> {
   visible: boolean;
-  style?: any;
-  children?: React.ReactNode;
-  pointerEvents?: "box-none" | "none" | "box-only" | "auto";
   className?: string;
 }
 
@@ -17,12 +15,17 @@ export const MotionView = ({
   children,
   pointerEvents = "auto",
   className,
-  ...opts
+  ...rest
 }: MotionViewProps) => {
-  const { style: motionStyle } = useMotion(visible, opts);
+  const { style: motionStyle } = useMotion(visible, rest);
 
   return (
-    <Animated.View pointerEvents={pointerEvents} style={[motionStyle, style]} className={className}>
+    <Animated.View
+      pointerEvents={pointerEvents}
+      style={[motionStyle, style]}
+      className={className}
+      {...rest}
+    >
       {children}
     </Animated.View>
   );

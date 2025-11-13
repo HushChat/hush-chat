@@ -39,9 +39,6 @@ const normalizeDuration = (duration: IMotionOptions["duration"], visible: boolea
   return visible ? 300 : 250;
 };
 
-/* ---------------------------------------------------------
- * 3. Easing normalizer
- * --------------------------------------------------------- */
 const resolveEasingToken = (token: TMotionEasingName | any) => {
   if (typeof token === "string") {
     return MotionEasing[token as TMotionEasingName];
@@ -120,7 +117,7 @@ export const useMotion = (visible: boolean, opts: IMotionOptions = {}) => {
     translateX.value = withDelay(delay, withTiming(target.translateX, { duration, easing }));
 
     scale.value = withDelay(delay, withTiming(target.scale, { duration, easing }));
-  }, [visible]);
+  }, [visible, final, delay]);
 
   const style = useAnimatedStyle(() => ({
     opacity: opacity.value,
