@@ -54,10 +54,6 @@ export default function RootLayout() {
           return;
         }
       }
-
-      // handler.onMessage?.((data) => {
-      //   console.log('📩 Foreground notification:', data);
-      // });
     };
 
     if (isWorkspaceSelected) {
