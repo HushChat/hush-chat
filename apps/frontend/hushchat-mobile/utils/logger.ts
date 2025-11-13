@@ -17,7 +17,6 @@
  * Log informational messages.
  *
  * Use this for general debugging information that helps during development,
- * but is not required to be sent to GlitchTip/Sentry in production.
  */
 export const logInfo = (...args: any[]) => {
   if (__DEV__) {
