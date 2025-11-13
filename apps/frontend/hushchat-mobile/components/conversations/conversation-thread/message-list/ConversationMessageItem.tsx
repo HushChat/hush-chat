@@ -5,39 +5,30 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, Pressable, View } from "react-native";
+import { GestureResponderEvent, View } from "react-native";
 import { format } from "date-fns";
-import {
-  ConversationAPIResponse,
-  IMessage,
-  IOption,
-  ReactionType,
-  IMessageAttachment,
-} from "@/types/chat/types";
+import { ConversationAPIResponse, IMessage, IOption, ReactionType } from "@/types/chat/types";
 import classNames from "classnames";
 import { PLATFORM } from "@/constants/platformConstants";
-import ReactionPicker from "@/components/conversations/conversation-thread/message-list/reaction/ReactionPicker";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated from "react-native-reanimated";
 import ParentMessagePreview from "./ParentMessagePreview";
 import WebContextMenu from "@/components/WebContextMenu";
-import FormattedText from "@/components/FormattedText";
 import { SwipeableMessageRow } from "@/gestures/components/SwipeableMessageRow";
-import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { useAddMessageReactionMutation } from "@/query/post/queries";
 import { useRemoveMessageReactionMutation } from "@/query/delete/queries";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import UnsendMessagePreview from "@/components/UnsendMessagePreview";
-import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
-import { AppText } from "@/components/AppText";
-import MessageReactionsSummary from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionSummary";
 import { useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
+import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
+import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
+import { isImageAttachment } from "@/utils/messageHelpers";
 
 interface MessageItemProps {
   message: IMessage;
@@ -61,13 +52,6 @@ interface MessageItemProps {
 const REMOVE_ONE = 1;
 const ADD_ONE = 1;
 const MIN_COUNT = 0;
-
-const isImageAttachment = (att: IMessageAttachment) => {
-  const name = (att.originalFileName || att.indexedFileName || "").toLowerCase();
-  const byExt = /\.(jpe?g|png|gif|webp|svg)$/.test(name);
-  const byMime = att?.mimeType?.startsWith?.("image/");
-  return Boolean(byExt || byMime);
-};
 
 export const ConversationMessageItem = ({
   message,
@@ -113,6 +97,9 @@ export const ConversationMessageItem = ({
 
   const messageContent = message.messageText;
   const isForwardedMessage = message.isForwarded;
+  const hasText = !!messageContent;
+  const isGroupChat = conversationAPIResponse?.isGroup;
+  const showAvatar = isGroupChat && !isCurrentUser;
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
@@ -312,10 +299,6 @@ export const ConversationMessageItem = ({
     ]
   );
 
-  const hoverVisibilityClass = PLATFORM.IS_WEB
-    ? "opacity-0 group-hover:opacity-100 hover:opacity-100"
-    : "opacity-100";
-
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
     return (
@@ -334,10 +317,6 @@ export const ConversationMessageItem = ({
     onToggleSelection(Number(message.id));
   }, [selectionMode, onToggleSelection, message.id]);
 
-  const hasText = !!message.messageText;
-  const isGroupChat = conversationAPIResponse?.isGroup;
-  const showAvatar = isGroupChat && !isCurrentUser;
-
   const ContentBlock = () => (
     <Animated.View style={{ backgroundColor: "transparent" }}>
       <View className="group mb-3">
@@ -353,201 +332,46 @@ export const ConversationMessageItem = ({
           )}
 
           <View className="flex-1">
-            <View
-              className={classNames("flex-row items-center gap-2 mb-1", {
-                "justify-end": isCurrentUser,
-                "justify-start": !isCurrentUser,
-              })}
-            >
-              {isCurrentUser && PLATFORM.IS_WEB && !message.isUnsend && (
-                <View className="flex-row items-center">
-                  <Pressable
-                    onPress={handleOpenPicker}
-                    disabled={!currentUserId}
-                    className={hoverVisibilityClass}
-                    style={({ pressed }) => ({
-                      minWidth: 24,
-                      minHeight: 24,
-                      opacity: pressed ? 0.7 : 1,
-                      cursor: "pointer",
-                    })}
-                  >
-                    <View className="p-1 rounded items-center justify-center">
-                      <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
-                    </View>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={openWebMenuAtEvent}
-                    disabled={selectionMode}
-                    className={hoverVisibilityClass}
-                    style={({ pressed }) => ({
-                      minWidth: 24,
-                      minHeight: 24,
-                      marginLeft: 6,
-                      opacity: pressed ? 0.7 : 1,
-                      cursor: "pointer",
-                    })}
-                  >
-                    <View className="p-1 rounded items-center justify-center">
-                      <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
-                    </View>
-                  </Pressable>
-                </View>
-              )}
-
-              {isGroupChat && (
-                <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
-                  {isCurrentUser ? "You" : senderName}
-                </AppText>
-              )}
-
-              <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                {messageTime}
-              </AppText>
-
-              {!isCurrentUser && PLATFORM.IS_WEB && !message.isUnsend && (
-                <View className="flex-row items-center">
-                  <Pressable
-                    onPress={handleOpenPicker}
-                    disabled={!currentUserId || selectionMode}
-                    className={hoverVisibilityClass}
-                    style={({ pressed }) => ({
-                      minWidth: 24,
-                      minHeight: 24,
-                      opacity: pressed ? 0.7 : 1,
-                      cursor: "pointer",
-                    })}
-                  >
-                    <View className="p-1 rounded items-center justify-center">
-                      <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
-                    </View>
-                  </Pressable>
-                  <Pressable
-                    onPress={openWebMenuAtEvent}
-                    disabled={selectionMode}
-                    className={hoverVisibilityClass}
-                    style={({ pressed }) => ({
-                      minWidth: 24,
-                      minHeight: 24,
-                      marginLeft: 6,
-                      opacity: pressed ? 0.7 : 1,
-                      cursor: "pointer",
-                    })}
-                  >
-                    <View className="p-1 rounded items-center justify-center">
-                      <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
-                    </View>
-                  </Pressable>
-                </View>
-              )}
-            </View>
+            <MessageHeader
+              isCurrentUser={isCurrentUser}
+              isGroupChat={isGroupChat}
+              senderName={senderName}
+              messageTime={messageTime}
+              messageIsUnsend={message.isUnsend}
+              selectionMode={selectionMode}
+              currentUserId={currentUserId}
+              onOpenPicker={handleOpenPicker}
+              onOpenMenu={openWebMenuAtEvent}
+            />
 
             {renderParentMessage()}
 
-            <Pressable onPress={handleBubblePress} disabled={!messageContent && !hasAttachments}>
-              {selectionMode && (
-                <View
-                  style={{
-                    position: "absolute",
-                    top: -6,
-                    left: isCurrentUser ? undefined : -6,
-                    right: isCurrentUser ? -6 : undefined,
-                    zIndex: 10,
-                  }}
-                >
-                  <Ionicons
-                    name={selected ? "checkmark-circle" : "ellipse-outline"}
-                    size={20}
-                    color={selected ? "#3B82F6" : "#9CA3AF"}
-                  />
-                </View>
-              )}
+            <MessageBubble
+              message={message}
+              isCurrentUser={isCurrentUser}
+              hasText={hasText}
+              hasAttachments={hasAttachments}
+              hasImages={hasImages()}
+              selected={selected}
+              selectionMode={selectionMode}
+              isForwardedMessage={isForwardedMessage}
+              attachments={attachments}
+              onBubblePress={handleBubblePress}
+            />
 
-              <View
-                className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
-              >
-                <ForwardedLabel
-                  isForwardedMessage={isForwardedMessage}
-                  isCurrentUser={isCurrentUser}
-                />
-
-                <View
-                  className={classNames(
-                    "rounded-lg border-2",
-                    hasText || hasImages()
-                      ? isCurrentUser
-                        ? "bg-primary-light dark:bg-primary-dark rounded-tr-none"
-                        : "bg-secondary-light dark:bg-secondary-dark rounded-tl-none"
-                      : "bg-transparent",
-                    selected && selectionMode
-                      ? "border-sky-500 dark:border-sky-400"
-                      : "border-transparent",
-                    isForwardedMessage && "shadow-sm",
-                    hasImages() && !messageContent ? "" : "px-3 py-2"
-                  )}
-                  style={{
-                    maxWidth: hasAttachments ? 305 : "70%",
-                    ...(isForwardedMessage &&
-                      !isCurrentUser && {
-                        borderLeftWidth: 2,
-                        borderLeftColor: "#9CA3AF30",
-                      }),
-                    ...(isForwardedMessage &&
-                      isCurrentUser && {
-                        borderRightWidth: 2,
-                        borderRightColor: "#60A5FA30",
-                      }),
-                  }}
-                >
-                  {hasAttachments && (
-                    <View className={messageContent ? "mb-2" : ""}>
-                      {renderFileGrid(attachments, isCurrentUser)}
-                    </View>
-                  )}
-
-                  {!message.isUnsend && messageContent ? (
-                    <FormattedText
-                      text={message.messageText}
-                      style={{
-                        fontSize: 16,
-                        lineHeight: 20,
-                        fontFamily: "Poppins-Regular",
-                      }}
-                      mentions={message.mentions}
-                      isCurrentUser={isCurrentUser}
-                    />
-                  ) : message.isUnsend ? (
-                    <UnsendMessagePreview unsendMessage={message} />
-                  ) : null}
-                </View>
-              </View>
-            </Pressable>
-
-            {!message.isUnsend && (
-              <ReactionPicker
-                visible={isPickerOpen && !conversationAPIResponse?.isBlocked && !selectionMode}
-                reactedByCurrentUser={reactedByCurrentUser}
-                onSelect={handleSelectReaction}
-                isCurrentUser={isCurrentUser}
-                onRequestClose={onCloseAllOverlays}
-              />
-            )}
-
-            {hasReactions && !message.isUnsend && (
-              <View
-                className={classNames("mt-1", {
-                  "items-start": !isCurrentUser,
-                  "items-end": isCurrentUser,
-                })}
-              >
-                <MessageReactionsSummary
-                  reactions={reactionSummary}
-                  isCurrentUser={isCurrentUser}
-                  onPress={handleViewReactions}
-                />
-              </View>
-            )}
+            <MessageReactions
+              message={message}
+              isCurrentUser={isCurrentUser}
+              isPickerOpen={isPickerOpen}
+              conversationIsBlocked={conversationAPIResponse?.isBlocked ?? false}
+              selectionMode={selectionMode}
+              reactedByCurrentUser={reactedByCurrentUser}
+              reactionSummary={reactionSummary}
+              hasReactions={hasReactions}
+              onSelectReaction={handleSelectReaction}
+              onCloseAllOverlays={onCloseAllOverlays}
+              onViewReactions={handleViewReactions}
+            />
           </View>
         </View>
       </View>
