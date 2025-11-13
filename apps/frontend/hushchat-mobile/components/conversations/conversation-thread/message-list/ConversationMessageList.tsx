@@ -34,7 +34,7 @@ interface MessagesListProps {
   selectedConversationId: number;
 }
 
-const SectionHeader = ({ title }: { title: string }) => (
+const DateSection = ({ title }: { title: string }) => (
   <View className="items-center my-2">
     <View className="dark:bg-secondary-dark bg-secondary-light rounded-full px-3 py-1">
       <AppText className="text-xs dark:!text-gray-300 text-gray-700 font-medium">{title}</AppText>
@@ -294,7 +294,7 @@ const ConversationMessageList = ({
         sections={groupedSections}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderMessage}
-        renderSectionFooter={({ section }) => <SectionHeader title={section.title} />}
+        renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
         showsVerticalScrollIndicator={false}
         onEndReached={onLoadMore}
