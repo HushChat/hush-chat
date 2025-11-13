@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, Messaging, onMessage } from "firebase/messaging";
 import { INotificationService } from "./INotificationService";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
+import { logError, logWarn } from "@/utils/logger";
 
 let messaging: Messaging | null = null;
 
@@ -19,7 +20,7 @@ export const FcmWebNotificationService: INotificationService = {
   async registerDevice() {
     const supported = await isSupported();
     if (!supported) {
-      console.warn("[FCM] Firebase messaging not supported in this browser/environment.");
+      logError("[FCM] Firebase messaging not supported in this browser/environment.");
       return null;
     }
 
@@ -35,7 +36,7 @@ export const FcmWebNotificationService: INotificationService = {
 
   onMessage(callback) {
     if (!messaging) {
-      console.warn("[FCM] Messaging not initialized; skipping onMessage listener.");
+      logWarn("[FCM] Messaging not initialized; skipping onMessage listener.");
       return;
     }
 
@@ -48,7 +49,7 @@ export const FcmWebNotificationService: INotificationService = {
     if (Notification.permission === "granted") {
       new Notification(title, { body });
     } else {
-      console.warn("[FCM] Cannot show local notification — permission not granted.");
+      logError("[FCM] Messaging not initialized; skipping onMessage listener.");
     }
   },
 };
