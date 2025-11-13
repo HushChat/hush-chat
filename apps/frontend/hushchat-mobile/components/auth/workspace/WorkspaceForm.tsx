@@ -7,6 +7,7 @@ import { getUserWorkspaces } from "@/apis/user";
 import { useRouter } from "expo-router";
 import { CHATS_PATH, WORKSPACE_CREATE_PATH, WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useSaveTenant } from "@/hooks/auth/useSaveTenant";
+import { useAuthStore } from "@/store/auth/authStore";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -15,6 +16,7 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { saveTenant } = useSaveTenant();
+  const { setWorkspaceSelected } = useAuthStore();
 
   useEffect(() => {
     const fetchWorkspaces = async () => {
@@ -48,6 +50,7 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
 
   const handleNext = async () => {
     await saveTenant(selectedWorkspace?.name);
+    setWorkspaceSelected(true);
     router.push(CHATS_PATH);
   };
 

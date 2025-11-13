@@ -66,10 +66,10 @@ export default function RootLayout() {
   }, [isWorkspaceSelected]);
 
   const initializeUserData = useCallback(async () => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isWorkspaceSelected) {
       await fetchUserData();
     }
-  }, [isAuthenticated, fetchUserData]);
+  }, [isAuthenticated, fetchUserData, isWorkspaceSelected]);
 
   useEffect(() => {
     if (!fontsLoaded) return;
