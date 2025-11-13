@@ -24,6 +24,7 @@ ios/
 *.json
 *.snap
 *.yml
+*.yaml
 
 # Logs
 *.log
