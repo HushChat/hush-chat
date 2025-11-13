@@ -22,8 +22,6 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import { AppText } from "@/components/AppText";
 import { groupMessagesByDate } from "@/utils/messageUtils";
-// @ts-ignore
-// eslint-disable-next-line import/no-unresolved
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 
 interface MessagesListProps {
