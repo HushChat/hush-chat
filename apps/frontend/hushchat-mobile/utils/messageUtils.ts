@@ -1,51 +1,38 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
+import _ from "lodash";
 import { IMessage } from "@/types/chat/types";
 
-interface IGroupedMessages {
-  title: string;
-  data: IMessage[];
-}
+export const groupMessagesByDate = (messages: IMessage[]) => {
+  if (!messages?.length) return [];
 
-export const groupMessagesByDate = (messages: IMessage[]): IGroupedMessages[] => {
-  if (!messages || messages.length === 0) return [];
+  const grouped = _.groupBy(messages, (msg: { createdAt: string }) =>
+    format(parseISO(msg.createdAt), "yyyy-MM-dd")
+  );
 
-  const groupedByDate: Record<string, IMessage[]> = {};
+  const sortedKeys = _.orderBy(
+    Object.keys(grouped),
+    (d: string | number | Date) => new Date(d).getTime(),
+    "desc"
+  );
 
-  for (const message of messages) {
-    const messageDate = parseISO(message.createdAt);
-    const dateKey = format(messageDate, "yyyy-MM-dd");
+  return sortedKeys.map((dateKey: string) => {
+    const dateObj = parseISO(dateKey);
 
-    if (!groupedByDate[dateKey]) {
-      groupedByDate[dateKey] = [];
-    }
-
-    groupedByDate[dateKey].push(message);
-  }
-
-  const sortedDateKeys = Object.keys(groupedByDate).sort((firstDateKey, secondDateKey) => {
-    const firstDate = new Date(firstDateKey).getTime();
-    const secondDate = new Date(secondDateKey).getTime();
-    return secondDate - firstDate;
-  });
-
-  return sortedDateKeys.map((dateKey) => {
-    const dateObject = parseISO(dateKey);
-    const dateTitle = getDateTitle(dateObject);
-
-    const sortedMessages = [...groupedByDate[dateKey]].sort(
-      (firstMessage, secondMessage) =>
-        new Date(firstMessage.createdAt).getTime() - new Date(secondMessage.createdAt).getTime()
+    const sortedMessages = _.orderBy(
+      grouped[dateKey],
+      (msg: { createdAt: string | number | Date }) => new Date(msg.createdAt).getTime(),
+      "asc"
     );
 
     return {
-      title: dateTitle,
+      title: getDateTitle(dateObj),
       data: sortedMessages,
     };
   });
 };
 
-function getDateTitle(date: Date): string {
+const getDateTitle = (date: Date) => {
   if (isToday(date)) return "Today";
   if (isYesterday(date)) return "Yesterday";
   return format(date, "MMM dd, yyyy");
-}
+};

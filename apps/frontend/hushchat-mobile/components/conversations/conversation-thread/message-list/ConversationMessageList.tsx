@@ -20,9 +20,9 @@ import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants
 import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
-import { AppText } from "@/components/AppText";
 import { groupMessagesByDate } from "@/utils/messageUtils";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
+import { DateSection } from "@/components/DateSection";
 
 interface MessagesListProps {
   messages: IMessage[];
@@ -33,14 +33,6 @@ interface MessagesListProps {
   pickerState: TPickerState;
   selectedConversationId: number;
 }
-
-const DateSection = ({ title }: { title: string }) => (
-  <View className="items-center my-2">
-    <View className="dark:bg-secondary-dark bg-secondary-light rounded-full px-3 py-1">
-      <AppText className="text-xs dark:!text-gray-300 text-gray-700 font-medium">{title}</AppText>
-    </View>
-  </View>
-);
 
 const ConversationMessageList = ({
   messages,
