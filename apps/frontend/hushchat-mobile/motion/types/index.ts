@@ -6,6 +6,7 @@ export type TMotionEasingName = keyof typeof MotionEasing;
 export interface IMotionState {
   opacity: number;
   translateY: number;
+  translateX: number;
   scale: number;
 }
 
@@ -18,10 +19,7 @@ export interface IMotionPreset {
 
 export type TMotionPresetName = keyof typeof MotionPresets;
 
-export type TMotionEasing =
-  | TMotionEasingName
-  | ((x: number) => number)
-  | { enter: any; exit: any };
+export type TMotionEasing = TMotionEasingName | ((x: number) => number) | { enter: any; exit: any };
 
 export interface IMotionOptions {
   preset?: TMotionPresetName;

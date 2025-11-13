@@ -6,11 +6,13 @@ export const MotionPresets = {
     initial: {
       opacity: 0,
       translateY: 0,
+      translateX: 0,
       scale: 1,
     },
     animate: {
       opacity: 1,
       translateY: 0,
+      translateX: 0,
       scale: 1,
     },
     duration: MotionConfig.duration.md,
@@ -21,11 +23,13 @@ export const MotionPresets = {
     initial: {
       opacity: 0,
       translateY: 20,
+      translateX: 0,
       scale: 1,
     },
     animate: {
       opacity: 1,
       translateY: 0,
+      translateX: 0,
       scale: 1,
     },
     duration: MotionConfig.duration.md,
@@ -36,11 +40,13 @@ export const MotionPresets = {
     initial: {
       opacity: 0,
       translateY: 0,
+      translateX: 0,
       scale: 0.95,
     },
     animate: {
       opacity: 1,
       translateY: 0,
+      translateX: 0,
       scale: 1,
     },
     duration: MotionConfig.duration.md,
