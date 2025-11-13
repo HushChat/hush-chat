@@ -9,6 +9,7 @@ export interface IMotionState {
   translateX: number;
   scale: number;
   width?: number;
+  rotate?: number;
 }
 
 export interface IMotionPreset {

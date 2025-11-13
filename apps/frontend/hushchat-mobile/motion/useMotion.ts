@@ -65,14 +65,16 @@ const mergeMotion = (
       translateY: from.translateY ?? preset.initial.translateY,
       translateX: from.translateX ?? preset.initial.translateX,
       scale: from.scale ?? preset.initial.scale,
-      width: from.width ?? preset.initial.width, // Add width
+      width: from.width ?? preset.initial.width,
+      rotate: from.rotate ?? preset.initial.rotate,
     },
     animate: {
       opacity: to.opacity ?? preset.animate.opacity,
       translateY: to.translateY ?? preset.animate.translateY,
       translateX: to.translateX ?? preset.animate.translateX,
       scale: to.scale ?? preset.animate.scale,
-      width: to.width ?? preset.animate.width, // Add width
+      width: to.width ?? preset.animate.width,
+      rotate: to.rotate ?? preset.animate.rotate,
     },
     duration: normalizeDuration(opts.duration, visible),
     easing: normalizeEasing(opts.easing, visible),
@@ -89,7 +91,8 @@ export const useMotion = (visible: boolean, opts: IMotionOptions = {}) => {
   const translateY = useSharedValue(final.initial.translateY);
   const translateX = useSharedValue(final.initial.translateX);
   const scale = useSharedValue(final.initial.scale);
-  const width = useSharedValue(final.initial.width ?? 0); // Add width
+  const width = useSharedValue(final.initial.width ?? 0);
+  const rotate = useSharedValue(final.initial.rotate ?? 0);
 
   useEffect(() => {
     const target = visible ? final.animate : final.initial;
@@ -101,23 +104,31 @@ export const useMotion = (visible: boolean, opts: IMotionOptions = {}) => {
     translateX.value = withDelay(delay, withTiming(target.translateX, { duration, easing }));
     scale.value = withDelay(delay, withTiming(target.scale, { duration, easing }));
 
-    // Animate width if provided
     if (target.width !== undefined) {
       width.value = withDelay(delay, withTiming(target.width, { duration, easing }));
+    }
+
+    if (target.rotate !== undefined) {
+      rotate.value = withDelay(delay, withTiming(target.rotate, { duration, easing }));
     }
   }, [visible, final, delay]);
 
   const style = useAnimatedStyle(() => {
+    const transforms: any[] = [
+      { translateY: translateY.value },
+      { translateX: translateX.value },
+      { scale: scale.value },
+    ];
+
+    if (final.animate.rotate !== undefined || final.initial.rotate !== undefined) {
+      transforms.push({ rotate: `${rotate.value}deg` });
+    }
+
     const animStyle: any = {
       opacity: opacity.value,
-      transform: [
-        { translateY: translateY.value },
-        { translateX: translateX.value },
-        { scale: scale.value },
-      ],
+      transform: transforms,
     };
 
-    // Include width if it's being animated
     if (final.animate.width !== undefined || final.initial.width !== undefined) {
       animStyle.width = width.value;
     }

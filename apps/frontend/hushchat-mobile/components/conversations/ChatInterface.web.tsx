@@ -126,7 +126,6 @@ export default function ChatInterface({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-row h-full relative">
-        {/* Left sidebar - conversations list */}
         <View
           onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
           style={{ position: "relative" }}
