@@ -1,146 +1,147 @@
 databaseChangeLog:
-  - changeSet:
-      id: 1762862383564-1
-      author: modithamarasingha (generated)
-      changes:
-        - createTable:
-            columns:
-              - column:
-                  constraints:
-                    nullable: false
-                  name: deleted
-                  type: BOOLEAN
-              - column:
-                  constraints:
-                    nullable: false
-                  name: created_at
-                  type: TIMESTAMP WITHOUT TIME ZONE
-              - column:
-                  constraints:
-                    nullable: false
-                    primaryKey: true
-                    primaryKeyName: workspace_user_pkey
-                  name: id
-                  type: BIGINT
-              - column:
-                  constraints:
-                    nullable: false
-                  name: updated_at
-                  type: TIMESTAMP WITHOUT TIME ZONE
-              - column:
-                  constraints:
-                    nullable: false
-                  name: workspace_id
-                  type: BIGINT
-              - column:
-                  constraints:
-                    nullable: false
-                  name: email
-                  type: VARCHAR(255)
-              - column:
-                  name: inviter_email
-                  type: VARCHAR(255)
-              - column:
-                  constraints:
-                    nullable: false
-                  name: status
-                  type: VARCHAR(255)
-            tableName: workspace_user
-  - changeSet:
-      id: 1762862383564-2
-      author: modithamarasingha (generated)
-      changes:
-        - createTable:
-            columns:
-              - column:
-                  constraints:
-                    nullable: false
-                  name: deleted
-                  type: BOOLEAN
-              - column:
-                  constraints:
-                    nullable: false
-                  name: created_at
-                  type: TIMESTAMP WITHOUT TIME ZONE
-              - column:
-                  constraints:
-                    nullable: false
-                    primaryKey: true
-                    primaryKeyName: workspace_pkey
-                  name: id
-                  type: BIGINT
-              - column:
-                  constraints:
-                    nullable: false
-                  name: updated_at
-                  type: TIMESTAMP WITHOUT TIME ZONE
-              - column:
-                  name: description
-                  type: TEXT
-              - column:
-                  name: image_url
-                  type: VARCHAR(255)
-              - column:
-                  name: name
-                  type: VARCHAR(255)
-              - column:
-                  name: workspace_identifier
-                  type: VARCHAR(255)
-            tableName: workspace
-  - changeSet:
-      id: 1762862383564-3
-      author: modithamarasingha (generated)
-      changes:
-        - addUniqueConstraint:
-            columnNames: email
-            constraintName: workspace_user_email_key
-            tableName: workspace_user
-  - changeSet:
-      id: 1762862383564-4
-      author: modithamarasingha (generated)
-      changes:
-        - addUniqueConstraint:
-            columnNames: workspace_identifier
-            constraintName: uk82r1jg5llu0hiua4imf4ndmvm
-            tableName: workspace
-  - changeSet:
-      id: 1762862383564-5
-      author: modithamarasingha (generated)
-      changes:
-        - createSequence:
-            cacheSize: 1
-            cycle: false
-            dataType: bigint
-            incrementBy: 50
-            maxValue: 9223372036854775807
-            minValue: 1
-            sequenceName: workplace_generator
-            startValue: 1
-  - changeSet:
-      id: 1762862383564-6
-      author: modithamarasingha (generated)
-      changes:
-        - createSequence:
-            cacheSize: 1
-            cycle: false
-            dataType: bigint
-            incrementBy: 50
-            maxValue: 9223372036854775807
-            minValue: 1
-            sequenceName: workspace_user_generator
-            startValue: 1
-  - changeSet:
-      id: 1762862383564-7
-      author: modithamarasingha (generated)
-      changes:
-        - addForeignKeyConstraint:
-            baseColumnNames: workspace_id
-            baseTableName: workspace_user
-            constraintName: fkjek9w7728njryydpb6r7wa1lk
-            deferrable: false
-            initiallyDeferred: false
-            onDelete: NO ACTION
-            onUpdate: NO ACTION
-            referencedColumnNames: id
-            referencedTableName: workspace
-            validate: true
+- changeSet:
+    id: 1763020359236-1
+    author: modithamarasingha (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: deleted
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: workspace_user_pkey
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: workspace_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: email
+            type: VARCHAR(255)
+        - column:
+            name: inviter_email
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: status
+            type: VARCHAR(255)
+        tableName: workspace_user
+- changeSet:
+    id: 1763020359236-2
+    author: modithamarasingha (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: deleted
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: workspace_pkey
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: description
+            type: TEXT
+        - column:
+            name: image_url
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: workspace_identifier
+            type: VARCHAR(255)
+        tableName: workspace
+- changeSet:
+    id: 1763020359236-3
+    author: modithamarasingha (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: email, workspace_id
+        constraintName: ukeeq4hgxwt33fqafd2lgiadjun
+        tableName: workspace_user
+- changeSet:
+    id: 1763020359236-4
+    author: modithamarasingha (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: workspace_identifier
+        constraintName: uk82r1jg5llu0hiua4imf4ndmvm
+        tableName: workspace
+- changeSet:
+    id: 1763020359236-5
+    author: modithamarasingha (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: workplace_generator
+        startValue: 1
+- changeSet:
+    id: 1763020359236-6
+    author: modithamarasingha (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: workspace_user_generator
+        startValue: 1
+- changeSet:
+    id: 1763020359236-7
+    author: modithamarasingha (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: workspace_id
+        baseTableName: workspace_user
+        constraintName: fkjek9w7728njryydpb6r7wa1lk
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: workspace
+        validate: true
+
