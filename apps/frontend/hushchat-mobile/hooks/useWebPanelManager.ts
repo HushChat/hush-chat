@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSharedValue, withTiming, Easing, type SharedValue } from "react-native-reanimated";
 import { PanelType } from "@/types/web-panel/types";
 
 const PANEL_CONFIG = {
@@ -10,10 +9,8 @@ const PANEL_CONFIG = {
 
 const useWebPanelManager = (screenWidth: number) => {
   const [activePanel, setActivePanel] = useState<PanelType>(PanelType.NONE);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isPanelContentReady, setIsPanelContentReady] = useState(false);
-
-  const widthAnim: SharedValue<number> = useSharedValue(0);
-  const contentOpacity: SharedValue<number> = useSharedValue(0);
 
   const panelWidth = useMemo(() => {
     const calculated = screenWidth * PANEL_CONFIG.WIDTH_RATIO;
@@ -22,21 +19,17 @@ const useWebPanelManager = (screenWidth: number) => {
 
   useEffect(() => {
     if (activePanel !== PanelType.NONE) {
-      widthAnim.value = withTiming(panelWidth, {
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-      });
-      contentOpacity.value = withTiming(1, { duration: 200 });
-      setIsPanelContentReady(true);
+      setIsPanelOpen(true);
+      // Delay content visibility for staggered animation effect
+      const timer = setTimeout(() => setIsPanelContentReady(true), 100);
+      return () => clearTimeout(timer);
     } else {
-      contentOpacity.value = withTiming(0, { duration: 150 });
-      widthAnim.value = withTiming(0, {
-        duration: 250,
-        easing: Easing.in(Easing.cubic),
-      });
       setIsPanelContentReady(false);
+      // Delay panel close to allow content fade out first
+      const timer = setTimeout(() => setIsPanelOpen(false), 150);
+      return () => clearTimeout(timer);
     }
-  }, [activePanel, panelWidth, widthAnim, contentOpacity]);
+  }, [activePanel]);
 
   const openPanel = useCallback((panelType: PanelType) => {
     setActivePanel(panelType);
@@ -52,14 +45,12 @@ const useWebPanelManager = (screenWidth: number) => {
 
   return {
     activePanel,
+    isPanelOpen,
     isPanelContentReady,
     panelWidth,
-    contentOpacity,
-    widthAnim,
     openPanel,
     closePanel,
     togglePanel,
-    isPanelOpen: activePanel !== PanelType.NONE,
   };
 };
 

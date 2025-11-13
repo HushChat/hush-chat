@@ -8,6 +8,7 @@ export interface IMotionState {
   translateY: number;
   translateX: number;
   scale: number;
+  width?: number;
 }
 
 export interface IMotionPreset {

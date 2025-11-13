@@ -1,14 +1,9 @@
 import { useEffect, useMemo } from "react";
 import { useSharedValue, withTiming, withDelay, useAnimatedStyle } from "react-native-reanimated";
-
 import { IMotionOptions, IMotionPreset, IMotionState, TMotionEasingName } from "@/motion/types";
-
 import { MotionPresets } from "@/motion/presets";
 import { MotionEasing } from "@/motion/easing";
 
-/* ---------------------------------------------------------
- * 1. Default preset fallback
- * --------------------------------------------------------- */
 const EMPTY_PRESET: IMotionPreset = {
   initial: {
     opacity: 1,
@@ -26,9 +21,6 @@ const EMPTY_PRESET: IMotionPreset = {
   easing: MotionEasing.standard,
 };
 
-/* ---------------------------------------------------------
- * 2. Duration normalizer
- * --------------------------------------------------------- */
 const normalizeDuration = (duration: IMotionOptions["duration"], visible: boolean) => {
   if (typeof duration === "number") return duration;
 
@@ -59,16 +51,12 @@ const normalizeEasing = (easing: any, visible: boolean) => {
   return MotionEasing.standard;
 };
 
-/* ---------------------------------------------------------
- * 4. Merge preset + overrides
- * --------------------------------------------------------- */
 const mergeMotion = (
   preset: IMotionPreset,
   opts: IMotionOptions,
   visible: boolean
 ): IMotionPreset => {
   const from: Partial<IMotionState> = opts.from ?? opts.initial ?? preset.initial;
-
   const to: Partial<IMotionState> = opts.to ?? opts.animate ?? preset.animate;
 
   return {
@@ -77,24 +65,22 @@ const mergeMotion = (
       translateY: from.translateY ?? preset.initial.translateY,
       translateX: from.translateX ?? preset.initial.translateX,
       scale: from.scale ?? preset.initial.scale,
+      width: from.width ?? preset.initial.width, // Add width
     },
     animate: {
       opacity: to.opacity ?? preset.animate.opacity,
       translateY: to.translateY ?? preset.animate.translateY,
       translateX: to.translateX ?? preset.animate.translateX,
       scale: to.scale ?? preset.animate.scale,
+      width: to.width ?? preset.animate.width, // Add width
     },
     duration: normalizeDuration(opts.duration, visible),
     easing: normalizeEasing(opts.easing, visible),
   };
 };
 
-/* ---------------------------------------------------------
- * 5. MAIN HOOK — FINAL
- * --------------------------------------------------------- */
 export const useMotion = (visible: boolean, opts: IMotionOptions = {}) => {
   const preset = opts.preset ? MotionPresets[opts.preset] : EMPTY_PRESET;
-
   const final = useMemo(() => mergeMotion(preset, opts, visible), [preset, opts, visible]);
 
   const delay = opts.delay ?? 0;
@@ -103,30 +89,41 @@ export const useMotion = (visible: boolean, opts: IMotionOptions = {}) => {
   const translateY = useSharedValue(final.initial.translateY);
   const translateX = useSharedValue(final.initial.translateX);
   const scale = useSharedValue(final.initial.scale);
+  const width = useSharedValue(final.initial.width ?? 0); // Add width
 
   useEffect(() => {
     const target = visible ? final.animate : final.initial;
-
     const easing = final.easing;
     const duration = final.duration;
 
     opacity.value = withDelay(delay, withTiming(target.opacity, { duration, easing }));
-
     translateY.value = withDelay(delay, withTiming(target.translateY, { duration, easing }));
-
     translateX.value = withDelay(delay, withTiming(target.translateX, { duration, easing }));
-
     scale.value = withDelay(delay, withTiming(target.scale, { duration, easing }));
+
+    // Animate width if provided
+    if (target.width !== undefined) {
+      width.value = withDelay(delay, withTiming(target.width, { duration, easing }));
+    }
   }, [visible, final, delay]);
 
-  const style = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [
-      { translateY: translateY.value },
-      { translateX: translateX.value },
-      { scale: scale.value },
-    ],
-  }));
+  const style = useAnimatedStyle(() => {
+    const animStyle: any = {
+      opacity: opacity.value,
+      transform: [
+        { translateY: translateY.value },
+        { translateX: translateX.value },
+        { scale: scale.value },
+      ],
+    };
+
+    // Include width if it's being animated
+    if (final.animate.width !== undefined || final.initial.width !== undefined) {
+      animStyle.width = width.value;
+    }
+
+    return animStyle;
+  });
 
   return { style };
 };
