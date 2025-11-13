@@ -1,5 +1,5 @@
 import { ToastConfigParams } from "react-native-toast-message";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
@@ -38,8 +38,8 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
         style={animatedStyle}
       >
         <View className="flex-row items-center">
-          <Ionicons name={name} size={26} color={color} style={{ marginRight: 12 }} />
-          <View style={{ flexShrink: 1 }}>
+          <Ionicons name={name} size={26} color={color} style={styles.rightMargin} />
+          <View style={styles.shrink}>
             <Text
               className={`font-semibold text-base ${
                 isDark ? "text-text-primary-light" : "text-text-primary-dark"
@@ -62,6 +62,15 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({
+  rightMargin: {
+    marginRight: 12,
+  },
+  shrink: {
+    flexShrink: 1,
+  },
+});
 
 export const toastConfig: Record<
   ToastType,
