@@ -312,7 +312,8 @@ public class ConversationService {
     private static List<MessageViewDTO> getMessageViewDTOS(
             Page<Message> messages,
             Message lastSeenMessage,
-            Map<Long, MessageReactionSummaryDTO> reactionSummaryMap
+            Map<Long, MessageReactionSummaryDTO> reactionSummaryMap,
+            CloudPhotoHandlingService cloudPhotoHandlingService
     ) {
         Long lastSeenMessageId = (lastSeenMessage != null) ? lastSeenMessage.getId() : null;
         boolean hasReactions = reactionSummaryMap != null;
@@ -320,6 +321,9 @@ public class ConversationService {
         return messages.getContent().stream()
                 .map(message -> {
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
+                    
+                     String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageViewDTO.getImageIndexedName());
+                     messageViewDTO.setSenderSignedImageUrl(signedUrl);
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
                         messageViewDTO.setReactionSummary(summary != null ? summary : new MessageReactionSummaryDTO());
@@ -500,29 +504,8 @@ public class ConversationService {
         Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
                 messageReactionRepository.findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
 
-        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap);
+        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap, cloudPhotoHandlingService);
         messageMentionService.appendMessageMentions(messageViewDTOS);
-
-        for (MessageViewDTO dto : messageViewDTOS) {
-            Message matchedMessage = messages.getContent().stream()
-                    .filter(m -> Objects.equals(m.getId(), dto.getId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (matchedMessage != null && matchedMessage.getSender() != null) {
-                ChatUser sender = matchedMessage.getSender();
-                String imageIndexedName = sender.getImageIndexedName();
-                if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-                    try {
-                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
-                        dto.setSenderSignedImageUrl(signedUrl);
-                    } catch (Exception e) {
-                        logger.warn("Failed to generate signed URL for user {}: {}", sender.getId(), e.getMessage());
-                        dto.setSenderSignedImageUrl(null);
-                    }
-                }
-            }
-        }
         
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));
