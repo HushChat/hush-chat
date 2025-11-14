@@ -1,4 +1,4 @@
-import { View, Dimensions } from "react-native";
+import { View, Dimensions, ScrollView } from "react-native";
 import FilterButton from "@/components/FilterButton";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import usePanelManager from "@/hooks/useWebPanelManager";
@@ -135,13 +135,13 @@ export default function ChatInterface({
     opacity: contentOpacity.value,
   }));
 
-  return (
-    <View className="flex-1 bg-background-light dark:bg-background-dark">
-      <View className="flex-row h-full relative">
+  const renderMainContent = () => {
+    return (
+      <>
         <View
           onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
           style={{ position: "relative" }}
-          className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
+          className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-secondary-light dark:border-secondary-dark flex-shrink-0"
         >
           <ConversationHeader
             selectedConversationType={selectedConversationType}
@@ -151,7 +151,7 @@ export default function ChatInterface({
             onCreateGroup={() => setShowCreateGroup(true)}
           />
           {selectedConversationType === ConversationType.ALL && (
-            <View className="px-5">
+            <View className="px-4 sm:px-6">
               <SearchBar
                 value={searchQuery}
                 onChangeText={onSearchQueryInserting}
@@ -161,7 +161,7 @@ export default function ChatInterface({
           )}
 
           {selectedConversationType !== ConversationType.ARCHIVED && (
-            <View className="px-6 py-3">
+            <View className="px-4 sm:px-6 py-3">
               <View className="flex-row flex-wrap gap-2">
                 <View className="flex-row space-x-2">
                   {filters.map((filter) => (
@@ -197,7 +197,7 @@ export default function ChatInterface({
 
         <Animated.View
           style={[{ flexGrow: 1, flexShrink: 1, minWidth: 0 }, threadStyle]}
-          className="bg-background-light dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800"
+          className="bg-background-light dark:bg-gray-900 border-r border-secondary-light dark:border-secondary-dark"
         >
           {selectedConversation ? (
             <ConversationThreadScreen
@@ -229,7 +229,23 @@ export default function ChatInterface({
             {renderPanelContent()}
           </Animated.View>
         </Animated.View>
-      </View>
+      </>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-background-light dark:bg-background-dark">
+      {screenWidth < 1024 ? (
+        <ScrollView
+          horizontal
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsHorizontalScrollIndicator={false}
+        >
+          <View className="flex-row h-full min-w-full">{renderMainContent()}</View>
+        </ScrollView>
+      ) : (
+        <View className="flex-row h-full">{renderMainContent()}</View>
+      )}
     </View>
   );
 }
