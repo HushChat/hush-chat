@@ -34,72 +34,12 @@ interface FormContainerProps {
   maxWidth?: number;
 }
 
-const styles = StyleSheet.create({
-  headerContainer: {
-    marginBottom: 40,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  button: {
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginBottom: 20,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  buttonDisabled: {
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  buttonTextEnabled: {
-    color: "#fff",
-  },
-  errorContainer: {
-    backgroundColor: "#fef2f2",
-    borderColor: "#f87171",
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  errorText: {
-    color: "#dc2626",
-    fontSize: 14,
-    fontWeight: "500",
-    flex: 1,
-  },
-  linkContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  linkText: {
-    fontSize: 15,
-    marginRight: 4,
-  },
-  linkButton: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  formContainer: {
-    width: "100%",
-    alignSelf: "center",
-  },
-});
+const COLORS = {
+  WHITE: "#ffffff",
+  ERROR_BG: "#fef2f2",
+  ERROR_BORDER: "#f87171",
+  ERROR_TEXT: "#dc2626",
+};
 
 export const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle, colors }) => (
   <View style={styles.headerContainer}>
@@ -158,3 +98,70 @@ export const LinkText: React.FC<LinkTextProps> = ({ text, linkText, onPress, col
 export const FormContainer: React.FC<FormContainerProps> = ({ children, maxWidth = 450 }) => (
   <View style={[styles.formContainer, { maxWidth }]}>{children}</View>
 );
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    marginBottom: 40,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  button: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    marginBottom: 20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  buttonDisabled: {
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  buttonTextEnabled: {
+    color: COLORS.WHITE,
+  },
+  errorContainer: {
+    backgroundColor: COLORS.ERROR_BG,
+    borderColor: COLORS.ERROR_BORDER,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  errorText: {
+    color: COLORS.ERROR_TEXT,
+    fontSize: 14,
+    fontWeight: "500",
+    flex: 1,
+  },
+  linkContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  linkText: {
+    fontSize: 15,
+    marginRight: 4,
+  },
+  linkButton: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  formContainer: {
+    width: "100%",
+    alignSelf: "center",
+  },
+});

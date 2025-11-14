@@ -8,6 +8,13 @@ import {
   useColorScheme,
 } from "react-native";
 
+const COLORS = {
+  TEXT_LIGHT: "#333333",
+  TEXT_DARK: "#FFFFFF",
+  PLACEHOLDER_LIGHT: "#777777",
+  PLACEHOLDER_DARK: "#AAAAAA",
+};
+
 /**
  * Custom themed text input for the app.
  *
@@ -46,15 +53,15 @@ export const AppText = ({ children, style, ...otherProps }: TextProps) => {
     </Text>
   );
 };
+
 const styles = StyleSheet.create({
   defaultText: {
-    // TODO: Replace 'YourFont-Regular' with the actual font name loaded via useFonts.
     fontFamily: "Poppins-Regular",
   },
   lightText: {
-    color: "#333333",
+    color: COLORS.TEXT_LIGHT,
   },
   darkText: {
-    color: "#FFFFFF",
+    color: COLORS.TEXT_DARK,
   },
 });

@@ -24,6 +24,10 @@ const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> =
   lg: { container: "w-40 h-40", text: "text-6xl" },
 };
 
+const COLORS = {
+  INITIALS_TEXT: "#FFFFFF",
+};
+
 const styles = StyleSheet.create({
   avatarImage: {
     width: "100%",
@@ -31,7 +35,7 @@ const styles = StyleSheet.create({
     borderRadius: 150,
   },
   initialsText: {
-    color: "#FFFFFF",
+    color: COLORS.INITIALS_TEXT,
   },
 });
 

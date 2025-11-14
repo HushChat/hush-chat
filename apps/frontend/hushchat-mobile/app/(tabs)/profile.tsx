@@ -62,6 +62,11 @@ const ProfileField = ({
   </View>
 );
 
+const COLORS = {
+  CAMERA_BG: "#3b82f6",
+  WHITE: "#ffffff",
+};
+
 export default function Profile() {
   const { logout } = useAuthStore();
   const { user, loading, fetchUserData } = useUserStore();
@@ -272,10 +277,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#3b82f6",
+    backgroundColor: COLORS.CAMERA_BG,
     borderRadius: 16,
     padding: 4,
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: COLORS.WHITE,
   },
 });

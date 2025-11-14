@@ -31,10 +31,14 @@ interface MessageReactionsBottomSheetProps {
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+const colors = {
+  BACKDROP: "rgba(0, 0, 0, 0.5)",
+};
+
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: colors.BACKDROP,
   },
   touchableArea: {
     flex: 1,

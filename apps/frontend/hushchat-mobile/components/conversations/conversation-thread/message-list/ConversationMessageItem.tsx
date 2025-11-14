@@ -5,7 +5,7 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, Pressable, View } from "react-native";
+import { GestureResponderEvent, Pressable, View, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import {
   ConversationAPIResponse,
@@ -38,6 +38,14 @@ import MessageReactionsSummary from "@/components/conversations/conversation-thr
 import { useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
+
+const COLORS = {
+  TRANSPARENT: "transparent",
+  ICON_MUTED: "#9CA3AF",
+  ICON_PRIMARY: "#3B82F6",
+  FORWARDED_INCOMING_BORDER: "#9CA3AF30",
+  FORWARDED_OUTGOING_BORDER: "#60A5FA30",
+};
 
 interface MessageItemProps {
   message: IMessage;
@@ -118,6 +126,7 @@ export const ConversationMessageItem = ({
     () => format(new Date(message.createdAt), "h:mm a"),
     [message.createdAt]
   );
+
   useEffect(() => {
     if (message.reactionSummary) setReactionSummary(message.reactionSummary);
   }, [message.reactionSummary]);
@@ -330,8 +339,17 @@ export const ConversationMessageItem = ({
 
   const hasText = !!message.messageText;
 
+  const bubbleStyles = useMemo(
+    () => [
+      hasAttachments ? styles.bubbleWithAttachments : styles.bubbleWithoutAttachments,
+      isForwardedMessage && !isCurrentUser && styles.forwardedIncomingBorder,
+      isForwardedMessage && isCurrentUser && styles.forwardedOutgoingBorder,
+    ],
+    [hasAttachments, isForwardedMessage, isCurrentUser]
+  );
+
   const ContentBlock = () => (
-    <Animated.View style={{ backgroundColor: "transparent" }}>
+    <Animated.View style={styles.contentBlockWrapper}>
       <View className="group mb-3">
         <View className="mx-4">
           <View
@@ -346,32 +364,21 @@ export const ConversationMessageItem = ({
                   onPress={handleOpenPicker}
                   disabled={!currentUserId}
                   className={hoverVisibilityClass}
-                  style={({ pressed }) => ({
-                    minWidth: 24,
-                    minHeight: 24,
-                    opacity: pressed ? 0.7 : 1,
-                    cursor: "pointer",
-                  })}
+                  style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
+                    <Ionicons name="happy-outline" size={16} color={COLORS.ICON_MUTED} />
                   </View>
                 </Pressable>
 
                 <Pressable
                   onPress={openWebMenuAtEvent}
                   disabled={selectionMode}
-                  className={hoverVisibilityClass}
-                  style={({ pressed }) => ({
-                    minWidth: 24,
-                    minHeight: 24,
-                    marginLeft: 6,
-                    opacity: pressed ? 0.7 : 1,
-                    cursor: "pointer",
-                  })}
+                  className={classNames(hoverVisibilityClass, "ml-1.5")}
+                  style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
+                    <Ionicons name="chevron-down-outline" size={16} color={COLORS.ICON_MUTED} />
                   </View>
                 </Pressable>
               </View>
@@ -396,31 +403,20 @@ export const ConversationMessageItem = ({
                   onPress={handleOpenPicker}
                   disabled={!currentUserId || selectionMode}
                   className={hoverVisibilityClass}
-                  style={({ pressed }) => ({
-                    minWidth: 24,
-                    minHeight: 24,
-                    opacity: pressed ? 0.7 : 1,
-                    cursor: "pointer",
-                  })}
+                  style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
+                    <Ionicons name="happy-outline" size={16} color={COLORS.ICON_MUTED} />
                   </View>
                 </Pressable>
                 <Pressable
                   onPress={openWebMenuAtEvent}
                   disabled={selectionMode}
-                  className={hoverVisibilityClass}
-                  style={({ pressed }) => ({
-                    minWidth: 24,
-                    minHeight: 24,
-                    marginLeft: 6,
-                    opacity: pressed ? 0.7 : 1,
-                    cursor: "pointer",
-                  })}
+                  className={classNames(hoverVisibilityClass, "ml-1.5")}
+                  style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
                 >
                   <View className="p-1 rounded items-center justify-center">
-                    <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
+                    <Ionicons name="chevron-down-outline" size={16} color={COLORS.ICON_MUTED} />
                   </View>
                 </Pressable>
               </View>
@@ -432,18 +428,15 @@ export const ConversationMessageItem = ({
           <Pressable onPress={handleBubblePress} disabled={!messageContent && !hasAttachments}>
             {selectionMode && (
               <View
-                style={{
-                  position: "absolute",
-                  top: -6,
-                  left: isCurrentUser ? undefined : -6,
-                  right: isCurrentUser ? -6 : undefined,
-                  zIndex: 10,
-                }}
+                style={[
+                  styles.selectionIcon,
+                  isCurrentUser ? styles.selectionIconRight : styles.selectionIconLeft,
+                ]}
               >
                 <Ionicons
                   name={selected ? "checkmark-circle" : "ellipse-outline"}
                   size={20}
-                  color={selected ? "#3B82F6" : "#9CA3AF"}
+                  color={selected ? COLORS.ICON_PRIMARY : COLORS.ICON_MUTED}
                 />
               </View>
             )}
@@ -468,19 +461,7 @@ export const ConversationMessageItem = ({
                   isForwardedMessage && "shadow-sm",
                   hasImages() && !messageContent ? "" : "px-3 py-2"
                 )}
-                style={{
-                  maxWidth: hasAttachments ? 305 : "70%",
-                  ...(isForwardedMessage &&
-                    !isCurrentUser && {
-                      borderLeftWidth: 2,
-                      borderLeftColor: "#9CA3AF30",
-                    }),
-                  ...(isForwardedMessage &&
-                    isCurrentUser && {
-                      borderRightWidth: 2,
-                      borderRightColor: "#60A5FA30",
-                    }),
-                }}
+                style={bubbleStyles}
               >
                 {hasAttachments && (
                   <View className={messageContent ? "mb-2" : ""}>
@@ -491,11 +472,7 @@ export const ConversationMessageItem = ({
                 {!message.isUnsend && messageContent ? (
                   <FormattedText
                     text={message.messageText}
-                    style={{
-                      fontSize: 16,
-                      lineHeight: 20,
-                      fontFamily: "Poppins-Regular",
-                    }}
+                    style={styles.messageText}
                     mentions={message.mentions}
                     isCurrentUser={isCurrentUser}
                   />
@@ -560,7 +537,7 @@ export const ConversationMessageItem = ({
           if (conversationAPIResponse?.isBlocked) return;
           onMessageSelect?.(message);
         }}
-        style={{ display: "contents" }}
+        style={webStyles.contents}
       >
         <ContentBlock />
       </div>
@@ -584,4 +561,54 @@ export const ConversationMessageItem = ({
       </SwipeableMessageRow>
     </GestureDetector>
   );
+};
+
+const styles = StyleSheet.create({
+  contentBlockWrapper: {
+    backgroundColor: COLORS.TRANSPARENT,
+  },
+  iconButton: {
+    minWidth: 24,
+    minHeight: 24,
+    cursor: "pointer",
+  },
+  iconButtonPressed: {
+    opacity: 0.7,
+  },
+  selectionIcon: {
+    position: "absolute",
+    top: -6,
+    zIndex: 10,
+  },
+  selectionIconRight: {
+    right: -6,
+  },
+  selectionIconLeft: {
+    left: -6,
+  },
+  bubbleWithAttachments: {
+    maxWidth: 305,
+  },
+  bubbleWithoutAttachments: {
+    maxWidth: "70%",
+  },
+  forwardedIncomingBorder: {
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.FORWARDED_INCOMING_BORDER,
+  },
+  forwardedOutgoingBorder: {
+    borderRightWidth: 2,
+    borderRightColor: COLORS.FORWARDED_OUTGOING_BORDER,
+  },
+  messageText: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontFamily: "Poppins-Regular",
+  },
+});
+
+const webStyles = {
+  contents: {
+    display: "contents",
+  },
 };

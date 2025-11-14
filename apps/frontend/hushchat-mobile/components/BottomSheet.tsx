@@ -35,6 +35,12 @@ interface BottomSheetProps {
   showBorders?: boolean;
 }
 
+const COLORS = {
+  BACKDROP: "rgba(0, 0, 0, 0.5)",
+  ICON_DESTRUCTIVE: "#EF4444",
+  ICON_NEUTRAL: "#6B7280",
+};
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const BottomSheet = ({
@@ -141,7 +147,7 @@ const BottomSheet = ({
                       <Ionicons
                         name={option.icon}
                         size={20}
-                        color={option.destructive ? "#EF4444" : "#6B7280"}
+                        color={option.destructive ? COLORS.ICON_DESTRUCTIVE : COLORS.ICON_NEUTRAL}
                       />
                     </View>
                     <AppText
@@ -169,7 +175,7 @@ export default BottomSheet;
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: COLORS.BACKDROP,
   },
   sheetContainer: {
     position: "absolute",
