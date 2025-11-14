@@ -7,7 +7,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Keyboard,
   TextInput,
   TextInputContentSizeChangeEvent,
   TextInputSelectionChangeEvent,
@@ -82,7 +81,7 @@ const ConversationInputBar = ({
   minLines = 1,
   maxLines = 6,
   lineHeight = 22,
-  verticalPadding = 12,
+  verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
   maxChars,
   autoFocus = false,
   replyToMessage,
@@ -151,7 +150,6 @@ const ConversationInputBar = ({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   useEffect(() => {
@@ -255,8 +253,15 @@ const ConversationInputBar = ({
       );
 
       void storage.remove(getDraftKey(conversationId));
-      if (!PLATFORM.IS_WEB) Keyboard.dismiss();
-      onCancelReply?.();
+
+      if (replyToMessage) {
+        onCancelReply?.();
+      }
+
+      requestAnimationFrame(() => {
+        textInputRef.current?.focus();
+      });
+
       setMentionQuery(null);
     },
     [
