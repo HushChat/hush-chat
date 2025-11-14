@@ -11,24 +11,55 @@ import {
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
+import * as DocumentPicker from "expo-document-picker";
 
 export enum UploadType {
   PROFILE = "profile",
   GROUP = "group",
 }
 
-const MAX_IMAGE_KB = 1024 * 5; // 5 MB
-const MAX_DOCUMENT_KB = 1024 * 10; // 10 MB
-
-const ALLOWED_DOCUMENT_TYPES = [
+export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain",
+  "application/octet-stream",
+  "*/*",
 ];
 
+const MAX_IMAGE_KB = 1024 * 5; // 5 MB
+const MAX_DOCUMENT_KB = 1024 * 10; // 10 MB
+
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+
+export async function pickDocumentsForMobileUpload(
+  upload: (files: LocalFile[]) => Promise<UploadResult[]>
+) {
+  try {
+    const res = await DocumentPicker.getDocumentAsync({
+      type: ALLOWED_DOCUMENT_TYPES,
+      multiple: true,
+      copyToCacheDirectory: true,
+    });
+
+    if (res.canceled) return;
+
+    const items = res.assets ?? [res];
+    const locals = items.map((it: any) => ({
+      uri: it.uri,
+      name: it.name || `document_${Date.now()}`,
+      type: it.mimeType || "application/octet-stream",
+      size: it.size || 0,
+    }));
+
+    await upload(locals);
+  } catch (e) {
+    console.error("Document picker error", e);
+    ToastUtils.error("Failed to pick documents");
+  }
+}
 
 export const pickAndUploadImage = async (
   id: string,
@@ -75,12 +106,7 @@ export const pickAndUploadImage = async (
 
     fetchData();
 
-    return {
-      uploadedImageUrl,
-      indexedFileName,
-      originalFileName,
-      pickerResult,
-    };
+    return { uploadedImageUrl, indexedFileName, originalFileName, pickerResult };
   } catch {
     return;
   } finally {
@@ -182,6 +208,14 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
       allowsEditing: false,
     });
 
+  const pickAndUploadDocuments = async () =>
+    hook.pickAndUpload({
+      source: "document",
+      multiple: true,
+      maxSizeKB: MAX_DOCUMENT_KB,
+      allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+    });
+
   const uploadFilesFromWeb = async (files: File[]): Promise<UploadResult[]> => {
     if (!files || files.length === 0) return [];
 
@@ -242,5 +276,5 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
     }
   };
 
-  return { ...hook, pickAndUploadImages, uploadFilesFromWeb };
+  return { ...hook, pickAndUploadImages, pickAndUploadDocuments, uploadFilesFromWeb };
 }
