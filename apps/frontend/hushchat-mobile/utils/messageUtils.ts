@@ -25,7 +25,7 @@ export const groupMessagesByDate = (messages: IMessage[]): IGroupedMessages[] =>
   const sortedDateKeys = Object.keys(groupedByDate).sort((firstDateKey, secondDateKey) => {
     const firstDate = new Date(firstDateKey).getTime();
     const secondDate = new Date(secondDateKey).getTime();
-    return firstDate - secondDate;
+    return secondDate - firstDate;
   });
 
   return sortedDateKeys.map((dateKey) => {

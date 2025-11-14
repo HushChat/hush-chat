@@ -20,9 +20,9 @@ import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants
 import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
-import { groupMessagesByDate } from "@/utils/messageUtils";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
+import { groupMessagesByDate } from "@/utils/messageUtils";
 
 interface MessagesListProps {
   messages: IMessage[];
