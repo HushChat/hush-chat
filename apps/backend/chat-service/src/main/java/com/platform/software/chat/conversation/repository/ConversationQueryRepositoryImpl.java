@@ -10,6 +10,9 @@ import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
+import com.platform.software.chat.message.attachment.entity.AttachmentType;
+import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
@@ -23,17 +26,14 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConversationQueryRepositoryImpl implements ConversationQueryRepository {
 
@@ -42,7 +42,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QConversation qConversation = QConversation.conversation;
     private static final QConversationParticipant qConversationParticipant = QConversationParticipant.conversationParticipant;
     private static final QMessage qMessage = QMessage.message;
-    private static final QMessage qMessage2 = QMessage.message;
+    private static final QMessage qMessage2 = new QMessage("message2");
+    private static final QMessageAttachment qMessageAttachment = QMessageAttachment.messageAttachment;
 
     public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
@@ -127,9 +128,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
 
     public Page<ConversationDTO> findAllConversationsByUserIdWithLatestMessages(
-        Long userId,
-        ConversationFilterCriteriaDTO conversationFilterCriteria,
-        Pageable pageable
+            Long userId,
+            ConversationFilterCriteriaDTO conversationFilterCriteria,
+            Pageable pageable
     ) {
 
         boolean isArchived = conversationFilterCriteria.getIsArchived() != null
@@ -147,7 +148,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
         } else if (isFavorite) {
             whereConditions = whereConditions.and(qConversationParticipant.isFavorite.eq(true))
-                                             .and(qConversationParticipant.archived.eq(false));
+                    .and(qConversationParticipant.archived.eq(false));
         } else {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(false));
         }
@@ -160,12 +161,13 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 JPAExpressions.select(qMessage2.id.max())
                                         .from(qMessage2)
                                         .where(qMessage2.conversation.eq(qConversation)))))
+                .leftJoin(qMessageAttachment).on(qMessageAttachment.message.eq(qMessage))
                 .where(whereConditions);
 
         boolean isValidSearchKey = StringUtils.hasText(conversationFilterCriteria.getSearchKeyword());
         if (isValidSearchKey) {
             baseQuery.where(qConversation.isGroup.isTrue()
-                .and(qConversation.name.containsIgnoreCase(conversationFilterCriteria.getSearchKeyword())));
+                    .and(qConversation.name.containsIgnoreCase(conversationFilterCriteria.getSearchKeyword())));
         }
 
         Long totalCount = baseQuery.clone()
@@ -174,7 +176,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
         // Get all conversations where user is a participant
         List<Tuple> results = baseQuery.clone()
-                .select(qConversation, qMessage, qConversationParticipant)
+                .select(qConversation, qMessage, qConversationParticipant, 
+                        qMessageAttachment.id, qMessageAttachment.attachmentType)
                 .orderBy(
                         // Primary sort: Pinned conversations first
                         qConversationParticipant.isPinned.desc().nullsLast(),
@@ -188,10 +191,24 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .offset(pageable.getOffset())
                 .fetch();
 
+        Map<Long, List<AttachmentType>> attachmentTypesByMessageId = results.stream()
+                .filter(t -> t.get(qMessage) != null)
+                .filter(t -> t.get(qMessageAttachment.id) != null)
+                .filter(t -> t.get(qMessageAttachment.attachmentType) != null)
+                .collect(Collectors.groupingBy(
+                        t -> t.get(qMessage).getId(),
+                        Collectors.mapping(t -> t.get(qMessageAttachment.attachmentType), 
+                                         Collectors.toList())
+                ));
+
         List<ConversationDTO> conversationDTOs = results.stream()
-                .map(tuple -> {
-                    Conversation conversation = tuple.get(qConversation);
-                    Message latestMessage = tuple.get(qMessage);
+                .collect(Collectors.groupingBy(t -> t.get(qConversation).getId()))
+                .values()
+                .stream()
+                .map(tuples -> {
+                    Tuple firstTuple = tuples.get(0);
+                    Conversation conversation = firstTuple.get(qConversation);
+                    Message latestMessage = firstTuple.get(qMessage);
 
                     ConversationDTO dto = new ConversationDTO(conversation);
 
@@ -234,6 +251,22 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
                     if (latestMessage != null) {
                         MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
+
+                        List<AttachmentType> attachmentTypes = attachmentTypesByMessageId
+                                .getOrDefault(latestMessage.getId(), List.of());
+
+                        if (!attachmentTypes.isEmpty()) {
+                            List<MessageAttachmentDTO> attachmentDTOs = attachmentTypes.stream()
+                                    .map(type -> {
+                                        MessageAttachmentDTO attachmentDTO = new MessageAttachmentDTO();
+                                        attachmentDTO.setAttachmentType(type);
+                                        return attachmentDTO;
+                                    })
+                                    .collect(Collectors.toList());
+                            
+                            messageViewDTO.setMessageAttachments(attachmentDTOs);
+                        }
+
                         dto.setMessages(List.of(messageViewDTO));
                     }
 
@@ -304,46 +337,46 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
   
     public Optional<DirectOtherMetaDTO> findDirectOtherMeta(Long conversationId, Long userId) {
-          QConversation c = QConversation.conversation;
-          QConversationParticipant cpSelf = QConversationParticipant.conversationParticipant;
-          QConversationParticipant cpOther = new QConversationParticipant("cpOther");
-          QChatUser uOther = QChatUser.chatUser;
-          QUserBlock b = QUserBlock.userBlock;
+        QConversation c = QConversation.conversation;
+        QConversationParticipant cpSelf = QConversationParticipant.conversationParticipant;
+        QConversationParticipant cpOther = new QConversationParticipant("cpOther");
+        QChatUser uOther = QChatUser.chatUser;
+        QUserBlock b = QUserBlock.userBlock;
 
-          DirectOtherMetaDTO row = jpaQueryFactory
-                  .select(Projections.bean(DirectOtherMetaDTO.class,
-                          uOther.id.as("otherUserId"),
-                          uOther.firstName.as("firstName"),
-                          uOther.lastName.as("lastName"),
-                          uOther.imageIndexedName.as("imageIndexedName"),
-                          b.id.isNotNull().as("blocked")
-                  ))
-                  .from(c)
-                  // ensure requester is an active participant of this conversation
-                  .join(cpSelf).on(
-                          cpSelf.conversation.eq(c)
-                                  .and(cpSelf.user.id.eq(userId))
-                                  .and(cpSelf.isDeleted.isFalse())
-                  )
-                  // get the other active participant
-                  //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
-                  .join(cpOther).on(
-                          cpOther.conversation.eq(c)
-                                  .and(cpOther.user.id.ne(userId))
-                  )
-                  .join(uOther).on(uOther.eq(cpOther.user))
-                  .leftJoin(b).on( // here we are only checking if the logged-in user has blocked the other user
-                          b.blocker.id.eq(userId)
-                                  .and(b.blocked.id.eq(uOther.id))
-                  )
-                  .where(
-                          c.id.eq(conversationId),
-                          c.isGroup.isFalse() // direct chat only
-                  )
-                  .fetchOne();
+        DirectOtherMetaDTO row = jpaQueryFactory
+                .select(Projections.bean(DirectOtherMetaDTO.class,
+                        uOther.id.as("otherUserId"),
+                        uOther.firstName.as("firstName"),
+                        uOther.lastName.as("lastName"),
+                        uOther.imageIndexedName.as("imageIndexedName"),
+                        b.id.isNotNull().as("blocked")
+                ))
+                .from(c)
+                // ensure requester is an active participant of this conversation
+                .join(cpSelf).on(
+                        cpSelf.conversation.eq(c)
+                                .and(cpSelf.user.id.eq(userId))
+                                .and(cpSelf.isDeleted.isFalse())
+                )
+                // get the other active participant
+                //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
+                .join(cpOther).on(
+                        cpOther.conversation.eq(c)
+                                .and(cpOther.user.id.ne(userId))
+                )
+                .join(uOther).on(uOther.eq(cpOther.user))
+                .leftJoin(b).on( // here we are only checking if the logged-in user has blocked the other user
+                        b.blocker.id.eq(userId)
+                                .and(b.blocked.id.eq(uOther.id))
+                )
+                .where(
+                        c.id.eq(conversationId),
+                        c.isGroup.isFalse() // direct chat only
+                )
+                .fetchOne();
 
-          return Optional.ofNullable(row);
-      }
+        return Optional.ofNullable(row);
+    }
 
     /**
      * Finds direct conversations between a logged-in user and multiple target users.
@@ -390,5 +423,4 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 (existing, replacement) -> existing
             ));
     }
-
 }

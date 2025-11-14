@@ -4,8 +4,8 @@
  * Renders a single row in the conversations list (avatar, name, last message preview, timestamp).
  */
 import { View, TouchableOpacity, Pressable, GestureResponderEvent, Modal } from "react-native";
-import React, { useCallback, useState, useRef } from "react";
-import { IConversation } from "@/types/chat/types";
+import React, { useCallback, useState, useRef, useMemo } from "react";
+import { AttachmentType, IConversation } from "@/types/chat/types";
 import { getLastMessageTime } from "@/utils/commonUtils";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
@@ -39,7 +39,43 @@ const ConversationListItem = ({
 
   const chevronButtonRef = useRef<View>(null);
   const lastMessage = conversation.messages?.at(-1);
-  const lastMessageText = lastMessage?.messageText;
+
+  const lastMessageText = useMemo(() => {
+    if (!lastMessage) return "";
+
+    const attachments = (lastMessage as any).attachments || lastMessage.messageAttachments || [];
+    const messageText = lastMessage.messageText?.trim();
+
+    if (messageText) return messageText;
+
+    if (attachments.length > 0) {
+      let imageCount = 0;
+      let docCount = 0;
+
+      attachments.forEach((attachment: any) => {
+        if (attachment.attachmentType === AttachmentType.IMAGE) {
+          imageCount++;
+        } else if (attachment.attachmentType === AttachmentType.DOCUMENT) {
+          docCount++;
+        }
+      });
+
+      if (imageCount > 0 && docCount === 0) {
+        return imageCount === 1 ? "Photo" : `${imageCount} Photos`;
+      }
+      if (docCount > 0 && imageCount === 0) {
+        return docCount === 1 ? "Document" : `${docCount} Documents`;
+      }
+      if (imageCount > 0 && docCount > 0) {
+        return `${imageCount} Photo${imageCount > 1 ? "s" : ""} & ${docCount} Document${
+          docCount > 1 ? "s" : ""
+        }`;
+      }
+    }
+
+    return "";
+  }, [lastMessage]);
+
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
@@ -60,6 +96,37 @@ const ConversationListItem = ({
   const handleOptionsClose = useCallback(() => {
     setShowOptions(false);
   }, []);
+
+  const attachmentIconInfo = useMemo(() => {
+    if (!lastMessage) return null;
+
+    const attachments = (lastMessage as any).attachments || lastMessage.messageAttachments || [];
+
+    if (attachments.length === 0) return null;
+
+    let hasImages = false;
+    let hasDocs = false;
+
+    attachments.forEach((attachment: any) => {
+      if (attachment.attachmentType === AttachmentType.IMAGE) {
+        hasImages = true;
+      } else if (attachment.attachmentType === AttachmentType.DOCUMENT) {
+        hasDocs = true;
+      }
+    });
+
+    if (hasImages && !hasDocs) {
+      return { name: "photo" as const, show: true };
+    }
+    if (hasDocs && !hasImages) {
+      return { name: "insert-drive-file" as const, show: true };
+    }
+    if (hasImages && hasDocs) {
+      return { name: "photo" as const, show: true };
+    }
+
+    return null;
+  }, [lastMessage]);
 
   return (
     <>
@@ -101,16 +168,29 @@ const ConversationListItem = ({
             </View>
           </View>
           <View className="flex-row items-center justify-between">
-            <AppText
-              className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
-              numberOfLines={1}
-            >
+            <View className="flex-row items-center space-x-1 flex-1">
               {lastMessage?.isUnsend ? (
                 <LastMessagePreview unsendMessage={lastMessage} />
               ) : (
-                lastMessageText
+                <>
+                  {attachmentIconInfo?.show && (
+                    <MaterialIcons
+                      name={attachmentIconInfo.name}
+                      size={16}
+                      color="#6B7280"
+                      style={{ marginRight: 4 }}
+                    />
+                  )}
+
+                  <AppText
+                    className="text-gray-600 dark:text-text-secondary-dark text-sm flex-shrink"
+                    numberOfLines={1}
+                  >
+                    {lastMessageText}
+                  </AppText>
+                </>
               )}
-            </AppText>
+            </View>
             {conversation.mutedByLoggedInUser && (
               <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" className="ml-2" />
             )}
