@@ -51,7 +51,7 @@ export default [
 
             // TypeScript
             '@typescript-eslint/no-require-imports': 'off',
-            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-explicit-any': 'error',
 
             // General
             'no-console': 'warn',
