@@ -19,7 +19,6 @@ import { PLATFORM } from "@/constants/platformConstants";
 import ReactionPicker from "@/components/conversations/conversation-thread/message-list/reaction/ReactionPicker";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated from "react-native-reanimated";
 import ParentMessagePreview from "./ParentMessagePreview";
 import WebContextMenu from "@/components/WebContextMenu";
 import FormattedText from "@/components/FormattedText";
@@ -330,7 +329,7 @@ export const ConversationMessageItem = ({
   const hasText = !!message.messageText;
 
   const ContentBlock = () => (
-    <Animated.View style={{ backgroundColor: "transparent" }}>
+    <View style={{ backgroundColor: "transparent" }}>
       <View className="group mb-3">
         <View className="mx-4">
           <View
@@ -548,7 +547,7 @@ export const ConversationMessageItem = ({
           }}
         />
       )}
-    </Animated.View>
+    </View>
   );
 
   if (PLATFORM.IS_WEB) {
