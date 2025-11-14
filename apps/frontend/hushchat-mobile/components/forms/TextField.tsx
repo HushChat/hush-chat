@@ -17,7 +17,7 @@ interface FormTextInputProps extends TextInputProps {
 
 type SizeKey = NonNullable<FormTextInputProps["size"]>;
 
-const SIZE_PRESETS: Record<
+export const SIZE_PRESETS: Record<
   SizeKey,
   {
     inputHeight: string;

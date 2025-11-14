@@ -32,7 +32,6 @@ const PUBLIC_ENDPOINTS: string[] = [
 
 export const setAPIDefaults = () => {
   axios.defaults.baseURL = getAPIBaseURL();
-  axios.defaults.headers.common["X-Tenant"] = getBuildConstant(BuildConstantKeys.TENANT);
 };
 
 /**
@@ -60,10 +59,13 @@ export const setupAuthorizationHeader = () => {
           await refreshIdToken();
         }
 
-        const { idToken } = await getAllTokens();
+        const { idToken, tenant } = await getAllTokens();
 
         if (idToken) {
           config.headers.Authorization = `${TOKEN_TYPE} ${idToken}`;
+        }
+        if (tenant) {
+          config.headers["X-Tenant"] = tenant;
         }
       } catch (error) {
         logError("Error while setting up authorization header", error);

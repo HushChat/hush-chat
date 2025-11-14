@@ -6,6 +6,7 @@ export const REFRESH_TOKEN_KEY = "refreshToken";
 export const getDraftKey = (conversationId: number | string) => `draft_${conversationId}`;
 export const MENTION_PREFIX = "@";
 export const EMPTY_SET = new Set<number>();
+export const TENANT = "tenant";
 
 export const TITLES = {
   ARCHIVE_CHAT: (conversationType: ConversationType) =>

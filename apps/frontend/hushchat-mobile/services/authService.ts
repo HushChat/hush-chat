@@ -1,6 +1,6 @@
 import axios from "axios";
-import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
-import { IRegisterUserPayload } from "@/types/user/types";
+import { AUTH_API_ENDPOINTS, WORKSPACE_ENDPOINTS } from "@/constants/apiConstants";
+import { ICreateWorkspace, IRegisterUserPayload, IWorkspaceRegister } from "@/types/user/types";
 
 export async function loginUser(email: string, password: string) {
   try {
@@ -63,6 +63,30 @@ export async function resendOtp(email: string) {
     return {
       success: false,
       message: error.response?.data?.message || "OTP confirmation failed. Please try again.",
+    };
+  }
+}
+
+export async function registerWorkspaceUser(userData: IWorkspaceRegister) {
+  try {
+    await axios.post(WORKSPACE_ENDPOINTS.REGISTER_WORKSPACE, userData);
+    return { success: true };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Register failed. Please try again.",
+    };
+  }
+}
+
+export async function createWorkspace(data: ICreateWorkspace) {
+  try {
+    await axios.post(WORKSPACE_ENDPOINTS.CREATE_WORKSPACE, data);
+    return { success: true };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Workspace create failed. Please try again.",
     };
   }
 }

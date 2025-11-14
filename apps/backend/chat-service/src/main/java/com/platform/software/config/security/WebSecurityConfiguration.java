@@ -31,6 +31,11 @@ public class WebSecurityConfiguration {
     }
 
     @Bean
+    WebSecurityCustomizer webSecurityCustomizer() {
+        return publicRouteConfig.webSecurityCustomizer();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -38,11 +43,6 @@ public class WebSecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    WebSecurityCustomizer webSecurityCustomizer() {
-        return publicRouteConfig.webSecurityCustomizer();
     }
 
     @Bean

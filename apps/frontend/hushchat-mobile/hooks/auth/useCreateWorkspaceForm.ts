@@ -1,19 +1,21 @@
 import { useCallback, useState } from "react";
 import { router } from "expo-router";
-import { IRegisterUser, RegisterUser } from "@/types/user/types";
-import { registerUser } from "@/services/authService";
-import { VERIFY_OTP_PATH } from "@/constants/routes";
+import { CreateWorkspace, ICreateWorkspace } from "@/types/user/types";
+import { createWorkspace } from "@/services/authService";
+import { WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useForm } from "@/hooks/useForm";
+import { useSaveTenant } from "@/hooks/auth/useSaveTenant";
 
-export function useRegisterForm() {
+export function useCreateWorkspaceForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { saveTenant } = useSaveTenant();
 
   const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } =
-    useForm<IRegisterUser>(RegisterUser, {
-      email: "",
-      password: "",
-      confirmPassword: "",
+    useForm<ICreateWorkspace>(CreateWorkspace, {
+      name: "",
+      description: "",
+      imageUrl: "",
     });
 
   const submit = useCallback(async () => {
@@ -24,23 +26,20 @@ export function useRegisterForm() {
       const validated = await validateAll();
       if (!validated) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { confirmPassword, ...payload } = validated;
-      const response = await registerUser(payload);
+      const response = await createWorkspace(validated);
       if (!response.success) {
         setErrorMessage(response.message);
         return;
       }
-      router.push({
-        pathname: VERIFY_OTP_PATH,
-        params: { email: validated.email },
-      });
+
+      await saveTenant(validated.name);
+      router.push({ pathname: WORKSPACE_REGISTER_PATH });
     } catch (err: any) {
-      setErrorMessage(err?.message || "Registration failed.");
+      setErrorMessage(err?.message || "Workspace create failed.");
     } finally {
       setIsLoading(false);
     }
-  }, [validateAll, setShowErrors]);
+  }, [setShowErrors, validateAll, saveTenant]);
 
   return {
     formValues: values,

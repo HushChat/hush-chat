@@ -20,7 +20,7 @@ import { ModalProvider } from "@/context/modal-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { AUTH_LOGIN_PATH, CHATS_PATH } from "@/constants/routes";
+import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 import { NotificationFactory } from "@/utils/notifications/NotificationFactory";
 import { sendTokenToBackend } from "@/apis/user";
@@ -30,7 +30,7 @@ const TOAST_OFFSET_ANDROID = 40;
 
 export default function RootLayout() {
   const { colorScheme } = useAppTheme();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isWorkspaceSelected } = useAuthStore();
   const { fetchUserData, loading } = useUserStore();
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
@@ -56,22 +56,24 @@ export default function RootLayout() {
       }
     };
 
-    initNotifications();
-  }, []);
+    if (isWorkspaceSelected) {
+      initNotifications();
+    }
+  }, [isWorkspaceSelected]);
 
   const initializeUserData = useCallback(async () => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isWorkspaceSelected) {
       await fetchUserData();
     }
-  }, [isAuthenticated, fetchUserData]);
+  }, [isAuthenticated, fetchUserData, isWorkspaceSelected]);
 
   useEffect(() => {
     if (!fontsLoaded) return;
 
-    if (isAuthenticated) {
+    if (isAuthenticated && isWorkspaceSelected) {
       initializeUserData();
     }
-  }, [fontsLoaded, isAuthenticated, initializeUserData]);
+  }, [fontsLoaded, isAuthenticated, initializeUserData, isWorkspaceSelected]);
 
   // Hide splash screen only when everything is loaded
   useEffect(() => {
@@ -131,7 +133,6 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
   return (
     <>
       {ready && !isAuthenticated && !inAuthGroup && <Redirect href={AUTH_LOGIN_PATH} />}
-      {ready && isAuthenticated && inAuthGroup && <Redirect href={CHATS_PATH} />}
 
       <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
-import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
+import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserQueryRepository;
 import com.platform.software.common.dto.LoginDTO;
@@ -17,6 +17,7 @@ import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.config.aws.AWSconfig;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
@@ -32,9 +33,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import com.platform.software.chat.user.dto.UserDTO;
-import com.platform.software.chat.user.dto.UserUpsertDTO;
-import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.service.security.CognitoService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
@@ -104,14 +102,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ChatUser createUser(UserUpsertDTO userUpsertDTO) {
-        ValidationUtils.validate(userUpsertDTO);
+    public UserDTO createWorkSpaceUser(WorkSpaceUserUpsertDTO workSpaceUserUpsertDTO, String email) {
+        workSpaceUserUpsertDTO.setEmail(email);
+        ValidationUtils.validate(workSpaceUserUpsertDTO);
 
-        Workspace workspace = workspaceUserService.getInvitedWorkspace(userUpsertDTO.getEmail());
-        ChatUser createdUser = userUtilService.createUser(userUpsertDTO, workspace);
-        workspaceUserService.markInvitationAsAccepted(userUpsertDTO.getEmail(), workspace.getId());
+        String currantTenant = WorkspaceContext.getCurrentWorkspace();
+        Workspace workspace = workspaceUserService.getInvitedWorkspace(workSpaceUserUpsertDTO.getEmail(), currantTenant);
 
-        return createdUser;
+        ChatUser createdUser = userUtilService.createUser(workSpaceUserUpsertDTO);
+        workspaceUserService.markInvitationAsAccepted(workSpaceUserUpsertDTO.getEmail(), workspace.getId());
+
+        return new UserDTO(createdUser);
+    }
+
+    @Override
+    public void createUser(UserUpsertDTO userUpsertDTO) {
+        userUtilService.createUserInIdP(userUpsertDTO.getEmail(), userUpsertDTO.getPassword(), "");
     }
 
     @Override

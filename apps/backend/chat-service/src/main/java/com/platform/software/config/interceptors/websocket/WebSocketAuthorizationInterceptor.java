@@ -11,11 +11,11 @@ import com.platform.software.common.constants.GeneralConstants;
 import com.platform.software.common.utils.AuthUtils;
 import com.platform.software.config.aws.AWSCognitoConfig;
 
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomForbiddenException;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -106,6 +106,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             AuthUtils.verifyToken(publicKey, token);
 
             workspaceUserService.verifyUserAccessToWorkspace(email, workspaceId);
+            WorkspaceContext.setCurrentWorkspace(workspaceId);
             ChatUser user = userService.getUserByEmail(email);
 
             String sessionKey = createSessionKey(workspaceId, email);

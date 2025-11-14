@@ -1,1221 +1,1220 @@
 databaseChangeLog:
-- changeSet:
-    id: 1762862486469-1
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: conversation_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            autoIncrement: true
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: conversation_report_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: user_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: reason
-            type: VARCHAR(255)
-        tableName: conversation_report
-- changeSet:
-    id: 1762862486469-2
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            name: is_video
-            type: BOOLEAN
-        - column:
-            name: call_ended_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: call_started_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: conversation_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: call_log_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: initiator_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: status
-            type: VARCHAR(255)
-        tableName: call_log
-- changeSet:
-    id: 1762862486469-3
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: chat_user_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: chat_notification_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: platform
-            type: VARCHAR(255)
-        - column:
-            constraints:
-              nullable: false
-            name: token
-            type: VARCHAR(255)
-        tableName: chat_notification
-- changeSet:
-    id: 1762862486469-4
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            name: archived
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: is_active
-            type: BOOLEAN
-        - column:
-            name: is_deleted
-            type: BOOLEAN
-        - column:
-            name: is_favorite
-            type: BOOLEAN
-        - column:
-            name: is_pinned
-            type: BOOLEAN
-        - column:
-            name: conversation_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: conversation_participant_pkey
-            name: id
-            type: BIGINT
-        - column:
-            name: inactive_from
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: last_deleted_time
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: muted_until
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: pinned_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: user_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: role
-            type: VARCHAR(255)
-        tableName: conversation_participant
-- changeSet:
-    id: 1762862486469-5
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: message_reaction_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: user_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: reaction_type
-            type: VARCHAR(255)
-        tableName: message_reaction
-- changeSet:
-    id: 1762862486469-6
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: active
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: deleted
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: chat_user_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: email
-            type: VARCHAR(255)
-        - column:
-            name: first_name
-            type: VARCHAR(255)
-        - column:
-            name: image_indexed_name
-            type: VARCHAR(255)
-        - column:
-            name: last_name
-            type: VARCHAR(255)
-        - column:
-            name: username
-            type: VARCHAR(255)
-        tableName: chat_user
-- changeSet:
-    id: 1762862486469-7
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: favourite_message_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: user_id
-            type: BIGINT
-        tableName: favourite_message
-- changeSet:
-    id: 1762862486469-8
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: blocked_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: blocker_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: user_block_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        tableName: user_block
-- changeSet:
-    id: 1762862486469-9
-    author: modithamarasingha (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: token
-        constraintName: chat_notification_token_key
-        tableName: chat_notification
-- changeSet:
-    id: 1762862486469-10
-    author: modithamarasingha (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: conversation_id, user_id
-        constraintName: uk_conversation_participant
-        tableName: conversation_participant
-- changeSet:
-    id: 1762862486469-11
-    author: modithamarasingha (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: message_id, user_id
-        constraintName: uk_reaction_message_user_type
-        tableName: message_reaction
-- changeSet:
-    id: 1762862486469-12
-    author: modithamarasingha (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: username
-        constraintName: chat_user_username_key
-        tableName: chat_user
-- changeSet:
-    id: 1762862486469-13
-    author: modithamarasingha (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: user_id, message_id
-        constraintName: uk_favourite_message_user_message
-        tableName: favourite_message
-- changeSet:
-    id: 1762862486469-14
-    author: modithamarasingha (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: blocker_id, blocked_id
-        constraintName: uk_user_block_blocker_blocked
-        tableName: user_block
-- changeSet:
-    id: 1762862486469-15
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: call_log_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-16
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: call_participant_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-17
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: chat_user_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-18
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: conversation_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-19
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: conversation_participant_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-20
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: conversation_read_status_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-21
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: device_token_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-22
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: favourite_message_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-23
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: message_attachment_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-24
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: message_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-25
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: message_mention_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-26
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: message_reaction_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-27
-    author: modithamarasingha (generated)
-    changes:
-    - createSequence:
-        cacheSize: 1
-        cycle: false
-        dataType: bigint
-        incrementBy: 50
-        maxValue: 9223372036854775807
-        minValue: 1
-        sequenceName: user_block_generator
-        startValue: 1
-- changeSet:
-    id: 1762862486469-28
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: call_log_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: call_participant_pkey
-            name: id
-            type: BIGINT
-        - column:
-            name: joined_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: left_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: participant_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        tableName: call_participant
-- changeSet:
-    id: 1762862486469-29
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: deleted
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: is_group
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: created_by_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: conversation_pkey
-            name: id
-            type: BIGINT
-        - column:
-            name: pinned_message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: description
-            type: VARCHAR(255)
-        - column:
-            name: image_indexed_name
-            type: VARCHAR(255)
-        - column:
-            name: name
-            type: VARCHAR(255)
-        tableName: conversation
-- changeSet:
-    id: 1762862486469-30
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            name: conversation_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: conversation_read_status_pkey
-            name: id
-            type: BIGINT
-        - column:
-            name: message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: user_id
-            type: BIGINT
-        tableName: conversation_read_status
-- changeSet:
-    id: 1762862486469-31
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: is_unsend
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: conversation_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: forwarded_message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: message_pkey
-            name: id
-            type: BIGINT
-        - column:
-            name: parent_message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: sender_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: message_text
-            type: TEXT
-        - column:
-            name: search_vector
-            type: TSVECTOR
-        tableName: message
-- changeSet:
-    id: 1762862486469-32
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: message_attachment_pkey
-            name: id
-            type: BIGINT
-        - column:
-            name: message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-            name: indexed_file_name
-            type: VARCHAR(255)
-        - column:
-            constraints:
-              nullable: false
-            name: original_file_name
-            type: VARCHAR(255)
-        tableName: message_attachment
-- changeSet:
-    id: 1762862486469-33
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: message_mention_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: mentioned_user_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: message_id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        tableName: message_mention
-- changeSet:
-    id: 1762862486469-34
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: created_by_id
-        baseTableName: conversation
-        constraintName: fk1gldpgho9sjk1wcos1bevki2y
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-35
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: call_log_id
-        baseTableName: call_participant
-        constraintName: fk4kjw3mm4bjrk3lrqfxc9r2rhc
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: call_log
-        validate: true
-- changeSet:
-    id: 1762862486469-36
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: user_id
-        baseTableName: conversation_read_status
-        constraintName: fk5wiw3epfg6udm2abuyy8gtksj
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-37
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: sender_id
-        baseTableName: message
-        constraintName: fk66wmv4noy06ovj0aytlx3wqs3
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-38
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: conversation_id
-        baseTableName: message
-        constraintName: fk6yskk3hxw5sklwgi25y6d5u1l
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: conversation
-        validate: true
-- changeSet:
-    id: 1762862486469-39
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: initiator_id
-        baseTableName: call_log
-        constraintName: fk8dhdvtvqpa2tihsbd6xq4xygu
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-40
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: conversation_id
-        baseTableName: conversation_participant
-        constraintName: fk93dv599s56uqs8xslhdp3arya
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: conversation
-        validate: true
-- changeSet:
-    id: 1762862486469-41
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: pinned_message_id
-        baseTableName: conversation
-        constraintName: fk9hc2j495kebl8y45ob5k2wbx0
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-- changeSet:
-    id: 1762862486469-42
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: participant_id
-        baseTableName: call_participant
-        constraintName: fkakqki21afmp1a6lmuaw8oflx3
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-43
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: mentioned_user_id
-        baseTableName: message_mention
-        constraintName: fkani1h1m1mllrx0udi5s4ingjb
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-44
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: conversation_id
-        baseTableName: call_log
-        constraintName: fkapyvnrbjqot3trknfdlpv22j8
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: conversation
-        validate: true
-- changeSet:
-    id: 1762862486469-45
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: blocker_id
-        baseTableName: user_block
-        constraintName: fkbtuev30lwq9epq3fka7mt9l61
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: CASCADE
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-46
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: message_id
-        baseTableName: message_reaction
-        constraintName: fkdf4mgt18iwqtybf55a7s0md75
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: CASCADE
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-- changeSet:
-    id: 1762862486469-47
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: blocked_id
-        baseTableName: user_block
-        constraintName: fkdj2iev9xja1k16ojtkclddmy8
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: CASCADE
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-48
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: user_id
-        baseTableName: message_reaction
-        constraintName: fkey19mekf0hqvvorfvr89722rp
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-49
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: user_id
-        baseTableName: conversation_report
-        constraintName: fkf5kqrdal3w2qurwehm2r33tmo
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-50
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: conversation_id
-        baseTableName: conversation_read_status
-        constraintName: fkheqp4snqiqu00ryw38gu5vbl1
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: conversation
-        validate: true
-- changeSet:
-    id: 1762862486469-51
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: message_id
-        baseTableName: conversation_read_status
-        constraintName: fkhi4n01mn3nrakckfhjhgbf4hr
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-- changeSet:
-    id: 1762862486469-52
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: message_id
-        baseTableName: message_mention
-        constraintName: fkivish6h099hdmhktmjd76skpf
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: CASCADE
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-- changeSet:
-    id: 1762862486469-53
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: message_id
-        baseTableName: message_attachment
-        constraintName: fkjy2qr5ok9lfr6m7nss2fywqjn
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: CASCADE
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-- changeSet:
-    id: 1762862486469-54
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: user_id
-        baseTableName: conversation_participant
-        constraintName: fklsg6e2hjbrs4k7lokpm3g6bc3
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-55
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: message_id
-        baseTableName: favourite_message
-        constraintName: fkm6m9t31on1jwctg6rc2f9q4o4
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: CASCADE
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-- changeSet:
-    id: 1762862486469-56
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: forwarded_message_id
-        baseTableName: message
-        constraintName: fkmc76lp38wc5i20qvmrrl63yej
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: SET NULL
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-- changeSet:
-    id: 1762862486469-57
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: user_id
-        baseTableName: favourite_message
-        constraintName: fkp8sca4ot9l6txu3jnryok8hni
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-58
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: conversation_id
-        baseTableName: conversation_report
-        constraintName: fkppi08kpe9yxyikra9r4p28r9v
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: conversation
-        validate: true
-- changeSet:
-    id: 1762862486469-59
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: chat_user_id
-        baseTableName: chat_notification
-        constraintName: fksf58r9l22kx1avgasmsgvrxf0
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: CASCADE
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: chat_user
-        validate: true
-- changeSet:
-    id: 1762862486469-60
-    author: modithamarasingha (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: parent_message_id
-        baseTableName: message
-        constraintName: fkt4gjpvxlwdkb0tonr9pd5ftw1
-        deferrable: false
-        initiallyDeferred: false
-        onDelete: SET NULL
-        onUpdate: NO ACTION
-        referencedColumnNames: id
-        referencedTableName: message
-        validate: true
-
+  - changeSet:
+      id: 1762862486469-1
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: conversation_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: conversation_report_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: reason
+                  type: VARCHAR(255)
+            tableName: conversation_report
+  - changeSet:
+      id: 1762862486469-2
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  name: is_video
+                  type: BOOLEAN
+              - column:
+                  name: call_ended_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: call_started_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: conversation_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: call_log_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: initiator_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: status
+                  type: VARCHAR(255)
+            tableName: call_log
+  - changeSet:
+      id: 1762862486469-3
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: chat_user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: chat_notification_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: platform
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: token
+                  type: VARCHAR(255)
+            tableName: chat_notification
+  - changeSet:
+      id: 1762862486469-4
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  name: archived
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_active
+                  type: BOOLEAN
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+              - column:
+                  name: is_favorite
+                  type: BOOLEAN
+              - column:
+                  name: is_pinned
+                  type: BOOLEAN
+              - column:
+                  name: conversation_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: conversation_participant_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: inactive_from
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: last_deleted_time
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: muted_until
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: pinned_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: role
+                  type: VARCHAR(255)
+            tableName: conversation_participant
+  - changeSet:
+      id: 1762862486469-5
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: message_reaction_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: reaction_type
+                  type: VARCHAR(255)
+            tableName: message_reaction
+  - changeSet:
+      id: 1762862486469-6
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: active
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: chat_user_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+              - column:
+                  name: image_indexed_name
+                  type: VARCHAR(255)
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+            tableName: chat_user
+  - changeSet:
+      id: 1762862486469-7
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: favourite_message_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+            tableName: favourite_message
+  - changeSet:
+      id: 1762862486469-8
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: blocked_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: blocker_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: user_block_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+            tableName: user_block
+  - changeSet:
+      id: 1762862486469-9
+      author: modithamarasingha (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: token
+            constraintName: chat_notification_token_key
+            tableName: chat_notification
+  - changeSet:
+      id: 1762862486469-10
+      author: modithamarasingha (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: conversation_id, user_id
+            constraintName: uk_conversation_participant
+            tableName: conversation_participant
+  - changeSet:
+      id: 1762862486469-11
+      author: modithamarasingha (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: message_id, user_id
+            constraintName: uk_reaction_message_user_type
+            tableName: message_reaction
+  - changeSet:
+      id: 1762862486469-12
+      author: modithamarasingha (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: username
+            constraintName: chat_user_username_key
+            tableName: chat_user
+  - changeSet:
+      id: 1762862486469-13
+      author: modithamarasingha (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id, message_id
+            constraintName: uk_favourite_message_user_message
+            tableName: favourite_message
+  - changeSet:
+      id: 1762862486469-14
+      author: modithamarasingha (generated)
+      changes:
+        - addUniqueConstraint:
+            columnNames: blocker_id, blocked_id
+            constraintName: uk_user_block_blocker_blocked
+            tableName: user_block
+  - changeSet:
+      id: 1762862486469-15
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: call_log_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-16
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: call_participant_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-17
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: chat_user_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-18
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: conversation_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-19
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: conversation_participant_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-20
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: conversation_read_status_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-21
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: device_token_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-22
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: favourite_message_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-23
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: message_attachment_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-24
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: message_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-25
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: message_mention_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-26
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: message_reaction_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-27
+      author: modithamarasingha (generated)
+      changes:
+        - createSequence:
+            cacheSize: 1
+            cycle: false
+            dataType: bigint
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            sequenceName: user_block_generator
+            startValue: 1
+  - changeSet:
+      id: 1762862486469-28
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: call_log_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: call_participant_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: joined_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: left_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: participant_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+            tableName: call_participant
+  - changeSet:
+      id: 1762862486469-29
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_group
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_by_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: conversation_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: pinned_message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  name: image_indexed_name
+                  type: VARCHAR(255)
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+            tableName: conversation
+  - changeSet:
+      id: 1762862486469-30
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  name: conversation_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: conversation_read_status_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+            tableName: conversation_read_status
+  - changeSet:
+      id: 1762862486469-31
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_unsend
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: conversation_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: forwarded_message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: message_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: parent_message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: sender_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: message_text
+                  type: TEXT
+              - column:
+                  name: search_vector
+                  type: TSVECTOR
+            tableName: message
+  - changeSet:
+      id: 1762862486469-32
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: message_attachment_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: indexed_file_name
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: original_file_name
+                  type: VARCHAR(255)
+            tableName: message_attachment
+  - changeSet:
+      id: 1762862486469-33
+      author: modithamarasingha (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: message_mention_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: mentioned_user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: message_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+            tableName: message_mention
+  - changeSet:
+      id: 1762862486469-34
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: created_by_id
+            baseTableName: conversation
+            constraintName: fk1gldpgho9sjk1wcos1bevki2y
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-35
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: call_log_id
+            baseTableName: call_participant
+            constraintName: fk4kjw3mm4bjrk3lrqfxc9r2rhc
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: call_log
+            validate: true
+  - changeSet:
+      id: 1762862486469-36
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: conversation_read_status
+            constraintName: fk5wiw3epfg6udm2abuyy8gtksj
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-37
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: sender_id
+            baseTableName: message
+            constraintName: fk66wmv4noy06ovj0aytlx3wqs3
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-38
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: conversation_id
+            baseTableName: message
+            constraintName: fk6yskk3hxw5sklwgi25y6d5u1l
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: conversation
+            validate: true
+  - changeSet:
+      id: 1762862486469-39
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: initiator_id
+            baseTableName: call_log
+            constraintName: fk8dhdvtvqpa2tihsbd6xq4xygu
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-40
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: conversation_id
+            baseTableName: conversation_participant
+            constraintName: fk93dv599s56uqs8xslhdp3arya
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: conversation
+            validate: true
+  - changeSet:
+      id: 1762862486469-41
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: pinned_message_id
+            baseTableName: conversation
+            constraintName: fk9hc2j495kebl8y45ob5k2wbx0
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true
+  - changeSet:
+      id: 1762862486469-42
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: participant_id
+            baseTableName: call_participant
+            constraintName: fkakqki21afmp1a6lmuaw8oflx3
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-43
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: mentioned_user_id
+            baseTableName: message_mention
+            constraintName: fkani1h1m1mllrx0udi5s4ingjb
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-44
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: conversation_id
+            baseTableName: call_log
+            constraintName: fkapyvnrbjqot3trknfdlpv22j8
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: conversation
+            validate: true
+  - changeSet:
+      id: 1762862486469-45
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: blocker_id
+            baseTableName: user_block
+            constraintName: fkbtuev30lwq9epq3fka7mt9l61
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-46
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: message_id
+            baseTableName: message_reaction
+            constraintName: fkdf4mgt18iwqtybf55a7s0md75
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true
+  - changeSet:
+      id: 1762862486469-47
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: blocked_id
+            baseTableName: user_block
+            constraintName: fkdj2iev9xja1k16ojtkclddmy8
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-48
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: message_reaction
+            constraintName: fkey19mekf0hqvvorfvr89722rp
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-49
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: conversation_report
+            constraintName: fkf5kqrdal3w2qurwehm2r33tmo
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-50
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: conversation_id
+            baseTableName: conversation_read_status
+            constraintName: fkheqp4snqiqu00ryw38gu5vbl1
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: conversation
+            validate: true
+  - changeSet:
+      id: 1762862486469-51
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: message_id
+            baseTableName: conversation_read_status
+            constraintName: fkhi4n01mn3nrakckfhjhgbf4hr
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true
+  - changeSet:
+      id: 1762862486469-52
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: message_id
+            baseTableName: message_mention
+            constraintName: fkivish6h099hdmhktmjd76skpf
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true
+  - changeSet:
+      id: 1762862486469-53
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: message_id
+            baseTableName: message_attachment
+            constraintName: fkjy2qr5ok9lfr6m7nss2fywqjn
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true
+  - changeSet:
+      id: 1762862486469-54
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: conversation_participant
+            constraintName: fklsg6e2hjbrs4k7lokpm3g6bc3
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-55
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: message_id
+            baseTableName: favourite_message
+            constraintName: fkm6m9t31on1jwctg6rc2f9q4o4
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true
+  - changeSet:
+      id: 1762862486469-56
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: forwarded_message_id
+            baseTableName: message
+            constraintName: fkmc76lp38wc5i20qvmrrl63yej
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: SET NULL
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true
+  - changeSet:
+      id: 1762862486469-57
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: favourite_message
+            constraintName: fkp8sca4ot9l6txu3jnryok8hni
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-58
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: conversation_id
+            baseTableName: conversation_report
+            constraintName: fkppi08kpe9yxyikra9r4p28r9v
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: NO ACTION
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: conversation
+            validate: true
+  - changeSet:
+      id: 1762862486469-59
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: chat_user_id
+            baseTableName: chat_notification
+            constraintName: fksf58r9l22kx1avgasmsgvrxf0
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: chat_user
+            validate: true
+  - changeSet:
+      id: 1762862486469-60
+      author: modithamarasingha (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: parent_message_id
+            baseTableName: message
+            constraintName: fkt4gjpvxlwdkb0tonr9pd5ftw1
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: SET NULL
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: message
+            validate: true

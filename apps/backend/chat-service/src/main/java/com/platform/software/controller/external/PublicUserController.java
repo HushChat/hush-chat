@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserUpsertDTO;
-import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.service.security.CognitoService;
 import com.platform.software.common.service.security.PasswordResetDTO;
@@ -31,14 +30,13 @@ public class PublicUserController {
         this.cognitoService = cognitoService;
     }
 
-    @ApiOperation(value = "Create a new user", response = UserDTO.class)
+    @ApiOperation(value = "Create a new user in idp", response = UserDTO.class)
     @PostMapping("auth/register")
-    public ResponseEntity<UserDTO> createEmployee(
+    public ResponseEntity<UserDTO> createUser(
             @Valid @RequestBody UserUpsertDTO userUpsertDTO
     ) {
-        ChatUser createdEmployee = userService.createUser(userUpsertDTO);
-        UserDTO userDTO = new UserDTO(createdEmployee);
-        return new ResponseEntity<>(userDTO, HttpStatus.CREATED);
+        userService.createUser(userUpsertDTO);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "login an employee", response = LoginResponseDTO.class)
