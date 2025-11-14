@@ -53,6 +53,7 @@ export const WebGroupCreation = ({
         duration: 240,
         easing: Easing.out(Easing.cubic),
       });
+
       op.value = withTiming(1, {
         duration: 160,
         easing: Easing.out(Easing.quad),
@@ -62,39 +63,34 @@ export const WebGroupCreation = ({
         duration: 200,
         easing: Easing.in(Easing.cubic),
       });
+
       op.value = withTiming(0, {
         duration: 120,
         easing: Easing.in(Easing.quad),
       });
     }
-  }, [op, stepX, tx, visible, width]);
+  }, [visible, width]);
 
   const handleNext = useCallback(() => {
     if (selectedUsers.length === 0) return;
 
     setShowConfigurationForm(true);
+
     stepX.value = withTiming(-width, {
       duration: 260,
       easing: Easing.out(Easing.cubic),
     });
-  }, [selectedUsers.length, stepX, width]);
+  }, [selectedUsers.length, width]);
 
   const handleBack = useCallback(() => {
     if (showConfigurationForm) {
-      stepX.value = withTiming(
-        0,
-        {
-          duration: 240,
-          easing: Easing.out(Easing.cubic),
-        },
-        () => {
-          scheduleOnRN(() => setShowConfigurationForm(false));
-        }
-      );
+      stepX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) }, () => {
+        scheduleOnRN(() => setShowConfigurationForm(false));
+      });
     } else {
       onClose();
     }
-  }, [showConfigurationForm, stepX, onClose]);
+  }, [showConfigurationForm, onClose]);
 
   const handleGroupCreated = useCallback(
     (conversationId: number) => {
@@ -118,24 +114,16 @@ export const WebGroupCreation = ({
   return (
     <Animated.View
       pointerEvents={visible ? "auto" : "none"}
-      style={[
-        {
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width,
-          backgroundColor: "#FFFFFF",
-        },
-        containerStyle,
-      ]}
+      style={[styles.overlay, { width }, containerStyle]}
       className="dark:bg-gray-900"
     >
+      {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={handleBack} className="mr-3">
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
+
           <Text className="text-xl font-semibold text-gray-900 dark:text-white">
             {showConfigurationForm ? "Group Details" : "New group"}
           </Text>
@@ -164,17 +152,8 @@ export const WebGroupCreation = ({
       </View>
 
       <View className="flex-1 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 overflow-hidden">
-        <Animated.View
-          style={[
-            {
-              width: width * 2,
-              height: "100%",
-              flexDirection: "row",
-            },
-            stepsStyle,
-          ]}
-        >
-          <View style={{ width, height: "100%" }}>
+        <Animated.View style={[styles.stepsWrapper, { width: width * 2 }, stepsStyle]}>
+          <View style={[styles.stepPage, { width }]}>
             <UserMultiSelectList
               selectedUsers={selectedUsers}
               onChange={setSelectedUsers}
@@ -182,15 +161,15 @@ export const WebGroupCreation = ({
             />
           </View>
 
-          <View style={{ width, height: "100%" }}>
-            {showConfigurationForm ? (
+          <View style={[styles.stepPage, { width }]}>
+            {showConfigurationForm && (
               <GroupConfigurationForm
                 participantUserIds={participantUserIds}
                 onSuccess={handleGroupCreated}
                 submitLabel="Create group"
                 setSelectedConversation={setSelectedConversation}
               />
-            ) : null}
+            )}
           </View>
         </Animated.View>
       </View>
@@ -199,7 +178,7 @@ export const WebGroupCreation = ({
 };
 
 const styles = StyleSheet.create({
-  overlayContainer: {
+  overlay: {
     position: "absolute",
     left: 0,
     top: 0,

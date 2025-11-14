@@ -1,7 +1,7 @@
 import { PLATFORM } from "@/constants/platformConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform, Pressable, TextInput, View, StyleSheet } from "react-native";
+import { Pressable, TextInput, View, StyleSheet } from "react-native";
 
 const COLORS = {
   BORDER_TRANSPARENT: "transparent",

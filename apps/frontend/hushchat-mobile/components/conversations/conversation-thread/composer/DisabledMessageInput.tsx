@@ -37,7 +37,7 @@ const DisabledMessageInput = ({ customMessage }: DisabledMessageInputProps) => {
           <Ionicons name="ban" size={16} color={COLOR_MUTED} style={styles.disabledContainer} />
           <AppText
             className="text-sm text-gray-500 dark:text-gray-400 font-medium"
-            style={{ color: COLOR_MUTED }}
+            style={styles.mutedText}
           >
             {displayMessage}
           </AppText>
