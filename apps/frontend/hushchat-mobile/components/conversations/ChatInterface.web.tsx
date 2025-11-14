@@ -13,10 +13,10 @@ import { ConversationHeader } from "@/components/conversations/ConversationHeade
 import { WebGroupCreation } from "@/components/conversations/conversation-list/group-conversation-creation/web/WebGroupCreation";
 import { PanelType } from "@/types/web-panel/types";
 import SearchedConversationMessages from "@/components/SearchedConversationMessages";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { AllParticipants } from "@/components/conversations/AllParticipants";
 import ConversationForwardPanelWeb from "@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel";
 import { EMPTY_SET } from "@/constants/constants";
+import { MotionView } from "@/motion/MotionView";
 
 export default function ChatInterface({
   chatItemList,
@@ -35,13 +35,12 @@ export default function ChatInterface({
     setSelectedMessageIds,
   } = useConversationStore();
 
-  const [showProfilePanel, setShowProfilePanel] = useState<boolean>(false);
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
 
-  const { activePanel, isPanelContentReady, contentOpacity, widthAnim, openPanel, closePanel } =
+  const { activePanel, isPanelOpen, isPanelContentReady, panelWidth, openPanel, closePanel } =
     usePanelManager(screenWidth);
 
   const handleSearchMessageClick = useCallback((message: any) => {
@@ -63,7 +62,6 @@ export default function ChatInterface({
 
   const handleBackToPlaceholder = () => {
     setSelectedConversation?.(null);
-    setShowProfilePanel(false);
   };
 
   const handleShowProfile = useCallback(() => {
@@ -87,7 +85,7 @@ export default function ChatInterface({
   }, [closePanel, selectedConversation?.id]);
 
   const renderPanelContent = () => {
-    if (!isPanelContentReady || !selectedConversation) return null;
+    if (!selectedConversation) return null;
 
     switch (activePanel) {
       case PanelType.PROFILE:
@@ -123,17 +121,7 @@ export default function ChatInterface({
     }
   };
 
-  const threadStyle = useAnimatedStyle(() => ({
-    width: showProfilePanel ? screenWidth - widthAnim.value : screenWidth,
-  }));
-
-  const panelStyle = useAnimatedStyle(() => ({
-    width: widthAnim.value,
-  }));
-
-  const panelContentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
+  const threadWidth = isPanelOpen ? screenWidth - panelWidth : screenWidth;
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
@@ -195,8 +183,13 @@ export default function ChatInterface({
           )}
         </View>
 
-        <Animated.View
-          style={[{ flexGrow: 1, flexShrink: 1, minWidth: 0 }, threadStyle]}
+        <MotionView
+          visible={true}
+          from={{ width: screenWidth }}
+          to={{ width: threadWidth }}
+          duration={300}
+          easing="decelerate"
+          style={{ flexGrow: 1, flexShrink: 1, minWidth: 0 }}
           className="bg-background-light dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800"
         >
           {selectedConversation ? (
@@ -216,19 +209,33 @@ export default function ChatInterface({
               image={Images.NoChatSelected}
             />
           )}
-        </Animated.View>
+        </MotionView>
 
-        <Animated.View
-          style={[{ flexShrink: 0, overflow: "hidden" }, panelStyle]}
+        <MotionView
+          visible={isPanelOpen}
+          from={{ width: 0, opacity: 0 }}
+          to={{ width: panelWidth, opacity: 1 }}
+          duration={300}
+          easing="decelerate"
+          style={{
+            flexShrink: 0,
+            overflow: "hidden",
+            position: isPanelOpen ? "relative" : "absolute",
+            right: 0,
+          }}
           className="bg-background-light dark:bg-gray-900"
         >
-          <Animated.View
-            style={[{ flex: 1 }, panelContentStyle]}
+          <MotionView
+            visible={isPanelContentReady}
+            preset="fadeIn"
+            duration={200}
+            delay={100}
+            style={{ flex: 1 }}
             className="bg-background-light dark:bg-gray-900"
           >
-            {renderPanelContent()}
-          </Animated.View>
-        </Animated.View>
+            {isPanelContentReady && renderPanelContent()}
+          </MotionView>
+        </MotionView>
       </View>
     </View>
   );
