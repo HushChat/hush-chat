@@ -65,6 +65,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+  buttonTextEnabled: {
+    color: "#fff",
+  },
   errorContainer: {
     backgroundColor: "#fef2f2",
     borderColor: "#f87171",
@@ -126,7 +129,12 @@ export const FormButton: React.FC<FormButtonProps> = ({
       style,
     ]}
   >
-    <Text style={[styles.buttonText, { color: disabled ? colors.textSecondary : "#fff" }]}>
+    <Text
+      style={[
+        styles.buttonText,
+        disabled ? { color: colors.textSecondary } : styles.buttonTextEnabled,
+      ]}
+    >
       {title}
     </Text>
   </TouchableOpacity>

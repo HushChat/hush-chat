@@ -21,6 +21,7 @@ import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
+import { logDebug } from "@/utils/logger";
 
 interface MessagesListProps {
   messages: IMessage[];
@@ -89,7 +90,7 @@ const ConversationMessageList = ({
       if (!conversationId || !message) return;
 
       togglePinMessage({ conversationId, messageId: message.id });
-      console.log(message);
+      logDebug(message);
       setSelectedPinnedMessage(message);
     },
     [conversationAPIResponse?.id, togglePinMessage]

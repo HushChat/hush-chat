@@ -51,6 +51,7 @@ import WebChatContextMenu from "@/components/WebContextMenu";
 import { validateFiles } from "@/utils/fileValidation";
 import { getConversationMenuOptions } from "@/components/conversations/conversation-thread/composer/menuOptions";
 import { AppText } from "@/components/AppText";
+import { logInfo } from "@/utils/logger";
 
 type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
@@ -139,7 +140,7 @@ const ConversationInputBar = ({
         setInputHeight(target);
         animatedHeight.value = target;
       } catch (e) {
-        console.error("Failed to load draft", e);
+        logInfo("Failed to load draft", e);
       }
     };
 

@@ -7,6 +7,7 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,6 +30,29 @@ interface MessageReactionsBottomSheetProps {
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  touchableArea: {
+    flex: 1,
+  },
+  sheetContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    maxHeight: SCREEN_HEIGHT * 0.7,
+  },
+  listContainer: {
+    maxHeight: SCREEN_HEIGHT * 0.4,
+  },
+  emptyContentContainer: {
+    flexGrow: 1,
+  },
+});
 
 const MessageReactionsBottomSheet = ({
   visible,
@@ -77,6 +101,10 @@ const MessageReactionsBottomSheet = ({
     transform: [{ translateY: translateY.value }],
   }));
 
+  const listContainerStyle = {
+    paddingBottom: insets.bottom + 16,
+  };
+
   const renderReactionItem = ({ item, index }: { item: MessageReact; index: number }) => (
     <View className={`flex-row items-center py-4 px-4 ${index < reactions.length - 1 ? "" : ""}`}>
       <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
@@ -108,6 +136,8 @@ const MessageReactionsBottomSheet = ({
     );
   };
 
+  const contentContainerStyle = reactions.length === 0 ? styles.emptyContentContainer : undefined;
+
   return (
     <Modal
       transparent
@@ -116,30 +146,13 @@ const MessageReactionsBottomSheet = ({
       animationType="none"
       statusBarTranslucent
     >
-      <Animated.View
-        style={[
-          {
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          },
-          backdropStyle,
-        ]}
-      >
+      <Animated.View style={[styles.backdrop, backdropStyle]}>
         <TouchableWithoutFeedback onPress={handleClose}>
-          <View style={{ flex: 1 }} />
+          <View style={styles.touchableArea} />
         </TouchableWithoutFeedback>
 
         <Animated.View
-          style={[
-            {
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              maxHeight: SCREEN_HEIGHT * 0.7,
-            },
-            sheetStyle,
-          ]}
+          style={[styles.sheetContainer, sheetStyle]}
           className="bg-background-light dark:bg-background-dark rounded-t-3xl"
         >
           <View className="items-center py-3">
@@ -152,12 +165,7 @@ const MessageReactionsBottomSheet = ({
             </Text>
           </View>
 
-          <View
-            style={{
-              maxHeight: SCREEN_HEIGHT * 0.4,
-              paddingBottom: insets.bottom + 16,
-            }}
-          >
+          <View style={[styles.listContainer, listContainerStyle]}>
             <FlatList
               data={reactions}
               renderItem={renderReactionItem}
@@ -167,9 +175,7 @@ const MessageReactionsBottomSheet = ({
               onEndReachedThreshold={0.5}
               showsVerticalScrollIndicator={true}
               nestedScrollEnabled={true}
-              contentContainerStyle={{
-                flexGrow: reactions.length === 0 ? 1 : undefined,
-              }}
+              contentContainerStyle={contentContainerStyle}
             />
           </View>
         </Animated.View>

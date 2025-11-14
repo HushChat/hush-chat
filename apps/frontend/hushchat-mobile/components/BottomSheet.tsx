@@ -1,5 +1,12 @@
 import React, { useEffect } from "react";
-import { View, Modal, TouchableOpacity, TouchableWithoutFeedback, Dimensions } from "react-native";
+import {
+  View,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Dimensions,
+  StyleSheet,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
@@ -81,6 +88,10 @@ const BottomSheet = ({
     transform: [{ translateY: translateY.value }],
   }));
 
+  const optionsContainerStyle = {
+    paddingBottom: insets.bottom + 16,
+  };
+
   return (
     <Modal
       transparent
@@ -90,26 +101,10 @@ const BottomSheet = ({
       statusBarTranslucent
     >
       <TouchableWithoutFeedback onPress={handleClose}>
-        <Animated.View
-          style={[
-            {
-              flex: 1,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-            },
-            backdropStyle,
-          ]}
-        >
+        <Animated.View style={[styles.backdrop, backdropStyle]}>
           <TouchableWithoutFeedback>
             <Animated.View
-              style={[
-                {
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                },
-                sheetStyle,
-              ]}
+              style={[styles.sheetContainer, sheetStyle]}
               className="bg-background-light dark:bg-background-dark rounded-t-3xl"
             >
               <View className="items-center py-3">
@@ -124,7 +119,7 @@ const BottomSheet = ({
                 </View>
               )}
 
-              <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
+              <View className="px-4 pb-4" style={optionsContainerStyle}>
                 {options.map((option, index) => (
                   <TouchableOpacity
                     key={option.id}
@@ -170,3 +165,16 @@ const BottomSheet = ({
 };
 
 export default BottomSheet;
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  sheetContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+});

@@ -20,7 +20,7 @@ export const AppTextInput = ({ style, ...otherProps }: TextInputProps) => {
 
   return (
     <TextInput
-      style={[styles.defaultText, { color: isDark ? "#FFFFFF" : "#333333" }, style]}
+      style={[styles.defaultText, isDark ? styles.darkText : styles.lightText, style]}
       placeholderTextColor={isDark ? "#AAAAAA" : "#777777"}
       {...otherProps}
     />
@@ -39,7 +39,7 @@ export const AppText = ({ children, style, ...otherProps }: TextProps) => {
 
   return (
     <Text
-      style={[styles.defaultText, { color: isDark ? "#FFFFFF" : "#333333" }, style]}
+      style={[styles.defaultText, isDark ? styles.darkText : styles.lightText, style]}
       {...otherProps}
     >
       {children}
@@ -50,5 +50,11 @@ const styles = StyleSheet.create({
   defaultText: {
     // TODO: Replace 'YourFont-Regular' with the actual font name loaded via useFonts.
     fontFamily: "Poppins-Regular",
+  },
+  lightText: {
+    color: "#333333",
+  },
+  darkText: {
+    color: "#FFFFFF",
   },
 });

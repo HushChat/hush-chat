@@ -37,6 +37,7 @@ import { AppText } from "@/components/AppText";
 import MessageReactionsSummary from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionSummary";
 import { useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
+import { logInfo } from "@/utils/logger";
 
 interface MessageItemProps {
   message: IMessage;
@@ -543,7 +544,7 @@ export const ConversationMessageItem = ({
             try {
               await action();
             } catch (error) {
-              console.error("Error executing context menu action:", error);
+              logInfo("Error executing context menu action:", error);
             }
           }}
         />
