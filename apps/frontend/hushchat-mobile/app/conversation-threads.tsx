@@ -401,7 +401,7 @@ const ConversationThreadScreen = ({
         webPressSearch={webSearchPress}
       />
 
-      <KeyboardAvoidingView className="flex-1" behavior={PLATFORM.IS_IOS ? "padding" : "height"}>
+      <KeyboardAvoidingView className="flex-1" behavior="padding">
         <ImageBackground
           source={Images.chatBackground}
           className="flex-1"
@@ -425,18 +425,26 @@ const ConversationThreadScreen = ({
               ) : (
                 <>
                   {renderContent()}
-                  {renderTextInput()}
+                  <View
+                    style={{
+                      paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
+                    }}
+                  >
+                    {renderTextInput()}
+                  </View>
                   {selectionMode && (
-                    <MessageForwardActionBar
-                      visible={selectionMode}
-                      count={selectedMessageIds.size}
-                      isDark={isDark}
-                      onCancel={() => {
-                        setSelectionMode(false);
-                        setSelectedMessageIds(EMPTY_SET);
-                      }}
-                      onForward={onForwardPress}
-                    />
+                    <View style={{ paddingBottom: insets.bottom }}>
+                      <MessageForwardActionBar
+                        visible={selectionMode}
+                        count={selectedMessageIds.size}
+                        isDark={isDark}
+                        onCancel={() => {
+                          setSelectionMode(false);
+                          setSelectedMessageIds(EMPTY_SET);
+                        }}
+                        onForward={onForwardPress}
+                      />
+                    </View>
                   )}
                 </>
               )}
