@@ -11,6 +11,7 @@ import {
   TextInputContentSizeChangeEvent,
   TextInputSelectionChangeEvent,
   View,
+  StyleSheet,
 } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import classNames from "classnames";
@@ -356,7 +357,7 @@ const ConversationInputBar = ({
           PLATFORM.IS_WEB ? "p-4" : "p-3"
         )}
       >
-        <View ref={addButtonContainerRef} style={{ alignSelf: "flex-end" }}>
+        <View ref={addButtonContainerRef} style={styles.addButtonWrapper}>
           <PrimaryCircularButton
             disabled={disabled}
             iconSize={20}
@@ -372,11 +373,7 @@ const ConversationInputBar = ({
                 "flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark",
                 PLATFORM.IS_WEB ? "px-4" : "px-3"
               )}
-              style={{
-                position: "relative",
-                alignItems: "flex-end",
-                paddingRight: RIGHT_ICON_GUTTER,
-              }}
+              style={styles.inputContainer}
             >
               <TextInput
                 ref={textInputRef}
@@ -455,7 +452,7 @@ const ConversationInputBar = ({
             type="file"
             accept={ACCEPT_FILE_TYPES}
             multiple
-            style={{ display: "none" }}
+            style={styles.hiddenFileInput}
             onChange={handleFileChange}
           />
         )}
@@ -491,3 +488,17 @@ const ConversationInputBar = ({
 };
 
 export default ConversationInputBar;
+
+const styles = StyleSheet.create({
+  addButtonWrapper: {
+    alignSelf: "flex-end",
+  },
+  inputContainer: {
+    position: "relative",
+    alignItems: "flex-end",
+    paddingRight: RIGHT_ICON_GUTTER,
+  },
+  hiddenFileInput: {
+    display: "none",
+  },
+});

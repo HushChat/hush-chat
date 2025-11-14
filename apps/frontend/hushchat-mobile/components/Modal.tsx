@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import classNames from "classnames";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Modal,
   View,
@@ -90,6 +90,16 @@ export default function AppModal({
 }: ModalProps) {
   const { width } = useWindowDimensions();
 
+  const modalCardStyle = useMemo(
+    () => [
+      MODAL_STYLES.modalCardBase,
+      {
+        width: width > 500 ? 400 : ("100%" as const),
+      },
+    ],
+    [width]
+  );
+
   const renderButtons = (btns: ModalButton[]) =>
     btns.map((btn, idx) => {
       const variant = btn.variant ?? MODAL_BUTTON_VARIANTS.default;
@@ -110,10 +120,7 @@ export default function AppModal({
     });
 
   const renderModalContent = () => (
-    <View
-      style={[MODAL_STYLES.modalCardBase, { width: width > 500 ? 400 : "100%" }]}
-      className="bg-white dark:bg-neutral-900"
-    >
+    <View style={modalCardStyle} className="bg-white dark:bg-neutral-900">
       {icon && (
         <View className={classNames("self-center mb-4 p-3 rounded-full", getTypeColor(type))}>
           <Ionicons name={icon} size={28} color="white" />

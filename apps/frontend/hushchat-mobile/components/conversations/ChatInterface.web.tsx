@@ -1,4 +1,4 @@
-import { View, Dimensions } from "react-native";
+import { View, Dimensions, StyleSheet } from "react-native";
 import FilterButton from "@/components/FilterButton";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import usePanelManager from "@/hooks/useWebPanelManager";
@@ -140,7 +140,7 @@ export default function ChatInterface({
       <View className="flex-row h-full relative">
         <View
           onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
-          style={{ position: "relative" }}
+          style={styles.leftPaneContainer}
           className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
         >
           <ConversationHeader
@@ -196,7 +196,7 @@ export default function ChatInterface({
         </View>
 
         <Animated.View
-          style={[{ flexGrow: 1, flexShrink: 1, minWidth: 0 }, threadStyle]}
+          style={[styles.threadContainer, threadStyle]}
           className="bg-background-light dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800"
         >
           {selectedConversation ? (
@@ -219,11 +219,11 @@ export default function ChatInterface({
         </Animated.View>
 
         <Animated.View
-          style={[{ flexShrink: 0, overflow: "hidden" }, panelStyle]}
+          style={[styles.panelContainer, panelStyle]}
           className="bg-background-light dark:bg-gray-900"
         >
           <Animated.View
-            style={[{ flex: 1 }, panelContentStyle]}
+            style={[styles.panelContent, panelContentStyle]}
             className="bg-background-light dark:bg-gray-900"
           >
             {renderPanelContent()}
@@ -233,3 +233,21 @@ export default function ChatInterface({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  leftPaneContainer: {
+    position: "relative",
+  },
+  threadContainer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  panelContainer: {
+    flexShrink: 0,
+    overflow: "hidden",
+  },
+  panelContent: {
+    flex: 1,
+  },
+});

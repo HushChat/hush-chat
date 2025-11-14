@@ -1,7 +1,13 @@
 import { PLATFORM } from "@/constants/platformConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform, Pressable, TextInput, View } from "react-native";
+import { Platform, Pressable, TextInput, View, StyleSheet } from "react-native";
+
+const COLORS = {
+  BORDER_TRANSPARENT: "transparent",
+};
+
+const webInputStyle = PLATFORM.IS_WEB ? { outline: "none", boxShadow: "none" } : {};
 
 interface SearchBarProps {
   ref?: React.RefObject<TextInput>;
@@ -34,15 +40,7 @@ const SearchBar = ({
         placeholder={placeholder}
         placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
         className="py-2 flex-1 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 rounded-full px-2"
-        style={{
-          borderWidth: 0,
-          borderColor: "transparent",
-          // Additional properties to ensure no focus styling
-          ...(Platform.OS === "web" && {
-            outline: "none",
-            boxShadow: "none",
-          }),
-        }}
+        style={[styles.inputBase, webInputStyle]}
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="search"
@@ -68,3 +66,10 @@ const SearchBar = ({
 };
 
 export default SearchBar;
+
+const styles = StyleSheet.create({
+  inputBase: {
+    borderWidth: 0,
+    borderColor: COLORS.BORDER_TRANSPARENT,
+  },
+});

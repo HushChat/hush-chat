@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import classNames from "classnames";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,11 +32,9 @@ const DisabledMessageInput = ({ customMessage }: DisabledMessageInputProps) => {
             "border border-gray-200 dark:border-gray-700",
             PLATFORM.IS_WEB ? "px-6 py-4" : "px-5 py-3"
           )}
-          style={{
-            minHeight: PLATFORM.IS_WEB ? 48 : 44,
-          }}
+          style={PLATFORM.IS_WEB ? styles.minHeightWeb : styles.minHeightNative}
         >
-          <Ionicons name="ban" size={16} color={COLOR_MUTED} style={{ marginRight: 8 }} />
+          <Ionicons name="ban" size={16} color={COLOR_MUTED} style={styles.disabledContainer} />
           <AppText
             className="text-sm text-gray-500 dark:text-gray-400 font-medium"
             style={{ color: COLOR_MUTED }}
@@ -50,3 +48,18 @@ const DisabledMessageInput = ({ customMessage }: DisabledMessageInputProps) => {
 };
 
 export default DisabledMessageInput;
+
+const styles = StyleSheet.create({
+  disabledContainer: {
+    marginRight: 8,
+  },
+  mutedText: {
+    color: COLOR_MUTED,
+  },
+  minHeightWeb: {
+    minHeight: 48,
+  },
+  minHeightNative: {
+    minHeight: 44,
+  },
+});

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useMemo } from "react";
-import { Animated, Pressable, Text, View } from "react-native";
+import { Animated, Pressable, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export interface SelectionActionBarProps {
@@ -49,7 +49,7 @@ const MessageForwardActionBar = ({
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark">
         <Text
           className="text-sm font-medium ml-2"
-          style={{ color: isDark ? "#E5E7EB" : "#374151" }}
+          style={isDark ? styles.selectedLabelDark : styles.selectedLabelLight}
         >
           {selectedLabel}
         </Text>
@@ -60,7 +60,7 @@ const MessageForwardActionBar = ({
             disabled={count === 0}
             className="flex-row items-center px-4 py-2 rounded-full bg-primary-light dark:bg-primary-dark"
           >
-            <Ionicons name="arrow-forward" size={16} color="white" style={{ marginRight: 4 }} />
+            <Ionicons name="arrow-forward" size={16} color="white" style={styles.iconMarginRight} />
             <Text className="text-white text-sm font-medium">Forward</Text>
           </Pressable>
 
@@ -74,3 +74,10 @@ const MessageForwardActionBar = ({
 };
 
 export default React.memo(MessageForwardActionBar);
+
+const styles = StyleSheet.create({
+  selectedLabelDark: { color: "#E5E7EB" },
+  selectedLabelLight: { color: "#374151" },
+  iconMarginRight: { marginRight: 4 },
+});
+

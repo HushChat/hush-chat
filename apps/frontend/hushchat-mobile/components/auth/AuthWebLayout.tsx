@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import {
   View,
   Text,
@@ -31,10 +31,40 @@ export default function AuthWebLayout({
   const { width } = useWindowDimensions();
   const isWide = width >= 1024;
 
+  const shellStyle = useMemo(
+    () => [
+      s.shell,
+      {
+        flexDirection: isWide ? ("row" as const) : ("column" as const),
+      },
+    ],
+    [isWide]
+  );
+
+  const leftStyle = useMemo(
+    () => [
+      s.left,
+      {
+        width: isWide ? ("60%" as const) : ("100%" as const),
+      },
+    ],
+    [isWide]
+  );
+
+  const rightStyle = useMemo(
+    () => [
+      s.right,
+      {
+        width: isWide ? ("40%" as const) : ("100%" as const),
+      },
+    ],
+    [isWide]
+  );
+
   return (
     <View style={[s.container, { backgroundColor: colors.background }]}>
-      <View style={[s.shell, { flexDirection: isWide ? "row" : "column" }]}>
-        <View style={[s.left, { width: isWide ? "60%" : "100%" }]}>
+      <View style={shellStyle}>
+        <View style={leftStyle}>
           <View style={s.leftInner}>
             <View style={s.headerBlock}>
               <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
@@ -44,14 +74,12 @@ export default function AuthWebLayout({
                 <Text style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
               ) : null}
             </View>
-
             <View style={s.imageWrap}>
               <Image source={image} style={s.image} />
             </View>
           </View>
         </View>
-
-        <View style={[s.right, { width: isWide ? "40%" : "100%" }]}>{children}</View>
+        <View style={rightStyle}>{children}</View>
       </View>
     </View>
   );
@@ -59,7 +87,6 @@ export default function AuthWebLayout({
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-
   shell: {
     flex: 1,
     alignItems: "stretch",
@@ -67,14 +94,12 @@ const s = StyleSheet.create({
     paddingVertical: 42,
     gap: 24,
   },
-
   left: { justifyContent: "center" },
   leftInner: {
     flex: 1,
     justifyContent: "space-between",
     minHeight: 0,
   },
-
   headerBlock: {
     paddingRight: 24,
     maxWidth: 700,
@@ -90,7 +115,6 @@ const s = StyleSheet.create({
     lineHeight: 26,
     maxWidth: 520,
   },
-
   imageWrap: {
     flex: 1,
     justifyContent: "center",
@@ -101,7 +125,6 @@ const s = StyleSheet.create({
     aspectRatio: 2,
     resizeMode: "contain",
   },
-
   right: {
     justifyContent: "center",
     alignItems: "center",

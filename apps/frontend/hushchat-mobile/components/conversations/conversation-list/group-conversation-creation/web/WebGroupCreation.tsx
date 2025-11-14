@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,6 +13,10 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
 import { scheduleOnRN } from "react-native-worklets";
 import { IConversation } from "@/types/chat/types";
+
+const COLORS = {
+  WHITE: "#FFFFFF",
+};
 
 type TWebGroupCreationOverlay = {
   visible: boolean;
@@ -193,3 +197,22 @@ export const WebGroupCreation = ({
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  overlayContainer: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: COLORS.WHITE,
+  },
+
+  stepsWrapper: {
+    height: "100%",
+    flexDirection: "row",
+  },
+
+  stepPage: {
+    height: "100%",
+  },
+});
