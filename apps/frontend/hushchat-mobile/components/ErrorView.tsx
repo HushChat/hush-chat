@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, TouchableOpacity, Image, ImageSourcePropType } from "react-native";
+import { View, Text, TouchableOpacity, Image, ImageSourcePropType, StyleSheet } from "react-native";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 
 type ErrorViewProps = {
@@ -36,7 +36,7 @@ const ErrorView = ({ title, message, onBack, onRetry, imageSource }: ErrorViewPr
 
       <View className="flex-1 items-center justify-center px-4">
         {imageSource ? (
-          <Image source={imageSource} resizeMode="contain" style={{ width: 228, height: 228 }} />
+          <Image source={imageSource} resizeMode="contain" style={styles.image} />
         ) : (
           <Ionicons name="chatbubbles-outline" size={80} color="#9CA3AF" />
         )}
@@ -61,3 +61,10 @@ const ErrorView = ({ title, message, onBack, onRetry, imageSource }: ErrorViewPr
 };
 
 export default ErrorView;
+
+const styles = StyleSheet.create({
+  image: {
+    width: 228,
+    height: 228,
+  },
+});

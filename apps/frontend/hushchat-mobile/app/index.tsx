@@ -1,14 +1,14 @@
 import { AUTH_WORKSPACE_FORM_PATH, CHATS_PATH } from "@/constants/routes";
 import { useAuthStore } from "@/store/auth/authStore";
 import { Redirect } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 
 export default function Index() {
   const { isAuthenticated, hasHydrated } = useAuthStore();
 
   if (!hasHydrated) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -20,3 +20,11 @@ export default function Index() {
 
   return <Redirect href={AUTH_WORKSPACE_FORM_PATH} />;
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

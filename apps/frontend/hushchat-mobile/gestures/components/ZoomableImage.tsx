@@ -1,5 +1,5 @@
 import React from "react";
-import { ImageProps } from "react-native";
+import { ImageProps, StyleSheet } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { usePinchGesture } from "@/gestures/base/usePinchGesture";
@@ -69,10 +69,17 @@ export function ZoomableImage({
       <Animated.View>
         <Animated.Image
           source={source}
-          style={[{ width: "100%", height: "100%" }, style]}
+          style={[styles.fullSize, style]}
           className={className}
         />
       </Animated.View>
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({
+  fullSize: {
+    width: "100%",
+    height: "100%",
+  },
+});

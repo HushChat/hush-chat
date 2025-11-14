@@ -1,5 +1,5 @@
 import React, { ReactNode, useMemo } from "react";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { interpolate, useAnimatedStyle, Extrapolation } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
@@ -73,17 +73,7 @@ export function SwipeableMessageRow({
     <GestureDetector gesture={composedGesture}>
       <View className="relative">
         {showAffordance && (
-          <Animated.View
-            style={[
-              {
-                position: "absolute",
-                top: 10,
-                left: 8,
-                pointerEvents: "none",
-              },
-              iconStyle,
-            ]}
-          >
+          <Animated.View style={[styles.affordanceIcon, iconStyle]}>
             <Ionicons name="arrow-undo-outline" size={20} color="#9CA3AF" />
           </Animated.View>
         )}
@@ -92,3 +82,12 @@ export function SwipeableMessageRow({
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({
+  affordanceIcon: {
+    position: "absolute",
+    top: 10,
+    left: 8,
+    pointerEvents: "none",
+  },
+});

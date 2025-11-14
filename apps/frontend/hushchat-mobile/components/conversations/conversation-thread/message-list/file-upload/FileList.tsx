@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, StyleSheet } from "react-native";
 import { FilePreviewItem } from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewItem";
 
 type TFileListProps = {
@@ -14,7 +14,7 @@ const FileList = ({ files, selectedIndex, onSelect, onRemoveFile }: TFileListPro
     <ScrollView
       className="flex-1"
       showsVerticalScrollIndicator
-      contentContainerStyle={{ paddingVertical: 8, paddingBottom: 12 }}
+      contentContainerStyle={styles.scrollContent}
     >
       {files.map((file, index) => (
         <View key={`${file.name}-${file.lastModified}`} className="mx-2">
@@ -32,3 +32,10 @@ const FileList = ({ files, selectedIndex, onSelect, onRemoveFile }: TFileListPro
 );
 
 export default FileList;
+
+const styles = StyleSheet.create({
+  scrollContent: {
+    paddingVertical: 8,
+    paddingBottom: 12,
+  },
+});

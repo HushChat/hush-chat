@@ -24,12 +24,12 @@ export const ForwardedLabel = ({
         size={12}
         className={classNames(isCurrentUser ? "text-primary-light" : "text-gray-500")}
       />
+
       <Text
         className={classNames(
           "text-xs italic",
           isCurrentUser ? "text-primary-light" : "text-gray-500 dark:text-gray-400"
         )}
-        style={{ fontStyle: "italic" }}
       >
         Forwarded
       </Text>

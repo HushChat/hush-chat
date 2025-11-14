@@ -24,6 +24,7 @@ import { AUTH_LOGIN_PATH, CHATS_PATH } from "@/constants/routes";
 import { isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 import { NotificationFactory } from "@/utils/notifications/NotificationFactory";
 import { sendTokenToBackend } from "@/apis/user";
+import { logInfo } from "@/utils/logger";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
@@ -50,7 +51,7 @@ export default function RootLayout() {
         const platform = PLATFORM.IS_WEB ? "WEB" : "MOBILE";
         const response = await sendTokenToBackend({ token, platform });
         if (response.error) {
-          console.error("Token sending failed!", response.error);
+          logInfo("Token sending failed!", response.error);
           return;
         }
       }

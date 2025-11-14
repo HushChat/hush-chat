@@ -107,7 +107,6 @@ export function usePanGesture({
     });
 
     return bindExclusivity(g, simultaneousWith, requireToFail);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     enabled,
     axis,

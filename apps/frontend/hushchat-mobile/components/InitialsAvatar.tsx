@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import React from "react";
 import { Image } from "expo-image";
 import { getInitials } from "@/utils/commonUtils";
@@ -24,6 +24,21 @@ const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> =
   lg: { container: "w-40 h-40", text: "text-6xl" },
 };
 
+const COLORS = {
+  INITIALS_TEXT: "#FFFFFF",
+};
+
+const styles = StyleSheet.create({
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 150,
+  },
+  initialsText: {
+    color: COLORS.INITIALS_TEXT,
+  },
+});
+
 const InitialsAvatar = ({ name, size = AvatarSize.medium, imageUrl }: InitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
 
@@ -34,12 +49,12 @@ const InitialsAvatar = ({ name, size = AvatarSize.medium, imageUrl }: InitialsAv
       {imageUrl ? (
         <Image
           source={{ uri: imageUrl }}
-          style={{ width: "100%", height: "100%", borderRadius: 150 }}
+          style={styles.avatarImage}
           contentFit="cover"
           cachePolicy="memory-disk"
         />
       ) : (
-        <AppText className={`font-medium text-center ${text}`} style={{ color: "#FFFFFF" }}>
+        <AppText className={`font-medium text-center ${text}`} style={styles.initialsText}>
           {getInitials(name)}
         </AppText>
       )}

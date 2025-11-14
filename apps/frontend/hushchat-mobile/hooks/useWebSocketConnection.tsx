@@ -7,6 +7,7 @@ import { emitNewMessage } from "@/services/eventBus";
 import { IConversation } from "@/types/chat/types";
 import { MESSAGE_RECEIVED_TOPIC } from "@/constants/wsConstants";
 import { WebSocketStatus } from "@/types/ws/types";
+import { logDebug, logInfo } from "@/utils/logger";
 
 interface DecodedJWTPayload {
   sub: string;
@@ -63,7 +64,7 @@ export default function useWebSocketConnection() {
     const { isValid, error } = decodeAndValidateToken(token);
 
     if (!isValid && error) {
-      console.error("Token validation failed:", error);
+      logInfo("Token validation failed:", error);
     }
 
     return isValid;
@@ -82,7 +83,7 @@ export default function useWebSocketConnection() {
 
     const fetchAndSubscribe = async () => {
       if (shouldStopRetrying.current || isCancelled) {
-        console.info("Stopping WebSocket connection attempts due to authentication failure");
+        logInfo("Stopping WebSocket connection attempts due to authentication failure");
         setConnectionStatus(WebSocketStatus.Disconnected);
         return;
       }
@@ -92,14 +93,14 @@ export default function useWebSocketConnection() {
 
         const { idToken } = await getAllTokens();
         if (idToken === null) {
-          console.error("aborting web socket connection due to missing token");
+          logInfo("aborting web socket connection due to missing token");
           shouldStopRetrying.current = true;
           setConnectionStatus(WebSocketStatus.Error);
           return;
         }
 
         if (!validateToken(idToken)) {
-          console.error("aborting web socket connection due to invalid or expired token");
+          logInfo("aborting web socket connection due to invalid or expired token");
           shouldStopRetrying.current = true;
           setConnectionStatus(WebSocketStatus.Error);
           return;
@@ -128,10 +129,10 @@ export default function useWebSocketConnection() {
         };
 
         ws.onmessage = (event) => {
-          console.log("Received message:", event.data.substring(0, 100));
+          logDebug("Received message:", event.data.substring(0, 100));
 
           if (event.data.startsWith(CONNECTED_RESPONSE)) {
-            console.log("STOMP Connected successfully");
+            logDebug("STOMP Connected successfully");
             setConnectionStatus(WebSocketStatus.Connected);
 
             // Subscribe to messages
@@ -149,9 +150,9 @@ export default function useWebSocketConnection() {
 
             const subscribeArray = new Uint8Array(subscribeFrameBytes);
             ws.send(subscribeArray.buffer);
-            console.log("Subscribed to messages");
+            logDebug("Subscribed to messages");
           } else if (event.data.startsWith(ERROR_RESPONSE)) {
-            console.error("STOMP error:", event.data);
+            logInfo("STOMP error:", event.data);
             setConnectionStatus(WebSocketStatus.Error);
             const errorMessage = event.data.toLowerCase();
             if (
@@ -160,7 +161,7 @@ export default function useWebSocketConnection() {
               errorMessage.includes("expired") ||
               errorMessage.includes("auth")
             ) {
-              console.error("Authentication error detected, stopping reconnection attempts");
+              logInfo("Authentication error detected, stopping reconnection attempts");
               shouldStopRetrying.current = true;
             }
           } else if (event.data.startsWith(MESSAGE_RESPONSE)) {
@@ -179,29 +180,29 @@ export default function useWebSocketConnection() {
                   emitNewMessage(wsMessageWithConversation);
                 }
               } catch (error) {
-                console.error("Error parsing message:", error);
+                logInfo("Error parsing message:", error);
               }
             }
           }
         };
 
         ws.onerror = (error) => {
-          console.error("WebSocket error:", error);
+          logInfo("WebSocket error:", error);
           setConnectionStatus(WebSocketStatus.Error);
         };
 
         ws.onclose = (event) => {
-          console.log("WebSocket closed:", event.code, event.reason);
+          logDebug("WebSocket closed:", event.code, event.reason);
           setConnectionStatus(WebSocketStatus.Disconnected);
 
           // Check if it's an auth failure and stop retrying
           if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
-            console.error("Connection closed due to authentication failure");
+            logInfo("Connection closed due to authentication failure");
             shouldStopRetrying.current = true;
           }
         };
       } catch (error) {
-        console.error("Connection setup error:", error);
+        logInfo("Connection setup error:", error);
         setConnectionStatus(WebSocketStatus.Error);
         if (!isCancelled && !shouldStopRetrying.current) {
           setTimeout(fetchAndSubscribe, 10000);

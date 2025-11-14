@@ -111,7 +111,7 @@ export const useConversationsNotifications = () => {
 //       if (error.type === 'connection') {
 //         setReconnectAttempts((prev) => prev + 1);
 //       }
-//       console.error('🚨 WebSocket error:', error);
+//       logInfo('🚨 WebSocket error:', error);
 //     };
 //
 //     const handleReconnecting = ({

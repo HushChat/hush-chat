@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import classNames from "classnames";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Modal,
   View,
@@ -20,6 +20,10 @@ export const MODAL_TYPES = {
   confirm: "confirm",
   custom: "custom",
 } as const;
+
+const COLORS = {
+  BACKDROP: "rgba(0,0,0,0.5)",
+};
 
 export const MODAL_BUTTON_VARIANTS = {
   default: "default",
@@ -86,6 +90,16 @@ export default function AppModal({
 }: ModalProps) {
   const { width } = useWindowDimensions();
 
+  const modalCardStyle = useMemo(
+    () => [
+      MODAL_STYLES.modalCardBase,
+      {
+        width: width > 500 ? 400 : ("100%" as const),
+      },
+    ],
+    [width]
+  );
+
   const renderButtons = (btns: ModalButton[]) =>
     btns.map((btn, idx) => {
       const variant = btn.variant ?? MODAL_BUTTON_VARIANTS.default;
@@ -106,15 +120,7 @@ export default function AppModal({
     });
 
   const renderModalContent = () => (
-    <View
-      style={{
-        width: width > 500 ? 400 : "100%",
-        maxWidth: 500,
-        borderRadius: 12,
-        padding: 20,
-      }}
-      className="bg-white dark:bg-neutral-900"
-    >
+    <View style={modalCardStyle} className="bg-white dark:bg-neutral-900">
       {icon && (
         <View className={classNames("self-center mb-4 p-3 rounded-full", getTypeColor(type))}>
           <Ionicons name={icon} size={28} color="white" />
@@ -175,17 +181,10 @@ export default function AppModal({
       <View style={StyleSheet.absoluteFillObject}>
         <Pressable
           onPress={closeOnBackdropPress ? onClose : undefined}
-          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.5)" }]}
+          style={MODAL_STYLES.backdrop}
         />
         <View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              justifyContent: "center",
-              alignItems: "center",
-              paddingHorizontal: 20,
-            },
-          ]}
+          style={[StyleSheet.absoluteFill, MODAL_STYLES.modalContainerCentered]}
           pointerEvents="box-none"
         >
           {renderModalContent()}
@@ -194,3 +193,20 @@ export default function AppModal({
     </Modal>
   );
 }
+
+const MODAL_STYLES = StyleSheet.create({
+  modalCardBase: {
+    maxWidth: 500,
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalContainerCentered: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.BACKDROP,
+  },
+});

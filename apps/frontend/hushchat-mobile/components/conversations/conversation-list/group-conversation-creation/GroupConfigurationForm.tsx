@@ -1,5 +1,12 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { IConversation, IGroupConversation } from "@/types/chat/types";
@@ -119,12 +126,12 @@ const GroupConfigurationForm = ({
           disabled={uploading}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
-          <View style={{ position: "relative" }}>
+          <View style={styles.avatarContainer}>
             {imagePickerResult?.assets && imagePickerResult.assets.length > 0 && !imageError ? (
               <View className="w-160 h-160 rounded-full bg-white dark:bg-gray-800 items-center justify-center overflow-hidden">
                 <Image
                   source={{ uri: imagePickerResult?.assets[0].uri }}
-                  style={{ width: 160, height: 160, borderRadius: 80 }}
+                  style={styles.avatarImage}
                   contentFit="cover"
                   cachePolicy="memory-disk"
                   onError={() => setImageError(true)}
@@ -137,18 +144,7 @@ const GroupConfigurationForm = ({
                 <UploadIndicator isUploading={uploading} />
               </View>
             )}
-            <View
-              style={{
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                backgroundColor: "#3b82f6",
-                borderRadius: 16,
-                padding: 4,
-                borderWidth: 2,
-                borderColor: "#fff",
-              }}
-            >
+            <View style={styles.cameraIconContainer}>
               <Ionicons name="camera" size={18} color="#fff" />
             </View>
           </View>
@@ -213,3 +209,24 @@ const GroupConfigurationForm = ({
 };
 
 export default GroupConfigurationForm;
+
+const styles = StyleSheet.create({
+  avatarContainer: {
+    position: "relative",
+  },
+  avatarImage: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+  },
+  cameraIconContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#3b82f6",
+    borderRadius: 16,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+});

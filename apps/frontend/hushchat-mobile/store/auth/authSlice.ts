@@ -2,6 +2,7 @@ import { StateCreator } from "zustand";
 import { saveTokens, clearTokens, getAllTokens } from "@/utils/authUtils";
 import axios from "axios";
 import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
+import { logInfo } from "@/utils/logger";
 
 export interface AuthState {
   userToken: string | null;
@@ -31,7 +32,7 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
         await axios.post(AUTH_API_ENDPOINTS.LOGOUT(accessToken));
       }
     } catch (error) {
-      console.error("Error during logout:", error);
+      logInfo("Error during logout:", error);
     } finally {
       await clearTokens();
       set({ userToken: null, isAuthenticated: false });

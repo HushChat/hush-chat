@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dimensions, Pressable, ScrollView, View } from "react-native";
+import { Dimensions, Pressable, ScrollView, View, StyleSheet } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { router } from "expo-router";
@@ -180,7 +180,7 @@ export default function GroupChatInfo({
 
   if (participantsError) {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={styles.flex1}>
         <ChatInfoHeader
           title={conversationInfo?.conversation.name ?? ""}
           onBack={onBack}
@@ -247,13 +247,13 @@ export default function GroupChatInfo({
       />
 
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        style={styles.flex1}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
         className="custom-scrollbar"
       >
         {/* Participants Preview */}
-        <View style={{ marginTop: 16 }}>
+        <View style={styles.participantsSection}>
           <View className="flex-row items-center mb-3">
             <AppText className="text-lg font-semibold text-gray-900 dark:text-white">
               Participants
@@ -281,20 +281,12 @@ export default function GroupChatInfo({
               alignSelf: "center",
             })}
           >
-            <AppText
-              style={{
-                color: "#3B82F6",
-                fontWeight: "500",
-                textAlign: "center",
-              }}
-            >
-              See All Participants
-            </AppText>
+            <AppText style={styles.seeAllButton}>See All Participants</AppText>
           </Pressable>
         </View>
 
         {/* Action Items */}
-        <View style={{ marginTop: 24 }}>
+        <View style={styles.actionSection}>
           {conversationInfo?.active ? (
             <View>
               {conversationInfo.admin && (
@@ -369,3 +361,24 @@ export default function GroupChatInfo({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+  participantsSection: {
+    marginTop: 16,
+  },
+  actionSection: {
+    marginTop: 24,
+  },
+  seeAllButton: {
+    color: "#3B82F6",
+    fontWeight: "500",
+    textAlign: "center",
+  },
+});
