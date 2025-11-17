@@ -62,6 +62,7 @@ export const USER_API_ENDPOINTS = {
   CALL_LOGS: `${USER_API_BASE}/call-logs`,
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
   SAVE_TOKEN: `/notifications/device-token`,
+  CHANGE_PASSWORD: `/users/change-password`, 
 };
 
 export const MESSAGE_API_ENDPOINTS = {
