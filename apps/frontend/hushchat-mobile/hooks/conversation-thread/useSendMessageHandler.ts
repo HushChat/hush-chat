@@ -4,22 +4,17 @@ import { format } from "date-fns";
 import type { IMessage } from "@/types/chat/types";
 import type { UseMutateFunction } from "@tanstack/react-query";
 
-interface UseSendMessageHandlerParams {
+interface IUseSendMessageHandlerParams {
   selectedConversationId: number;
   currentUserId: number | null | undefined;
   imageMessage: string;
   setImageMessage: (text: string) => void;
   selectedMessage: IMessage | null;
   setSelectedMessage: (msg: IMessage | null) => void;
-  // Files selected from preview
   selectedFiles: File[];
-  // Mutation to send normal text messages
   sendMessage: UseMutateFunction<any, any, any, unknown>;
-  // Web file upload
   uploadFilesFromWeb: (files: File[]) => Promise<any>;
-  // Cache updater
   updateConversationMessagesCache: (msg: IMessage) => void;
-  // Preview actions
   handleCloseImagePreview: () => void;
 }
 
@@ -35,9 +30,13 @@ export const useSendMessageHandler = ({
   uploadFilesFromWeb,
   updateConversationMessagesCache,
   handleCloseImagePreview,
-}: UseSendMessageHandlerParams) => {
+}: IUseSendMessageHandlerParams) => {
   /**
-   * Core send message logic
+   * Sends a message in the conversation thread. Supports:
+   *
+   * @param message Raw user message.
+   * @param parentMessage Optional reply target.
+   * @param files Optional list of files to send.
    */
   const handleSendMessage = useCallback(
     async (message: string, parentMessage?: IMessage, files?: File[]) => {
@@ -117,7 +116,7 @@ export const useSendMessageHandler = ({
   );
 
   /**
-   * Send button in Preview Overlay
+   * Sends the currently selected files using `handleSendMessage`.
    */
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;
