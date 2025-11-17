@@ -6,7 +6,7 @@ import WorkspaceDropdown from "@/components/auth/workspace/WorkspaceDropdown";
 import { getUserWorkspaces } from "@/apis/user";
 import { useRouter } from "expo-router";
 import { CHATS_PATH, WORKSPACE_CREATE_PATH, WORKSPACE_REGISTER_PATH } from "@/constants/routes";
-import { useSaveTenant } from "@/hooks/auth/useSaveTenant";
+import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
 import { useAuthStore } from "@/store/auth/authStore";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
@@ -15,7 +15,7 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { saveTenant } = useSaveTenant();
+  const { saveWorkspace } = useSaveWorkspace();
   const { setWorkspaceSelected } = useAuthStore();
 
   useEffect(() => {
@@ -49,13 +49,15 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   };
 
   const handleNext = async () => {
-    await saveTenant(selectedWorkspace?.name);
+    if (!selectedWorkspace) return;
+
+    await saveWorkspace(selectedWorkspace?.name);
     setWorkspaceSelected(true);
     router.push(CHATS_PATH);
   };
 
   const onNavigateToRegister = async () => {
-    await saveTenant(selectedWorkspace?.name);
+    await saveWorkspace(selectedWorkspace?.name);
     router.push(WORKSPACE_REGISTER_PATH);
   };
 

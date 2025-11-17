@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -55,31 +55,24 @@ const WorkspaceDropdown = ({
     "border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 " +
     "bg-white dark:bg-gray-900";
 
-  useEffect(() => {
-    if (isOpen) {
-      translateY.value = withTiming(0, {
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-      });
-      opacity.value = withTiming(1, {
-        duration: 300,
-        easing: Easing.out(Easing.quad),
-      });
-    } else {
-      translateY.value = withTiming(SCREEN_HEIGHT, {
-        duration: 250,
-        easing: Easing.in(Easing.cubic),
-      });
-      opacity.value = withTiming(0, {
-        duration: 250,
-        easing: Easing.in(Easing.quad),
-      });
-    }
-  }, [isOpen, translateY, opacity]);
+  const openDropdown = () => {
+    setIsOpen(true);
+    translateY.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.cubic) });
+    opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
+  };
+
+  const closeDropdown = () => {
+    translateY.value = withTiming(SCREEN_HEIGHT, {
+      duration: 250,
+      easing: Easing.in(Easing.cubic),
+    });
+    opacity.value = withTiming(0, { duration: 250, easing: Easing.in(Easing.quad) });
+    setTimeout(() => setIsOpen(false), 250);
+  };
 
   const handleSelect = (workspace: Workspace) => {
     onSelectWorkspace(workspace);
-    setIsOpen(false);
+    closeDropdown();
   };
 
   const getStatusBadge = (status: string) => {
@@ -116,7 +109,7 @@ const WorkspaceDropdown = ({
       )}
 
       <View className="flex-col gap-y-1">
-        <Pressable onPress={() => setIsOpen(true)}>
+        <Pressable onPress={() => openDropdown()}>
           <View
             className={`${inputBase} ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.radius} flex-row items-center justify-between`}
           >
@@ -143,11 +136,11 @@ const WorkspaceDropdown = ({
       <Modal
         transparent
         visible={isOpen}
-        onRequestClose={() => setIsOpen(false)}
+        onRequestClose={() => closeDropdown()}
         animationType="none"
         statusBarTranslucent
       >
-        <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
+        <TouchableWithoutFeedback onPress={() => closeDropdown()}>
           <Animated.View
             style={[
               {

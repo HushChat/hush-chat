@@ -4,12 +4,12 @@ import { CreateWorkspace, ICreateWorkspace } from "@/types/user/types";
 import { createWorkspace } from "@/services/authService";
 import { WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useForm } from "@/hooks/useForm";
-import { useSaveTenant } from "@/hooks/auth/useSaveTenant";
+import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
 
 export function useCreateWorkspaceForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { saveTenant } = useSaveTenant();
+  const { saveWorkspace } = useSaveWorkspace();
 
   const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } =
     useForm<ICreateWorkspace>(CreateWorkspace, {
@@ -32,14 +32,14 @@ export function useCreateWorkspaceForm() {
         return;
       }
 
-      await saveTenant(validated.name);
-      router.push({ pathname: WORKSPACE_REGISTER_PATH });
+      await saveWorkspace(validated.name);
+      router.push(WORKSPACE_REGISTER_PATH);
     } catch (err: any) {
       setErrorMessage(err?.message || "Workspace create failed.");
     } finally {
       setIsLoading(false);
     }
-  }, [setShowErrors, validateAll, saveTenant]);
+  }, [setShowErrors, validateAll, saveWorkspace]);
 
   return {
     formValues: values,
