@@ -11,27 +11,9 @@ import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import com.platform.software.utils.WorkspaceUtils;
-import liquibase.Contexts;
-import liquibase.LabelExpression;
-import liquibase.Liquibase;
-import liquibase.command.CommandScope;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.CommandExecutionException;
-import liquibase.exception.LiquibaseException;
-import liquibase.resource.DirectoryResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import javax.sql.DataSource;
-import java.io.FileNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 import java.util.List;
 
@@ -39,17 +21,14 @@ import java.util.List;
 public class WorkspaceService {
     Logger logger = LoggerFactory.getLogger(WorkspaceService.class);
 
-    private final DataSource dataSource;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
+    private final DatabaseSchemaService databaseSchemaService;
 
-    @Value("${liquibase.changelog.path}")
-    private String changelogPath;
-
-    public WorkspaceService(DataSource dataSource, WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository) {
-        this.dataSource = dataSource;
+    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
+        this.databaseSchemaService = databaseSchemaService;
     }
 
     /**
@@ -82,15 +61,19 @@ public class WorkspaceService {
 
         //TODO: Add loggedInUserEmail validation
 
+        if (!workspaceUpsertDTO.getName().matches("^[a-zA-Z0-9_]+$")) {
+            throw new CustomBadRequestException("Invalid schema name: " + workspaceUpsertDTO.getName());
+        }
+
         if (workspaceRepository.existsByName(workspaceUpsertDTO.getName())) {
             logger.error("Workspace with schema {} already exists", workspaceUpsertDTO.getName());
             throw new CustomBadRequestException("Workspace with schema '" + workspaceUpsertDTO.getName() + "' already exists");
         }
 
         try {
-            createDatabaseSchema(workspaceUpsertDTO.getName());
+            databaseSchemaService.createDatabaseSchema(workspaceUpsertDTO.getName());
 
-            applyDatabaseMigrations(workspaceUpsertDTO.getName());
+            databaseSchemaService.applyDatabaseMigrations(workspaceUpsertDTO.getName());
 
             Workspace workspace = workspaceUpsertDTO.buildWorkspace();
 
@@ -116,64 +99,11 @@ public class WorkspaceService {
         }
     }
 
-    private void createDatabaseSchema(String schemaName) throws SchemaCreationException {
-        if (!schemaName.matches("^[a-zA-Z0-9_]+$")) {
-            throw new CustomBadRequestException("Invalid schema name");
-        }
-
-        try {
-            CommandScope command = new CommandScope("createSchema");
-            command.addArgumentValue("schemaName", schemaName);
-            command.addArgumentValue("ifNotExists", true);
-            command.execute();
-
-            logger.info("Schema '{}' created successfully.", schemaName);
-        } catch (CommandExecutionException e) {
-            throw new SchemaCreationException("Liquibase failed to create schema: " + schemaName, e);
-        } catch (Exception e) {
-            throw new SchemaCreationException("Unexpected error creating schema: " + schemaName, e);
-        }
-    }
-
-    private void applyDatabaseMigrations(String schemaName) throws MigrationException, FileNotFoundException {
-        try (Connection connection = dataSource.getConnection()) {
-            connection.setSchema(schemaName);
-
-            Database database = DatabaseFactory.getInstance()
-                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-
-            database.setDefaultSchemaName(schemaName);
-            database.setLiquibaseSchemaName(schemaName);
-
-            Path changelogPath = Paths.get(this.changelogPath);
-            if (!Files.exists(changelogPath)) {
-                throw new FileNotFoundException("Changelog path not found: " + changelogPath);
-            }
-
-            Path runtimeChangelogFile = changelogPath.resolve("db.changelog-runtime.yaml");
-            if (!Files.exists(runtimeChangelogFile)) {
-                throw new FileNotFoundException("Runtime changelog file not found: " + runtimeChangelogFile);
-            }
-
-            DirectoryResourceAccessor resourceAccessor = new DirectoryResourceAccessor(changelogPath);
-
-            Liquibase liquibase = new Liquibase(
-                    "db.changelog-runtime.yaml",
-                    resourceAccessor,
-                    database
-            );
-
-            logger.info("Applying initial-setup migrations for schema: {}", schemaName);
-            liquibase.update(new Contexts("initial-setup"), new LabelExpression());
-
-            logger.info("Applying regular-updates migrations for schema: {}", schemaName);
-            liquibase.update(new Contexts("regular-updates"), new LabelExpression());
-
-        } catch (LiquibaseException | SQLException e) {
-            throw new MigrationException("Failed to apply migrations", e);
-        }
-    }
-    
+    /**
+     * Get names of all available workspaces
+     *
+     * @return List<String>
+     */
     public List<String> getAllWorkspaces(){
         return WorkspaceUtils.runInGlobalSchema(() -> workspaceRepository.findAllByWorkspaceIdentifierIsNotNull()
                 .stream()

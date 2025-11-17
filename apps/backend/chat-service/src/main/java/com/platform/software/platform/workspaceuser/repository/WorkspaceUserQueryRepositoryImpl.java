@@ -23,13 +23,13 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
     }
 
     @Override
-    public Workspace findPendingWorkspaceByUserEmailOrThrow(String email, String currantTenant) {
+    public Workspace findPendingWorkspaceByUserEmailOrThrow(String email, String currantWorkspace) {
         Workspace workspace = jpaQueryFactory
             .select(qWorkspace)
             .from(qWorkspaceUser)
             .join(qWorkspaceUser.workspace, qWorkspace)
             .where(qWorkspaceUser.email.eq(email)
-                    .and(qWorkspace.name.eq(currantTenant))
+                    .and(qWorkspace.name.eq(currantWorkspace))
                     .and(qWorkspaceUser.status.eq(WorkspaceUserStatus.PENDING)))
             .fetchOne();
 

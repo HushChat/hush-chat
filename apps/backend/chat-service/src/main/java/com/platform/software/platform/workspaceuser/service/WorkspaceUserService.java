@@ -81,17 +81,21 @@ public class WorkspaceUserService {
     }
 
     public List<WorkspaceDTO> getAllWorkspaceDTO(String email) {
-        return WorkspaceUtils.runInGlobalSchema(() -> {
-            List<WorkspaceUser> workspaceUsers = workspaceUserRepository.findAllByEmail(email);
+        try {
+            return WorkspaceUtils.runInGlobalSchema(() -> {
+                List<WorkspaceUser> workspaceUsers = workspaceUserRepository.findAllByEmail(email);
 
-            return workspaceUsers.stream()
-                    .map(workspaceUser ->
-                            new WorkspaceDTO(
-                                    workspaceUser.getWorkspace(),
-                                    workspaceUser.getStatus()
-                            )
-                    )
-                    .toList();
-        });
+                return workspaceUsers.stream()
+                        .map(workspaceUser ->
+                                new WorkspaceDTO(
+                                        workspaceUser.getWorkspace(),
+                                        workspaceUser.getStatus()
+                                )
+                        )
+                        .toList();
+            });
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 }

@@ -15,7 +15,6 @@ import org.hibernate.annotations.Where;
 @Where(clause = "deleted = false")
 @Table(
         name = "workspace_user",
-        schema = "platform",
         uniqueConstraints = {
             @UniqueConstraint(columnNames = {"email", "workspace_id"})
         }
