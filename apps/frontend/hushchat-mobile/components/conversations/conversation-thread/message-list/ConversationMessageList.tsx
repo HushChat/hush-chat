@@ -3,8 +3,8 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { ActivityIndicator, SectionList, View } from "react-native";
 import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
@@ -21,6 +21,8 @@ import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
+import { DateSection } from "@/components/DateSection";
+import { groupMessagesByDate } from "@/utils/messageUtils";
 import { logDebug } from "@/utils/logger";
 
 interface MessagesListProps {
@@ -201,6 +203,10 @@ const ConversationMessageList = ({
     setReactionsModal((prev) => ({ ...prev, visible: false }));
   }, []);
 
+  const groupedSections = useMemo(() => {
+    return groupMessagesByDate(messages);
+  }, [messages]);
+
   const renderMessage = useCallback(
     ({ item }: { item: IMessage }) => {
       const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -277,13 +283,13 @@ const ConversationMessageList = ({
         />
       )}
 
-      <FlatList
-        data={messages}
+      <SectionList
+        sections={groupedSections}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id?.toString()}
-        className="flex-1 px-4"
-        showsVerticalScrollIndicator={false}
+        renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
+        showsVerticalScrollIndicator={false}
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
@@ -306,5 +312,4 @@ const ConversationMessageList = ({
     </>
   );
 };
-
 export default ConversationMessageList;

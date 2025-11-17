@@ -1,22 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { TUser } from "@/types/user/types";
 import { UserMultiSelectList } from "@/components/UserMultiSelect";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
-import { scheduleOnRN } from "react-native-worklets";
 import { IConversation } from "@/types/chat/types";
 
 const COLORS = {
   WHITE: "#FFFFFF",
 };
+import { MotionView } from "@/motion/MotionView";
+import { MotionEasing } from "@/motion/easing";
 
 type TWebGroupCreationOverlay = {
   visible: boolean;
@@ -33,10 +28,6 @@ export const WebGroupCreation = ({
   onCreate,
   setSelectedConversation,
 }: TWebGroupCreationOverlay) => {
-  const tx = useSharedValue(width);
-  const op = useSharedValue(0);
-  const stepX = useSharedValue(0);
-
   const [selectedUsers, setSelectedUsers] = useState<TUser[]>([]);
   const [showConfigurationForm, setShowConfigurationForm] = useState(false);
 
@@ -44,49 +35,17 @@ export const WebGroupCreation = ({
     if (visible) {
       setSelectedUsers([]);
       setShowConfigurationForm(false);
-
-      stepX.value = 0;
-      tx.value = width;
-      op.value = 0;
-
-      tx.value = withTiming(0, {
-        duration: 240,
-        easing: Easing.out(Easing.cubic),
-      });
-
-      op.value = withTiming(1, {
-        duration: 160,
-        easing: Easing.out(Easing.quad),
-      });
-    } else {
-      tx.value = withTiming(width, {
-        duration: 200,
-        easing: Easing.in(Easing.cubic),
-      });
-
-      op.value = withTiming(0, {
-        duration: 120,
-        easing: Easing.in(Easing.quad),
-      });
     }
-  }, [visible, width]);
+  }, [visible]);
 
   const handleNext = useCallback(() => {
     if (selectedUsers.length === 0) return;
-
     setShowConfigurationForm(true);
-
-    stepX.value = withTiming(-width, {
-      duration: 260,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [selectedUsers.length, width]);
+  }, [selectedUsers.length]);
 
   const handleBack = useCallback(() => {
     if (showConfigurationForm) {
-      stepX.value = withTiming(0, { duration: 240, easing: Easing.out(Easing.cubic) }, () => {
-        scheduleOnRN(() => setShowConfigurationForm(false));
-      });
+      setShowConfigurationForm(false);
     } else {
       onClose();
     }
@@ -102,20 +61,24 @@ export const WebGroupCreation = ({
 
   const participantUserIds = selectedUsers.map((u) => u.id);
 
-  const containerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: tx.value }],
-    opacity: op.value,
-  }));
-
-  const stepsStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: stepX.value }],
-  }));
-
   return (
-    <Animated.View
+    <MotionView
+      visible={visible}
       pointerEvents={visible ? "auto" : "none"}
-      style={[styles.overlay, { width }, containerStyle]}
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width,
+        backgroundColor: "#FFFFFF",
+      }}
       className="dark:bg-gray-900"
+      delay={40}
+      from={{ opacity: 0, translateX: width }}
+      to={{ opacity: 1, translateX: 0 }}
+      duration={{ enter: 240, exit: 200 }}
+      easing={MotionEasing.pair}
     >
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800">
@@ -152,8 +115,19 @@ export const WebGroupCreation = ({
       </View>
 
       <View className="flex-1 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 overflow-hidden">
-        <Animated.View style={[styles.stepsWrapper, { width: width * 2 }, stepsStyle]}>
-          <View style={[styles.stepPage, { width }]}>
+        <MotionView
+          visible={true}
+          style={{
+            width: width * 2,
+            height: "100%",
+            flexDirection: "row",
+          }}
+          from={{ translateX: 0 }}
+          to={{ translateX: showConfigurationForm ? -width : 0 }}
+          duration={{ enter: 260, exit: 240 }}
+          easing={MotionEasing.pair}
+        >
+          <View style={{ width, height: "100%" }}>
             <UserMultiSelectList
               selectedUsers={selectedUsers}
               onChange={setSelectedUsers}
@@ -171,9 +145,9 @@ export const WebGroupCreation = ({
               />
             )}
           </View>
-        </Animated.View>
+        </MotionView>
       </View>
-    </Animated.View>
+    </MotionView>
   );
 };
 
