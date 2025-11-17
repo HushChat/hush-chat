@@ -222,7 +222,7 @@ export default function ChatInterface({
           duration={300}
           easing="decelerate"
           className="bg-background-light dark:bg-gray-900"
-          style={[styles.rightPanel, { position: isPanelOpen ? "relative" : "absolute" }]}
+          style={[styles.rightPanel, getRightPanelPosition(isPanelOpen)]}
         >
           <MotionView
             visible={isPanelContentReady}
@@ -239,6 +239,10 @@ export default function ChatInterface({
     </View>
   );
 }
+
+const getRightPanelPosition = (open: boolean): { position: "relative" | "absolute" } => ({
+  position: open ? "relative" : "absolute",
+});
 
 const styles = StyleSheet.create({
   leftPaneContainer: {

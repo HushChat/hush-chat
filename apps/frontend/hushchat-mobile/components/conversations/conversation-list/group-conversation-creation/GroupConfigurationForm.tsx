@@ -29,6 +29,11 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
 
+const COLORS = {
+  primaryBlue: "#3b82f6",
+  white: "#ffffff",
+};
+
 export interface IGroupConfigurationFormProps {
   participantUserIds: number[];
   onSuccess?: (conversationId: number) => void;
@@ -219,14 +224,15 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 80,
   },
+
   cameraIconContainer: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#3b82f6",
+    backgroundColor: COLORS.primaryBlue,
     borderRadius: 16,
     padding: 4,
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: COLORS.white,
   },
 });

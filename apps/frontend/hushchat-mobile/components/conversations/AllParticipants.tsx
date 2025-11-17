@@ -1,5 +1,12 @@
 import React, { useMemo } from "react";
-import { View, TouchableOpacity, FlatList, ActivityIndicator, Dimensions } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
+} from "react-native";
 import { ParticipantRow } from "@/components/conversations/ParticipantsRow";
 import { Ionicons } from "@expo/vector-icons";
 import { useConversationParticipantQuery } from "@/query/useConversationParticipantQuery";
@@ -63,9 +70,7 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
   };
 
   const handleRemoveParticipant = useRemoveConversationParticipantMutation(
-    {
-      conversationId,
-    },
+    { conversationId },
     async () => {
       closeModal();
       ToastUtils.success("Participant removed successfully!");
@@ -100,9 +105,7 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
   };
 
   const handleUpdateConversationParticipantRole = useUpdateConversationParticipantRoleMutation(
-    {
-      conversationId,
-    },
+    { conversationId },
     async () => {
       closeModal();
       ToastUtils.success("Participant role updated successfully!");
@@ -152,8 +155,14 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
         }
         showsVerticalScrollIndicator
         className="flex-1 bg-background-light dark:bg-background-dark custom-scrollbar"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={styles.listContentContainer}
       />
     </MotionView>
   );
 };
+
+const styles = StyleSheet.create({
+  listContentContainer: {
+    paddingBottom: 40,
+  },
+});

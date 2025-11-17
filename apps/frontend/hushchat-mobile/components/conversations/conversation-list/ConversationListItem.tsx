@@ -3,7 +3,14 @@
  *
  * Renders a single row in the conversations list (avatar, name, last message preview, timestamp).
  */
-import { View, TouchableOpacity, Pressable, GestureResponderEvent, Modal } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Pressable,
+  GestureResponderEvent,
+  Modal,
+  StyleSheet,
+} from "react-native";
 import React, { useCallback, useState, useRef } from "react";
 import { IConversation } from "@/types/chat/types";
 import { getLastMessageTime } from "@/utils/commonUtils";
@@ -17,6 +24,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
 import { AppText } from "@/components/AppText";
+
+const BG = {
+  modalBackdrop: "rgba(0,0,0,0.7)",
+};
 
 const ConversationListItem = ({
   conversation,
@@ -38,23 +49,17 @@ const ConversationListItem = ({
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   const chevronButtonRef = useRef<View>(null);
+
   const lastMessage = conversation.messages?.at(-1);
   const lastMessageText = lastMessage?.messageText;
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
     e.stopPropagation();
-    if (chevronButtonRef.current) {
-      chevronButtonRef.current.measure(
-        (fx: number, fy: number, width: number, height: number, px: number, py: number) => {
-          setMenuPosition({
-            x: px,
-            y: py + height,
-          });
-          setShowOptions(true);
-        }
-      );
-    }
+    chevronButtonRef.current?.measure((_fx, _fy, _w, h, px, py) => {
+      setMenuPosition({ x: px, y: py + h });
+      setShowOptions(true);
+    });
   }, []);
 
   const handleOptionsClose = useCallback(() => {
@@ -91,7 +96,7 @@ const ConversationListItem = ({
             </AppText>
             <View className="flex-row items-center gap-1">
               {conversation.pinnedByLoggedInUser && (
-                <View style={{ transform: [{ rotate: "45deg" }] }}>
+                <View style={styles.pinRotate}>
                   <MaterialIcons name="push-pin" size={14} color="#3B82F6" />
                 </View>
               )}
@@ -142,15 +147,7 @@ const ConversationListItem = ({
         animationType="fade"
         onRequestClose={() => setShowProfileModal(false)}
       >
-        <Pressable
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(0,0,0,0.7)",
-          }}
-          onPress={() => setShowProfileModal(false)}
-        >
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowProfileModal(false)}>
           <Pressable
             onPress={(e) => e.stopPropagation()}
             className="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-xs w-full"
@@ -168,3 +165,16 @@ const ConversationListItem = ({
 };
 
 export default ConversationListItem;
+
+const styles = StyleSheet.create({
+  pinRotate: {
+    transform: [{ rotate: "45deg" }],
+  },
+
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: BG.modalBackdrop,
+  },
+});

@@ -22,7 +22,6 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { groupMessagesByDate } from "@/utils/messageUtils";
 import { logDebug } from "@/utils/logger";
 import { groupMessagesByDate, shouldShowSenderAvatar } from "@/utils/messageUtils";
 

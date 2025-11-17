@@ -26,6 +26,10 @@ import {
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 
+const COLORS = {
+  button: "#3b82f6",
+};
+
 interface GroupChatInfoProps {
   conversation: IConversation;
   onBack: () => void;
@@ -377,7 +381,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   seeAllButton: {
-    color: "#3B82F6",
+    color: COLORS.button,
     fontWeight: "500",
     textAlign: "center",
   },
