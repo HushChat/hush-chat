@@ -2,6 +2,8 @@ package com.platform.software.platform.workspace.service;
 
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
+import com.platform.software.exception.MigrationException;
+import com.platform.software.exception.SchemaCreationException;
 import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
@@ -102,13 +104,19 @@ public class WorkspaceService {
                 workspaceUserRepository.save(newWorkspaceUser);
             });
 
+        } catch (SchemaCreationException e) {
+            logger.error("Failed to create schema:", e);
+            throw new CustomInternalServerErrorException("Failed to create workspace", e);
+        } catch (MigrationException e) {
+            logger.error("Failed to apply database migrations for schema", e);
+            throw new CustomInternalServerErrorException("Failed to create workspace", e);
         } catch (Exception e) {
             logger.error("Failed to create workspace with schema: {}", workspaceUpsertDTO.getName(), e);
-            throw new CustomInternalServerErrorException("Failed to create workspace" );
+            throw new CustomInternalServerErrorException("Failed to create workspace", e);
         }
     }
 
-    private void createDatabaseSchema(String schemaName) throws CommandExecutionException {
+    private void createDatabaseSchema(String schemaName) throws SchemaCreationException {
         if (!schemaName.matches("^[a-zA-Z0-9_]+$")) {
             throw new CustomBadRequestException("Invalid schema name");
         }
@@ -121,15 +129,13 @@ public class WorkspaceService {
 
             logger.info("Schema '{}' created successfully.", schemaName);
         } catch (CommandExecutionException e) {
-            logger.error("Liquibase failed to create schema '{}': {}", schemaName, e.getMessage());
-            throw e;
+            throw new SchemaCreationException("Liquibase failed to create schema: " + schemaName, e);
         } catch (Exception e) {
-            logger.error("Unexpected error creating schema '{}'", schemaName, e);
-            throw new CommandExecutionException("Unexpected error creating schema: " + schemaName, e);
+            throw new SchemaCreationException("Unexpected error creating schema: " + schemaName, e);
         }
     }
 
-    private void applyDatabaseMigrations(String schemaName) throws SQLException, FileNotFoundException {
+    private void applyDatabaseMigrations(String schemaName) throws MigrationException, FileNotFoundException {
         try (Connection connection = dataSource.getConnection()) {
             connection.setSchema(schemaName);
 
@@ -164,8 +170,7 @@ public class WorkspaceService {
             liquibase.update(new Contexts("regular-updates"), new LabelExpression());
 
         } catch (LiquibaseException | SQLException e) {
-            logger.error("Failed to apply database migrations for schema: {}", schemaName, e);
-            throw new SQLException("Failed to apply migrations", e);
+            throw new MigrationException("Failed to apply migrations", e);
         }
     }
     
