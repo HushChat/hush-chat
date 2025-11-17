@@ -15,7 +15,7 @@ import { ModalProvider } from "@/context/modal-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { AUTH_LOGIN_PATH, CHATS_PATH } from "@/constants/routes";
+import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
 
 const TOAST_OFFSET_IOS = 60;
