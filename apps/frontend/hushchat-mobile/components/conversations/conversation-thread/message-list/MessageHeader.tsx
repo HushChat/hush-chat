@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { AppText } from "@/components/AppText";
 import { MessageActions } from "./MessageActions";
 
-interface MessageHeaderProps {
+interface IMessageHeaderProps {
   isCurrentUser: boolean;
   isGroupChat?: boolean;
   senderName: string;
@@ -16,7 +16,7 @@ interface MessageHeaderProps {
   onOpenMenu: (event: GestureResponderEvent) => void;
 }
 
-export const MessageHeader: React.FC<MessageHeaderProps> = ({
+export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   isCurrentUser,
   isGroupChat,
   senderName,
@@ -27,6 +27,44 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({
   onOpenPicker,
   onOpenMenu,
 }) => {
+  const elements = [
+    {
+      key: "actions",
+      component: (
+        <MessageActions
+          messageIsUnsend={messageIsUnsend}
+          selectionMode={selectionMode}
+          onOpenPicker={onOpenPicker}
+          onOpenMenu={onOpenMenu}
+          currentUserId={currentUserId}
+        />
+      ),
+    },
+    ...(isGroupChat
+      ? [
+          {
+            key: "name",
+            component: (
+              <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
+                {isCurrentUser ? "You" : senderName}
+              </AppText>
+            ),
+          },
+        ]
+      : []),
+    {
+      key: "time",
+      component: (
+        <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+          {messageTime}
+        </AppText>
+      ),
+    },
+  ];
+
+  // For current user: actions should be first (left), for others: actions should be last (right)
+  const orderedElements = isCurrentUser ? elements : elements.reverse();
+
   return (
     <View
       className={classNames("flex-row items-center gap-2 mb-1", {
@@ -34,35 +72,9 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({
         "justify-start": !isCurrentUser,
       })}
     >
-      {isCurrentUser && (
-        <MessageActions
-          messageIsUnsend={messageIsUnsend}
-          selectionMode={selectionMode}
-          onOpenPicker={onOpenPicker}
-          onOpenMenu={onOpenMenu}
-          currentUserId={currentUserId}
-        />
-      )}
-
-      {isGroupChat && (
-        <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
-          {isCurrentUser ? "You" : senderName}
-        </AppText>
-      )}
-
-      <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-        {messageTime}
-      </AppText>
-
-      {!isCurrentUser && (
-        <MessageActions
-          messageIsUnsend={messageIsUnsend}
-          selectionMode={selectionMode}
-          onOpenPicker={onOpenPicker}
-          onOpenMenu={onOpenMenu}
-          currentUserId={currentUserId}
-        />
-      )}
+      {orderedElements.map((el) => (
+        <React.Fragment key={el.key}>{el.component}</React.Fragment>
+      ))}
     </View>
   );
 };
