@@ -315,7 +315,7 @@ export const ConversationMessageItem = ({
     if (!selectionMode) return;
     onToggleSelection(Number(message.id));
   }, [selectionMode, onToggleSelection, message.id]);
-  console.log("showSenderAvatar", showSenderAvatar);
+
   const ContentBlock = () => (
     <View style={{ backgroundColor: "transparent" }}>
       <View className="group mb-3">
