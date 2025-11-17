@@ -2,7 +2,7 @@ import * as yup from "yup";
 import type { Asserts } from "yup";
 
 export const UserSchema = yup.object({
-  id: yup.string().nullable().notRequired(),
+  id: yup.number().nullable().notRequired(),
   firstName: yup.string().required(),
   lastName: yup.string().required(),
   email: yup.string().required(),
