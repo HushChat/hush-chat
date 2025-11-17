@@ -1,5 +1,5 @@
 import { TabLayoutProps } from "@/types/navigation/types";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import WebNavigationInterface from "@/components/tab-layouts/navigations/WebNavigationInterface";
 import { Stack } from "expo-router";
 
@@ -9,7 +9,7 @@ const WebTabLayout = (tabLayoutProps: TabLayoutProps) => {
   return (
     <View className="flex-1">
       <WebNavigationInterface navigationItems={navigationItems} />
-      <View className="flex-1" style={{ marginLeft: 80 }}>
+      <View className="flex-1" style={styles.contentContainer}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -25,3 +25,9 @@ const WebTabLayout = (tabLayoutProps: TabLayoutProps) => {
 };
 
 export default WebTabLayout;
+
+const styles = StyleSheet.create({
+  contentContainer: {
+    marginLeft: 80,
+  },
+});

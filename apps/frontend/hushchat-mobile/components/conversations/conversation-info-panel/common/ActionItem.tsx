@@ -4,7 +4,7 @@
  * A reusable row component for rendering an action inside panel.
  */
 import React from "react";
-import { TouchableOpacity, Text } from "react-native";
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -19,6 +19,9 @@ interface ActionItemProps {
 
 export default function ActionItem({ icon, label, onPress, color }: ActionItemProps) {
   const { isDark } = useAppTheme();
+
+  const resolvedColor = color || (isDark ? "#9CA3AF" : "#6B7280");
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -27,20 +30,20 @@ export default function ActionItem({ icon, label, onPress, color }: ActionItemPr
         PLATFORM.IS_WEB ? "py-[10px] gap-[10px]" : "py-[15px] gap-[15px]"
       )}
     >
-      <Ionicons
-        name={icon}
-        size={PLATFORM.IS_WEB ? 18 : 22}
-        color={color || (isDark ? "#9CA3AF" : "#6B7280")}
-      />
+      <Ionicons name={icon} size={PLATFORM.IS_WEB ? 18 : 22} color={resolvedColor} />
+
       <Text
         className={classNames("font-medium", PLATFORM.IS_WEB ? "text-base" : "text-xl")}
-        style={{
-          color: color || (isDark ? "white" : "#1F2937"),
-          fontFamily: "Poppins-Regular",
-        }}
+        style={[styles.textBase, { color: color || (isDark ? "white" : "#1F2937") }]}
       >
         {label}
       </Text>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  textBase: {
+    fontFamily: "Poppins-Regular",
+  },
+});

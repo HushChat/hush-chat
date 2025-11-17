@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Modal, View, Text, Pressable, Dimensions, ScrollView, Image } from "react-native";
+import {
+  Modal,
+  View,
+  Text,
+  Pressable,
+  Dimensions,
+  ScrollView,
+  Image,
+  StyleSheet,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
@@ -149,8 +158,8 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
       statusBarTranslucent
       presentationStyle="overFullScreen"
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <GestureHandlerRootView style={styles.flex1}>
+        <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
           <View className="flex-1 bg-white dark:bg-black">
             <View className="absolute left-0 right-0 flex-row justify-between items-center px-5 py-4 z-10 bg-white dark:bg-black backdrop-blur-sm">
               <Text className="text-gray-900 dark:text-white text-base font-semibold">
@@ -180,7 +189,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8 }}
+                  contentContainerStyle={styles.thumbListContainer}
                 >
                   {images.map((img, idx) => (
                     <Pressable
@@ -211,3 +220,12 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  thumbListContainer: {
+    gap: 8,
+  },
+});

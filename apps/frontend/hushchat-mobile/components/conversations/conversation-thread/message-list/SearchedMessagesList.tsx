@@ -1,4 +1,4 @@
-import { SectionList, View } from "react-native";
+import { SectionList, View, StyleSheet } from "react-native";
 import { SearchedItem } from "@/components/conversations/conversation-thread/message-list/SearchedMessageItem";
 import { IMessageView } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
@@ -102,8 +102,15 @@ export const SearchedMessagesList: React.FC<SearchResultsListProps> = ({
       onEndReachedThreshold={onEndReachedThreshold}
       ListFooterComponent={ListFooterComponent}
       ItemSeparatorComponent={() => (
-        <View className="bg-gray-200 dark:bg-gray-900" style={{ width: "100%", height: 1 }} />
+        <View className="bg-gray-200 dark:bg-gray-900" style={styles.separator} />
       )}
     />
   );
 };
+
+const styles = StyleSheet.create({
+  separator: {
+    width: "100%",
+    height: 1,
+  },
+});

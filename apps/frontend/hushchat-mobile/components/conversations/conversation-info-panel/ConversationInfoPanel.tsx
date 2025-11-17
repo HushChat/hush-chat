@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -39,10 +39,10 @@ export default function ConversationInfoPanel({
     return (
       <View
         className="flex-1 items-center justify-center"
-        style={{
-          backgroundColor: colors.background,
-          paddingTop: insets.top + 12,
-        }}
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: colors.background, paddingTop: insets.top + 12 },
+        ]}
       >
         <ActivityIndicator size="large" color="#3b82f6" />
         <Text className="mt-4 text-gray-600 dark:text-text-secondary-dark">
@@ -68,7 +68,7 @@ export default function ConversationInfoPanel({
 
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark border-l border-gray-200 dark:border-gray-800">
-      <MotionView visible={true} preset="slideUp" duration={500} style={{ flex: 1 }}>
+      <MotionView visible={true} preset="slideUp" duration={500} style={styles.flex1}>
         {isGroup ? (
           <GroupChatInfo
             conversation={conversationAPIResponse}
@@ -86,3 +86,12 @@ export default function ConversationInfoPanel({
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+  },
+});
