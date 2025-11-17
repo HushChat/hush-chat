@@ -5,11 +5,13 @@ import com.platform.software.exception.SchemaCreationException;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
-import liquibase.command.CommandScope;
+import liquibase.Scope;
+import liquibase.statement.SqlStatement;
+import liquibase.statement.core.RawSqlStatement;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.CommandExecutionException;
+import liquibase.structure.core.Schema;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.DirectoryResourceAccessor;
 import org.slf4j.Logger;
@@ -40,17 +42,18 @@ public class DatabaseSchemaService {
     }
 
     public void createDatabaseSchema(String schemaName) throws SchemaCreationException {
-        try {
-            CommandScope command = new CommandScope("createSchema");
-            command.addArgumentValue("schemaName", schemaName);
-            command.addArgumentValue("ifNotExists", true);
-            command.execute();
+        try (Database database = DatabaseFactory.getInstance()
+                .findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()))) {
+
+            Scope.child(Scope.Attr.database, database, () -> {
+                database.execute(new SqlStatement[] {
+                        new RawSqlStatement("CREATE SCHEMA IF NOT EXISTS " + database.escapeObjectName(schemaName, Schema.class))
+                }, null);
+            });
 
             logger.info("Schema '{}' created successfully.", schemaName);
-        } catch (CommandExecutionException e) {
-            throw new SchemaCreationException("Liquibase failed to create schema: " + schemaName, e);
         } catch (Exception e) {
-            throw new SchemaCreationException("Unexpected error creating schema: " + schemaName, e);
+            throw new SchemaCreationException("Failed to create schema: " + schemaName, e);
         }
     }
 
