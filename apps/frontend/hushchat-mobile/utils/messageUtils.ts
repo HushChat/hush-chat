@@ -32,9 +32,14 @@ export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMess
     const dateObject = parseISO(dateKey);
     const dateTitle = getDateTitle(dateObject);
 
+    const sortedMessages = [...groupedByDate[dateKey]].sort(
+      (firstMessage, secondMessage) =>
+        new Date(secondMessage.createdAt).getTime() - new Date(firstMessage.createdAt).getTime()
+    );
+
     return {
       title: dateTitle,
-      data: groupedByDate[dateKey],
+      data: sortedMessages,
     };
   });
 };
