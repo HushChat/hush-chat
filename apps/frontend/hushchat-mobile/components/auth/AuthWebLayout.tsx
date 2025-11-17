@@ -29,42 +29,36 @@ export default function AuthWebLayout({
   children,
 }: TAuthWebLayoutProps) {
   const { width } = useWindowDimensions();
-  const isWide = width >= 1024;
 
-  const shellStyle = useMemo(
-    () => [
-      s.shell,
-      {
-        flexDirection: isWide ? ("row" as const) : ("column" as const),
-      },
-    ],
-    [isWide]
-  );
+  const styles = useMemo(() => {
+    const isWide = width >= 1024;
 
-  const leftStyle = useMemo(
-    () => [
-      s.left,
-      {
-        width: isWide ? ("60%" as const) : ("100%" as const),
-      },
-    ],
-    [isWide]
-  );
-
-  const rightStyle = useMemo(
-    () => [
-      s.right,
-      {
-        width: isWide ? ("40%" as const) : ("100%" as const),
-      },
-    ],
-    [isWide]
-  );
+    return {
+      shell: [
+        s.shell,
+        {
+          flexDirection: isWide ? ("row" as const) : ("column" as const),
+        },
+      ],
+      left: [
+        s.left,
+        {
+          width: isWide ? ("60%" as const) : ("100%" as const),
+        },
+      ],
+      right: [
+        s.right,
+        {
+          width: isWide ? ("40%" as const) : ("100%" as const),
+        },
+      ],
+    };
+  }, [width]);
 
   return (
     <View style={[s.container, { backgroundColor: colors.background }]}>
-      <View style={shellStyle}>
-        <View style={leftStyle}>
+      <View style={styles.shell}>
+        <View style={styles.left}>
           <View style={s.leftInner}>
             <View style={s.headerBlock}>
               <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
@@ -79,7 +73,7 @@ export default function AuthWebLayout({
             </View>
           </View>
         </View>
-        <View style={rightStyle}>{children}</View>
+        <View style={styles.right}>{children}</View>
       </View>
     </View>
   );

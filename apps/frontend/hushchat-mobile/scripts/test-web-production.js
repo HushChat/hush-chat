@@ -2,10 +2,10 @@ const { spawn, exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-logDebug("🔍 Analyzing dependencies before build...");
+console.log("🔍 Analyzing dependencies before build...");
 
 // Check for web-incompatible dependencies
-logDebug("📋 Checking for potential web compatibility issues...");
+console.log("📋 Checking for potential web compatibility issues...");
 exec("npm ls --depth=0", (error, stdout) => {
   if (stdout) {
     const lines = stdout.split("\n");
@@ -19,14 +19,14 @@ exec("npm ls --depth=0", (error, stdout) => {
       );
 
     if (webIncompatible.length > 0) {
-      logDebug("⚠️  Potentially web-incompatible dependencies found:");
-      webIncompatible.forEach((dep) => logDebug(`   ${dep.trim()}`));
+      console.log("⚠️  Potentially web-incompatible dependencies found:");
+      webIncompatible.forEach((dep) => console.log(`   ${dep.trim()}`));
     } else {
-      logDebug("✅ No obvious web compatibility issues found");
+      console.log("✅ No obvious web compatibility issues found");
     }
   }
 
-  logDebug("\n🏗️  Building production version...");
+  console.log("\n🏗️  Building production version...");
 
   // Build the web version
   const buildProcess = spawn("npx", ["expo", "export", "-p", "web"], {
@@ -36,11 +36,11 @@ exec("npm ls --depth=0", (error, stdout) => {
 
   buildProcess.on("close", (code) => {
     if (code !== 0) {
-      logDebug("❌ Build failed! Check the errors above.");
+      console.log("❌ Build failed! Check the errors above.");
       process.exit(1);
     }
 
-    logDebug("\n📊 Analyzing bundle contents...");
+    console.log("\n📊 Analyzing bundle contents...");
 
     // Check bundle size
     const distPath = path.join(process.cwd(), "dist");
@@ -52,15 +52,15 @@ exec("npm ls --depth=0", (error, stdout) => {
           if (files.length > 0) {
             const stats = fs.statSync(path.join(staticJsPath, files[0]));
             const sizeInMB = (stats.size / 1024 / 1024).toFixed(2);
-            logDebug(`📦 Main bundle size: ${sizeInMB} MB`);
+            console.log(`📦 Main bundle size: ${sizeInMB} MB`);
           }
         }
       } catch {
-        logDebug("⚠️  Could not analyze bundle size");
+        console.log("⚠️  Could not analyze bundle size");
       }
 
       // List generated files
-      logDebug("\n📁 Generated files:");
+      console.log("\n📁 Generated files:");
       exec(
         'find dist -name "*.js" -o -name "*.css" -o -name "*.html" | head -10',
         (err, stdout) => {
@@ -69,18 +69,18 @@ exec("npm ls --depth=0", (error, stdout) => {
               .split("\n")
               .filter((f) => f.trim())
               .forEach((file) => {
-                logDebug(`   ${file}`);
+                console.log(`   ${file}`);
               });
           }
         }
       );
     }
 
-    logDebug("\n🚀 Starting local server...");
-    logDebug("💡 Open browser DevTools Console to check for:");
-    logDebug("   - Missing module errors");
-    logDebug("   - 404 asset errors");
-    logDebug("   - Runtime dependency issues");
+    console.log("\n🚀 Starting local server...");
+    console.log("💡 Open browser DevTools Console to check for:");
+    console.log("   - Missing module errors");
+    console.log("   - 404 asset errors");
+    console.log("   - Runtime dependency issues");
 
     // Start the server
     const serverProcess = spawn("npx", ["serve", "dist", "-s", "-l", "3000"], {
@@ -88,29 +88,29 @@ exec("npm ls --depth=0", (error, stdout) => {
       shell: true,
     });
 
-    logDebug("\n🌐 Server running at: http://localhost:3000");
-    logDebug("📋 Test checklist:");
-    logDebug("   □ Check browser console for errors");
-    logDebug("   □ Navigate to all app routes");
-    logDebug("   □ Test core functionality");
-    logDebug("   □ Check Network tab for failed requests");
-    logDebug("\nPress Ctrl+C to stop server and see analysis");
+    console.log("\n🌐 Server running at: http://localhost:3000");
+    console.log("📋 Test checklist:");
+    console.log("   □ Check browser console for errors");
+    console.log("   □ Navigate to all app routes");
+    console.log("   □ Test core functionality");
+    console.log("   □ Check Network tab for failed requests");
+    console.log("\nPress Ctrl+C to stop server and see analysis");
 
     // Handle cleanup
     const cleanup = () => {
-      logDebug("\n🛑 Stopping server...");
+      console.log("\n🛑 Stopping server...");
       serverProcess.kill();
 
-      logDebug("\n📋 Post-test dependency analysis:");
-      logDebug("💡 Common signs of missing dependencies:");
-      logDebug('   - "Module not found" errors in console');
-      logDebug("   - Features that work in dev but not production");
-      logDebug("   - White screens or infinite loading");
-      logDebug("   - 404 errors for assets");
-      logDebug("\n🔧 To investigate further, run:");
-      logDebug("   npx expo export -p web --dump-assetmap");
-      logDebug("   npm audit");
-      logDebug("   expo doctor");
+      console.log("\n📋 Post-test dependency analysis:");
+      console.log("💡 Common signs of missing dependencies:");
+      console.log('   - "Module not found" errors in console');
+      console.log("   - Features that work in dev but not production");
+      console.log("   - White screens or infinite loading");
+      console.log("   - 404 errors for assets");
+      console.log("\n🔧 To investigate further, run:");
+      console.log("   npx expo export -p web --dump-assetmap");
+      console.log("   npm audit");
+      console.log("   expo doctor");
 
       process.exit(0);
     };
