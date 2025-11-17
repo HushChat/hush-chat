@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { View, Pressable } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -98,19 +98,10 @@ const ReactionPicker = memo(
 
     if (!visible) return null;
 
+    const alignmentStyle = isCurrentUser ? styles.alignEnd : styles.alignStart;
+
     return (
-      <View
-        pointerEvents="box-none"
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          justifyContent: "center",
-          alignItems: isCurrentUser ? "flex-end" : "flex-start",
-        }}
-      >
+      <View pointerEvents="box-none" style={[styles.overlay, alignmentStyle]}>
         <Animated.View
           ref={rootRef}
           style={animatedStyle}
@@ -130,3 +121,20 @@ const ReactionPicker = memo(
 
 ReactionPicker.displayName = "ReactionPicker";
 export default ReactionPicker;
+
+const styles = StyleSheet.create({
+  overlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+  },
+  alignEnd: {
+    alignItems: "flex-end",
+  },
+  alignStart: {
+    alignItems: "flex-start",
+  },
+});

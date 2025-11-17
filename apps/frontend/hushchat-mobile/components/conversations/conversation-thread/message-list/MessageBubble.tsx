@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
@@ -20,6 +20,8 @@ interface MessageBubbleProps {
   isForwardedMessage: boolean;
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
+  style?: ViewStyle | ViewStyle[];
+  messageTextStyle?: TextStyle;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -33,6 +35,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   isForwardedMessage,
   attachments,
   onBubblePress,
+  style,
+  messageTextStyle,
 }) => {
   const messageContent = message.messageText;
 
@@ -63,10 +67,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             isForwardedMessage && "shadow-sm",
             hasImages && !messageContent ? "" : "px-3 py-2"
           )}
-          style={{
-            maxWidth: hasAttachments ? 305 : "70%",
-            ...getBubbleBorderStyle(isForwardedMessage, isCurrentUser),
-          }}
+          style={[style, getBubbleBorderStyle(isForwardedMessage, isCurrentUser)]}
         >
           {hasAttachments && (
             <View className={messageContent ? "mb-2" : ""}>
@@ -77,11 +78,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {!message.isUnsend && messageContent ? (
             <FormattedText
               text={message.messageText}
-              style={{
-                fontSize: 16,
-                lineHeight: 20,
-                fontFamily: "Poppins-Regular",
-              }}
+              style={messageTextStyle || styles.messageText}
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
             />
@@ -93,3 +90,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  messageText: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontFamily: "Poppins-Regular",
+  },
+});

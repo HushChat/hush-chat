@@ -6,6 +6,7 @@ import {
   Pressable,
   Text,
   View,
+  StyleSheet,
 } from "react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -135,7 +136,7 @@ const MessageReactionsModalWeb = ({
 
   return (
     <Modal transparent={true} visible={shouldRender} onRequestClose={handleClose}>
-      <Pressable className="flex-1" onPress={handleClose} style={{ cursor: "auto" }}>
+      <Pressable className="flex-1" onPress={handleClose} style={styles.pressableCursor}>
         <View
           ref={modalRef}
           pointerEvents="box-none"
@@ -180,10 +181,10 @@ const MessageReactionsModalWeb = ({
             ListFooterComponent={renderFooter}
             ListEmptyComponent={renderEmpty}
             showsVerticalScrollIndicator={true}
-            style={{ maxHeight: 56 * 3.5 }}
-            contentContainerStyle={{
-              flexGrow: messageReactions.length === 0 ? 1 : undefined,
-            }}
+            style={styles.listMaxHeight}
+            contentContainerStyle={
+              messageReactions.length === 0 ? styles.flexGrow1 : styles.flexGrow0
+            }
           />
         </View>
       </Pressable>
@@ -192,3 +193,18 @@ const MessageReactionsModalWeb = ({
 };
 
 export default MessageReactionsModalWeb;
+
+const styles = StyleSheet.create({
+  pressableCursor: {
+    cursor: "auto",
+  },
+  listMaxHeight: {
+    maxHeight: 56 * 3.5,
+  },
+  flexGrow1: {
+    flexGrow: 1,
+  },
+  flexGrow0: {
+    flexGrow: 0,
+  },
+});

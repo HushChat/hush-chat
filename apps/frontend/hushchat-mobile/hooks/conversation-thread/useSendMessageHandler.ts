@@ -5,6 +5,7 @@ import type { IMessage } from "@/types/chat/types";
 import type { UseMutateFunction } from "@tanstack/react-query";
 import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
+import { logError } from "@/utils/logger";
 
 interface IUseSendMessageHandlerParams {
   selectedConversationId: number;
@@ -102,7 +103,7 @@ export const useSendMessageHandler = ({
 
         setSelectedMessage(null);
       } catch (error) {
-        console.error("Failed to send message:", error);
+        logError("Failed to send message:", error);
       }
     },
     [

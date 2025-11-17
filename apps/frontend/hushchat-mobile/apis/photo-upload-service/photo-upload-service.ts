@@ -11,6 +11,7 @@ import {
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
+import { logWarn } from "@/utils/logger";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -236,7 +237,7 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
         try {
           URL.revokeObjectURL(lf._blobUrl);
         } catch (err) {
-          console.warn("Failed to revoke object URL:", lf._blobUrl, err);
+          logWarn("Failed to revoke object URL:", lf._blobUrl, err);
         }
       });
     }

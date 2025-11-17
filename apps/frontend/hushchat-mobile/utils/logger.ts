@@ -54,3 +54,16 @@ export const logError = (...args: any[]) => {
     console.error(...args);
   }
 };
+
+/**
+ * Log debug messages.
+ *
+ * Use this for low-level debugging information
+ * that is useful during development but not needed in production.
+ */
+export const logDebug = (...args: any[]) => {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+};

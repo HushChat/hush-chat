@@ -86,7 +86,7 @@ export const emitNewMessage = (messageWithConversation: IConversation) => {
 //   type: WebSocketError['type'] = 'unknown',
 //   conversationId?: number
 // ) => {
-//   console.error('❌ WebSocket error:', error);
+//   logInfo('❌ WebSocket error:', error);
 //
 //   eventBus.emit('websocket:error', {
 //     error,
