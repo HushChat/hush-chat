@@ -23,6 +23,11 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
+import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
+import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
+import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
+import { isImageAttachment } from "@/utils/messageHelpers";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -31,11 +36,6 @@ const COLORS = {
   FORWARDED_INCOMING_BORDER: "#9CA3AF30",
   FORWARDED_OUTGOING_BORDER: "#60A5FA30",
 };
-import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
-import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
-import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
-import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
-import { isImageAttachment } from "@/utils/messageHelpers";
 
 interface MessageItemProps {
   message: IMessage;
