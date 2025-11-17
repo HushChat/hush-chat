@@ -6,6 +6,7 @@ import {
   Text,
   View,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import classNames from "classnames";
 import { ConversationParticipant } from "@/types/chat/types";
@@ -80,8 +81,8 @@ const MentionSuggestions = ({
       <View className="absolute bottom-24 left-3 z-50 w-[320px] max-w-[80%]">
         <View
           className={classNames(
-            "rounded-lg custom-scrollbar py-2 items-center", 
-            "bg-background-light dark:bg-background-dark",
+            "rounded-lg custom-scrollbar py-2 items-center",
+            "bg-background-light dark:bg-background-dark"
           )}
         >
           <ActivityIndicator size="small" />
@@ -105,7 +106,7 @@ const MentionSuggestions = ({
           data={participants}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
-          style={{ maxHeight: 300 }}
+          style={styles.listMaxHeight}
           keyboardShouldPersistTaps="handled"
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
@@ -125,3 +126,9 @@ const MentionSuggestions = ({
 };
 
 export default MentionSuggestions;
+
+const styles = StyleSheet.create({
+  listMaxHeight: {
+    maxHeight: 300,
+  },
+});

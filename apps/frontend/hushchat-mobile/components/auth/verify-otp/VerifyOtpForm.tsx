@@ -42,16 +42,17 @@ export const VerifyOtpForm = ({
           formValues={{ otp: confirmationCode }}
           formErrors={{ otp: "" }}
           showErrors={false}
-          onValueChange={({ name, value }) => onCodeChange(value)}
+          onValueChange={({ value }) => onCodeChange(value)}
         />
       </View>
 
       <View style={styles.resendContainer}>
         <Text style={[styles.resendText, { color: colors.textSecondary }]}>
-          Didn&#39;t receive the verification code?{" "}
+          Didn&apos;t receive the verification code?{" "}
         </Text>
+
         <TouchableOpacity onPress={onResendOtp} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
-          <Text style={styles.resendLink}>Resend</Text>
+          <Text style={[styles.resendLink, { color: colors.primary }]}>Resend</Text>
         </TouchableOpacity>
       </View>
 
@@ -60,7 +61,7 @@ export const VerifyOtpForm = ({
         onPress={onSubmit}
         disabled={isLoading}
         colors={colors}
-        style={{ marginTop: 24 }}
+        style={styles.submitButton}
       />
     </FormContainer>
   );
@@ -84,7 +85,9 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14,
-    color: "#007AFF",
     textDecorationLine: "underline",
+  },
+  submitButton: {
+    marginTop: 24,
   },
 });

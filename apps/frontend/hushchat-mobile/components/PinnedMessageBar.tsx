@@ -1,7 +1,11 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useAppTheme } from "@/hooks/useAppTheme";
+
+const COLORS = {
+  SHADOW_COLOR: "#000000",
+};
 
 interface PinnedMessageBarProps {
   senderName: string;
@@ -22,13 +26,7 @@ export const PinnedMessageBar = ({
     <Pressable
       onPress={onPress}
       className="flex-row items-center px-4 py-3 bg-secondary-light/40 dark:bg-secondary-dark/40 border-l-4 border-primary-light dark:border-primary-dark shadow-sm"
-      style={{
-        boxShadow: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 1,
-      }}
+      style={styles.containerShadow}
     >
       <View className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-blue-400/10 items-center justify-center mr-3">
         <Ionicons
@@ -67,3 +65,13 @@ export const PinnedMessageBar = ({
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  containerShadow: {
+    shadowColor: COLORS.SHADOW_COLOR,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+});

@@ -1,4 +1,4 @@
-import { View, Dimensions } from "react-native";
+import { View, Dimensions, StyleSheet } from "react-native";
 import FilterButton from "@/components/FilterButton";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import usePanelManager from "@/hooks/useWebPanelManager";
@@ -13,10 +13,10 @@ import { ConversationHeader } from "@/components/conversations/ConversationHeade
 import { WebGroupCreation } from "@/components/conversations/conversation-list/group-conversation-creation/web/WebGroupCreation";
 import { PanelType } from "@/types/web-panel/types";
 import SearchedConversationMessages from "@/components/SearchedConversationMessages";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { AllParticipants } from "@/components/conversations/AllParticipants";
 import ConversationForwardPanelWeb from "@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel";
 import { EMPTY_SET } from "@/constants/constants";
+import { MotionView } from "@/motion/MotionView";
 
 export default function ChatInterface({
   chatItemList,
@@ -35,13 +35,12 @@ export default function ChatInterface({
     setSelectedMessageIds,
   } = useConversationStore();
 
-  const [showProfilePanel, setShowProfilePanel] = useState<boolean>(false);
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
 
-  const { activePanel, isPanelContentReady, contentOpacity, widthAnim, openPanel, closePanel } =
+  const { activePanel, isPanelOpen, isPanelContentReady, panelWidth, openPanel, closePanel } =
     usePanelManager(screenWidth);
 
   const handleSearchMessageClick = useCallback((message: any) => {
@@ -63,7 +62,6 @@ export default function ChatInterface({
 
   const handleBackToPlaceholder = () => {
     setSelectedConversation?.(null);
-    setShowProfilePanel(false);
   };
 
   const handleShowProfile = useCallback(() => {
@@ -87,7 +85,7 @@ export default function ChatInterface({
   }, [closePanel, selectedConversation?.id]);
 
   const renderPanelContent = () => {
-    if (!isPanelContentReady || !selectedConversation) return null;
+    if (!selectedConversation) return null;
 
     switch (activePanel) {
       case PanelType.PROFILE:
@@ -123,25 +121,16 @@ export default function ChatInterface({
     }
   };
 
-  const threadStyle = useAnimatedStyle(() => ({
-    width: showProfilePanel ? screenWidth - widthAnim.value : screenWidth,
-  }));
-
-  const panelStyle = useAnimatedStyle(() => ({
-    width: widthAnim.value,
-  }));
-
-  const panelContentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
+  const threadWidth = isPanelOpen ? screenWidth - panelWidth : screenWidth;
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-row h-full relative">
+        {/* LEFT PANE */}
         <View
           onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
-          style={{ position: "relative" }}
           className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
+          style={styles.leftPaneContainer}
         >
           <ConversationHeader
             selectedConversationType={selectedConversationType}
@@ -150,6 +139,7 @@ export default function ChatInterface({
             isLoading={conversationsLoading}
             onCreateGroup={() => setShowCreateGroup(true)}
           />
+
           {selectedConversationType === ConversationType.ALL && (
             <View className="px-5">
               <SearchBar
@@ -195,9 +185,15 @@ export default function ChatInterface({
           )}
         </View>
 
-        <Animated.View
-          style={[{ flexGrow: 1, flexShrink: 1, minWidth: 0 }, threadStyle]}
+        {/* THREAD PANEL */}
+        <MotionView
+          visible={true}
+          from={{ width: screenWidth }}
+          to={{ width: threadWidth }}
+          duration={300}
+          easing="decelerate"
           className="bg-background-light dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800"
+          style={styles.threadMotion}
         >
           {selectedConversation ? (
             <ConversationThreadScreen
@@ -216,20 +212,53 @@ export default function ChatInterface({
               image={Images.NoChatSelected}
             />
           )}
-        </Animated.View>
+        </MotionView>
 
-        <Animated.View
-          style={[{ flexShrink: 0, overflow: "hidden" }, panelStyle]}
+        {/* RIGHT PANEL */}
+        <MotionView
+          visible={isPanelOpen}
+          from={{ width: 0, opacity: 0 }}
+          to={{ width: panelWidth, opacity: 1 }}
+          duration={300}
+          easing="decelerate"
           className="bg-background-light dark:bg-gray-900"
+          style={[styles.rightPanel, getRightPanelPosition(isPanelOpen)]}
         >
-          <Animated.View
-            style={[{ flex: 1 }, panelContentStyle]}
+          <MotionView
+            visible={isPanelContentReady}
+            preset="fadeIn"
+            duration={200}
+            delay={100}
             className="bg-background-light dark:bg-gray-900"
+            style={styles.flex1}
           >
-            {renderPanelContent()}
-          </Animated.View>
-        </Animated.View>
+            {isPanelContentReady && renderPanelContent()}
+          </MotionView>
+        </MotionView>
       </View>
     </View>
   );
 }
+
+const getRightPanelPosition = (open: boolean): { position: "relative" | "absolute" } => ({
+  position: open ? "relative" : "absolute",
+});
+
+const styles = StyleSheet.create({
+  leftPaneContainer: {
+    position: "relative",
+  },
+  threadMotion: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  rightPanel: {
+    flexShrink: 0,
+    overflow: "hidden",
+    right: 0,
+  },
+  flex1: {
+    flex: 1,
+  },
+});

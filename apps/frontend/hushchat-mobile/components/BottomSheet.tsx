@@ -1,16 +1,18 @@
-import React, { useEffect } from "react";
-import { View, Modal, TouchableOpacity, TouchableWithoutFeedback, Dimensions } from "react-native";
+import React from "react";
+import {
+  View,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Dimensions,
+  StyleSheet,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, {
-  useSharedValue,
-  withTiming,
-  useAnimatedStyle,
-  Easing,
-} from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
+import { MotionView } from "@/motion/MotionView";
 
 export interface BottomSheetOption {
   id: string;
@@ -28,6 +30,12 @@ interface BottomSheetProps {
   showBorders?: boolean;
 }
 
+const COLORS = {
+  BACKDROP: "rgba(0, 0, 0, 0.5)",
+  ICON_DESTRUCTIVE: "#EF4444",
+  ICON_NEUTRAL: "#6B7280",
+};
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const BottomSheet = ({
@@ -39,47 +47,16 @@ const BottomSheet = ({
 }: BottomSheetProps) => {
   const insets = useSafeAreaInsets();
 
-  const translateY = useSharedValue(SCREEN_HEIGHT);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    if (visible) {
-      translateY.value = withTiming(0, {
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-      });
-      opacity.value = withTiming(1, {
-        duration: 300,
-        easing: Easing.out(Easing.quad),
-      });
-    } else {
-      translateY.value = withTiming(SCREEN_HEIGHT, {
-        duration: 250,
-        easing: Easing.in(Easing.cubic),
-      });
-      opacity.value = withTiming(0, {
-        duration: 250,
-        easing: Easing.in(Easing.quad),
-      });
-    }
-  }, [visible, translateY, opacity]);
-
-  const handleClose = () => {
-    scheduleOnRN(onClose);
-  };
+  const handleClose = () => scheduleOnRN(onClose);
 
   const handleOptionPress = (option: BottomSheetOption) => {
     option.onPress();
     handleClose();
   };
 
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
+  const optionsContainerStyle = {
+    paddingBottom: insets.bottom + 16,
+  };
 
   return (
     <Modal
@@ -90,83 +67,98 @@ const BottomSheet = ({
       statusBarTranslucent
     >
       <TouchableWithoutFeedback onPress={handleClose}>
-        <Animated.View
-          style={[
-            {
-              flex: 1,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-            },
-            backdropStyle,
-          ]}
-        >
-          <TouchableWithoutFeedback>
-            <Animated.View
-              style={[
-                {
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                },
-                sheetStyle,
-              ]}
-              className="bg-background-light dark:bg-background-dark rounded-t-3xl"
-            >
-              <View className="items-center py-3">
-                <View className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+        <View style={styles.fullscreen}>
+          <MotionView
+            visible={visible}
+            from={{ opacity: 0 }}
+            to={{ opacity: 1 }}
+            duration={{ enter: 300, exit: 250 }}
+            easing="standard"
+            style={[StyleSheet.absoluteFillObject, styles.backdrop]}
+            pointerEvents="none"
+          />
+
+          {/* SHEET */}
+          <MotionView
+            visible={visible}
+            from={{ translateY: SCREEN_HEIGHT }}
+            to={{ translateY: 0 }}
+            duration={{ enter: 300, exit: 250 }}
+            easing="standard"
+            pointerEvents="box-none"
+            style={styles.sheetContainer}
+            className="bg-background-light dark:bg-background-dark rounded-t-3xl"
+          >
+            <View className="items-center py-3">
+              <View className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </View>
+
+            {title && (
+              <View className="px-4 pb-2">
+                <AppText className="text-lg font-semibold text-center text-text-primary-light dark:text-text-primary-dark">
+                  {title}
+                </AppText>
               </View>
+            )}
 
-              {title && (
-                <View className="px-4 pb-2">
-                  <AppText className="text-lg font-semibold text-center text-text-primary-light dark:text-text-primary-dark">
-                    {title}
-                  </AppText>
-                </View>
-              )}
-
-              <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
-                {options.map((option, index) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    onPress={() => handleOptionPress(option)}
-                    activeOpacity={DEFAULT_ACTIVE_OPACITY}
-                    className={`flex-row items-center py-4 px-2 ${
-                      showBorders && index < options.length - 1
-                        ? "border-b border-gray-200 dark:border-gray-700"
-                        : ""
+            <View className="px-4 pb-4" style={optionsContainerStyle}>
+              {options.map((option, index) => (
+                <TouchableOpacity
+                  key={option.id}
+                  onPress={() => handleOptionPress(option)}
+                  activeOpacity={DEFAULT_ACTIVE_OPACITY}
+                  className={`flex-row items-center py-4 px-2 ${
+                    showBorders && index < options.length - 1
+                      ? "border-b border-gray-200 dark:border-gray-700"
+                      : ""
+                  }`}
+                >
+                  <View
+                    className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${
+                      option.destructive
+                        ? "bg-red-100 dark:bg-red-900/30"
+                        : "bg-gray-100 dark:bg-gray-800"
                     }`}
                   >
-                    <View
-                      className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${
-                        option.destructive
-                          ? "bg-red-100 dark:bg-red-900/30"
-                          : "bg-gray-100 dark:bg-gray-800"
-                      }`}
-                    >
-                      <Ionicons
-                        name={option.icon}
-                        size={20}
-                        color={option.destructive ? "#EF4444" : "#6B7280"}
-                      />
-                    </View>
-                    <AppText
-                      className={`text-base font-medium ${
-                        option.destructive
-                          ? "text-red-500"
-                          : "text-text-primary-light dark:text-text-primary-dark"
-                      }`}
-                    >
-                      {option.title}
-                    </AppText>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Animated.View>
-          </TouchableWithoutFeedback>
-        </Animated.View>
+                    <Ionicons
+                      name={option.icon}
+                      size={20}
+                      color={option.destructive ? COLORS.ICON_DESTRUCTIVE : COLORS.ICON_NEUTRAL}
+                    />
+                  </View>
+
+                  <AppText
+                    className={`text-base font-medium ${
+                      option.destructive
+                        ? "text-red-500"
+                        : "text-text-primary-light dark:text-text-primary-dark"
+                    }`}
+                  >
+                    {option.title}
+                  </AppText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </MotionView>
+        </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
 };
 
 export default BottomSheet;
+
+const styles = StyleSheet.create({
+  fullscreen: {
+    flex: 1,
+  },
+  backdrop: {
+    backgroundColor: COLORS.BACKDROP,
+  },
+  sheetContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+});

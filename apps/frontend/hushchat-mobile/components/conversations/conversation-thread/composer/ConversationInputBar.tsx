@@ -7,11 +7,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Keyboard,
   TextInput,
   TextInputContentSizeChangeEvent,
   TextInputSelectionChangeEvent,
   View,
+  StyleSheet,
 } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import classNames from "classnames";
@@ -52,6 +52,7 @@ import WebChatContextMenu from "@/components/WebContextMenu";
 import { validateFiles } from "@/utils/fileValidation";
 import { getConversationMenuOptions } from "@/components/conversations/conversation-thread/composer/menuOptions";
 import { AppText } from "@/components/AppText";
+import { logInfo } from "@/utils/logger";
 
 type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
@@ -82,7 +83,7 @@ const ConversationInputBar = ({
   minLines = 1,
   maxLines = 6,
   lineHeight = 22,
-  verticalPadding = 12,
+  verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
   maxChars,
   autoFocus = false,
   replyToMessage,
@@ -140,7 +141,7 @@ const ConversationInputBar = ({
         setInputHeight(target);
         animatedHeight.value = target;
       } catch (e) {
-        console.error("Failed to load draft", e);
+        logInfo("Failed to load draft", e);
       }
     };
 
@@ -151,7 +152,6 @@ const ConversationInputBar = ({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   useEffect(() => {
@@ -255,8 +255,15 @@ const ConversationInputBar = ({
       );
 
       void storage.remove(getDraftKey(conversationId));
-      if (!PLATFORM.IS_WEB) Keyboard.dismiss();
-      onCancelReply?.();
+
+      if (replyToMessage) {
+        onCancelReply?.();
+      }
+
+      requestAnimationFrame(() => {
+        textInputRef.current?.focus();
+      });
+
       setMentionQuery(null);
     },
     [
@@ -350,7 +357,7 @@ const ConversationInputBar = ({
           PLATFORM.IS_WEB ? "p-4" : "p-3"
         )}
       >
-        <View ref={addButtonContainerRef} style={{ alignSelf: "flex-end" }}>
+        <View ref={addButtonContainerRef} style={styles.addButtonWrapper}>
           <PrimaryCircularButton
             disabled={disabled}
             iconSize={20}
@@ -366,11 +373,7 @@ const ConversationInputBar = ({
                 "flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark",
                 PLATFORM.IS_WEB ? "px-4" : "px-3"
               )}
-              style={{
-                position: "relative",
-                alignItems: "flex-end",
-                paddingRight: RIGHT_ICON_GUTTER,
-              }}
+              style={styles.inputContainer}
             >
               <TextInput
                 ref={textInputRef}
@@ -449,7 +452,7 @@ const ConversationInputBar = ({
             type="file"
             accept={ACCEPT_FILE_TYPES}
             multiple
-            style={{ display: "none" }}
+            style={styles.hiddenFileInput}
             onChange={handleFileChange}
           />
         )}
@@ -485,3 +488,17 @@ const ConversationInputBar = ({
 };
 
 export default ConversationInputBar;
+
+const styles = StyleSheet.create({
+  addButtonWrapper: {
+    alignSelf: "flex-end",
+  },
+  inputContainer: {
+    position: "relative",
+    alignItems: "flex-end",
+    paddingRight: RIGHT_ICON_GUTTER,
+  },
+  hiddenFileInput: {
+    display: "none",
+  },
+});

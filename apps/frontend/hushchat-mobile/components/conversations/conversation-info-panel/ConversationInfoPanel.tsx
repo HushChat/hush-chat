@@ -1,10 +1,9 @@
-import React, { useEffect } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import React from "react";
+import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { useAnimatedEntrance } from "@/hooks/useAnimatedEntrance";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import { MotionView } from "@/motion/MotionView";
 import ErrorView from "@/components/ErrorView";
 import { Images } from "@/assets/images";
 import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
@@ -26,12 +25,6 @@ export default function ConversationInfoPanel({
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const router = useRouter();
-  const { opacity, translateY, show } = useAnimatedEntrance();
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
-  }));
 
   const {
     conversationAPIResponse,
@@ -40,20 +33,16 @@ export default function ConversationInfoPanel({
     refetchConversation,
   } = useConversationByIdQuery(conversationId);
 
-  useEffect(() => {
-    void show();
-  }, [show]);
-
   const goBack = () => (onClose ? onClose() : router.back());
 
   if (conversationAPILoading) {
     return (
       <View
         className="flex-1 items-center justify-center"
-        style={{
-          backgroundColor: colors.background,
-          paddingTop: insets.top + 12,
-        }}
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: colors.background, paddingTop: insets.top + 12 },
+        ]}
       >
         <ActivityIndicator size="large" color="#3b82f6" />
         <Text className="mt-4 text-gray-600 dark:text-text-secondary-dark">
@@ -79,7 +68,7 @@ export default function ConversationInfoPanel({
 
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark border-l border-gray-200 dark:border-gray-800">
-      <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+      <MotionView visible={true} preset="slideUp" duration={500} style={styles.flex1}>
         {isGroup ? (
           <GroupChatInfo
             conversation={conversationAPIResponse}
@@ -93,7 +82,16 @@ export default function ConversationInfoPanel({
             setSelectedConversation={setSelectedConversation}
           />
         )}
-      </Animated.View>
+      </MotionView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+  },
+});

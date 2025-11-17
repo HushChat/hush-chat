@@ -1,4 +1,5 @@
 import { ApiResponse } from "@/types/common/types";
+import { logInfo } from "@/utils/logger";
 import { useMutation, UseMutationOptions, useQueryClient } from "@tanstack/react-query";
 
 /**
@@ -51,7 +52,7 @@ export const useGenericMutation = <TData, TVariables = void>(
 
   return useMutation({
     mutationFn,
-    onSuccess: async (response, variables, context) => {
+    onSuccess: async (response, variables) => {
       const { isSuccess, data } = isSuccessResponse(response);
 
       if (isSuccess) {
@@ -79,13 +80,13 @@ export const useGenericMutation = <TData, TVariables = void>(
         }
       } else {
         // Handle API errors (no invalidation)
-        console.error("API error:", response.error);
+        logInfo("API error:", response.error);
         options?.onError?.(response.error);
       }
     },
     onError: (error) => {
       // Handle network/unexpected errors (no invalidation)
-      console.error("Network/unexpected error:", error);
+      logInfo("Network/unexpected error:", error);
       options?.onError?.(error);
     },
     ...options?.mutationOptions,

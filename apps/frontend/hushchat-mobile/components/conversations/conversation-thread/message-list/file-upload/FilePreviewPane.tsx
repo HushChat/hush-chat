@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, TextInput, Text } from "react-native";
+import { View, TextInput, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
@@ -48,11 +48,7 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-1 items-center justify-center px-6">
         {fileType === "image" ? (
-          <Image
-            source={{ uri: url }}
-            contentFit="contain"
-            style={{ width: "100%", height: 420 }}
-          />
+          <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />
         ) : (
           <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
             <Ionicons name="document-text-outline" size={64} color={iconColor} />
@@ -76,7 +72,7 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
           value={message}
           onChangeText={onMessageChange}
           editable={!isSending}
-          style={{ minHeight: 84, maxHeight: 140, textAlignVertical: "top" }}
+          style={styles.captionInput}
         />
       </View>
     </View>
@@ -84,3 +80,15 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
 };
 
 export default FilePreviewPane;
+
+const styles = StyleSheet.create({
+  previewImage: {
+    width: "100%",
+    height: 420,
+  },
+  captionInput: {
+    minHeight: 84,
+    maxHeight: 140,
+    textAlignVertical: "top",
+  },
+});

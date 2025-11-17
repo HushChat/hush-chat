@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, ActivityIndicator, ScrollView, Image } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  Image,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "@/store/user/useUserStore";
 import { router } from "expo-router";
@@ -54,6 +61,11 @@ const ProfileField = ({
     )}
   </View>
 );
+
+const COLORS = {
+  CAMERA_BG: "#3b82f6",
+  WHITE: "#ffffff",
+};
 
 export default function Profile() {
   const { logout } = useAuthStore();
@@ -138,7 +150,7 @@ export default function Profile() {
   }
 
   const ProfileContent = () => (
-    <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView contentContainerStyle={styles.scrollContent}>
       <View className="mt-8 px-4">
         <View className="items-center py-10 rounded-3xl max-w-3xl w-full mx-auto dark:bg-background-dark light:bg-secondary-light">
           <TouchableOpacity
@@ -146,18 +158,18 @@ export default function Profile() {
             disabled={uploading}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
-            <View style={{ position: "relative" }}>
+            <View style={styles.avatarContainer}>
               {imagePickerResult?.assets?.[0]?.uri ? (
                 <Image
                   source={{ uri: imagePickerResult.assets[0].uri }}
-                  style={{ width: 160, height: 160, borderRadius: 80 }}
+                  style={styles.avatarImage}
                   resizeMode="cover"
                   onError={() => setImageError(true)}
                 />
               ) : user.signedImageUrl && !imageError ? (
                 <Image
                   source={{ uri: user.signedImageUrl }}
-                  style={{ width: 160, height: 160, borderRadius: 80 }}
+                  style={styles.avatarImage}
                   resizeMode="cover"
                   onError={() => setImageError(true)}
                 />
@@ -167,18 +179,7 @@ export default function Profile() {
 
               <UploadIndicator isUploading={uploading} />
 
-              <View
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  backgroundColor: "#3b82f6",
-                  borderRadius: 16,
-                  padding: 4,
-                  borderWidth: 2,
-                  borderColor: "#fff",
-                }}
-              >
+              <View style={styles.cameraIconContainer}>
                 <Ionicons name="camera" size={18} color="#fff" />
               </View>
             </View>
@@ -259,3 +260,27 @@ export default function Profile() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  avatarContainer: {
+    position: "relative",
+  },
+  avatarImage: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+  },
+  cameraIconContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.CAMERA_BG,
+    borderRadius: 16,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: COLORS.WHITE,
+  },
+});

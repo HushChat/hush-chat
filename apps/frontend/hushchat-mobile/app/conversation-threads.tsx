@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
+import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,7 +28,6 @@ import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 
-import { format } from "date-fns";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
@@ -37,6 +36,7 @@ import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLa
 import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 
+import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
 
@@ -192,6 +192,20 @@ const ConversationThreadScreen = ({
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
+
+  const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
+    selectedConversationId,
+    currentUserId,
+    imageMessage,
+    setImageMessage,
+    selectedMessage,
+    setSelectedMessage,
+    selectedFiles,
+    sendMessage,
+    uploadFilesFromWeb,
+    updateConversationMessagesCache,
+    handleCloseImagePreview,
+  });
 
   useEffect(() => {
     setSelectedMessage(null);
@@ -430,6 +444,13 @@ const ConversationThreadScreen = ({
     isGroupChat,
   ]);
 
+  const actionBarStyle = useMemo(
+    () => ({
+      paddingBottom: insets.bottom,
+    }),
+    [insets.bottom]
+  );
+
   return (
     <SafeAreaView
       className="flex-1 bg-background-light dark:bg-background-dark"
@@ -444,7 +465,7 @@ const ConversationThreadScreen = ({
         webPressSearch={webSearchPress}
       />
 
-      <KeyboardAvoidingView className="flex-1" behavior={PLATFORM.IS_IOS ? "padding" : "height"}>
+      <KeyboardAvoidingView className="flex-1" behavior="padding">
         <ImageBackground
           source={Images.chatBackground}
           className="flex-1"
@@ -468,18 +489,20 @@ const ConversationThreadScreen = ({
               ) : (
                 <>
                   {renderContent()}
-                  {renderTextInput()}
+                  <View style={styles.textInputWrapper}>{renderTextInput()}</View>
                   {selectionMode && (
-                    <MessageForwardActionBar
-                      visible={selectionMode}
-                      count={selectedMessageIds.size}
-                      isDark={isDark}
-                      onCancel={() => {
-                        setSelectionMode(false);
-                        setSelectedMessageIds(EMPTY_SET);
-                      }}
-                      onForward={onForwardPress}
-                    />
+                    <View style={actionBarStyle}>
+                      <MessageForwardActionBar
+                        visible={selectionMode}
+                        count={selectedMessageIds.size}
+                        isDark={isDark}
+                        onCancel={() => {
+                          setSelectionMode(false);
+                          setSelectedMessageIds(EMPTY_SET);
+                        }}
+                        onForward={onForwardPress}
+                      />
+                    </View>
                   )}
                 </>
               )}
@@ -492,3 +515,9 @@ const ConversationThreadScreen = ({
 };
 
 export default ConversationThreadScreen;
+
+const styles = StyleSheet.create({
+  textInputWrapper: {
+    paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
+  },
+});

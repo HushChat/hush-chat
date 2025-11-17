@@ -317,7 +317,8 @@ public class ConversationService {
     private static List<MessageViewDTO> getMessageViewDTOS(
             Page<Message> messages,
             Message lastSeenMessage,
-            Map<Long, MessageReactionSummaryDTO> reactionSummaryMap
+            Map<Long, MessageReactionSummaryDTO> reactionSummaryMap,
+            CloudPhotoHandlingService cloudPhotoHandlingService
     ) {
         Long lastSeenMessageId = (lastSeenMessage != null) ? lastSeenMessage.getId() : null;
         boolean hasReactions = reactionSummaryMap != null;
@@ -325,6 +326,9 @@ public class ConversationService {
         return messages.getContent().stream()
                 .map(message -> {
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
+                    
+                     String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageViewDTO.getImageIndexedName());
+                     messageViewDTO.setSenderSignedImageUrl(signedUrl);
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
                         messageViewDTO.setReactionSummary(summary != null ? summary : new MessageReactionSummaryDTO());
@@ -513,7 +517,7 @@ public class ConversationService {
         Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
                 messageReactionRepository.findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
 
-        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap);
+        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap, cloudPhotoHandlingService);
         messageMentionService.appendMessageMentions(messageViewDTOS);
         
         Map<Long, Message> messageMap = messages.getContent().stream()

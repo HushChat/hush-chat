@@ -5,14 +5,12 @@
 
 import React, { useState } from "react";
 import { IMessageAttachment } from "@/types/chat/types";
-import { TouchableOpacity, View, ViewStyle, ImageStyle, Linking } from "react-native";
+import { TouchableOpacity, View, ViewStyle, ImageStyle, Linking, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-// @ts-ignore
-// eslint-disable-next-line import/no-unresolved
 import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
 
 const GRID_CONFIG = {
@@ -24,26 +22,77 @@ const GRID_CONFIG = {
   MAX_DISPLAY_IMAGES: 4,
 } as const;
 
+const COLORS = {
+  OVERLAY_DARK: "rgba(0,0,0,0.65)",
+};
+
 const createImageStyle = (width: number, height: number): ImageStyle => ({
   width,
   height,
   borderRadius: GRID_CONFIG.BORDER_RADIUS,
 });
 
-const styles = {
+const staticStyles = StyleSheet.create({
+  gap: {
+    gap: GRID_CONFIG.IMAGE_GAP,
+  },
+  singleImageContainer: {
+    overflow: "hidden",
+    borderRadius: GRID_CONFIG.BORDER_RADIUS,
+  },
+  overlayContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.OVERLAY_DARK,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: GRID_CONFIG.BORDER_RADIUS,
+  },
+  imageItemContainer: {
+    position: "relative",
+  },
+  documentCardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  documentIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  documentIconText: {
+    fontSize: 8,
+    fontWeight: "bold",
+    marginTop: 2,
+  },
+  documentTextContainer: {
+    flex: 1,
+    minWidth: 0,
+  },
+  documentTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  documentSubtitle: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+  documentDownloadContainer: {
+    marginLeft: 8,
+  },
+});
+
+const dynamicStyles = {
   container: (isCurrentUser: boolean): ViewStyle => ({
     maxWidth: GRID_CONFIG.MAX_WIDTH,
     alignSelf: isCurrentUser ? "flex-end" : "flex-start",
   }),
-
-  gap: {
-    gap: GRID_CONFIG.IMAGE_GAP,
-  } as ViewStyle,
-
-  singleImageContainer: {
-    overflow: "hidden",
-    borderRadius: GRID_CONFIG.BORDER_RADIUS,
-  } as ViewStyle,
 
   singleImage: (aspectRatio: number): ImageStyle => {
     const maxWidth = GRID_CONFIG.MAX_WIDTH;
@@ -84,17 +133,34 @@ const styles = {
     (GRID_CONFIG.MAX_HEIGHT - GRID_CONFIG.IMAGE_GAP) / 2
   ),
 
-  overlayContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.65)",
-    alignItems: "center",
-    justifyContent: "center",
+  documentCard: (isCurrentUser: boolean, bgColor: string, borderColor: string): ViewStyle => ({
+    maxWidth: GRID_CONFIG.MAX_WIDTH,
+    padding: 12,
+    backgroundColor: bgColor,
     borderRadius: GRID_CONFIG.BORDER_RADIUS,
-  } as ViewStyle,
+    borderWidth: 1,
+    borderColor,
+    alignSelf: isCurrentUser ? "flex-end" : "flex-start",
+  }),
+
+  documentIconText: (color: string) => ({
+    ...staticStyles.documentIconText,
+    color,
+  }),
+
+  documentTitle: (color: string) => ({
+    ...staticStyles.documentTitle,
+    color,
+  }),
+
+  documentSubtitle: (color: string) => ({
+    ...staticStyles.documentSubtitle,
+    color,
+  }),
+
+  documentSpacing: (hasMultipleDocs: boolean, hasImages: boolean): ViewStyle => ({
+    marginBottom: hasMultipleDocs || hasImages ? 8 : 0,
+  }),
 } as const;
 
 const getFileType = (
@@ -144,44 +210,20 @@ const DocumentCard = ({
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
-      style={{
-        maxWidth: GRID_CONFIG.MAX_WIDTH,
-        padding: 12,
-        backgroundColor: bgColor,
-        borderRadius: GRID_CONFIG.BORDER_RADIUS,
-        borderWidth: 1,
-        borderColor,
-        alignSelf: isCurrentUser ? "flex-end" : "flex-start",
-      }}
+      style={dynamicStyles.documentCard(isCurrentUser, bgColor, borderColor)}
     >
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 12,
-          }}
-        >
+      <View style={staticStyles.documentCardRow}>
+        <View style={staticStyles.documentIconContainer}>
           <Ionicons name={icon as any} size={20} color={color} />
-          <AppText style={{ fontSize: 8, fontWeight: "bold", marginTop: 2, color }}>
-            {label}
-          </AppText>
+          <AppText style={dynamicStyles.documentIconText(color)}>{label}</AppText>
         </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <AppText
-            numberOfLines={2}
-            style={{ fontSize: 12, fontWeight: "600", color: textPrimary }}
-          >
+        <View style={staticStyles.documentTextContainer}>
+          <AppText numberOfLines={2} style={dynamicStyles.documentTitle(textPrimary)}>
             {attachment.originalFileName || "Document"}
           </AppText>
-          <AppText style={{ fontSize: 10, marginTop: 2, color: textSecondary }}>
-            {label} Document
-          </AppText>
+          <AppText style={dynamicStyles.documentSubtitle(textSecondary)}>{label} Document</AppText>
         </View>
-        <View style={{ marginLeft: 8 }}>
+        <View style={staticStyles.documentDownloadContainer}>
           <Ionicons name="download-outline" size={16} color={color} />
         </View>
       </View>
@@ -205,7 +247,7 @@ const ImageItem = ({
   <TouchableOpacity
     onPress={onPress}
     activeOpacity={DEFAULT_ACTIVE_OPACITY}
-    style={{ position: "relative" }}
+    style={staticStyles.imageItemContainer}
   >
     <Image
       source={{ uri: attachment.fileUrl }}
@@ -214,7 +256,7 @@ const ImageItem = ({
       cachePolicy="memory-disk"
     />
     {showOverlay && remainingCount > 0 && (
-      <View style={styles.overlayContainer}>
+      <View style={staticStyles.overlayContainer}>
         <AppText className="text-white font-semibold text-2xl">+{remainingCount}</AppText>
       </View>
     )}
@@ -233,46 +275,46 @@ const ImageGrid = ({
   const aspectRatio = 4 / 3;
 
   const renderSingleImage = () => (
-    <View style={styles.singleImageContainer}>
+    <View style={staticStyles.singleImageContainer}>
       <ImageItem
         attachment={displayImages[0]}
-        style={styles.singleImage(aspectRatio)}
+        style={dynamicStyles.singleImage(aspectRatio)}
         onPress={() => onImagePress(0)}
       />
     </View>
   );
 
   const renderTwoImages = () => (
-    <View className="flex-row" style={styles.gap}>
+    <View className="flex-row" style={staticStyles.gap}>
       <ImageItem
         attachment={displayImages[0]}
-        style={styles.twoImagesImage}
+        style={dynamicStyles.twoImagesImage}
         onPress={() => onImagePress(0)}
       />
       <ImageItem
         attachment={displayImages[1]}
-        style={styles.twoImagesImage}
+        style={dynamicStyles.twoImagesImage}
         onPress={() => onImagePress(1)}
       />
     </View>
   );
 
   const renderThreeImages = () => (
-    <View className="flex-row" style={styles.gap}>
+    <View className="flex-row" style={staticStyles.gap}>
       <ImageItem
         attachment={displayImages[0]}
-        style={styles.threeImagesLarge}
+        style={dynamicStyles.threeImagesLarge}
         onPress={() => onImagePress(0)}
       />
-      <View style={styles.gap}>
+      <View style={staticStyles.gap}>
         <ImageItem
           attachment={displayImages[1]}
-          style={styles.threeImagesSmall}
+          style={dynamicStyles.threeImagesSmall}
           onPress={() => onImagePress(1)}
         />
         <ImageItem
           attachment={displayImages[2]}
-          style={styles.threeImagesSmall}
+          style={dynamicStyles.threeImagesSmall}
           onPress={() => onImagePress(2)}
         />
       </View>
@@ -280,28 +322,28 @@ const ImageGrid = ({
   );
 
   const renderFourOrMoreImages = () => (
-    <View className="flex-row" style={styles.gap}>
-      <View style={styles.gap}>
+    <View className="flex-row" style={staticStyles.gap}>
+      <View style={staticStyles.gap}>
         <ImageItem
           attachment={displayImages[0]}
-          style={styles.fourImagesImage}
+          style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(0)}
         />
         <ImageItem
           attachment={displayImages[1]}
-          style={styles.fourImagesImage}
+          style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(1)}
         />
       </View>
-      <View style={styles.gap}>
+      <View style={staticStyles.gap}>
         <ImageItem
           attachment={displayImages[2]}
-          style={styles.fourImagesImage}
+          style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(2)}
         />
         <ImageItem
           attachment={displayImages[3]}
-          style={styles.fourImagesImage}
+          style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(3)}
           showOverlay={remainingCount > 0}
           remainingCount={remainingCount}
@@ -354,16 +396,14 @@ const RenderFileGrid = ({
         {documents.map((doc, index) => (
           <View
             key={doc.id || `doc-${index}`}
-            style={{
-              marginBottom: documents.length > 1 || images.length > 0 ? 8 : 0,
-            }}
+            style={dynamicStyles.documentSpacing(documents.length > 1, images.length > 0)}
           >
             <DocumentCard attachment={doc} isCurrentUser={isCurrentUser} />
           </View>
         ))}
 
         {images.length > 0 && (
-          <View style={styles.container(isCurrentUser)}>
+          <View style={dynamicStyles.container(isCurrentUser)}>
             <ImageGrid images={images} onImagePress={handleImagePress} />
           </View>
         )}
