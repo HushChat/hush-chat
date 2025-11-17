@@ -32,18 +32,18 @@ export interface IMessageAttachment {
 }
 
 export interface IMessage {
-  id?: number;
+  id: number;
   senderId: number;
   senderFirstName: string;
   senderLastName: string;
   senderSignedImageUrl?: string | null;
   parentMessageId?: number | null;
   messageText: string;
-  createdAt?: string;
+  createdAt: string;
   reactionSummary?: ReactionSummary;
   conversationId: number;
   parentMessage?: IMessage;
-  isForwarded?: boolean;
+  isForwarded: boolean;
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
