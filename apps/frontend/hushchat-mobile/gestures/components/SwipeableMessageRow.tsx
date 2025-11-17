@@ -77,12 +77,7 @@ export function SwipeableMessageRow({
             }}
             duration={150}
             easing="standard"
-            style={{
-              position: "absolute",
-              top: 10,
-              left: 8,
-              pointerEvents: "none",
-            }}
+            style={styles.affordanceIcon}
           >
             <Ionicons name="arrow-undo-outline" size={20} color="#9CA3AF" />
           </MotionView>

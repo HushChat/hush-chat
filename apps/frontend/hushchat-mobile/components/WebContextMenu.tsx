@@ -1,5 +1,5 @@
-import { View, TouchableOpacity, Pressable, Modal, Dimensions } from "react-native";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { View, TouchableOpacity, Pressable, Modal, Dimensions, StyleSheet } from "react-native";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { IOption } from "@/types/chat/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +16,14 @@ interface WebChatContextMenuProps {
   onOptionSelect: (action: () => Promise<void> | void) => Promise<void>;
   iconSize?: number;
 }
+
+const COLORS = {
+  DANGER: "#ef4444",
+  MUTED_DARK: "#9ca3af",
+  MUTED_LIGHT: "#6B7280",
+  SHADOW_DARK: "0 4px 14px rgba(0,0,0,0.35)",
+  SHADOW_LIGHT: "0 4px 10px rgba(0,0,0,0.08)",
+};
 
 const WebContextMenu = ({
   visible,
@@ -49,23 +57,30 @@ const WebContextMenu = ({
       setIsAnimating(true);
     } else {
       setIsAnimating(false);
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 160);
+      const timer = setTimeout(() => setShouldRender(false), 160);
       return () => clearTimeout(timer);
     }
   }, [visible]);
 
   const handleClose = () => {
     setIsAnimating(false);
-    setTimeout(() => {
-      onClose();
-    }, 120);
+    setTimeout(onClose, 120);
   };
 
+  const animatedMenuStyle = useMemo(
+    () => ({
+      left: adjustedPosition.x,
+      top: adjustedPosition.y,
+      opacity: isAnimating ? 1 : 0,
+      transform: [{ scale: isAnimating ? 1 : 0.95 }, { translateY: isAnimating ? 0 : 6 }],
+      boxShadow: isDark ? COLORS.SHADOW_DARK : COLORS.SHADOW_LIGHT,
+    }),
+    [adjustedPosition.x, adjustedPosition.y, isAnimating, isDark]
+  );
+
   return (
-    <Modal transparent={true} visible={shouldRender} onRequestClose={handleClose}>
-      <Pressable className="flex-1" onPress={handleClose} style={{ cursor: "auto" }}>
+    <Modal transparent visible={shouldRender} onRequestClose={handleClose}>
+      <Pressable className="flex-1" onPress={handleClose} style={styles.pressable}>
         <View
           ref={modalRef}
           pointerEvents="box-none"
@@ -73,13 +88,7 @@ const WebContextMenu = ({
             "absolute rounded-xl overflow-hidden border backdrop-blur-md transition-all duration-200 ease-out",
             isDark ? "bg-secondary-dark/95 border-[#2C3650]/60" : "bg-white/90 border-[#E5E7EB]/70"
           )}
-          style={{
-            left: adjustedPosition.x,
-            top: adjustedPosition.y,
-            opacity: isAnimating ? 1 : 0,
-            transform: [{ scale: isAnimating ? 1 : 0.95 }, { translateY: isAnimating ? 0 : 6 }],
-            boxShadow: isDark ? "0 4px 14px rgba(0,0,0,0.35)" : "0 4px 10px rgba(0,0,0,0.08)",
-          }}
+          style={[styles.menuContainer, animatedMenuStyle]}
         >
           {options.map((option) => (
             <TouchableOpacity
@@ -102,7 +111,13 @@ const WebContextMenu = ({
                 <Ionicons
                   name={option.iconName}
                   size={iconSize}
-                  color={option.critical ? "#ef4444" : isDark ? "#9ca3af" : "#6B7280"}
+                  color={
+                    option.critical
+                      ? COLORS.DANGER
+                      : isDark
+                        ? COLORS.MUTED_DARK
+                        : COLORS.MUTED_LIGHT
+                  }
                 />
               )}
 
@@ -127,3 +142,12 @@ const WebContextMenu = ({
 };
 
 export default WebContextMenu;
+
+const styles = StyleSheet.create({
+  pressable: {
+    cursor: "auto",
+  },
+  menuContainer: {
+    position: "absolute",
+  },
+});

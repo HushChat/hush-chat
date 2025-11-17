@@ -22,6 +22,10 @@ const GRID_CONFIG = {
   MAX_DISPLAY_IMAGES: 4,
 } as const;
 
+const COLORS = {
+  OVERLAY_DARK: "rgba(0,0,0,0.65)",
+};
+
 const createImageStyle = (width: number, height: number): ImageStyle => ({
   width,
   height,
@@ -42,7 +46,7 @@ const staticStyles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.65)",
+    backgroundColor: COLORS.OVERLAY_DARK,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: GRID_CONFIG.BORDER_RADIUS,

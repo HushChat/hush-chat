@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   Modal,
@@ -47,9 +47,7 @@ const BottomSheet = ({
 }: BottomSheetProps) => {
   const insets = useSafeAreaInsets();
 
-  const handleClose = () => {
-    scheduleOnRN(onClose);
-  };
+  const handleClose = () => scheduleOnRN(onClose);
 
   const handleOptionPress = (option: BottomSheetOption) => {
     option.onPress();
@@ -69,17 +67,18 @@ const BottomSheet = ({
       statusBarTranslucent
     >
       <TouchableWithoutFeedback onPress={handleClose}>
-        <View style={{ flex: 1 }}>
+        <View style={styles.fullscreen}>
           <MotionView
             visible={visible}
             from={{ opacity: 0 }}
             to={{ opacity: 1 }}
             duration={{ enter: 300, exit: 250 }}
             easing="standard"
-            style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0, 0, 0, 0.5)" }]}
+            style={[StyleSheet.absoluteFillObject, styles.backdrop]}
             pointerEvents="none"
           />
 
+          {/* SHEET */}
           <MotionView
             visible={visible}
             from={{ translateY: SCREEN_HEIGHT }}
@@ -87,12 +86,7 @@ const BottomSheet = ({
             duration={{ enter: 300, exit: 250 }}
             easing="standard"
             pointerEvents="box-none"
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }}
+            style={styles.sheetContainer}
             className="bg-background-light dark:bg-background-dark rounded-t-3xl"
           >
             <View className="items-center py-3">
@@ -155,8 +149,10 @@ const BottomSheet = ({
 export default BottomSheet;
 
 const styles = StyleSheet.create({
-  backdrop: {
+  fullscreen: {
     flex: 1,
+  },
+  backdrop: {
     backgroundColor: COLORS.BACKDROP,
   },
   sheetContainer: {

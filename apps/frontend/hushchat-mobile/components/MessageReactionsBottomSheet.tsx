@@ -27,32 +27,7 @@ interface MessageReactionsBottomSheetProps {
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-const colors = {
-  BACKDROP: "rgba(0, 0, 0, 0.5)",
-};
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: colors.BACKDROP,
-  },
-  touchableArea: {
-    flex: 1,
-  },
-  sheetContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    maxHeight: SCREEN_HEIGHT * 0.7,
-  },
-  listContainer: {
-    maxHeight: SCREEN_HEIGHT * 0.4,
-  },
-  emptyContentContainer: {
-    flexGrow: 1,
-  },
-});
+const BG_BACKDROP = "rgba(0, 0, 0, 0.5)";
 
 const MessageReactionsBottomSheet = ({
   visible,
@@ -64,14 +39,11 @@ const MessageReactionsBottomSheet = ({
 }: MessageReactionsBottomSheetProps) => {
   const insets = useSafeAreaInsets();
 
-  const handleClose = () => {
-    scheduleOnRN(onClose);
-  };
+  const handleClose = () => scheduleOnRN(onClose);
 
   const renderReactionItem = ({ item }: { item: MessageReact }) => (
     <View className="flex-row items-center py-4 px-4">
       <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
-
       <Text
         className="text-base font-medium flex-1 text-text-primary-light dark:text-text-primary-dark"
         numberOfLines={1}
@@ -100,8 +72,6 @@ const MessageReactionsBottomSheet = ({
     );
   };
 
-  const contentContainerStyle = reactions.length === 0 ? styles.emptyContentContainer : undefined;
-
   return (
     <Modal
       transparent
@@ -110,6 +80,7 @@ const MessageReactionsBottomSheet = ({
       statusBarTranslucent
       animationType="none"
     >
+      {/* BACKDROP */}
       <TouchableWithoutFeedback onPress={handleClose}>
         <MotionView
           visible={visible}
@@ -120,13 +91,11 @@ const MessageReactionsBottomSheet = ({
             enter: MotionEasing.standard,
             exit: MotionEasing.standard,
           }}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-          }}
+          style={styles.backdrop}
         />
       </TouchableWithoutFeedback>
 
+      {/* SHEET */}
       <MotionView
         visible={visible}
         from={{ translateY: SCREEN_HEIGHT }}
@@ -136,13 +105,7 @@ const MessageReactionsBottomSheet = ({
           enter: MotionEasing.standard,
           exit: MotionEasing.standard,
         }}
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          maxHeight: SCREEN_HEIGHT * 0.7,
-        }}
+        style={[styles.sheetContainer, { maxHeight: SCREEN_HEIGHT * 0.7 }]}
         className="bg-background-light dark:bg-background-dark rounded-t-3xl"
       >
         <View className="items-center py-3">
@@ -156,10 +119,13 @@ const MessageReactionsBottomSheet = ({
         </View>
 
         <View
-          style={{
-            maxHeight: SCREEN_HEIGHT * 0.4,
-            paddingBottom: insets.bottom + 16,
-          }}
+          style={[
+            styles.listWrapper,
+            {
+              maxHeight: SCREEN_HEIGHT * 0.4,
+              paddingBottom: insets.bottom + 16,
+            },
+          ]}
         >
           <FlatList
             data={reactions}
@@ -170,9 +136,7 @@ const MessageReactionsBottomSheet = ({
             onEndReachedThreshold={0.5}
             showsVerticalScrollIndicator
             nestedScrollEnabled
-            contentContainerStyle={{
-              flexGrow: reactions.length === 0 ? 1 : undefined,
-            }}
+            contentContainerStyle={[reactions.length === 0 ? styles.flexGrow1 : undefined]}
           />
         </View>
       </MotionView>
@@ -181,3 +145,22 @@ const MessageReactionsBottomSheet = ({
 };
 
 export default MessageReactionsBottomSheet;
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: BG_BACKDROP,
+  },
+  sheetContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  listWrapper: {
+    width: "100%",
+  },
+  flexGrow1: {
+    flexGrow: 1,
+  },
+});

@@ -10,6 +10,11 @@ export interface SelectionActionBarProps {
   onForward: () => void;
 }
 
+const COLOR_TOKENS = {
+  labelDark: "#E5E7EB",
+  labelLight: "#374151",
+};
+
 const MessageForwardActionBar = ({
   visible,
   count,
@@ -32,7 +37,7 @@ const MessageForwardActionBar = ({
       duration: 200,
       useNativeDriver: true,
     }).start();
-  }, [visible, opacity, translateY]);
+  }, [visible]);
 
   const selectedLabel = useMemo(() => `${count} selected`, [count]);
 
@@ -76,8 +81,7 @@ const MessageForwardActionBar = ({
 export default React.memo(MessageForwardActionBar);
 
 const styles = StyleSheet.create({
-  selectedLabelDark: { color: "#E5E7EB" },
-  selectedLabelLight: { color: "#374151" },
+  selectedLabelDark: { color: COLOR_TOKENS.labelDark },
+  selectedLabelLight: { color: COLOR_TOKENS.labelLight },
   iconMarginRight: { marginRight: 4 },
 });
-

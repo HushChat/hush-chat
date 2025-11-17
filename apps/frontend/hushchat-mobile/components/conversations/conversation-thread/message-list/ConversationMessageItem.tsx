@@ -326,15 +326,6 @@ export const ConversationMessageItem = ({
     onToggleSelection(Number(message.id));
   }, [selectionMode, onToggleSelection, message.id]);
 
-  const bubbleStyles = useMemo(
-    () => [
-      hasAttachments ? styles.bubbleWithAttachments : styles.bubbleWithoutAttachments,
-      isForwardedMessage && !isCurrentUser && styles.forwardedIncomingBorder,
-      isForwardedMessage && isCurrentUser && styles.forwardedOutgoingBorder,
-    ],
-    [hasAttachments, isForwardedMessage, isCurrentUser]
-  );
-
   const ContentBlock = () => (
     <View style={styles.contentBlockWrapper}>
       <View className="group mb-3">
@@ -450,44 +441,6 @@ export const ConversationMessageItem = ({
 const styles = StyleSheet.create({
   contentBlockWrapper: {
     backgroundColor: COLORS.TRANSPARENT,
-  },
-  iconButton: {
-    minWidth: 24,
-    minHeight: 24,
-    cursor: "pointer",
-  },
-  iconButtonPressed: {
-    opacity: 0.7,
-  },
-  selectionIcon: {
-    position: "absolute",
-    top: -6,
-    zIndex: 10,
-  },
-  selectionIconRight: {
-    right: -6,
-  },
-  selectionIconLeft: {
-    left: -6,
-  },
-  bubbleWithAttachments: {
-    maxWidth: 305,
-  },
-  bubbleWithoutAttachments: {
-    maxWidth: "70%",
-  },
-  forwardedIncomingBorder: {
-    borderLeftWidth: 2,
-    borderLeftColor: COLORS.FORWARDED_INCOMING_BORDER,
-  },
-  forwardedOutgoingBorder: {
-    borderRightWidth: 2,
-    borderRightColor: COLORS.FORWARDED_OUTGOING_BORDER,
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontFamily: "Poppins-Regular",
   },
 });
 
