@@ -8,7 +8,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureResponderEvent, View } from "react-native";
 import { format } from "date-fns";
 import { ConversationAPIResponse, IMessage, IOption, ReactionType } from "@/types/chat/types";
-import classNames from "classnames";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -46,6 +45,7 @@ interface MessageItemProps {
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
+  showSenderAvatar: boolean;
 }
 
 const REMOVE_ONE = 1;
@@ -69,6 +69,7 @@ export const ConversationMessageItem = ({
   selectedConversationId,
   onUnsendMessage,
   onViewReactions,
+  showSenderAvatar,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -98,7 +99,6 @@ export const ConversationMessageItem = ({
   const isForwardedMessage = message.isForwarded;
   const hasText = !!messageContent;
   const isGroupChat = conversationAPIResponse?.isGroup;
-  const showAvatar = isGroupChat && !isCurrentUser;
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
@@ -315,21 +315,20 @@ export const ConversationMessageItem = ({
     if (!selectionMode) return;
     onToggleSelection(Number(message.id));
   }, [selectionMode, onToggleSelection, message.id]);
-
+  console.log("showSenderAvatar", showSenderAvatar);
   const ContentBlock = () => (
     <View style={{ backgroundColor: "transparent" }}>
       <View className="group mb-3">
-        <View className={classNames("flex-row", showAvatar ? "mx-2" : "mx-4")}>
-          {showAvatar && (
-            <View className="mr-2 pt-1">
+        <View className="flex-row mx-2">
+          <View className="mr-2 pt-1 w-10 h-10">
+            {showSenderAvatar && (
               <InitialsAvatar
                 name={senderName}
                 size={AvatarSize.small}
                 imageUrl={message.senderSignedImageUrl}
               />
-            </View>
-          )}
-
+            )}
+          </View>
           <View className="flex-1">
             <MessageHeader
               isCurrentUser={isCurrentUser}

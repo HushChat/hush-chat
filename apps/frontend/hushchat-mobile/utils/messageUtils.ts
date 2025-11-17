@@ -6,7 +6,7 @@ interface IGroupedMessages {
   data: IMessage[];
 }
 
-export const groupMessagesByDate = (messages: IMessage[]): IGroupedMessages[] => {
+export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMessages[] => {
   if (!messages || messages.length === 0) return [];
 
   const groupedByDate: Record<string, IMessage[]> = {};
@@ -32,14 +32,9 @@ export const groupMessagesByDate = (messages: IMessage[]): IGroupedMessages[] =>
     const dateObject = parseISO(dateKey);
     const dateTitle = getDateTitle(dateObject);
 
-    const sortedMessages = [...groupedByDate[dateKey]].sort(
-      (firstMessage, secondMessage) =>
-        new Date(secondMessage.createdAt).getTime() - new Date(firstMessage.createdAt).getTime()
-    );
-
     return {
       title: dateTitle,
-      data: sortedMessages,
+      data: groupedByDate[dateKey],
     };
   });
 };
@@ -49,3 +44,22 @@ function getDateTitle(date: Date): string {
   if (isYesterday(date)) return "Yesterday";
   return format(date, "MMM dd, yyyy");
 }
+
+export const shouldShowSenderAvatar = (
+  allMessages: readonly IMessage[],
+  index: number,
+  isGroupChat: boolean,
+  isCurrentUser: boolean
+): boolean => {
+  if (!isGroupChat || isCurrentUser) return false;
+
+  const current = allMessages[index];
+  const next = allMessages[index + 1];
+
+  if (!current) return false;
+  if (!next) return true;
+
+  const sameSender = current.senderId === next.senderId;
+
+  return !sameSender;
+};
