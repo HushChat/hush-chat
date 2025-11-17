@@ -6,7 +6,7 @@ interface IGroupedMessages {
   data: IMessage[];
 }
 
-export const groupMessagesByDate = (messages: IMessage[]): IGroupedMessages[] => {
+export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMessages[] => {
   if (!messages || messages.length === 0) return [];
 
   const groupedByDate: Record<string, IMessage[]> = {};
@@ -49,3 +49,22 @@ function getDateTitle(date: Date): string {
   if (isYesterday(date)) return "Yesterday";
   return format(date, "MMM dd, yyyy");
 }
+
+export const shouldShowSenderAvatar = (
+  allMessages: readonly IMessage[],
+  index: number,
+  isGroupChat: boolean,
+  isCurrentUser: boolean
+): boolean => {
+  if (!isGroupChat || isCurrentUser) return false;
+
+  const current = allMessages[index];
+  const next = allMessages[index + 1];
+
+  if (!current) return false;
+  if (!next) return true;
+
+  const sameSender = current.senderId === next.senderId;
+
+  return !sameSender;
+};
