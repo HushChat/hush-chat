@@ -28,14 +28,12 @@ import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 
-import { format } from "date-fns";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
-
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -73,8 +71,6 @@ const ConversationThreadScreen = ({
 
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
     useConversationByIdQuery(selectedConversationId);
-
-
 
   const isGroupChat = conversationAPIResponse?.isGroup;
 
@@ -143,7 +139,6 @@ const ConversationThreadScreen = ({
 
   const queryClient = useQueryClient();
 
-
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
     (newMessage) => {
@@ -155,7 +150,6 @@ const ConversationThreadScreen = ({
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
-
 
   const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
     selectedConversationId,
@@ -170,7 +164,6 @@ const ConversationThreadScreen = ({
     updateConversationMessagesCache,
     handleCloseImagePreview,
   });
-
 
   useEffect(() => {
     setSelectedMessage(null);
@@ -200,7 +193,6 @@ const ConversationThreadScreen = ({
   const handleCancelReply = useCallback(() => {
     setSelectedMessage(null);
   }, []);
-
 
   const onForwardPress = useCallback(() => {
     if (PLATFORM.IS_WEB) {
