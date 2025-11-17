@@ -28,7 +28,6 @@ export const useToastAnimation = (
       translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
       opacity.value = withTiming(1, { duration: 300 });
     }
-
   }, [isVisible, isTop]);
 
   const hideToast = () => Toast.hide();
