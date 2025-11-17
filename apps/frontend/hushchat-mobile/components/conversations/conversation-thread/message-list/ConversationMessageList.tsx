@@ -4,7 +4,7 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, SectionList, View } from "react-native";
+import { ActivityIndicator, SectionList, SectionListData, View } from "react-native";
 import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
@@ -24,6 +24,7 @@ import MessageReactionsModal from "@/components/conversations/conversation-threa
 import { DateSection } from "@/components/DateSection";
 import { groupMessagesByDate } from "@/utils/messageUtils";
 import { logDebug } from "@/utils/logger";
+import { groupMessagesByDate, shouldShowSenderAvatar } from "@/utils/messageUtils";
 
 interface MessagesListProps {
   messages: IMessage[];
@@ -208,9 +209,24 @@ const ConversationMessageList = ({
   }, [messages]);
 
   const renderMessage = useCallback(
-    ({ item }: { item: IMessage }) => {
+    ({
+      item,
+      index,
+      section,
+    }: {
+      item: IMessage;
+      index: number;
+      section: SectionListData<IMessage>;
+    }) => {
       const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
       const isSelected = selectedMessageIds.has(Number(item.id));
+      const showSenderAvatar = shouldShowSenderAvatar(
+        section.data,
+        index,
+        !!conversationAPIResponse?.isGroup,
+        !!isCurrentUser
+      );
+
       return (
         <ConversationMessageItem
           message={item}
@@ -229,6 +245,7 @@ const ConversationMessageList = ({
           onUnsendMessage={(message) => unSendMessage(message)}
           selectedConversationId={selectedConversationId}
           onViewReactions={handleViewReactions}
+          showSenderAvatar={showSenderAvatar}
         />
       );
     },

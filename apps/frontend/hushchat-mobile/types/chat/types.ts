@@ -43,7 +43,7 @@ export interface IMessage {
   reactionSummary?: ReactionSummary;
   conversationId: number;
   parentMessage?: IMessage;
-  isForwarded?: boolean;
+  isForwarded: boolean;
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
