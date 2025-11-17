@@ -189,6 +189,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void signOut(String accessToken) {
         CognitoIdentityProviderClient cognitoClient = awSconfig.cognitoClient();
         GetUserRequest getUserRequest = GetUserRequest.builder()
