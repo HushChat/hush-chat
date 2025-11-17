@@ -14,6 +14,7 @@ import { getNavigationTheme } from "@/utils/commonUtils";
 import { ModalProvider } from "@/context/modal-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ConversationNotificationsProvider } from '@/contexts/ConversationNotificationsContext';
 
 import { AUTH_LOGIN_PATH, CHATS_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
@@ -33,14 +34,16 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
-            <ModalProvider>
-              <Gate ready={appReady} isAuthenticated={isAuthenticated} />
-              <Toast
-                config={toastConfig}
-                topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
-              />
-              <StatusBar style="auto" />
-            </ModalProvider>
+            <ConversationNotificationsProvider>
+              <ModalProvider>
+                <Gate ready={appReady} isAuthenticated={isAuthenticated} />
+                <Toast
+                  config={toastConfig}
+                  topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                />
+                <StatusBar style="auto" />
+              </ModalProvider>
+            </ConversationNotificationsProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

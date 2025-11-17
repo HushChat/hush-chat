@@ -1,21 +1,11 @@
 import { IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
-import {
-  getAllConversations,
-  ConversationFilterCriteria,
-  getLastSeenMessageByConversationId,
-} from "@/apis/conversation";
+import { ConversationFilterCriteria, getAllConversations } from "@/apis/conversation";
 import {
   OffsetPaginatedQueryResult,
   usePaginatedQueryWithOffset,
 } from "@/query/usePaginatedQueryWithOffset";
-import { useConversationsNotifications } from "@/hooks/useWebSocketEvents";
-import { useEffect } from "react";
-import { appendToOffsetPaginatedCache } from "@/query/config/appendToOffsetPaginatedCache";
-import { useQueryClient } from "@tanstack/react-query";
 import { conversationQueryKeys } from "@/constants/queryKeys";
-import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
-import { getPaginationConfig } from "@/utils/commonUtils";
 
 const PAGE_SIZE = 20;
 
@@ -31,57 +21,10 @@ export function useConversationsQuery(
   isFetchingNextPage: boolean;
   refetchConversations: (() => void) | undefined;
   refetch: () => Promise<unknown>;
-  updateConversation: (conversationId: string | number, updates: Partial<IConversation>) => void;
 } {
   const {
     user: { id: userId },
   } = useUserStore();
-  const queryClient = useQueryClient();
-
-  const { notificationReceivedConversation } = useConversationsNotifications();
-  useEffect(() => {
-    if (notificationReceivedConversation) {
-      appendToOffsetPaginatedCache<IConversation>(
-        queryClient,
-        conversationQueryKeys.allConversations(Number(userId), criteria),
-        notificationReceivedConversation,
-        {
-          getId: (m) => m?.id,
-          pageSize: PAGE_SIZE,
-          getPageItems: (p) => p?.content,
-          setPageItems: (p, items) => ({ ...p, content: items }),
-          dedupeAcrossPages: true,
-        }
-      );
-    }
-  }, [notificationReceivedConversation, queryClient, userId]);
-
-  const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
-    updatePaginatedItemInCache<IConversation>(
-      queryClient,
-      conversationQueryKeys.allConversations(Number(userId), criteria),
-      conversationId,
-      updates,
-      getPaginationConfig<IConversation>()
-    );
-  };
-
-  // Handle conversation update notifications
-  useEffect(() => {
-    const getConversationUpdateViaWS = async (conversationId: number) => {
-      const response = await getLastSeenMessageByConversationId(conversationId);
-
-      if (response) {
-        updateConversation(conversationId, {
-          unreadCount: response.unreadCount,
-        });
-      }
-    };
-
-    if (notificationReceivedConversation && notificationReceivedConversation.id) {
-      getConversationUpdateViaWS(notificationReceivedConversation.id);
-    }
-  }, [notificationReceivedConversation]);
 
   const {
     pages,
@@ -109,6 +52,5 @@ export function useConversationsQuery(
     isFetchingNextPage,
     refetchConversations: invalidateQuery,
     refetch,
-    updateConversation,
   };
 }

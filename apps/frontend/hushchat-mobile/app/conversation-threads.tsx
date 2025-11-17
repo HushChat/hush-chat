@@ -34,9 +34,10 @@ import { useConversationMessagesQuery } from "@/query/useConversationMessageQuer
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
 import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
-import { useConversationsQuery } from "@/query/useConversationsQuery";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
+import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
+
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
 
@@ -88,7 +89,7 @@ const ConversationThreadScreen = ({
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(selectedConversationId);
 
-  const { updateConversation } = useConversationsQuery();
+  const { updateConversation } = useConversationNotificationsContext();
 
   const { lastSeenMessageInfo } =
     useFetchLastSeenMessageStatusForConversation(selectedConversationId);
