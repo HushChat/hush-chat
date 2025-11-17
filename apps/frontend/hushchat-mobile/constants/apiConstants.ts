@@ -18,8 +18,8 @@ export const SEARCH_API_BASE = "/search";
 export const WORKSPACES_API_BASE = "/workspaces";
 
 export const WORKSPACE_ENDPOINTS = {
-  GET: WORKSPACES_API_BASE,
-  REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register-workspace`,
+  GET: `${WORKSPACES_API_BASE}/my-workspaces`,
+  REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
 };
 

@@ -54,7 +54,7 @@ public class WorkspaceController {
     }
 
     @ApiOperation(value = "Create a new workspace user", response = UserDTO.class)
-    @PostMapping("/register-workspace")
+    @PostMapping("/register")
     public ResponseEntity<UserDTO> createWorkSpaceUser(
             @Valid @RequestBody WorkSpaceUserUpsertDTO workSpaceUserUpsertDTO,
             @AuthenticatedUser UserDetails userDetails
@@ -64,7 +64,7 @@ public class WorkspaceController {
     }
 
     @ApiOperation(value = "Get Active/Pending Workspaces by email")
-    @GetMapping
+    @GetMapping("/my-workspaces")
     public ResponseEntity<List<WorkspaceDTO>> getMyWorkspaces(@AuthenticatedUser UserDetails userDetails) {
         return new ResponseEntity<>(workspaceUserService.getAllWorkspaceDTO(userDetails.getEmail()), HttpStatus.OK);
     }
