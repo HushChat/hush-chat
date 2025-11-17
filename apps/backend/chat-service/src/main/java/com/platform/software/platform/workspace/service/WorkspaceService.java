@@ -12,16 +12,17 @@ import com.platform.software.utils.WorkspaceUtils;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
+import liquibase.command.CommandScope;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.CommandExecutionException;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.DirectoryResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import javax.sql.DataSource;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -29,7 +30,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import java.util.List;
 
@@ -41,7 +41,8 @@ public class WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
 
-    private static final String CHANGELOG_PATH = "/app/db-migrations";
+    @Value("${liquibase.changelog.path}")
+    private String changelogPath;
 
     public WorkspaceService(DataSource dataSource, WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository) {
         this.dataSource = dataSource;
@@ -49,14 +50,39 @@ public class WorkspaceService {
         this.workspaceUserRepository = workspaceUserRepository;
     }
 
-    @Transactional
+    /**
+     * Creates a new workspace by performing the full provisioning workflow.
+     * <p>
+     * The process includes:
+     *  - Checking whether a workspace with the same name already exists
+     *  - Creating a new database schema for the workspace
+     *  - Applying Liquibase migrations to initialize the new schema
+     *  - Saving the workspace record in the global schema
+     *  - Creating a pending workspace user invite for the requesting user
+     * <p>
+     * Workspace metadata is stored in the global schema, while each workspace
+     * receives its own dedicated database schema for data isolation.
+     *
+     * @param workspaceUpsertDTO   the workspace creation data
+     * @param loggedInUserEmail    the email of the user initiating the creation
+     *
+     * @throws CustomBadRequestException
+     *         if a workspace with the given name already exists or the input is invalid
+     *
+     * @throws CustomInternalServerErrorException
+     *         if the schema creation, migration process, or database operations fail unexpectedly
+     *
+     * @implNote
+     * No Spring-managed transaction is used for schema creation or Liquibase operations.
+     * These operations rely on the database and Liquibase to handle their own transactional boundaries.
+     */
     public void createWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO, String loggedInUserEmail) {
 
         //TODO: Add loggedInUserEmail validation
 
         if (workspaceRepository.existsByName(workspaceUpsertDTO.getName())) {
-            logger.error("tenant with schema {} already exists", workspaceUpsertDTO.getName());
-            throw new CustomBadRequestException("Tenant with schema '" + workspaceUpsertDTO.getName() + "' already exists");
+            logger.error("Workspace with schema {} already exists", workspaceUpsertDTO.getName());
+            throw new CustomBadRequestException("Workspace with schema '" + workspaceUpsertDTO.getName() + "' already exists");
         }
 
         try {
@@ -68,7 +94,7 @@ public class WorkspaceService {
 
             WorkspaceUtils.runInGlobalSchema(() -> {
                 Workspace createdWorkspace = workspaceRepository.save(workspace);
-                logger.info("successfully created workspace with ID: {} and schema: {}", createdWorkspace.getId(), createdWorkspace.getName());
+                logger.info("Successfully created workspace with ID: {} and schema: {}", createdWorkspace.getId(), createdWorkspace.getName());
 
                 WorkspaceUserInviteDTO workspaceUserInviteDTO = new WorkspaceUserInviteDTO(loggedInUserEmail);
                 WorkspaceUser newWorkspaceUser =
@@ -77,23 +103,29 @@ public class WorkspaceService {
             });
 
         } catch (Exception e) {
-            logger.error("failed to create workspace with schema: {}", workspaceUpsertDTO.getName(), e);
-            throw new CustomInternalServerErrorException("Failed to create tenant" );
+            logger.error("Failed to create workspace with schema: {}", workspaceUpsertDTO.getName(), e);
+            throw new CustomInternalServerErrorException("Failed to create workspace" );
         }
     }
 
-    private void createDatabaseSchema(String schemaName) throws SQLException {
+    private void createDatabaseSchema(String schemaName) throws CommandExecutionException {
+        if (!schemaName.matches("^[a-zA-Z0-9_]+$")) {
+            throw new CustomBadRequestException("Invalid schema name");
+        }
 
-        String createSchemaSql = String.format("CREATE SCHEMA IF NOT EXISTS \"%s\"", schemaName);
+        try {
+            CommandScope command = new CommandScope("createSchema");
+            command.addArgumentValue("schemaName", schemaName);
+            command.addArgumentValue("ifNotExists", true);
+            command.execute();
 
-        try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-
-            statement.execute(createSchemaSql);
             logger.info("Schema '{}' created successfully.", schemaName);
-        } catch (SQLException e) {
-            logger.error("Failed to create database schema: {}", schemaName, e);
-            throw new SQLException("Failed to create schema");
+        } catch (CommandExecutionException e) {
+            logger.error("Liquibase failed to create schema '{}': {}", schemaName, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error creating schema '{}'", schemaName, e);
+            throw new CommandExecutionException("Unexpected error creating schema: " + schemaName, e);
         }
     }
 
@@ -107,7 +139,7 @@ public class WorkspaceService {
             database.setDefaultSchemaName(schemaName);
             database.setLiquibaseSchemaName(schemaName);
 
-            Path changelogPath = Paths.get(CHANGELOG_PATH);
+            Path changelogPath = Paths.get(this.changelogPath);
             if (!Files.exists(changelogPath)) {
                 throw new FileNotFoundException("Changelog path not found: " + changelogPath);
             }
