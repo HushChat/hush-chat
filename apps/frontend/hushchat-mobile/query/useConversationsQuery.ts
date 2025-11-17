@@ -47,7 +47,6 @@ export function useConversationsQuery(
         }
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notificationReceivedConversation, queryClient, userId]);
 
   const {

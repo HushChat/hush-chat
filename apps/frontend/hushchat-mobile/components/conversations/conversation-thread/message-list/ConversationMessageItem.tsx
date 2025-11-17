@@ -5,7 +5,7 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, View } from "react-native";
+import { GestureResponderEvent, View, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import { ConversationAPIResponse, IMessage, IOption, ReactionType } from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -22,6 +22,15 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
+import { logInfo } from "@/utils/logger";
+
+const COLORS = {
+  TRANSPARENT: "transparent",
+  ICON_MUTED: "#9CA3AF",
+  ICON_PRIMARY: "#3B82F6",
+  FORWARDED_INCOMING_BORDER: "#9CA3AF30",
+  FORWARDED_OUTGOING_BORDER: "#60A5FA30",
+};
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
@@ -104,6 +113,7 @@ export const ConversationMessageItem = ({
     () => format(new Date(message.createdAt), "h:mm a"),
     [message.createdAt]
   );
+
   useEffect(() => {
     if (message.reactionSummary) setReactionSummary(message.reactionSummary);
   }, [message.reactionSummary]);
@@ -317,7 +327,7 @@ export const ConversationMessageItem = ({
   }, [selectionMode, onToggleSelection, message.id]);
 
   const ContentBlock = () => (
-    <View style={{ backgroundColor: "transparent" }}>
+    <View style={styles.contentBlockWrapper}>
       <View className="group mb-3">
         <View className="flex-row mx-2">
           <View className="mr-2 pt-1 w-10 h-10">
@@ -385,7 +395,7 @@ export const ConversationMessageItem = ({
             try {
               await action();
             } catch (error) {
-              console.error("Error executing context menu action:", error);
+              logInfo("Error executing context menu action:", error);
             }
           }}
         />
@@ -401,7 +411,7 @@ export const ConversationMessageItem = ({
           if (conversationAPIResponse?.isBlocked) return;
           onMessageSelect?.(message);
         }}
-        style={{ display: "contents" }}
+        style={webStyles.contents}
       >
         <ContentBlock />
       </div>
@@ -425,4 +435,16 @@ export const ConversationMessageItem = ({
       </SwipeableMessageRow>
     </GestureDetector>
   );
+};
+
+const styles = StyleSheet.create({
+  contentBlockWrapper: {
+    backgroundColor: COLORS.TRANSPARENT,
+  },
+});
+
+const webStyles = {
+  contents: {
+    display: "contents",
+  },
 };

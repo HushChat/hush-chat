@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { TUser } from "@/types/user/types";
 import { UserMultiSelectList } from "@/components/UserMultiSelect";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
 import { IConversation } from "@/types/chat/types";
+
 import { MotionView } from "@/motion/MotionView";
 import { MotionEasing } from "@/motion/easing";
 
@@ -15,6 +16,10 @@ type TWebGroupCreationOverlay = {
   onClose: () => void;
   onCreate?: (conversationId: number) => void;
   setSelectedConversation: (conversation: IConversation | null) => void;
+};
+
+const COLORS = {
+  white: "#FFFFFF",
 };
 
 export const WebGroupCreation = ({
@@ -61,14 +66,7 @@ export const WebGroupCreation = ({
     <MotionView
       visible={visible}
       pointerEvents={visible ? "auto" : "none"}
-      style={{
-        position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width,
-        backgroundColor: "#FFFFFF",
-      }}
+      style={[styles.overlay, { width }]}
       className="dark:bg-gray-900"
       delay={40}
       from={{ opacity: 0, translateX: width }}
@@ -76,11 +74,13 @@ export const WebGroupCreation = ({
       duration={{ enter: 240, exit: 200 }}
       easing={MotionEasing.pair}
     >
+      {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={handleBack} className="mr-3">
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
+
           <Text className="text-xl font-semibold text-gray-900 dark:text-white">
             {showConfigurationForm ? "Group Details" : "New group"}
           </Text>
@@ -111,17 +111,13 @@ export const WebGroupCreation = ({
       <View className="flex-1 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 overflow-hidden">
         <MotionView
           visible={true}
-          style={{
-            width: width * 2,
-            height: "100%",
-            flexDirection: "row",
-          }}
+          style={[styles.motionRow, { width: width * 2 }]}
           from={{ translateX: 0 }}
           to={{ translateX: showConfigurationForm ? -width : 0 }}
           duration={{ enter: 260, exit: 240 }}
           easing={MotionEasing.pair}
         >
-          <View style={{ width, height: "100%" }}>
+          <View style={{ width }}>
             <UserMultiSelectList
               selectedUsers={selectedUsers}
               onChange={setSelectedUsers}
@@ -129,18 +125,35 @@ export const WebGroupCreation = ({
             />
           </View>
 
-          <View style={{ width, height: "100%" }}>
-            {showConfigurationForm ? (
+          <View style={[styles.stepPage, { width }]}>
+            {showConfigurationForm && (
               <GroupConfigurationForm
                 participantUserIds={participantUserIds}
                 onSuccess={handleGroupCreated}
                 submitLabel="Create group"
                 setSelectedConversation={setSelectedConversation}
               />
-            ) : null}
+            )}
           </View>
         </MotionView>
       </View>
     </MotionView>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: COLORS.white,
+  },
+  stepPage: {
+    height: "100%",
+  },
+  motionRow: {
+    height: "100%",
+    flexDirection: "row",
+  },
+});

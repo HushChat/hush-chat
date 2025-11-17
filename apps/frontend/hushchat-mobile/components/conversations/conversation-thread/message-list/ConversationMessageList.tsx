@@ -22,6 +22,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
+import { logDebug } from "@/utils/logger";
 import { groupMessagesByDate, shouldShowSenderAvatar } from "@/utils/messageUtils";
 
 interface MessagesListProps {
@@ -91,7 +92,7 @@ const ConversationMessageList = ({
       if (!conversationId || !message) return;
 
       togglePinMessage({ conversationId, messageId: message.id });
-      console.log(message);
+      logDebug(message);
       setSelectedPinnedMessage(message);
     },
     [conversationAPIResponse?.id, togglePinMessage]

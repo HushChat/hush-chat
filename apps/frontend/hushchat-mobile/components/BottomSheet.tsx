@@ -30,6 +30,12 @@ interface BottomSheetProps {
   showBorders?: boolean;
 }
 
+const COLORS = {
+  BACKDROP: "rgba(0, 0, 0, 0.5)",
+  ICON_DESTRUCTIVE: "#EF4444",
+  ICON_NEUTRAL: "#6B7280",
+};
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const BottomSheet = ({
@@ -41,13 +47,15 @@ const BottomSheet = ({
 }: BottomSheetProps) => {
   const insets = useSafeAreaInsets();
 
-  const handleClose = () => {
-    scheduleOnRN(onClose);
-  };
+  const handleClose = () => scheduleOnRN(onClose);
 
   const handleOptionPress = (option: BottomSheetOption) => {
     option.onPress();
     handleClose();
+  };
+
+  const optionsContainerStyle = {
+    paddingBottom: insets.bottom + 16,
   };
 
   return (
@@ -59,17 +67,18 @@ const BottomSheet = ({
       statusBarTranslucent
     >
       <TouchableWithoutFeedback onPress={handleClose}>
-        <View style={{ flex: 1 }}>
+        <View style={styles.fullscreen}>
           <MotionView
             visible={visible}
             from={{ opacity: 0 }}
             to={{ opacity: 1 }}
             duration={{ enter: 300, exit: 250 }}
             easing="standard"
-            style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0, 0, 0, 0.5)" }]}
+            style={[StyleSheet.absoluteFillObject, styles.backdrop]}
             pointerEvents="none"
           />
 
+          {/* SHEET */}
           <MotionView
             visible={visible}
             from={{ translateY: SCREEN_HEIGHT }}
@@ -77,12 +86,7 @@ const BottomSheet = ({
             duration={{ enter: 300, exit: 250 }}
             easing="standard"
             pointerEvents="box-none"
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-            }}
+            style={styles.sheetContainer}
             className="bg-background-light dark:bg-background-dark rounded-t-3xl"
           >
             <View className="items-center py-3">
@@ -97,7 +101,7 @@ const BottomSheet = ({
               </View>
             )}
 
-            <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
+            <View className="px-4 pb-4" style={optionsContainerStyle}>
               {options.map((option, index) => (
                 <TouchableOpacity
                   key={option.id}
@@ -119,7 +123,7 @@ const BottomSheet = ({
                     <Ionicons
                       name={option.icon}
                       size={20}
-                      color={option.destructive ? "#EF4444" : "#6B7280"}
+                      color={option.destructive ? COLORS.ICON_DESTRUCTIVE : COLORS.ICON_NEUTRAL}
                     />
                   </View>
 
@@ -143,3 +147,18 @@ const BottomSheet = ({
 };
 
 export default BottomSheet;
+
+const styles = StyleSheet.create({
+  fullscreen: {
+    flex: 1,
+  },
+  backdrop: {
+    backgroundColor: COLORS.BACKDROP,
+  },
+  sheetContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+});

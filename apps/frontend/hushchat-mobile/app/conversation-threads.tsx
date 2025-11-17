@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
+import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -317,6 +317,13 @@ const ConversationThreadScreen = ({
     isGroupChat,
   ]);
 
+  const actionBarStyle = useMemo(
+    () => ({
+      paddingBottom: insets.bottom,
+    }),
+    [insets.bottom]
+  );
+
   return (
     <SafeAreaView
       className="flex-1 bg-background-light dark:bg-background-dark"
@@ -355,15 +362,9 @@ const ConversationThreadScreen = ({
               ) : (
                 <>
                   {renderContent()}
-                  <View
-                    style={{
-                      paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
-                    }}
-                  >
-                    {renderTextInput()}
-                  </View>
+                  <View style={styles.textInputWrapper}>{renderTextInput()}</View>
                   {selectionMode && (
-                    <View style={{ paddingBottom: insets.bottom }}>
+                    <View style={actionBarStyle}>
                       <MessageForwardActionBar
                         visible={selectionMode}
                         count={selectedMessageIds.size}
@@ -387,3 +388,9 @@ const ConversationThreadScreen = ({
 };
 
 export default ConversationThreadScreen;
+
+const styles = StyleSheet.create({
+  textInputWrapper: {
+    paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
+  },
+});

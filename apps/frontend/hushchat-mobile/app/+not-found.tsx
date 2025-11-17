@@ -3,13 +3,14 @@ import { StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { logDebug } from "@/utils/logger";
 
 export default function NotFoundScreen() {
   const pathname = usePathname();
   const params = useLocalSearchParams();
 
-  console.log("NotFound route:", pathname);
-  console.log("Params:", params);
+  logDebug("NotFound route:", pathname);
+  logDebug("Params:", params);
 
   return (
     <>

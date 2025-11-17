@@ -1,4 +1,4 @@
-import { View, Dimensions } from "react-native";
+import { View, Dimensions, StyleSheet } from "react-native";
 import FilterButton from "@/components/FilterButton";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import usePanelManager from "@/hooks/useWebPanelManager";
@@ -126,10 +126,11 @@ export default function ChatInterface({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-row h-full relative">
+        {/* LEFT PANE */}
         <View
           onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
-          style={{ position: "relative" }}
           className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
+          style={styles.leftPaneContainer}
         >
           <ConversationHeader
             selectedConversationType={selectedConversationType}
@@ -138,6 +139,7 @@ export default function ChatInterface({
             isLoading={conversationsLoading}
             onCreateGroup={() => setShowCreateGroup(true)}
           />
+
           {selectedConversationType === ConversationType.ALL && (
             <View className="px-5">
               <SearchBar
@@ -183,14 +185,15 @@ export default function ChatInterface({
           )}
         </View>
 
+        {/* THREAD PANEL */}
         <MotionView
           visible={true}
           from={{ width: screenWidth }}
           to={{ width: threadWidth }}
           duration={300}
           easing="decelerate"
-          style={{ flexGrow: 1, flexShrink: 1, minWidth: 0 }}
           className="bg-background-light dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800"
+          style={styles.threadMotion}
         >
           {selectedConversation ? (
             <ConversationThreadScreen
@@ -211,27 +214,23 @@ export default function ChatInterface({
           )}
         </MotionView>
 
+        {/* RIGHT PANEL */}
         <MotionView
           visible={isPanelOpen}
           from={{ width: 0, opacity: 0 }}
           to={{ width: panelWidth, opacity: 1 }}
           duration={300}
           easing="decelerate"
-          style={{
-            flexShrink: 0,
-            overflow: "hidden",
-            position: isPanelOpen ? "relative" : "absolute",
-            right: 0,
-          }}
           className="bg-background-light dark:bg-gray-900"
+          style={[styles.rightPanel, getRightPanelPosition(isPanelOpen)]}
         >
           <MotionView
             visible={isPanelContentReady}
             preset="fadeIn"
             duration={200}
             delay={100}
-            style={{ flex: 1 }}
             className="bg-background-light dark:bg-gray-900"
+            style={styles.flex1}
           >
             {isPanelContentReady && renderPanelContent()}
           </MotionView>
@@ -240,3 +239,26 @@ export default function ChatInterface({
     </View>
   );
 }
+
+const getRightPanelPosition = (open: boolean): { position: "relative" | "absolute" } => ({
+  position: open ? "relative" : "absolute",
+});
+
+const styles = StyleSheet.create({
+  leftPaneContainer: {
+    position: "relative",
+  },
+  threadMotion: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  rightPanel: {
+    flexShrink: 0,
+    overflow: "hidden",
+    right: 0,
+  },
+  flex1: {
+    flex: 1,
+  },
+});
