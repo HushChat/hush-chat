@@ -324,7 +324,7 @@ export const ConversationMessageItem = ({
             {showSenderAvatar && (
               <InitialsAvatar
                 name={senderName}
-                size={AvatarSize.small}
+                size={AvatarSize.extraSmall}
                 imageUrl={message.senderSignedImageUrl}
               />
             )}
