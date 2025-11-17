@@ -34,7 +34,6 @@ import { useConversationMessagesQuery } from "@/query/useConversationMessageQuer
 import { useUserStore } from "@/store/user/useUserStore";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
-
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
 

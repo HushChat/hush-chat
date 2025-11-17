@@ -3,6 +3,8 @@ import { format } from "date-fns";
 
 import type { IMessage } from "@/types/chat/types";
 import type { UseMutateFunction } from "@tanstack/react-query";
+import { UploadResult } from "@/hooks/useNativePickerUpload";
+import { ApiResponse } from "@/types/common/types";
 
 interface IUseSendMessageHandlerParams {
   selectedConversationId: number;
@@ -12,8 +14,8 @@ interface IUseSendMessageHandlerParams {
   selectedMessage: IMessage | null;
   setSelectedMessage: (msg: IMessage | null) => void;
   selectedFiles: File[];
-  sendMessage: UseMutateFunction<any, any, any, unknown>;
-  uploadFilesFromWeb: (files: File[]) => Promise<any>;
+  sendMessage: UseMutateFunction<ApiResponse<unknown>, unknown, unknown, unknown>;
+  uploadFilesFromWeb: (files: File[]) => Promise<UploadResult[]>;
   updateConversationMessagesCache: (msg: IMessage) => void;
   handleCloseImagePreview: () => void;
 }
