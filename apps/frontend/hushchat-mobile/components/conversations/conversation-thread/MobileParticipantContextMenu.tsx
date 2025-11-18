@@ -86,7 +86,6 @@ const MobileParticipantContextMenu = ({
         onClose={handleClose}
         title="Participant Options"
         options={participantOptions}
-        showBorders={false}
       />
     </View>
   );

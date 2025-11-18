@@ -88,6 +88,7 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
         <TouchableOpacity
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
           className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-2xl items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700"
+          onPress={() => router.push("/(tabs)/settings")}
         >
           <Ionicons name="settings-outline" size={20} color="#6b7280" />
         </TouchableOpacity>
