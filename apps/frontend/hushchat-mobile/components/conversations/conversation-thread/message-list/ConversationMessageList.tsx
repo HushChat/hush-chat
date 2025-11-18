@@ -301,7 +301,10 @@ const ConversationMessageList = ({
 
       <SectionList
         sections={groupedSections}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => {
+          const fallbackKey = `temp-${item.conversationId}-${index}`;
+          return (item.id ?? fallbackKey).toString();
+        }}
         renderItem={renderMessage}
         renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
