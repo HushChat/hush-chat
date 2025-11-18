@@ -92,9 +92,11 @@ public class WorkspaceService {
             throw new CustomInternalServerErrorException("Failed to create workspace", e);
         } catch (MigrationException e) {
             logger.error("Failed to apply database migrations for schema", e);
+            databaseSchemaService.deleteDatabaseSchema(workspaceUpsertDTO.getName());
             throw new CustomInternalServerErrorException("Failed to create workspace", e);
         } catch (Exception e) {
             logger.error("Failed to create workspace with schema: {}", workspaceUpsertDTO.getName(), e);
+            databaseSchemaService.deleteDatabaseSchema(workspaceUpsertDTO.getName());
             throw new CustomInternalServerErrorException("Failed to create workspace", e);
         }
     }

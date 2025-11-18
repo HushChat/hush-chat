@@ -57,6 +57,23 @@ public class DatabaseSchemaService {
         }
     }
 
+    public void deleteDatabaseSchema(String schemaName) throws SchemaCreationException {
+        try (Database database = DatabaseFactory.getInstance()
+                .findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()))) {
+
+            Scope.child(Scope.Attr.database, database, () -> {
+                database.execute(new SqlStatement[] {
+                        new RawSqlStatement("DROP SCHEMA IF EXISTS " + database.escapeObjectName(schemaName, Schema.class) + " CASCADE")
+                }, null);
+            });
+
+            logger.warn("Rollback: Schema '{}' deleted after failed workspace creation.", schemaName);
+        } catch (Exception e) {
+            logger.error("CRITICAL: Rollback failed - Schema '{}' could not be deleted. Manual cleanup required: {}",
+                    schemaName, e.getMessage(), e);
+        }
+    }
+
     public void applyDatabaseMigrations(String schemaName) throws MigrationException, FileNotFoundException {
         try (Connection connection = dataSource.getConnection()) {
             connection.setSchema(schemaName);
