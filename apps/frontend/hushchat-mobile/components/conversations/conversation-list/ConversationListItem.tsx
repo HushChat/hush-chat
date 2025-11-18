@@ -1,8 +1,3 @@
-/**
- * ConversationListItem
- *
- * Renders a single row in the conversations list (avatar, name, last message preview, timestamp).
- */
 import {
   View,
   TouchableOpacity,
@@ -18,14 +13,11 @@ import InitialsAvatar from "@/components/InitialsAvatar";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { PLATFORM } from "@/constants/platformConstants";
 import classNames from "classnames";
-import ChevronButton from "@/components/ChevronButton";
 import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
 import { MaterialIcons } from "@expo/vector-icons";
 import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
-import LastMessagePreview from "@/components/UnsendMessagePreview";
 import { AppText } from "@/components/AppText";
-
-const MORE_THAN_99_MESSAGES_TEXT = "99+";
+import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
 
 const BG = {
   modalBackdrop: "#090f1d",
@@ -80,6 +72,7 @@ const ConversationListItem = ({
           }
         )}
         onPress={handleChatPress}
+        accessibilityRole="button"
       >
         <TouchableOpacity
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
@@ -107,39 +100,16 @@ const ConversationListItem = ({
               </AppText>
             </View>
           </View>
-          <View className="flex-row items-center justify-between">
-            <AppText
-              className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
-              numberOfLines={1}
-            >
-              {lastMessage?.isUnsend ? (
-                <LastMessagePreview unsendMessage={lastMessage} />
-              ) : (
-                lastMessageText
-              )}
-            </AppText>
-            {conversation.mutedByLoggedInUser && (
-              <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" className="ml-2" />
-            )}
 
-            {PLATFORM.IS_WEB && (
-              <ChevronButton
-                chevronButtonRef={chevronButtonRef}
-                handleOptionsPress={handleOptionsPress}
-              />
-            )}
-            {conversation.unreadCount > 0 && (
-              <View className="bg-blue-500 dark:bg-blue-600 rounded-full min-w-[20px] h-5 px-1.5 items-center justify-center ml-2">
-                <AppText
-                  className="text-xs font-semibold"
-                  style={{ color: "#FFFFFF" }} // Use the style, AppText component's default styles might be overriding the text color
-                >
-                  {conversation.unreadCount > 99
-                    ? MORE_THAN_99_MESSAGES_TEXT
-                    : conversation.unreadCount}
-                </AppText>
-              </View>
-            )}
+          <View className="flex-row items-center justify-between">
+            <ConversationMeta
+              lastMessage={lastMessage}
+              lastMessageText={lastMessageText}
+              muted={conversation.mutedByLoggedInUser}
+              unreadCount={conversation.unreadCount}
+              chevronButtonRef={chevronButtonRef}
+              onChevronPress={handleOptionsPress}
+            />
           </View>
         </View>
       </Pressable>
