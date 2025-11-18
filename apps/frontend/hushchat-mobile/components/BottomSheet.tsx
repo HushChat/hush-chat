@@ -27,18 +27,11 @@ interface BottomSheetProps {
   onClose: () => void;
   options: BottomSheetOption[];
   title?: string;
-  showBorders?: boolean;
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-const BottomSheet = ({
-  visible,
-  onClose,
-  options,
-  title,
-  showBorders = true,
-}: BottomSheetProps) => {
+const BottomSheet = ({ visible, onClose, options, title }: BottomSheetProps) => {
   const insets = useSafeAreaInsets();
 
   const handleClose = () => {
@@ -98,16 +91,12 @@ const BottomSheet = ({
             )}
 
             <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
-              {options.map((option, index) => (
+              {options.map((option) => (
                 <TouchableOpacity
                   key={option.id}
                   onPress={() => handleOptionPress(option)}
                   activeOpacity={DEFAULT_ACTIVE_OPACITY}
-                  className={`flex-row items-center py-4 px-2 ${
-                    showBorders && index < options.length - 1
-                      ? "border-b border-gray-200 dark:border-gray-700"
-                      : ""
-                  }`}
+                  className={`flex-row items-center py-4 px-2`}
                 >
                   <View
                     className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${

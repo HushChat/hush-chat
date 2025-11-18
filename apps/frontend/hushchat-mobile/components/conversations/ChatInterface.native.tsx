@@ -49,6 +49,15 @@ export default function ChatInterface({
         router.push("/group-conversation/select-participants");
       },
     },
+    {
+      id: "contact",
+      title: "Contacts",
+      icon: "chatbubble-outline" as const,
+      onPress: () => {
+        setSheetVisible(false);
+        router.push("/settings/contact");
+      },
+    },
   ];
 
   return (

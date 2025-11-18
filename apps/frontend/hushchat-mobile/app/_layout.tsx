@@ -145,6 +145,7 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="+not-found" />
         <Stack.Screen name="group-conversation/select-participants" />
         <Stack.Screen name="group-conversation/configure" />
+        <Stack.Screen name="settings/contact" />
       </Stack>
     </>
   );
