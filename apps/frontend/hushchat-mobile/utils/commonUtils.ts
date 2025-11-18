@@ -167,8 +167,8 @@ const getPaginationConfig = <T extends { id: any }>() => {
     getId: (m: T) => m?.id,
     getPageItems: (p: { content: T[] }) => p?.content,
     setPageItems: (p: { content: T[] }, items: T[]) => ({ ...p, content: items }),
-  }
-}
+  };
+};
 
 export {
   getLastMessageTime,
