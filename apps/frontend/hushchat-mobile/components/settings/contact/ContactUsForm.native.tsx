@@ -1,6 +1,6 @@
 import React from "react";
 import { KeyboardAvoidingView, ScrollView, Platform } from "react-native";
-import { ContactUsFormFields } from "./ContactUsFormFields";
+import { ContactUsFormFields } from "@/components/settings/contact/ContactUsFormFields";
 
 export function ContactUsForm() {
   return (
