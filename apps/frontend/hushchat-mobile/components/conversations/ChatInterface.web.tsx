@@ -1,4 +1,4 @@
-import { View, Dimensions, StyleSheet } from "react-native";
+import { View, Dimensions, StyleSheet, ScrollView } from "react-native";
 import FilterButton from "@/components/FilterButton";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import usePanelManager from "@/hooks/useWebPanelManager";
@@ -123,13 +123,12 @@ export default function ChatInterface({
 
   const threadWidth = isPanelOpen ? screenWidth - panelWidth : screenWidth;
 
-  return (
-    <View className="flex-1 bg-background-light dark:bg-background-dark">
-      <View className="flex-row h-full relative">
-        {/* LEFT PANE */}
+  const renderMainContent = () => {
+    return (
+      <>
         <View
           onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
-          className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
+          className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 h-full"
           style={styles.leftPaneContainer}
         >
           <ConversationHeader
@@ -185,7 +184,6 @@ export default function ChatInterface({
           )}
         </View>
 
-        {/* THREAD PANEL */}
         <MotionView
           visible={true}
           from={{ width: screenWidth }}
@@ -235,7 +233,24 @@ export default function ChatInterface({
             {isPanelContentReady && renderPanelContent()}
           </MotionView>
         </MotionView>
-      </View>
+      </>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-background-light dark:bg-background-dark">
+      {screenWidth < 1024 ? (
+        <ScrollView
+          horizontal
+          contentContainerStyle={styles.scrollHorizontalContent}
+          showsHorizontalScrollIndicator={false}
+          style={styles.scrollContainer}
+        >
+          <View className="flex-row h-full">{renderMainContent()}</View>
+        </ScrollView>
+      ) : (
+        <View className="flex-row h-full relative">{renderMainContent()}</View>
+      )}
     </View>
   );
 }
@@ -247,6 +262,7 @@ const getRightPanelPosition = (open: boolean): { position: "relative" | "absolut
 const styles = StyleSheet.create({
   leftPaneContainer: {
     position: "relative",
+    flexShrink: 0,
   },
   threadMotion: {
     flexGrow: 1,
@@ -260,5 +276,11 @@ const styles = StyleSheet.create({
   },
   flex1: {
     flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollHorizontalContent: {
+    flexGrow: 1,
   },
 });
