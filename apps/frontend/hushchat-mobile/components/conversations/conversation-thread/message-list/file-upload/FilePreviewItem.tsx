@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import classNames from "classnames";
 import React, { useEffect, useMemo, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
@@ -28,7 +28,7 @@ const ImagePreview = ({ uri, isSelected }: { uri: string; isSelected: boolean })
   <View className="relative mr-3">
     <Image
       source={{ uri }}
-      style={{ width: 48, height: 48 }}
+      style={styles.imagePreview}
       className="rounded-lg"
       cachePolicy="memory-disk"
     />
@@ -143,3 +143,10 @@ export const FilePreviewItem = ({
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  imagePreview: {
+    width: 48,
+    height: 48,
+  },
+});

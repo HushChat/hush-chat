@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { useModalContext } from "@/context/modal-context";
@@ -44,9 +44,7 @@ export default function OneToOneChatInfo({
       refetch();
       closeModal();
     },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
+    (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
   const unblockUserMutation = useUnblockUserMutation(
@@ -58,9 +56,7 @@ export default function OneToOneChatInfo({
       refetch();
       closeModal();
     },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
+    (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
   const handleBlockUser = () => {
@@ -97,12 +93,10 @@ export default function OneToOneChatInfo({
     });
   };
 
-  if (isLoadingConversationInfo) {
-    return <LoadingState />;
-  }
+  if (isLoadingConversationInfo) return <LoadingState />;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <ChatInfoHeader
         title={`${conversationInfo?.userView.firstName} ${conversationInfo?.userView.lastName}`}
         onBack={onBack}
@@ -129,20 +123,22 @@ export default function OneToOneChatInfo({
         }
       />
 
-      <View style={{ paddingHorizontal: 16 }}>
+      <View style={styles.inner}>
         <View className="border border-[#E4E4E4] dark:border-[#E4E4E42B]" />
         <View>
           <ChatInfoCommonAction
             conversationId={conversation.id}
             isFavorite={conversationInfo?.favorite || false}
             isPinned={conversationInfo?.pinned || false}
-            isMuted={conversationInfo?.mutedUntil ? true : false}
+            isMuted={!!conversationInfo?.mutedUntil}
             onBack={onBack}
             setSelectedConversation={setSelectedConversation}
           />
           <ActionItem
             icon="ban-outline"
-            label={`${conversationInfo?.blocked ? "Unblock" : "Block"} ${conversationInfo?.userView.firstName} ${conversationInfo?.userView.lastName}`}
+            label={`${conversationInfo?.blocked ? "Unblock" : "Block"} ${
+              conversationInfo?.userView.firstName
+            } ${conversationInfo?.userView.lastName}`}
             onPress={conversationInfo?.blocked ? handleUnblockUser : handleBlockUser}
             color="#EF4444"
           />
@@ -151,3 +147,12 @@ export default function OneToOneChatInfo({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  inner: {
+    paddingHorizontal: 16,
+  },
+});

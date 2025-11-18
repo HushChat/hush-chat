@@ -3,8 +3,8 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { ActivityIndicator, SectionList, SectionListData, View } from "react-native";
 import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
@@ -21,6 +21,9 @@ import { PaginatedResponse } from "@/types/common/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
+import { DateSection } from "@/components/DateSection";
+import { logDebug } from "@/utils/logger";
+import { groupMessagesByDate, shouldShowSenderAvatar } from "@/utils/messageUtils";
 
 interface MessagesListProps {
   messages: IMessage[];
@@ -89,7 +92,7 @@ const ConversationMessageList = ({
       if (!conversationId || !message) return;
 
       togglePinMessage({ conversationId, messageId: message.id });
-      console.log(message);
+      logDebug(message);
       setSelectedPinnedMessage(message);
     },
     [conversationAPIResponse?.id, togglePinMessage]
@@ -111,7 +114,12 @@ const ConversationMessageList = ({
             ...page,
             content: page.content.map((message: IMessage) =>
               message.id === unsendMessage.id
-                ? { ...message, isUnsend: true, messageAttachments: [] }
+                ? {
+                    ...message,
+                    isUnsend: true,
+                    messageAttachments: [],
+                    isForwarded: false,
+                  }
                 : message
             ),
           })),
@@ -195,10 +203,29 @@ const ConversationMessageList = ({
     setReactionsModal((prev) => ({ ...prev, visible: false }));
   }, []);
 
+  const groupedSections = useMemo(() => {
+    return groupMessagesByDate(messages);
+  }, [messages]);
+
   const renderMessage = useCallback(
-    ({ item }: { item: IMessage }) => {
+    ({
+      item,
+      index,
+      section,
+    }: {
+      item: IMessage;
+      index: number;
+      section: SectionListData<IMessage>;
+    }) => {
       const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
       const isSelected = selectedMessageIds.has(Number(item.id));
+      const showSenderAvatar = shouldShowSenderAvatar(
+        section.data,
+        index,
+        !!conversationAPIResponse?.isGroup,
+        !!isCurrentUser
+      );
+
       return (
         <ConversationMessageItem
           message={item}
@@ -217,6 +244,7 @@ const ConversationMessageList = ({
           onUnsendMessage={(message) => unSendMessage(message)}
           selectedConversationId={selectedConversationId}
           onViewReactions={handleViewReactions}
+          showSenderAvatar={showSenderAvatar}
         />
       );
     },
@@ -271,13 +299,13 @@ const ConversationMessageList = ({
         />
       )}
 
-      <FlatList
-        data={messages}
+      <SectionList
+        sections={groupedSections}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id?.toString()}
-        className="flex-1 px-4"
-        showsVerticalScrollIndicator={false}
+        renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
+        showsVerticalScrollIndicator={false}
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
@@ -300,5 +328,4 @@ const ConversationMessageList = ({
     </>
   );
 };
-
 export default ConversationMessageList;

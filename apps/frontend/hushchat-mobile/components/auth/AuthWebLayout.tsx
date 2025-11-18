@@ -1,11 +1,11 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import {
   View,
   Text,
   Image,
   useWindowDimensions,
   ImageSourcePropType,
-  ScrollView,
+  StyleSheet,
 } from "react-native";
 
 type TAuthWebLayoutProps = {
@@ -29,54 +29,39 @@ export default function AuthWebLayout({
   children,
 }: TAuthWebLayoutProps) {
   const { width } = useWindowDimensions();
-  const isWide = width >= 1024;
 
-  if (!isWide) {
-    return (
-      <View className="flex-1" style={{ backgroundColor: colors.background }}>
-        <ScrollView
-          contentContainerClassName="px-6 pt-10 pb-10"
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="mb-8">
-            <Text
-              className="text-5xl font-extrabold tracking-wide"
-              style={{ color: colors.primary }}
-              numberOfLines={2}
-            >
-              {title}
-            </Text>
-            {subtitle ? (
-              <Text
-                className="mt-2.5 text-lg leading-7 max-w-[520px]"
-                style={{ color: colors.textSecondary }}
-              >
-                {subtitle}
-              </Text>
-            ) : null}
-          </View>
+  const styles = useMemo(() => {
+    const isWide = width >= 1024;
 
-          <View>{children}</View>
-
-          <View className="items-center w-full">
-            <Image source={image} className="w-[200px] max-h-[250px]" resizeMode="contain" />
-          </View>
-        </ScrollView>
-      </View>
-    );
-  }
+    return {
+      shell: [
+        s.shell,
+        {
+          flexDirection: isWide ? ("row" as const) : ("column" as const),
+        },
+      ],
+      left: [
+        s.left,
+        {
+          width: isWide ? ("60%" as const) : ("100%" as const),
+        },
+      ],
+      right: [
+        s.right,
+        {
+          width: isWide ? ("40%" as const) : ("100%" as const),
+        },
+      ],
+    };
+  }, [width]);
 
   return (
-    <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <View className="flex-1 flex-row items-stretch px-12 py-10 gap-2">
-        <View className="w-[60%] justify-center">
-          <View className="flex-1 justify-between min-h-0">
-            <View className="pr-6 max-w-[700px]">
-              <Text
-                className="text-5xl font-extrabold tracking-wide"
-                style={{ color: colors.primary }}
-                numberOfLines={2}
-              >
+    <View style={[s.container, { backgroundColor: colors.background }]}>
+      <View style={styles.shell}>
+        <View style={styles.left}>
+          <View style={s.leftInner}>
+            <View style={s.headerBlock}>
+              <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
                 {title}
               </Text>
               {subtitle ? (
@@ -88,19 +73,54 @@ export default function AuthWebLayout({
                 </Text>
               ) : null}
             </View>
-
-            <View className="flex-1 justify-center pt-4">
-              <Image
-                source={image}
-                className="w-full max-w-[900px] h-[700px]"
-                resizeMode="contain"
-              />
+            <View style={s.imageWrap}>
+              <Image source={image} style={s.image} />
             </View>
           </View>
         </View>
-
-        <View className="w-[40%] justify-center items-center px-12">{children}</View>
+        <View style={styles.right}>{children}</View>
       </View>
     </View>
   );
 }
+
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  shell: {
+    flex: 1,
+    alignItems: "stretch",
+    paddingHorizontal: 48,
+    paddingVertical: 42,
+    gap: 24,
+  },
+  left: { justifyContent: "center" },
+  leftInner: {
+    flex: 1,
+    justifyContent: "space-between",
+    minHeight: 0,
+  },
+  headerBlock: {
+    paddingRight: 24,
+    maxWidth: 700,
+  },
+  title: {
+    fontSize: 44,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+  },
+  imageWrap: {
+    flex: 1,
+    justifyContent: "center",
+    paddingTop: 16,
+  },
+  image: {
+    width: "100%",
+    aspectRatio: 2,
+    resizeMode: "contain",
+  },
+  right: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 48,
+  },
+});
