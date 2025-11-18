@@ -163,4 +163,69 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         return new PageImpl<>(messages, pageable, total != null ? total : 0L);
     }
+
+    /**
+     * Retrieves a window of messages around a given message ID within a specific conversation.
+     *
+     * @param conversationId the ID of the conversation
+     * @param messageId      the center message ID used to calculate the window
+     * @param participant    the participant requesting the message window, used for visibility filters
+     * @return a page containing the window of messages around the given message ID
+     */
+    public Page<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long messageId, ConversationParticipant participant) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+
+        int windowSize = 20;
+
+        BooleanExpression conditions = message.conversation.id.eq(conversationId)
+                .and(message.sender.isNotNull())
+                .and(message.conversation.deleted.eq(false));
+
+        if(!participant.getIsActive()) {
+            conditions = conditions.and(message.createdAt.before(Date.from(participant.getInactiveFrom().toInstant())));
+        }
+
+        if(participant.getLastDeletedTime() != null) {
+            conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
+        }
+
+        Long total = queryFactory
+                .select(message.id.countDistinct())
+                .from(message)
+                .innerJoin(message.conversation, conversation)
+                .innerJoin(message.sender, sender)
+                .where(
+                        message.conversation.id.eq(conversationId)
+                                .and(
+                                        message.id.between(
+                                                messageId - windowSize,
+                                                messageId + windowSize
+                                        )
+                                )
+                                .and(conditions)
+                )
+                .fetchOne();
+
+        List<Message> messages = queryFactory
+                .selectDistinct(message)
+                .from(message)
+                .leftJoin(message.attachments, messageAttachment).fetchJoin()
+                .innerJoin(message.conversation, conversation).fetchJoin()
+                .innerJoin(message.sender, sender).fetchJoin()
+                .where(
+                        message.conversation.id.eq(conversationId)
+                                .and(
+                                        message.id.between(
+                                                messageId - windowSize,
+                                                messageId + windowSize
+                                        )
+                                )
+                )
+                .orderBy(message.id.asc())
+                .fetch();
+
+        Pageable pageable = PageRequest.of(0, messages.size());
+
+        return new PageImpl<>(messages, pageable, total != null ? total : 0L);
+    }
 }

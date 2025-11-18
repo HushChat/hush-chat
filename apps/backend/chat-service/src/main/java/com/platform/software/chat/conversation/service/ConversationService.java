@@ -1178,6 +1178,63 @@ public class ConversationService {
             throw new CustomInternalServerErrorException("Failed to report conversation");
         }
     }
+
+    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId) {
+        ConversationParticipant loggedInParticipant =
+                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+
+        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
+
+        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
+
+        List<Long> messageIds = extractMessageIds(messages);
+
+        Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
+                messageReactionRepository.findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
+
+        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap, cloudPhotoHandlingService);
+        messageMentionService.appendMessageMentions(messageViewDTOS);
+
+        Map<Long, Message> messageMap = messages.getContent().stream()
+                .collect(Collectors.toMap(Message::getId, Function.identity()));
+
+        List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
+                .map(dto -> {
+                    Message matchedMessage = messageMap.get(dto.getId());
+                    List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+                    if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
+                        return dto;
+                    }
+
+                    List<MessageAttachment> attachments = matchedMessage.getAttachments();
+
+                    if (attachments == null || attachments.isEmpty()) {
+                        return dto;
+                    }
+
+                    for (MessageAttachment attachment : attachments) {
+                        try {
+                            String fileViewSignedURL = cloudPhotoHandlingService
+                                    .getPhotoViewSignedURL(attachment.getIndexedFileName());
+
+                            MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
+                            messageAttachmentDTO.setId(attachment.getId());
+                            messageAttachmentDTO.setFileUrl(fileViewSignedURL);
+                            messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
+                            messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
+                            attachmentDTOs.add(messageAttachmentDTO);
+                        } catch (Exception e) {
+                            logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
+                            throw new CustomInternalServerErrorException("Failed to get conversation!");
+                        }
+                    }
+                    dto.setMessageAttachments(attachmentDTOs);
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return new PageImpl<>(enrichedDTOs, messages.getPageable(), messages.getTotalElements());
+    }
 }
 
 
