@@ -10,7 +10,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PLATFORM } from "@/constants/platformConstants";
 
 export function ContactUsFormFields() {
-  const { form, handleSubmit, isPending, isButtonDisabled } = useContactUsForm();
+  const { contactForm, submitContactForm, isPending, isSubmitButtonDisabled } = useContactUsForm();
+
   const insets = useSafeAreaInsets();
 
   return (
@@ -43,8 +44,8 @@ export function ContactUsFormFields() {
       </AppText>
 
       <AppTextInput
-        value={form.values.name}
-        onChangeText={(v) => form.onValueChange({ name: "name", value: v })}
+        value={contactForm.values.name}
+        onChangeText={(v) => contactForm.onValueChange({ name: "name", value: v })}
         placeholder="Your name"
         placeholderTextColor="#9ca3af"
         autoCapitalize="none"
@@ -52,8 +53,8 @@ export function ContactUsFormFields() {
         editable={!isPending}
       />
 
-      {form.errors.name && (
-        <AppText className="text-red-500 text-xs mt-1">{form.errors.name}</AppText>
+      {contactForm.errors.name && (
+        <AppText className="text-red-500 text-xs mt-1">{contactForm.errors.name}</AppText>
       )}
 
       <View className="mt-4">
@@ -62,8 +63,8 @@ export function ContactUsFormFields() {
         </AppText>
 
         <AppTextInput
-          value={form.values.email}
-          onChangeText={(v) => form.onValueChange({ name: "email", value: v })}
+          value={contactForm.values.email}
+          onChangeText={(v) => contactForm.onValueChange({ name: "email", value: v })}
           placeholder="your.email@example.com"
           placeholderTextColor="#9ca3af"
           keyboardType="email-address"
@@ -72,8 +73,8 @@ export function ContactUsFormFields() {
           editable={!isPending}
         />
 
-        {form.errors.email && (
-          <AppText className="text-red-500 text-xs mt-1">{form.errors.email}</AppText>
+        {contactForm.errors.email && (
+          <AppText className="text-red-500 text-xs mt-1">{contactForm.errors.email}</AppText>
         )}
       </View>
 
@@ -83,8 +84,8 @@ export function ContactUsFormFields() {
         </AppText>
 
         <AppTextInput
-          value={form.values.subject}
-          onChangeText={(v) => form.onValueChange({ name: "subject", value: v })}
+          value={contactForm.values.subject}
+          onChangeText={(v) => contactForm.onValueChange({ name: "subject", value: v })}
           placeholder="What is this about?"
           placeholderTextColor="#9ca3af"
           autoCapitalize="none"
@@ -92,8 +93,8 @@ export function ContactUsFormFields() {
           editable={!isPending}
         />
 
-        {form.errors.subject && (
-          <AppText className="text-red-500 text-xs mt-1">{form.errors.subject}</AppText>
+        {contactForm.errors.subject && (
+          <AppText className="text-red-500 text-xs mt-1">{contactForm.errors.subject}</AppText>
         )}
       </View>
 
@@ -103,8 +104,8 @@ export function ContactUsFormFields() {
         </AppText>
 
         <AppTextInput
-          value={form.values.message}
-          onChangeText={(v) => form.onValueChange({ name: "message", value: v })}
+          value={contactForm.values.message}
+          onChangeText={(v) => contactForm.onValueChange({ name: "message", value: v })}
           placeholder="Tell us more..."
           placeholderTextColor="#9ca3af"
           multiline
@@ -115,17 +116,17 @@ export function ContactUsFormFields() {
           editable={!isPending}
         />
 
-        {form.errors.message && (
-          <AppText className="text-red-500 text-xs mt-1">{form.errors.message}</AppText>
+        {contactForm.errors.message && (
+          <AppText className="text-red-500 text-xs mt-1">{contactForm.errors.message}</AppText>
         )}
       </View>
 
       <TouchableOpacity
-        onPress={handleSubmit}
+        onPress={submitContactForm}
         activeOpacity={DEFAULT_ACTIVE_OPACITY}
-        disabled={isButtonDisabled}
+        disabled={isSubmitButtonDisabled}
         className={`rounded-lg py-4 items-center mt-5 ${
-          isButtonDisabled
+          isSubmitButtonDisabled
             ? "bg-gray-300 dark:bg-gray-700"
             : "bg-primary-light dark:bg-primary-dark"
         }`}

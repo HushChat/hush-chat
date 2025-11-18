@@ -9,54 +9,54 @@ import { useForm } from "@/hooks/useForm";
 export function useContactUsForm() {
   const { user } = useUserStore();
 
-  const initialValues = {
-    name: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "",
+  const defaultContactFormValues = {
+    name: `${user.firstName} ${user.lastName}`,
     email: user?.email || "",
     subject: "",
     message: "",
   };
 
-  const form = useForm(contactUsSchema, initialValues);
+  const contactForm = useForm(contactUsSchema, defaultContactFormValues);
 
-  const sendMessage = useMutation({
+  const contactMessageMutation = useMutation({
     mutationFn: sendContactUsMessage,
     onSuccess: (response) => {
       ToastUtils.success(response.data || "Message sent successfully!");
 
-      form.setValues(initialValues);
-      form.clearErrors();
-      form.setShowErrors(false);
+      contactForm.setValues(defaultContactFormValues);
+      contactForm.clearErrors();
+      contactForm.setShowErrors(false);
     },
     onError: (error: any) => {
       ToastUtils.error(error.response?.data?.error || error.message);
     },
   });
 
-  const handleSubmit = useCallback(async () => {
-    const cleaned = await form.validateAll();
-    if (!cleaned) return;
+  const submitContactForm = useCallback(async () => {
+    const validatedContactData = await contactForm.validateAll();
+    if (!validatedContactData) return;
 
-    const payload = {
-      name: cleaned.name.trim(),
-      email: cleaned.email.trim(),
-      subject: cleaned.subject.trim(),
-      message: cleaned.message.trim(),
+    const contactMessagePayload = {
+      name: validatedContactData.name.trim(),
+      email: validatedContactData.email.trim(),
+      subject: validatedContactData.subject.trim(),
+      message: validatedContactData.message.trim(),
     };
 
-    sendMessage.mutate(payload);
-  }, [form, sendMessage]);
+    contactMessageMutation.mutate(contactMessagePayload);
+  }, [contactForm, contactMessageMutation]);
 
-  const isButtonDisabled =
-    !form.values.name ||
-    !form.values.email ||
-    !form.values.subject ||
-    !form.values.message ||
-    sendMessage.isPending;
+  const isSubmitButtonDisabled =
+    !contactForm.values.name ||
+    !contactForm.values.email ||
+    !contactForm.values.subject ||
+    !contactForm.values.message ||
+    contactMessageMutation.isPending;
 
   return {
-    form,
-    handleSubmit,
-    isPending: sendMessage.isPending,
-    isButtonDisabled,
+    contactForm,
+    submitContactForm,
+    isPending: contactMessageMutation.isPending,
+    isSubmitButtonDisabled,
   };
 }

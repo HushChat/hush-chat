@@ -60,10 +60,6 @@ export default function ChatInterface({
     setSelectedMessageIds(EMPTY_SET);
   }, [closePanel, setSelectionMode, setSelectedMessageIds]);
 
-  const handleBackToPlaceholder = () => {
-    setSelectedConversation?.(null);
-  };
-
   const handleShowProfile = useCallback(() => {
     openPanel(PanelType.PROFILE);
   }, [openPanel]);
@@ -195,7 +191,6 @@ export default function ChatInterface({
           {selectedConversation ? (
             <ConversationThreadScreen
               conversationId={selectedConversation.id}
-              webBackPress={handleBackToPlaceholder}
               onShowProfile={handleShowProfile}
               webSearchPress={handleShowSearch}
               webForwardPress={handleShowForward}
