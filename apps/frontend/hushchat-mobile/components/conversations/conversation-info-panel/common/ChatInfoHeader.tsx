@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,21 +29,22 @@ export default function ChatInfoHeader({
   onPressSearch,
 }: ChatInfoHeaderProps) {
   const insets = useSafeAreaInsets();
-
   const { isDark } = useAppTheme();
 
   return (
     <View>
       <View
-        style={{
-          paddingTop: insets.top,
-          height: 320 + insets.top,
-          position: "relative",
-        }}
+        style={[
+          styles.headerContainer,
+          {
+            paddingTop: insets.top,
+            height: 320 + insets.top,
+          },
+        ]}
       >
         <Image
           source={{ uri: imageUrl }}
-          style={{ height: 320 }}
+          style={styles.headerImage}
           contentFit="cover"
           cachePolicy="memory-disk"
         />
@@ -74,3 +75,12 @@ export default function ChatInfoHeader({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    position: "relative",
+  },
+  headerImage: {
+    height: 320,
+  },
+});

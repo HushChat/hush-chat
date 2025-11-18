@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
+import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,12 +28,12 @@ import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 
-import { format } from "date-fns";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 
+import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
 
@@ -148,6 +148,20 @@ const ConversationThreadScreen = ({
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
+  const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
+    selectedConversationId,
+    currentUserId,
+    imageMessage,
+    setImageMessage,
+    selectedMessage,
+    setSelectedMessage,
+    selectedFiles,
+    sendMessage,
+    uploadFilesFromWeb,
+    updateConversationMessagesCache,
+    handleCloseImagePreview,
+  });
+
   useEffect(() => {
     setSelectedMessage(null);
     setSelectionMode(false);
@@ -172,90 +186,6 @@ const ConversationThreadScreen = ({
   const handleCancelReply = useCallback(() => {
     setSelectedMessage(null);
   }, []);
-
-  const handleSendMessage = useCallback(
-    async (message: string, parentMessage?: IMessage, files?: File[]) => {
-      const messageToSend = message;
-      const filesToSend = files || [];
-      if ((!messageToSend.trim() && filesToSend.length === 0) || isSendingMessage) return;
-
-      const validFiles = filesToSend.filter((f) => f instanceof File);
-      const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg"];
-
-      try {
-        if (validFiles.length > 0) {
-          const renamedFiles = validFiles.map((file, index) => {
-            const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
-            const fileExtension = file.name.split(".").pop() || "";
-            const isImage = IMAGE_EXTENSIONS.includes(fileExtension);
-            const newFileName = isImage
-              ? `ChatApp Image ${selectedConversationId}${index} ${timestamp}.${fileExtension}`
-              : file.name;
-
-            return new File([file], newFileName, {
-              type: file.type,
-              lastModified: file.lastModified,
-            });
-          });
-
-          const newMessage: IMessage = {
-            senderId: Number(currentUserId),
-            senderFirstName: useUserStore.getState().user.firstName,
-            senderLastName: useUserStore.getState().user.lastName,
-            messageText: imageMessage || "",
-            createdAt: new Date().toISOString(),
-            conversationId: selectedConversationId,
-            messageAttachments: renamedFiles.map((file) => ({
-              fileUrl: URL.createObjectURL(file),
-              originalFileName: file.name,
-              indexedFileName: "",
-              mimeType: file.type,
-            })),
-          };
-
-          updateConversationMessagesCache(newMessage);
-          await uploadFilesFromWeb(renamedFiles);
-          setSelectedMessage(null);
-          setImageMessage("");
-        } else {
-          sendMessage({
-            conversationId: selectedConversationId,
-            message: messageToSend,
-            parentMessageId: parentMessage?.id,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to send message:", error);
-      }
-    },
-    [
-      isSendingMessage,
-      selectedConversationId,
-      sendMessage,
-      uploadFilesFromWeb,
-      updateConversationMessagesCache,
-      currentUserId,
-      imageMessage,
-    ]
-  );
-
-  const handleSendFiles = useCallback(() => {
-    if (!selectedFiles.length) return;
-
-    void handleSendMessage(imageMessage, selectedMessage ?? undefined, selectedFiles);
-
-    handleCloseImagePreview();
-    setImageMessage("");
-
-    if (selectedMessage) setSelectedMessage(null);
-  }, [
-    selectedFiles,
-    imageMessage,
-    selectedMessage,
-    handleSendMessage,
-    handleCloseImagePreview,
-    setImageMessage,
-  ]);
 
   const onForwardPress = useCallback(() => {
     if (PLATFORM.IS_WEB) {
@@ -381,6 +311,13 @@ const ConversationThreadScreen = ({
     isGroupChat,
   ]);
 
+  const actionBarStyle = useMemo(
+    () => ({
+      paddingBottom: insets.bottom,
+    }),
+    [insets.bottom]
+  );
+
   return (
     <SafeAreaView
       className="flex-1 bg-background-light dark:bg-background-dark"
@@ -419,15 +356,9 @@ const ConversationThreadScreen = ({
               ) : (
                 <>
                   {renderContent()}
-                  <View
-                    style={{
-                      paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
-                    }}
-                  >
-                    {renderTextInput()}
-                  </View>
+                  <View style={styles.textInputWrapper}>{renderTextInput()}</View>
                   {selectionMode && (
-                    <View style={{ paddingBottom: insets.bottom }}>
+                    <View style={actionBarStyle}>
                       <MessageForwardActionBar
                         visible={selectionMode}
                         count={selectedMessageIds.size}
@@ -451,3 +382,9 @@ const ConversationThreadScreen = ({
 };
 
 export default ConversationThreadScreen;
+
+const styles = StyleSheet.create({
+  textInputWrapper: {
+    paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
+  },
+});

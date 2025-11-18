@@ -1,5 +1,6 @@
 import { getUserInfo } from "@/apis/user";
 import { IUser } from "@/types/user/types";
+import { logInfo } from "@/utils/logger";
 import { StateCreator } from "zustand";
 
 export interface UserState {
@@ -67,7 +68,7 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch user data";
-      console.error("Error fetching user data:", errorMessage);
+      logInfo("Error fetching user data:", errorMessage);
       set({
         error: errorMessage,
         loading: false,

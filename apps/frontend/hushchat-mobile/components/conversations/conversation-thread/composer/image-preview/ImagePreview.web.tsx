@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Modal, View, Text, Pressable, ScrollView } from "react-native";
+import { Modal, View, Text, Pressable, ScrollView, StyleSheet, ViewStyle } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { TImagePreviewProps } from "@/types/chat/types";
@@ -11,6 +11,10 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
+
+  const getThumbnailJustify = (length: number): ViewStyle => ({
+    justifyContent: length <= 6 ? "center" : "flex-start",
+  });
 
   useEffect(() => {
     if (thumbnailScrollRef.current && images.length > 1) {
@@ -113,13 +117,11 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                 ref={thumbnailScrollRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{
-                  gap: 8,
-                  paddingHorizontal: 16,
-                  alignItems: "center",
-                  justifyContent: images.length <= 6 ? "center" : "flex-start",
-                }}
-                style={{ maxWidth: "100%" }}
+                contentContainerStyle={[
+                  styles.thumbnailContent,
+                  getThumbnailJustify(images.length),
+                ]}
+                style={styles.thumbnailScroll}
               >
                 {images.map((image, index) => (
                   <Pressable
@@ -150,3 +152,14 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  thumbnailContent: {
+    gap: 8,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  thumbnailScroll: {
+    maxWidth: "100%",
+  },
+});

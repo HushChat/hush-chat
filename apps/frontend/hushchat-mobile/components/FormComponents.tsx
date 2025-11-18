@@ -34,6 +34,71 @@ interface FormContainerProps {
   maxWidth?: number;
 }
 
+const COLORS = {
+  WHITE: "#ffffff",
+  ERROR_BG: "#fef2f2",
+  ERROR_BORDER: "#f87171",
+  ERROR_TEXT: "#dc2626",
+};
+
+export const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle, colors }) => (
+  <View style={styles.headerContainer}>
+    <Text style={[styles.headerTitle, { color: colors.primary }]}>{title}</Text>
+    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+  </View>
+);
+
+export const FormButton: React.FC<FormButtonProps> = ({
+  title,
+  onPress,
+  disabled = false,
+  colors,
+  style,
+}) => (
+  <TouchableOpacity
+    onPress={onPress}
+    disabled={disabled}
+    activeOpacity={DEFAULT_ACTIVE_OPACITY}
+    style={[
+      styles.button,
+      disabled && styles.buttonDisabled,
+      {
+        backgroundColor: disabled ? colors.buttonDisabled : colors.primary,
+        boxShadow: colors.primary,
+      },
+      style,
+    ]}
+  >
+    <Text
+      style={[
+        styles.buttonText,
+        disabled ? { color: colors.textSecondary } : styles.buttonTextEnabled,
+      ]}
+    >
+      {title}
+    </Text>
+  </TouchableOpacity>
+);
+
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => (
+  <View style={styles.errorContainer}>
+    <Text style={styles.errorText}>{message}</Text>
+  </View>
+);
+
+export const LinkText: React.FC<LinkTextProps> = ({ text, linkText, onPress, colors }) => (
+  <View style={styles.linkContainer}>
+    <Text style={[styles.linkText, { color: colors.textSecondary }]}>{text}</Text>
+    <TouchableOpacity onPress={onPress}>
+      <Text style={[styles.linkButton, { color: colors.primary }]}>{linkText}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+export const FormContainer: React.FC<FormContainerProps> = ({ children, maxWidth = 450 }) => (
+  <View style={[styles.formContainer, { maxWidth }]}>{children}</View>
+);
+
 const styles = StyleSheet.create({
   headerContainer: {
     marginBottom: 40,
@@ -65,9 +130,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+  buttonTextEnabled: {
+    color: COLORS.WHITE,
+  },
   errorContainer: {
-    backgroundColor: "#fef2f2",
-    borderColor: "#f87171",
+    backgroundColor: COLORS.ERROR_BG,
+    borderColor: COLORS.ERROR_BORDER,
     borderWidth: 1,
     padding: 14,
     marginBottom: 20,
@@ -75,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   errorText: {
-    color: "#dc2626",
+    color: COLORS.ERROR_TEXT,
     fontSize: 14,
     fontWeight: "500",
     flex: 1,
@@ -97,56 +165,3 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 });
-
-export const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle, colors }) => (
-  <View style={styles.headerContainer}>
-    <Text style={[styles.headerTitle, { color: colors.primary }]}>{title}</Text>
-    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
-  </View>
-);
-
-export const FormButton: React.FC<FormButtonProps> = ({
-  title,
-  onPress,
-  disabled = false,
-  colors,
-  style,
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    disabled={disabled}
-    activeOpacity={DEFAULT_ACTIVE_OPACITY}
-    style={[
-      styles.button,
-      disabled && styles.buttonDisabled,
-      {
-        backgroundColor: disabled ? colors.buttonDisabled : colors.primary,
-        boxShadow: colors.primary,
-      },
-      style,
-    ]}
-  >
-    <Text style={[styles.buttonText, { color: disabled ? colors.textSecondary : "#fff" }]}>
-      {title}
-    </Text>
-  </TouchableOpacity>
-);
-
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => (
-  <View style={styles.errorContainer}>
-    <Text style={styles.errorText}>{message}</Text>
-  </View>
-);
-
-export const LinkText: React.FC<LinkTextProps> = ({ text, linkText, onPress, colors }) => (
-  <View style={styles.linkContainer}>
-    <Text style={[styles.linkText, { color: colors.textSecondary }]}>{text}</Text>
-    <TouchableOpacity onPress={onPress}>
-      <Text style={[styles.linkButton, { color: colors.primary }]}>{linkText}</Text>
-    </TouchableOpacity>
-  </View>
-);
-
-export const FormContainer: React.FC<FormContainerProps> = ({ children, maxWidth = 450 }) => (
-  <View style={[styles.formContainer, { maxWidth }]}>{children}</View>
-);

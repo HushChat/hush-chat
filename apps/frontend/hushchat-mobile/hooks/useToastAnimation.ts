@@ -28,7 +28,6 @@ export const useToastAnimation = (
       translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
       opacity.value = withTiming(1, { duration: 300 });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible, isTop]);
 
   const hideToast = () => Toast.hide();
