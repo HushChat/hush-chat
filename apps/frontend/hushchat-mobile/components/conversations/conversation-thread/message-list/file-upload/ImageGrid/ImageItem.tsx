@@ -8,7 +8,7 @@ import { IMessageAttachment } from "@/types/chat/types";
 
 import { staticStyles } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/imageGrid.styles";
 
-type ImageItemProps = {
+type TImageItemProps = {
   attachment: IMessageAttachment;
   style: ImageStyle;
   onPress?: () => void;
@@ -22,7 +22,7 @@ export const ImageItem = ({
   onPress,
   showOverlay = false,
   remainingCount = 0,
-}: ImageItemProps) => (
+}: TImageItemProps) => (
   <TouchableOpacity
     onPress={onPress}
     activeOpacity={DEFAULT_ACTIVE_OPACITY}
