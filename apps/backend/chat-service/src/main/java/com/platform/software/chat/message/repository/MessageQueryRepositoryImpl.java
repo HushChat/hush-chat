@@ -204,13 +204,13 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         }
 
         List<Message> before = baseQuery.clone()
-                .where(message.createdAt.lt(targetMessage.getCreatedAt()))
+                .where(message.id.lt(targetMessage.getId()))
                 .orderBy(message.id.asc())
                 .limit(windowSize)
                 .fetch();
 
         List<Message> after = baseQuery.clone()
-                .where(message.createdAt.gt(targetMessage.getCreatedAt()))
+                .where(message.id.gt(targetMessage.getId()))
                 .orderBy(message.id.asc())
                 .limit(windowSize)
                 .fetch();
@@ -219,7 +219,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         messages.add(targetMessage);
         messages.addAll(after);
 
-        Pageable pageable = PageRequest.of(0, 41);
+        Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
 
         return new PageImpl<>(messages, pageable, messages.size());
     }
