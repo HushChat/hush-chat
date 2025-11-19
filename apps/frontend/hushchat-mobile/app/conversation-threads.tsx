@@ -122,7 +122,6 @@ const ConversationThreadScreen = ({
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
         setImageMessage("");
-        refetchConversationsList();
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
@@ -135,7 +134,6 @@ const ConversationThreadScreen = ({
     setSelectedMessage,
     setImageMessage,
     uploadError,
-    refetchConversationsList,
   ]);
 
   const queryClient = useQueryClient();

@@ -22,7 +22,7 @@ import ChevronButton from "@/components/ChevronButton";
 import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
 import { MaterialIcons } from "@expo/vector-icons";
 import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
-import LastMessagePreview from "@/components/UnsendMessagePreview";
+import { LastMessagePreviewContent } from "@/components/LastMessagePreviewContent";
 import { AppText } from "@/components/AppText";
 
 const BG = {
@@ -52,29 +52,6 @@ const ConversationListItem = ({
 
   const lastMessage = conversation.messages?.at(-1);
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
-
-  const getLastMessagePreview = () => {
-    if (!lastMessage) return "";
-
-    if (lastMessage.hasAttachment) {
-      return (
-        <View className="flex-row items-center gap-1">
-          <View style={{ transform: [{ rotate: "-45deg" }] }}>
-            <MaterialIcons name="attachment" size={14} color="#6B7280" />
-          </View>
-          <AppText className="text-gray-600 dark:text-text-secondary-dark text-sm">
-            Attachment
-          </AppText>
-        </View>
-      );
-    }
-
-    if (lastMessage.isUnsend) {
-      return <LastMessagePreview unsendMessage={lastMessage} />;
-    }
-
-    return lastMessage.messageText;
-  };
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
     e.stopPropagation();
@@ -128,12 +105,9 @@ const ConversationListItem = ({
             </View>
           </View>
           <View className="flex-row items-center justify-between">
-            <AppText
-              className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
-              numberOfLines={1}
-            >
-              {getLastMessagePreview()}
-            </AppText>
+            <View className="flex-1" style={{ minWidth: 0 }}>
+              <LastMessagePreviewContent lastMessage={lastMessage} />
+            </View>
             {conversation.mutedByLoggedInUser && (
               <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" className="ml-2" />
             )}
