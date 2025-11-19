@@ -301,7 +301,23 @@ public class MessageService {
             }
 
             try {
-                forwardingMessages.forEach(messageRepository::saveMessageWthSearchVector);
+                for(Message message: forwardingMessages){
+                    messageRepository.saveMessageWthSearchVector(message);
+
+                    MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                        @Override
+                        public void afterCommit() {
+                            messagePublisherService.invokeNewMessageToParticipants(
+                                    conversation.getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                            );
+
+                            chatNotificationService.sendMessageNotificationsToParticipants(conversation.getId(), loggedInUserId, message);
+                        }
+                    });
+                }
+
             } catch (Exception exception) {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
