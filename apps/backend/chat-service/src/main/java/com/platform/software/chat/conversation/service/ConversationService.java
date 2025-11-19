@@ -58,7 +58,6 @@ import java.util.function.Function;
 @Service
 public class ConversationService {
     Logger logger = LoggerFactory.getLogger(ConversationService.class);
-    private final int DEFAULT_MESSAGE_LIST_SIZE = 20;
 
     private final ConversationRepository conversationRepository;
     private final ConversationParticipantRepository conversationParticipantRepository;
@@ -491,13 +490,44 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId) {
+    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId){
         ConversationParticipant loggedInParticipant =
-            conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
-
-        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
+                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
         Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
+
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+    }
+
+    /**
+     * Retrieves message page by message id.
+     * Each message includes seen status and reaction summary with current user's reaction types.
+     *
+     * @param messageId       message id
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     * @return a Page of MessageViewDTOs containing message details
+     */
+    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId){
+        ConversationParticipant loggedInParticipant =
+                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+
+        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
+
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+    }
+
+    /**
+     * Converts a page of {@link Message} entities into a page of {@link MessageViewDTO} objects.
+     *
+     * @param messages       list of messages
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     * @return a Page of MessageViewDTOs containing message details
+     */
+    private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId) {
+
+        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
         List<Long> messageIds = extractMessageIds(messages);
 
@@ -1177,63 +1207,6 @@ public class ConversationService {
                     userId, conversationId, reason, e);
             throw new CustomInternalServerErrorException("Failed to report conversation");
         }
-    }
-
-    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId) {
-        ConversationParticipant loggedInParticipant =
-                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
-
-        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
-
-        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
-
-        List<Long> messageIds = extractMessageIds(messages);
-
-        Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
-                messageReactionRepository.findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
-
-        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap, cloudPhotoHandlingService);
-        messageMentionService.appendMessageMentions(messageViewDTOS);
-
-        Map<Long, Message> messageMap = messages.getContent().stream()
-                .collect(Collectors.toMap(Message::getId, Function.identity()));
-
-        List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
-                .map(dto -> {
-                    Message matchedMessage = messageMap.get(dto.getId());
-                    List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
-
-                    if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
-                        return dto;
-                    }
-
-                    List<MessageAttachment> attachments = matchedMessage.getAttachments();
-
-                    if (attachments == null || attachments.isEmpty()) {
-                        return dto;
-                    }
-
-                    for (MessageAttachment attachment : attachments) {
-                        try {
-                            String fileViewSignedURL = cloudPhotoHandlingService
-                                    .getPhotoViewSignedURL(attachment.getIndexedFileName());
-
-                            MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
-                            messageAttachmentDTO.setId(attachment.getId());
-                            messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                            messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
-                            messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
-                            attachmentDTOs.add(messageAttachmentDTO);
-                        } catch (Exception e) {
-                            logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
-                            throw new CustomInternalServerErrorException("Failed to get conversation!");
-                        }
-                    }
-                    dto.setMessageAttachments(attachmentDTOs);
-                    return dto;
-                })
-                .collect(Collectors.toList());
-        return new PageImpl<>(enrichedDTOs, messages.getPageable(), messages.getTotalElements());
     }
 }
 
