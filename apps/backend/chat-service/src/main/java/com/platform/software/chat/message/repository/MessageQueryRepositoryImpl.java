@@ -11,15 +11,13 @@ import com.platform.software.common.model.CustomPageImpl;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
@@ -189,43 +187,40 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
-        Long total = queryFactory
-                .select(message.id.countDistinct())
-                .from(message)
-                .innerJoin(message.conversation, conversation)
-                .innerJoin(message.sender, sender)
-                .where(
-                        message.conversation.id.eq(conversationId)
-                                .and(
-                                        message.id.between(
-                                                messageId - windowSize,
-                                                messageId + windowSize
-                                        )
-                                )
-                                .and(conditions)
-                )
-                .fetchOne();
-
-        List<Message> messages = queryFactory
+        JPAQuery<Message> baseQuery = queryFactory
                 .selectDistinct(message)
                 .from(message)
                 .leftJoin(message.attachments, messageAttachment).fetchJoin()
-                .innerJoin(message.conversation, conversation).fetchJoin()
-                .innerJoin(message.sender, sender).fetchJoin()
-                .where(
-                        message.conversation.id.eq(conversationId)
-                                .and(
-                                        message.id.between(
-                                                messageId - windowSize,
-                                                messageId + windowSize
-                                        )
-                                )
-                )
+                .join(message.conversation, conversation).fetchJoin()
+                .join(message.sender, sender).fetchJoin()
+                .where(conditions);
+
+        Message targetMessage = baseQuery.clone()
+                .where(message.id.eq(messageId))
+                .fetchOne();
+
+        if (targetMessage == null) {
+            return Page.empty();
+        }
+
+        List<Message> before = baseQuery.clone()
+                .where(message.createdAt.lt(targetMessage.getCreatedAt()))
                 .orderBy(message.id.asc())
+                .limit(windowSize)
                 .fetch();
 
-        Pageable pageable = PageRequest.of(0, messages.size());
+        List<Message> after = baseQuery.clone()
+                .where(message.createdAt.gt(targetMessage.getCreatedAt()))
+                .orderBy(message.id.asc())
+                .limit(windowSize)
+                .fetch();
 
-        return new PageImpl<>(messages, pageable, total != null ? total : 0L);
+        List<Message> messages = new ArrayList<>(before);
+        messages.add(targetMessage);
+        messages.addAll(after);
+
+        Pageable pageable = PageRequest.of(0, 41);
+
+        return new PageImpl<>(messages, pageable, messages.size());
     }
 }
