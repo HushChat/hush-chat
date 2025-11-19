@@ -62,7 +62,7 @@ const RenderFileGrid = ({
           </View>
         ))}
 
-        {images.length > 0 && (
+        {hasImages && (
           <View style={dynamicStyles.container(isCurrentUser)}>
             <ImageGrid images={images} onImagePress={openPreview} />
           </View>
