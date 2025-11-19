@@ -8,7 +8,10 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { IMessageAttachment } from "@/types/chat/types";
 import { getFileType } from "@/utils/files/getFileType";
 
-import { staticStyles, dynamicStyles } from "./documentCard.styles";
+import {
+  staticStyles,
+  dynamicStyles,
+} from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/documentCard.styles";
 
 type DocumentCardProps = {
   attachment: IMessageAttachment;
