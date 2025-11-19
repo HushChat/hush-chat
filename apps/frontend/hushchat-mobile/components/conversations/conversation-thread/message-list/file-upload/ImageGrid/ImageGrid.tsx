@@ -9,12 +9,12 @@ import {
   GRID_CONFIG,
 } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/imageGrid.styles";
 
-type ImageGridProps = {
+type TImageGridProps = {
   images: IMessageAttachment[];
   onImagePress: (index: number) => void;
 };
 
-export const ImageGrid = ({ images, onImagePress }: ImageGridProps) => {
+export const ImageGrid = ({ images, onImagePress }: TImageGridProps) => {
   const displayImages = images.slice(0, GRID_CONFIG.MAX_DISPLAY_IMAGES);
   const remainingCount = Math.max(0, images.length - GRID_CONFIG.MAX_DISPLAY_IMAGES);
 
