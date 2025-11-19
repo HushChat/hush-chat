@@ -13,12 +13,12 @@ import {
   dynamicStyles,
 } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/documentCard.styles";
 
-type DocumentCardProps = {
+type TDocumentCardProps = {
   attachment: IMessageAttachment;
   isCurrentUser: boolean;
 };
 
-export const DocumentCard = ({ attachment, isCurrentUser }: DocumentCardProps) => {
+export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
