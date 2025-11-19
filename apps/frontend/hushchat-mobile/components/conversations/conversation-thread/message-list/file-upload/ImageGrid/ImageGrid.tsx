@@ -2,8 +2,12 @@ import React from "react";
 import { View } from "react-native";
 import { IMessageAttachment } from "@/types/chat/types";
 
-import { ImageItem } from "./ImageItem";
-import { staticStyles, dynamicStyles, GRID_CONFIG } from "./imageGrid.styles";
+import { ImageItem } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/ImageItem";
+import {
+  staticStyles,
+  dynamicStyles,
+  GRID_CONFIG,
+} from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/imageGrid.styles";
 
 type ImageGridProps = {
   images: IMessageAttachment[];

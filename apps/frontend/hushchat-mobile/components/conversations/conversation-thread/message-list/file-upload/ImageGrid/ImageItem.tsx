@@ -6,7 +6,7 @@ import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { IMessageAttachment } from "@/types/chat/types";
 
-import { staticStyles } from "./imageGrid.styles";
+import { staticStyles } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/imageGrid.styles";
 
 type ImageItemProps = {
   attachment: IMessageAttachment;

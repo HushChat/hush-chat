@@ -8,8 +8,8 @@ import { IMessageAttachment } from "@/types/chat/types";
 import { View, ViewStyle } from "react-native";
 import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
 import { getFileType } from "@/utils/files/getFileType";
-import { DocumentCard } from "./DocumentCard";
-import { ImageGrid } from "./ImageGrid";
+import { DocumentCard } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard";
+import { ImageGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid";
 
 const GRID_CONFIG = {
   MAX_WIDTH: 280,
