@@ -32,7 +32,7 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
-import { useConversationsQuery } from "@/query/useConversationsQuery"; // ADD THIS IMPORT
+import { useConversationsQuery } from "@/query/useConversationsQuery";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 const CHAT_BG_OPACITY_DARK = 0.08;
