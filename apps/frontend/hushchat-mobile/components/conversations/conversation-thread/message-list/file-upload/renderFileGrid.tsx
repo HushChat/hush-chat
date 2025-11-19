@@ -3,13 +3,12 @@
  * Updated with image preview functionality
  */
 
-import React, { useState } from "react";
 import { IMessageAttachment } from "@/types/chat/types";
 import { View, ViewStyle } from "react-native";
 import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
-import { getFileType } from "@/utils/files/getFileType";
 import { DocumentCard } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard";
 import { ImageGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid";
+import { useFileGrid } from "@/hooks/conversation-thread/useFileGrid";
 
 const GRID_CONFIG = {
   MAX_WIDTH: 280,
@@ -38,28 +37,18 @@ const RenderFileGrid = ({
   attachments: IMessageAttachment[];
   isCurrentUser: boolean;
 }) => {
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const {
+    images,
+    documents,
+    previewVisible,
+    selectedImageIndex,
+    openPreview,
+    closePreview,
+    hasImages,
+    hasDocuments,
+  } = useFileGrid(attachments);
 
-  if (!attachments || attachments.length === 0) return null;
-
-  const images = attachments.filter(
-    (att) => getFileType(att.originalFileName || att.indexedFileName) === "image"
-  );
-  const documents = attachments.filter(
-    (att) => getFileType(att.originalFileName || att.indexedFileName) !== "image"
-  );
-
-  if (images.length === 0 && documents.length === 0) return null;
-
-  const handleImagePress = (index: number) => {
-    setSelectedImageIndex(index);
-    setPreviewVisible(true);
-  };
-
-  const handleClosePreview = () => {
-    setPreviewVisible(false);
-  };
+  if (!hasImages && !hasDocuments) return null;
 
   return (
     <>
@@ -75,7 +64,7 @@ const RenderFileGrid = ({
 
         {images.length > 0 && (
           <View style={dynamicStyles.container(isCurrentUser)}>
-            <ImageGrid images={images} onImagePress={handleImagePress} />
+            <ImageGrid images={images} onImagePress={openPreview} />
           </View>
         )}
       </View>
@@ -84,7 +73,7 @@ const RenderFileGrid = ({
         visible={previewVisible}
         images={images}
         initialIndex={selectedImageIndex}
-        onClose={handleClosePreview}
+        onClose={closePreview}
       />
     </>
   );
