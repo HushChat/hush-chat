@@ -32,6 +32,7 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
+import { useConversationsQuery } from "@/query/useConversationsQuery"; // ADD THIS IMPORT
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 const CHAT_BG_OPACITY_DARK = 0.08;
@@ -70,6 +71,7 @@ const ConversationThreadScreen = ({
     useConversationByIdQuery(selectedConversationId);
 
   const isGroupChat = conversationAPIResponse?.isGroup;
+  const { refetch: refetchConversationsList } = useConversationsQuery();
 
   const {
     conversationMessagesPages,
@@ -120,6 +122,7 @@ const ConversationThreadScreen = ({
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
         setImageMessage("");
+        refetchConversationsList();
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
@@ -132,6 +135,7 @@ const ConversationThreadScreen = ({
     setSelectedMessage,
     setImageMessage,
     uploadError,
+    refetchConversationsList,
   ]);
 
   const queryClient = useQueryClient();
@@ -160,6 +164,7 @@ const ConversationThreadScreen = ({
     uploadFilesFromWeb,
     updateConversationMessagesCache,
     handleCloseImagePreview,
+    refetchConversationsList,
   });
 
   useEffect(() => {
