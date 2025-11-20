@@ -23,6 +23,8 @@ export const WORKSPACE_ENDPOINTS = {
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
 };
 
+export const SETTINGS_API_BASE = "/settings";
+
 export const CONVERSATION_API_ENDPOINTS = {
   ALL: CONVERSATION_API_BASE,
   GET_BY_ID: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/meta`,
@@ -75,4 +77,8 @@ export const MESSAGE_API_ENDPOINTS = {
   REACTIONS: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/reactions`,
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
+};
+
+export const SETTINGS_API_ENDPOINTS = {
+  CONTACT_US: `${SETTINGS_API_BASE}/contact-us`,
 };

@@ -40,7 +40,6 @@ const CHAT_BG_OPACITY_LIGHT = 0.02;
 interface ConversationThreadScreenProps {
   conversationId: number;
   onShowProfile: () => void;
-  webBackPress?: () => void;
   webSearchPress?: () => void;
   webForwardPress?: (messageIds: Set<number>) => void;
   messageToJump?: number | null;
@@ -49,7 +48,6 @@ interface ConversationThreadScreenProps {
 
 const ConversationThreadScreen = ({
   conversationId,
-  webBackPress,
   onShowProfile,
   webSearchPress = () => {},
   webForwardPress,
@@ -172,12 +170,8 @@ const ConversationThreadScreen = ({
   }, [selectedConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
 
   const handleBackPress = useCallback(() => {
-    if (webBackPress) {
-      webBackPress();
-    } else {
-      router.replace("/");
-    }
-  }, [webBackPress]);
+    router.back();
+  }, []);
 
   const handleLoadMore = useCallback(async () => {
     if (hasNextPage && !isFetchingNextPage) {

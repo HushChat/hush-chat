@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
@@ -83,6 +84,10 @@ public class MessageService {
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
+    }
+
+    public Page<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
+        return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
     public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser) {
@@ -301,7 +306,23 @@ public class MessageService {
             }
 
             try {
-                forwardingMessages.forEach(messageRepository::saveMessageWthSearchVector);
+                for(Message message: forwardingMessages){
+                    messageRepository.saveMessageWthSearchVector(message);
+
+                    MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            messagePublisherService.invokeNewMessageToParticipants(
+                                    message.getConversation().getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                            );
+
+                            chatNotificationService.sendMessageNotificationsToParticipants(message.getConversation().getId(), loggedInUserId, message);
+                        }
+                    });
+                }
+
             } catch (Exception exception) {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
