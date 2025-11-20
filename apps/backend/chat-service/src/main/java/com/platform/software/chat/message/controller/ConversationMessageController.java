@@ -143,4 +143,15 @@ public class ConversationMessageController {
         conversationService.unpinMessage(userDetails.getId(), conversationId);
         return ResponseEntity.noContent().build();
     }
+
+    @ApiOperation(value = "Get a page of messages around a specific message ID", response = MessageViewDTO.class)
+    @GetMapping("/{messageId}")
+    public ResponseEntity<Page<MessageViewDTO>> getMessagesAroundId(
+            @PathVariable Long conversationId,
+            @AuthenticatedUser UserDetails userDetails,
+            @PathVariable Long messageId
+    ) {
+        Page<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
+        return new ResponseEntity<>(messages, HttpStatus.OK);
+    }
 }
