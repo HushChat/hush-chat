@@ -1,9 +1,9 @@
 package com.platform.software.config.interceptors.websocket;
 
+import com.platform.software.chat.presence.service.PresenceService;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.aws.AWSCognitoConfig;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,17 +26,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final WebSocketSessionManager sessionManager;
     private final UserService userService;
     private final WorkspaceUserService workspaceUserService;
+    private final PresenceService presenceService;
 
     public WebSocketConfig(
-        AWSCognitoConfig awsCognitoConfig,
-        @Lazy WebSocketSessionManager sessionManager,
-        UserService userService,
-        WorkspaceUserService workspaceUserService
+            AWSCognitoConfig awsCognitoConfig,
+            @Lazy WebSocketSessionManager sessionManager,
+            UserService userService,
+            WorkspaceUserService workspaceUserService, PresenceService presenceService
     ) {
         this.awsCognitoConfig = awsCognitoConfig;
         this.sessionManager = sessionManager;
         this.userService = userService;
         this.workspaceUserService = workspaceUserService;
+        this.presenceService = presenceService;
     }
 
     @Bean
@@ -68,6 +70,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new WebSocketAuthorizationInterceptor(sessionManager, awsCognitoConfig, userService, workspaceUserService));
+        registration.interceptors(new WebSocketAuthorizationInterceptor(sessionManager, awsCognitoConfig, userService, workspaceUserService, presenceService));
     }
 }

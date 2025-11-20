@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.platform.software.chat.presence.service.PresenceService;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.constants.Constants;
@@ -37,19 +38,22 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     private final WebSocketSessionManager sessionManager;
     private final UserService userService;
     private final WorkspaceUserService workspaceUserService;
+    private final PresenceService presenceService;
 
     private final HashMap<String, RSAPublicKey> cachedSignedPublicKeyMapFromCognito = new HashMap<>();
 
     public WebSocketAuthorizationInterceptor(
-        WebSocketSessionManager sessionManager,
-        AWSCognitoConfig awsCognitoConfig,
-        UserService userService,
-        WorkspaceUserService workspaceUserService
+            WebSocketSessionManager sessionManager,
+            AWSCognitoConfig awsCognitoConfig,
+            UserService userService,
+            WorkspaceUserService workspaceUserService,
+            PresenceService presenceService
     ) {
         this.sessionManager = sessionManager;
         this.awsCognitoConfig = awsCognitoConfig;
         this.userService = userService;
         this.workspaceUserService = workspaceUserService;
+        this.presenceService = presenceService;
     }
 
     @Override
@@ -117,6 +121,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
 
             manageSession(sessionKey, accessor, user, workspaceId);
 
+            presenceService.setOnline(createSessionKey(workspaceId, user.getEmail()));
             logger.info("websocket connection authenticated for workspace: {} user: {}", workspaceId, user.getId());
 
         } catch (Exception exception) {
@@ -142,6 +147,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
 
         if (sessionKey != null) {
             sessionManager.removeWebSocketSessionInfo(sessionKey);
+            presenceService.setOffline(sessionKey);
             logger.info("removed websocket session for user: {}", email);
         }
     }
