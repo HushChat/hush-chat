@@ -13,6 +13,7 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
@@ -238,7 +239,10 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                         WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail())
                                 ){
-                                    dto.setOnline(true);
+                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.ONLINE));
+                                }
+                                else{
+                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.OFFLINE));
                                 }
                             }
                         }
