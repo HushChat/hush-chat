@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
@@ -305,7 +306,23 @@ public class MessageService {
             }
 
             try {
-                forwardingMessages.forEach(messageRepository::saveMessageWthSearchVector);
+                for(Message message: forwardingMessages){
+                    messageRepository.saveMessageWthSearchVector(message);
+
+                    MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            messagePublisherService.invokeNewMessageToParticipants(
+                                    message.getConversation().getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                            );
+
+                            chatNotificationService.sendMessageNotificationsToParticipants(message.getConversation().getId(), loggedInUserId, message);
+                        }
+                    });
+                }
+
             } catch (Exception exception) {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
