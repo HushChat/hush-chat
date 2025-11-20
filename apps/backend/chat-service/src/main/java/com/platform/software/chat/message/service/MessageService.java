@@ -310,10 +310,10 @@ public class MessageService {
                         @Override
                         public void afterCommit() {
                             messagePublisherService.invokeNewMessageToParticipants(
-                                    conversation.getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                                    message.getConversation().getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
                             );
 
-                            chatNotificationService.sendMessageNotificationsToParticipants(conversation.getId(), loggedInUserId, message);
+                            chatNotificationService.sendMessageNotificationsToParticipants(message.getConversation().getId(), loggedInUserId, message);
                         }
                     });
                 }
