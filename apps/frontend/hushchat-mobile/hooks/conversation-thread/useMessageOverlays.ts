@@ -1,5 +1,3 @@
-// /hooks/conversation-thread/useMessageOverlays.ts
-
 import { useCallback, useState } from "react";
 import * as Haptics from "expo-haptics";
 import type { IMessage, ConversationAPIResponse } from "@/types/chat/types";
