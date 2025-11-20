@@ -26,7 +26,7 @@ import { LastMessagePreviewContent } from "@/components/LastMessagePreviewConten
 import { AppText } from "@/components/AppText";
 
 const BG = {
-  modalBackdrop: "#090f1d",
+  modalBackdrop: "rgba(9, 15, 29, 0.8)",
 };
 
 const ConversationListItem = ({
