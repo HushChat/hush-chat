@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
@@ -310,7 +311,7 @@ public class MessageService {
 
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message);
 
-                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                         @Override
                         public void afterCommit() {
                             messagePublisherService.invokeNewMessageToParticipants(
