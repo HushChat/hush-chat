@@ -15,6 +15,14 @@ export const CONVERSATION_API_BASE = "/conversations";
 export const USER_API_BASE = "/users";
 export const MESSAGE_API_BASE = "/messages";
 export const SEARCH_API_BASE = "/search";
+export const WORKSPACES_API_BASE = "/workspaces";
+
+export const WORKSPACE_ENDPOINTS = {
+  GET: `${WORKSPACES_API_BASE}/my-workspaces`,
+  REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
+  CREATE_WORKSPACE: WORKSPACES_API_BASE,
+};
+
 export const SETTINGS_API_BASE = "/settings";
 
 export const CONVERSATION_API_ENDPOINTS = {
