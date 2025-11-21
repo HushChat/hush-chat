@@ -205,7 +205,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         List<Message> before = baseQuery.clone()
                 .where(message.id.lt(targetMessage.getId()))
-                .orderBy(message.id.asc())
+                .orderBy(message.id.desc())
                 .limit(windowSize)
                 .fetch();
 
@@ -215,6 +215,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                 .limit(windowSize)
                 .fetch();
 
+        Collections.reverse(before);
         List<Message> messages = new ArrayList<>(before);
         messages.add(targetMessage);
         messages.addAll(after);
