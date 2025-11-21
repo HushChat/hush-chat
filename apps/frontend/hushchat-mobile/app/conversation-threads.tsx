@@ -71,6 +71,7 @@ const ConversationThreadScreen = ({
     selectedMessageIds,
     setSelectedMessageIds,
     setSelectedConversationId,
+    selectedConversationId,
   } = useConversationStore();
 
   const currentConversationId = conversationId || Number(params.conversationId);
@@ -79,7 +80,7 @@ const ConversationThreadScreen = ({
     if (currentConversationId) {
       setSelectedConversationId(currentConversationId);
     }
-  }, [currentConversationId]);
+  }, [selectedConversationId]);
 
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
     useConversationByIdQuery(currentConversationId);
