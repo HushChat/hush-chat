@@ -22,7 +22,7 @@ import ChevronButton from "@/components/ChevronButton";
 import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
 import { MaterialIcons } from "@expo/vector-icons";
 import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
-import LastMessagePreview from "@/components/UnsendMessagePreview";
+import { LastMessagePreviewContent } from "@/components/LastMessagePreviewContent";
 import { AppText } from "@/components/AppText";
 
 const BG = {
@@ -51,7 +51,6 @@ const ConversationListItem = ({
   const chevronButtonRef = useRef<View>(null);
 
   const lastMessage = conversation.messages?.at(-1);
-  const lastMessageText = lastMessage?.messageText;
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
@@ -106,16 +105,9 @@ const ConversationListItem = ({
             </View>
           </View>
           <View className="flex-row items-center justify-between">
-            <AppText
-              className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
-              numberOfLines={1}
-            >
-              {lastMessage?.isUnsend ? (
-                <LastMessagePreview unsendMessage={lastMessage} />
-              ) : (
-                lastMessageText
-              )}
-            </AppText>
+            <View className="flex-1" style={{ minWidth: 0 }}>
+              <LastMessagePreviewContent lastMessage={lastMessage} />
+            </View>
             {conversation.mutedByLoggedInUser && (
               <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" className="ml-2" />
             )}

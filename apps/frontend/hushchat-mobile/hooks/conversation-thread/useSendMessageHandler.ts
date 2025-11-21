@@ -19,6 +19,7 @@ interface IUseSendMessageHandlerParams {
   uploadFilesFromWeb: (files: File[]) => Promise<UploadResult[]>;
   updateConversationMessagesCache: (msg: IMessage) => void;
   handleCloseImagePreview: () => void;
+  refetchConversationsList: () => Promise<unknown>;
 }
 
 export const useSendMessageHandler = ({
@@ -33,6 +34,7 @@ export const useSendMessageHandler = ({
   uploadFilesFromWeb,
   updateConversationMessagesCache,
   handleCloseImagePreview,
+  refetchConversationsList,
 }: IUseSendMessageHandlerParams) => {
   /**
    * Sends a message in the conversation thread. Supports:
@@ -82,6 +84,7 @@ export const useSendMessageHandler = ({
               indexedFileName: "",
               mimeType: file.type,
             })),
+            hasAttachment: true,
           };
 
           // Local optimistic update
@@ -89,6 +92,8 @@ export const useSendMessageHandler = ({
 
           // Upload actual files
           await uploadFilesFromWeb(renamedFiles);
+
+          await refetchConversationsList();
 
           setSelectedMessage(null);
           setImageMessage("");
@@ -113,6 +118,7 @@ export const useSendMessageHandler = ({
       sendMessage,
       uploadFilesFromWeb,
       updateConversationMessagesCache,
+      refetchConversationsList,
       setSelectedMessage,
       setImageMessage,
     ]
