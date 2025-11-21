@@ -20,7 +20,7 @@ import { AppText } from "@/components/AppText";
 import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
 
 const BG = {
-  modalBackdrop: "#090f1d",
+  modalBackdrop: "rgba(9, 15, 29, 0.8)",
 };
 
 const ConversationListItem = ({

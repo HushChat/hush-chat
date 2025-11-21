@@ -5,6 +5,7 @@ import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/typ
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
+  SETTINGS_API_ENDPOINTS,
   USER_API_ENDPOINTS,
 } from "@/constants/apiConstants";
 import { ApiResponse } from "@/types/common/types";
@@ -408,5 +409,19 @@ export const reportConversation = async ({
     const errorMsg =
       axiosError?.response?.data?.error || "Failed to report group. Please try again later.";
     throw new Error(errorMsg);
+  }
+};
+
+export const sendContactUsMessage = async (data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) => {
+  try {
+    const response = await axios.post(SETTINGS_API_ENDPOINTS.CONTACT_US, data);
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
   }
 };

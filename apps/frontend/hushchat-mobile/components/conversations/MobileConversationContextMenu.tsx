@@ -256,7 +256,6 @@ const MobileConversationContextMenu = ({
         onClose={handleClose}
         title="More Options"
         options={chatOptions}
-        showBorders={false}
       />
     </View>
   );

@@ -17,7 +17,7 @@ import Placeholder from "@/components/Placeholder";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
+import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import {
   getImagePickerAsset,
   uploadImage,
@@ -112,7 +112,7 @@ export default function Profile() {
 
     // ⚠️ Temporary workaround: Wait for storage to finish properly before navigating
     await new Promise((resolve) => setTimeout(resolve, 300)); // 300ms delay
-    router.replace(AUTH_WORKSPACE_FORM_PATH);
+    router.replace(AUTH_LOGIN_PATH);
   };
 
   const handleUpdate = async () => {
