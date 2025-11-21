@@ -16,8 +16,8 @@ export interface IConversation {
   mutedByLoggedInUser: boolean;
   favoriteByLoggedInUser: boolean;
   archivedByLoggedInUser: boolean;
-
   unreadCount: number;
+  chatUserStatus: chatUserStatus;
 }
 
 export interface ReactionSummary {
@@ -254,3 +254,10 @@ export const REACTION_EMOJIS: Record<ReactionType, string> = {
   SAD: "😢",
   ANGRY: "😠",
 };
+
+export enum chatUserStatus {
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
+  AWAY = "AWAY",
+  BUSY = "BUSY",
+}
