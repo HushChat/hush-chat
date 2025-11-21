@@ -7,8 +7,8 @@ databaseChangeLog:
       changes:
         - dropUniqueConstraint:
             tableName: workspace_user
-            constraintName: uk_users_email
+            constraintName: workspace_user_email_key
         - addUniqueConstraint:
             tableName: workspace_user
             columnNames: email, workspace_id
-            constraintName: uk_users_email_workspace
+            constraintName: workspace_user_email_workspace_key
