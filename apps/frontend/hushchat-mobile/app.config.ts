@@ -32,6 +32,24 @@ export default () => ({
         minify: true,
         hashAssetFiles: true,
       },
+      meta: {
+        themeColor: "#5A31F4",
+        appleMobileWebAppCapable: "yes",
+        appleMobileWebAppStatusBarStyle: "black-translucent",
+        viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+        tags: [
+          {
+            tag: "link",
+            rel: "manifest",
+            href: "/manifest.json",
+          },
+        ],
+      },
+      serviceWorker: {
+        register: true,
+        scope: "/",
+        src: "service-worker.js",
+      },
     },
     plugins: [
       "expo-router",
