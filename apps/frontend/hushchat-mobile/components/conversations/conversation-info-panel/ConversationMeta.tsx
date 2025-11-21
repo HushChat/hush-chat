@@ -10,7 +10,6 @@ import { RefObject } from "react";
 
 interface Props {
   lastMessage: IMessage | undefined;
-  lastMessageText: string | undefined;
   muted: boolean;
   unreadCount: number;
   chevronButtonRef: RefObject<View | null>;
@@ -19,12 +18,12 @@ interface Props {
 
 const ConversationMeta = ({
   lastMessage,
-  lastMessageText,
   muted,
   unreadCount,
   chevronButtonRef,
   onChevronPress,
 }: Props) => {
+  const lastMessageText = lastMessage?.messageText;
   return (
     <View className="flex-row items-center gap-x-2 flex-1">
       <AppText

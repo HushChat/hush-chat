@@ -10,11 +10,10 @@ import {
 import { eventBus } from "@/services/eventBus";
 import { IConversation } from "@/types/chat/types";
 import { playMessageSound } from "@/utils/playSound";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
 import { conversationQueryKeys } from "@/constants/queryKeys";
 import { getPaginationConfig } from "@/utils/commonUtils";
-import { getLastSeenMessageByConversationId } from "@/apis/conversation";
 import { getCriteria } from "@/utils/conversationUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useUserStore } from "@/store/user/useUserStore";
@@ -22,98 +21,123 @@ import { appendToOffsetPaginatedCache } from "@/query/config/appendToOffsetPagin
 
 const PAGE_SIZE = 20;
 
-interface ConversationNotificationsContextType {
-  notificationReceivedConversation: IConversation | null;
-  clearConversation: () => void;
+interface PaginatedResult<T> {
+  content: T[];
+  last?: boolean;
+  totalElements?: number;
+  totalPages?: number;
+  number?: number;
+  size?: number;
+}
+
+interface ConversationNotificationsContextValue {
+  notificationConversation: IConversation | null;
+  clearNotificationConversation: () => void;
   updateConversation: (conversationId: string | number, updates: Partial<IConversation>) => void;
 }
 
 const ConversationNotificationsContext = createContext<
-  ConversationNotificationsContextType | undefined
+  ConversationNotificationsContextValue | undefined
 >(undefined);
 
 export const ConversationNotificationsProvider = ({ children }: { children: ReactNode }) => {
-  const [notificationReceivedConversation, setNotificationReceivedConversation] =
-    useState<IConversation | null>(null);
-  const { selectedConversationType } = useConversationStore();
+  const [notificationConversation, setNotificationConversation] = useState<IConversation | null>(
+    null
+  );
+  const { selectedConversationType, selectedConversationId } = useConversationStore();
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
-    user: { id: userId },
+    user: { id: loggedInUserId },
   } = useUserStore();
 
+  const conversationsQueryKey = conversationQueryKeys.allConversations(
+    Number(loggedInUserId),
+    criteria
+  );
+
   useEffect(() => {
-    if (notificationReceivedConversation) {
-      appendToOffsetPaginatedCache<IConversation>(
-        queryClient,
-        conversationQueryKeys.allConversations(Number(userId), criteria),
-        notificationReceivedConversation,
-        {
-          getId: (m) => m?.id,
-          pageSize: PAGE_SIZE,
-          getPageItems: (p) => p?.content,
-          setPageItems: (p, items) => ({ ...p, content: items }),
-          dedupeAcrossPages: true,
+    if (!notificationConversation) return;
+
+    const conversationId = notificationConversation.id;
+
+    const existingCache =
+      queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(conversationsQueryKey);
+
+    let existingUnreadCount = 0;
+
+    if (existingCache?.pages) {
+      for (const page of existingCache.pages) {
+        const match = page.content.find((conversation) => conversation.id === conversationId);
+        if (match) {
+          existingUnreadCount = match.unreadCount || 0;
+          break;
         }
-      );
+      }
     }
-  }, [notificationReceivedConversation, queryClient, userId]);
+
+    const updatedUnreadCount = existingUnreadCount + 1;
+
+    const mergedConversation = {
+      ...notificationConversation,
+      unreadCount: updatedUnreadCount,
+    };
+
+    appendToOffsetPaginatedCache<IConversation>(
+      queryClient,
+      conversationsQueryKey,
+      mergedConversation,
+      {
+        getId: (item) => item?.id,
+        pageSize: PAGE_SIZE,
+        getPageItems: (page) => page?.content,
+        setPageItems: (page, items) => ({ ...page, content: items }),
+        dedupeAcrossPages: true,
+      }
+    );
+  }, [notificationConversation, queryClient, loggedInUserId, criteria, selectedConversationId]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
     updatePaginatedItemInCache<IConversation>(
       queryClient,
-      conversationQueryKeys.allConversations(Number(userId), criteria),
+      conversationsQueryKey,
       conversationId,
       updates,
       getPaginationConfig<IConversation>()
     );
   };
 
-  // Handle conversation update notifications
   useEffect(() => {
-    const getConversationUpdateViaWS = async (conversationId: number) => {
-      const response = await getLastSeenMessageByConversationId(conversationId);
+    const handleIncomingWebSocketConversation = (conversation: IConversation) => {
+      const shouldUpdate = conversation?.id && !conversation.archivedByLoggedInUser;
 
-      if (response) {
-        updateConversation(conversationId, {
-          unreadCount: response.unreadCount,
-        });
-      }
-    };
+      if (shouldUpdate) {
+        setNotificationConversation(conversation);
 
-    if (notificationReceivedConversation && notificationReceivedConversation.id) {
-      getConversationUpdateViaWS(notificationReceivedConversation.id);
-    }
-  }, [notificationReceivedConversation]);
-
-  useEffect(() => {
-    const handleWebSocketMessage = (messageWithConversation: IConversation) => {
-      const doesConversationListShouldBeUpdated =
-        messageWithConversation?.id && !messageWithConversation.archivedByLoggedInUser;
-
-      if (doesConversationListShouldBeUpdated) {
-        setNotificationReceivedConversation(messageWithConversation);
-
-        if (!messageWithConversation.mutedByLoggedInUser) {
-          playMessageSound();
+        if (!conversation.mutedByLoggedInUser) {
+          void playMessageSound();
         }
       }
     };
 
-    eventBus.on("websocket:message", handleWebSocketMessage);
+    eventBus.on("websocket:message", handleIncomingWebSocketConversation);
 
     return () => {
-      eventBus.off("websocket:message", handleWebSocketMessage);
+      eventBus.off("websocket:message", handleIncomingWebSocketConversation);
     };
   }, []);
 
-  const clearConversation = useCallback(() => {
-    setNotificationReceivedConversation(null);
+  const clearNotificationConversation = useCallback(() => {
+    setNotificationConversation(null);
   }, []);
 
   return (
     <ConversationNotificationsContext.Provider
-      value={{ notificationReceivedConversation, clearConversation, updateConversation }}
+      value={{
+        notificationConversation,
+        clearNotificationConversation,
+        updateConversation,
+      }}
     >
       {children}
     </ConversationNotificationsContext.Provider>

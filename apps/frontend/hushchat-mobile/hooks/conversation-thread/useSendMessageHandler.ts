@@ -8,7 +8,7 @@ import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
 
 interface IUseSendMessageHandlerParams {
-  selectedConversationId: number;
+  currentConversationId: number;
   currentUserId: number | null | undefined;
   imageMessage: string;
   setImageMessage: (text: string) => void;
@@ -22,7 +22,7 @@ interface IUseSendMessageHandlerParams {
 }
 
 export const useSendMessageHandler = ({
-  selectedConversationId,
+  currentConversationId,
   currentUserId,
   imageMessage,
   setImageMessage,
@@ -60,7 +60,7 @@ export const useSendMessageHandler = ({
             const isImage = IMAGE_EXTENSIONS.includes(ext);
 
             const newName = isImage
-              ? `ChatApp Image ${selectedConversationId}${index} ${timestamp}.${ext}`
+              ? `ChatApp Image ${currentConversationId}${index} ${timestamp}.${ext}`
               : file.name;
 
             return new File([file], newName, {
@@ -75,7 +75,7 @@ export const useSendMessageHandler = ({
             senderLastName: "",
             messageText: imageMessage || "",
             createdAt: new Date().toISOString(),
-            conversationId: selectedConversationId,
+            conversationId: currentConversationId,
             messageAttachments: renamedFiles.map((file) => ({
               fileUrl: URL.createObjectURL(file),
               originalFileName: file.name,
@@ -96,7 +96,7 @@ export const useSendMessageHandler = ({
         }
 
         sendMessage({
-          conversationId: selectedConversationId,
+          conversationId: currentConversationId,
           message: trimmed,
           parentMessageId: parentMessage?.id,
         });
@@ -108,7 +108,7 @@ export const useSendMessageHandler = ({
     },
     [
       imageMessage,
-      selectedConversationId,
+      currentConversationId,
       currentUserId,
       sendMessage,
       uploadFilesFromWeb,
