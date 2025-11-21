@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
@@ -7,16 +7,13 @@ import { useConversationMessages } from "@/hooks/useWebSocketEvents";
 import {
   CursorPaginatedResponse,
   getConversationMessagesByCursor,
-  getMessagesAroundMessageId,
+  getMessagesAroundMessageId, // Ensure this is exported from your API file
 } from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
+import { ToastUtils } from "@/utils/toastUtils";
 
 const PAGE_SIZE = 20;
 
-/**
- * Hook: useConversationMessagesQuery
- * Handles fetching + caching + live updating of conversation messages
- */
 export function useConversationMessagesQuery(conversationId: number) {
   const {
     user: { id: userId },
@@ -24,12 +21,14 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const queryClient = useQueryClient();
   const previousConversationId = useRef<number | null>(null);
+  const [isJumping, setIsJumping] = useState(false);
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
     [userId, conversationId]
   );
 
+  // Reset queries when switching conversations
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
       queryClient.removeQueries({ queryKey });
@@ -52,6 +51,42 @@ export function useConversationMessagesQuery(conversationId: number) {
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
   });
+
+  /**
+   * FUNCTION: Jump to a specific message ID.
+   * This fetches the window around the ID and manually resets the React Query cache.
+   */
+  const jumpToMessage = useCallback(
+    async (targetMessageId: number) => {
+      setIsJumping(true);
+      try {
+        const response = await getMessagesAroundMessageId(conversationId, targetMessageId);
+
+        if (response.error) {
+          ToastUtils.error(response.error);
+          return;
+        }
+
+        if (response.data) {
+          // Manually set the Query Data to this new "window" of messages
+          queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+            queryKey,
+            () => {
+              return {
+                pages: [response.data!], // The window becomes the first page
+                pageParams: [null], // Reset pagination params
+              };
+            }
+          );
+        }
+      } catch (e) {
+        console.error("Failed to jump to message", e);
+      } finally {
+        setIsJumping(false);
+      }
+    },
+    [conversationId, queryClient, queryKey]
+  );
 
   const updateConversationMessagesCache = useCallback(
     (newMessage: IMessage) => {
@@ -86,23 +121,16 @@ export function useConversationMessagesQuery(conversationId: number) {
     updateConversationMessagesCache(lastMessage);
   }, [lastMessage, updateConversationMessagesCache]);
 
-  const jumpToMessage = useCallback(
-    async (messageId: number) => {
-      await getMessagesAroundMessageId(conversationId, messageId);
-    },
-    [conversationId, queryClient, queryKey]
-  );
-
   return {
     conversationMessagesPages: pages,
-    isLoadingConversationMessages: isLoading,
+    isLoadingConversationMessages: isLoading || isJumping, // Show loading during jump
     conversationMessagesError: error,
     fetchNextPage: fetchOlder,
     hasNextPage: hasMoreOlder,
     isFetchingNextPage: isFetchingOlder,
     refetchConversationMessages: invalidateQuery,
     refetch,
-    jumpToMessage,
     updateConversationMessagesCache,
+    jumpToMessage, // Exporting this
   } as const;
 }
