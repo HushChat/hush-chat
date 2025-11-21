@@ -4,7 +4,11 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 import { useConversationMessages } from "@/hooks/useWebSocketEvents";
-import { CursorPaginatedResponse, getConversationMessagesByCursor } from "@/apis/conversation";
+import {
+  CursorPaginatedResponse,
+  getConversationMessagesByCursor,
+  getMessagesAroundMessageId,
+} from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
 
 const PAGE_SIZE = 20;
@@ -84,15 +88,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const jumpToMessage = useCallback(
     async (messageId: number) => {
-      const response = await getConversationMessagesByCursor(conversationId, {
-        beforeId: messageId,
-        size: PAGE_SIZE,
-      });
-
-      queryClient.setQueryData(queryKey, {
-        pages: [response.data],
-        pageParams: [{ beforeId: messageId }],
-      });
+      await getMessagesAroundMessageId(conversationId, messageId);
     },
     [conversationId, queryClient, queryKey]
   );
