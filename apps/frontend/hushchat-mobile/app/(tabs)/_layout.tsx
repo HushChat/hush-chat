@@ -5,6 +5,7 @@ import getTabLayoutByPlatform from "@/components/tab-layouts/TabLayoutFactory";
 import { useAuthStore } from "@/store/auth/authStore";
 import { Redirect } from "expo-router";
 import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
+import useWebSocketConnection from "@/hooks/useWebSocketConnection";
 
 const navigationItems: INavigationItem[] = [
   {
@@ -31,6 +32,7 @@ const navigationItems: INavigationItem[] = [
 ];
 
 export default function TabLayout() {
+  useWebSocketConnection();
   const { isWorkspaceSelected } = useAuthStore();
 
   if (!isWorkspaceSelected) {

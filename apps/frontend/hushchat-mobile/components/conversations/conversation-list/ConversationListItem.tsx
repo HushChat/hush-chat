@@ -45,7 +45,6 @@ const ConversationListItem = ({
   const chevronButtonRef = useRef<View>(null);
 
   const lastMessage = conversation.messages?.at(-1);
-  const lastMessageText = lastMessage?.messageText;
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
@@ -104,7 +103,6 @@ const ConversationListItem = ({
           <View className="flex-row items-center justify-between">
             <ConversationMeta
               lastMessage={lastMessage}
-              lastMessageText={lastMessageText}
               muted={conversation.mutedByLoggedInUser}
               unreadCount={conversation.unreadCount}
               chevronButtonRef={chevronButtonRef}
