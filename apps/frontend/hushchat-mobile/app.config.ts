@@ -28,6 +28,10 @@ export default () => ({
       bundler: "metro",
       output: "static",
       favicon: "./assets/images/favicon.png",
+      build: {
+        minify: true,
+        hashAssetFiles: true,
+      },
     },
     plugins: [
       "expo-router",
