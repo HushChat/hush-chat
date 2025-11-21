@@ -86,7 +86,12 @@ const ConversationListItem = ({
             setShowProfileModal(true);
           }}
         >
-          <InitialsAvatar name={conversation.name} imageUrl={conversation.signedImageUrl} />
+          <InitialsAvatar
+            name={conversation.name}
+            imageUrl={conversation.signedImageUrl}
+            userStatus={conversation.chatUserStatus}
+            showOnlineStatus={!conversation.isGroup}
+          />
         </TouchableOpacity>
 
         <View className="flex-1 mr-3">
