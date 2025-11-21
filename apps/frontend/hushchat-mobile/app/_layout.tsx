@@ -17,17 +17,20 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
+import useWebSocketConnection from "@/hooks/useWebSocketConnection";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
 
 export default function RootLayout() {
   const { colorScheme } = useAppTheme();
+  useWebSocketConnection();
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
   });
   const queryClient = createQueryClient();
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
+
   return (
     <GestureHandlerRootView>
       <SafeAreaProvider>
