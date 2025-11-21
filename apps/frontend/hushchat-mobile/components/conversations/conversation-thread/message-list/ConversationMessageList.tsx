@@ -19,7 +19,7 @@ import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions
 import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
 import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
 
-interface MessagesListProps {
+interface IMessagesListProps {
   messages: IMessage[];
   onLoadMore: () => void;
   isFetchingNextPage: boolean;
@@ -36,7 +36,7 @@ const ConversationMessageList = ({
   onMessageSelect,
   conversationAPIResponse,
   selectedConversationId,
-}: MessagesListProps) => {
+}: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;

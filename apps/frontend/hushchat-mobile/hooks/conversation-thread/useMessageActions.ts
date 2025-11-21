@@ -20,7 +20,7 @@ export function useMessageActions(
   const { refetch: refetchConversationList } = useConversationsQuery();
 
   /**
-   * PIN / UNPIN MESSAGE
+   * Pin/Unpin Messages
    */
   const { mutate: togglePinMessage } = usePinMessageMutation(
     undefined,
@@ -55,7 +55,7 @@ export function useMessageActions(
   );
 
   /**
-   * UNSEND MESSAGE
+   * Unsend Message
    */
   const { mutate: unsend } = usePatchUnsendMessageMutation(undefined, () => {
     if (!conversation?.id || !currentUserId || !unsendMessageState) return;

@@ -10,7 +10,7 @@ export function useMessageOverlays(
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
 
   /**
-   * Long press → open actions (pin, copy, forward, unsend)
+   * Long press -> open actions (pin, copy, forward, unsend)
    */
   const openActions = useCallback(
     (message: IMessage) => {

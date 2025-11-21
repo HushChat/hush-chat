@@ -4,7 +4,7 @@ import { ConversationMessageItem } from "@/components/conversations/conversation
 import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
 import { shouldShowSenderAvatar } from "@/utils/messageUtils";
 
-interface RenderMessageParams {
+interface IRenderMessageParams {
   currentUserId: number | null | undefined;
   openPickerMessageId: string | null;
   conversationAPIResponse?: ConversationAPIResponse;
@@ -21,7 +21,7 @@ interface RenderMessageParams {
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
 }
 
-export const createRenderMessage = (params: RenderMessageParams) => {
+export const createRenderMessage = (params: IRenderMessageParams) => {
   const RenderMessage = ({
     item,
     index,
