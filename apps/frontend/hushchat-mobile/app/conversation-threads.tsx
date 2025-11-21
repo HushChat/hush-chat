@@ -19,9 +19,6 @@ import { useSendMessageMutation } from "@/query/post/queries";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useImagePreview } from "@/hooks/useImagePreview";
-import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
-import { useUserStore } from "@/store/user/useUserStore";
-import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 
 import { Images } from "@/assets/images";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -32,6 +29,13 @@ import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+import { useUserStore } from "@/store/user/useUserStore";
+import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
+import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
+
+import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
+import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
+import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -61,14 +65,26 @@ const ConversationThreadScreen = ({
   } = useUserStore();
   const queryClient = useQueryClient();
 
-  const selectedConversationId = conversationId || Number(params.conversationId);
+  const {
+    selectionMode,
+    setSelectionMode,
+    selectedMessageIds,
+    setSelectedMessageIds,
+    setSelectedConversationId,
+    selectedConversationId,
+  } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
 
-  const { selectionMode, setSelectionMode, selectedMessageIds, setSelectedMessageIds } =
-    useConversationStore();
+  const currentConversationId = conversationId || Number(params.conversationId);
+
+  useEffect(() => {
+    if (currentConversationId) {
+      setSelectedConversationId(currentConversationId);
+    }
+  }, [selectedConversationId]);
 
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
-    useConversationByIdQuery(selectedConversationId);
+    useConversationByIdQuery(currentConversationId);
 
   const {
     conversationMessagesPages,
@@ -80,7 +96,47 @@ const ConversationThreadScreen = ({
     refetchConversationMessages,
     jumpToMessage,
     updateConversationMessagesCache,
-  } = useConversationMessagesQuery(selectedConversationId);
+  } = useConversationMessagesQuery(currentConversationId);
+
+  const { updateConversation } = useConversationNotificationsContext();
+
+  const { lastSeenMessageInfo } =
+    useFetchLastSeenMessageStatusForConversation(currentConversationId);
+
+  const { mutate: setLastSeenMessageForConversation } = useSetLastSeenMessageMutation(
+    {
+      conversationId: currentConversationId,
+      currentUserId,
+    },
+    (data) => {
+      updateConversation(currentConversationId, {
+        unreadCount: data.unreadCount || 0,
+      });
+    },
+    (error) => {
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  );
+
+  useEffect(() => {
+    const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
+
+    if (
+      currentConversationId &&
+      messages.length > 0 &&
+      lastSeenMessageInfo?.lastSeenMessageId !== undefined
+    ) {
+      const firstMessage = messages[0];
+      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
+
+      if (!isFirstMessageLastSeen) {
+        setLastSeenMessageForConversation({
+          messageId: firstMessage.id,
+          conversationId: currentConversationId,
+        });
+      }
+    }
+  }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
@@ -109,7 +165,7 @@ const ConversationThreadScreen = ({
     uploadFilesFromWeb,
     isUploading: isUploadingImages,
     error: uploadError,
-  } = useMessageAttachmentUploader(selectedConversationId, imageMessage);
+  } = useMessageAttachmentUploader(currentConversationId, imageMessage);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
@@ -136,7 +192,7 @@ const ConversationThreadScreen = ({
   );
 
   const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
-    selectedConversationId,
+    currentConversationId,
     currentUserId,
     imageMessage,
     setImageMessage,
@@ -154,7 +210,7 @@ const ConversationThreadScreen = ({
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-  }, [selectedConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
+  }, [currentConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
 
   const handleBackPress = useCallback(() => {
     router.back();
@@ -189,11 +245,11 @@ const ConversationThreadScreen = ({
 
   const conversationInfo: ConversationInfo = useMemo(
     () => ({
-      conversationId: selectedConversationId,
+      conversationId: currentConversationId,
       conversationName: conversationAPIResponse?.name,
       signedImageUrl: conversationAPIResponse?.signedImageUrl,
     }),
-    [selectedConversationId, conversationAPIResponse]
+    [currentConversationId, conversationAPIResponse]
   );
 
   const pickerState: TPickerState = useMemo(
@@ -232,7 +288,7 @@ const ConversationThreadScreen = ({
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
-        selectedConversationId={selectedConversationId}
+        selectedConversationId={currentConversationId}
       />
     );
   }, [
@@ -246,7 +302,7 @@ const ConversationThreadScreen = ({
     handleMessageSelect,
     conversationAPIResponse,
     pickerState,
-    selectedConversationId,
+    currentConversationId,
   ]);
 
   const renderTextInput = useCallback(() => {
@@ -271,7 +327,7 @@ const ConversationThreadScreen = ({
 
     return (
       <ConversationInputBar
-        conversationId={selectedConversationId}
+        conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
@@ -286,7 +342,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse?.isBlocked,
     conversationAPIResponse?.isActive,
     selectionMode,
-    selectedConversationId,
+    currentConversationId,
     handleSendMessage,
     handleOpenImagePicker,
     handleOpenImagePickerNative,

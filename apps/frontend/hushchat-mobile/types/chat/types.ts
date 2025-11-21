@@ -16,6 +16,7 @@ export interface IConversation {
   mutedByLoggedInUser: boolean;
   favoriteByLoggedInUser: boolean;
   archivedByLoggedInUser: boolean;
+  unreadCount: number;
   chatUserStatus: chatUserStatus;
 }
 
@@ -87,6 +88,11 @@ export interface oneToOneChatInfo {
   favorite: boolean;
   pinned: boolean;
   mutedUntil: number | null;
+}
+
+export interface ConversationReadInfo {
+  unreadCount: number | null;
+  lastSeenMessageId: number | null;
 }
 
 export interface UserView {

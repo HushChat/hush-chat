@@ -27,6 +27,8 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private boolean isFavoriteByLoggedInUser;
     private String chatUserStatus;
 
+    private Long unreadCount;
+
     public ConversationDTO(Conversation conversation) {
         this.mapToSelf(conversation);
     }
