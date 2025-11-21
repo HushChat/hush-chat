@@ -51,15 +51,15 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     user: { id: loggedInUserId },
   } = useUserStore();
 
+  const conversationsQueryKey = conversationQueryKeys.allConversations(
+    Number(loggedInUserId),
+    criteria
+  );
+
   useEffect(() => {
     if (!notificationConversation) return;
 
     const conversationId = notificationConversation.id;
-
-    const conversationsQueryKey = conversationQueryKeys.allConversations(
-      Number(loggedInUserId),
-      criteria
-    );
 
     const existingCache =
       queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(conversationsQueryKey);
@@ -100,7 +100,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
     updatePaginatedItemInCache<IConversation>(
       queryClient,
-      conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
+      conversationsQueryKey,
       conversationId,
       updates,
       getPaginationConfig<IConversation>()
