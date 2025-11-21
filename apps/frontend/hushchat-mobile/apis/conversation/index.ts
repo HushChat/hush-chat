@@ -150,6 +150,36 @@ export const sendMessageByConversationId = async (
   }
 };
 
+export const setLastSeenMessageByConversationId = async (
+  messageId: number,
+  conversationId: number
+) => {
+  try {
+    const response = await axios.put(
+      CONVERSATION_API_ENDPOINTS.SET_LAST_SEEN_MESSAGE(conversationId),
+      {
+        messageId,
+      }
+    );
+    return { data: response.data };
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
+export const getLastSeenMessageByConversationId = async (conversationId: number) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_LAST_SEEN_MESSAGE(conversationId)
+    );
+    return response.data;
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const sendMessageByConversationIdFiles = async (
   conversationId: number,
   message: string,

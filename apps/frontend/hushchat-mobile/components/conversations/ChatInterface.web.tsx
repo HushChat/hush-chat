@@ -122,7 +122,6 @@ export default function ChatInterface({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-row h-full relative">
-        {/* LEFT PANE */}
         <View
           onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
           className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800"
@@ -181,7 +180,6 @@ export default function ChatInterface({
           )}
         </View>
 
-        {/* THREAD PANEL */}
         <MotionView
           visible={true}
           from={{ width: screenWidth }}
@@ -209,7 +207,6 @@ export default function ChatInterface({
           )}
         </MotionView>
 
-        {/* RIGHT PANEL */}
         <MotionView
           visible={isPanelOpen}
           from={{ width: 0, opacity: 0 }}

@@ -1,8 +1,3 @@
-/**
- * ConversationListItem
- *
- * Renders a single row in the conversations list (avatar, name, last message preview, timestamp).
- */
 import {
   View,
   TouchableOpacity,
@@ -18,12 +13,11 @@ import InitialsAvatar from "@/components/InitialsAvatar";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { PLATFORM } from "@/constants/platformConstants";
 import classNames from "classnames";
-import ChevronButton from "@/components/ChevronButton";
 import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
 import { MaterialIcons } from "@expo/vector-icons";
 import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
-import LastMessagePreview from "@/components/UnsendMessagePreview";
 import { AppText } from "@/components/AppText";
+import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
 
 const BG = {
   modalBackdrop: "rgba(9, 15, 29, 0.8)",
@@ -51,7 +45,6 @@ const ConversationListItem = ({
   const chevronButtonRef = useRef<View>(null);
 
   const lastMessage = conversation.messages?.at(-1);
-  const lastMessageText = lastMessage?.messageText;
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
@@ -78,6 +71,7 @@ const ConversationListItem = ({
           }
         )}
         onPress={handleChatPress}
+        accessibilityRole="button"
       >
         <TouchableOpacity
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
@@ -110,27 +104,15 @@ const ConversationListItem = ({
               </AppText>
             </View>
           </View>
-          <View className="flex-row items-center justify-between">
-            <AppText
-              className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
-              numberOfLines={1}
-            >
-              {lastMessage?.isUnsend ? (
-                <LastMessagePreview unsendMessage={lastMessage} />
-              ) : (
-                lastMessageText
-              )}
-            </AppText>
-            {conversation.mutedByLoggedInUser && (
-              <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" className="ml-2" />
-            )}
 
-            {PLATFORM.IS_WEB && (
-              <ChevronButton
-                chevronButtonRef={chevronButtonRef}
-                handleOptionsPress={handleOptionsPress}
-              />
-            )}
+          <View className="flex-row items-center justify-between">
+            <ConversationMeta
+              lastMessage={lastMessage}
+              muted={conversation.mutedByLoggedInUser}
+              unreadCount={conversation.unreadCount}
+              chevronButtonRef={chevronButtonRef}
+              onChevronPress={handleOptionsPress}
+            />
           </View>
         </View>
       </Pressable>
