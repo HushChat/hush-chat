@@ -91,7 +91,7 @@ export default function useWebSocketConnection() {
       try {
         setConnectionStatus(WebSocketStatus.Connecting);
 
-        const { idToken } = await getAllTokens();
+        const { idToken, workspace } = await getAllTokens();
         if (idToken === null) {
           logInfo("aborting web socket connection due to missing token");
           shouldStopRetrying.current = true;
@@ -115,9 +115,7 @@ export default function useWebSocketConnection() {
           const connectFrameBytes = [
             ...Array.from(new TextEncoder().encode("CONNECT\n")),
             ...Array.from(new TextEncoder().encode(`Authorization:Bearer ${idToken}\n`)),
-            ...Array.from(
-              new TextEncoder().encode(`Workspace-Id:${process.env.EXPO_PUBLIC_TENANT}\n`)
-            ),
+            ...Array.from(new TextEncoder().encode(`Workspace-Id:${workspace}\n`)),
             ...Array.from(new TextEncoder().encode("accept-version:1.2\n")),
             ...Array.from(new TextEncoder().encode("heart-beat:0,0\n")),
             0x0a, // empty line

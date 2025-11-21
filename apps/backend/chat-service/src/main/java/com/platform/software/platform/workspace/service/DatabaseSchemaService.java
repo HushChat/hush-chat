@@ -1,0 +1,115 @@
+package com.platform.software.platform.workspace.service;
+
+import com.platform.software.exception.MigrationException;
+import com.platform.software.exception.SchemaCreationException;
+import liquibase.Contexts;
+import liquibase.LabelExpression;
+import liquibase.Liquibase;
+import liquibase.Scope;
+import liquibase.statement.SqlStatement;
+import liquibase.statement.core.RawSqlStatement;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.structure.core.Schema;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.DirectoryResourceAccessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+@Service
+public class DatabaseSchemaService {
+
+    Logger logger = LoggerFactory.getLogger(DatabaseSchemaService.class);
+
+    @Value("${liquibase.changelog.path}")
+    private String changelogPath;
+
+    private final DataSource dataSource;
+
+    public DatabaseSchemaService(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public void createDatabaseSchema(String schemaName) throws SchemaCreationException {
+        try (Database database = DatabaseFactory.getInstance()
+                .findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()))) {
+
+            Scope.child(Scope.Attr.database, database, () -> {
+                database.execute(new SqlStatement[] {
+                        new RawSqlStatement("CREATE SCHEMA IF NOT EXISTS " + database.escapeObjectName(schemaName, Schema.class))
+                }, null);
+            });
+
+            logger.info("Schema '{}' created successfully.", schemaName);
+        } catch (Exception e) {
+            throw new SchemaCreationException("Failed to create schema: " + schemaName, e);
+        }
+    }
+
+    public void deleteDatabaseSchema(String schemaName) throws SchemaCreationException {
+        try (Database database = DatabaseFactory.getInstance()
+                .findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()))) {
+
+            Scope.child(Scope.Attr.database, database, () -> {
+                database.execute(new SqlStatement[] {
+                        new RawSqlStatement("DROP SCHEMA IF EXISTS " + database.escapeObjectName(schemaName, Schema.class) + " CASCADE")
+                }, null);
+            });
+
+            logger.warn("Rollback: Schema '{}' deleted after failed workspace creation.", schemaName);
+        } catch (Exception e) {
+            logger.error("CRITICAL: Rollback failed - Schema '{}' could not be deleted. Manual cleanup required: {}",
+                    schemaName, e.getMessage(), e);
+        }
+    }
+
+    public void applyDatabaseMigrations(String schemaName) throws MigrationException, FileNotFoundException {
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setSchema(schemaName);
+
+            Database database = DatabaseFactory.getInstance()
+                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+
+            database.setDefaultSchemaName(schemaName);
+            database.setLiquibaseSchemaName(schemaName);
+
+            Path changelogPath = Paths.get(this.changelogPath);
+            if (!Files.exists(changelogPath)) {
+                throw new FileNotFoundException("Changelog path not found: " + changelogPath);
+            }
+
+            Path runtimeChangelogFile = changelogPath.resolve("db.changelog-runtime.yaml");
+            if (!Files.exists(runtimeChangelogFile)) {
+                throw new FileNotFoundException("Runtime changelog file not found: " + runtimeChangelogFile);
+            }
+
+            DirectoryResourceAccessor resourceAccessor = new DirectoryResourceAccessor(changelogPath);
+
+            Liquibase liquibase = new Liquibase(
+                    "db.changelog-runtime.yaml",
+                    resourceAccessor,
+                    database
+            );
+
+            logger.info("Applying initial-setup migrations for schema: {}", schemaName);
+            liquibase.update(new Contexts("initial-setup"), new LabelExpression());
+
+            logger.info("Applying regular-updates migrations for schema: {}", schemaName);
+            liquibase.update(new Contexts("regular-updates"), new LabelExpression());
+
+        } catch (LiquibaseException | SQLException e) {
+            throw new MigrationException("Failed to apply migrations", e);
+        }
+    }
+}
