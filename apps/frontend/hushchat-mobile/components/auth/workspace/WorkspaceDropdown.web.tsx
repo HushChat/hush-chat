@@ -4,6 +4,8 @@ import { FlatList, Modal, Pressable, Text, View, TouchableWithoutFeedback } from
 import { PLATFORM } from "@/constants/platformConstants";
 import { Workspace, WorkspaceDropdownProps } from "@/types/login/types";
 import { SIZE_PRESETS } from "@/components/forms/TextField";
+// Import the new component
+import WorkspaceDropdownItem from "./WorkspaceDropdownItem";
 
 type SizeKey = NonNullable<WorkspaceDropdownProps["size"]>;
 
@@ -54,22 +56,7 @@ const WorkspaceDropdown = ({
     setIsOpen(false);
   };
 
-  const getStatusBadge = (status: string) => {
-    if (status === "PENDING") {
-      return (
-        <View className="bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">
-          <Text className="text-yellow-700 dark:text-yellow-400 text-xs font-medium">
-            Invitation Pending
-          </Text>
-        </View>
-      );
-    }
-    return (
-      <View className="bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">
-        <Text className="text-green-700 dark:text-green-400 text-xs font-medium">Active</Text>
-      </View>
-    );
-  };
+  // NOTE: getStatusBadge function has been removed as it is now inside WorkspaceDropdownItem
 
   return (
     <View className="flex-col gap-y-1">
@@ -105,12 +92,7 @@ const WorkspaceDropdown = ({
         )}
       </View>
 
-      <Modal
-        visible={isOpen}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setIsOpen(false)}
-      >
+      <Modal visible={isOpen} transparent={true} onRequestClose={() => setIsOpen(false)}>
         <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
           <View style={{ flex: 1 }}>
             <TouchableWithoutFeedback>
@@ -142,39 +124,13 @@ const WorkspaceDropdown = ({
                     nestedScrollEnabled
                     showsVerticalScrollIndicator={true}
                     renderItem={({ item, index }) => (
-                      <Pressable
-                        className={`p-4 ${
-                          index !== workspaces.length - 1
-                            ? "border-b border-gray-200 dark:border-gray-700"
-                            : ""
-                        } ${
-                          selectedWorkspace?.id === item.id
-                            ? "bg-blue-50 dark:bg-blue-900/20"
-                            : "bg-white dark:bg-gray-800"
-                        }`}
-                        onPress={() => handleSelect(item)}
-                      >
-                        <View className="flex-row items-start justify-between gap-3">
-                          <View className="flex-1">
-                            <Text
-                              className={`${tokens.font} font-semibold text-gray-900 dark:text-gray-100 mb-1`}
-                            >
-                              {item.name}
-                            </Text>
-                            {item.description && (
-                              <Text
-                                className={`${tokens.error} text-gray-600 dark:text-gray-400 mb-2`}
-                              >
-                                {item.description}
-                              </Text>
-                            )}
-                            {getStatusBadge(item.status)}
-                          </View>
-                          {selectedWorkspace?.id === item.id && (
-                            <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
-                          )}
-                        </View>
-                      </Pressable>
+                      <WorkspaceDropdownItem
+                        item={item}
+                        isSelected={selectedWorkspace?.id === item.id}
+                        onSelect={handleSelect}
+                        isLast={index === workspaces.length - 1}
+                        tokens={tokens}
+                      />
                     )}
                   />
                 )}
