@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: add_composite_unique_email_workspace
       author: moditha
-      tag: v0.1.0-alpha.4
+      tag: release-2.1
       comment: "drop old unique constraint on email and add composite unique constraint (email, workspace_id)"
       changes:
         - dropUniqueConstraint:
