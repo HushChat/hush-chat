@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: attach-existing-sequence-to-workspace-user-id
+      author: pavithra
+      tag: release-3.1
+      changes:
+        - addDefaultValue:
+            tableName: workspace_user
+            columnName: id
+            defaultValueSequenceNext: workspace_user_generator
+
+  - changeSet:
+      id: sync-existing-workspace-user-generator-sequence
+      author: pavithra
+      tag: release-3.2
+      changes:
+        - sql:
+            sql: |
+              SELECT setval(
+                'platform.workspace_user_generator',
+                (SELECT COALESCE(MAX(id), 1) FROM platform.workspace_user)
+              );
