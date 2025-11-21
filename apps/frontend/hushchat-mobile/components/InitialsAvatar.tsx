@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { getInitials } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 import { chatUserStatus } from "@/types/chat/types";
+import UserStatusIndicator from "@/components/UserStatusIndicator";
 
 export const AvatarSize = {
   small: "sm",
@@ -42,17 +43,6 @@ const styles = StyleSheet.create({
   },
 });
 
-const StatusColorMap: Record<string, string> = {
-  [chatUserStatus.ONLINE]: "#22C55E",
-  [chatUserStatus.OFFLINE]: "#9CA3AF",
-  [chatUserStatus.AWAY]: "#F59E0B",
-  [chatUserStatus.BUSY]: "#EF4444",
-};
-
-const getStatusColor = (status: string): string => {
-  return StatusColorMap[status] || "#9CA3AF";
-};
-
 const InitialsAvatar = ({
   name,
   size = AvatarSize.medium,
@@ -81,14 +71,7 @@ const InitialsAvatar = ({
         )}
       </View>
 
-      {showOnlineStatus && (
-        <View
-          className="absolute bottom-0 right-0 border-white w-[12px] h-[12px] rounded-full border-2 bg-[getStatusColor(userStatus)]"
-          style={{
-            backgroundColor: getStatusColor(userStatus),
-          }}
-        />
-      )}
+      {showOnlineStatus && <UserStatusIndicator userStatus={userStatus} />}
     </View>
   );
 };
