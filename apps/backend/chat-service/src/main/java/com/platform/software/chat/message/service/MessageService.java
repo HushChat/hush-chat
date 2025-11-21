@@ -500,5 +500,15 @@ public class MessageService {
 
         message.setIsUnsend(true);
         messageRepository.save(message);
+
+        MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                messagePublisherService.invokeNewMessageToParticipants(
+                        message.getConversation().getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                );
+            }
+        });
     }
 }
