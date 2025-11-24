@@ -235,15 +235,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 String imageIndexedName = otherParticipant.getUser().getImageIndexedName();
                                 dto.setName(name);
                                 dto.setImageIndexedName(imageIndexedName);
-                                if(webSocketSessionManager.isUserConnected(
-                                        WorkspaceContext.getCurrentWorkspace(),
-                                        otherParticipant.getUser().getEmail())
-                                ){
-                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.ONLINE));
-                                }
-                                else{
-                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.OFFLINE));
-                                }
+
+                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
+                                        otherParticipant.getUser().getEmail());
+
+                                dto.setChatUserStatus(status);
                             }
                         }
                     }

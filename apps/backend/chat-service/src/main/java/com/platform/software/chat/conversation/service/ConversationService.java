@@ -1152,15 +1152,11 @@ public class ConversationService {
                 conversationMetaDataDTO.setSignedImageUrl(null);
             }
 
-            if (webSocketSessionManager.isUserConnected(
+            ChatUserStatus status = webSocketSessionManager.getUserChatStatus(
                     WorkspaceContext.getCurrentWorkspace(),
-                    directOtherMeta.getEmail())
-            ){
-                conversationMetaDataDTO.setChatUserStatus(String.valueOf(ChatUserStatus.ONLINE));
-            }
-            else {
-                conversationMetaDataDTO.setChatUserStatus(String.valueOf(ChatUserStatus.OFFLINE));
-            }
+                    directOtherMeta.getEmail()
+            );
+            conversationMetaDataDTO.setChatUserStatus(status);
 
         } else {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
