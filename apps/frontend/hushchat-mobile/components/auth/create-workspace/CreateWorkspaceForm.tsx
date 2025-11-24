@@ -54,7 +54,7 @@ export const CreateWorkspaceForm = ({
         onPress={onSubmit}
         disabled={isLoading}
         colors={colors}
-        style={{ marginTop: 24 }}
+        style={styles.submitButton}
       />
     </FormContainer>
   );
@@ -65,5 +65,8 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
     width: "100%",
+  },
+  submitButton: {
+    marginTop: 24,
   },
 });
