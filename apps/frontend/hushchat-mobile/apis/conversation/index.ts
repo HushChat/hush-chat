@@ -7,6 +7,7 @@ import {
   SEARCH_API_BASE,
   SETTINGS_API_ENDPOINTS,
   USER_API_ENDPOINTS,
+  WORKSPACE_ENDPOINTS,
 } from "@/constants/apiConstants";
 import { ApiResponse } from "@/types/common/types";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
@@ -424,4 +425,11 @@ export const sendContactUsMessage = async (data: {
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };
   }
+};
+
+export const sendInviteToWorkspace = async (email: string) => {
+  const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, {
+    email: email,
+  });
+  return response.data;
 };
