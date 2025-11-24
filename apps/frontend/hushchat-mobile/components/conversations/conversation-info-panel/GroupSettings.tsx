@@ -1,4 +1,4 @@
-import { Image, TouchableOpacity, View, Dimensions } from "react-native";
+import { Image, TouchableOpacity, View, Dimensions, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   withTiming,
@@ -83,7 +83,7 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
     updateConversation.mutate({
       conversationId: conversation.id,
       name: newTitle,
-      description: description,
+      description,
     });
   };
 
@@ -117,16 +117,7 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
   return (
     <Animated.View
       pointerEvents={visible ? "auto" : "none"}
-      style={[
-        {
-          position: "absolute",
-          top: 0,
-          bottom: 0,
-          left: 0,
-          right: 0,
-        },
-        containerStyle,
-      ]}
+      style={[styles.absoluteFill, containerStyle]}
       className="bg-background-light dark:bg-background-dark"
     >
       <View className="flex-row justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark">
@@ -138,33 +129,17 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
         </TouchableOpacity>
       </View>
 
-      <View className=" py-10 rounded-3xl max-w-3xl w-full mx-auto bg-background-light dark:bg-background-dark">
+      <View className="py-10 rounded-3xl max-w-3xl w-full mx-auto bg-background-light dark:bg-background-dark">
         <TouchableOpacity
           onPress={handlePickImage}
           disabled={uploading}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <View style={styles.imageRowCenter}>
             {imagePickerResult?.assets?.[0]?.uri ? (
-              <Image
-                source={{ uri: imagePickerResult.assets[0].uri }}
-                style={{ width: 160, height: 160, borderRadius: 80 }}
-                resizeMode="cover"
-                onError={() => setImageError(true)}
-              />
+              <Image source={{ uri: imagePickerResult.assets[0].uri }} style={styles.avatarImg} />
             ) : signedImageUrl && !imageError ? (
-              <Image
-                source={{ uri: signedImageUrl }}
-                style={{ width: 160, height: 160, borderRadius: 80 }}
-                resizeMode="cover"
-                onError={() => setImageError(true)}
-              />
+              <Image source={{ uri: signedImageUrl }} style={styles.avatarImg} />
             ) : (
               <InitialsAvatar name={`${conversation.name ?? ""}`} size="lg" />
             )}
@@ -178,7 +153,7 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
       </View>
 
       <View className="items-center">
-        <View className=" flex-row items-center">
+        <View className="flex-row items-center">
           {isEditing ? (
             <>
               <AppTextInput
@@ -253,3 +228,23 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
     </Animated.View>
   );
 }
+
+const styles = StyleSheet.create({
+  absoluteFill: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  imageRowCenter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarImg: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+  },
+});

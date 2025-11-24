@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -212,5 +214,32 @@ public class ConversationUtilService {
             return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
         }
         return imageIndexedName;
+    }
+
+    /**
+     * Checks if a conversation is currently muted based on the muted-until timestamp.
+     * <p>
+     * A conversation is considered muted if:
+     * <ul>
+     *   <li>mutedUntil is not null, AND</li>
+     *   <li>The current time is before the mutedUntil timestamp</li>
+     * </ul>
+     * <p>
+     * The comparison is performed at second precision to avoid millisecond-level edge cases.
+     * If mutedUntil is null, the conversation is not muted.
+     * If mutedUntil is in the past, the mute has expired and returns false.
+     *
+     * @param mutedUntil the timestamp until which the conversation is muted, or null if not muted
+     * @return true if currently muted, false otherwise
+     */
+    public static boolean isMuted(ZonedDateTime mutedUntil) {
+        if (mutedUntil == null) {
+            return false;
+        }
+
+        ZonedDateTime now = ZonedDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ZonedDateTime mutedUntilTruncated = mutedUntil.truncatedTo(ChronoUnit.SECONDS);
+
+        return now.isBefore(mutedUntilTruncated);
     }
 }

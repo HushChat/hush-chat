@@ -7,7 +7,7 @@ import pluginReactNative from 'eslint-plugin-react-native';
 
 export default [
     {
-        ignores: ['node_modules/**', 'android/**', 'ios/**', 'build/**', 'dist/**', 'scripts/**']
+        ignores: ['node_modules/**', 'android/**', 'ios/**', 'build/**', 'dist/**', 'scripts/**', '**/apps/frontend/hushchat-mobile/scripts/**']
     },
     js.configs.recommended,
     ...tseslint.configs.recommended,
@@ -64,6 +64,19 @@ export default [
         },
         settings: {
             react: { version: 'detect' },
+          'import/resolver': {
+            node: {
+              extensions: [
+                '.js',
+                '.jsx',
+                '.ts',
+                '.tsx',
+                '.web.tsx',
+                '.native.tsx'
+              ],
+            },
+            typescript: {},
+          },
         },
     },
 ];

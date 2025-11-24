@@ -1,7 +1,10 @@
 package com.platform.software.chat.user.service;
 
+import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.dto.UserDTO;
+import com.platform.software.chat.user.dto.WorkSpaceUserUpsertDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.UserTypeEnum;
@@ -33,18 +36,15 @@ public class UserUtilService {
     }
 
     @Transactional
-    public ChatUser createUser(UserUpsertDTO userUpsertDTO, Workspace workspace) {
-        checkIfUserAlreadyExists(userUpsertDTO.getEmail().toLowerCase());
-        ChatUser user = userUpsertDTO.toChatUser();
+    public ChatUser createUser(WorkSpaceUserUpsertDTO workSpaceUserUpsertDTO) {
+        checkIfUserAlreadyExists(workSpaceUserUpsertDTO.getEmail().toLowerCase());
+        ChatUser user = workSpaceUserUpsertDTO.toChatUser();
         user.setActive(true);
 
-        ChatUser savedUser = persistUser(user);
-        createUserInIdP(user.getEmail().toLowerCase(), userUpsertDTO.getPassword(), workspace.getName());
-
-        return savedUser;
+        return persistUser(user);
     }
 
-    private void createUserInIdP(String email, String password, String tenant) {
+    public void createUserInIdP(String email, String password, String tenant) {
         var response = cognitoService.createUser(email, password, tenant, UserTypeEnum.CHAT_USER);
         if (!response.sdkHttpResponse().isSuccessful()) {
             logger.error("Failed to create user in IDP: {}", email);
@@ -77,5 +77,25 @@ public class UserUtilService {
           userDTO.setSignedImageUrl(imageSignedDTO.getUrl());
 
           return userDTO;
+    }
+
+    /**
+     * set conversation name, only if 1-to-1 conversation
+     *
+     * @param includeSender true - To set name as the sender's name,
+     *                      false - To set name as the OTHER participant's name
+     */
+    public static void setConversationNameForNonGroup(Long userId, ConversationDTO conversationDTO, boolean includeSender) {
+        if(userId != null && !conversationDTO.getIsGroup()) {
+            conversationDTO.getParticipants().stream()
+                .filter(participant -> includeSender == participant.getUser().getId().equals(userId))
+                .findFirst()
+                .ifPresent(participant -> {
+                    conversationDTO.setName("%s %s".formatted(
+                        participant.getUser().getFirstName(),
+                        participant.getUser().getLastName()
+                    ));
+                });
+        }
     }
 }

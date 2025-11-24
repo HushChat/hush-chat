@@ -7,13 +7,17 @@ import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
+import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
@@ -29,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -42,9 +48,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QConversationParticipant qConversationParticipant = QConversationParticipant.conversationParticipant;
     private static final QMessage qMessage = QMessage.message;
     private static final QMessage qMessage2 = QMessage.message;
+    private final WebSocketSessionManager webSocketSessionManager;
 
-    public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
+    public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory, @Lazy WebSocketSessionManager webSocketSessionManager) {
         this.jpaQueryFactory = jpaQueryFactory;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     @Override
@@ -218,8 +226,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         if (loggedInParticipant != null) {
                             dto.setFavoriteByLoggedInUser(loggedInParticipant.getIsFavorite());
                             dto.setPinnedByLoggedInUser(loggedInParticipant.getIsPinned());
-                            dto.setMutedByLoggedInUser(loggedInParticipant.getMutedUntil() != null && loggedInParticipant.getMutedUntil()
-                                    .isAfter(ZonedDateTime.now()));
+                            dto.setMutedByLoggedInUser(ConversationUtilService.isMuted(loggedInParticipant.getMutedUntil()));
                         }
 
                         if (needOtherParticipant && otherParticipant != null) {
@@ -228,6 +235,15 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 String imageIndexedName = otherParticipant.getUser().getImageIndexedName();
                                 dto.setName(name);
                                 dto.setImageIndexedName(imageIndexedName);
+                                if(webSocketSessionManager.isUserConnected(
+                                        WorkspaceContext.getCurrentWorkspace(),
+                                        otherParticipant.getUser().getEmail())
+                                ){
+                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.ONLINE));
+                                }
+                                else{
+                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.OFFLINE));
+                                }
                             }
                         }
                     }

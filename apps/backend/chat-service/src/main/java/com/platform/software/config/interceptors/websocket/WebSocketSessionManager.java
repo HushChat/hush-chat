@@ -181,4 +181,9 @@ public class WebSocketSessionManager {
             logger.info("cleaned up {} invalid sessions", keysToRemove.size());
         }
     }
+
+    public boolean isUserConnected(String tenantId, String email) {
+        String webSocketStoreKey = String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
+        return webSocketSessionInfos.containsKey(webSocketStoreKey);
+    }
 }

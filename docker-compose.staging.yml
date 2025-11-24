@@ -1,0 +1,44 @@
+services:
+  backend_staging:
+    build: apps/backend/chat-service
+    container_name: chat_service_backend_staging
+    ports:
+      - "3093:3092"
+    environment:
+      ACTIVE_SPRING_PROFILES: ${ACTIVE_SPRING_PROFILES}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATASOURCE_DEFAULT_SCHEMA: ${SPRING_DATASOURCE_DEFAULT_SCHEMA}
+      SPRING_DATASOURCE_GLOBAL_SCHEMA: ${SPRING_DATASOURCE_GLOBAL_SCHEMA}
+      CLOUD_AWS_ACCESS_KEY: ${CLOUD_AWS_ACCESS_KEY}
+      CLOUD_AWS_SECRET_KEY: ${CLOUD_AWS_SECRET_KEY}
+      PRIVATE_BUCKET_NAME: ${PRIVATE_BUCKET_NAME}
+      LOG_ELK_HOST: ${LOG_ELK_HOST}
+      LOG_ELK_PORT: ${LOG_ELK_PORT}
+      SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST}
+      SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
+      SWAGGER_BACKEND_MAIN_JSON_URL: ${SWAGGER_BACKEND_MAIN_JSON_URL}
+      HEALTH_CHECK_REDIS_SECRET_KEY: ${HEALTH_CHECK_REDIS_SECRET_KEY}
+      HEALTH_CHECK_COMMIT_INFO_SECRET_KEY: ${HEALTH_CHECK_COMMIT_INFO_SECRET_KEY}
+      AWS_COGNITO_USERPOOL_ID: ${AWS_COGNITO_USERPOOL_ID}
+      AWS_COGNITO_REGION: ${AWS_COGNITO_REGION}
+      AWS_COGNITO_JWKS_URL: ${AWS_COGNITO_JWKS_URL}
+      AWS_COGNITO_CLIENT_ID: ${AWS_COGNITO_CLIENT_ID}
+    volumes:
+      - ./infra/db-migrations/workspaces:/app/db-migrations
+    networks:
+      - infra_network_staging
+
+  frontend_staging:
+    build: apps/frontend/hushchat-mobile
+    container_name: chat_service_frontend_staging
+    ports:
+      - "8082:80"
+    networks:
+      - infra_network_staging
+
+networks:
+  infra_network_staging:
+    external: true
+    name: infra_network_staging

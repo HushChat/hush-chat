@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: setup/db.initial-details.yaml
+      context: initial-setup
+
+  - includeAll:
+      path: "changeLogs"
+      filter:
+        includeChangeLogFileNamePattern: ^db\.changelog-\d{3}\.\d+\.yaml$

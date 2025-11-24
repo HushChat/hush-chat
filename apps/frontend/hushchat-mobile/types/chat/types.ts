@@ -10,10 +10,14 @@ export interface IConversation {
   createdAt: string;
   signedImageUrl: string | null;
   messages: IMessage[];
-  favoriteByLoggedInUser: boolean;
   description: string;
+
   pinnedByLoggedInUser: boolean;
   mutedByLoggedInUser: boolean;
+  favoriteByLoggedInUser: boolean;
+  archivedByLoggedInUser: boolean;
+  unreadCount: number;
+  chatUserStatus: chatUserStatus;
 }
 
 export interface ReactionSummary {
@@ -23,7 +27,7 @@ export interface ReactionSummary {
 
 export interface IMessageAttachment {
   mimeType: string;
-  id: number;
+  id?: number;
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;
@@ -34,7 +38,8 @@ export interface IMessage {
   senderId: number;
   senderFirstName: string;
   senderLastName: string;
-  parentMessageId: number | null;
+  senderSignedImageUrl?: string | null;
+  parentMessageId?: number | null;
   messageText: string;
   createdAt: string;
   reactionSummary?: ReactionSummary;
@@ -83,6 +88,11 @@ export interface oneToOneChatInfo {
   favorite: boolean;
   pinned: boolean;
   mutedUntil: number | null;
+}
+
+export interface ConversationReadInfo {
+  unreadCount: number | null;
+  lastSeenMessageId: number | null;
 }
 
 export interface UserView {
@@ -244,3 +254,10 @@ export const REACTION_EMOJIS: Record<ReactionType, string> = {
   SAD: "😢",
   ANGRY: "😠",
 };
+
+export enum chatUserStatus {
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
+  AWAY = "AWAY",
+  BUSY = "BUSY",
+}

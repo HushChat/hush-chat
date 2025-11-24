@@ -3,28 +3,23 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
-import { ConversationAPIResponse, IBasicMessage, IMessage, TPickerState } from "@/types/chat/types";
+import React, { useCallback, useMemo } from "react";
+import { ActivityIndicator, SectionList, View } from "react-native";
+import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
-import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
 import { PinnedMessageBar } from "@/components/PinnedMessageBar";
-import * as Haptics from "expo-haptics";
 import { PLATFORM } from "@/constants/platformConstants";
-import { usePinMessageMutation } from "@/query/post/queries";
-import { usePatchUnsendMessageMutation } from "@/query/patch/queries";
-import { useUpdateCache } from "@/query/config/useUpdateCache";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants/queryKeys";
-import { PaginatedResponse } from "@/types/common/types";
-import { ToastUtils } from "@/utils/toastUtils";
-import { useConversationsQuery } from "@/query/useConversationsQuery";
-/* eslint-disable import/no-unresolved */
-// @ts-ignore
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
+import { DateSection } from "@/components/DateSection";
+import { groupMessagesByDate } from "@/utils/messageUtils";
+import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
+import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
+import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
+import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
+import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
 
-interface MessagesListProps {
+interface IMessagesListProps {
   messages: IMessage[];
   onLoadMore: () => void;
   isFetchingNextPage: boolean;
@@ -40,200 +35,65 @@ const ConversationMessageList = ({
   isFetchingNextPage,
   onMessageSelect,
   conversationAPIResponse,
-  pickerState,
   selectedConversationId,
-}: MessagesListProps) => {
-  const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
+}: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
-  const { openPickerMessageId, setOpenPickerMessageId } = pickerState;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
-  const handleCloseActions = useCallback(() => setSelectedActionMessage(null), []);
-  const updateCache = useUpdateCache();
-  const [selectedPinnedMessage, setSelectedPinnedMessage] = useState<IBasicMessage | null>(null);
-  const [unsendMessage, setUnSendMessage] = useState<IBasicMessage>({} as IBasicMessage);
-  const { selectionMode, selectedMessageIds, setSelectionMode, setSelectedMessageIds } =
-    useConversationStore();
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
-  const [reactionsModal, setReactionsModal] = useState<{
-    visible: boolean;
-    messageId: number | null;
-  }>({
-    visible: false,
-    messageId: null,
-  });
+  const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
-  const { refetch: refetchConversationList } = useConversationsQuery();
+  const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
 
-  const { mutate: togglePinMessage } = usePinMessageMutation(
-    undefined,
-    () => {
-      setSelectedActionMessage(null);
-      setOpenPickerMessageId(null);
-      const pinnedMessageState =
-        pinnedMessage?.id === selectedPinnedMessage?.id ? null : selectedPinnedMessage;
-        updateCache(
-            conversationQueryKeys.metaDataById( Number(currentUserId ?? 0), Number(conversationAPIResponse?.id)),
-            (prev) => prev ? { ...prev, pinnedMessage: pinnedMessageState } : prev
-        );
-    },
-    (error) => {
-      ToastUtils.error(error as string);
-    }
-  );
+  const {
+    selectedActionMessage,
+    openPickerMessageId,
+    openActions,
+    closeActions,
+    openPicker,
+    selectMessage,
+    closeAll,
+  } = useMessageOverlays(conversationAPIResponse, onMessageSelect);
 
-  const togglePin = useCallback(
-    (message?: IBasicMessage) => {
-      const conversationId = conversationAPIResponse?.id;
-      if (!conversationId || !message) return;
+  const { selectionMode, selectedMessageIds, startSelectionWith, toggleSelection } =
+    useMessageSelection(conversationAPIResponse?.id);
 
-      togglePinMessage({ conversationId, messageId: message.id });
-      console.log(message)
-      setSelectedPinnedMessage(message);
-    },
-    [conversationAPIResponse?.id, togglePinMessage]
-  );
+  const groupedSections = useMemo(() => {
+    return groupMessagesByDate(messages);
+  }, [messages]);
 
-  const { mutate: unsend } = usePatchUnsendMessageMutation(undefined, () => {
-    // update conversation message in cache
-    updateCache(
-      conversationMessageQueryKeys.messages(
-        Number(currentUserId),
-        Number(conversationAPIResponse?.id)
-      ),
-      (prev: { pages: PaginatedResponse<IMessage>[] } | undefined) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          pages: prev?.pages.map((page: PaginatedResponse<IMessage>) => ({
-            ...page,
-            content: page.content.map((message: IMessage) =>
-              message.id === unsendMessage.id
-                ? { ...message, isUnsend: true, messageAttachments: [] }
-                : message
-            ),
-          })),
-        };
-      }
-    );
-
-    void refetchConversationList();
-  });
-
-  const unSendMessage = useCallback(
-    (message: IBasicMessage) => {
-      setUnSendMessage(message);
-      unsend({ messageId: message.id });
-    },
-    [unsend]
-  );
-
-  const closeAllOverlays = useCallback(() => {
-    if (openPickerMessageId) setOpenPickerMessageId(null);
-    if (selectedActionMessage) setSelectedActionMessage(null);
-  }, [openPickerMessageId, selectedActionMessage, setOpenPickerMessageId]);
-
-  const handleOpenPicker = useCallback(
-    (messageId: string) => {
-      setOpenPickerMessageId(messageId);
-    },
-    [setOpenPickerMessageId]
-  );
-
-  const handleMessageSelect = useCallback(
-    (message: IMessage) => {
-      setOpenPickerMessageId(null);
-      onMessageSelect?.(message);
-    },
-    [onMessageSelect, setOpenPickerMessageId]
-  );
-
-  const handleMessageLongPress = useCallback(
-    (message: IMessage) => {
-      if (conversationAPIResponse?.isBlocked) return;
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setSelectedActionMessage(message);
-    },
-    [conversationAPIResponse?.isBlocked]
-  );
-
-  const handleStartSelectionWith = useCallback(
-    (messageId: number) => {
-      if (!conversationAPIResponse?.id) return;
-      setSelectionMode(true);
-      setSelectedMessageIds(new Set([messageId]));
-      setSelectedActionMessage(null);
-    },
-    [conversationAPIResponse?.id, setSelectionMode, setSelectedMessageIds]
-  );
-
-  const handleToggleSelection = useCallback(
-    (messageId: number) => {
-      const messageIds = new Set<number>(selectedMessageIds);
-      if (messageIds.has(messageId)) messageIds.delete(messageId);
-      else messageIds.add(messageId);
-      if (messageIds.size === 0) setSelectionMode(false);
-      setSelectedMessageIds(messageIds);
-    },
-    [selectedMessageIds, setSelectedMessageIds, setSelectionMode]
-  );
-
-  const handleViewReactions = useCallback(
-    (messageId: number, position: { x: number; y: number }, isOpen: boolean) => {
-      setMenuPosition(position);
-      setReactionsModal({
-        visible: isOpen,
-        messageId,
-      });
-    },
-    []
-  );
-
-  const handleCloseReactions = useCallback(() => {
-    setReactionsModal((prev) => ({ ...prev, visible: false }));
-  }, []);
-
-  const renderMessage = useCallback(
-    ({ item }: { item: IMessage }) => {
-      const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
-      const isSelected = selectedMessageIds.has(Number(item.id));
-      return (
-        <ConversationMessageItem
-          message={item}
-          isCurrentUser={!!isCurrentUser}
-          currentUserId={String(currentUserId)}
-          isPickerOpen={openPickerMessageId === String(item.id)}
-          onOpenPicker={handleOpenPicker}
-          onMessageSelect={handleMessageSelect}
-          conversationAPIResponse={conversationAPIResponse}
-          selected={isSelected}
-          onStartSelectionWith={handleStartSelectionWith}
-          onToggleSelection={handleToggleSelection}
-          onMessageLongPress={handleMessageLongPress}
-          onCloseAllOverlays={closeAllOverlays}
-          onMessagePin={(message) => togglePin(message)}
-          onUnsendMessage={(message) => unSendMessage(message)}
-          selectedConversationId={selectedConversationId}
-          onViewReactions={handleViewReactions}
-        />
-      );
-    },
+  const renderMessage = useMemo(
+    () =>
+      createRenderMessage({
+        currentUserId,
+        openPickerMessageId,
+        conversationAPIResponse,
+        selectedMessageIds,
+        startSelectionWith,
+        toggleSelection,
+        openActions,
+        selectMessage,
+        openPicker,
+        closeAll,
+        togglePin,
+        unSendMessage,
+        selectedConversationId,
+        viewReactions,
+      }),
     [
       currentUserId,
       openPickerMessageId,
-      handleOpenPicker,
-      handleMessageSelect,
       conversationAPIResponse,
       selectedMessageIds,
-      handleStartSelectionWith,
-      handleToggleSelection,
-      handleMessageLongPress,
-      closeAllOverlays,
+      startSelectionWith,
+      toggleSelection,
+      openActions,
+      selectMessage,
+      openPicker,
+      closeAll,
       togglePin,
-      selectedConversationId,
       unSendMessage,
-      handleViewReactions,
+      selectedConversationId,
+      viewReactions,
     ]
   );
 
@@ -252,11 +112,11 @@ const ConversationMessageList = ({
         <ActionsHeader
           message={selectedActionMessage}
           conversation={conversationAPIResponse}
-          onClose={handleCloseActions}
+          onClose={closeActions}
           onPinToggle={(message) => togglePin(message)}
           onForward={(message) => {
-            handleStartSelectionWith(message?.id);
-            handleCloseActions();
+            startSelectionWith(message?.id);
+            closeActions();
           }}
           onUnsend={(messages) => unSendMessage(messages)}
         />
@@ -270,19 +130,22 @@ const ConversationMessageList = ({
         />
       )}
 
-      <FlatList
-        data={messages}
+      <SectionList
+        sections={groupedSections}
+        keyExtractor={(item, index) => {
+          const fallbackKey = `temp-${item.conversationId}-${index}`;
+          return (item.id ?? fallbackKey).toString();
+        }}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id?.toString()}
-        className="flex-1 px-4"
-        showsVerticalScrollIndicator={false}
+        renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
+        showsVerticalScrollIndicator={false}
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
-        onScrollBeginDrag={closeAllOverlays}
-        onTouchEnd={closeAllOverlays}
-        onMomentumScrollBegin={closeAllOverlays}
+        onScrollBeginDrag={closeAll}
+        onTouchEnd={closeAll}
+        onMomentumScrollBegin={closeAll}
         extraData={{
           selectionMode,
           selectedMessageIdsSize: selectedMessageIds.size,
@@ -292,12 +155,11 @@ const ConversationMessageList = ({
         <MessageReactionsModal
           messageId={reactionsModal.messageId}
           visible={reactionsModal.visible}
-          onClose={handleCloseReactions}
+          onClose={closeReactions}
           position={menuPosition}
         />
       )}
     </>
   );
 };
-
 export default ConversationMessageList;

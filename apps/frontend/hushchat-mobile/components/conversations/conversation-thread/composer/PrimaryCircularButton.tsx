@@ -1,13 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { MotionView } from "@/motion/MotionView";
 
 interface TIconButtonProps {
   toggled?: boolean;
@@ -26,23 +21,6 @@ const PrimaryCircularButton = ({
   onPress,
   className,
 }: TIconButtonProps) => {
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    rotation.value = withTiming(toggled ? 1 : 0, {
-      duration: 250,
-      easing: Easing.inOut(Easing.ease),
-    });
-  }, [toggled, rotation]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        rotate: `${rotation.value * 135}deg`,
-      },
-    ],
-  }));
-
   return (
     <TouchableOpacity
       className={`p-3 rounded-full bg-primary-light dark:bg-primary-dark ${className}`}
@@ -50,9 +28,15 @@ const PrimaryCircularButton = ({
       disabled={disabled}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
     >
-      <Animated.View style={animatedStyle}>
+      <MotionView
+        visible={toggled}
+        from={{ rotate: 0, opacity: 1 }}
+        to={{ rotate: 135, opacity: 1 }}
+        duration={250}
+        easing="standard"
+      >
         <Ionicons name="add" size={iconSize} color={iconColor} />
-      </Animated.View>
+      </MotionView>
     </TouchableOpacity>
   );
 };
