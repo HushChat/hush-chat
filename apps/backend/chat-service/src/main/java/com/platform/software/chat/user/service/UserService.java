@@ -36,8 +36,6 @@ public interface UserService {
 
     ChatUser validateAndGetUser(Long userId);
 
-    String getUserProfileImageUrl(String imageIndexedName);
-
     SignedURLDTO generateSignedURLForProfilePictureUpload(DocUploadRequestDTO docUploadRequestDTO, Long id);
 
     Long countUsersByIds(List<Long> userIds);

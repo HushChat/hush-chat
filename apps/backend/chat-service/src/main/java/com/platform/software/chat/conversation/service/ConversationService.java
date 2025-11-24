@@ -405,7 +405,7 @@ public class ConversationService {
             ConversationParticipantViewDTO participantViewDTO = new ConversationParticipantViewDTO(participant);
             UserViewDTO user = new UserViewDTO(participant.getUser());
 
-            String signedImageUrl = userService.getUserProfileImageUrl(participant.getUser().getImageIndexedName());
+            String signedImageUrl =  cloudPhotoHandlingService.getPhotoViewSignedURL(participant.getUser().getImageIndexedName());
             user.setSignedImageUrl(signedImageUrl);
 
             participantViewDTO.setUser(user);

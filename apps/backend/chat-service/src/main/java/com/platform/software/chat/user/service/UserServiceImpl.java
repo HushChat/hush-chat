@@ -282,7 +282,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.countByIdIn(userIds);
     }
 
-    public String getUserProfileImageUrl(String imageIndexedName) {
+    private String getUserProfileImageUrl(String imageIndexedName) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
             return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
         }
