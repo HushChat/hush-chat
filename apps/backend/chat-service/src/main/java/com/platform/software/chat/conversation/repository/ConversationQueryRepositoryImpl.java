@@ -331,6 +331,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                           uOther.id.as("otherUserId"),
                           uOther.firstName.as("firstName"),
                           uOther.lastName.as("lastName"),
+                          uOther.email.as("email"),
                           uOther.imageIndexedName.as("imageIndexedName"),
                           b.id.isNotNull().as("blocked")
                   ))

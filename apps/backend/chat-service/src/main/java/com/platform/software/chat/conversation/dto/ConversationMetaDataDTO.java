@@ -19,6 +19,7 @@ public class ConversationMetaDataDTO {
     private Boolean isActive;
     private String description;
     private BasicMessageDTO pinnedMessage;
+    private String chatUserStatus;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();

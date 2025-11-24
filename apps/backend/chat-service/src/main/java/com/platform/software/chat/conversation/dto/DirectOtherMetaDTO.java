@@ -14,6 +14,7 @@ public class DirectOtherMetaDTO {
     private String imageIndexedName;
     private boolean blocked;
     private String signedImageUrl;
+    private String email;
 
     public DirectOtherMetaDTO(ChatUser otherUser, boolean blocked) {
         this.otherUserId = otherUser.getId();
@@ -22,6 +23,7 @@ public class DirectOtherMetaDTO {
         this.imageIndexedName = otherUser.getImageIndexedName();
         this.blocked = blocked;
         this.signedImageUrl = otherUser.getSignedImageUrl();
+        this.email = otherUser.getEmail();
     }
 
     public String getFullName() {
