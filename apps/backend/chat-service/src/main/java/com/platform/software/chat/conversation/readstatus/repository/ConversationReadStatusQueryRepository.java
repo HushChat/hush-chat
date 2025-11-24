@@ -45,4 +45,12 @@ public interface ConversationReadStatusQueryRepository {
      * @return ConversationReadInfo containing the read status and unread count
      */
     ConversationReadInfo findConversationReadInfoByConversationIdAndUserId(Long conversationId, Long userId);
+
+    /**
+     * Find last read message ids of participants by conversation id map.
+     *
+     * @param conversationId the conversation id
+     * @return the map
+     */
+    Map<Long, Long> findLastReadMessageIdsByConversationId(Long conversationId);
 }
