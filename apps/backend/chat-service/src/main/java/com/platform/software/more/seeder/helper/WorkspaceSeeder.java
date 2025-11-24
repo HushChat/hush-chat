@@ -5,6 +5,7 @@ import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ public class WorkspaceSeeder {
                 WorkspaceUser workspaceUser = new WorkspaceUser();
                 workspaceUser.setWorkspace(workspaces.stream().findFirst().get());
                 workspaceUser.setEmail(wu.getEmail());
+                workspaceUser.setStatus(WorkspaceUserStatus.ACCEPTED);
 
                 return workspaceUser;
             }).toList();

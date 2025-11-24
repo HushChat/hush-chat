@@ -3,6 +3,7 @@ import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from "@/constants/apiConstants";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 import { logError } from "@/utils/logger";
+import { X_TENANT } from "@/constants/constants";
 
 const getAPIBaseURL = () => {
   const host = getBuildConstant(BuildConstantKeys.API_HOST);
@@ -32,7 +33,6 @@ const PUBLIC_ENDPOINTS: string[] = [
 
 export const setAPIDefaults = () => {
   axios.defaults.baseURL = getAPIBaseURL();
-  axios.defaults.headers.common["X-Tenant"] = getBuildConstant(BuildConstantKeys.TENANT);
 };
 
 /**
@@ -60,10 +60,13 @@ export const setupAuthorizationHeader = () => {
           await refreshIdToken();
         }
 
-        const { idToken } = await getAllTokens();
+        const { idToken, workspace } = await getAllTokens();
 
         if (idToken) {
           config.headers.Authorization = `${TOKEN_TYPE} ${idToken}`;
+        }
+        if (workspace) {
+          config.headers[X_TENANT] = workspace;
         }
       } catch (error) {
         logError("Error while setting up authorization header", error);

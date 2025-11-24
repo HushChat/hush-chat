@@ -2,6 +2,7 @@ package com.platform.software.platform.workspace.dto;
 
 import com.platform.software.common.model.ModelMapper;
 import com.platform.software.platform.workspace.entity.Workspace;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import lombok.Data;
 
 @Data
@@ -11,9 +12,13 @@ public class WorkspaceDTO implements ModelMapper<Workspace> {
     private String description;
     private String workspaceIdentifier;
     private String imageUrl;
+    private WorkspaceUserStatus status;
 
-    public WorkspaceDTO(Workspace workspace) {
+    public WorkspaceDTO(Workspace workspace) {this.mapToSelf(workspace);}
+
+    public WorkspaceDTO(Workspace workspace, WorkspaceUserStatus status) {
         this.mapToSelf(workspace);
+        this.status = status;
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
+import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
@@ -26,9 +28,9 @@ import com.platform.software.utils.ValidationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
@@ -51,17 +53,19 @@ public class MessageService {
     private final MessageMentionService messageMentionService;
     private final ConversationRepository conversationRepository;
     private final ChatNotificationService chatNotificationService;
+    private final ConversationReadStatusRepository conversationReadStatusRepository;
 
     public MessageService(
-            MessageRepository messageRepository,
-            ConversationUtilService conversationUtilService,
-            UserService userService,
-            MessageAttachmentService messageAttachmentService,
-            MessagePublisherService messagePublisherService,
-            ConversationParticipantRepository conversationParticipantRepository,
-            MessageMentionService messageMentionService,
-            ConversationRepository conversationRepository,
-            ChatNotificationService chatNotificationService
+        MessageRepository messageRepository,
+        ConversationUtilService conversationUtilService,
+        UserService userService,
+        MessageAttachmentService messageAttachmentService,
+        MessagePublisherService messagePublisherService,
+        ConversationParticipantRepository conversationParticipantRepository,
+        MessageMentionService messageMentionService,
+        ConversationRepository conversationRepository,
+        ChatNotificationService chatNotificationService,
+        ConversationReadStatusRepository conversationReadStatusRepository
     ) {
         this.messageRepository = messageRepository;
         this.conversationUtilService = conversationUtilService;
@@ -72,6 +76,7 @@ public class MessageService {
         this.messageMentionService = messageMentionService;
         this.conversationRepository = conversationRepository;
         this.chatNotificationService = chatNotificationService;
+        this.conversationReadStatusRepository = conversationReadStatusRepository;
     }
 
     public Message getMessageOrThrow(Long conversationId, Long messageId) {
@@ -83,6 +88,10 @@ public class MessageService {
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
+    }
+
+    public Page<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
+        return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
     public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser) {
@@ -129,6 +138,8 @@ public class MessageService {
 
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
+        setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
+
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
             @Override
             public void afterCommit() {
@@ -141,6 +152,25 @@ public class MessageService {
         });
 
         return messageViewDTO;
+    }
+
+    private void setLastSeenMessageForMessageSentUser(Conversation conversation, Message savedMessage, ChatUser user) {
+        ConversationReadStatus updatingStatus = conversationReadStatusRepository
+            .findByConversationIdAndUserId(conversation.getId(), user.getId())
+            .orElseGet(() -> {
+                ConversationReadStatus newStatus = new ConversationReadStatus();
+                newStatus.setUser(user);
+                newStatus.setConversation(conversation);
+                return newStatus;
+            });
+
+        updatingStatus.setMessage(savedMessage);
+
+        try {
+            conversationReadStatusRepository.save(updatingStatus);
+        } catch (Exception exception) {
+            logger.error("failed set message as read for latest sent: {}", savedMessage, exception);
+        }
     }
 
     @Transactional
@@ -301,7 +331,23 @@ public class MessageService {
             }
 
             try {
-                forwardingMessages.forEach(messageRepository::saveMessageWthSearchVector);
+                for(Message message: forwardingMessages){
+                    messageRepository.saveMessageWthSearchVector(message);
+
+                    MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            messagePublisherService.invokeNewMessageToParticipants(
+                                    message.getConversation().getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                            );
+
+                            chatNotificationService.sendMessageNotificationsToParticipants(message.getConversation().getId(), loggedInUserId, message);
+                        }
+                    });
+                }
+
             } catch (Exception exception) {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");

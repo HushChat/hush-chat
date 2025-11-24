@@ -72,8 +72,8 @@ export default function RegularConversationListView({
   }, [isFetchingNextPage]);
 
   const handleEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage && fetchNextPage) {
-      fetchNextPage();
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 

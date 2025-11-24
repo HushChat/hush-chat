@@ -1,4 +1,4 @@
-import { USER_API_ENDPOINTS } from "@/constants/apiConstants";
+import { USER_API_ENDPOINTS, WORKSPACE_ENDPOINTS } from "@/constants/apiConstants";
 import axios from "axios";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { DeviceToken } from "@/types/user/types";
@@ -68,6 +68,15 @@ export const getAllUsers = async (
 export const sendTokenToBackend = async (device: DeviceToken) => {
   try {
     const response = await axios.post(USER_API_ENDPOINTS.SAVE_TOKEN, device);
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const getUserWorkspaces = async () => {
+  try {
+    const response = await axios.get(WORKSPACE_ENDPOINTS.GET);
     return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };

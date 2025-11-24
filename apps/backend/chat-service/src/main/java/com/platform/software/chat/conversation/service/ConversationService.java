@@ -5,6 +5,9 @@ import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationReport;
 import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
+import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
+import com.platform.software.chat.conversation.readstatus.dto.ConversationUnreadCount;
+import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
@@ -57,8 +60,8 @@ import java.util.function.Function;
 
 @Service
 public class ConversationService {
+    private final ConversationReadStatusRepository conversationReadStatusRepository;
     Logger logger = LoggerFactory.getLogger(ConversationService.class);
-    private final int DEFAULT_MESSAGE_LIST_SIZE = 20;
 
     private final ConversationRepository conversationRepository;
     private final ConversationParticipantRepository conversationParticipantRepository;
@@ -85,8 +88,8 @@ public class ConversationService {
             MessageReactionRepository messageReactionRepository,
             MessageMentionService messageMentionService, 
             RedisCacheService cacheService,
-            ConversationReportRepository reportRepository 
-    ) {
+            ConversationReportRepository reportRepository,
+            ConversationReadStatusRepository conversationReadStatusRepository) {
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.participantCommandRepository = participantCommandRepository;
@@ -99,6 +102,7 @@ public class ConversationService {
         this.messageReactionRepository = messageReactionRepository;
         this.cacheService = cacheService;
         this.reportRepository = reportRepository;
+        this.conversationReadStatusRepository = conversationReadStatusRepository;
     }
 
     /**
@@ -356,11 +360,19 @@ public class ConversationService {
 
         Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserIdWithLatestMessages(loggedInUserId, conversationFilterCriteria, pageable);
 
+        Map<Long, Long> conversationUnreadCounts = conversationReadStatusRepository.findUnreadMessageCountsByConversationIdsAndUserId(
+            conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet()),
+            loggedInUserId
+        );
+
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
                 .map(dto -> {
                     String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
+
+                    long unreadMessageCount = conversationUnreadCounts.getOrDefault(dto.getId(), 0L);
+                    dto.setUnreadCount(unreadMessageCount);
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -491,13 +503,44 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId) {
+    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId){
         ConversationParticipant loggedInParticipant =
-            conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
-
-        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
+                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
         Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
+
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+    }
+
+    /**
+     * Retrieves message page by message id.
+     * Each message includes seen status and reaction summary with current user's reaction types.
+     *
+     * @param messageId       message id
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     * @return a Page of MessageViewDTOs containing message details
+     */
+    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId){
+        ConversationParticipant loggedInParticipant =
+                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+
+        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
+
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+    }
+
+    /**
+     * Converts a page of {@link Message} entities into a page of {@link MessageViewDTO} objects.
+     *
+     * @param messages       list of messages
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     * @return a Page of MessageViewDTOs containing message details
+     */
+    private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId) {
+
+        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
         List<Long> messageIds = extractMessageIds(messages);
 
@@ -1177,6 +1220,19 @@ public class ConversationService {
                     userId, conversationId, reason, e);
             throw new CustomInternalServerErrorException("Failed to report conversation");
         }
+    }
+
+    /**
+     * Gets conversation read info. - last read count and last seen message id for a conversation
+     *
+     * @param conversationId the conversation id
+     * @param userId         the user id
+     * @return the conversation read info
+     */
+    public ConversationReadInfo getConversationReadInfo(Long conversationId, Long userId) {
+        ConversationReadInfo conversationReadInfo = conversationReadStatusRepository
+            .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
+        return conversationReadInfo;
     }
 }
 
