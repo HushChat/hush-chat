@@ -33,6 +33,9 @@ const COLORS = {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    position: "relative",
+  },
   avatarImage: {
     width: "100%",
     height: "100%",
@@ -53,7 +56,7 @@ const InitialsAvatar = ({
   const { container, text } = sizeClasses[size];
 
   return (
-    <View style={{ position: "relative" }}>
+    <View style={styles.container}>
       <View
         className={`${container} rounded-full bg-primary-light dark:bg-primary-dark items-center justify-center`}
       >

@@ -45,7 +45,7 @@ export const WorkspaceRegisterForm = ({
         onPress={onSubmit}
         disabled={isLoading}
         colors={colors}
-        style={{ marginTop: 24 }}
+        style={styles.submitButton}
       />
     </FormContainer>
   );
@@ -64,5 +64,8 @@ const styles = StyleSheet.create({
   },
   halfWidth: {
     flex: 1,
+  },
+  submitButton: {
+    marginTop: 24,
   },
 });

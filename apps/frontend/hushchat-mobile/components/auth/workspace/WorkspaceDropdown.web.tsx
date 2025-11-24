@@ -1,11 +1,35 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useRef, useState } from "react";
-import { FlatList, Modal, Pressable, Text, View, TouchableWithoutFeedback } from "react-native";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  Text,
+  View,
+  TouchableWithoutFeedback,
+  StyleSheet,
+} from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Workspace, WorkspaceDropdownProps } from "@/types/login/types";
 import { SIZE_PRESETS } from "@/components/forms/TextField";
 
 type SizeKey = NonNullable<WorkspaceDropdownProps["size"]>;
+
+const COLORS = {
+  SHADOW: "#000",
+};
+
+const styles = StyleSheet.create({
+  dropdownContainer: {
+    position: "absolute",
+    maxHeight: 320,
+    shadowColor: COLORS.SHADOW,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+});
 
 const WorkspaceDropdown = ({
   label,
@@ -115,18 +139,14 @@ const WorkspaceDropdown = ({
           <View style={{ flex: 1 }}>
             <TouchableWithoutFeedback>
               <View
-                style={{
-                  position: "absolute",
-                  top: dropdownPosition.top,
-                  left: dropdownPosition.left,
-                  width: dropdownPosition.width,
-                  maxHeight: 320,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 3.84,
-                  elevation: 5,
-                }}
+                style={[
+                  styles.dropdownContainer,
+                  {
+                    top: dropdownPosition.top,
+                    left: dropdownPosition.left,
+                    width: dropdownPosition.width,
+                  },
+                ]}
                 className={`border border-gray-300 dark:border-gray-600 ${tokens.radius} bg-white dark:bg-gray-800 overflow-hidden`}
               >
                 {workspaces.length === 0 || loading ? (
