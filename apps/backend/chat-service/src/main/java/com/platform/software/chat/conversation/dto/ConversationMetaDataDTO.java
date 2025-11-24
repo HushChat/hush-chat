@@ -2,6 +2,7 @@ package com.platform.software.chat.conversation.dto;
 
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ public class ConversationMetaDataDTO {
     private Boolean isActive;
     private String description;
     private BasicMessageDTO pinnedMessage;
+    private ChatUserStatus chatUserStatus;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();
