@@ -12,6 +12,8 @@ import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.Message;
+import com.platform.software.chat.message.entity.MessageHistory;
+import com.platform.software.chat.message.repository.MessageHistoryRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.notification.service.ChatNotificationService;
@@ -25,6 +27,7 @@ import com.platform.software.exception.CustomForbiddenException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.CustomResourceNotFoundException;
 import com.platform.software.utils.ValidationUtils;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -41,6 +44,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class MessageService {
     private final Logger logger = LoggerFactory.getLogger(MessageService.class);
 
@@ -54,30 +58,7 @@ public class MessageService {
     private final ConversationRepository conversationRepository;
     private final ChatNotificationService chatNotificationService;
     private final ConversationReadStatusRepository conversationReadStatusRepository;
-
-    public MessageService(
-        MessageRepository messageRepository,
-        ConversationUtilService conversationUtilService,
-        UserService userService,
-        MessageAttachmentService messageAttachmentService,
-        MessagePublisherService messagePublisherService,
-        ConversationParticipantRepository conversationParticipantRepository,
-        MessageMentionService messageMentionService,
-        ConversationRepository conversationRepository,
-        ChatNotificationService chatNotificationService,
-        ConversationReadStatusRepository conversationReadStatusRepository
-    ) {
-        this.messageRepository = messageRepository;
-        this.conversationUtilService = conversationUtilService;
-        this.userService = userService;
-        this.messageAttachmentService = messageAttachmentService;
-        this.messagePublisherService = messagePublisherService;
-        this.conversationParticipantRepository = conversationParticipantRepository;
-        this.messageMentionService = messageMentionService;
-        this.conversationRepository = conversationRepository;
-        this.chatNotificationService = chatNotificationService;
-        this.conversationReadStatusRepository = conversationReadStatusRepository;
-    }
+    private final MessageHistoryRepository messageHistoryRepository;
 
     public Message getMessageOrThrow(Long conversationId, Long messageId) {
         Message message = messageRepository
@@ -152,6 +133,51 @@ public class MessageService {
         });
 
         return messageViewDTO;
+    }
+
+    /**
+     * Edit message. only if a message sent by the logged-in user
+     *
+     * @param userId         the user id
+     * @param conversationId the conversation id
+     * @param messageId      the message id
+     * @param messageDTO     the message dto
+     */
+    @Transactional
+    public void editMessage(
+        Long userId,
+        Long conversationId,
+        Long messageId,
+        MessageUpsertDTO messageDTO
+    ) {
+        Message message = getMessageBySender(userId, conversationId, messageId);
+
+        if (messageDTO.getMessageText() == null || messageDTO.getMessageText().isBlank()) {
+            throw new CustomBadRequestException("Message does not exist or text is empty!");
+        }
+
+        message.setMessageText(messageDTO.getMessageText());
+        MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
+
+        try {
+            messageHistoryRepository.save(newMessageHistory);
+        } catch (Exception e) {
+            logger.error("failed to save message edit history", e);
+            throw new CustomBadRequestException("Failed to save message changes");
+        }
+    }
+
+    private static MessageHistory getMessageHistoryEntity(MessageUpsertDTO messageDTO, Message message) {
+        MessageHistory newMessageHistory = new MessageHistory();
+        newMessageHistory.setMessageText(messageDTO.getMessageText());
+        newMessageHistory.setMessage(message);
+        return newMessageHistory;
+    }
+
+    private Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
+        Message message = messageRepository.findByConversation_IdAndIdAndSender_Id(conversationId, messageId, userId)
+            .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to edit this message"));
+        return message;
     }
 
     private void setLastSeenMessageForMessageSentUser(Conversation conversation, Message savedMessage, ChatUser user) {
