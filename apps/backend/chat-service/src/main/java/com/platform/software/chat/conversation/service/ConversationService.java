@@ -134,7 +134,7 @@ public class ConversationService {
      * @param isGroup whether the conversation is a group conversation
      * @return a new Conversation entity
      */
-    private Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
+    public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
         Conversation conversation = new Conversation();
         conversation.setIsGroup(isGroup);
         conversation.setCreatedBy(userService.getUserOrThrow(loggedInUserId));

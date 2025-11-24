@@ -386,4 +386,40 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                         .and(qConversationParticipant.isDeleted.eq(true)))
                 .execute();
     }
+
+    @Override
+    public Map<Long, Long> findConversationIdsByUserIds(Set<Long> userIds, Long loggedInUserId) {
+        QConversationParticipant cpTarget = new QConversationParticipant("cpTarget");
+
+        JPQLQuery<Long> twoParticipantConversations = JPAExpressions
+                .select(qConversationParticipant.conversation.id)
+                .from(qConversationParticipant)
+                .groupBy(qConversationParticipant.conversation.id)
+                .having(qConversationParticipant.id.count().eq(2L));
+
+        // Fetch (userId, conversationId)
+        List<Tuple> rows = queryFactory
+                .select(cpTarget.user.id, qConversation.id)
+                .from(qConversation)
+                .join(qConversationParticipant).on(qConversationParticipant.conversation.id.eq(qConversation.id))
+                .join(cpTarget).on(cpTarget.conversation.id.eq(qConversation.id))
+                .where(
+                        qConversation.isGroup.eq(false),
+                        qConversationParticipant.user.id.eq(loggedInUserId),
+                        cpTarget.user.id.in(userIds),
+                        qConversation.id.in(twoParticipantConversations)
+                )
+                .fetch();
+
+        // Build map: userId → conversationId
+        Map<Long, Long> map = new HashMap<>();
+        for (Tuple row : rows) {
+            Long userId = row.get(cpTarget.user.id);
+            Long conversationId = row.get(qConversation.id);
+            map.put(userId, conversationId);
+        }
+
+        return map;
+    }
+
 }

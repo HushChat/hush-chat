@@ -20,6 +20,7 @@ import com.platform.software.exception.CustomBadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -36,17 +37,20 @@ public class ConversationUtilService {
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
+    private final ConversationService conversationService;
 
     public ConversationUtilService(
-        ConversationParticipantRepository conversationParticipantRepository,
-        UserRepository userRepository,
-        ConversationRepository conversationRepository,
-        CloudPhotoHandlingService cloudPhotoHandlingService
+            ConversationParticipantRepository conversationParticipantRepository,
+            UserRepository userRepository,
+            ConversationRepository conversationRepository,
+            CloudPhotoHandlingService cloudPhotoHandlingService,
+            @Lazy ConversationService conversationService
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
+        this.conversationService = conversationService;
     }
 
     /**
@@ -242,4 +246,46 @@ public class ConversationUtilService {
 
         return now.isBefore(mutedUntilTruncated);
     }
+
+    /**
+     * Retrieves the conversation IDs associated with the given set of user IDs.
+     * <p>
+     * If a conversation involving the specified users (including the logged-in user)
+     * does not already exist, this method will create a new conversation and return
+     * the corresponding conversation ID(s).
+     * </p>
+     *
+     * @param userIds         a set of user IDs to check or create a conversation for
+     * @param loggedInUserId  the ID of the currently logged-in user who initiates or joins the conversation
+     * @return a set containing the conversation IDs found or newly created
+     */
+    public Set<Long> getConversationIdsByUserIds(Set<Long> userIds, Long loggedInUserId) {
+
+        //get existing conversation ids by user ids map
+        Map<Long, Long> existingConversationMap = conversationParticipantRepository
+            .findConversationIdsByUserIds(userIds, loggedInUserId);
+
+        //get conversation ids by user ids if exist
+        Set<Long> conversationIds = new HashSet<>(existingConversationMap.values());
+
+        //get userid s of not existing conversations
+        Set<Long> userIdsToCreateConversations = findUserIdsWithoutConversation(userIds, existingConversationMap.keySet());
+
+        //create conversations for those user ids including logged-in user id and return conversation ids
+        for (Long userId : userIdsToCreateConversations) {
+            Conversation newConversation = conversationService.createConversation(loggedInUserId ,List.of(userId, loggedInUserId), false);
+            conversationIds.add(newConversation.getId());
+        }
+
+        return conversationIds;
+    }
+
+    private Set<Long> findUserIdsWithoutConversation(Set<Long> userIds, Set<Long> existing) {
+
+        Set<Long> notExisting = new HashSet<>(userIds);
+        notExisting.removeAll(existing);
+
+        return notExisting;
+    }
+
 }
