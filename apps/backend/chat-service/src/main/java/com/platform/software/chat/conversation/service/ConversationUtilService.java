@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -259,6 +260,7 @@ public class ConversationUtilService {
      * @param loggedInUserId  the ID of the currently logged-in user who initiates or joins the conversation
      * @return a set containing the conversation IDs found or newly created
      */
+    @Transactional
     public Set<Long> getConversationIdsByUserIds(Set<Long> userIds, Long loggedInUserId) {
 
         //get existing conversation ids by user ids map
@@ -271,9 +273,11 @@ public class ConversationUtilService {
         //get userid s of not existing conversations
         Set<Long> userIdsToCreateConversations = findUserIdsWithoutConversation(userIds, existingConversationMap.keySet());
 
-        //create conversations for those user ids including logged-in user id and return conversation ids
+        //create conversations for those user ids including logged in user id and return conversation ids
         for (Long userId : userIdsToCreateConversations) {
-            Conversation newConversation = conversationService.createConversation(loggedInUserId ,List.of(userId, loggedInUserId), false);
+            ConversationDTO newConversation = conversationService.saveConversationAndBuildDTO(
+                    conversationService.createConversation(loggedInUserId ,List.of(userId, loggedInUserId), false)
+            );
             conversationIds.add(newConversation.getId());
         }
 

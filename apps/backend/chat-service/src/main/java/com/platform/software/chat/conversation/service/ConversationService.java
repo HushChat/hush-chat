@@ -166,7 +166,7 @@ public class ConversationService {
      * @param conversation the Conversation entity to save
      * @return a ConversationDTO with the saved conversation data
      */
-    private ConversationDTO saveConversationAndBuildDTO(Conversation conversation) {
+    public ConversationDTO saveConversationAndBuildDTO(Conversation conversation) {
         try {
             conversationRepository.save(conversation);
             return buildConversationDTO(conversation);
