@@ -9,6 +9,7 @@ import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
@@ -84,6 +85,7 @@ public class WorkspaceService {
                 WorkspaceUserInviteDTO workspaceUserInviteDTO = new WorkspaceUserInviteDTO(loggedInUserEmail);
                 WorkspaceUser newWorkspaceUser =
                         WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, createdWorkspace, "");
+                newWorkspaceUser.setRole(WorkspaceUserRole.ADMIN);
                 workspaceUserRepository.save(newWorkspaceUser);
             });
 
