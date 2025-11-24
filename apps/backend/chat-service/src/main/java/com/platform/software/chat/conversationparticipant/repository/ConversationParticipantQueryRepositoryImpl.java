@@ -397,7 +397,6 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                 .groupBy(qConversationParticipant.conversation.id)
                 .having(qConversationParticipant.id.count().eq(2L));
 
-        // Fetch (userId, conversationId)
         List<Tuple> rows = queryFactory
                 .select(cpTarget.user.id, qConversation.id)
                 .from(qConversation)
@@ -411,7 +410,6 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                 )
                 .fetch();
 
-        // Build map: userId → conversationId
         Map<Long, Long> map = new HashMap<>();
         for (Tuple row : rows) {
             Long userId = row.get(cpTarget.user.id);
