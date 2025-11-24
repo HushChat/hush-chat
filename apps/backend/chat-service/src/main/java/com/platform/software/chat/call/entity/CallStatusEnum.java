@@ -4,7 +4,10 @@ public enum CallStatusEnum {
     ANSWERED("ANSWERED"),
     MISSED("MISSED"),
     REJECTED("REJECTED"),
-    CANCELLED("CANCELLED");
+    CANCELLED("CANCELLED"),
+    INITIATED("INITIATED"),
+    RINGING("RINGING"),
+    FAILED("FAILED");
 
     private final String name;
 

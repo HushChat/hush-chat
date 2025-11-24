@@ -310,23 +310,23 @@ public class ConversationController {
     }
 
 
-    /** save call logs for a conversation.
-     *
-     * @param conversationId the ID of the conversation
-     * @param callLogUpsertDTO the DTO containing call log details
-     * @param userDetails the authenticated user details
-     * @return ResponseEntity with OK status
-     */
-    @ApiOperation(value = "save call logs")
-    @PostMapping("{conversationId}/calls")
-    public ResponseEntity<Void> createCallLog(
-        @PathVariable Long conversationId,
-        @Valid @RequestBody CallLogUpsertDTO callLogUpsertDTO,
-        @AuthenticatedUser UserDetails userDetails
-    ) {
-        callLogService.saveCallLogInfo(conversationId, callLogUpsertDTO, userDetails.getId());
-        return ResponseEntity.ok().build();
-    }
+//    /** save call logs for a conversation.
+//     *
+//     * @param conversationId the ID of the conversation
+//     * @param callLogUpsertDTO the DTO containing call log details
+//     * @param userDetails the authenticated user details
+//     * @return ResponseEntity with OK status
+//     */
+//    @ApiOperation(value = "save call logs")
+//    @PostMapping("{conversationId}/calls")
+//    public ResponseEntity<Void> createCallLog(
+//        @PathVariable Long conversationId,
+//        @Valid @RequestBody CallLogUpsertDTO callLogUpsertDTO,
+//        @AuthenticatedUser UserDetails userDetails
+//    ) {
+//        callLogService.saveCallLogInfo(conversationId, callLogUpsertDTO, userDetails.getId());
+//        return ResponseEntity.ok().build();
+//    }
 
     /** toggle favorite status of a conversation.
      *

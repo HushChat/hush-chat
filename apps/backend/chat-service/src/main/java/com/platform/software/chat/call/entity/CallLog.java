@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 @Entity
 @Setter
@@ -36,4 +37,8 @@ public class CallLog extends AuditModel {
     @NotNull
     @Enumerated(EnumType.STRING)
     private CallStatusEnum status;
+
+    @Column(name = "session_uuid", nullable = false, unique = true)
+    private UUID sessionUuid = UUID.randomUUID();
+
 }
