@@ -129,15 +129,6 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
-        // Add cursor-based pagination conditions
-        if(idBasedPageRequest.getAfterId() != null) {
-            conditions = conditions.and(message.id.gt(idBasedPageRequest.getAfterId()));
-        }
-
-        if(idBasedPageRequest.getBeforeId() != null) {
-            conditions = conditions.and(message.id.lt(idBasedPageRequest.getBeforeId()));
-        }
-
         Long total = queryFactory
             .select(message.id.countDistinct())
             .from(message)
@@ -146,16 +137,30 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             .where(conditions)
             .fetchOne();
 
-        List<Message> messages = queryFactory
+        JPAQuery<Message> query = queryFactory
             .selectDistinct(message)
             .from(message)
             .leftJoin(message.attachments, messageAttachment).fetchJoin()
             .innerJoin(message.conversation, conversation).fetchJoin()
             .innerJoin(message.sender, sender).fetchJoin()
-            .where(conditions)
-            .orderBy(message.id.desc())
-            .limit(idBasedPageRequest.getSize())
-            .fetch();
+            .limit(idBasedPageRequest.getSize());
+
+        // Add cursor-based pagination conditions
+        if (idBasedPageRequest.getAfterId() != null) {
+            conditions = conditions.and(message.id.gt(idBasedPageRequest.getAfterId()));
+            query.orderBy(message.id.asc());
+        } else if (idBasedPageRequest.getBeforeId() != null) {
+            conditions = conditions.and(message.id.lt(idBasedPageRequest.getBeforeId()));
+            query.orderBy(message.id.desc());
+        } else {
+            query.orderBy(message.id.desc());
+        }
+
+        query.where(conditions);
+        List<Message> messages = query.fetch();
+        if (idBasedPageRequest.getAfterId() != null) {
+            messages = messages.reversed(); // if the query fetches with after id, it will fetch asc order, so for the frontend display, it has to be revered
+        }
 
         Pageable pageable = PageRequest.of(0, idBasedPageRequest.getSize().intValue());
 
