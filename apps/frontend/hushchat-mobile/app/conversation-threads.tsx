@@ -289,6 +289,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
+        targetMessageId={Number(searchedMessageId)}
       />
     );
   }, [
@@ -303,6 +304,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse,
     pickerState,
     currentConversationId,
+    searchedMessageId,
   ]);
 
   const renderTextInput = useCallback(() => {

@@ -7,7 +7,7 @@ import { useConversationMessages } from "@/hooks/useWebSocketEvents";
 import {
   CursorPaginatedResponse,
   getConversationMessagesByCursor,
-  getMessagesAroundMessageId, // Ensure this is exported from your API file
+  getMessagesAroundMessageId,
 } from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
@@ -28,7 +28,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     [userId, conversationId]
   );
 
-  // Reset queries when switching conversations
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
       queryClient.removeQueries({ queryKey });
@@ -52,10 +51,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     enabled: !!conversationId,
   });
 
-  /**
-   * FUNCTION: Jump to a specific message ID.
-   * This fetches the window around the ID and manually resets the React Query cache.
-   */
   const jumpToMessage = useCallback(
     async (targetMessageId: number) => {
       setIsJumping(true);
@@ -68,13 +63,12 @@ export function useConversationMessagesQuery(conversationId: number) {
         }
 
         if (response.data) {
-          // Manually set the Query Data to this new "window" of messages
           queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
             queryKey,
             () => {
               return {
-                pages: [response.data!], // The window becomes the first page
-                pageParams: [null], // Reset pagination params
+                pages: [response.data!],
+                pageParams: [null],
               };
             }
           );
@@ -123,7 +117,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   return {
     conversationMessagesPages: pages,
-    isLoadingConversationMessages: isLoading || isJumping, // Show loading during jump
+    isLoadingConversationMessages: isLoading || isJumping,
     conversationMessagesError: error,
     fetchNextPage: fetchOlder,
     hasNextPage: hasMoreOlder,
@@ -131,6 +125,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     refetchConversationMessages: invalidateQuery,
     refetch,
     updateConversationMessagesCache,
-    jumpToMessage, // Exporting this
+    jumpToMessage,
   } as const;
 }

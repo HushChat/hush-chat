@@ -27,6 +27,7 @@ interface IMessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  targetMessageId: number;
 }
 
 const ConversationMessageList = ({
