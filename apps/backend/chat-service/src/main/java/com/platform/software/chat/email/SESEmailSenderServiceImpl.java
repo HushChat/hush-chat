@@ -22,7 +22,7 @@ public class SESEmailSenderServiceImpl implements EmailSenderService {
     @Value("${cloud.aws.credentials.secretKey}")
     private String awsSecretKey;
 
-    //@Value("${cloud.aws.region}")
+    //@Value("${aws.cognito.region}")
     private String awsRegion;
 
 
