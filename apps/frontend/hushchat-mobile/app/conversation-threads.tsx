@@ -32,7 +32,6 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
-import { useConversationsQuery } from "@/query/useConversationsQuery";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
 import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
@@ -87,7 +86,6 @@ const ConversationThreadScreen = ({
     useConversationByIdQuery(currentConversationId);
 
   const isGroupChat = conversationAPIResponse?.isGroup;
-  const { refetch: refetchConversationsList } = useConversationsQuery();
 
   const {
     conversationMessagesPages,
@@ -130,6 +128,11 @@ const ConversationThreadScreen = ({
       lastSeenMessageInfo?.lastSeenMessageId !== undefined
     ) {
       const firstMessage = messages[0];
+
+      if (!firstMessage.id || typeof firstMessage.id !== "number") {
+        return;
+      }
+
       const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
 
       if (!isFirstMessageLastSeen) {
@@ -218,7 +221,6 @@ const ConversationThreadScreen = ({
     uploadFilesFromWeb,
     updateConversationMessagesCache,
     handleCloseImagePreview,
-    refetchConversationsList,
   });
 
   useEffect(() => {

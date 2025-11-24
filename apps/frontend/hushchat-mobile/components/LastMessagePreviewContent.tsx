@@ -10,7 +10,7 @@ interface LastMessagePreviewContentProps {
 }
 
 export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewContentProps) => {
-  if (!lastMessage) return "";
+  if (!lastMessage) return "No Messages Yet";
 
   if (lastMessage.hasAttachment) {
     return (
