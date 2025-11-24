@@ -5,9 +5,11 @@ import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class WorkspaceUserInviteDTO {
     @NotBlank
     @Email(message = "Email should be valid")

@@ -13,14 +13,20 @@ import org.hibernate.annotations.Where;
 @Setter
 @Getter
 @Where(clause = "deleted = false")
-@Table(name = "workspace_user", schema = "platform")
+@Table(
+        name = "workspace_user",
+        schema = "platform",
+        uniqueConstraints = {
+            @UniqueConstraint(columnNames = {"email", "workspace_id"})
+        }
+)
 public class WorkspaceUser extends AuditModel{
     @Id
     @GeneratedValue(generator = "platform.workspace_user_generator")
     private Long id;
 
     @NotBlank
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @NotNull

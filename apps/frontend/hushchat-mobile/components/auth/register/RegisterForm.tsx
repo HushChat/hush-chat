@@ -28,17 +28,6 @@ export const RegisterForm = ({
       {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
 
       <View style={styles.fieldsContainer}>
-        <View style={styles.row}>
-          <View style={styles.halfWidth}>
-            <TextField name="firstName" placeholder="First Name" {...sharedProps} />
-          </View>
-          <View style={styles.halfWidth}>
-            <TextField name="lastName" placeholder="Last Name" {...sharedProps} />
-          </View>
-        </View>
-
-        <TextField name="username" placeholder="Username" autoCapitalize="none" {...sharedProps} />
-
         <TextField
           name="email"
           placeholder="Email"

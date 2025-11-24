@@ -14,33 +14,39 @@ import { getNavigationTheme } from "@/utils/commonUtils";
 import { ModalProvider } from "@/context/modal-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
 
-import { AUTH_LOGIN_PATH, CHATS_PATH } from "@/constants/routes";
+import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
+import useWebSocketConnection from "@/hooks/useWebSocketConnection";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
 
 export default function RootLayout() {
   const { colorScheme } = useAppTheme();
+  useWebSocketConnection();
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
   });
   const queryClient = createQueryClient();
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
+
   return (
     <GestureHandlerRootView>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
-            <ModalProvider>
-              <Gate ready={appReady} isAuthenticated={isAuthenticated} />
-              <Toast
-                config={toastConfig}
-                topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
-              />
-              <StatusBar style="auto" />
-            </ModalProvider>
+            <ConversationNotificationsProvider>
+              <ModalProvider>
+                <Gate ready={appReady} isAuthenticated={isAuthenticated} />
+                <Toast
+                  config={toastConfig}
+                  topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                />
+                <StatusBar style="auto" />
+              </ModalProvider>
+            </ConversationNotificationsProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
@@ -56,7 +62,6 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
   return (
     <>
       {ready && !isAuthenticated && !inAuthGroup && <Redirect href={AUTH_LOGIN_PATH} />}
-      {ready && isAuthenticated && inAuthGroup && <Redirect href={CHATS_PATH} />}
 
       <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />

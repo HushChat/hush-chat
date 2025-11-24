@@ -1,6 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1762862383564-1
+    id: 1763020359236-1
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -47,7 +47,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: workspace_user
 - changeSet:
-    id: 1762862383564-2
+    id: 1763020359236-2
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -88,15 +88,15 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: workspace
 - changeSet:
-    id: 1762862383564-3
+    id: 1763020359236-3
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
-        columnNames: email
-        constraintName: workspace_user_email_key
+        columnNames: email, workspace_id
+        constraintName: ukeeq4hgxwt33fqafd2lgiadjun
         tableName: workspace_user
 - changeSet:
-    id: 1762862383564-4
+    id: 1763020359236-4
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -104,7 +104,7 @@ databaseChangeLog:
         constraintName: uk82r1jg5llu0hiua4imf4ndmvm
         tableName: workspace
 - changeSet:
-    id: 1762862383564-5
+    id: 1763020359236-5
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -117,7 +117,7 @@ databaseChangeLog:
         sequenceName: workplace_generator
         startValue: 1
 - changeSet:
-    id: 1762862383564-6
+    id: 1763020359236-6
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -130,7 +130,7 @@ databaseChangeLog:
         sequenceName: workspace_user_generator
         startValue: 1
 - changeSet:
-    id: 1762862383564-7
+    id: 1763020359236-7
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
