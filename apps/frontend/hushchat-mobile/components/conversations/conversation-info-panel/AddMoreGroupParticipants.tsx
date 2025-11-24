@@ -1,4 +1,4 @@
-import { Dimensions, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   withTiming,
@@ -43,10 +43,7 @@ export default function AddMoreGroupParticipants({
   );
 
   const saveAddParticipants = async () => {
-    if (!selectedUsers || selectedUsers.length === 0) {
-      return;
-    }
-
+    if (!selectedUsers || selectedUsers.length === 0) return;
     const newParticipantIds = selectedUsers.map((p) => p.id);
     addParticipants({ conversationId, newParticipantIds });
   };
@@ -81,16 +78,7 @@ export default function AddMoreGroupParticipants({
   return (
     <Animated.View
       pointerEvents={visible ? "auto" : "none"}
-      style={[
-        {
-          position: "absolute",
-          top: 0,
-          bottom: 0,
-          left: 0,
-          right: 0,
-        },
-        containerStyle,
-      ]}
+      style={[styles.absoluteFill, containerStyle]}
       className="dark:bg-gray-900"
     >
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800">
@@ -99,7 +87,7 @@ export default function AddMoreGroupParticipants({
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
           <Text className="text-xl font-semibold text-gray-900 dark:text-white">
-            {"Add Participants"}
+            Add Participants
           </Text>
         </View>
 
@@ -134,3 +122,13 @@ export default function AddMoreGroupParticipants({
     </Animated.View>
   );
 }
+
+const styles = StyleSheet.create({
+  absoluteFill: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+});

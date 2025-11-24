@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { ToastUtils } from "@/utils/toastUtils";
 import { MAX_FILES, validateFiles } from "@/utils/fileValidation";
 import FileList from "./FileList";
@@ -96,7 +96,7 @@ const FilePreviewOverlay = ({
         type="file"
         accept={ACCEPT_FILE_TYPES}
         multiple
-        style={{ display: "none" }}
+        style={styles.hiddenInput}
         onChange={onHiddenPickerChange}
       />
     </View>
@@ -104,3 +104,9 @@ const FilePreviewOverlay = ({
 };
 
 export default FilePreviewOverlay;
+
+const styles = StyleSheet.create({
+  hiddenInput: {
+    display: "none",
+  },
+});

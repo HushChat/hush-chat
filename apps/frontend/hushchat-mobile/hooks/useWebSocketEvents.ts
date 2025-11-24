@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { eventBus } from "@/services/eventBus";
 // import { TypingIndicator, UserPresence, WebSocketError } from '@/types/ws/types';
 import { IConversation, IMessage } from "@/types/chat/types";
-import { playMessageSound } from "@/utils/playSound";
 
 // Hook for listening to messages for a specific conversation
 export const useConversationMessages = (conversationId: number) => {
@@ -43,47 +42,6 @@ export const useConversationMessages = (conversationId: number) => {
   };
 };
 
-// Hook for listening to notifications for conversations list
-export const useConversationsNotifications = () => {
-  const [notificationReceivedConversation, setNotificationReceivedConversation] =
-    useState<IConversation | null>(null);
-
-  useEffect(() => {
-    const handleWebSocketMessage = (messageWithConversation: IConversation) => {
-      const doesConversationListShouldBeUpdated =
-        messageWithConversation?.id && !messageWithConversation.archivedByLoggedInUser;
-      if (doesConversationListShouldBeUpdated) {
-        setNotificationReceivedConversation(messageWithConversation);
-
-        if (!messageWithConversation.mutedByLoggedInUser) {
-          playMessageSound();
-        }
-      }
-    };
-
-    eventBus.on("websocket:message", handleWebSocketMessage);
-
-    // Cleanup function - removes the event listener
-    return () => {
-      eventBus.off("websocket:message", handleWebSocketMessage);
-    };
-  }, []);
-
-  // Clear messages when remount
-  useEffect(() => {
-    setNotificationReceivedConversation(null);
-  }, []);
-
-  const clearConversation = useCallback(() => {
-    setNotificationReceivedConversation(null);
-  }, []);
-
-  return {
-    notificationReceivedConversation,
-    clearConversation,
-  };
-};
-
 // Hook for WebSocket connection status
 // export const useWebSocketConnection = () => {
 //   const [isConnected, setIsConnected] = useState(false);
@@ -111,7 +69,7 @@ export const useConversationsNotifications = () => {
 //       if (error.type === 'connection') {
 //         setReconnectAttempts((prev) => prev + 1);
 //       }
-//       console.error('🚨 WebSocket error:', error);
+//       logInfo('🚨 WebSocket error:', error);
 //     };
 //
 //     const handleReconnecting = ({

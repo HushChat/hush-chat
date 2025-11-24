@@ -11,13 +11,9 @@ export function useRegisterForm() {
 
   const { values, errors, showErrors, onValueChange, validateAll, setShowErrors } =
     useForm<IRegisterUser>(RegisterUser, {
-      firstName: "",
-      lastName: "",
-      username: "",
       email: "",
       password: "",
       confirmPassword: "",
-      imageIndexedName: "",
     });
 
   const submit = useCallback(async () => {

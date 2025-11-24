@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
@@ -19,6 +19,8 @@ interface IMessageBubbleProps {
   isForwardedMessage: boolean;
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
+  style?: ViewStyle | ViewStyle[];
+  messageTextStyle?: TextStyle;
 }
 
 export const MessageBubble: React.FC<IMessageBubbleProps> = ({
@@ -32,6 +34,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   isForwardedMessage,
   attachments,
   onBubblePress,
+  style,
+  messageTextStyle,
 }) => {
   const messageContent = message.messageText;
 
@@ -42,6 +46,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
       ? { borderRightWidth: 2, borderRightColor: "#60A5FA30" }
       : { borderLeftWidth: 2, borderLeftColor: "#9CA3AF30" };
   };
+
+  const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
@@ -60,7 +66,10 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         </View>
       )}
 
-      <View className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}>
+      <View
+        className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
+        style={style}
+      >
         <ForwardedLabel isForwardedMessage={isForwardedMessage} isCurrentUser={isCurrentUser} />
 
         <View
@@ -78,10 +87,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 
             "px-3 py-2": !(hasImages && !messageContent),
           })}
-          style={{
-            maxWidth: hasAttachments ? 305 : "70%",
-            ...getBubbleBorderStyle(),
-          }}
+          style={[bubbleMaxWidthStyle, getBubbleBorderStyle()]}
         >
           {hasAttachments && (
             <View className={messageContent ? "mb-2" : ""}>
@@ -92,11 +98,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           {!message.isUnsend && messageContent ? (
             <FormattedText
               text={message.messageText}
-              style={{
-                fontSize: 16,
-                lineHeight: 20,
-                fontFamily: "Poppins-Regular",
-              }}
+              style={messageTextStyle || styles.messageText}
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
             />
@@ -108,3 +110,17 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  messageText: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontFamily: "Poppins-Regular",
+  },
+  maxWidthAttachments: {
+    maxWidth: 305,
+  },
+  maxWidthRegular: {
+    maxWidth: "70%",
+  },
+});

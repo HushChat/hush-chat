@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/auth/authStore";
 import { useRouter } from "expo-router";
 import { loginUser } from "@/services/authService";
-import { CHATS_PATH, VERIFY_OTP_PATH } from "@/constants/routes";
+import { AUTH_WORKSPACE_FORM_PATH, VERIFY_OTP_PATH } from "@/constants/routes";
 import { useQueryClient } from "@tanstack/react-query";
 import { USER_NOT_CONFIRMED_ERROR } from "@/constants/constants";
 
@@ -32,7 +32,7 @@ export function useAuth() {
     // small delay to ensure storage flushes on slower devices
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    router.replace(CHATS_PATH);
+    router.replace(AUTH_WORKSPACE_FORM_PATH);
   };
 
   return {

@@ -1,5 +1,5 @@
 import React, { ReactNode, useMemo } from "react";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
@@ -77,12 +77,7 @@ export function SwipeableMessageRow({
             }}
             duration={150}
             easing="standard"
-            style={{
-              position: "absolute",
-              top: 10,
-              left: 8,
-              pointerEvents: "none",
-            }}
+            style={styles.affordanceIcon}
           >
             <Ionicons name="arrow-undo-outline" size={20} color="#9CA3AF" />
           </MotionView>
@@ -92,3 +87,12 @@ export function SwipeableMessageRow({
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({
+  affordanceIcon: {
+    position: "absolute",
+    top: 10,
+    left: 8,
+    pointerEvents: "none",
+  },
+});

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ImageBackground, KeyboardAvoidingView, View } from "react-native";
+import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,15 +32,18 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
+import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
+import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
+import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
+
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
 
 interface ConversationThreadScreenProps {
   conversationId: number;
   onShowProfile: () => void;
-  webBackPress?: () => void;
   webSearchPress?: () => void;
   webForwardPress?: (messageIds: Set<number>) => void;
   messageToJump?: number | null;
@@ -49,7 +52,6 @@ interface ConversationThreadScreenProps {
 
 const ConversationThreadScreen = ({
   conversationId,
-  webBackPress,
   onShowProfile,
   webSearchPress = () => {},
   webForwardPress,
@@ -63,13 +65,25 @@ const ConversationThreadScreen = ({
     user: { id: currentUserId },
   } = useUserStore();
 
-  const selectedConversationId = conversationId || Number(params.conversationId);
+  const {
+    selectionMode,
+    setSelectionMode,
+    selectedMessageIds,
+    setSelectedMessageIds,
+    setSelectedConversationId,
+    selectedConversationId,
+  } = useConversationStore();
 
-  const { selectionMode, setSelectionMode, selectedMessageIds, setSelectedMessageIds } =
-    useConversationStore();
+  const currentConversationId = conversationId || Number(params.conversationId);
+
+  useEffect(() => {
+    if (currentConversationId) {
+      setSelectedConversationId(currentConversationId);
+    }
+  }, [selectedConversationId]);
 
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
-    useConversationByIdQuery(selectedConversationId);
+    useConversationByIdQuery(currentConversationId);
 
   const isGroupChat = conversationAPIResponse?.isGroup;
 
@@ -83,7 +97,47 @@ const ConversationThreadScreen = ({
     refetchConversationMessages,
     jumpToMessage,
     updateConversationMessagesCache,
-  } = useConversationMessagesQuery(selectedConversationId);
+  } = useConversationMessagesQuery(currentConversationId);
+
+  const { updateConversation } = useConversationNotificationsContext();
+
+  const { lastSeenMessageInfo } =
+    useFetchLastSeenMessageStatusForConversation(currentConversationId);
+
+  const { mutate: setLastSeenMessageForConversation } = useSetLastSeenMessageMutation(
+    {
+      conversationId: currentConversationId,
+      currentUserId,
+    },
+    (data) => {
+      updateConversation(currentConversationId, {
+        unreadCount: data.unreadCount || 0,
+      });
+    },
+    (error) => {
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  );
+
+  useEffect(() => {
+    const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
+
+    if (
+      currentConversationId &&
+      messages.length > 0 &&
+      lastSeenMessageInfo?.lastSeenMessageId !== undefined
+    ) {
+      const firstMessage = messages[0];
+      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
+
+      if (!isFirstMessageLastSeen) {
+        setLastSeenMessageForConversation({
+          messageId: firstMessage.id,
+          conversationId: currentConversationId,
+        });
+      }
+    }
+  }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
@@ -113,7 +167,7 @@ const ConversationThreadScreen = ({
     uploadFilesFromWeb,
     isUploading: isUploadingImages,
     error: uploadError,
-  } = useMessageAttachmentUploader(selectedConversationId, imageMessage);
+  } = useMessageAttachmentUploader(currentConversationId, imageMessage);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
@@ -151,7 +205,7 @@ const ConversationThreadScreen = ({
   );
 
   const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
-    selectedConversationId,
+    currentConversationId,
     currentUserId,
     imageMessage,
     setImageMessage,
@@ -169,15 +223,11 @@ const ConversationThreadScreen = ({
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-  }, [selectedConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
+  }, [currentConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
 
   const handleBackPress = useCallback(() => {
-    if (webBackPress) {
-      webBackPress();
-    } else {
-      router.replace("/");
-    }
-  }, [webBackPress]);
+    router.back();
+  }, []);
 
   const handleLoadMore = useCallback(async () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -208,11 +258,11 @@ const ConversationThreadScreen = ({
 
   const conversationInfo: ConversationInfo = useMemo(
     () => ({
-      conversationId: selectedConversationId,
+      conversationId: currentConversationId,
       conversationName: conversationAPIResponse?.name,
       signedImageUrl: conversationAPIResponse?.signedImageUrl,
     }),
-    [selectedConversationId, conversationAPIResponse?.name, conversationAPIResponse?.signedImageUrl]
+    [currentConversationId, conversationAPIResponse?.name, conversationAPIResponse?.signedImageUrl]
   );
 
   const pickerState: TPickerState = useMemo(
@@ -251,7 +301,7 @@ const ConversationThreadScreen = ({
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
-        selectedConversationId={selectedConversationId}
+        selectedConversationId={currentConversationId}
       />
     );
   }, [
@@ -265,7 +315,7 @@ const ConversationThreadScreen = ({
     handleMessageSelect,
     conversationAPIResponse,
     pickerState,
-    selectedConversationId,
+    currentConversationId,
   ]);
 
   const renderTextInput = useCallback(() => {
@@ -290,7 +340,7 @@ const ConversationThreadScreen = ({
 
     return (
       <ConversationInputBar
-        conversationId={selectedConversationId}
+        conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
@@ -305,7 +355,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse?.isBlocked,
     conversationAPIResponse?.isActive,
     selectionMode,
-    selectedConversationId,
+    currentConversationId,
     handleSendMessage,
     handleOpenImagePicker,
     handleOpenImagePickerNative,
@@ -316,6 +366,13 @@ const ConversationThreadScreen = ({
     handleCancelReply,
     isGroupChat,
   ]);
+
+  const actionBarStyle = useMemo(
+    () => ({
+      paddingBottom: insets.bottom,
+    }),
+    [insets.bottom]
+  );
 
   return (
     <SafeAreaView
@@ -355,15 +412,9 @@ const ConversationThreadScreen = ({
               ) : (
                 <>
                   {renderContent()}
-                  <View
-                    style={{
-                      paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
-                    }}
-                  >
-                    {renderTextInput()}
-                  </View>
+                  <View style={styles.textInputWrapper}>{renderTextInput()}</View>
                   {selectionMode && (
-                    <View style={{ paddingBottom: insets.bottom }}>
+                    <View style={actionBarStyle}>
                       <MessageForwardActionBar
                         visible={selectionMode}
                         count={selectedMessageIds.size}
@@ -387,3 +438,9 @@ const ConversationThreadScreen = ({
 };
 
 export default ConversationThreadScreen;
+
+const styles = StyleSheet.create({
+  textInputWrapper: {
+    paddingBottom: PLATFORM.IS_IOS ? undefined : 0,
+  },
+});

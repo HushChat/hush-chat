@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_composite_unique_email_workspace
+      author: moditha
+      tag: release-2.1
+      comment: "drop old unique constraint on email and add composite unique constraint (email, workspace_id)"
+      changes:
+        - dropUniqueConstraint:
+            tableName: workspace_user
+            constraintName: workspace_user_email_key
+        - addUniqueConstraint:
+            tableName: workspace_user
+            columnNames: email, workspace_id
+            constraintName: workspace_user_email_workspace_key
