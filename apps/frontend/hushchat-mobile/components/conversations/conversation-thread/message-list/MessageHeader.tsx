@@ -8,6 +8,7 @@ interface MessageHeaderProps {
   isCurrentUser: boolean;
   isGroupChat?: boolean;
   senderName: string;
+  messageText?: string;
   messageTime: string;
   messageIsUnsend?: boolean;
   selectionMode: boolean;
@@ -20,6 +21,7 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({
   isCurrentUser,
   isGroupChat,
   senderName,
+  messageText,
   messageTime,
   messageIsUnsend,
   selectionMode,
@@ -36,11 +38,13 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({
     >
       {isCurrentUser && (
         <MessageActions
+          messageText={messageText}
           messageIsUnsend={messageIsUnsend}
           selectionMode={selectionMode}
           onOpenPicker={onOpenPicker}
           onOpenMenu={onOpenMenu}
           currentUserId={currentUserId}
+          isCurrentUser={isCurrentUser}
         />
       )}
 
@@ -56,11 +60,13 @@ export const MessageHeader: React.FC<MessageHeaderProps> = ({
 
       {!isCurrentUser && (
         <MessageActions
+          messageText={messageText}
           messageIsUnsend={messageIsUnsend}
           selectionMode={selectionMode}
           onOpenPicker={onOpenPicker}
           onOpenMenu={onOpenMenu}
           currentUserId={currentUserId}
+          isCurrentUser={isCurrentUser}
         />
       )}
     </View>
