@@ -228,6 +228,7 @@ export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
   signedImageUrl: string;
+  chatUserStatus: chatUserStatus;
 }
 
 export type TPickerState = {
