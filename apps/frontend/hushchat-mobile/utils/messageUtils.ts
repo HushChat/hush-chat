@@ -1,5 +1,7 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { IMessage } from "@/types/chat/types";
+import { ToastUtils } from "@/utils/toastUtils";
+import * as Clipboard from "expo-clipboard";
 
 interface IGroupedMessages {
   title: string;
@@ -67,4 +69,11 @@ export const shouldShowSenderAvatar = (
   const sameSender = current.senderId === next.senderId;
 
   return !sameSender;
+};
+
+export const copyToClipboard = async (text: string | undefined): Promise<void> => {
+  if (text) {
+    ToastUtils.success("Copied to clipboard!");
+    await Clipboard.setStringAsync(text);
+  }
 };

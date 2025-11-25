@@ -3,8 +3,7 @@ import { GestureResponderEvent, Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { PLATFORM } from "@/constants/platformConstants";
 import { getHoverVisibilityClass, getActionButtonStyle } from "@/utils/messageStyles";
-import { ToastUtils } from "@/utils/toastUtils";
-import * as Clipboard from "expo-clipboard";
+import { copyToClipboard } from "@/utils/messageUtils";
 
 interface MessageActionsProps {
   messageText?: string;
@@ -29,17 +28,10 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
 
   const hoverClass = getHoverVisibilityClass();
 
-  const handleCopyToClipboard = async () => {
-    if (messageText) {
-      await Clipboard.setStringAsync(messageText);
-      ToastUtils.success("Copied to clipboard!");
-    }
-  };
-
   return (
     <View className="flex-row items-center">
       {!isCurrentUser && (
-        <Pressable onPress={handleCopyToClipboard} className={hoverClass}>
+        <Pressable onPress={() => copyToClipboard(messageText)} className={hoverClass}>
           <Ionicons
             name="copy-outline"
             size={16}
@@ -60,7 +52,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
       </Pressable>
 
       {isCurrentUser && (
-        <Pressable onPress={handleCopyToClipboard} className={hoverClass}>
+        <Pressable onPress={() => copyToClipboard(messageText)} className={hoverClass}>
           <Ionicons
             name="copy-outline"
             size={16}

@@ -13,6 +13,7 @@ interface ActionsHeaderProps {
   onPinToggle: (m: IMessage) => void;
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
+  onCopy: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -22,6 +23,7 @@ const ActionsHeader = ({
   onPinToggle,
   onForward,
   onUnsend,
+  onCopy,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
@@ -55,6 +57,15 @@ const ActionsHeader = ({
         </View>
 
         <View className="flex-row items-center gap-2">
+          {!message.isUnsend && message.messageText && (
+            <TouchableOpacity
+              className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
+              onPress={() => onCopy(message)}
+            >
+              <Ionicons name="copy-outline" size={20} color={"#6B7280"} />
+            </TouchableOpacity>
+          )}
+
           {message.senderId === Number(user.id) && !message.isUnsend && (
             <TouchableOpacity
               className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
