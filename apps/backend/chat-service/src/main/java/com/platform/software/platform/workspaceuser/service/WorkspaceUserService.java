@@ -30,7 +30,7 @@ public class WorkspaceUserService {
     }
 
     public WorkspaceDTO verifyUserAccessToWorkspace(String email, String workspaceName) {
-        WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_Name(email, workspaceName)
+        WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(email, workspaceName)
             .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid name"));
 
         return new WorkspaceDTO(user.getWorkspace());
