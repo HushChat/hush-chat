@@ -20,17 +20,17 @@ public class SendGridEmailSenderServiceImpl implements EmailSenderService {
 
     Logger logger = LoggerFactory.getLogger(SendGridEmailSenderServiceImpl.class);
 
-    @Value("${email.sendgrid.api.key}")
+    @Value("${email-service.sendgrid.api.key}")
     private String sendgridApiKey;
 
-    @Value("${email.from.address}")
-    private String senderEmail;
+    @Value("${email-service.sendgrid.from-mail}")
+    private String fromEmail;
 
     private static final String SENDGRID_ENDPOINT = "mail/send";
 
     @Override
     public void sendEmail(String to, String subject, String content, String contentType) {
-        Email fromEmail = new Email(senderEmail);
+        Email fromEmail = new Email(this.fromEmail);
         Email toEmail = new Email(to);
         Content mailBody = new Content(contentType, content);
         Mail mail = new Mail(fromEmail, subject, toEmail, mailBody);

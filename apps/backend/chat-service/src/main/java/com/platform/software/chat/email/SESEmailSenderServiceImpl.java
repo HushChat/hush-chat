@@ -16,17 +16,17 @@ public class SESEmailSenderServiceImpl implements EmailSenderService {
     Logger logger = LoggerFactory.getLogger(SESEmailSenderServiceImpl.class);
     private static final String CHARSET = "UTF-8";
 
-    @Value("${cloud.aws.credentials.accessKey}")
+    @Value("${email-service.ses.access-key}")
     private String awsAccessKey;
 
-    @Value("${cloud.aws.credentials.secretKey}")
+    @Value("${email-service.ses.secret-key}")
     private String awsSecretKey;
 
-    @Value("${aws.cognito.region}")
+    @Value("${email-service.ses.region}")
     private String awsRegion;
 
-    @Value("${email.from.address}")
-    private String senderEmail;
+    @Value("${email-service.ses.from-mail}")
+    private String fromEmail;
 
     @Override
     public void sendEmail(String to, String subject, String content, String contentType) {
@@ -53,7 +53,7 @@ public class SESEmailSenderServiceImpl implements EmailSenderService {
                     .withMessage(new Message()
                             .withBody(body)
                             .withSubject(new Content().withCharset(CHARSET).withData(subject)))
-                    .withSource(senderEmail);
+                    .withSource(fromEmail);
             sesClient.sendEmail(request);
             logger.info("email sent to {} with subject {}", to, subject);
         } catch (Exception exception) {
