@@ -10,7 +10,7 @@ export default () => ({
     scheme: "chat",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
-    owner: "hushchat",
+    owner: "skynetdevelopers",
     ios: {
       supportsTablet: true,
     },
@@ -19,7 +19,7 @@ export default () => ({
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
-      package: "com.hushchat.chat",
+      package: "com.hush.chat",
       // versionCode: 2,
       // useNextNotificationsApi: true,
       // googleServicesFile: path.resolve(__dirname, 'google-services.json'),
@@ -50,7 +50,7 @@ export default () => ({
     },
     extra: {
       eas: {
-        projectId: "5f708cde-5505-47a1-b187-4444651e1ead",
+        projectId: "effe362a-5435-41e0-99a4-bbe22780981a",
       },
     },
   },
