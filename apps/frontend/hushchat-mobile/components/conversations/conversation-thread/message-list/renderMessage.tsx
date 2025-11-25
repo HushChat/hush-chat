@@ -17,6 +17,7 @@ interface IRenderMessageParams {
   closeAll: () => void;
   togglePin: (msg: IMessage) => void;
   unSendMessage: (msg: IMessage) => void;
+  onEditMessage: (message: IMessage) => void;
   selectedConversationId: number;
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
 }
@@ -44,6 +45,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       closeAll,
       togglePin,
       unSendMessage,
+      onEditMessage,
       selectedConversationId,
       viewReactions,
     } = params;
@@ -74,6 +76,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         onCloseAllOverlays={closeAll}
         onMessagePin={togglePin}
         onUnsendMessage={unSendMessage}
+        onEditMessage={onEditMessage}
         selectedConversationId={selectedConversationId}
         onViewReactions={viewReactions}
         showSenderAvatar={showSenderAvatar}

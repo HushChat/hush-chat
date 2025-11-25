@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { usePinMessageMutation } from "@/query/post/queries";
-import { usePatchUnsendMessageMutation } from "@/query/patch/queries";
+import { useEditMessageMutation, usePatchUnsendMessageMutation } from "@/query/patch/queries";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import { useUpdateCache } from "@/query/config/useUpdateCache";
 import { ToastUtils } from "@/utils/toastUtils";
@@ -15,6 +15,7 @@ export function useMessageActions(
   const updateCache = useUpdateCache();
 
   const [selectedPinnedMessage, setSelectedPinnedMessage] = useState<IBasicMessage | null>(null);
+  const [selectedEditMessage, setSelectedEditMessage] = useState<IBasicMessage | null>(null);
   const [unsendMessageState, setUnsendMessageState] = useState<IBasicMessage | null>(null);
 
   const { refetch: refetchConversationList } = useConversationsQuery();
@@ -87,6 +88,38 @@ export function useMessageActions(
     void refetchConversationList();
   });
 
+  /**
+   * edit Message
+   */
+  const { mutate: editMessageMutation } = useEditMessageMutation(undefined, () => {
+    if (!conversation?.id || !currentUserId || !unsendMessageState) return;
+
+    updateCache(
+      conversationMessageQueryKeys.messages(Number(currentUserId), Number(conversation.id)),
+      (prev: { pages: PaginatedResponse<IMessage>[] } | undefined) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          pages: prev.pages.map((page) => ({
+            ...page,
+            content: page.content.map((msg) =>
+              msg.id === unsendMessageState.id
+                ? {
+                  ...msg,
+                  messageText: unsendMessageState.messageText, // Update with new text
+                  updatedAt: new Date().toISOString(), // Optional: track edit time
+                }
+                : msg
+            ),
+          })),
+        };
+      }
+    );
+
+    void refetchConversationList();
+  });
+
   const unSendMessage = useCallback(
     (message: IBasicMessage) => {
       setUnsendMessageState(message);
@@ -95,9 +128,23 @@ export function useMessageActions(
     [unsend]
   );
 
+  const onEditMessage = useCallback(
+    (message: IBasicMessage) => {
+      if (!conversation?.id) return;
+      setSelectedEditMessage(message);
+      // editMessageMutation({
+      //   conversationId: conversation.id,
+      //   messageId: message.id,
+      //   messageText: newMessageText,
+      // });
+    },
+    [editMessageMutation, conversation?.id]
+  );
+
   return {
     togglePin,
     unSendMessage,
+    onEditMessage,
     selectedPinnedMessage,
   };
 }

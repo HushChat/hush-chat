@@ -52,6 +52,7 @@ interface MessageItemProps {
   onCloseAllOverlays?: () => void;
   onMessagePin: (message: IMessage) => void;
   onUnsendMessage: (message: IMessage) => void;
+  onEditMessage: (message: IMessage) => void;
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
@@ -77,6 +78,7 @@ export const ConversationMessageItem = ({
   onMessagePin,
   selectedConversationId,
   onUnsendMessage,
+  onEditMessage,
   onViewReactions,
   showSenderAvatar,
 }: MessageItemProps) => {
@@ -180,6 +182,12 @@ export const ConversationMessageItem = ({
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
+      });
+      options.push({
+        id: 4,
+        name: "Edit Message",
+        iconName: "pencil",
+        action: () => onEditMessage(message),
       });
     }
     return options;

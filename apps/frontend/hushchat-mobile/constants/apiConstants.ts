@@ -53,6 +53,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/participants`,
   PIN_MESSAGE: (conversationId: number, messageId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/pin`,
+  EDIT_MESSAGE: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}`,
   REMOVE_CONVERSATION_PARTICIPANT: (conversationId: number, participantId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/participants/${participantId}`,
   TOGGLE_MUTE_CONVERSATION: (conversationId: number) =>

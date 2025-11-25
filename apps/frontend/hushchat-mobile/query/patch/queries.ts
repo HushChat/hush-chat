@@ -9,7 +9,7 @@ import { updateUser } from "@/apis/user";
 import { ConversationReadInfo, TMessageForward, UpdateUserInput } from "@/types/chat/types";
 import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
-import { forwardMessages, unsendMessage } from "@/apis/message";
+import { editMessage, forwardMessages, unsendMessage } from "@/apis/message";
 
 export const useArchiveConversationMutation = createMutationHook<void, number>(
   archiveConversationById,
@@ -43,6 +43,15 @@ export const useForwardMessageMutation = createMutationHook<void, TMessageForwar
 export const usePatchUnsendMessageMutation = createMutationHook<void, { messageId: number }>(
   unsendMessage
 );
+
+export const useEditMessageMutation = createMutationHook<
+  void,
+  {
+    conversationId: number;
+    messageId: number;
+    messageText: string;
+  }
+>((params) => editMessage(params));
 
 export const useSetLastSeenMessageMutation = createMutationHook<
   { data: ConversationReadInfo },

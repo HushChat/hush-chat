@@ -27,6 +27,7 @@ interface IMessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  onEditMessage: (message: IMessage) => void;
 }
 
 const ConversationMessageList = ({
@@ -36,13 +37,17 @@ const ConversationMessageList = ({
   onMessageSelect,
   conversationAPIResponse,
   selectedConversationId,
+  onEditMessage
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
-  const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
+  const { togglePin, unSendMessage } = useMessageActions(
+    conversationAPIResponse,
+    currentUserId
+  );
 
   const {
     selectedActionMessage,
@@ -76,6 +81,7 @@ const ConversationMessageList = ({
         closeAll,
         togglePin,
         unSendMessage,
+        onEditMessage,
         selectedConversationId,
         viewReactions,
       }),

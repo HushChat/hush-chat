@@ -69,6 +69,25 @@ export const unsendMessage = async (params: { messageId: number }) => {
   }
 };
 
+export const editMessage = async (params: {
+  conversationId: number;
+  messageId: number;
+  messageText: string;
+}) => {
+  try {
+    const response = await axios.put(
+      CONVERSATION_API_ENDPOINTS.EDIT_MESSAGE(params.conversationId, params.messageId),
+      {
+        messageText: params.messageText,
+      }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const getMessageReactions = async (
   messageId: number,
   page: number = 0,
