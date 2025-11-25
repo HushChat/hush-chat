@@ -443,8 +443,12 @@ export const sendContactUsMessage = async (data: {
 };
 
 export const sendInviteToWorkspace = async (email: string) => {
-  const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, {
-    email: email,
-  });
-  return response.data;
+  try {
+    const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, {
+      email: email,
+    });
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
 };
