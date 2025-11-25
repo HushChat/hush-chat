@@ -26,6 +26,8 @@ public class MessageViewDTO {
     private BasicMessageDTO parentMessage;
     private Boolean isForwarded;
     private Boolean isUnsend;
+    private String senderSignedImageUrl;
+     private String imageIndexedName;
 
      public MessageViewDTO(Message message) {
         initializeFromMessage(message);
@@ -58,6 +60,7 @@ public class MessageViewDTO {
         this.senderId = message.getSender().getId();
         this.senderFirstName = message.getSender().getFirstName();
         this.senderLastName = message.getSender().getLastName();
+        this.imageIndexedName= message.getSender().getImageIndexedName();
         this.conversationId = message.getConversation().getId();
         this.isForwarded = message.getForwardedMessage() != null;
         this.isUnsend = message.getIsUnsend();

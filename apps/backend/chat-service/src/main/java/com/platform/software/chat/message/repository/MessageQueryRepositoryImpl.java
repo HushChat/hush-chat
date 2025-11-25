@@ -11,15 +11,13 @@ import com.platform.software.common.model.CustomPageImpl;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
@@ -131,15 +129,6 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
-        // Add cursor-based pagination conditions
-        if(idBasedPageRequest.getAfterId() != null) {
-            conditions = conditions.and(message.id.gt(idBasedPageRequest.getAfterId()));
-        }
-
-        if(idBasedPageRequest.getBeforeId() != null) {
-            conditions = conditions.and(message.id.loe(idBasedPageRequest.getBeforeId()));
-        }
-
         Long total = queryFactory
             .select(message.id.countDistinct())
             .from(message)
@@ -148,19 +137,96 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             .where(conditions)
             .fetchOne();
 
-        List<Message> messages = queryFactory
+        JPAQuery<Message> query = queryFactory
             .selectDistinct(message)
             .from(message)
             .leftJoin(message.attachments, messageAttachment).fetchJoin()
             .innerJoin(message.conversation, conversation).fetchJoin()
             .innerJoin(message.sender, sender).fetchJoin()
-            .where(conditions)
-            .orderBy(message.id.desc())
-            .limit(idBasedPageRequest.getSize())
-            .fetch();
+            .limit(idBasedPageRequest.getSize());
+
+        // Add cursor-based pagination conditions
+        if (idBasedPageRequest.getAfterId() != null) {
+            conditions = conditions.and(message.id.gt(idBasedPageRequest.getAfterId()));
+            query.orderBy(message.id.asc());
+        } else if (idBasedPageRequest.getBeforeId() != null) {
+            conditions = conditions.and(message.id.lt(idBasedPageRequest.getBeforeId()));
+            query.orderBy(message.id.desc());
+        } else {
+            query.orderBy(message.id.desc());
+        }
+
+        query.where(conditions);
+        List<Message> messages = query.fetch();
+        if (idBasedPageRequest.getAfterId() != null) {
+            messages = messages.reversed(); // if the query fetches with after id, it will fetch asc order, so for the frontend display, it has to be revered
+        }
 
         Pageable pageable = PageRequest.of(0, idBasedPageRequest.getSize().intValue());
 
         return new PageImpl<>(messages, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * Retrieves a window of messages around a given message ID within a specific conversation.
+     *
+     * @param conversationId the ID of the conversation
+     * @param messageId      the center message ID used to calculate the window
+     * @param participant    the participant requesting the message window, used for visibility filters
+     * @return a page containing the window of messages around the given message ID
+     */
+    public Page<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long messageId, ConversationParticipant participant) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+
+        int windowSize = 20;
+
+        BooleanExpression conditions = message.conversation.id.eq(conversationId)
+                .and(message.sender.isNotNull())
+                .and(message.conversation.deleted.eq(false));
+
+        if(!participant.getIsActive()) {
+            conditions = conditions.and(message.createdAt.before(Date.from(participant.getInactiveFrom().toInstant())));
+        }
+
+        if(participant.getLastDeletedTime() != null) {
+            conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
+        }
+
+        JPAQuery<Message> baseQuery = queryFactory
+                .selectDistinct(message)
+                .from(message)
+                .leftJoin(message.attachments, messageAttachment).fetchJoin()
+                .join(message.conversation, conversation).fetchJoin()
+                .join(message.sender, sender).fetchJoin()
+                .where(conditions);
+
+        Message targetMessage = baseQuery.clone()
+                .where(message.id.eq(messageId))
+                .fetchOne();
+
+        if (targetMessage == null) {
+            return Page.empty();
+        }
+
+        List<Message> before = baseQuery.clone()
+                .where(message.id.lt(targetMessage.getId()))
+                .orderBy(message.id.desc())
+                .limit(windowSize)
+                .fetch();
+
+        List<Message> after = baseQuery.clone()
+                .where(message.id.gt(targetMessage.getId()))
+                .orderBy(message.id.asc())
+                .limit(windowSize)
+                .fetch();
+
+        Collections.reverse(before);
+        List<Message> messages = new ArrayList<>(before);
+        messages.add(targetMessage);
+        messages.addAll(after);
+
+        Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
+
+        return new PageImpl<>(messages, pageable, messages.size());
     }
 }

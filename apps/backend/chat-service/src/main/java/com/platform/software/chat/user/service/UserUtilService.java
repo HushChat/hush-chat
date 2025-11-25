@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.dto.UserDTO;
+import com.platform.software.chat.user.dto.WorkSpaceUserUpsertDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.UserTypeEnum;
@@ -35,18 +36,15 @@ public class UserUtilService {
     }
 
     @Transactional
-    public ChatUser createUser(UserUpsertDTO userUpsertDTO, Workspace workspace) {
-        checkIfUserAlreadyExists(userUpsertDTO.getEmail().toLowerCase());
-        ChatUser user = userUpsertDTO.toChatUser();
+    public ChatUser createUser(WorkSpaceUserUpsertDTO workSpaceUserUpsertDTO) {
+        checkIfUserAlreadyExists(workSpaceUserUpsertDTO.getEmail().toLowerCase());
+        ChatUser user = workSpaceUserUpsertDTO.toChatUser();
         user.setActive(true);
 
-        ChatUser savedUser = persistUser(user);
-        createUserInIdP(user.getEmail().toLowerCase(), userUpsertDTO.getPassword(), workspace.getName());
-
-        return savedUser;
+        return persistUser(user);
     }
 
-    private void createUserInIdP(String email, String password, String tenant) {
+    public void createUserInIdP(String email, String password, String tenant) {
         var response = cognitoService.createUser(email, password, tenant, UserTypeEnum.CHAT_USER);
         if (!response.sdkHttpResponse().isSuccessful()) {
             logger.error("Failed to create user in IDP: {}", email);

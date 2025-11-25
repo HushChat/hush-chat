@@ -1,14 +1,10 @@
 import { IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
-import { getAllConversations, ConversationFilterCriteria } from "@/apis/conversation";
+import { ConversationFilterCriteria, getAllConversations } from "@/apis/conversation";
 import {
   OffsetPaginatedQueryResult,
   usePaginatedQueryWithOffset,
 } from "@/query/usePaginatedQueryWithOffset";
-import { useConversationsNotifications } from "@/hooks/useWebSocketEvents";
-import { useEffect } from "react";
-import { appendToOffsetPaginatedCache } from "@/query/config/appendToOffsetPaginatedCache";
-import { useQueryClient } from "@tanstack/react-query";
 import { conversationQueryKeys } from "@/constants/queryKeys";
 
 const PAGE_SIZE = 20;
@@ -23,32 +19,12 @@ export function useConversationsQuery(
   fetchNextPage: () => Promise<unknown>;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
-  refetchConversations: () => void;
+  refetchConversations: (() => void) | undefined;
   refetch: () => Promise<unknown>;
 } {
   const {
     user: { id: userId },
   } = useUserStore();
-  const queryClient = useQueryClient();
-
-  const { notificationReceivedConversation } = useConversationsNotifications();
-  useEffect(() => {
-    if (notificationReceivedConversation) {
-      appendToOffsetPaginatedCache<IConversation>(
-        queryClient,
-        conversationQueryKeys.allConversations(Number(userId), criteria),
-        notificationReceivedConversation,
-        {
-          getId: (m) => m?.id,
-          pageSize: PAGE_SIZE,
-          getPageItems: (p) => p?.content,
-          setPageItems: (p, items) => ({ ...p, content: items }),
-          dedupeAcrossPages: true,
-        }
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notificationReceivedConversation, queryClient, userId]);
 
   const {
     pages,

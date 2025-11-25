@@ -1,9 +1,15 @@
 import { StorageFactory } from "@/utils/storage/storageFactory";
-import { USER_TOKEN_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants/constants";
+import {
+  USER_TOKEN_KEY,
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  WORKSPACE,
+} from "@/constants/constants";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
 import { ToastUtils } from "@/utils/toastUtils";
+import { logWarn, logError } from "@/utils/logger";
 
 const storage = StorageFactory.createStorage();
 
@@ -19,25 +25,29 @@ export async function getAllTokens(): Promise<{
   idToken: string | null;
   accessToken: string | null;
   refreshToken: string | null;
+  workspace: string | null;
 }> {
   try {
-    const [idToken, accessToken, refreshToken] = await Promise.all([
+    const [idToken, accessToken, refreshToken, workspace] = await Promise.all([
       storage.get<string>(USER_TOKEN_KEY),
       storage.get<string>(ACCESS_TOKEN_KEY),
       storage.get<string>(REFRESH_TOKEN_KEY),
+      storage.get<string>(WORKSPACE),
     ]);
 
     return {
       idToken: idToken || null,
       accessToken: accessToken || null,
       refreshToken: refreshToken || null,
+      workspace: workspace || null,
     };
   } catch (error) {
-    console.warn("Error reading tokens from AsyncStorage:", error);
+    logWarn("Error reading tokens from AsyncStorage:", error);
     return {
       idToken: null,
       accessToken: null,
       refreshToken: null,
+      workspace: null,
     };
   }
 }
@@ -73,6 +83,7 @@ export async function clearTokens(): Promise<void> {
     storage.remove(USER_TOKEN_KEY),
     storage.remove(ACCESS_TOKEN_KEY),
     storage.remove(REFRESH_TOKEN_KEY),
+    storage.remove(WORKSPACE),
   ]);
 }
 
@@ -90,7 +101,7 @@ export async function isTokenExpiringSoon(): Promise<boolean> {
     const expiryThreshold = 60 * 2; // Refresh 2 minutes before expiry
     return decoded.exp - currentTime <= expiryThreshold;
   } catch (error) {
-    console.warn("Error decoding token:", error);
+    logWarn("Error decoding token:", error);
     return true; // If decoding fails, assume it's expired
   }
 }
@@ -118,7 +129,7 @@ export async function refreshIdToken(): Promise<string | null> {
       return idToken;
     }
   } catch (error) {
-    console.error("Failed to refresh token:", error);
+    logError("Failed to refresh token:", error);
   }
 
   return null;

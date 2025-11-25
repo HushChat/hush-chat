@@ -2,6 +2,8 @@ import { ConversationType } from "@/types/chat/types";
 import { StateCreator } from "zustand";
 
 export interface ConversationState {
+  selectedConversationId: number | null;
+  setSelectedConversationId: (id: number | null) => void;
   selectedConversationType: ConversationType;
   setSelectedConversationType: (type: ConversationType) => void;
   selectionMode: boolean;
@@ -14,6 +16,8 @@ export interface ConversationState {
 export const createConversationSlice: StateCreator<ConversationState> = (
   set
 ): ConversationState => ({
+  selectedConversationId: null,
+  setSelectedConversationId: (id) => set({ selectedConversationId: id }),
   selectedConversationType: ConversationType.ALL,
   setSelectedConversationType: (type: ConversationType) => set({ selectedConversationType: type }),
   selectionMode: false,

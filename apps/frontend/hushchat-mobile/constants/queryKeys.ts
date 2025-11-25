@@ -47,6 +47,11 @@ export const conversationQueryKeys = {
     conversationId,
     participantId,
   ],
+
+  lastSeenMessage: (conversationId: number) => [
+    CONVERSATION_MESSAGE_QUERY_BASE_KEY,
+    conversationId,
+  ],
 };
 
 export const conversationMessageQueryKeys = {

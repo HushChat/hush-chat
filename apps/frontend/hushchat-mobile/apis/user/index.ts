@@ -1,4 +1,4 @@
-import { USER_API_ENDPOINTS } from "@/constants/apiConstants";
+import { USER_API_ENDPOINTS, WORKSPACE_ENDPOINTS } from "@/constants/apiConstants";
 import axios from "axios";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { DeviceToken } from "@/types/user/types";
@@ -85,7 +85,15 @@ export const changePassword = async (oldPassword: string, newPassword: string) =
     });
     return { data: response.data };
   } catch (error: unknown) {
-    return { error: getAPIErrorMsg(error) };;
+    return { error: getAPIErrorMsg(error) };
   }
-}
+};
 
+export const getUserWorkspaces = async () => {
+  try {
+    const response = await axios.get(WORKSPACE_ENDPOINTS.GET);
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
