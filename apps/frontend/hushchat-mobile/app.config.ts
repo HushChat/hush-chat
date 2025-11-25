@@ -10,7 +10,7 @@ export default () => ({
     scheme: "chat",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
-    owner: "skynetdevelopers",
+    owner: process.env.EAS_PROJECT_OWNER,
     ios: {
       supportsTablet: true,
     },
@@ -50,7 +50,7 @@ export default () => ({
     },
     extra: {
       eas: {
-        projectId: "effe362a-5435-41e0-99a4-bbe22780981a",
+        projectId: process.env.EAS_PROJECT_ID,
       },
     },
   },
