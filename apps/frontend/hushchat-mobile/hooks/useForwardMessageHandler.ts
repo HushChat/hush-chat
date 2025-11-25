@@ -39,8 +39,6 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
   );
 
   const handleSend = () => {
-    console.log("selectedConversations", selectedConversations);
-
     const conversationIds: number[] = [];
     const userIds: number[] = [];
 
@@ -51,8 +49,6 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
         conversationIds.push(Number(item.id));
       }
     });
-    console.log("conversationIds", conversationIds);
-    console.log("userIds", userIds);
     forwardMessage({
       forwardedMessageIds: Array.from(selectedMessageIds),
       conversationIds: conversationIds.length > 0 ? conversationIds : undefined,
