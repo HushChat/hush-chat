@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 @Service
-public class SendGridEmailSenderServiceImpl implements EmailSenderService {
+class SendGridEmailSenderServiceImpl implements EmailSenderService {
 
     Logger logger = LoggerFactory.getLogger(SendGridEmailSenderServiceImpl.class);
 

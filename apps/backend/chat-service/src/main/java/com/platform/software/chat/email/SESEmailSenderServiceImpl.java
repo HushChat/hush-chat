@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SESEmailSenderServiceImpl implements EmailSenderService {
+class SESEmailSenderServiceImpl implements EmailSenderService {
 
     Logger logger = LoggerFactory.getLogger(SESEmailSenderServiceImpl.class);
     private static final String CHARSET = "UTF-8";
