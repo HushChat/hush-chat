@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { useWebSocket } from "@/contexts/WebSocketContext";
+import useWebSocketConnection from "@/hooks/useWebSocketConnection";
 import { WebSocketStatus } from "@/types/ws/types";
 
 const statusConfig: Record<
@@ -30,7 +30,7 @@ const statusConfig: Record<
 };
 
 export default function WebSocketStatusIndicator() {
-  const { connectionStatus } = useWebSocket();
+  const { connectionStatus } = useWebSocketConnection();
   const config = statusConfig[connectionStatus];
 
   return (
