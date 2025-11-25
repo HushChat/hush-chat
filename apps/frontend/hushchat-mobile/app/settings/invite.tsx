@@ -16,15 +16,19 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { useMutation } from "@tanstack/react-query";
 import { sendInviteToWorkspace } from "@/apis/conversation";
 import { ToastUtils } from "@/utils/toastUtils";
+import { inviteSchema } from "@/schema/invite";
 
 export default function Invite() {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const inviteMutation = useMutation({
     mutationFn: sendInviteToWorkspace,
     onSuccess: (response) => {
       ToastUtils.success(response.data || "Invite sent successfully!");
+      setEmail("");
+      setEmailError("");
     },
     onError: (error: any) => {
       ToastUtils.error(error.response?.data?.error || error.message);
@@ -32,8 +36,14 @@ export default function Invite() {
   });
 
   const handleInvite = async () => {
-    inviteMutation.mutate(email);
-    Keyboard.dismiss();
+    try {
+      await inviteSchema.validate({ email }, { abortEarly: false });
+      setEmailError("");
+      inviteMutation.mutate(email);
+      Keyboard.dismiss();
+    } catch (error: any) {
+      setEmailError(error.errors[0]);
+    }
   };
 
   return (
@@ -71,6 +81,7 @@ export default function Invite() {
                 keyboardType="email-address"
                 className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-gray-900 dark:text-white"
               />
+              {emailError && <AppText className="text-red-500 text-sm mt-1">{emailError}</AppText>}
             </View>
 
             <TouchableOpacity
