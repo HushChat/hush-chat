@@ -6,7 +6,6 @@ import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationReport;
 import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
-import com.platform.software.chat.conversation.readstatus.dto.ConversationUnreadCount;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
@@ -549,7 +548,7 @@ public class ConversationService {
 
         Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
-        Long maxMessageId = getMaxLastReadMessageId(conversationId, loggedInUserId);
+        Long lastReadMessageId = getLastReadMessageIdByParticipants(conversationId, loggedInUserId);
 
         List<Long> messageIds = extractMessageIds(messages);
 
@@ -567,7 +566,7 @@ public class ConversationService {
                 Message matchedMessage = messageMap.get(dto.getId());
                 List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
 
-                boolean isReadByEveryone = maxMessageId != null && maxMessageId >= dto.getId();
+                boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
                 dto.setIsReadByEveryone(isReadByEveryone);
 
                 if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
@@ -604,24 +603,28 @@ public class ConversationService {
     }
 
     /**
-     * Returns the highest last-read message ID among all participants in the conversation,
+     * Returns the lowest last-read message ID among all participants in the conversation,
      * excluding the logged-in user.
      *
      * @param conversationId the ID of the conversation whose read statuses are being checked
      * @param loggedInUserId the ID of the user making the request, whose own read status is excluded
-     * @return the largest last-read message ID among other participants, or {@code null}
-     *         if no other participants have read statuses recorded
+     * @return the smallest last-read message ID among other participants, or {@code null}
+     *         if no other participants have read statuses recorded or if any participant has null
      */
-    private Long getMaxLastReadMessageId(Long conversationId, Long loggedInUserId) {
-        // read statues of every participant, with their user id and last read message id
-        Map<Long, Long> userReadStatues =
+    private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
+        // read statuses of every participant, with their user id and last read message id
+        Map<Long, Long> userReadStatuses =
             conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId);
-        userReadStatues.remove(loggedInUserId);
+        userReadStatuses.remove(loggedInUserId);
 
-        return userReadStatues.values()
+        // If any participant has null last-read message ID, return null
+        if (userReadStatuses.values().stream().anyMatch(Objects::isNull)) {
+            return null;
+        }
+
+        return userReadStatuses.values()
             .stream()
-            .filter(Objects::nonNull)
-            .max(Long::compare)
+            .min(Long::compare)
             .orElse(null);
     }
 
