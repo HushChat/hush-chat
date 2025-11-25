@@ -11,61 +11,50 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
-import {
-  getImagePickerAsset,
-  uploadImage,
-  uploadImageToSignedUrl,
-  UploadType,
-} from "@/apis/photo-upload-service/photo-upload-service";
-import UploadIndicator from "@/components/UploadIndicator";
-import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
-import { useUpdateUserMutation } from "@/query/patch/queries";
-import { ToastUtils } from "@/utils/toastUtils";
-import {
-  ProfileUpdateSchema,
-  PasswordChangeSchema,
-  PasswordChangeFormData,
-} from "@/types/user/types";
-import useValidation from "@/hooks/useValidation";
-import { useChangePasswordQuery } from "@/query/post/queries";
-import { passwordRules } from "@/utils/passwordRules";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText, AppTextInput } from "@/components/AppText";
+import { passwordRules } from "@/utils/passwordRules";
+import { useProfileForm } from "@/hooks/useProfileForm";
+import UploadIndicator from "@/components/UploadIndicator";
 
 type ProfileFieldProps = {
   label: string;
+  name?: string;
   value?: string | null;
   editable?: boolean;
-  onChangeText?: (text: string) => void;
+  onValueChange?: (args: { name: string; value: string }) => void;
   placeholder?: string;
   secureTextEntry?: boolean;
   rightIcon?: string;
   onRightIconPress?: () => void;
-  error?: string | string[];
+  error?: string;
+  showError?: boolean;
 };
 
 const ProfileField = ({
   label,
+  name,
   value,
   editable = false,
-  onChangeText,
+  onValueChange,
   placeholder,
   secureTextEntry = false,
   rightIcon,
   onRightIconPress,
   error,
+  showError = true,
 }: ProfileFieldProps) => {
-  const errorMessage = Array.isArray(error) ? error[0] : error;
+  const shouldShowError = showError && error;
 
   return (
     <View className="mb-6 border-b border-gray-600 pb-2">
       <AppText className="text-sm text-gray-400 mb-1">{label}</AppText>
-      {editable && onChangeText ? (
+      {editable && onValueChange && name ? (
         <View className="flex-row items-center">
           <AppTextInput
-            className={`text-base dark:text-white text-black py-1 flex-1 ${errorMessage ? 'border-red-500' : ''}`}
+            className="text-base dark:text-white text-black py-1 flex-1"
             value={value || ""}
-            onChangeText={onChangeText}
+            onChangeText={(text) => onValueChange({ name, value: text })}
             placeholder={placeholder}
             placeholderTextColor="#9ca3af"
             secureTextEntry={secureTextEntry}
@@ -73,7 +62,7 @@ const ProfileField = ({
             underlineColorAndroid="transparent"
             style={{
               backgroundColor: "transparent",
-              ...(PLATFORM.IS_WEB ? { outlineWidth: 0 } : {}), 
+              ...(PLATFORM.IS_WEB ? { outlineWidth: 0 } : {}),
             }}
           />
           {rightIcon && (
@@ -83,168 +72,68 @@ const ProfileField = ({
           )}
         </View>
       ) : (
-        <AppText className="text-base dark:text-white text-black">{value || "Not provided"}</AppText>
+        <AppText className="text-base dark:text-white text-black">
+          {value || "Not provided"}
+        </AppText>
       )}
-      {errorMessage && <AppText className="text-red-500 text-xs mt-1">{errorMessage}</AppText>}
+      {shouldShowError && <AppText className="text-red-500 text-xs mt-1">{error}</AppText>}
     </View>
   );
 };
 
 export default function Profile() {
   const { logout } = useAuthStore();
-  const { user, loading, fetchUserData } = useUserStore();
+  const { user, loading } = useUserStore();
   const isMobile = !PLATFORM.IS_WEB;
-  const [firstName, setFirstName] = useState(user?.firstName || "");
-  const [lastName, setLastName] = useState(user?.lastName || "");
-  const [uploading, setUploading] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | null>(null);
-  const [imageAssetData, setImageAssetData] = useState({
-    fileUri: "",
-    fileName: "",
-    fileType: "",
-  });
   const queryClient = useQueryClient();
 
-  const [passwordForm, setPasswordForm] = useState<PasswordChangeFormData>({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  function hasPasswordData(): boolean {
-    return !!(
-      passwordForm.currentPassword ||
-      passwordForm.newPassword ||
-      passwordForm.confirmPassword
-    );
-  }
+  const {
+    formValues,
+    formErrors,
+    showErrors,
+    onValueChange,
+    submit,
+    isLoading,
+    uploading,
+    imageError,
+    setImageError,
+    imagePickerResult,
+    uploadImageResult,
+    syncUserData,
+    hasPasswordData,
+    isProfileChanged,
+  } = useProfileForm();
 
-  const [profileErrors] = useValidation(ProfileUpdateSchema, {
-    firstName,
-    lastName,
-  });
-  const [passwordErrors] = useValidation(
-    PasswordChangeSchema,
-    hasPasswordData() ? passwordForm : null,
-  );
-
-  const changeUserPassword = useChangePasswordQuery(
-    () => {
-      ToastUtils.success("Password updated successfully");
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-    },
-    (error: any) => {
-      ToastUtils.error(error?.message ?? "Something went wrong");
-    }
-  );
-
-  const { mutate: updateUser, isPending: isUpdatingUser } = useUpdateUserMutation(
-    { userId: Number(user?.id) },
-    (user) => {
-      const imageSignedUrl = user.signedImageUrl;
-
-      if (imageSignedUrl && imageAssetData !== null) {
-        uploadImageToSignedUrl(imageAssetData?.fileUri, imageSignedUrl);
-      }
-
-      fetchUserData();
-    }
-  );
-
+  // Sync form with user data when user changes
   useEffect(() => {
-    setFirstName(user?.firstName || "");
-    setLastName(user?.lastName || "");
-    setImageError(false);
-  }, [user?.id]);
+    syncUserData();
+  }, [user?.id, syncUserData]);
 
   const handleLogout = async () => {
     queryClient.clear();
-
     await logout();
-
     // ⚠️ Temporary workaround: Wait for storage to finish properly before navigating
-    await new Promise((resolve) => setTimeout(resolve, 300)); // 300ms delay
+    await new Promise((resolve) => setTimeout(resolve, 300));
     router.replace(AUTH_WORKSPACE_FORM_PATH);
-  };
-
-  const handleUpdateAll = async () => {
-    let hasChanges = false;
-
-    // Handle profile updates (name or image changes)
-    const hasProfileChanges = firstName.trim() !== user?.firstName || 
-                              lastName.trim() !== user?.lastName || 
-                              imagePickerResult;
-
-    if (hasProfileChanges && isProfileValid) {
-      hasChanges = true;
-
-      const imageData = imagePickerResult
-        ? getImagePickerAsset(imagePickerResult, UploadType.PROFILE)
-        : null;
-
-      if (imageData) setImageAssetData(imageData);
-
-      updateUser({
-        id: user?.id ?? "",
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        imageFileName: imageData ? imageData.fileName : null,
-      });
-    }
-
-    if (hasPasswordData() && isPasswordValid) {
-      hasChanges = true;
-
-      changeUserPassword.mutate({
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      });
-    }
-
-    if (!hasChanges) {
-      ToastUtils.info("No changes to update");
-    }
-  };
-
-  const uploadImageResult = async () => {
-    setUploading(true);
-    const pickerResult = await uploadImage();
-    setImagePickerResult(pickerResult ?? null);
-    setUploading(false);
-  };
-
-  const updatePasswordField = (field: keyof PasswordChangeFormData) => (value: string) => {
-    setPasswordForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const toggleCurrentPassword = () => setShowCurrentPassword(!showCurrentPassword);
   const toggleNewPassword = () => setShowNewPassword(!showNewPassword);
   const toggleConfirmPassword = () => setShowConfirmPassword(!showConfirmPassword);
 
-  const isProfileChanged = () => {
-    return firstName.trim() !== user?.firstName || lastName.trim() !== user?.lastName;
-  };
-
-  const isProfileValid = !profileErrors;
-  const isPasswordValid = !passwordErrors;
-
   const renderPasswordRequirements = () => {
-    if (!passwordForm.newPassword) return null;
+    if (!formValues.newPassword) return null;
 
     return (
       <View className="mb-6">
         <AppText className="text-xs text-gray-500 mb-2">Password Requirements:</AppText>
         <View>
           {passwordRules.map((rule, index) => {
-            const passed = rule.test(passwordForm.newPassword);
+            const passed = rule.test(formValues.newPassword);
             return (
               <AppText
                 key={index}
@@ -267,12 +156,18 @@ export default function Profile() {
     );
   }
 
+  const isUpdateButtonDisabled = isLoading || (!isProfileChanged && !hasPasswordData);
+
   const profileContent = (
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="custom-scrollbar">
       <View className="mt-8 px-4">
         <View className="items-center py-10 rounded-3xl max-w-3xl w-full mx-auto dark:bg-background-dark light:bg-secondary-light">
-          <TouchableOpacity onPress={uploadImageResult} disabled={uploading} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
-           <View style={{ position: "relative" }}>
+          <TouchableOpacity
+            onPress={uploadImageResult}
+            disabled={uploading}
+            activeOpacity={DEFAULT_ACTIVE_OPACITY}
+          >
+            <View style={{ position: "relative" }}>
               {imagePickerResult?.assets?.[0]?.uri ? (
                 <Image
                   source={{ uri: imagePickerResult.assets[0].uri }}
@@ -316,56 +211,68 @@ export default function Profile() {
         <View className="max-w-3xl w-full mx-auto">
           <ProfileField
             label="First Name"
-            value={firstName}
+            name="firstName"
+            value={formValues.firstName}
             editable
-            onChangeText={setFirstName}
+            onValueChange={onValueChange}
             placeholder="Enter first name"
-            error={profileErrors?.firstName}
+            error={formErrors?.firstName}
+            showError={showErrors}
           />
           <ProfileField
             label="Last Name"
-            value={lastName}
+            name="lastName"
+            value={formValues.lastName}
             editable
-            onChangeText={setLastName}
+            onValueChange={onValueChange}
             placeholder="Enter last name"
-            error={profileErrors?.lastName}
+            error={formErrors?.lastName}
+            showError={showErrors}
           />
           <ProfileField label="Email" value={user?.email} />
 
           <View className="mt-6">
-            <AppText className="text-lg dark:text-white font-semibold mb-4">Change Password</AppText>
+            <AppText className="text-lg dark:text-white font-semibold mb-4">
+              Change Password
+            </AppText>
 
             <ProfileField
               label="Current Password"
-              value={passwordForm.currentPassword}
+              name="currentPassword"
+              value={formValues.currentPassword}
               editable
               secureTextEntry={!showCurrentPassword}
-              onChangeText={updatePasswordField('currentPassword')}
-              rightIcon={showCurrentPassword ? 'eye-off' : 'eye'}
+              onValueChange={onValueChange}
+              rightIcon={showCurrentPassword ? "eye-off" : "eye"}
               onRightIconPress={toggleCurrentPassword}
-              error={passwordErrors?.currentPassword}
+              error={formErrors?.currentPassword}
+              showError={showErrors}
             />
 
             <ProfileField
               label="New Password"
-              value={passwordForm.newPassword}
+              name="newPassword"
+              value={formValues.newPassword}
               editable
               secureTextEntry={!showNewPassword}
-              onChangeText={updatePasswordField('newPassword')}
-              rightIcon={showNewPassword ? 'eye-off' : 'eye'}
+              onValueChange={onValueChange}
+              rightIcon={showNewPassword ? "eye-off" : "eye"}
               onRightIconPress={toggleNewPassword}
-              error={passwordErrors?.newPassword}
+              error={formErrors?.newPassword}
+              showError={showErrors}
             />
 
             <ProfileField
               label="Confirm New Password"
-              value={passwordForm.confirmPassword}
+              name="confirmPassword"
+              value={formValues.confirmPassword}
               editable
               secureTextEntry={!showConfirmPassword}
-              onChangeText={updatePasswordField('confirmPassword')}
-              rightIcon={showConfirmPassword ? 'eye-off' : 'eye'}
+              onValueChange={onValueChange}
+              rightIcon={showConfirmPassword ? "eye-off" : "eye"}
               onRightIconPress={toggleConfirmPassword}
-              error={passwordErrors?.confirmPassword}
+              error={formErrors?.confirmPassword}
+              showError={showErrors}
             />
 
             {renderPasswordRequirements()}
@@ -376,18 +283,13 @@ export default function Profile() {
       <View className="mt-6 px-4">
         <View className="max-w-3xl w-full mx-auto">
           <TouchableOpacity
-            onPress={handleUpdateAll}
-            disabled={
-              isUpdatingUser ||
-              changeUserPassword.isPending ||
-              (!isProfileChanged() && !hasPasswordData()) ||
-              !isProfileValid 
-            }
-            className={`py-4 rounded-xl items-center mb-3 ${(
-              (isProfileChanged() && isProfileValid) || (hasPasswordData() && isPasswordValid)
-            ) ? "bg-blue-500" : "bg-gray-400"}`}
+            onPress={submit}
+            disabled={isUpdateButtonDisabled}
+            className={`py-4 rounded-xl items-center mb-3 ${
+              !isUpdateButtonDisabled ? "bg-blue-500" : "bg-gray-400"
+            }`}
           >
-            {isUpdatingUser || changeUserPassword.isPending ? (
+            {isLoading ? (
               <ActivityIndicator size={20} color="#ffffff" />
             ) : (
               <AppText className="text-white text-base font-semibold">Update</AppText>
@@ -395,7 +297,7 @@ export default function Profile() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleLogout}
-            disabled={isUpdatingUser || changeUserPassword.isPending}
+            disabled={isLoading}
             className="bg-red-500 py-4 rounded-xl items-center"
           >
             <AppText className="text-white text-base font-semibold">Logout</AppText>

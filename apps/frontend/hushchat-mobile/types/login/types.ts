@@ -68,3 +68,11 @@ export type TForgotPasswordResetFormProps = {
   onSubmit: () => void;
   onBackToLogin: () => void;
 };
+
+export type TProfileFormProps = {
+  firstName: string;
+  lastName: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
