@@ -98,7 +98,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserDTO> getAllUsers(Pageable pageable, UserFilterCriteriaDTO userFilterCriteriaDTO, Long loggedInUserId) {
         Page<ChatUser> users = userQueryRepository.findAllUsersByCriteria(pageable, userFilterCriteriaDTO, loggedInUserId);
-        return users.map(UserDTO::new);
+
+        return users.map(user -> {
+            UserDTO userDTO = new UserDTO(user);
+            userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+            return userDTO;
+        });
     }
 
     @Override
