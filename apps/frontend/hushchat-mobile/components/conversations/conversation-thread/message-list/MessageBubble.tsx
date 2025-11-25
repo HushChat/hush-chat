@@ -8,6 +8,11 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 
+const COLORS = {
+  FORWARDED_RIGHT_BORDER: "#60A5FA30",
+  FORWARDED_LEFT_BORDER: "#9CA3AF30",
+};
+
 interface IMessageBubbleProps {
   message: IMessage;
   isCurrentUser: boolean;
@@ -39,13 +44,11 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 }) => {
   const messageContent = message.messageText;
 
-  const getBubbleBorderStyle = () => {
-    if (!isForwardedMessage) return {};
-
-    return isCurrentUser
-      ? { borderRightWidth: 2, borderRightColor: "#60A5FA30" }
-      : { borderLeftWidth: 2, borderLeftColor: "#9CA3AF30" };
-  };
+  const forwardedBorderStyle = isForwardedMessage
+    ? isCurrentUser
+      ? styles.forwardedRight
+      : styles.forwardedLeft
+    : null;
 
   const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
 
@@ -87,7 +90,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 
             "px-3 py-2": !(hasImages && !messageContent),
           })}
-          style={[bubbleMaxWidthStyle, getBubbleBorderStyle()]}
+          style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
           {hasAttachments && (
             <View className={messageContent ? "mb-2" : ""}>
@@ -122,5 +125,13 @@ const styles = StyleSheet.create({
   },
   maxWidthRegular: {
     maxWidth: "70%",
+  },
+  forwardedRight: {
+    borderRightWidth: 2,
+    borderRightColor: COLORS.FORWARDED_RIGHT_BORDER,
+  },
+  forwardedLeft: {
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.FORWARDED_LEFT_BORDER,
   },
 });
