@@ -126,7 +126,7 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
         for (Tuple tuple : results) {
             resultMap.put(
                 tuple.get(qParticipant.user.id),
-                tuple.get(qConversationReadStatus.message.id)  // Can be null
+                tuple.get(qConversationReadStatus.message.id)
             );
         }
         return resultMap;

@@ -549,6 +549,8 @@ public class ConversationService {
 
         Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
+        Long maxMessageId = getMaxLastReadMessageId(conversationId, loggedInUserId);
+
         List<Long> messageIds = extractMessageIds(messages);
 
         Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
@@ -564,6 +566,9 @@ public class ConversationService {
             .map(dto -> {
                 Message matchedMessage = messageMap.get(dto.getId());
                 List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+                boolean isReadByEveryone = maxMessageId != null && maxMessageId >= dto.getId();
+                dto.setIsReadByEveryone(isReadByEveryone);
 
                 if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
                     return dto;
@@ -596,6 +601,28 @@ public class ConversationService {
             })
             .collect(Collectors.toList());
         return new PageImpl<>(enrichedDTOs, messages.getPageable(), messages.getTotalElements());
+    }
+
+    /**
+     * Returns the highest last-read message ID among all participants in the conversation,
+     * excluding the logged-in user.
+     *
+     * @param conversationId the ID of the conversation whose read statuses are being checked
+     * @param loggedInUserId the ID of the user making the request, whose own read status is excluded
+     * @return the largest last-read message ID among other participants, or {@code null}
+     *         if no other participants have read statuses recorded
+     */
+    private Long getMaxLastReadMessageId(Long conversationId, Long loggedInUserId) {
+        // read statues of every participant, with their user id and last read message id
+        Map<Long, Long> userReadStatues =
+            conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId);
+        userReadStatues.remove(loggedInUserId);
+
+        return userReadStatues.values()
+            .stream()
+            .filter(Objects::nonNull)
+            .max(Long::compare)
+            .orElse(null);
     }
 
     /**
