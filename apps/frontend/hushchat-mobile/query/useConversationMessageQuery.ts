@@ -65,12 +65,10 @@ export function useConversationMessagesQuery(conversationId: number) {
         if (response.data) {
           queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
             queryKey,
-            () => {
-              return {
-                pages: [response.data!],
-                pageParams: [null],
-              };
-            }
+            () => ({
+              pages: [response.data!],
+              pageParams: [null],
+            })
           );
         }
       } catch (e) {

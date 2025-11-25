@@ -141,7 +141,10 @@ const ConversationMessageList = ({
         renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
         showsVerticalScrollIndicator={false}
-        onEndReached={onLoadMore}
+        onEndReached={() => {
+          console.log("waduna");
+          onLoadMore();
+        }}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
         onScrollBeginDrag={closeAll}
