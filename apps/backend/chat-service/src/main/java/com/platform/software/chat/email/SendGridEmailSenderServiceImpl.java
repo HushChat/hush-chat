@@ -10,12 +10,14 @@ import com.sendgrid.helpers.mail.objects.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Service
+@Async
 class SendGridEmailSenderServiceImpl implements EmailSenderService {
 
     Logger logger = LoggerFactory.getLogger(SendGridEmailSenderServiceImpl.class);
