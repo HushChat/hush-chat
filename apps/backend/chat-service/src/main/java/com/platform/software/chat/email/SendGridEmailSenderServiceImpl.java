@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Arrays;
 
-@Service
-@Async
+@Service("sendGridProvider")
 class SendGridEmailSenderServiceImpl implements EmailSenderService {
 
     Logger logger = LoggerFactory.getLogger(SendGridEmailSenderServiceImpl.class);
@@ -31,6 +30,7 @@ class SendGridEmailSenderServiceImpl implements EmailSenderService {
     private static final String SENDGRID_ENDPOINT = "mail/send";
 
     @Override
+    @Async
     public void sendEmail(String to, String subject, String content, String contentType) {
         Email fromEmail = new Email(this.fromEmail);
         Email toEmail = new Email(to);

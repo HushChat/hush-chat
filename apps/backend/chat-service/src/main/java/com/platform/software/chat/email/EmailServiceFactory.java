@@ -2,6 +2,7 @@ package com.platform.software.chat.email;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +17,13 @@ public class EmailServiceFactory {
     @Value("${email-service.enabled}")
     private boolean isEnabled;
 
-    private final SESEmailSenderServiceImpl awsSesProvider;
-    private final SendGridEmailSenderServiceImpl sendGridProvider;
+    private final EmailSenderService awsSesProvider;
+    private final EmailSenderService sendGridProvider;
 
-    public EmailServiceFactory(SESEmailSenderServiceImpl awsSesProvider, SendGridEmailSenderServiceImpl sendGridProvider) {
+    public EmailServiceFactory(
+            @Qualifier("awsSesProvider")EmailSenderService awsSesProvider,
+            @Qualifier("sendGridProvider") EmailSenderService sendGridProvider
+    ) {
         this.awsSesProvider = awsSesProvider;
         this.sendGridProvider = sendGridProvider;
     }
@@ -44,9 +48,8 @@ public class EmailServiceFactory {
         return true;
     }
 
-    public boolean sendEmail(String toEmail, String subject, String content, String contentType) {
+    public void sendEmail(String toEmail, String subject, String content, String contentType) {
         EmailSenderService emailSenderService = getProvider(EmailProviderType.valueOf(defaultSenderService));
         emailSenderService.sendEmail(toEmail, subject, content, contentType);
-        return true;
     }
 }

@@ -11,8 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-@Service
-@Async
+@Service("awsSesProvider")
 class SESEmailSenderServiceImpl implements EmailSenderService {
 
     Logger logger = LoggerFactory.getLogger(SESEmailSenderServiceImpl.class);
@@ -31,6 +30,7 @@ class SESEmailSenderServiceImpl implements EmailSenderService {
     private String fromEmail;
 
     @Override
+    @Async
     public void sendEmail(String to, String subject, String content, String contentType) {
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
 
@@ -40,9 +40,9 @@ class SESEmailSenderServiceImpl implements EmailSenderService {
                 .build();
 
         Body body;
-        if ("text/html".equals(contentType)) {
+        if (EmailContentType.TEXT_HTML.getType().equals(contentType)) {
             body = new Body().withHtml(new Content().withCharset(CHARSET).withData(content));
-        } else if ("text/plain".equals(contentType)) {
+        } else if (EmailContentType.TEXT_PLAIN.getType().equals(contentType)) {
             body = new Body().withText(new Content().withCharset(CHARSET).withData(content));
         } else {
             logger.error("unsupported content type: {}", contentType);
