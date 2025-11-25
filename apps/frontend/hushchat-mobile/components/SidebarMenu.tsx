@@ -23,7 +23,7 @@ export default function SidebarMenu({
 }) {
   const { isDark } = useAppTheme();
   return (
-    <View className="w-full mt-4">
+    <View className="w-full mt-4 gap-2">
       {items.map((item) => {
         const isSelected = selectedKey === item.key;
         const color = isSelected

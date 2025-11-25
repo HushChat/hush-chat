@@ -1,6 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import Contact from "@/app/settings/contact";
 import { FC } from "react";
+import { getUserWorkspaces } from "@/apis/user";
+import ChangeWorkspace from "@/app/settings/change-workspace";
 
 type TMenuItem = {
   key: string;
@@ -8,10 +10,31 @@ type TMenuItem = {
   icon: keyof typeof MaterialIcons.glyphMap;
 };
 
-export const settingsMenuItems: TMenuItem[] = [
+const baseMenuItems: TMenuItem[] = [
   { key: "contact", label: "Contact", icon: "contacts" },
 ];
 
+const changeWorkspaceItem: TMenuItem = { 
+  key: "changeWorkspace", 
+  label: "Change Workspace", 
+  icon: "track-changes" 
+};
+
+export const getSettingsMenuItems = async (): Promise<TMenuItem[]> => {
+  try {
+    const response = await getUserWorkspaces();
+    const workspaces = response.data || [];
+    
+    if (workspaces.length > 1) {
+      return [...baseMenuItems, changeWorkspaceItem];
+    }
+    return baseMenuItems;
+  } catch (error) {
+    return baseMenuItems;
+  }
+};
+
 export const settingsPanels: Record<string, FC> = {
   contact: Contact,
+  changeWorkspace: ChangeWorkspace
 };
