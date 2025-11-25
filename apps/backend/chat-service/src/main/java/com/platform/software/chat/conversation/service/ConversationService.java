@@ -29,6 +29,7 @@ import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.utils.StringUtils;
@@ -37,6 +38,8 @@ import com.platform.software.config.aws.DocUploadRequestDTO;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomForbiddenException;
@@ -75,6 +78,7 @@ public class ConversationService {
     private final RedisCacheService cacheService;
     private final ConversationParticipantCommandRepository participantCommandRepository;
     private final ConversationReportRepository reportRepository;
+    private final WebSocketSessionManager webSocketSessionManager;
 
     public ConversationService(
             ConversationRepository conversationRepository,
@@ -89,7 +93,9 @@ public class ConversationService {
             MessageMentionService messageMentionService, 
             RedisCacheService cacheService,
             ConversationReportRepository reportRepository,
-            ConversationReadStatusRepository conversationReadStatusRepository) {
+            ConversationReadStatusRepository conversationReadStatusRepository,
+            WebSocketSessionManager webSocketSessionManager
+    ) {
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.participantCommandRepository = participantCommandRepository;
@@ -103,6 +109,7 @@ public class ConversationService {
         this.cacheService = cacheService;
         this.reportRepository = reportRepository;
         this.conversationReadStatusRepository = conversationReadStatusRepository;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     /**
@@ -404,6 +411,10 @@ public class ConversationService {
         return participants.map(participant -> {
             ConversationParticipantViewDTO participantViewDTO = new ConversationParticipantViewDTO(participant);
             UserViewDTO user = new UserViewDTO(participant.getUser());
+
+            String signedImageUrl =  cloudPhotoHandlingService.getPhotoViewSignedURL(participant.getUser().getImageIndexedName());
+            user.setSignedImageUrl(signedImageUrl);
+
             participantViewDTO.setUser(user);
             return participantViewDTO;
         });
@@ -1144,6 +1155,13 @@ public class ConversationService {
             } else {
                 conversationMetaDataDTO.setSignedImageUrl(null);
             }
+
+            ChatUserStatus status = webSocketSessionManager.getUserChatStatus(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    directOtherMeta.getEmail()
+            );
+            conversationMetaDataDTO.setChatUserStatus(status);
+
         } else {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
             String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);

@@ -150,6 +150,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .and(qConversation.deleted.eq(false))
                 .and(qConversationParticipant.isDeleted.eq(false));
 
+        whereConditions = whereConditions.and(qMessage.isNotNull());
+
         if (isArchived) {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
         } else if (isFavorite) {
@@ -235,15 +237,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 String imageIndexedName = otherParticipant.getUser().getImageIndexedName();
                                 dto.setName(name);
                                 dto.setImageIndexedName(imageIndexedName);
-                                if(webSocketSessionManager.isUserConnected(
-                                        WorkspaceContext.getCurrentWorkspace(),
-                                        otherParticipant.getUser().getEmail())
-                                ){
-                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.ONLINE));
-                                }
-                                else{
-                                    dto.setChatUserStatus(String.valueOf(ChatUserStatus.OFFLINE));
-                                }
+
+                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
+                                        otherParticipant.getUser().getEmail());
+
+                                dto.setChatUserStatus(status);
                             }
                         }
                     }
@@ -331,6 +329,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                           uOther.id.as("otherUserId"),
                           uOther.firstName.as("firstName"),
                           uOther.lastName.as("lastName"),
+                          uOther.email.as("email"),
                           uOther.imageIndexedName.as("imageIndexedName"),
                           b.id.isNotNull().as("blocked")
                   ))

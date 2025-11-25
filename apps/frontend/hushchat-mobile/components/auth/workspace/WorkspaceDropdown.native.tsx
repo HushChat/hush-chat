@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   Dimensions,
+  StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -23,6 +24,23 @@ import { SIZE_PRESETS } from "@/components/forms/TextField";
 type SizeKey = NonNullable<WorkspaceDropdownProps["size"]>;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const COLORS = {
+  BACKDROP: "rgba(0, 0, 0, 0.5)",
+};
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: COLORS.BACKDROP,
+  },
+  sheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+});
 
 const WorkspaceDropdown = ({
   label,
@@ -141,26 +159,10 @@ const WorkspaceDropdown = ({
         statusBarTranslucent
       >
         <TouchableWithoutFeedback onPress={() => closeDropdown()}>
-          <Animated.View
-            style={[
-              {
-                flex: 1,
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-              },
-              backdropStyle,
-            ]}
-          >
+          <Animated.View style={[styles.backdrop, backdropStyle]}>
             <TouchableWithoutFeedback>
               <Animated.View
-                style={[
-                  {
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                  },
-                  sheetStyle,
-                ]}
+                style={[styles.sheet, sheetStyle]}
                 className="bg-white dark:bg-gray-900 rounded-t-3xl"
               >
                 <View className="items-center py-3">

@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import { CHATS_PATH, WORKSPACE_CREATE_PATH, WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
 import { useAuthStore } from "@/store/auth/authStore";
+import { logError } from "@/utils/logger";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -28,13 +29,13 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
 
         if (response.error) {
           setError(response.error);
-          console.error(response.error);
+          logError(response.error);
           return;
         }
 
         setWorkspaces(response.data || []);
       } catch (err) {
-        console.error("Error fetching workspaces:", err);
+        logError("Error fetching workspaces:", err);
         setError("Failed to load workspaces. Please try again.");
       } finally {
         setLoading(false);
@@ -51,7 +52,7 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const handleNext = async () => {
     if (!selectedWorkspace) return;
 
-    await saveWorkspace(selectedWorkspace?.name);
+    await saveWorkspace(selectedWorkspace?.workspaceIdentifier);
     setWorkspaceSelected(true);
     router.push(CHATS_PATH);
   };
