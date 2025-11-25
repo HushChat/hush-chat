@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
+import com.platform.software.chat.conversation.readstatus.entity.QConversationReadStatus;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
@@ -48,6 +49,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QConversationParticipant qConversationParticipant = QConversationParticipant.conversationParticipant;
     private static final QMessage qMessage = QMessage.message;
     private static final QMessage qMessage2 = QMessage.message;
+    private static final QConversationReadStatus qConversationReadStatus = QConversationReadStatus.conversationReadStatus;
     private final WebSocketSessionManager webSocketSessionManager;
 
     public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory, @Lazy WebSocketSessionManager webSocketSessionManager) {
@@ -138,6 +140,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         ConversationFilterCriteriaDTO conversationFilterCriteria,
         Pageable pageable
     ) {
+        QMessage qUnreadMessage = new QMessage("unreadMessage");
 
         boolean isArchived = conversationFilterCriteria.getIsArchived() != null
                 ? conversationFilterCriteria.getIsArchived()
@@ -145,6 +148,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         boolean isFavorite = conversationFilterCriteria.getIsFavorite() != null
                 ? conversationFilterCriteria.getIsFavorite()
                 : false;
+        boolean isUnread = conversationFilterCriteria.getIsUnread() != null
+            ? conversationFilterCriteria.getIsUnread()
+            : false;
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
                 .and(qConversation.deleted.eq(false))
@@ -164,12 +170,27 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         JPAQuery<?> baseQuery = jpaQueryFactory
                 .from(qConversation)
                 .innerJoin(qConversationParticipant).on(qConversationParticipant.conversation.eq(qConversation))
-                .leftJoin(qMessage).on(qMessage.conversation.eq(qConversation)
-                        .and(qMessage.id.eq(
-                                JPAExpressions.select(qMessage2.id.max())
-                                        .from(qMessage2)
-                                        .where(qMessage2.conversation.eq(qConversation)))))
-                .where(whereConditions);
+
+                .leftJoin(qMessage).on(qMessage.conversation.eq(qConversation) // joining messages to get the latest message of the conversation by max msg id
+                    .and(qMessage.id.eq(
+                        JPAExpressions.select(qMessage2.id.max())
+                            .from(qMessage2)
+                            .where(qMessage2.conversation.eq(qConversation)))))
+
+                .leftJoin(qConversationReadStatus) // joining read statues of the user, to get unread message counts of each conversation
+                .on(qConversationReadStatus.conversation.id.eq(qConversation.id)
+                    .and(qConversationReadStatus.user.id.eq(userId)))
+                .leftJoin(qUnreadMessage)
+                .on(qUnreadMessage.conversation.id.eq(qConversation.id)
+                    .and(qUnreadMessage.isUnsend.isFalse())
+                    .and(qConversationReadStatus.message.id.isNull()
+                        .or(qUnreadMessage.id.gt(qConversationReadStatus.message.id))))
+                .where(whereConditions)
+                .groupBy(qConversation.id, qMessage.id, qConversationParticipant.id);
+
+        if (isUnread) {
+            baseQuery.having(qUnreadMessage.id.count().gt(0L));
+        }
 
         boolean isValidSearchKey = StringUtils.hasText(conversationFilterCriteria.getSearchKeyword());
         if (isValidSearchKey) {
@@ -178,12 +199,12 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         }
 
         Long totalCount = baseQuery.clone()
-                .select(qConversation.count())
+                .select(qConversation.countDistinct())
                 .fetchOne();
 
-        // Get all conversations where user is a participant
+        // Get all conversations where user is a participant, with unread count
         List<Tuple> results = baseQuery.clone()
-                .select(qConversation, qMessage, qConversationParticipant)
+                .select(qConversation, qMessage, qConversationParticipant, qUnreadMessage.id.count())
                 .orderBy(
                         // Primary sort: Pinned conversations first
                         qConversationParticipant.isPinned.desc().nullsLast(),
@@ -201,8 +222,10 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .map(tuple -> {
                     Conversation conversation = tuple.get(qConversation);
                     Message latestMessage = tuple.get(qMessage);
+                    Long unreadCount = tuple.get(3, Long.class);
 
                     ConversationDTO dto = new ConversationDTO(conversation);
+                    dto.setUnreadCount(unreadCount != null ? unreadCount : 0L);
 
                     if (conversation != null && conversation.getConversationParticipants() != null) {
                         ConversationParticipant loggedInParticipant = null;
