@@ -61,8 +61,6 @@ export function useConversationMessagesQuery(conversationId: number) {
       setIsLoadingMessageWindow(true);
 
       try {
-        await queryClient.cancelQueries({ queryKey });
-
         const messageWindowResponse = await getMessagesAroundMessageId(
           conversationId,
           targetMessageId
