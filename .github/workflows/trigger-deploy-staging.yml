@@ -1,0 +1,23 @@
+name: Trigger Deploy Hush Chat Staging
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  trigger-deployment:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.fork }}
+
+    steps:
+      - name: Extract tag name
+        id: extract_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Dispatch prod deployment workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GIT_TOKEN }}
+          repository: ${{ vars.DEPLOYMENT_REPO }}
+          event-type: run-deploy-staging
+          client-payload: '{"tag": "${{ env.TAG_NAME }}"}'
