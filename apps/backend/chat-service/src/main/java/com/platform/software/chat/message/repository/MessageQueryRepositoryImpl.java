@@ -178,7 +178,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     public Page<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long messageId, ConversationParticipant participant) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
-        int windowSize = 20;
+        int windowSize = 10;
 
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
                 .and(message.sender.isNotNull())
@@ -220,10 +220,10 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                 .limit(windowSize)
                 .fetch();
 
-        Collections.reverse(before);
-        List<Message> messages = new ArrayList<>(before);
+        Collections.reverse(after);
+        List<Message> messages = new ArrayList<>(after);
         messages.add(targetMessage);
-        messages.addAll(after);
+        messages.addAll(before);
 
         Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
 

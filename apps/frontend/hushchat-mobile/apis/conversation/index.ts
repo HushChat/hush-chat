@@ -151,6 +151,21 @@ export const sendMessageByConversationId = async (
   }
 };
 
+export const getMessagesAroundMessageId = async (
+  conversationId: number,
+  targetMessageId: number
+): Promise<ApiResponse<CursorPaginatedResponse<IMessageView>>> => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_MESSAGE_BY_ID(conversationId, targetMessageId)
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const setLastSeenMessageByConversationId = async (
   messageId: number,
   conversationId: number
