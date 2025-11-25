@@ -14,6 +14,10 @@ import { ToastUtils } from "@/utils/toastUtils";
 
 const PAGE_SIZE = 20;
 
+/**
+ * Hook: useConversationMessagesQuery
+ * Handles fetching + caching + live updating of conversation messages
+ */
 export function useConversationMessagesQuery(conversationId: number) {
   const {
     user: { id: userId },
