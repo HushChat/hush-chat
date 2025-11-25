@@ -54,7 +54,7 @@ export default function Invite() {
         className="bg-background-light dark:bg-background-dark"
       >
         <View className="flex-1 px-4" style={{ paddingTop: insets.top + 12 }}>
-          <View className="flex-row items-center mb-6">
+          <View className="flex-row items-center mb-6 mt-3">
             {!PLATFORM.IS_WEB && <BackButton onPress={() => router.back()} />}
             <AppText className="text-2xl font-bold text-gray-900 dark:text-white leading-none ml-2">
               Invite to Workspace
