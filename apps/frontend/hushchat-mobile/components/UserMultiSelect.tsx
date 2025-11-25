@@ -60,6 +60,7 @@ export const UserMultiSelectList = ({
         <SelectableListItem
           title={`${user.firstName} ${user.lastName}`}
           subtitle={user.email}
+          imageUrl={user.signedImageUrl}
           isSelected={isSelected}
           onToggle={() => toggle(user)}
         />
