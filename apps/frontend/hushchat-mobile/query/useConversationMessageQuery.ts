@@ -11,6 +11,7 @@ import {
 } from "@/apis/conversation";
 import type { IMessage } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
+import { logError } from "@/utils/logger";
 
 const PAGE_SIZE = 20;
 
@@ -25,7 +26,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const queryClient = useQueryClient();
   const previousConversationId = useRef<number | null>(null);
-  const [isJumping, setIsJumping] = useState(false);
+  const [isLoadingMessageWindow, setIsLoadingMessageWindow] = useState(false);
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
@@ -55,30 +56,39 @@ export function useConversationMessagesQuery(conversationId: number) {
     enabled: !!conversationId,
   });
 
-  const jumpToMessage = useCallback(
+  const loadMessageWindow = useCallback(
     async (targetMessageId: number) => {
-      setIsJumping(true);
-      try {
-        const response = await getMessagesAroundMessageId(conversationId, targetMessageId);
+      setIsLoadingMessageWindow(true);
 
-        if (response.error) {
-          ToastUtils.error(response.error);
+      try {
+        await queryClient.cancelQueries({ queryKey });
+
+        const messageWindowResponse = await getMessagesAroundMessageId(
+          conversationId,
+          targetMessageId
+        );
+
+        if (messageWindowResponse.error) {
+          ToastUtils.error(messageWindowResponse.error);
           return;
         }
 
-        if (response.data) {
-          queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
-            queryKey,
-            () => ({
-              pages: [response.data!],
-              pageParams: [null],
-            })
-          );
-        }
-      } catch (e) {
-        console.error("Failed to jump to message", e);
+        const paginatedMessageWindow = messageWindowResponse.data;
+        if (!paginatedMessageWindow) return;
+
+        const newInfiniteQueryCache: InfiniteData<CursorPaginatedResponse<IMessage>> = {
+          pages: [paginatedMessageWindow],
+          pageParams: [null],
+        };
+
+        queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+          queryKey,
+          newInfiniteQueryCache
+        );
+      } catch (error) {
+        logError("jumpToMessage: Failed to load target message window", error);
       } finally {
-        setIsJumping(false);
+        setIsLoadingMessageWindow(false);
       }
     },
     [conversationId, queryClient, queryKey]
@@ -119,7 +129,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   return {
     conversationMessagesPages: pages,
-    isLoadingConversationMessages: isLoading || isJumping,
+    isLoadingConversationMessages: isLoading || isLoadingMessageWindow,
     conversationMessagesError: error,
     fetchNextPage: fetchOlder,
     hasNextPage: hasMoreOlder,
@@ -127,6 +137,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     refetchConversationMessages: invalidateQuery,
     refetch,
     updateConversationMessagesCache,
-    jumpToMessage,
+    loadMessageWindow,
   } as const;
 }

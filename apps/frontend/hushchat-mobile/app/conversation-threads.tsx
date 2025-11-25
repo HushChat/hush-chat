@@ -94,7 +94,7 @@ const ConversationThreadScreen = ({
     isFetchingNextPage,
     hasNextPage,
     refetchConversationMessages,
-    jumpToMessage,
+    loadMessageWindow,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(currentConversationId);
 
@@ -143,11 +143,11 @@ const ConversationThreadScreen = ({
   const isGroupChat = conversationAPIResponse?.isGroup;
 
   useEffect(() => {
-    if (searchedMessageId && jumpToMessage) {
-      void jumpToMessage(searchedMessageId);
+    if (searchedMessageId && loadMessageWindow) {
+      void loadMessageWindow(searchedMessageId);
       onMessageJumped?.();
     }
-  }, [searchedMessageId, jumpToMessage, onMessageJumped]);
+  }, [searchedMessageId, loadMessageWindow, onMessageJumped]);
 
   const {
     selectedFiles,
