@@ -3,6 +3,7 @@ package com.platform.software.chat.conversation.dto;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.common.model.ModelMapper;
 import lombok.Data;
 
@@ -25,7 +26,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private boolean isArchivedByLoggedInUser;
     private boolean isMutedByLoggedInUser;
     private boolean isFavoriteByLoggedInUser;
-    private String chatUserStatus;
+    private ChatUserStatus chatUserStatus;
 
     private Long unreadCount;
 

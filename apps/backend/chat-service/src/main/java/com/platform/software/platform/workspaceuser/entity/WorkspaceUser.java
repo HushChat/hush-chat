@@ -41,4 +41,8 @@ public class WorkspaceUser extends AuditModel{
     private boolean deleted = false;
 
     private String inviterEmail;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private WorkspaceUserRole role = WorkspaceUserRole.MEMBER;
 }

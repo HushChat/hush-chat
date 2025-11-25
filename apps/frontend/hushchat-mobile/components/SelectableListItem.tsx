@@ -8,6 +8,7 @@ import InitialsAvatar from "@/components/InitialsAvatar";
 interface SelectableListItemProps {
   title: string;
   subtitle?: string;
+  imageUrl?: string;
   isSelected: boolean;
   onToggle: () => void;
 }
@@ -15,6 +16,7 @@ interface SelectableListItemProps {
 export const SelectableListItem = ({
   title,
   subtitle,
+  imageUrl,
   isSelected,
   onToggle,
 }: SelectableListItemProps) => (
@@ -26,7 +28,7 @@ export const SelectableListItem = ({
     )}
     onPress={onToggle}
   >
-    <InitialsAvatar name={title} />
+    <InitialsAvatar name={title} imageUrl={imageUrl} />
     <View className="flex-1 flex-row justify-between items-center mr-3">
       <View className="flex-col items-start mb-1 gap-0.5">
         <Text className="text-text-primary-light dark:text-text-primary-dark font-medium text-base">
