@@ -411,6 +411,10 @@ public class ConversationService {
         return participants.map(participant -> {
             ConversationParticipantViewDTO participantViewDTO = new ConversationParticipantViewDTO(participant);
             UserViewDTO user = new UserViewDTO(participant.getUser());
+
+            String signedImageUrl =  cloudPhotoHandlingService.getPhotoViewSignedURL(participant.getUser().getImageIndexedName());
+            user.setSignedImageUrl(signedImageUrl);
+
             participantViewDTO.setUser(user);
             return participantViewDTO;
         });
