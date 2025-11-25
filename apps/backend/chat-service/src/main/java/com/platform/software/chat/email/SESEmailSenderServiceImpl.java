@@ -22,12 +22,14 @@ public class SESEmailSenderServiceImpl implements EmailSenderService {
     @Value("${cloud.aws.credentials.secretKey}")
     private String awsSecretKey;
 
-    //@Value("${aws.cognito.region}")
+    @Value("${aws.cognito.region}")
     private String awsRegion;
 
+    @Value("${email.from.address}")
+    private String senderEmail;
 
     @Override
-    public void sendEmail(String to, String senderEmail, String subject, String content, String contentType) {
+    public void sendEmail(String to, String subject, String content, String contentType) {
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
 
         AmazonSimpleEmailService sesClient = AmazonSimpleEmailServiceClientBuilder.standard()

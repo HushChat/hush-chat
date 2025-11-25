@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailServiceFactory {
 
-    //@Value("email-service.default-sender-service")
+    @Value("${email.default.sender}")
     private String defaultSenderService;
 
     private final SESEmailSenderServiceImpl awsSesProvider;
@@ -24,4 +24,15 @@ public class EmailServiceFactory {
         };
     }
 
+    public boolean sendEmail(String toEmail , String subject, String content, String contentType, EmailProviderType provider) {
+        EmailSenderService emailSenderService = getProvider(provider);
+        emailSenderService.sendEmail(toEmail, subject, content, contentType);
+        return true;
+    }
+
+    public boolean sendEmail(String toEmail, String senderEmail, String subject, String content, String contentType) {
+        EmailSenderService emailSenderService = getProvider(EmailProviderType.valueOf(defaultSenderService));
+        emailSenderService.sendEmail(toEmail, subject, content, contentType);
+        return true;
+    }
 }
