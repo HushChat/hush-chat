@@ -20,7 +20,6 @@ interface DecodedJWTPayload {
   [key: string]: any;
 }
 
-const RETRY_TIME_MS = 10000;
 const INVALID_ACCESS_TOKEN_ERROR = "Invalid access token format or structure";
 const ERROR_RESPONSE = "ERROR";
 const MESSAGE_RESPONSE = "MESSAGE";
@@ -198,20 +197,13 @@ export default function useWebSocketConnection() {
           if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
             logInfo("Connection closed due to authentication failure");
             shouldStopRetrying.current = true;
-            return; // Exit early - no retry on auth failures
-          }
-
-          // Reconnect on all other disconnections (including after errors)
-          if (!isCancelled && !shouldStopRetrying.current) {
-            logInfo("WebSocket disconnected, attempting reconnection in 10 seconds...");
-            setTimeout(fetchAndSubscribe, RETRY_TIME_MS);
           }
         };
       } catch (error) {
         logInfo("Connection setup error:", error);
         setConnectionStatus(WebSocketStatus.Error);
         if (!isCancelled && !shouldStopRetrying.current) {
-          setTimeout(fetchAndSubscribe, RETRY_TIME_MS);
+          setTimeout(fetchAndSubscribe, 10000);
         }
       }
     };
