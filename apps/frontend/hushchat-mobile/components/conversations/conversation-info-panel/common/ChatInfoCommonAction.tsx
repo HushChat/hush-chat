@@ -6,7 +6,6 @@
 
 import React, { useCallback, useEffect } from "react";
 import { View } from "react-native";
-import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useModalContext } from "@/context/modal-context";
@@ -21,6 +20,8 @@ import {
 import { useDeleteConversationByIdMutation } from "@/query/delete/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
+import ActionList from "@/components/conversations/conversation-info-panel/common/ActionList";
+import { useChatActionOptions } from "@/hooks/useChatActionOptions";
 
 type ChatInfoActionProps = {
   conversationId: number;
@@ -165,29 +166,44 @@ export default function ChatInfoCommonAction({
     });
   }, [openModal, closeModal, deleteConversation, conversationId]);
 
+  const actionOptions = useChatActionOptions({
+    // State
+    isPinned: isPinnedState,
+    isFavorite: isFavoriteState,
+    isMuted: isMutedState,
+
+    // Handlers
+    onTogglePin: handleTogglePinConversation,
+    onToggleFavorite: handleToggleFavorite,
+    onToggleMute: handleToggleMuteConversation,
+    onDelete: handleDeleteConversation,
+  });
+
   return (
     <View>
-      <ActionItem
-        icon={isPinnedState ? "pin-outline" : "pin"}
-        label={isPinnedState ? "Unpin Conversation" : "Pin Conversation"}
-        onPress={handleTogglePinConversation}
-      />
-      <ActionItem
-        icon={isFavoriteState ? "heart" : "heart-outline"}
-        label={isFavoriteState ? "Remove from Favorites" : "Add to Favorites"}
-        onPress={handleToggleFavorite}
-      />
-      <ActionItem
-        icon={isMutedState ? "notifications-off-outline" : "notifications-outline"}
-        label={isMutedState ? "Unmute Conversation" : "Mute Conversation"}
-        onPress={handleToggleMuteConversation}
-      />
-      <ActionItem
-        icon={"trash-bin-outline"}
-        label={"Delete Conversation"}
-        onPress={handleDeleteConversation}
-        color="#EF4444"
-      />
+      {/*<ActionItem*/}
+      {/*  icon={isPinnedState ? "pin-outline" : "pin"}*/}
+      {/*  label={isPinnedState ? "Unpin Conversation" : "Pin Conversation"}*/}
+      {/*  onPress={handleTogglePinConversation}*/}
+      {/*/>*/}
+      {/*<ActionItem*/}
+      {/*  icon={isFavoriteState ? "heart" : "heart-outline"}*/}
+      {/*  label={isFavoriteState ? "Remove from Favorites" : "Add to Favorites"}*/}
+      {/*  onPress={handleToggleFavorite}*/}
+      {/*/>*/}
+      {/*<ActionItem*/}
+      {/*  icon={isMutedState ? "notifications-off-outline" : "notifications-outline"}*/}
+      {/*  label={isMutedState ? "Unmute Conversation" : "Mute Conversation"}*/}
+      {/*  onPress={handleToggleMuteConversation}*/}
+      {/*/>*/}
+      {/*<ActionItem*/}
+      {/*  icon={"trash-bin-outline"}*/}
+      {/*  label={"Delete Conversation"}*/}
+      {/*  onPress={handleDeleteConversation}*/}
+      {/*  color="#EF4444"*/}
+      {/*/>*/}
+
+      <ActionList options={actionOptions} area="group-info" />
     </View>
   );
 }

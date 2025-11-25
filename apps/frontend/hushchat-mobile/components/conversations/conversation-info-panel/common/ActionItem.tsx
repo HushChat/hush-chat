@@ -15,6 +15,7 @@ interface ActionItemProps {
   label: string;
   onPress?: () => void;
   color?: string;
+  showOn?: boolean;
 }
 
 export default function ActionItem({ icon, label, onPress, color }: ActionItemProps) {
