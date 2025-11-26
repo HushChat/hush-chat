@@ -6,9 +6,5 @@ interface SettingsPanelWrapperProps {
 }
 
 export function ContentViewWrapper({ children }: SettingsPanelWrapperProps) {
-  return (
-    <View className="flex-1 p-6">
-      {children}
-    </View>
-  );
+  return <View className="flex-1 p-6">{children}</View>;
 }

@@ -64,7 +64,7 @@ export default function ChangeWorkspaceScreen() {
 
   const onSelectWorkspace = async (workspace: Workspace) => {
     setSelectedWorkspace(workspace);
-    
+
     if (workspace.status === "ACCEPTED") {
       await saveWorkspace(workspace.workspaceIdentifier);
     }
