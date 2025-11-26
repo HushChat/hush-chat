@@ -12,11 +12,13 @@ import {
   TextInputSelectionChangeEvent,
   View,
   StyleSheet,
+  Modal,
+  TouchableOpacity,
 } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import classNames from "classnames";
 import { debounce } from "lodash";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import PrimaryCircularButton from "@/components/conversations/conversation-thread/composer/PrimaryCircularButton";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
@@ -28,7 +30,7 @@ import { useSpecialCharHandler, WebKeyboardEvent } from "@/hooks/useSpecialCharH
 import { getDraftKey } from "@/constants/constants";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ToastUtils } from "@/utils/toastUtils";
-import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
+import { ACCEPT_IMAGE_TYPES, ACCEPT_DOC_TYPES } from "@/constants/mediaConstants";
 
 import {
   ANIM_EASING,
@@ -58,6 +60,7 @@ type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
+  onOpenDocumentPickerNative?: () => void;
   conversationId: number;
   disabled?: boolean;
   isSending?: boolean;
@@ -90,6 +93,7 @@ const ConversationInputBar = ({
   onCancelReply,
   isGroupChat,
   onOpenImagePickerNative,
+  onOpenDocumentPickerNative,
 }: MessageInputProps) => {
   const storage = useMemo(() => StorageFactory.createStorage(), []);
   const initialHeight = useMemo(
@@ -106,8 +110,10 @@ const ConversationInputBar = ({
     x: 0,
     y: 0,
   });
+  const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const textInputRef = useRef<TextInput>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const addButtonContainerRef = useRef<View>(null);
 
   const minHeight = useMemo(() => {
@@ -122,7 +128,10 @@ const ConversationInputBar = ({
 
   const animatedHeight = useSharedValue(initialHeight);
   const mentionVisible = mentionQuery !== null;
-  const menuOptions = useMemo(() => getConversationMenuOptions(fileInputRef), [fileInputRef]);
+  const menuOptions = useMemo(
+    () => getConversationMenuOptions(fileInputRef, documentInputRef),
+    [fileInputRef, documentInputRef]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -296,8 +305,8 @@ const ConversationInputBar = ({
       return;
     }
 
-    onOpenImagePickerNative?.();
-  }, [onOpenImagePickerNative]);
+    setMobileMenuVisible(true);
+  }, []);
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,6 +323,21 @@ const ConversationInputBar = ({
       event.target.value = "";
     },
     [onOpenImagePicker]
+  );
+
+  const handleMobileMenuSelect = useCallback(
+    async (option: "images" | "documents") => {
+      try {
+        if (option === "images") {
+          await onOpenImagePickerNative?.();
+        } else if (option === "documents") {
+          await onOpenDocumentPickerNative?.();
+        }
+      } finally {
+        setMobileMenuVisible(false);
+      }
+    },
+    [onOpenImagePickerNative, onOpenDocumentPickerNative]
   );
 
   const enterSubmitHandler = useEnterSubmit(() => handleSend(message));
@@ -362,7 +386,7 @@ const ConversationInputBar = ({
             disabled={disabled}
             iconSize={20}
             onPress={handleAddButtonPress}
-            toggled={menuVisible}
+            toggled={menuVisible || mobileMenuVisible}
           />
         </View>
 
@@ -447,16 +471,68 @@ const ConversationInputBar = ({
         </View>
 
         {PLATFORM.IS_WEB && (
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPT_FILE_TYPES}
-            multiple
-            style={styles.hiddenFileInput}
-            onChange={handleFileChange}
-          />
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPT_IMAGE_TYPES}
+              multiple
+              style={styles.hiddenInput}
+              onChange={handleFileChange}
+            />
+            <input
+              ref={documentInputRef}
+              type="file"
+              accept={ACCEPT_DOC_TYPES}
+              multiple
+              style={styles.hiddenInput}
+              onChange={handleFileChange}
+            />
+          </>
         )}
       </View>
+
+      {!PLATFORM.IS_WEB && (
+        <Modal
+          visible={mobileMenuVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMobileMenuVisible(false)}
+        >
+          <TouchableOpacity
+            className="flex-1"
+            activeOpacity={1}
+            onPress={() => setMobileMenuVisible(false)}
+          >
+            <View
+              style={styles.mobileMenuContainer}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[200px]"
+            >
+              <TouchableOpacity
+                className="flex-row items-center py-3 px-4 active:bg-gray-100 dark:active:bg-gray-700"
+                onPress={() => handleMobileMenuSelect("images")}
+              >
+                <MaterialIcons name="photo-library" size={20} color="#3B82F6" />
+                <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
+                  Upload Images
+                </AppText>
+              </TouchableOpacity>
+
+              <View className="h-px bg-gray-200 dark:bg-gray-700" />
+
+              <TouchableOpacity
+                className="flex-row items-center py-3 px-4 active:bg-gray-100 dark:active:bg-gray-700"
+                onPress={() => handleMobileMenuSelect("documents")}
+              >
+                <MaterialIcons name="insert-drive-file" size={20} color="#3B82F6" />
+                <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
+                  Upload Documents
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
 
       {PLATFORM.IS_WEB && (
         <WebChatContextMenu
@@ -498,7 +574,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingRight: RIGHT_ICON_GUTTER,
   },
-  hiddenFileInput: {
+  hiddenInput: {
     display: "none",
+  },
+  mobileMenuContainer: {
+    position: "absolute",
+    bottom: 80,
+    left: 16,
   },
 });
