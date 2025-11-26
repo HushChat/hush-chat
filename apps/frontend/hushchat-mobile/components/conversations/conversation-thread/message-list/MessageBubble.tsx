@@ -7,9 +7,13 @@ import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
-import { getSelectionIconPosition, getBubbleBorderStyle } from "@/utils/messageStyles";
 
-interface MessageBubbleProps {
+const COLORS = {
+  FORWARDED_RIGHT_BORDER: "#60A5FA30",
+  FORWARDED_LEFT_BORDER: "#9CA3AF30",
+};
+
+interface IMessageBubbleProps {
   message: IMessage;
   isCurrentUser: boolean;
   hasText: boolean;
@@ -24,7 +28,7 @@ interface MessageBubbleProps {
   messageTextStyle?: TextStyle;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({
+export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   message,
   isCurrentUser,
   hasText,
@@ -40,10 +44,23 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 }) => {
   const messageContent = message.messageText;
 
+  const forwardedBorderStyle = isForwardedMessage
+    ? isCurrentUser
+      ? styles.forwardedRight
+      : styles.forwardedLeft
+    : null;
+
+  const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
       {selectionMode && (
-        <View style={getSelectionIconPosition(isCurrentUser)}>
+        <View
+          className={classNames("absolute -top-1.5 z-10", {
+            "-right-1.5": isCurrentUser,
+            "-left-1.5": !isCurrentUser,
+          })}
+        >
           <Ionicons
             name={selected ? "checkmark-circle" : "ellipse-outline"}
             size={20}
@@ -52,22 +69,28 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         </View>
       )}
 
-      <View className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}>
+      <View
+        className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
+        style={style}
+      >
         <ForwardedLabel isForwardedMessage={isForwardedMessage} isCurrentUser={isCurrentUser} />
 
         <View
-          className={classNames(
-            "rounded-lg border-2",
-            hasText || hasImages
-              ? isCurrentUser
-                ? "bg-primary-light dark:bg-primary-dark rounded-tr-none"
-                : "bg-secondary-light dark:bg-secondary-dark rounded-tl-none"
-              : "bg-transparent",
-            selected && selectionMode ? "border-sky-500 dark:border-sky-400" : "border-transparent",
-            isForwardedMessage && "shadow-sm",
-            hasImages && !messageContent ? "" : "px-3 py-2"
-          )}
-          style={[style, getBubbleBorderStyle(isForwardedMessage, isCurrentUser)]}
+          className={classNames("rounded-lg border-2", {
+            "bg-primary-light dark:bg-primary-dark rounded-tr-none":
+              (hasText || hasImages) && isCurrentUser,
+            "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
+              (hasText || hasImages) && !isCurrentUser,
+            "bg-transparent": !(hasText || hasImages),
+
+            "border-sky-500 dark:border-sky-400": selected && selectionMode,
+            "border-transparent": !(selected && selectionMode),
+
+            "shadow-sm": isForwardedMessage,
+
+            "px-3 py-2": !(hasImages && !messageContent),
+          })}
+          style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
           {hasAttachments && (
             <View className={messageContent ? "mb-2" : ""}>
@@ -96,5 +119,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
     fontFamily: "Poppins-Regular",
+  },
+  maxWidthAttachments: {
+    maxWidth: 305,
+  },
+  maxWidthRegular: {
+    maxWidth: "70%",
+  },
+  forwardedRight: {
+    borderRightWidth: 2,
+    borderRightColor: COLORS.FORWARDED_RIGHT_BORDER,
+  },
+  forwardedLeft: {
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.FORWARDED_LEFT_BORDER,
   },
 });
