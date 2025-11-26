@@ -12,7 +12,7 @@ import {
 } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
 import * as DocumentPicker from "expo-document-picker";
-import { logWarn } from "@/utils/logger";
+import { logError, logWarn } from "@/utils/logger";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -56,7 +56,7 @@ export async function pickDocumentsForMobileUpload(
 
     await upload(locals);
   } catch (e) {
-    console.error("Document picker error", e);
+    logError("Document picker error", e);
     ToastUtils.error("Failed to pick documents");
   }
 }
