@@ -16,8 +16,6 @@ type AppendOptions<T> = {
   getPageItems?: (page: any) => T[];
   setPageItems?: (page: any, items: T[]) => any;
   /** Optional: when true, if same id exists anywhere, remove it before inserting */
-  dedupeAcrossPages?: boolean;
-  /** Optional: if true, and there are zero pages yet, create page[0] */
   createIfEmpty?: boolean;
   /** Optional: if true, moves updated items (with same id) to the top of page 0 (default: false) */
   moveUpdatedToTop?: boolean;
@@ -124,7 +122,6 @@ export function appendToOffsetPaginatedCache<T>(
     getPageItems = (p: any) => (p?.content ?? p?.items ?? []) as T[],
     setPageItems = (p: any, items: T[]) =>
       "content" in (p ?? {}) ? { ...p, content: items } : { ...p, items },
-    dedupeAcrossPages = true,
     createIfEmpty = true,
     moveUpdatedToTop = false,
   } = opts;

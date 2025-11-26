@@ -44,12 +44,14 @@ export interface AddConversationParticipantsParams {
   conversationId: number;
   newParticipantIds: number[];
 }
+
 export interface ToggleMuteConversationParams {
   conversationId: number;
   duration: "15m" | "1h" | "1d" | "always";
 }
 
 export type ReportReason = "SPAM" | "HARASSMENT" | "INAPPROPRIATE_CONTENT" | "OTHER";
+
 export interface ReportConversationParams {
   conversationId: number;
   reason: ReportReason;

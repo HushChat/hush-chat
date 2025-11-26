@@ -96,7 +96,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         pageSize: PAGE_SIZE,
         getPageItems: (page) => page?.content,
         setPageItems: (page, items) => ({ ...page, content: items }),
-        dedupeAcrossPages: true,
         moveUpdatedToTop: true,
       }
     );
@@ -189,14 +188,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         pageSize: PAGE_SIZE,
         getPageItems: (page) => page?.content,
         setPageItems: (page, items) => ({ ...page, content: items }),
-        dedupeAcrossPages: true,
       }
     );
   }, [userStatus, queryClient, loggedInUserId, criteria]);
-
-  const clearUserStatus = useCallback(() => {
-    setUserStatus(null);
-  }, []);
 
   return (
     <ConversationNotificationsContext.Provider
