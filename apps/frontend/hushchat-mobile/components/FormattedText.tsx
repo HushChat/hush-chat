@@ -49,12 +49,10 @@ const FormattedText = ({
 
   const handleUrlContextMenu = useCallback(
     (url: string) => (event: any) => {
-      if (PLATFORM.IS_WEB) {
-        event.preventDefault();
-        setMenuPos({ x: event.nativeEvent.pageX, y: event.nativeEvent.pageY });
-        setSelectedUrl(url);
-        setMenuVisible(true);
-      }
+      event.preventDefault();
+      setMenuPos({ x: event.nativeEvent.pageX, y: event.nativeEvent.pageY });
+      setSelectedUrl(url);
+      setMenuVisible(true);
     },
     []
   );
@@ -98,8 +96,9 @@ const FormattedText = ({
         renderText: ((matchingString: string) => (
           <Text
             onPress={() => handleUrlPress(matchingString)}
-            // @ts-expect-error: onContextMenu is valid on Web but not in RN Types
-            onContextMenu={handleUrlContextMenu(matchingString)}
+            {...(PLATFORM.IS_WEB && {
+              onContextMenu: handleUrlContextMenu(matchingString),
+            })}
             className={PLATFORM.IS_WEB ? "hover:underline hover:decoration-[#7dd3fc]" : undefined}
             style={{
               textDecorationLine: PLATFORM.IS_WEB ? undefined : "underline",
