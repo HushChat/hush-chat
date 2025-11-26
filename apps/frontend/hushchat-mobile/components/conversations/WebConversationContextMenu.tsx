@@ -6,6 +6,9 @@ import WebChatContextMenu from "@/components/WebContextMenu";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useConversationFavorites } from "@/hooks/useConversationFavorites";
 import { getCriteria } from "@/utils/conversationUtils";
+import { useTogglePinConversationMutation } from "@/query/post/queries";
+import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { useUserStore } from "@/store/user/useUserStore";
 
 interface ConversationWebChatContextMenuProps {
   visible: boolean;
@@ -13,6 +16,7 @@ interface ConversationWebChatContextMenuProps {
   onClose: () => void;
   conversationId: number;
   isFavorite: boolean;
+  isPinned: boolean;
   handleArchivePress: (conversationId: number) => void;
   handleDeletePress: (conversationId: number) => void;
   conversationsRefetch: () => void;
@@ -24,13 +28,37 @@ const ConversationWebChatContextMenu = ({
   onClose,
   conversationId,
   isFavorite,
+  isPinned,
   handleArchivePress,
   handleDeletePress,
   conversationsRefetch,
 }: ConversationWebChatContextMenuProps) => {
+  const {
+    user: { id: userId },
+  } = useUserStore();
+
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
   const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
+
+  const togglePinConversation = useTogglePinConversationMutation(
+    {
+      userId: Number(userId),
+      conversationId,
+      criteria,
+    },
+    () => {
+      setIsPinnedState(!isPinnedState);
+    },
+    (error) => {
+      setIsPinnedState(isPinnedState);
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  );
+
+  const handleTogglePinConversation = useCallback(() => {
+    togglePinConversation.mutate(conversationId);
+  }, [conversationId, togglePinConversation]);
 
   const handleOptionSelect = useCallback(
     async (action: () => Promise<void> | void) => {
@@ -48,27 +76,40 @@ const ConversationWebChatContextMenu = ({
 
   const chatOptions: IOption[] = useMemo(
     () => [
+      isPinned
+        ? {
+            id: 1,
+            name: TITLES.UNPIN_CONVERSATION,
+            iconName: "pin-outline",
+            action: () => handleTogglePinConversation(conversationId),
+          }
+        : {
+            id: 1,
+            name: TITLES.PIN_CONVERSATION,
+            iconName: "pin",
+            action: () => handleTogglePinConversation(conversationId),
+          },
       {
-        id: 1,
+        id: 2,
         name: TITLES.ARCHIVE_CHAT(selectedConversationType),
         iconName: "archive-outline",
         action: () => handleArchivePress(conversationId),
       },
       isFavorite
         ? {
-            id: 2,
+            id: 3,
             name: TITLES.REMOVE_FROM_FAVOURITES,
             iconName: "heart",
             action: () => handleToggleFavorites(conversationId),
           }
         : {
-            id: 2,
+            id: 3,
             name: TITLES.ADD_TO_FAVOURITES,
             iconName: "heart-outline",
             action: () => handleToggleFavorites(conversationId),
           },
       {
-        id: 3,
+        id: 4,
         name: TITLES.DELETE_CHAT,
         iconName: "trash-outline",
         action: () => handleDeletePress(conversationId),

@@ -1,49 +1,59 @@
-import { Ionicons } from "@expo/vector-icons";
-import { View, ViewProps } from "react-native";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 
-export type ApplyArea = "all" | "group-info" | "conversation-list";
-
-export interface ActionOption {
-  id: string | number;
-  name: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  action: () => void;
-  critical?: boolean;
-  showIn?: ApplyArea[];
+interface IOption {
+  state?: boolean;
+  handler?: () => void;
 }
 
-interface ActionListProps extends ViewProps {
-  options: ActionOption[];
-  area?: ApplyArea;
+interface ActionListProps {
+  pinOption?: IOption;
+  favoriteOption?: IOption;
+  mutedOption?: IOption;
+  deleteOption?: IOption;
+  archiveChatOption?: IOption;
 }
 
-export default function ActionList({ options, area = "all", ...viewProps }: ActionListProps) {
-  // 3. Filter the options based on the current area
-  const visibleOptions = options.filter((option) => {
-    // If option has no specific scope, assume it shows everywhere ('all')
-    const allowedAreas = option.showIn || ["all"];
-
-    // Always show if the item is marked for 'all'
-    if (allowedAreas.includes("all")) return true;
-
-    // Otherwise, check if the current component area matches the allowed areas
-    return allowedAreas.includes(area);
-  });
-
-  if (visibleOptions.length === 0) return null;
-
+export default function ActionList({
+  pinOption,
+  favoriteOption,
+  mutedOption,
+  deleteOption,
+}: ActionListProps) {
   return (
-    <View {...viewProps}>
-      {visibleOptions.map((option) => (
+    <>
+      {pinOption?.state !== undefined && pinOption.handler && (
         <ActionItem
-          key={option.id}
-          icon={option.iconName}
-          label={option.name}
-          onPress={option.action}
-          color={option.critical ? "#EF4444" : undefined}
+          icon={pinOption.state ? "pin-outline" : "pin"}
+          label={pinOption.state ? "Unpin Conversation" : "Pin Conversation"}
+          onPress={pinOption.handler}
         />
-      ))}
-    </View>
+      )}
+
+      {favoriteOption?.state !== undefined && favoriteOption.handler && (
+        <ActionItem
+          icon={favoriteOption.state ? "heart" : "heart-outline"}
+          label={favoriteOption.state ? "Remove from Favorites" : "Add to Favorites"}
+          onPress={favoriteOption.handler}
+        />
+      )}
+
+      {mutedOption?.state !== undefined && mutedOption.handler && (
+        <ActionItem
+          icon={mutedOption.state ? "notifications-off-outline" : "notifications-outline"}
+          label={mutedOption.state ? "Unmute Conversation" : "Mute Conversation"}
+          onPress={mutedOption.handler}
+        />
+      )}
+
+      {deleteOption?.handler && (
+        <ActionItem
+          icon={"trash-bin-outline"}
+          label={"Delete Conversation"}
+          onPress={deleteOption.handler}
+          color="#EF4444"
+          critical={true}
+        />
+      )}
+    </>
   );
 }
