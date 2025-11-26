@@ -7,6 +7,7 @@ import { chatUserStatus } from "@/types/chat/types";
 import UserStatusIndicator from "@/components/UserStatusIndicator";
 
 export const AvatarSize = {
+  extraSmall: "esm",
   small: "sm",
   medium: "md",
   large: "lg",
@@ -23,6 +24,7 @@ interface InitialsAvatarProps {
 }
 
 const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> = {
+  esm: { container: "w-8 h-8", text: "text-xs" },
   sm: { container: "w-10 h-10", text: "text-base" },
   md: { container: "w-12 h-12", text: "text-lg" },
   lg: { container: "w-40 h-40", text: "text-6xl" },

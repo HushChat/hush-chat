@@ -1,0 +1,24 @@
+name: Trigger Deploy Hush Chat Production
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  trigger-deployment:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.fork }}
+
+    steps:
+      - name: Extract release tag
+        id: extract_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Dispatch prod deployment workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GIT_TOKEN }}
+          repository: ${{ vars.DEPLOYMENT_REPO }}
+          event-type: run-deploy-prod
+          client-payload: '{"tag": "${{ env.TAG_NAME }}"}'
+
