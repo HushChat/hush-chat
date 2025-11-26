@@ -29,7 +29,20 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
   return (
     <View className="flex-row items-center">
       {!isCurrentUser && (
-        <Pressable onPress={() => copyToClipboard(messageText)} className={hoverClass}>
+        <Pressable
+          onPress={() => copyToClipboard(messageText)}
+          className={classNames({
+            "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
+            "opacity-100": !PLATFORM.IS_WEB,
+          })}
+          style={({ pressed }) => ({
+            minWidth: 24,
+            minHeight: 24,
+            opacity: pressed ? 0.7 : 1,
+            cursor: "pointer" as const,
+            marginLeft: 6,
+          })}
+        >
           <Ionicons
             name="copy-outline"
             size={16}
@@ -58,7 +71,20 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
       </Pressable>
 
       {isCurrentUser && (
-        <Pressable onPress={() => copyToClipboard(messageText)} className={hoverClass}>
+        <Pressable
+          onPress={() => copyToClipboard(messageText)}
+          className={classNames({
+            "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
+            "opacity-100": !PLATFORM.IS_WEB,
+          })}
+          style={({ pressed }) => ({
+            minWidth: 24,
+            minHeight: 24,
+            opacity: pressed ? 0.7 : 1,
+            cursor: "pointer" as const,
+            marginLeft: 6,
+          })}
+        >
           <Ionicons
             name="copy-outline"
             size={16}
