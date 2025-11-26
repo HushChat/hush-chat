@@ -7,6 +7,7 @@ import com.platform.software.exception.SchemaCreationException;
 import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
+import com.platform.software.platform.workspace.entity.WorkspaceStatus;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
@@ -32,6 +33,30 @@ public class WorkspaceService {
         this.databaseSchemaService = databaseSchemaService;
     }
 
+    public void requestCreateWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO, String loggedInUserEmail) {
+        WorkspaceUtils.runInGlobalSchema(() -> {
+            if (!workspaceUpsertDTO.getName().matches("^[a-zA-Z0-9_]+$")) {
+                throw new CustomBadRequestException("Invalid schema name: " + workspaceUpsertDTO.getName());
+            }
+
+            if (workspaceRepository.existsByName(workspaceUpsertDTO.getName())) {
+                logger.error("Workspace with schema {} already exists", workspaceUpsertDTO.getName());
+                throw new CustomBadRequestException("Workspace with schema '" + workspaceUpsertDTO.getName() + "' already exists");
+            }
+
+            Workspace workspace = workspaceUpsertDTO.buildWorkspace();
+
+            Workspace createdWorkspace = workspaceRepository.save(workspace);
+            logger.info("Workspace creation request initialized for workspace ID: {} and schema: {}", createdWorkspace.getId(), createdWorkspace.getName());
+
+            WorkspaceUserInviteDTO workspaceUserInviteDTO = new WorkspaceUserInviteDTO(loggedInUserEmail);
+            WorkspaceUser newWorkspaceUser =
+                    WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, createdWorkspace, "");
+            newWorkspaceUser.setRole(WorkspaceUserRole.ADMIN);
+            workspaceUserRepository.save(newWorkspaceUser);
+        });
+    }
+
     /**
      * Creates a new workspace by performing the full provisioning workflow.
      * <p>
@@ -46,7 +71,6 @@ public class WorkspaceService {
      * receives its own dedicated database schema for data isolation.
      *
      * @param workspaceUpsertDTO   the workspace creation data
-     * @param loggedInUserEmail    the email of the user initiating the creation
      *
      * @throws CustomBadRequestException
      *         if a workspace with the given name already exists or the input is invalid
@@ -58,36 +82,12 @@ public class WorkspaceService {
      * No Spring-managed transaction is used for schema creation or Liquibase operations.
      * These operations rely on the database and Liquibase to handle their own transactional boundaries.
      */
-    public void createWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO, String loggedInUserEmail) {
-
-        //TODO: Add loggedInUserEmail validation
-
-        if (!workspaceUpsertDTO.getName().matches("^[a-zA-Z0-9_]+$")) {
-            throw new CustomBadRequestException("Invalid schema name: " + workspaceUpsertDTO.getName());
-        }
-
-        if (workspaceRepository.existsByName(workspaceUpsertDTO.getName())) {
-            logger.error("Workspace with schema {} already exists", workspaceUpsertDTO.getName());
-            throw new CustomBadRequestException("Workspace with schema '" + workspaceUpsertDTO.getName() + "' already exists");
-        }
+    private void createWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO) {
 
         try {
             databaseSchemaService.createDatabaseSchema(workspaceUpsertDTO.getName());
 
             databaseSchemaService.applyDatabaseMigrations(workspaceUpsertDTO.getName());
-
-            Workspace workspace = workspaceUpsertDTO.buildWorkspace();
-
-            WorkspaceUtils.runInGlobalSchema(() -> {
-                Workspace createdWorkspace = workspaceRepository.save(workspace);
-                logger.info("Successfully created workspace with ID: {} and schema: {}", createdWorkspace.getId(), createdWorkspace.getName());
-
-                WorkspaceUserInviteDTO workspaceUserInviteDTO = new WorkspaceUserInviteDTO(loggedInUserEmail);
-                WorkspaceUser newWorkspaceUser =
-                        WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, createdWorkspace, "");
-                newWorkspaceUser.setRole(WorkspaceUserRole.ADMIN);
-                workspaceUserRepository.save(newWorkspaceUser);
-            });
 
         } catch (SchemaCreationException e) {
             logger.error("Failed to create schema:", e);
@@ -101,6 +101,26 @@ public class WorkspaceService {
             databaseSchemaService.deleteDatabaseSchema(workspaceUpsertDTO.getName());
             throw new CustomInternalServerErrorException("Failed to create workspace", e);
         }
+    }
+
+    public void approveCreateWorkspaceRequest(Long workspaceId, String approverEmail) {
+
+        //TODO: Approver validation
+
+        WorkspaceUtils.runInGlobalSchema(() -> {
+            Workspace workspace = workspaceRepository.findById(workspaceId)
+                    .orElseThrow(() -> new CustomBadRequestException("Workspace with ID '" + workspaceId + "' not found"));
+
+            if (workspace.getStatus() != null && workspace.getStatus().equals(WorkspaceStatus.ACTIVE)) {
+                throw new CustomBadRequestException("Workspace with ID '" + workspaceId + "' is already active");
+            }
+
+            createWorkspace(new WorkspaceUpsertDTO(workspace.getName(), workspace.getDescription(), workspace.getImageUrl()));
+
+            workspace.setStatus(WorkspaceStatus.ACTIVE);
+            workspaceRepository.save(workspace);
+            logger.info("Workspace with ID: {} has been approved and activated by {}", workspaceId, approverEmail);
+        });
     }
 
     /**

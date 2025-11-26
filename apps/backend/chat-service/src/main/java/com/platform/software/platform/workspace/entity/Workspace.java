@@ -34,4 +34,6 @@ public class Workspace extends AuditModel {
     private String imageUrl;
 
     private boolean deleted = false;
+
+    private WorkspaceStatus status = WorkspaceStatus.PENDING;
 }
