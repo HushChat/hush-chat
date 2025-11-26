@@ -27,7 +27,7 @@ export const getSettingsMenuItems = async (): Promise<TMenuItem[]> => {
     const response = await getUserWorkspaces();
     const workspaces = response.data || [];
 
-    if (workspaces.length === 1) {
+    if (workspaces.length > 1) {
       return [...baseMenuItems, changeWorkspaceItem];
     }
     return baseMenuItems;
