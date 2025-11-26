@@ -39,7 +39,7 @@ export default function SidebarMenu({
             key={item.key}
             onPress={() => onSelect(item.key)}
             className={classNames(
-              "flex-row items-center gap-3 py-3 px-4 rounded-xl",
+              "flex-row items-center gap-3 py-3 px-4 rounded-xl mb-1",
               "active:bg-secondary-light dark:active:bg-secondary-dark",
               PLATFORM.IS_WEB && "hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
               isSelected

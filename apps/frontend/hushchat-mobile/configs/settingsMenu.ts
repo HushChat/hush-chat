@@ -3,6 +3,7 @@ import Contact from "@/app/settings/contact";
 import { FC } from "react";
 import { getUserWorkspaces } from "@/apis/user";
 import ChangeWorkspace from "@/app/settings/change-workspace";
+import Invite from "@/app/settings/invite";
 
 type TMenuItem = {
   key: string;
@@ -10,7 +11,10 @@ type TMenuItem = {
   icon: keyof typeof MaterialIcons.glyphMap;
 };
 
-const baseMenuItems: TMenuItem[] = [{ key: "contact", label: "Contact", icon: "contacts" }];
+const baseMenuItems: TMenuItem[] = [
+  { key: "contact", label: "Contact", icon: "contacts" },
+  { key: "invite", label: "Invite", icon: "person-add" },
+];
 
 const changeWorkspaceItem: TMenuItem = {
   key: "changeWorkspace",
@@ -34,5 +38,6 @@ export const getSettingsMenuItems = async (): Promise<TMenuItem[]> => {
 
 export const settingsPanels: Record<string, FC> = {
   contact: Contact,
+  invite: Invite,
   changeWorkspace: ChangeWorkspace,
 };
