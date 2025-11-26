@@ -227,7 +227,7 @@ export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
   signedImageUrl: string;
-  chatUserStatus: chatUserStatus;
+  chatUserStatus?: chatUserStatus;
 }
 
 export type TPickerState = {
