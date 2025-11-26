@@ -17,7 +17,7 @@ import Placeholder from "@/components/Placeholder";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
+import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { passwordRules } from "@/utils/passwordRules";
@@ -130,7 +130,7 @@ export default function Profile() {
     await logout();
     // ⚠️ Temporary workaround: Wait for storage to finish properly before navigating
     await new Promise((resolve) => setTimeout(resolve, 300));
-    router.replace(AUTH_WORKSPACE_FORM_PATH);
+    router.replace(AUTH_LOGIN_PATH);
   };
 
   const toggleCurrentPassword = () => setShowCurrentPassword(!showCurrentPassword);
