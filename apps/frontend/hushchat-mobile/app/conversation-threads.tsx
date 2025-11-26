@@ -248,6 +248,7 @@ const ConversationThreadScreen = ({
       conversationId: currentConversationId,
       conversationName: conversationAPIResponse?.name,
       signedImageUrl: conversationAPIResponse?.signedImageUrl,
+      chatUserStatus: conversationAPIResponse?.chatUserStatus,
     }),
     [currentConversationId, conversationAPIResponse]
   );
