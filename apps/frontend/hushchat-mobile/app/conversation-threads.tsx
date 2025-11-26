@@ -86,16 +86,16 @@ const ConversationThreadScreen = ({
     useConversationByIdQuery(currentConversationId);
 
   const {
-    conversationMessagesPages,
-    isLoadingConversationMessages,
-    conversationMessagesError,
+    pages: conversationMessagesPages,
+    isLoading: isLoadingConversationMessages,
+    error: conversationMessagesError,
     fetchNextPage,
-    isFetchingNextPage,
     hasNextPage,
+    isFetchingNextPage,
     fetchPreviousPage,
-    isFetchingPreviousPage,
     hasPreviousPage,
-    refetchConversationMessages,
+    isFetchingPreviousPage,
+    invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(currentConversationId);

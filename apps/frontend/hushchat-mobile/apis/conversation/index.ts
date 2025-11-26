@@ -37,6 +37,7 @@ export interface CursorPaginatedQueryOptions<T> {
   queryFn: CursorQueryFnType<T>;
   pageSize?: number;
   enabled?: boolean;
+  allowForwardPagination?: boolean;
 }
 
 export interface AddConversationParticipantsParams {
