@@ -45,7 +45,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     null
   );
   const [userStatus, setUserStatus] = useState<IUserStatus | null>(null);
-  const { selectedConversationType, selectedConversationId } = useConversationStore();
+  const { selectedConversationType } = useConversationStore();
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
@@ -66,12 +66,14 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(conversationsQueryKey);
 
     let existingUnreadCount = 0;
+    let matchedNotification = notificationConversation;
 
     if (existingCache?.pages) {
       for (const page of existingCache.pages) {
         const match = page.content.find((conversation) => conversation.id === conversationId);
         if (match) {
           existingUnreadCount = match.unreadCount || 0;
+          matchedNotification = match;
           break;
         }
       }
@@ -81,6 +83,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     const mergedConversation = {
       ...notificationConversation,
+      chatUserStatus: matchedNotification?.chatUserStatus,
       unreadCount: updatedUnreadCount,
     };
 
@@ -111,7 +114,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   useEffect(() => {
     const handleIncomingWebSocketConversation = (conversation: IConversation) => {
-      console.log("4w2g4gwg4");
       const shouldUpdate = conversation?.id && !conversation.archivedByLoggedInUser;
 
       if (shouldUpdate) {

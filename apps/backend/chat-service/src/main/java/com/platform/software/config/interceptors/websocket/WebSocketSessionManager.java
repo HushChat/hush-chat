@@ -102,21 +102,13 @@ public class WebSocketSessionManager {
         return Optional.empty();
     }
 
-    public void setWebSocketSessionDisconnectionStateInfo(String userId, String email) {
-        Optional<WebSocketSessionInfoDAO> session = getValidSession(userId);
-        if (session.isPresent()) {
-            String workspaceId = userId.split(":", 2)[0];
+    public void removeWebSocketSessionInfo(String userId, String email) {
+        WebSocketSessionInfoDAO removed = webSocketSessionInfos.remove(userId);
+        String workspaceId = userId.split(":", 2)[0];
+        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE);
 
-            WebSocketSessionInfoDAO existingSession = session.get();
-
-            existingSession.setVisibleConversations(new HashSet<>());
-
-            existingSession.setOpenedConversation(null);
-            existingSession.setDisconnectedTime(ZonedDateTime.now());
-            webSocketSessionInfos.put(userId, existingSession);
-
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE);
-            logger.debug("session disconnection for user: {}", userId);
+        if (removed != null) {
+            logger.debug("removed session for user: {}", userId);
         }
     }
 
@@ -225,13 +217,8 @@ public class WebSocketSessionManager {
     }
 
     public ChatUserStatus getUserChatStatus(String workspaceId, String email) {
-        String userId = getSessionKey(workspaceId, email);
-        Optional<WebSocketSessionInfoDAO> sessionInfoDAO = getValidSession(userId);
-
-        if (sessionInfoDAO.isEmpty()) {
-            return ChatUserStatus.OFFLINE;
-        }
-
-        return sessionInfoDAO.get().getDisconnectedTime() != null ? ChatUserStatus.OFFLINE : ChatUserStatus.ONLINE;
+        return isUserConnected(workspaceId, email)
+            ? ChatUserStatus.ONLINE
+            : ChatUserStatus.OFFLINE;
     }
 }

@@ -142,7 +142,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         String email = (String) accessor.getSessionAttributes().get(Constants.JWT_CLAIM_EMAIL);
 
         if (sessionKey != null) {
-            sessionManager.setWebSocketSessionDisconnectionStateInfo(sessionKey, email);
+            sessionManager.removeWebSocketSessionInfo(sessionKey, email);
             logger.info("removed websocket session for user: {}", email);
         }
     }
