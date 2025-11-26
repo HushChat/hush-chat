@@ -28,6 +28,8 @@ import { MessageHeader } from "@/components/conversations/conversation-thread/me
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment } from "@/utils/messageHelpers";
+import { TUser } from "@/types/user/types";
+import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -92,6 +94,8 @@ export const ConversationMessageItem = ({
     x: 0,
     y: 0,
   });
+  const [showMentionProfileModal, setShowMentionProfileModal] = useState(false);
+  const [selectedMentionUser, setSelectedMentionUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
@@ -308,6 +312,11 @@ export const ConversationMessageItem = ({
     ]
   );
 
+  const handleMentionClick = useCallback((user: TUser) => {
+    setSelectedMentionUser(user);
+    setShowMentionProfileModal(true);
+  }, []);
+
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
     return (
@@ -365,6 +374,7 @@ export const ConversationMessageItem = ({
               isForwardedMessage={isForwardedMessage}
               attachments={attachments}
               onBubblePress={handleBubblePress}
+              onMentionClick={handleMentionClick}
             />
 
             <MessageReactions
@@ -379,6 +389,12 @@ export const ConversationMessageItem = ({
               onSelectReaction={handleSelectReaction}
               onCloseAllOverlays={onCloseAllOverlays}
               onViewReactions={handleViewReactions}
+            />
+
+            <MentionProfileModal
+              visible={showMentionProfileModal}
+              user={selectedMentionUser}
+              onClose={() => setShowMentionProfileModal(false)}
             />
           </View>
         </View>

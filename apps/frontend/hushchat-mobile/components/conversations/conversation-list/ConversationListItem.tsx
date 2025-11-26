@@ -139,11 +139,14 @@ const ConversationListItem = ({
             onPress={(e) => e.stopPropagation()}
             className="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-xs w-full"
           >
-            <AppText className="text-center text-text-primary-light dark:text-text-primary-dark text-lg font-semibold mb-4">
-              {conversation.name}
-            </AppText>
-
-            <ProfilePictureModalContent conversation={conversation} />
+            <ProfilePictureModalContent
+              profileData={{
+                name: conversation.name,
+                signedImageUrl: conversation.signedImageUrl,
+                isGroup: conversation.isGroup,
+                secondaryText: conversation.isGroup ? "Group Chat" : "Private Chat",
+              }}
+            />
           </Pressable>
         </Pressable>
       </Modal>
