@@ -10,31 +10,29 @@ type TMenuItem = {
   icon: keyof typeof MaterialIcons.glyphMap;
 };
 
-const baseMenuItems: TMenuItem[] = [
-  { key: "contact", label: "Contact", icon: "contacts" },
-];
+const baseMenuItems: TMenuItem[] = [{ key: "contact", label: "Contact", icon: "contacts" }];
 
-const changeWorkspaceItem: TMenuItem = { 
-  key: "changeWorkspace", 
-  label: "Change Workspace", 
-  icon: "track-changes" 
+const changeWorkspaceItem: TMenuItem = {
+  key: "changeWorkspace",
+  label: "Change Workspace",
+  icon: "track-changes",
 };
 
 export const getSettingsMenuItems = async (): Promise<TMenuItem[]> => {
   try {
     const response = await getUserWorkspaces();
     const workspaces = response.data || [];
-    
+
     if (workspaces.length > 1) {
       return [...baseMenuItems, changeWorkspaceItem];
     }
     return baseMenuItems;
-  } catch (error) {
+  } catch {
     return baseMenuItems;
   }
 };
 
 export const settingsPanels: Record<string, FC> = {
   contact: Contact,
-  changeWorkspace: ChangeWorkspace
+  changeWorkspace: ChangeWorkspace,
 };
