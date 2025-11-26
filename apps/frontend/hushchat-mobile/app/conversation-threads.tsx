@@ -129,6 +129,11 @@ const ConversationThreadScreen = ({
       lastSeenMessageInfo?.lastSeenMessageId !== undefined
     ) {
       const firstMessage = messages[0];
+
+      if (!firstMessage.id || typeof firstMessage.id !== "number") {
+        return;
+      }
+
       const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
 
       if (!isFirstMessageLastSeen) {

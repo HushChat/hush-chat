@@ -49,6 +49,7 @@ export interface IMessage {
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
+  hasAttachment?: boolean;
 }
 
 export interface IMessageView extends IMessage {

@@ -1,0 +1,39 @@
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { AppText } from "@/components/AppText";
+import LastMessagePreview from "@/components/UnsendMessagePreview";
+import type { IMessage } from "@/types/chat/types";
+
+interface LastMessagePreviewContentProps {
+  lastMessage: IMessage | undefined;
+}
+
+export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewContentProps) => {
+  if (!lastMessage) return "No Messages Yet";
+
+  if (lastMessage.hasAttachment) {
+    return (
+      <View className="flex-row items-center gap-1">
+        <View style={styles.attachmentIcon}>
+          <MaterialIcons name="attachment" size={14} color="#6B7280" />
+        </View>
+        <AppText className="text-gray-600 dark:text-text-secondary-dark text-sm">
+          Attachment
+        </AppText>
+      </View>
+    );
+  }
+
+  if (lastMessage.isUnsend) {
+    return <LastMessagePreview unsendMessage={lastMessage} />;
+  }
+
+  return lastMessage.messageText;
+};
+
+const styles = StyleSheet.create({
+  attachmentIcon: {
+    transform: [{ rotate: "-45deg" }],
+  },
+});

@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { format } from "date-fns";
-
+import { UseMutateFunction } from "@tanstack/react-query";
+import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import type { IMessage } from "@/types/chat/types";
-import type { UseMutateFunction } from "@tanstack/react-query";
 import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
@@ -17,7 +17,6 @@ interface IUseSendMessageHandlerParams {
   selectedFiles: File[];
   sendMessage: UseMutateFunction<ApiResponse<unknown>, unknown, unknown, unknown>;
   uploadFilesFromWeb: (files: File[]) => Promise<UploadResult[]>;
-  updateConversationMessagesCache: (msg: IMessage) => void;
   handleCloseImagePreview: () => void;
 }
 
@@ -31,16 +30,11 @@ export const useSendMessageHandler = ({
   selectedFiles,
   sendMessage,
   uploadFilesFromWeb,
-  updateConversationMessagesCache,
   handleCloseImagePreview,
 }: IUseSendMessageHandlerParams) => {
-  /**
-   * Sends a message in the conversation thread. Supports:
-   *
-   * @param message Raw user message.
-   * @param parentMessage Optional reply target.
-   * @param files Optional list of files to send.
-   */
+  const { updateConversationMessagesCache, updateConversationsListCache } =
+    useConversationMessagesQuery(currentConversationId);
+
   const handleSendMessage = useCallback(
     async (message: string, parentMessage?: IMessage, files?: File[]) => {
       const trimmed = message?.trim() ?? "";
@@ -50,7 +44,6 @@ export const useSendMessageHandler = ({
 
       try {
         const validFiles = filesToSend.filter((f) => f instanceof File);
-
         const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg"];
 
         if (validFiles.length > 0) {
@@ -82,12 +75,14 @@ export const useSendMessageHandler = ({
               indexedFileName: "",
               mimeType: file.type,
             })),
+            hasAttachment: true,
           };
 
-          // Local optimistic update
+          // Optimistic updates
           updateConversationMessagesCache(tempMessage);
+          updateConversationsListCache(tempMessage);
 
-          // Upload actual files
+          // Upload files
           await uploadFilesFromWeb(renamedFiles);
 
           setSelectedMessage(null);
@@ -95,6 +90,7 @@ export const useSendMessageHandler = ({
           return;
         }
 
+        // Send normal text message
         sendMessage({
           conversationId: currentConversationId,
           message: trimmed,
@@ -113,14 +109,12 @@ export const useSendMessageHandler = ({
       sendMessage,
       uploadFilesFromWeb,
       updateConversationMessagesCache,
+      updateConversationsListCache,
       setSelectedMessage,
       setImageMessage,
     ]
   );
 
-  /**
-   * Sends the currently selected files using `handleSendMessage`.
-   */
   const handleSendFiles = useCallback(() => {
     if (!selectedFiles.length) return;
 
@@ -140,8 +134,5 @@ export const useSendMessageHandler = ({
     setSelectedMessage,
   ]);
 
-  return {
-    handleSendMessage,
-    handleSendFiles,
-  };
+  return { handleSendMessage, handleSendFiles } as const;
 };
