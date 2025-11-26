@@ -74,7 +74,6 @@ const ConversationThreadScreen = ({
     selectedConversationId,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
-
   const currentConversationId = conversationId || Number(params.conversationId);
 
   useEffect(() => {
@@ -87,13 +86,16 @@ const ConversationThreadScreen = ({
     useConversationByIdQuery(currentConversationId);
 
   const {
-    conversationMessagesPages,
-    isLoadingConversationMessages,
-    conversationMessagesError,
+    pages: conversationMessagesPages,
+    isLoading: isLoadingConversationMessages,
+    error: conversationMessagesError,
     fetchNextPage,
-    isFetchingNextPage,
     hasNextPage,
-    refetchConversationMessages,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    hasPreviousPage,
+    isFetchingPreviousPage,
+    invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(currentConversationId);
@@ -216,11 +218,17 @@ const ConversationThreadScreen = ({
     router.back();
   }, []);
 
-  const handleLoadMore = useCallback(async () => {
+  const handleLoadOlder = useCallback(async () => {
     if (hasNextPage && !isFetchingNextPage) {
       await fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleLoadNewer = useCallback(async () => {
+    if (hasPreviousPage && !isFetchingPreviousPage) {
+      await fetchPreviousPage();
+    }
+  }, [hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage]);
 
   const handleMessageSelect = useCallback((message: IMessage) => {
     setSelectedMessage(message);
@@ -284,13 +292,15 @@ const ConversationThreadScreen = ({
     return (
       <ConversationMessageList
         messages={conversationMessages}
-        onLoadMore={handleLoadMore}
+        onLoadMore={handleLoadOlder}
+        onLoadNewer={handleLoadNewer}
+        hasMoreNewer={hasPreviousPage}
+        isFetchingNewer={isFetchingPreviousPage}
         isFetchingNextPage={isFetchingNextPage}
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
-        targetMessageId={Number(searchedMessageId)}
       />
     );
   }, [
@@ -299,7 +309,10 @@ const ConversationThreadScreen = ({
     conversationAPIError,
     conversationMessagesError,
     conversationMessages,
-    handleLoadMore,
+    handleLoadOlder,
+    handleLoadNewer,
+    hasPreviousPage,
+    isFetchingPreviousPage,
     isFetchingNextPage,
     handleMessageSelect,
     conversationAPIResponse,
