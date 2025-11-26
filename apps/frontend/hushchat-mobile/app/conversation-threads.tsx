@@ -151,6 +151,16 @@ const ConversationThreadScreen = ({
     }
   }, [searchedMessageId, loadMessageWindow, onMessageJumped]);
 
+  const handleNavigateToPinnedMessage = useCallback(
+    (messageId: number) => {
+      if (loadMessageWindow) {
+        void loadMessageWindow(messageId);
+        onMessageJumped?.();
+      }
+    },
+    [loadMessageWindow]
+  );
+
   const {
     selectedFiles,
     showImagePreview,
@@ -301,6 +311,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
+        onPinnedMessageNavigate={handleNavigateToPinnedMessage}
       />
     );
   }, [
@@ -319,6 +330,7 @@ const ConversationThreadScreen = ({
     pickerState,
     currentConversationId,
     searchedMessageId,
+    handleNavigateToPinnedMessage,
   ]);
 
   const renderTextInput = useCallback(() => {
