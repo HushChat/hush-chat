@@ -1,3 +1,15 @@
+/**
+ * Cursor-based pagination hook for messages.
+ *
+ * fetchNextPage  -> loads older messages (backwards in history)
+ * fetchPreviousPage -> loads newer messages (forward, only if enabled)
+ *
+ * Direction is controlled using:
+ *   PAGINATE_BACKWARD  = fetch older (beforeId)
+ *   PAGINATE_FORWARD   = fetch newer (afterId)
+ *
+ * `allowForwardPagination` must be true to load forward pages.
+ */
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { CursorPaginatedQueryOptions, CursorPaginatedResponse } from "@/apis/conversation";
 

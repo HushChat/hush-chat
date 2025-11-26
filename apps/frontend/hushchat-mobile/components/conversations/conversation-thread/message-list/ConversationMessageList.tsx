@@ -1,3 +1,8 @@
+/**
+ * ConversationMessageList
+ *
+ * Renders the message thread for a single conversation using an inverted FlatList.
+ */
 import React, { useCallback, useMemo } from "react";
 import { ActivityIndicator, SectionList, View } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
