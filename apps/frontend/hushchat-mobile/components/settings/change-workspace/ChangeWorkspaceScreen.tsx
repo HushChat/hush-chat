@@ -94,7 +94,7 @@ export default function ChangeWorkspaceScreen() {
         <>
           <View className="bg-gray-200 dark:bg-gray-800 rounded-xl p-4 mb-6">
             <View className="flex-row items-center">
-              <Ionicons name="business-outline" size={20} color="#6b7280" />
+              <Ionicons name="create-sharp" size={20} color="#6b7280" />
               <AppText className="text-text-primary-light dark:text-text-primary-dark ml-3 text-sm">
                 Current: {selectedWorkspace?.name || "No workspace selected"}
               </AppText>
