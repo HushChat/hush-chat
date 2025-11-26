@@ -23,7 +23,7 @@ export const LoadRecentMessagesButton = ({
       <TouchableOpacity
         onPress={onLoadNewer}
         disabled={isFetchingNewer}
-        className="flex-row space-x-2 bg-gray-200 dark:bg-gray-800 px-4 py-2 rounded-full items-center"
+        className="flex-row gap-2 bg-gray-200 dark:bg-gray-800 px-4 py-2 rounded-full items-center"
       >
         {isFetchingNewer ? (
           <ActivityIndicator size="small" color="#555" />
