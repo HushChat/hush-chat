@@ -145,7 +145,7 @@ export function appendToOffsetPaginatedCache<T>(
       return normalizeMetadata(pages, pageSize, data);
     }
 
-    let pages = data.pages.map((p) => ({ ...p }));
+    const pages = data.pages.map((p) => ({ ...p }));
     const incomingIds = new Set(items.map(getId));
 
     if (moveUpdatedToTop) {
