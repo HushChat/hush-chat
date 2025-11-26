@@ -26,7 +26,6 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const queryClient = useQueryClient();
   const previousConversationId = useRef<number | null>(null);
-  const [isLoadingMessageWindow, setIsLoadingMessageWindow] = useState(false);
   const [inMessageWindowView, setInMessageWindowView] = useState(false);
 
   const queryKey = useMemo(
@@ -64,7 +63,6 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const loadMessageWindow = useCallback(
     async (targetMessageId: number) => {
-      setIsLoadingMessageWindow(true);
       setInMessageWindowView(true);
 
       try {
@@ -93,8 +91,6 @@ export function useConversationMessagesQuery(conversationId: number) {
       } catch (error) {
         logError("jumpToMessage: Failed to load target message window", error);
         setInMessageWindowView(false);
-      } finally {
-        setIsLoadingMessageWindow(false);
       }
     },
     [conversationId, queryClient, queryKey]
@@ -147,7 +143,6 @@ export function useConversationMessagesQuery(conversationId: number) {
     invalidateQuery,
     updateConversationMessagesCache,
     loadMessageWindow,
-    isLoadingMessageWindow,
     inMessageWindowView,
   } as const;
 }
