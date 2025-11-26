@@ -7,6 +7,7 @@ import {
   CHAT_VIEW_PATH,
   GROUP_CONVERSATION_SELECT_PARTICIPANTS,
   SETTINGS_CONTACT,
+  SETTINGS_INVITE,
 } from "@/constants/routes";
 import classNames from "classnames";
 import BackButton from "@/components/BackButton";
@@ -60,6 +61,15 @@ export default function ChatInterface({
       onPress: () => {
         setSheetVisible(false);
         router.push(SETTINGS_CONTACT);
+      },
+    },
+    {
+      id: "invite",
+      title: "Invite",
+      icon: "person-add" as const,
+      onPress: () => {
+        setSheetVisible(false);
+        router.push(SETTINGS_INVITE);
       },
     },
   ];
