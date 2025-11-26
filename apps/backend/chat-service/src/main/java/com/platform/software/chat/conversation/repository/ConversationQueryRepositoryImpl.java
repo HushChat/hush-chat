@@ -150,7 +150,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .and(qConversation.deleted.eq(false))
                 .and(qConversationParticipant.isDeleted.eq(false));
 
-        whereConditions = whereConditions.and(qMessage.isNotNull());
+        whereConditions = whereConditions.and(
+                qMessage.isNotNull().or(qConversation.isGroup.eq(true))
+        );
 
         if (isArchived) {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
