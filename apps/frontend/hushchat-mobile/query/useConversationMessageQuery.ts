@@ -1,12 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 import { useConversationMessages } from "@/hooks/useWebSocketEvents";
-import { CursorPaginatedResponse, getConversationMessagesByCursor } from "@/apis/conversation";
+import {
+  CursorPaginatedResponse,
+  getConversationMessagesByCursor,
+  getMessagesAroundMessageId,
+} from "@/apis/conversation";
 import type { IMessage, IConversation } from "@/types/chat/types";
 import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
+import { ToastUtils } from "@/utils/toastUtils";
+import { logError } from "@/utils/logger";
 
 const PAGE_SIZE = 20;
 
@@ -17,6 +23,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const queryClient = useQueryClient();
   const previousConversationId = useRef<number | null>(null);
+  const [isLoadingMessageWindow, setIsLoadingMessageWindow] = useState(false);
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
@@ -45,6 +52,42 @@ export function useConversationMessagesQuery(conversationId: number) {
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
   });
+
+  const loadMessageWindow = useCallback(
+    async (targetMessageId: number) => {
+      setIsLoadingMessageWindow(true);
+
+      try {
+        const messageWindowResponse = await getMessagesAroundMessageId(
+          conversationId,
+          targetMessageId
+        );
+
+        if (messageWindowResponse.error) {
+          ToastUtils.error(messageWindowResponse.error);
+          return;
+        }
+
+        const paginatedMessageWindow = messageWindowResponse.data;
+        if (!paginatedMessageWindow) return;
+
+        const newInfiniteQueryCache: InfiniteData<CursorPaginatedResponse<IMessage>> = {
+          pages: [paginatedMessageWindow],
+          pageParams: [null],
+        };
+
+        queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+          queryKey,
+          newInfiniteQueryCache
+        );
+      } catch (error) {
+        logError("jumpToMessage: Failed to load target message window", error);
+      } finally {
+        setIsLoadingMessageWindow(false);
+      }
+    },
+    [conversationId, queryClient, queryKey]
+  );
 
   const updateConversationMessagesCache = useCallback(
     (newMessage: IMessage) => {
@@ -106,32 +149,17 @@ export function useConversationMessagesQuery(conversationId: number) {
     updateConversationsListCache(lastMessage);
   }, [lastMessage, updateConversationMessagesCache, updateConversationsListCache]);
 
-  const jumpToMessage = useCallback(
-    async (messageId: number) => {
-      const response = await getConversationMessagesByCursor(conversationId, {
-        beforeId: messageId,
-        size: PAGE_SIZE,
-      });
-
-      queryClient.setQueryData(queryKey, {
-        pages: [response.data],
-        pageParams: [{ beforeId: messageId }],
-      });
-    },
-    [conversationId, queryClient, queryKey]
-  );
-
   return {
     conversationMessagesPages: pages,
-    isLoadingConversationMessages: isLoading,
+    isLoadingConversationMessages: isLoading || isLoadingMessageWindow,
     conversationMessagesError: error,
     fetchNextPage: fetchOlder,
     hasNextPage: hasMoreOlder,
     isFetchingNextPage: isFetchingOlder,
     refetchConversationMessages: invalidateQuery,
     refetch,
-    jumpToMessage,
     updateConversationMessagesCache,
     updateConversationsListCache,
+    loadMessageWindow,
   } as const;
 }

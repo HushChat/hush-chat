@@ -21,6 +21,7 @@ export const WORKSPACE_ENDPOINTS = {
   GET: `${WORKSPACES_API_BASE}/my-workspaces`,
   REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
+  INVITE_TO_WORKSPACE: `${WORKSPACES_API_BASE}/invite`,
 };
 
 export const SETTINGS_API_BASE = "/settings";
@@ -29,6 +30,8 @@ export const CONVERSATION_API_ENDPOINTS = {
   ALL: CONVERSATION_API_BASE,
   GET_BY_ID: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/meta`,
   MESSAGES: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/messages`,
+  GET_MESSAGE_BY_ID: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}`,
   SIGNED_URLS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-signed-url`,
   ARCHIVE: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/archive`,

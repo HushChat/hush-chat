@@ -12,6 +12,7 @@ import ConversationInputBar from "@/components/conversations/conversation-thread
 import DisabledMessageInput from "@/components/conversations/conversation-thread/composer/DisabledMessageInput";
 import FilePreviewOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay";
 import MessageForwardActionBar from "@/components/conversations/conversation-thread/composer/MessageForwardActionBar";
+import Alert from "@/components/Alert";
 
 import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
 import { useSendMessageMutation } from "@/query/post/queries";
@@ -27,9 +28,6 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
-
-import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
-import Alert from "@/components/Alert";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
@@ -37,6 +35,7 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
+import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -64,6 +63,7 @@ const ConversationThreadScreen = ({
   const {
     user: { id: currentUserId },
   } = useUserStore();
+  const queryClient = useQueryClient();
 
   const {
     selectionMode,
@@ -73,6 +73,7 @@ const ConversationThreadScreen = ({
     setSelectedConversationId,
     selectedConversationId,
   } = useConversationStore();
+  const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
 
   const currentConversationId = conversationId || Number(params.conversationId);
 
@@ -85,8 +86,6 @@ const ConversationThreadScreen = ({
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
     useConversationByIdQuery(currentConversationId);
 
-  const isGroupChat = conversationAPIResponse?.isGroup;
-
   const {
     conversationMessagesPages,
     isLoadingConversationMessages,
@@ -95,7 +94,7 @@ const ConversationThreadScreen = ({
     isFetchingNextPage,
     hasNextPage,
     refetchConversationMessages,
-    jumpToMessage,
+    loadMessageWindow,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(currentConversationId);
 
@@ -146,8 +145,14 @@ const ConversationThreadScreen = ({
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
+  const isGroupChat = conversationAPIResponse?.isGroup;
 
-  const searchedMessage = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
+  useEffect(() => {
+    if (searchedMessageId && loadMessageWindow) {
+      void loadMessageWindow(searchedMessageId);
+      onMessageJumped?.();
+    }
+  }, [searchedMessageId, loadMessageWindow, onMessageJumped]);
 
   const {
     selectedFiles,
@@ -160,13 +165,6 @@ const ConversationThreadScreen = ({
     addMore: handleAddMoreFiles,
   } = useImagePreview();
 
-  useEffect(() => {
-    if (searchedMessage && jumpToMessage) {
-      void jumpToMessage(searchedMessage);
-      onMessageJumped?.();
-    }
-  }, [searchedMessage, jumpToMessage, onMessageJumped]);
-
   const {
     pickAndUploadImages,
     uploadFilesFromWeb,
@@ -177,7 +175,6 @@ const ConversationThreadScreen = ({
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImages();
-
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
         setImageMessage("");
@@ -187,23 +184,13 @@ const ConversationThreadScreen = ({
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [
-    pickAndUploadImages,
-    refetchConversationMessages,
-    setSelectedMessage,
-    setImageMessage,
-    uploadError,
-  ]);
-
-  const queryClient = useQueryClient();
+  }, [pickAndUploadImages, setSelectedMessage, setImageMessage, uploadError]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
     (newMessage) => {
       setSelectedMessage(null);
-
       updateConversationMessagesCache(newMessage);
-
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
@@ -267,7 +254,7 @@ const ConversationThreadScreen = ({
       conversationName: conversationAPIResponse?.name,
       signedImageUrl: conversationAPIResponse?.signedImageUrl,
     }),
-    [currentConversationId, conversationAPIResponse?.name, conversationAPIResponse?.signedImageUrl]
+    [currentConversationId, conversationAPIResponse]
   );
 
   const pickerState: TPickerState = useMemo(
@@ -307,6 +294,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
+        targetMessageId={Number(searchedMessageId)}
       />
     );
   }, [
@@ -321,6 +309,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse,
     pickerState,
     currentConversationId,
+    searchedMessageId,
   ]);
 
   const renderTextInput = useCallback(() => {

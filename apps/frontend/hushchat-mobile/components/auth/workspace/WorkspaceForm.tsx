@@ -52,7 +52,7 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const handleNext = async () => {
     if (!selectedWorkspace) return;
 
-    await saveWorkspace(selectedWorkspace?.name);
+    await saveWorkspace(selectedWorkspace?.workspaceIdentifier);
     setWorkspaceSelected(true);
     router.push(CHATS_PATH);
   };

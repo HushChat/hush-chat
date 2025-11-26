@@ -15,17 +15,17 @@ import { ModalProvider } from "@/context/modal-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
-import useWebSocketConnection from "@/hooks/useWebSocketConnection";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
 
 export default function RootLayout() {
   const { colorScheme } = useAppTheme();
-  useWebSocketConnection();
+
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
   });
@@ -37,16 +37,18 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
-            <ConversationNotificationsProvider>
-              <ModalProvider>
-                <Gate ready={appReady} isAuthenticated={isAuthenticated} />
-                <Toast
-                  config={toastConfig}
-                  topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
-                />
-                <StatusBar style="auto" />
-              </ModalProvider>
-            </ConversationNotificationsProvider>
+            <WebSocketProvider>
+              <ConversationNotificationsProvider>
+                <ModalProvider>
+                  <Gate ready={appReady} isAuthenticated={isAuthenticated} />
+                  <Toast
+                    config={toastConfig}
+                    topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                  />
+                  <StatusBar style="auto" />
+                </ModalProvider>
+              </ConversationNotificationsProvider>
+            </WebSocketProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
@@ -76,6 +78,7 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="group-conversation/select-participants" />
         <Stack.Screen name="group-conversation/configure" />
         <Stack.Screen name="settings/contact" />
+        <Stack.Screen name="settings/invite" />
       </Stack>
     </>
   );
