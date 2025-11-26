@@ -5,6 +5,7 @@ import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.platform.workspace.dto.WorkspaceDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
+import com.platform.software.platform.workspace.entity.WorkspaceStatus;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
@@ -86,6 +87,7 @@ public class WorkspaceUserService {
                 List<WorkspaceUser> workspaceUsers = workspaceUserRepository.findAllByEmail(email);
 
                 return workspaceUsers.stream()
+                        .filter(workspaceUser -> workspaceUser.getWorkspace().getStatus() != WorkspaceStatus.PENDING)
                         .map(workspaceUser ->
                                 new WorkspaceDTO(
                                         workspaceUser.getWorkspace(),
