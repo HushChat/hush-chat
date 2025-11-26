@@ -37,6 +37,7 @@ const ConversationWebChatContextMenu = ({
     user: { id: userId },
   } = useUserStore();
 
+  const [isPinnedState, setIsPinnedState] = React.useState(isPinned);
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
   const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
@@ -81,13 +82,13 @@ const ConversationWebChatContextMenu = ({
             id: 1,
             name: TITLES.UNPIN_CONVERSATION,
             iconName: "pin-outline",
-            action: () => handleTogglePinConversation(conversationId),
+            action: () => handleTogglePinConversation(),
           }
         : {
             id: 1,
             name: TITLES.PIN_CONVERSATION,
             iconName: "pin",
-            action: () => handleTogglePinConversation(conversationId),
+            action: () => handleTogglePinConversation(),
           },
       {
         id: 2,
