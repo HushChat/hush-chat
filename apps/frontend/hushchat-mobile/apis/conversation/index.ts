@@ -7,6 +7,7 @@ import {
   SEARCH_API_BASE,
   SETTINGS_API_ENDPOINTS,
   USER_API_ENDPOINTS,
+  WORKSPACE_ENDPOINTS,
 } from "@/constants/apiConstants";
 import { ApiResponse } from "@/types/common/types";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
@@ -145,6 +146,21 @@ export const sendMessageByConversationId = async (
     return { data: response.data };
   } catch (error) {
     ToastUtils.error("Failed to send message:" + error);
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
+export const getMessagesAroundMessageId = async (
+  conversationId: number,
+  targetMessageId: number
+): Promise<ApiResponse<CursorPaginatedResponse<IMessageView>>> => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_MESSAGE_BY_ID(conversationId, targetMessageId)
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
@@ -420,6 +436,17 @@ export const sendContactUsMessage = async (data: {
 }) => {
   try {
     const response = await axios.post(SETTINGS_API_ENDPOINTS.CONTACT_US, data);
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const sendInviteToWorkspace = async (email: string) => {
+  try {
+    const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, {
+      email: email,
+    });
     return { data: response.data };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };

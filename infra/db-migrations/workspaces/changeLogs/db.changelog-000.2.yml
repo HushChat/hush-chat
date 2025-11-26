@@ -5,6 +5,6 @@ databaseChangeLog:
       tag: release-2.1
       changes:
         - addUniqueConstraint:
-            tableName: conversation_user_read_status
+            tableName: conversation_read_status
             columnNames: conversation_id, user_id
             constraintName: UK_conversation_user_read_status

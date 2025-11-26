@@ -1,11 +1,11 @@
 import React from "react";
 import { GestureResponderEvent, Pressable, View } from "react-native";
+import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { PLATFORM } from "@/constants/platformConstants";
-import { getHoverVisibilityClass, getActionButtonStyle } from "@/utils/messageStyles";
 import { copyToClipboard } from "@/utils/messageUtils";
 
-interface MessageActionsProps {
+interface IMessageActionsProps {
   messageText?: string;
   messageIsUnsend?: boolean;
   selectionMode: boolean;
@@ -15,7 +15,7 @@ interface MessageActionsProps {
   isCurrentUser?: boolean;
 }
 
-export const MessageActions: React.FC<MessageActionsProps> = ({
+export const MessageActions: React.FC<IMessageActionsProps> = ({
   messageText,
   messageIsUnsend,
   selectionMode,
@@ -25,8 +25,6 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   isCurrentUser,
 }) => {
   if (!PLATFORM.IS_WEB || messageIsUnsend) return null;
-
-  const hoverClass = getHoverVisibilityClass();
 
   return (
     <View className="flex-row items-center">
@@ -43,8 +41,16 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
       <Pressable
         onPress={onOpenPicker}
         disabled={!currentUserId || selectionMode}
-        className={hoverClass}
-        style={({ pressed }) => getActionButtonStyle(pressed)}
+        className={classNames({
+          "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
+          "opacity-100": !PLATFORM.IS_WEB,
+        })}
+        style={({ pressed }) => ({
+          minWidth: 24,
+          minHeight: 24,
+          opacity: pressed ? 0.7 : 1,
+          cursor: "pointer" as const,
+        })}
       >
         <View className="p-1 rounded items-center justify-center">
           <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
@@ -64,9 +70,15 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
       <Pressable
         onPress={onOpenMenu}
         disabled={selectionMode}
-        className={hoverClass}
+        className={classNames({
+          "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
+          "opacity-100": !PLATFORM.IS_WEB,
+        })}
         style={({ pressed }) => ({
-          ...getActionButtonStyle(pressed),
+          minWidth: 24,
+          minHeight: 24,
+          opacity: pressed ? 0.7 : 1,
+          cursor: "pointer" as const,
           marginLeft: 6,
         })}
       >

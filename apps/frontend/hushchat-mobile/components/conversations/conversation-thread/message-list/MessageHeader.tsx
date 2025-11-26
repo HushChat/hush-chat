@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { AppText } from "@/components/AppText";
 import { MessageActions } from "./MessageActions";
 
-interface MessageHeaderProps {
+interface IMessageHeaderProps {
   isCurrentUser: boolean;
   isGroupChat?: boolean;
   senderName: string;
@@ -17,7 +17,7 @@ interface MessageHeaderProps {
   onOpenMenu: (event: GestureResponderEvent) => void;
 }
 
-export const MessageHeader: React.FC<MessageHeaderProps> = ({
+export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   isCurrentUser,
   isGroupChat,
   senderName,
