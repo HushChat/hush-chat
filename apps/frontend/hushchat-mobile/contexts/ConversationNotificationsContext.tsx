@@ -8,7 +8,7 @@ import {
   useMemo,
 } from "react";
 import { eventBus } from "@/services/eventBus";
-import { IConversation } from "@/types/chat/types";
+import { IConversation, IUserStatus } from "@/types/chat/types";
 import { playMessageSound } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
@@ -44,6 +44,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const [notificationConversation, setNotificationConversation] = useState<IConversation | null>(
     null
   );
+  const [userStatus, setUserStatus] = useState<IUserStatus | null>(null);
   const { selectedConversationType, selectedConversationId } = useConversationStore();
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
@@ -93,9 +94,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         getPageItems: (page) => page?.content,
         setPageItems: (page, items) => ({ ...page, content: items }),
         dedupeAcrossPages: true,
+        moveUpdatedToTop: true,
       }
     );
-  }, [notificationConversation, queryClient, loggedInUserId, criteria, selectedConversationId]);
+  }, [notificationConversation, queryClient, loggedInUserId, criteria]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
     updatePaginatedItemInCache<IConversation>(
@@ -109,6 +111,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   useEffect(() => {
     const handleIncomingWebSocketConversation = (conversation: IConversation) => {
+      console.log("4w2g4gwg4");
       const shouldUpdate = conversation?.id && !conversation.archivedByLoggedInUser;
 
       if (shouldUpdate) {
@@ -129,6 +132,68 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   const clearNotificationConversation = useCallback(() => {
     setNotificationConversation(null);
+  }, []);
+
+  useEffect(() => {
+    const handleIncomingUserStatusUpdates = (userStatus: IUserStatus) => {
+      if (userStatus) {
+        setUserStatus(userStatus);
+      }
+    };
+
+    eventBus.on("user:presence", handleIncomingUserStatusUpdates);
+
+    return () => {
+      eventBus.off("user:presence", handleIncomingUserStatusUpdates);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!userStatus) return;
+
+    const conversationId = userStatus.conversationId;
+
+    const existingCache =
+      queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(conversationsQueryKey);
+
+    let conversation: IConversation | null = null;
+
+    if (existingCache?.pages) {
+      for (const page of existingCache.pages) {
+        const match = page.content.find((conversation) => conversation.id === conversationId);
+        if (match) {
+          conversation = match;
+          break;
+        }
+      }
+    }
+
+    if (conversation == null) {
+      return;
+    }
+
+    const mergedConversation = {
+      ...conversation,
+      chatUserStatus: userStatus.status,
+    };
+    console.log(mergedConversation);
+
+    appendToOffsetPaginatedCache<IConversation>(
+      queryClient,
+      conversationsQueryKey,
+      mergedConversation,
+      {
+        getId: (item) => item?.id,
+        pageSize: PAGE_SIZE,
+        getPageItems: (page) => page?.content,
+        setPageItems: (page, items) => ({ ...page, content: items }),
+        dedupeAcrossPages: true,
+      }
+    );
+  }, [userStatus, queryClient, loggedInUserId, criteria]);
+
+  const clearUserStatus = useCallback(() => {
+    setUserStatus(null);
   }, []);
 
   return (

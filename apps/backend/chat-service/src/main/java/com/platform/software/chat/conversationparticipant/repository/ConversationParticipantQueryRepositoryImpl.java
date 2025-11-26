@@ -386,4 +386,22 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                         .and(qConversationParticipant.isDeleted.eq(true)))
                 .execute();
     }
+
+    @Override
+    public List<Long> findOneToOneConversationIdsByUserEmail(String email) {
+        return queryFactory
+            .select(qConversationParticipant.conversation.id)
+            .from(qConversationParticipant)
+            .join(qConversationParticipant.user, qUser)
+            .join(qConversationParticipant.conversation, qConversation)
+            .where(
+                qUser.email.eq(email)
+                    .and(qConversation.isGroup.isFalse())
+                    .and(qConversation.deleted.isFalse())
+                    .and(qConversationParticipant.isActive.isTrue())
+                    .and(qConversationParticipant.isDeleted.isFalse())
+            )
+            .distinct()
+            .fetch();
+    }
 }

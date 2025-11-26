@@ -262,3 +262,8 @@ export enum chatUserStatus {
   AWAY = "AWAY",
   BUSY = "BUSY",
 }
+
+export interface IUserStatus {
+  conversationId: number;
+  status: chatUserStatus;
+}

@@ -36,6 +36,9 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
+import { getAllTokens } from "@/utils/authUtils";
+import { UserActivityWSSubscriptionData } from "@/types/ws/types";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -61,9 +64,10 @@ const ConversationThreadScreen = ({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
   const {
-    user: { id: currentUserId },
+    user: { id: currentUserId, email },
   } = useUserStore();
   const queryClient = useQueryClient();
+  const { publishActivity } = useWebSocket();
 
   const {
     selectionMode,
@@ -71,17 +75,26 @@ const ConversationThreadScreen = ({
     selectedMessageIds,
     setSelectedMessageIds,
     setSelectedConversationId,
-    selectedConversationId,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
 
   const currentConversationId = conversationId || Number(params.conversationId);
 
   useEffect(() => {
+    const publishUserActivity = async () => {
+      const { workspace } = await getAllTokens();
+      publishActivity({
+        workspaceId: workspace as string,
+        email,
+        openedConversation: currentConversationId,
+      } as UserActivityWSSubscriptionData);
+    };
+
     if (currentConversationId) {
       setSelectedConversationId(currentConversationId);
+      publishUserActivity();
     }
-  }, [selectedConversationId]);
+  }, [currentConversationId]);
 
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
     useConversationByIdQuery(currentConversationId);

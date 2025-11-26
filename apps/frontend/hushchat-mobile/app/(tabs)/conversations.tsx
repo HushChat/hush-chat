@@ -22,12 +22,19 @@ import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface";
+import { getAllTokens } from "@/utils/authUtils";
+import { UserActivityWSSubscriptionData } from "@/types/ws/types";
+import { useUserStore } from "@/store/user/useUserStore";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 export default function ConversationScreen() {
   const { selectedConversationType } = useConversationStore();
   const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const {
+    user: { email },
+  } = useUserStore();
 
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
 
@@ -54,6 +61,25 @@ export default function ConversationScreen() {
     isFetchingNextPage,
     refetch,
   } = useConversationsQuery(criteria);
+
+  const { publishActivity } = useWebSocket();
+
+  useEffect(() => {
+    const publishUserActivity = async () => {
+      const { workspace } = await getAllTokens();
+      const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+      const conversationIds = conversations?.flatMap((page) => page.id) ?? [];
+      publishActivity({
+        workspaceId: workspace as string,
+        email,
+        visibleConversations: conversationIds,
+      } as UserActivityWSSubscriptionData);
+    };
+
+    if (conversationsPages) {
+      publishUserActivity();
+    }
+  }, [conversationsPages]);
 
   const { searchResults, isSearching, searchError, refetchSearch } =
     useGlobalSearchQuery(searchQuery);

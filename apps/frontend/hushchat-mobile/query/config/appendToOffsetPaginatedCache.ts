@@ -19,6 +19,8 @@ type AppendOptions<T> = {
   dedupeAcrossPages?: boolean;
   /** Optional: if true, and there are zero pages yet, create page[0] */
   createIfEmpty?: boolean;
+  /** Optional: if true, moves updated items (with same id) to the top of page 0 (default: false) */
+  moveUpdatedToTop?: boolean;
 };
 
 /** Normalize paging metadata & pageParams offsets */
@@ -79,15 +81,16 @@ function normalizeMetadata<T extends Record<string, any>>(
  *
  * Behavior
  * - If cache is empty (and `createIfEmpty`), seeds page 0 and builds additional pages from overflow.
- * - De-dupes by id **across all pages** (optional) before insert.
+ * - With `moveUpdatedToTop: true`, removes existing items with same id and adds them to page 0 top.
+ * - With `moveUpdatedToTop: false`, updates existing items in place and only adds new items to top.
  * - Prepends incoming to page 0; when a page exceeds `pageSize`, it shifts its tail to the next page,
  *   creating new pages as needed (true rollover: 0 ➜ 1 ➜ 2 ...).
  * - Recomputes `pageParams` as offsets: `[0, pageSize, 2*pageSize, ...]` and updates common page metadata.
  *
  * Notes
  * - This function does **not** sort; order is determined by existing cache order + incoming order.
- *   For “newest-first” at page 0, pass WS items in newest-first order, or pre-sort before calling.
- * - Use the exact same `queryKey` as your fetching hook; otherwise you’ll update a different cache branch.
+ *   For "newest-first" at page 0, pass WS items in newest-first order, or pre-sort before calling.
+ * - Use the exact same `queryKey` as your fetching hook; otherwise you'll update a different cache branch.
  * - Side effects are limited to `queryClient.setQueryData` (no network requests).
  *
  * Complexity
@@ -104,7 +107,7 @@ function normalizeMetadata<T extends Record<string, any>>(
  *     pageSize: 10,
  *     getPageItems: (p) => p.content,
  *     setPageItems: (p, items) => ({ ...p, content: items }),
- *     dedupeAcrossPages: true,
+ *     moveUpdatedToTop: true, // Move updated conversations to top
  *   },
  * );
  * ```
@@ -123,6 +126,7 @@ export function appendToOffsetPaginatedCache<T>(
       "content" in (p ?? {}) ? { ...p, content: items } : { ...p, items },
     dedupeAcrossPages = true,
     createIfEmpty = true,
+    moveUpdatedToTop = false,
   } = opts;
 
   const items = Array.isArray(incoming) ? incoming : [incoming];
@@ -144,27 +148,45 @@ export function appendToOffsetPaginatedCache<T>(
       return normalizeMetadata(pages, pageSize, data);
     }
 
-    const pages = data.pages.map((p) => ({ ...p }));
+    let pages = data.pages.map((p) => ({ ...p }));
+    const incomingIds = new Set(items.map(getId));
 
-    // De-dupe existing occurrences across all pages (optional)
-    if (dedupeAcrossPages) {
-      const ids = new Set(items.map(getId));
+    if (moveUpdatedToTop) {
+      // Remove items with matching IDs from all pages
       for (let i = 0; i < pages.length; i++) {
-        const curr = [...getPageItems(pages[i])];
-        const filtered = curr.filter((x) => !ids.has(getId(x)));
-        if (filtered.length !== curr.length) {
-          pages[i] = setPageItems(pages[i], filtered);
-        }
+        const pageItems = getPageItems(pages[i]);
+        const filtered = pageItems.filter((item) => !incomingIds.has(getId(item)));
+        pages[i] = setPageItems(pages[i], filtered);
       }
-    }
 
-    // Insert into page 0 at index 0 (newest-first)
-    {
-      const p0 = pages[0];
-      const p0Items = [...getPageItems(p0)];
-      // Put newest batch at the very front (preserving incoming order: last → first will appear reversed if you care; reverse here if needed)
-      const next = [...items, ...p0Items];
-      pages[0] = setPageItems(p0, next);
+      // Add all incoming items to top of page 0
+      const page0Items = getPageItems(pages[0]);
+      pages[0] = setPageItems(pages[0], [...items, ...page0Items]);
+    } else {
+      // Don't move items - update in place
+      const existingIds = new Set<string | number>();
+
+      // Update existing items in their current positions
+      for (let i = 0; i < pages.length; i++) {
+        const pageItems = getPageItems(pages[i]);
+        const updated = pageItems.map((item) => {
+          const itemId = getId(item);
+          existingIds.add(itemId);
+
+          if (incomingIds.has(itemId)) {
+            return items.find((inc) => getId(inc) === itemId) ?? item;
+          }
+          return item;
+        });
+        pages[i] = setPageItems(pages[i], updated);
+      }
+
+      // Only add NEW items to top
+      const newItems = items.filter((item) => !existingIds.has(getId(item)));
+      if (newItems.length > 0) {
+        const page0Items = getPageItems(pages[0]);
+        pages[0] = setPageItems(pages[0], [...newItems, ...page0Items]);
+      }
     }
 
     // Reflow overflow down the chain
