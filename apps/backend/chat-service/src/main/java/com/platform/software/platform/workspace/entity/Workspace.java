@@ -35,5 +35,6 @@ public class Workspace extends AuditModel {
 
     private boolean deleted = false;
 
+    @Enumerated(EnumType.STRING)
     private WorkspaceStatus status = WorkspaceStatus.PENDING;
 }
