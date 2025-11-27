@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class WorkspaceUserUtilService {
 
-    @Value("${workspace.register.url}")
-    private String registerUrl;
+    @Value("${client.base.url}")
+    private String frontendBaseUrl;
 
     private final EmailServiceFactory emailServiceFactory;
 
@@ -22,7 +22,7 @@ public class WorkspaceUserUtilService {
 
         String subject = "Invitation to join workspace: " + workspace.getName();
         String content = "You have been invited by " + inviterEmail + " to join the workspace: " + workspace.getName() +
-                         ". Click the link below to accept the invitation:\n" + registerUrl ;
+                         ". Click the link below to accept the invitation:\n" + frontendBaseUrl + "/register";
 
         emailServiceFactory.sendEmail(inviteeEmail, subject, content, EmailContentType.TEXT_PLAIN.getType());
     }
