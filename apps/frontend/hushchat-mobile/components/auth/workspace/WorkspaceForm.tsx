@@ -1,14 +1,15 @@
 import { TWorkspaceFormProps, Workspace } from "@/types/login/types";
 import React, { useEffect, useState } from "react";
 import { FormButton, FormContainer, FormHeader, LinkText } from "@/components/FormComponents";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import WorkspaceDropdown from "@/components/auth/workspace/WorkspaceDropdown";
 import { getUserWorkspaces } from "@/apis/user";
-import { useRouter } from "expo-router";
 import { CHATS_PATH, WORKSPACE_CREATE_PATH, WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
 import { useAuthStore } from "@/store/auth/authStore";
 import { logError } from "@/utils/logger";
+import { PLATFORM } from "@/constants/platformConstants";
+import { useRouter } from "expo-router";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -105,12 +106,27 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
           colors={colors}
         />
 
-        <LinkText
-          text="Don't have workspace?"
-          linkText="Create"
-          colors={colors}
-          onPress={() => router.push(WORKSPACE_CREATE_PATH)}
-        />
+        <View className="gap-2 items-center">
+          <LinkText
+            text="Don't have a workspace?"
+            linkText="Create one"
+            colors={colors}
+            onPress={() => router.push(WORKSPACE_CREATE_PATH)}
+          />
+          {!PLATFORM.IS_WEB && (
+            <View className="flex-row items-center">
+              <Text className="text-base" style={{ color: colors.textSecondary }}>
+                Use a different account?
+              </Text>
+
+              <TouchableOpacity onPress={() => router.push("/login")}>
+                <Text className="ml-1 font-semibold underline" style={{ color: colors.primary }}>
+                  Login
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
     </FormContainer>
   );
