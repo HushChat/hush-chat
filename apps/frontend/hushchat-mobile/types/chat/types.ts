@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { JSX, ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
@@ -31,19 +31,6 @@ export interface IMessageAttachment {
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;
-}
-
-export enum ConversationEventType {
-  USER_ADDED = "USER_ADDED",
-  USER_REMOVED = "USER_REMOVED",
-  USER_LEFT = "USER_LEFT",
-  USER_JOINED = "USER_JOINED",
-  GROUP_RENAMED = "GROUP_RENAMED",
-  GROUP_IMAGE_CHANGED = "GROUP_IMAGE_CHANGED",
-  GROUP_DESCRIPTION_CHANGED = "GROUP_DESCRIPTION_CHANGED",
-  USER_PROMOTED_TO_ADMIN = "USER_PROMOTED_TO_ADMIN",
-  USER_REMOVED_FROM_ADMIN = "USER_REMOVED_FROM_ADMIN",
-  GROUP_CREATED = "GROUP_CREATED",
 }
 
 export enum MessageTypeEnum {
