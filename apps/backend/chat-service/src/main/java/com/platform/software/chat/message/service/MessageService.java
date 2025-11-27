@@ -150,16 +150,21 @@ public class MessageService {
         Long messageId,
         MessageUpsertDTO messageDTO
     ) {
+        if (messageDTO.getMessageText() == null || messageDTO.getMessageText().isBlank()) {
+            throw new CustomBadRequestException("Message text cannot be empty!");
+        }
+
         Message message = getMessageBySender(userId, conversationId, messageId);
 
-        if (messageDTO.getMessageText() == null || messageDTO.getMessageText().isBlank()) {
-            throw new CustomBadRequestException("Message does not exist or text is empty!");
+        if (message.getMessageText().equals(messageDTO.getMessageText())) {
+            return;
         }
 
         message.setMessageText(messageDTO.getMessageText());
         MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
+            messageRepository.save(message);
             messageHistoryRepository.save(newMessageHistory);
         } catch (Exception e) {
             logger.error("failed to save message edit history", e);
