@@ -97,7 +97,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
       if (destinationFile.exists) {
         Alert.alert(
           "The image has been recently saved to your gallery",
-          "Do you want to save it to your Gallery again?",
+          "Do you want to save it to your gallery again?",
           [
             {
               text: "Cancel",
