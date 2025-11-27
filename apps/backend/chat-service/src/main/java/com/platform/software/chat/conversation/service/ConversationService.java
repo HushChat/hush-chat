@@ -336,8 +336,6 @@ public class ConversationService {
                     if (imageIndexedName != null) {
                         String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
                         messageViewDTO.setSenderSignedImageUrl(signedUrl);
-                    } else {
-                        messageViewDTO.setSenderSignedImageUrl(null);
                     }
 
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
@@ -421,8 +419,6 @@ public class ConversationService {
             if (imageIndexedName != null) {
                 String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
                 user.setSignedImageUrl(signedImageUrl);
-            } else {
-                user.setSignedImageUrl(null);
             }
 
             participantViewDTO.setUser(user);
