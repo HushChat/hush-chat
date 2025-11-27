@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@NoArgsConstructor
 public class WorkspaceUserInviteDTO {
     @NotBlank
     @Email(message = "Email should be valid")
