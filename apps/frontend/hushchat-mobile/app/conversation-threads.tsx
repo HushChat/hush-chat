@@ -74,7 +74,6 @@ const ConversationThreadScreen = ({
     selectedConversationId,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
-
   const currentConversationId = conversationId || Number(params.conversationId);
 
   useEffect(() => {
@@ -87,13 +86,16 @@ const ConversationThreadScreen = ({
     useConversationByIdQuery(currentConversationId);
 
   const {
-    conversationMessagesPages,
-    isLoadingConversationMessages,
-    conversationMessagesError,
+    pages: conversationMessagesPages,
+    isLoading: isLoadingConversationMessages,
+    error: conversationMessagesError,
     fetchNextPage,
-    isFetchingNextPage,
     hasNextPage,
-    refetchConversationMessages,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    hasPreviousPage,
+    isFetchingPreviousPage,
+    invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(currentConversationId);
@@ -142,12 +144,21 @@ const ConversationThreadScreen = ({
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
 
+  const handleNavigateToMessage = useCallback(
+    (messageId: number) => {
+      if (loadMessageWindow) {
+        void loadMessageWindow(messageId);
+        onMessageJumped?.();
+      }
+    },
+    [loadMessageWindow, onMessageJumped]
+  );
+
   useEffect(() => {
-    if (searchedMessageId && loadMessageWindow) {
-      void loadMessageWindow(searchedMessageId);
-      onMessageJumped?.();
+    if (searchedMessageId) {
+      handleNavigateToMessage(searchedMessageId);
     }
-  }, [searchedMessageId, loadMessageWindow, onMessageJumped]);
+  }, [searchedMessageId, handleNavigateToMessage]);
 
   const {
     selectedFiles,
@@ -216,11 +227,17 @@ const ConversationThreadScreen = ({
     router.back();
   }, []);
 
-  const handleLoadMore = useCallback(async () => {
+  const handleLoadOlder = useCallback(async () => {
     if (hasNextPage && !isFetchingNextPage) {
       await fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleLoadNewer = useCallback(async () => {
+    if (hasPreviousPage && !isFetchingPreviousPage) {
+      await fetchPreviousPage();
+    }
+  }, [hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage]);
 
   const handleMessageSelect = useCallback((message: IMessage) => {
     setSelectedMessage(message);
@@ -248,6 +265,7 @@ const ConversationThreadScreen = ({
       conversationId: currentConversationId,
       conversationName: conversationAPIResponse?.name,
       signedImageUrl: conversationAPIResponse?.signedImageUrl,
+      chatUserStatus: conversationAPIResponse?.chatUserStatus,
     }),
     [currentConversationId, conversationAPIResponse]
   );
@@ -283,13 +301,16 @@ const ConversationThreadScreen = ({
     return (
       <ConversationMessageList
         messages={conversationMessages}
-        onLoadMore={handleLoadMore}
+        onLoadMore={handleLoadOlder}
+        onLoadNewer={handleLoadNewer}
+        hasMoreNewer={hasPreviousPage}
+        isFetchingNewer={isFetchingPreviousPage}
         isFetchingNextPage={isFetchingNextPage}
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
-        targetMessageId={Number(searchedMessageId)}
+        onPinnedMessageNavigate={handleNavigateToMessage}
       />
     );
   }, [
@@ -298,13 +319,17 @@ const ConversationThreadScreen = ({
     conversationAPIError,
     conversationMessagesError,
     conversationMessages,
-    handleLoadMore,
+    handleLoadOlder,
+    handleLoadNewer,
+    hasPreviousPage,
+    isFetchingPreviousPage,
     isFetchingNextPage,
     handleMessageSelect,
     conversationAPIResponse,
     pickerState,
     currentConversationId,
     searchedMessageId,
+    handleNavigateToMessage,
   ]);
 
   const renderTextInput = useCallback(() => {
