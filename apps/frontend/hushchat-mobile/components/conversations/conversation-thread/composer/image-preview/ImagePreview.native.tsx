@@ -8,20 +8,26 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { File, Directory, Paths } from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
 import { TImagePreviewProps } from "@/types/chat/types";
 import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
 import { usePanGesture } from "@/gestures/base/usePanGesture";
 import { useDoubleTapGesture } from "@/gestures/base/useDoubleTapGesture";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ToastUtils } from "@/utils/toastUtils";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const isZoomed = useSharedValue(false);
   const scale = useSharedValue(1);
@@ -55,6 +61,71 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     if (currentIndex < images.length - 1) {
       setCurrentIndex(currentIndex + 1);
       resetTransform();
+    }
+  };
+
+  const downloadImage = async () => {
+    const currentImage = images[currentIndex];
+    if (!currentImage?.fileUrl) return;
+
+    setIsDownloading(true);
+
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") {
+        ToastUtils.error("Permission Required", "Please allow access to your photos.");
+        setIsDownloading(false);
+        return;
+      }
+
+      const cacheDir = new Directory(Paths.cache, "downloads");
+      if (!cacheDir.exists) {
+        cacheDir.create();
+      }
+
+      const destinationFile = new File(cacheDir, currentImage.originalFileName);
+
+      const saveToGallery = async (uri: string) => {
+        try {
+          await MediaLibrary.saveToLibraryAsync(uri);
+          ToastUtils.success("Image saved to Gallery.");
+        } finally {
+          setIsDownloading(false);
+        }
+      };
+
+      if (destinationFile.exists) {
+        Alert.alert(
+          "The image has been recently saved to your gallery",
+          "Do you want to save it to your Gallery again?",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => setIsDownloading(false),
+            },
+            {
+              text: "Save to Gallery",
+              onPress: async () => {
+                await saveToGallery(destinationFile.uri);
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      await File.downloadFileAsync(currentImage.fileUrl, destinationFile);
+      await MediaLibrary.saveToLibraryAsync(destinationFile.uri);
+
+      ToastUtils.success("Image has been saved successfully.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Download failed. Please try again.";
+
+      ToastUtils.error(errorMessage);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -165,9 +236,22 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
               <Text className="text-gray-900 dark:text-white text-base font-semibold">
                 {currentIndex + 1} / {images.length}
               </Text>
-              <Pressable onPress={onClose} className="p-2 active:opacity-60">
-                <Ionicons name="close" size={28} color="#6B7280" />
-              </Pressable>
+              <View className="flex-row items-center gap-4">
+                <Pressable
+                  onPress={downloadImage}
+                  disabled={isDownloading}
+                  className="p-2 active:opacity-60"
+                >
+                  {isDownloading ? (
+                    <ActivityIndicator size="small" color="#6B7280" />
+                  ) : (
+                    <Ionicons name="download-outline" size={26} color="#6B7280" />
+                  )}
+                </Pressable>
+                <Pressable onPress={onClose} className="p-2 active:opacity-60">
+                  <Ionicons name="close" size={28} color="#6B7280" />
+                </Pressable>
+              </View>
             </View>
 
             <View className="flex-1 justify-center items-center">
