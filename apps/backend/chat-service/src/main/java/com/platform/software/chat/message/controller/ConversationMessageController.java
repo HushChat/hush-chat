@@ -146,6 +146,27 @@ public class ConversationMessageController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Edit message response entity.
+     *
+     * @param conversationId the conversation id
+     * @param messageId      the message id
+     * @param userDetails    the user details
+     * @param messageDTO     the message dto
+     * @return the response entity
+     */
+    @ApiOperation(value = "edit a message")
+    @PutMapping("{messageId}")
+    public ResponseEntity<Void> editMessage(
+        @PathVariable Long conversationId,
+        @PathVariable Long messageId,
+        @AuthenticatedUser UserDetails userDetails,
+        @RequestBody MessageUpsertDTO messageDTO
+    ) {
+        messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
+        return ResponseEntity.ok().build();
+    }
+
     /** unpin a message in a conversation
      *
      * @param conversationId the ID of the conversation
