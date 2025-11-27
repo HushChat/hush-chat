@@ -24,7 +24,7 @@ import java.util.Set;
 @Component
 public class ApiKeyAuthorizationFilter extends OncePerRequestFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(ApiKeyAuthorizationFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApiKeyAuthorizationFilter.class);
 
     @Value("${public.api.key}")
     private String expectedApiKey;
@@ -44,11 +44,13 @@ public class ApiKeyAuthorizationFilter extends OncePerRequestFilter {
         String apiKey = request.getHeader(Constants.X_PUBLIC_KEY);
 
         if (apiKey == null) {
+            logger.warn("Missing API key in request headers");
             ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.FAILED_TO_GET_PUBLIC_KEY_RESPONSE);
             return;
         }
 
         if (!expectedApiKey.equals(apiKey)) {
+            logger.warn("Incorrect API key provided");
             ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INCORRECT_PUBLIC_KEY_RESPONSE);
             return;
         }
