@@ -9,7 +9,6 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
@@ -27,7 +26,9 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [existingFileUri, setExistingFileUri] = useState<string | null>(null);
 
   const isZoomed = useSharedValue(false);
   const scale = useSharedValue(1);
@@ -64,6 +65,22 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     }
   };
 
+  const saveToGallery = async (uri: string) => {
+    try {
+      await MediaLibrary.saveToLibraryAsync(uri);
+      ToastUtils.success("Saved to Gallery");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Download failed. Please try again.";
+
+      ToastUtils.error(errorMessage);
+    } finally {
+      setIsDownloading(false);
+      setShowConfirmDialog(false);
+      setExistingFileUri(null);
+    }
+  };
+
   const downloadImage = async () => {
     const currentImage = images[currentIndex];
     if (!currentImage?.fileUrl) return;
@@ -85,46 +102,19 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
 
       const destinationFile = new File(cacheDir, currentImage.originalFileName);
 
-      const saveToGallery = async (uri: string) => {
-        try {
-          await MediaLibrary.saveToLibraryAsync(uri);
-          ToastUtils.success("Image saved to Gallery.");
-        } finally {
-          setIsDownloading(false);
-        }
-      };
-
       if (destinationFile.exists) {
-        Alert.alert(
-          "The image has been recently saved to your gallery",
-          "Do you want to save it to your gallery again?",
-          [
-            {
-              text: "Cancel",
-              style: "cancel",
-              onPress: () => setIsDownloading(false),
-            },
-            {
-              text: "Save to Gallery",
-              onPress: async () => {
-                await saveToGallery(destinationFile.uri);
-              },
-            },
-          ]
-        );
+        setIsDownloading(false);
+
+        setExistingFileUri(destinationFile.uri);
+        setShowConfirmDialog(true);
         return;
       }
 
       await File.downloadFileAsync(currentImage.fileUrl, destinationFile);
-      await MediaLibrary.saveToLibraryAsync(destinationFile.uri);
-
-      ToastUtils.success("Image has been saved successfully.");
+      await saveToGallery(destinationFile.uri);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Download failed. Please try again.";
-
+      const errorMessage = error instanceof Error ? error.message : "Download failed.";
       ToastUtils.error(errorMessage);
-    } finally {
       setIsDownloading(false);
     }
   };
@@ -229,31 +219,31 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
       statusBarTranslucent
       presentationStyle="overFullScreen"
     >
-      <GestureHandlerRootView style={styles.flex1}>
-        <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
-          <View className="flex-1 bg-white dark:bg-black">
-            <View className="absolute left-0 right-0 flex-row justify-between items-center px-5 py-4 z-10 bg-white dark:bg-black backdrop-blur-sm">
-              <Text className="text-gray-900 dark:text-white text-base font-semibold">
-                {currentIndex + 1} / {images.length}
-              </Text>
-              <View className="flex-row items-center gap-4">
-                <Pressable
-                  onPress={downloadImage}
-                  disabled={isDownloading}
-                  className="p-2 active:opacity-60"
-                >
-                  {isDownloading ? (
-                    <ActivityIndicator size="small" color="#6B7280" />
-                  ) : (
-                    <Ionicons name="download-outline" size={26} color="#6B7280" />
-                  )}
-                </Pressable>
-                <Pressable onPress={onClose} className="p-2 active:opacity-60">
-                  <Ionicons name="close" size={28} color="#6B7280" />
-                </Pressable>
-              </View>
+      <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
+        <View className="flex-1 bg-white dark:bg-black">
+          <View className="absolute left-0 right-0 flex-row justify-between items-center px-5 py-4 z-10 bg-white dark:bg-black backdrop-blur-sm">
+            <Text className="text-gray-900 dark:text-white text-base font-semibold">
+              {currentIndex + 1} / {images.length}
+            </Text>
+            <View className="flex-row items-center gap-4">
+              <Pressable
+                onPress={downloadImage}
+                disabled={isDownloading}
+                className="p-2 active:opacity-60"
+              >
+                {isDownloading ? (
+                  <ActivityIndicator size="small" color="#6B7280" />
+                ) : (
+                  <Ionicons name="download-outline" size={26} color="#6B7280" />
+                )}
+              </Pressable>
+              <Pressable onPress={onClose} className="p-2 active:opacity-60">
+                <Ionicons name="close" size={28} color="#6B7280" />
+              </Pressable>
             </View>
+          </View>
 
+          <GestureHandlerRootView style={styles.flex1}>
             <View className="flex-1 justify-center items-center">
               <GestureDetector gesture={composedGesture}>
                 <Animated.View
@@ -267,40 +257,94 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                 </Animated.View>
               </GestureDetector>
             </View>
+          </GestureHandlerRootView>
 
-            {images.length > 1 && (
-              <View className="absolute bottom-0 left-0 right-0 p-5 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-[#202C33]">
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.thumbListContainer}
+          {images.length > 1 && (
+            <View className="absolute bottom-0 left-0 right-0 p-5 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-[#202C33]">
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.thumbListContainer}
+              >
+                {images.map((img, idx) => (
+                  <Pressable
+                    key={img.id || idx}
+                    onPress={() => {
+                      setCurrentIndex(idx);
+                      resetTransform();
+                    }}
+                    className="active:opacity-70"
+                  >
+                    <Image
+                      source={{ uri: img.fileUrl }}
+                      className={`w-[60px] h-[60px] rounded-lg border-2 ${
+                        currentIndex === idx
+                          ? "border-4 border-primary-light dark:border-primary-dark"
+                          : "border-transparent"
+                      }`}
+                      resizeMode="cover"
+                    />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          <Modal
+            visible={showConfirmDialog}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => {
+              setShowConfirmDialog(false);
+              setExistingFileUri(null);
+            }}
+          >
+            <View style={styles.modalOverlay}>
+              <View className="w-[85%] bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 shadow-xl">
+                <Text
+                  style={styles.textPoppins}
+                  className="text-lg font-semibold text-gray-900 dark:text-white mb-2"
                 >
-                  {images.map((img, idx) => (
-                    <Pressable
-                      key={img.id || idx}
-                      onPress={() => {
-                        setCurrentIndex(idx);
-                        resetTransform();
-                      }}
-                      className="active:opacity-70"
+                  File Already Saved
+                </Text>
+                <Text
+                  style={styles.textPoppins}
+                  className="text-base text-gray-600 dark:text-gray-300 mb-6 leading-5"
+                >
+                  This image is already in your temporary storage. Do you want to save it to your
+                  Gallery again?
+                </Text>
+                <View className="flex-row justify-end gap-3">
+                  <Pressable
+                    onPress={() => {
+                      setShowConfirmDialog(false);
+                      setExistingFileUri(null);
+                    }}
+                    className="px-4 py-2.5 rounded-lg active:bg-gray-100 dark:active:bg-gray-800"
+                  >
+                    <Text
+                      style={styles.textPoppins}
+                      className="text-base font-medium text-gray-600 dark:text-gray-400"
                     >
-                      <Image
-                        source={{ uri: img.fileUrl }}
-                        className={`w-[60px] h-[60px] rounded-lg border-2 ${
-                          currentIndex === idx
-                            ? "border-4 border-primary-light dark:border-primary-dark"
-                            : "border-transparent"
-                        }`}
-                        resizeMode="cover"
-                      />
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                      Cancel
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      if (existingFileUri) saveToGallery(existingFileUri);
+                    }}
+                    className="px-4 py-2.5 bg-blue-500 rounded-lg active:opacity-90"
+                  >
+                    <Text style={styles.textPoppins} className="text-base font-bold text-white">
+                      Save Again
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
-            )}
-          </View>
-        </SafeAreaView>
-      </GestureHandlerRootView>
+            </View>
+          </Modal>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -311,5 +355,14 @@ const styles = StyleSheet.create({
   },
   thumbListContainer: {
     gap: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  textPoppins: {
+    fontFamily: "Poppins-Regular",
   },
 });
