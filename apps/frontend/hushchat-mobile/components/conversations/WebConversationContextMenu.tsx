@@ -3,12 +3,7 @@ import { IOption } from "@/types/chat/types";
 import { TITLES } from "@/constants/constants";
 import { ToastUtils } from "@/utils/toastUtils";
 import WebChatContextMenu from "@/components/WebContextMenu";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useConversationFavorites } from "@/hooks/useConversationFavorites";
-import { getCriteria } from "@/utils/conversationUtils";
-import { useTogglePinConversationMutation } from "@/query/post/queries";
-import { getAPIErrorMsg } from "@/utils/commonUtils";
-import { useUserStore } from "@/store/user/useUserStore";
+import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
 
 interface ConversationWebChatContextMenuProps {
   visible: boolean;
@@ -27,39 +22,18 @@ const ConversationWebChatContextMenu = ({
   position,
   onClose,
   conversationId,
-  isFavorite,
-  isPinned,
+  isFavorite: initialFavorite,
+  isPinned: initialPinned,
   handleArchivePress,
   handleDeletePress,
   conversationsRefetch,
 }: ConversationWebChatContextMenuProps) => {
-  const {
-    user: { id: userId },
-  } = useUserStore();
-
-  const [isPinnedState, setIsPinnedState] = React.useState(isPinned);
-  const { selectedConversationType } = useConversationStore();
-  const criteria = getCriteria(selectedConversationType);
-  const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
-
-  const togglePinConversation = useTogglePinConversationMutation(
-    {
-      userId: Number(userId),
+  const { isPinned, isFavorite, togglePin, toggleFavorite, selectedConversationType } =
+    useCommonConversationInfoActions({
       conversationId,
-      criteria,
-    },
-    () => {
-      setIsPinnedState(!isPinnedState);
-    },
-    (error) => {
-      setIsPinnedState(isPinnedState);
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
-  );
-
-  const handleTogglePinConversation = useCallback(() => {
-    togglePinConversation.mutate(conversationId);
-  }, [conversationId, togglePinConversation]);
+      initialPinned,
+      initialFavorite,
+    });
 
   const handleOptionSelect = useCallback(
     async (action: () => Promise<void> | void) => {
@@ -82,13 +56,13 @@ const ConversationWebChatContextMenu = ({
             id: 1,
             name: TITLES.UNPIN_CONVERSATION,
             iconName: "pin-outline",
-            action: () => handleTogglePinConversation(),
+            action: togglePin,
           }
         : {
             id: 1,
             name: TITLES.PIN_CONVERSATION,
             iconName: "pin",
-            action: () => handleTogglePinConversation(),
+            action: togglePin,
           },
       {
         id: 2,
@@ -101,13 +75,13 @@ const ConversationWebChatContextMenu = ({
             id: 3,
             name: TITLES.REMOVE_FROM_FAVOURITES,
             iconName: "heart",
-            action: () => handleToggleFavorites(conversationId),
+            action: toggleFavorite,
           }
         : {
             id: 3,
             name: TITLES.ADD_TO_FAVOURITES,
             iconName: "heart-outline",
-            action: () => handleToggleFavorites(conversationId),
+            action: toggleFavorite,
           },
       {
         id: 4,
@@ -120,9 +94,11 @@ const ConversationWebChatContextMenu = ({
     [
       selectedConversationType,
       isFavorite,
+      isPinned,
       handleArchivePress,
       conversationId,
-      handleToggleFavorites,
+      toggleFavorite,
+      togglePin,
       handleDeletePress,
     ]
   );
