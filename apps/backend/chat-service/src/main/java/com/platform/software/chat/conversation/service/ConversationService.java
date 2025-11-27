@@ -6,7 +6,6 @@ import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationReport;
 import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
-import com.platform.software.chat.conversation.readstatus.dto.ConversationUnreadCount;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
@@ -554,6 +553,8 @@ public class ConversationService {
 
         Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
+        Long lastReadMessageId = getLastReadMessageIdByParticipants(conversationId, loggedInUserId);
+
         List<Long> messageIds = extractMessageIds(messages);
 
         Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
@@ -569,6 +570,9 @@ public class ConversationService {
             .map(dto -> {
                 Message matchedMessage = messageMap.get(dto.getId());
                 List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+                boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
+                dto.setIsReadByEveryone(isReadByEveryone);
 
                 if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
                     return dto;
@@ -601,6 +605,32 @@ public class ConversationService {
             })
             .collect(Collectors.toList());
         return new PageImpl<>(enrichedDTOs, messages.getPageable(), messages.getTotalElements());
+    }
+
+    /**
+     * Returns the lowest last-read message ID among all participants in the conversation,
+     * excluding the logged-in user.
+     *
+     * @param conversationId the ID of the conversation whose read statuses are being checked
+     * @param loggedInUserId the ID of the user making the request, whose own read status is excluded
+     * @return the smallest last-read message ID among other participants, or {@code null}
+     *         if no other participants have read statuses recorded or if any participant has null
+     */
+    private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
+        // read statuses of every participant, with their user id and last read message id
+        Map<Long, Long> userReadStatuses =
+            new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
+        userReadStatuses.remove(loggedInUserId);
+
+        // If any participant has null last-read message ID, return null
+        if (userReadStatuses.containsValue(null)) {
+            return null;
+        }
+
+        return userReadStatuses.values()
+            .stream()
+            .min(Long::compare)
+            .orElse(null);
     }
 
     /**
