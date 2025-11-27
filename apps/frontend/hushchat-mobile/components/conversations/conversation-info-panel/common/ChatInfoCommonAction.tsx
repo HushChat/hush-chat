@@ -4,7 +4,7 @@
  * Shared action row used inside conversation info panels (one-to-one and group).
  */
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { ToastUtils } from "@/utils/toastUtils";
@@ -22,7 +22,7 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import ActionList from "@/components/conversations/conversation-info-panel/common/ActionList";
 
-type ChatInfoActionProps = {
+type TChatInfoActionProps = {
   conversationId: number;
   isFavorite: boolean;
   isPinned: boolean;
@@ -38,11 +38,11 @@ export default function ChatInfoCommonAction({
   isMuted,
   onBack,
   setSelectedConversation,
-}: ChatInfoActionProps) {
+}: TChatInfoActionProps) {
   const { openModal, closeModal } = useModalContext();
-  const [isFavoriteState, setIsFavoriteState] = React.useState(isFavorite);
-  const [isPinnedState, setIsPinnedState] = React.useState(isPinned);
-  const [isMutedState, setIsMutedState] = React.useState(isMuted);
+  const [isFavoriteState, setIsFavoriteState] = useState(isFavorite);
+  const [isPinnedState, setIsPinnedState] = useState(isPinned);
+  const [isMutedState, setIsMutedState] = useState(isMuted);
   const { selectedConversationType } = useConversationStore();
   const { refetch } = useConversationsQuery(getCriteria(selectedConversationType));
   const {
