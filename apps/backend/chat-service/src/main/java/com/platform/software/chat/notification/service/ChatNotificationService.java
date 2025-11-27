@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -39,8 +41,8 @@ public class ChatNotificationService {
      * @param title  notification title
      * @param body   notification body
      */
-    private void sendNotificationToTokens(List<String> tokens, String title, String body) {
-        NotificationRequestDTO notificationsRequest = new NotificationRequestDTO(tokens, title, body);
+    private void sendNotificationToTokens(List<String> tokens, String title, String body, Map<String, String> data) {
+        NotificationRequestDTO notificationsRequest = new NotificationRequestDTO(tokens, title, body, data);
         notificationServiceFactory.sendNotification(notificationsRequest);
     }
 
@@ -92,7 +94,12 @@ public class ChatNotificationService {
             String title = chatNotificationUtilService.getNotificationTitle(message);
             String body = isGroup ? message.getSender().getFirstName() + ": " + message.getMessageText() : message.getMessageText();
 
-            sendNotificationToTokens(tokens, title, body);
+            Map<String, String> data = new HashMap<>();
+            data.put("conversationId", String.valueOf(conversationId));
+            data.put("messageId", String.valueOf(message.getId()));
+            data.put("type", "MESSAGE");
+
+            sendNotificationToTokens(tokens, title, body, data);
         }
     }
 
@@ -103,7 +110,12 @@ public class ChatNotificationService {
             String title = chatNotificationUtilService.getNotificationTitle(message);
             String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
 
-            sendNotificationToTokens(tokens, title, body);
+            Map<String, String> data = new HashMap<>();
+            data.put("conversationId", String.valueOf(message.getConversation().getId()));
+            data.put("messageId", String.valueOf(message.getId()));
+            data.put("type", "REACTION");
+
+            sendNotificationToTokens(tokens, title, body, data);
         }
     }
 }
