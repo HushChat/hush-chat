@@ -97,14 +97,4 @@ public class GlobalExceptionHandler {
         body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
     }
-
-    @ExceptionHandler(CustomWorkspaceMissingException.class)
-    public ResponseEntity<?> handleWorkspaceMissing(CustomWorkspaceMissingException ex) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("error", "Workspace Missing");
-        body.put("errorCode", ExceptionErrorCodes.WORKSPACE_HEADER_MISSING);
-        return ResponseEntity
-                .status(449)
-                .body(body);
-    }
 }

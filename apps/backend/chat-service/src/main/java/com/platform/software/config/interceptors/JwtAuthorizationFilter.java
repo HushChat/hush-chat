@@ -2,6 +2,7 @@ package com.platform.software.config.interceptors;
 
 import com.platform.software.common.constants.Constants;
 import com.platform.software.common.service.ErrorResponseHandler;
+import com.platform.software.common.service.security.CustomHttpStatus;
 import com.platform.software.common.utils.AuthUtils;
 import com.platform.software.config.aws.AWSCognitoConfig;
 import com.platform.software.exception.CustomWorkspaceMissingException;
@@ -76,7 +77,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         return PLATFORM_PATTERNS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private void setCurrentWorkspace(HttpServletRequest request) {
+    private void setCurrentWorkspace(HttpServletRequest request) throws IOException {
         String tenantId = request.getHeader(Constants.X_TENANT_HEADER);
         if (tenantId != null) {
             WorkspaceContext.setCurrentWorkspace(tenantId);
@@ -106,7 +107,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
                 //skip setting workspace for platform only endpoints
                 if(!isPlatformOnlyEndpoint(request)){
-                    setCurrentWorkspace(request);
+                    try {
+                        setCurrentWorkspace(request);
+                    } catch (CustomWorkspaceMissingException e){
+                        ErrorResponseHandler.sendErrorResponse(response, CustomHttpStatus.WORKSPACE_ID_MISSING, ErrorResponses.WORKSPACE_ID_MISSING_RESPONSE);
+                        return;
+                    }
                 }
 
                 String token = AuthUtils.extractTokenFromHeader(request);
