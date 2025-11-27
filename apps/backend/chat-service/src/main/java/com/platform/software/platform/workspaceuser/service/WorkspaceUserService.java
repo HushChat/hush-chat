@@ -15,21 +15,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class WorkspaceUserService {
 
     private final WorkspaceUserRepository workspaceUserRepository;
     private final TransactionTemplate transactionTemplate;
-    private final WorkspaceUserUtilService workspaceUserUtilService;
     Logger logger = LoggerFactory.getLogger(WorkspaceUserService.class);
 
 
-    public WorkspaceUserService(WorkspaceUserRepository workspaceUserRepository, TransactionTemplate transactionTemplate, WorkspaceUserUtilService workspaceUserUtilService) {
+    public WorkspaceUserService(WorkspaceUserRepository workspaceUserRepository, TransactionTemplate transactionTemplate) {
         this.workspaceUserRepository = workspaceUserRepository;
         this.transactionTemplate = transactionTemplate;
-        this.workspaceUserUtilService = workspaceUserUtilService;
     }
 
     public WorkspaceDTO verifyUserAccessToWorkspace(String email, String workspaceName) {
@@ -61,7 +58,6 @@ public class WorkspaceUserService {
     }
 
     public void inviteUserToWorkspace(String inviterEmail, String workspaceIdentifier, WorkspaceUserInviteDTO workspaceUserInviteDTO) {
-        AtomicReference<Workspace> workspace = new AtomicReference<>(new Workspace());
         WorkspaceUtils.runInGlobalSchema(() -> {
             transactionTemplate.executeWithoutResult(status -> {
                 WorkspaceUser existingUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
@@ -72,18 +68,16 @@ public class WorkspaceUserService {
                 }
 
                 try {
-                    workspace.set(workspaceUserRepository.validateWorkspaceMembershipOrThrow(inviterEmail, workspaceIdentifier));
+                    Workspace workspace = workspaceUserRepository.validateWorkspaceMembershipOrThrow(inviterEmail, workspaceIdentifier);
                     WorkspaceUser newWorkspaceUser =
-                            WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, workspace.get(), inviterEmail);
+                            WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, workspace, inviterEmail);
                     workspaceUserRepository.save(newWorkspaceUser);
-                    logger.info("Successfully invited user: {} to workspace: {}", workspaceUserInviteDTO.getEmail(), workspaceIdentifier);
                 } catch (Exception e) {
                     logger.info("Failed to invite user: {} to workspace: {}. Error: {}", workspaceUserInviteDTO.getEmail(), workspaceIdentifier, e.getMessage());
-                    throw new CustomBadRequestException("Failed to invite user to workspace: " + e.getMessage());
                 }
             });
         });
-        workspaceUserUtilService.sendInvitationEmail(workspace.get(), workspaceUserInviteDTO.getEmail(), inviterEmail );
+
     }
 
     public List<WorkspaceDTO> getAllWorkspaceDTO(String email) {
