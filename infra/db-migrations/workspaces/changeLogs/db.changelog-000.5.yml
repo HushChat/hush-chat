@@ -1,0 +1,122 @@
+databaseChangeLog:
+  - changeSet:
+      id: create conversation_event sequence
+      author: ishan
+      tag: release-5.1
+      changes:
+        - createSequence:
+            sequenceName: conversation_event_generator
+            startValue: 1
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            cacheSize: 1
+            cycle: false
+
+  - changeSet:
+      id: create conversation_event table
+      author: ishan
+      tag: release-5.2
+      changes:
+        - createTable:
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  defaultValueSequenceNext: conversation_event_generator
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: conversation_event_pkey
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+                    unique: true
+              - column:
+                  name: event_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_user_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: metadata
+                  type: TEXT
+
+  - changeSet:
+      id: add foreign key constraints for conversation_event
+      author: ishan
+      tag: release-5.3
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: conversation_event
+            baseColumnNames: message_id
+            constraintName: fk_conversation_event_message
+            referencedTableName: message
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: conversation_event
+            baseColumnNames: actor_user_id
+            constraintName: fk_conversation_event_actor_user
+            referencedTableName: chat_user
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: conversation_event
+            baseColumnNames: target_user_id
+            constraintName: fk_conversation_event_target_user
+            referencedTableName: chat_user
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+  - changeSet:
+      id: create indexes for conversation_event
+      author: ishan
+      tag: release-5.4
+      changes:
+        - createIndex:
+            indexName: idx_conversation_event_message_id
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: message_id
+        - createIndex:
+            indexName: idx_conversation_event_actor_user_id
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: actor_user_id
+        - createIndex:
+            indexName: idx_conversation_event_target_user_id
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: target_user_id
+        - createIndex:
+            indexName: idx_conversation_event_event_type
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: event_type
