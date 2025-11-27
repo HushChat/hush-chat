@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/auth/authStore";
 import { logError } from "@/utils/logger";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
+import { AppText } from "@/components/AppText";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -115,14 +116,14 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
           />
           {!PLATFORM.IS_WEB && (
             <View className="flex-row items-center">
-              <Text className="text-base" style={{ color: colors.textSecondary }}>
+              <AppText className="text-base" style={{ color: colors.textSecondary }}>
                 Use a different account?
-              </Text>
+              </AppText>
 
               <TouchableOpacity onPress={() => router.push("/login")}>
-                <Text className="ml-1 font-semibold underline" style={{ color: colors.primary }}>
+                <AppText className="ml-1 font-semibold underline" style={{ color: colors.primary }}>
                   Login
-                </Text>
+                </AppText>
               </TouchableOpacity>
             </View>
           )}
