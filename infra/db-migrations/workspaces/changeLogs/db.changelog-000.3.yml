@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: create message_history sequence
+      author: ishan
+      tag: release-3.1
+      changes:
+        - createSequence:
+            sequenceName: message_history_generator
+            startValue: 1
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            cacheSize: 1
+            cycle: false
+
+  - changeSet:
+      id: create message_history table
+      author: ishan
+      tag: release-3.2
+      changes:
+        - createTable:
+            tableName: message_history
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  defaultValueSequenceNext: message_history_generator
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: message_history_pkey
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message_text
+                  type: TEXT
+
+  - changeSet:
+      id: add foreign key constraint for message_history
+      author: ishan
+      tag: release-3.3
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: message_history
+            baseColumnNames: message_id
+            constraintName: fk_message_history_message
+            referencedTableName: message
+            referencedColumnNames: id
+            onDelete: CASCADE
