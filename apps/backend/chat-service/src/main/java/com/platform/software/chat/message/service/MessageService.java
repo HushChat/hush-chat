@@ -1,9 +1,12 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversation.dto.ConversationEventType;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
+import com.platform.software.chat.conversation.repository.ConversationEventRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
@@ -16,6 +19,7 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.notification.service.ChatNotificationService;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.config.aws.SignedURLResponseDTO;
@@ -54,6 +58,8 @@ public class MessageService {
     private final ConversationRepository conversationRepository;
     private final ChatNotificationService chatNotificationService;
     private final ConversationReadStatusRepository conversationReadStatusRepository;
+    private final ConversationEventRepository conversationEventRepository;
+    private final UserRepository userRepository;
 
     public MessageService(
         MessageRepository messageRepository,
@@ -65,8 +71,9 @@ public class MessageService {
         MessageMentionService messageMentionService,
         ConversationRepository conversationRepository,
         ChatNotificationService chatNotificationService,
-        ConversationReadStatusRepository conversationReadStatusRepository
-    ) {
+        ConversationReadStatusRepository conversationReadStatusRepository,
+        ConversationEventRepository conversationEventRepository,
+        UserRepository userRepository) {
         this.messageRepository = messageRepository;
         this.conversationUtilService = conversationUtilService;
         this.userService = userService;
@@ -77,6 +84,8 @@ public class MessageService {
         this.conversationRepository = conversationRepository;
         this.chatNotificationService = chatNotificationService;
         this.conversationReadStatusRepository = conversationReadStatusRepository;
+        this.conversationEventRepository = conversationEventRepository;
+        this.userRepository = userRepository;
     }
 
     public Message getMessageOrThrow(Long conversationId, Long messageId) {
@@ -153,6 +162,75 @@ public class MessageService {
         });
 
         return messageViewDTO;
+    }
+
+    /**
+     * Create conversation event.
+     *
+     * @param conversationId the conversation id
+     * @param actorUserId the logged in user id
+     * @param targetUserIds the targetUserIds - can be null
+     * @return the message view dto
+     */
+    @Transactional
+    public void createMessageWithConversationEvent(
+        Long conversationId,
+        Long actorUserId,
+        Collection<Long> targetUserIds,
+        ConversationEventType conversationType
+    ) {
+        MessageUpsertDTO messageDTO = new MessageUpsertDTO(conversationType.getName(), null, null);
+        Message savedMessage = createTextMessage(conversationId, actorUserId, messageDTO, MessageTypeEnum.SYSTEM_EVENT);
+
+        conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
+
+        setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
+
+        saveConversationEvent(conversationType, actorUserId, targetUserIds, savedMessage);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                // TODO: complete frontend invoke
+//                messagePublisherService.invokeNewMessageToParticipants(
+//                    conversationId, messageViewDTO, userId, WorkspaceContext.getCurrentWorkspace()
+//                );
+//
+//                chatNotificationService.sendMessageNotificationsToParticipants(conversationId, userId, savedMessage);
+            }
+        });
+    }
+
+    private void saveConversationEvent(ConversationEventType conversationType, Long actorUserId, Collection<Long> targetUserIds, Message savedMessage) {
+        ChatUser actorUser = userService.getUserOrThrow(actorUserId);
+        List<ChatUser> targetUsers = null;
+
+        List<ConversationEvent> events = new ArrayList<>();
+        if (targetUserIds != null) {
+            targetUsers = userRepository.findByIdInAndActiveTrueAndDeletedFalse(targetUserIds);
+
+            for (ChatUser targetUser : targetUsers) {
+                events.add(getConversationEvent(conversationType, savedMessage, actorUser, targetUser));
+            }
+        } else {
+            events.add(getConversationEvent(conversationType, savedMessage, actorUser, null));
+        }
+
+        try {
+            conversationEventRepository.saveAll(events);
+        } catch (Exception e) {
+            logger.error("conversation event save failed.", e);
+            throw new CustomInternalServerErrorException("Failed to send message");
+        }
+    }
+
+    private static ConversationEvent getConversationEvent(ConversationEventType conversationType, Message savedMessage, ChatUser actorUser, ChatUser targetUser) {
+        ConversationEvent conversationEvent = new ConversationEvent();
+        conversationEvent.setEventType(conversationType);
+        conversationEvent.setActorUser(actorUser);
+        conversationEvent.setTargetUser(targetUser);
+        conversationEvent.setMessage(savedMessage);
+        return conversationEvent;
     }
 
     private void setLastSeenMessageForMessageSentUser(Conversation conversation, Message savedMessage, ChatUser user) {
@@ -233,7 +311,7 @@ public class MessageService {
     public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
         ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
         ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
-        Conversation conversation = participant.getConversation();
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
         validateInteractionAllowed(conversation, senderUserId);
 

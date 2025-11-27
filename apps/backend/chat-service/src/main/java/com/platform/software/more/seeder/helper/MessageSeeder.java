@@ -1,9 +1,13 @@
 package com.platform.software.more.seeder.helper;
 
 import com.github.javafaker.Faker;
+import com.platform.software.chat.conversation.dto.ConversationEventType;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationEvent;
+import com.platform.software.chat.conversation.repository.ConversationEventRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -24,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class MessageSeeder {
+    private final ConversationEventRepository conversationEventRepository;
     Logger logger = LoggerFactory.getLogger(MessageSeeder.class);
     private static final Faker faker = new Faker();
     private static final Random random = new Random();
@@ -32,10 +37,11 @@ public class MessageSeeder {
     private final ConversationRepository conversationRepository;
     private final ObjectMapper objectMapper;
 
-    public MessageSeeder(MessageRepository messageRepository, ConversationRepository conversationRepository, ObjectMapper objectMapper) {
+    public MessageSeeder(MessageRepository messageRepository, ConversationRepository conversationRepository, ObjectMapper objectMapper, ConversationEventRepository conversationEventRepository) {
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
         this.objectMapper = objectMapper;
+        this.conversationEventRepository = conversationEventRepository;
     }
 
     @Transactional
@@ -77,6 +83,43 @@ public class MessageSeeder {
         }
         logger.info("Finished seeding {} messages across {} conversations",
             totalMessages, conversations.size());
+    }
+
+    @Transactional
+    public void seedConversationEvents() {
+        logger.info("Started seeding conversation events");
+
+        try {
+            List<Conversation> conversations = conversationRepository.findAllByIsGroup(true);
+
+            List<Message> messagesToSave = new ArrayList<>();
+            for (Conversation conversation : conversations) {
+                Message message = new Message();
+                message.setConversation(conversation);
+                message.setSender(conversation.getCreatedBy());
+                message.setMessageText(ConversationEventType.GROUP_CREATED.getName());
+                message.setMessageType(MessageTypeEnum.SYSTEM_EVENT);
+
+                messagesToSave.add(message);
+            }
+
+            List<Message> messageEvents = messageRepository.saveAll(messagesToSave);
+
+            List<ConversationEvent> conversationEventToSave = new ArrayList<>();
+            for (Message message : messageEvents) {
+                ConversationEvent conversationEvent = new ConversationEvent();
+                conversationEvent.setMessage(message);
+                conversationEvent.setEventType(ConversationEventType.GROUP_CREATED);
+                conversationEvent.setActorUser(message.getSender());
+
+                conversationEventToSave.add(conversationEvent);
+            }
+            conversationEventRepository.saveAll(conversationEventToSave);
+
+            logger.info("finished seeding conversation events");
+        } catch (Exception e) {
+            logger.error("error while seeding conversation events", e);
+        }
     }
 
     @Transactional

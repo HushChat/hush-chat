@@ -175,8 +175,7 @@ public class ConversationService {
      */
     private ConversationDTO saveConversationAndBuildDTO(Conversation conversation) {
         try {
-            conversationRepository.save(conversation);
-            return buildConversationDTO(conversation);
+            return buildConversationDTO(conversationRepository.save(conversation));
         } catch (Exception e) {
             logger.error("conversation save failed.", e);
             throw new CustomInternalServerErrorException("Failed to create conversation");
@@ -261,6 +260,8 @@ public class ConversationService {
 
             return saveConversationAndBuildDTO(conversation);
         }
+        System.out.println("conversationDTO: " + conversationDTO.getId());
+        messageService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
 
         return conversationDTO;
     }
@@ -644,6 +645,7 @@ public class ConversationService {
      * @param conversationId         the ID of the conversation
      * @param groupRoleManageRequest the request DTO containing user ID and admin status
      */
+    @Transactional
     public void manageAdminPrivileges(Long loggedInUserId, Long conversationId, GroupRoleManageRequestDTO groupRoleManageRequest) {
         ValidationUtils.validate(groupRoleManageRequest);
         Long targetUserId = groupRoleManageRequest.getUserId();
@@ -668,6 +670,13 @@ public class ConversationService {
 
         try {
             conversationParticipantRepository.save(targetParticipant);
+
+            messageService.createMessageWithConversationEvent(
+                conversationId, loggedInUserId, List.of(targetUserId),
+                groupRoleManageRequest.getMakeAdmin()
+                    ? ConversationEventType.USER_PROMOTED_TO_ADMIN
+                    : ConversationEventType.USER_REMOVED_FROM_ADMIN
+            );
         } catch (Exception e) {
             logger.error("Failed to update participant role for userId: {} in conversationId: {}",
                     targetUserId, conversationId, e);
@@ -687,6 +696,8 @@ public class ConversationService {
 
         try {
             conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
+
+            messageService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
         } catch (Exception e) {
             logger.error("user: %s cannot leave the conversation due to an error".formatted(userId), e);
             throw new CustomInternalServerErrorException("Failed to leave the conversation");
@@ -741,6 +752,8 @@ public class ConversationService {
 
         try {
             conversationParticipantRepository.saveAll(participantsToSave);
+
+            messageService.createMessageWithConversationEvent(conversationId, initiatorUserId, joinRequest.getUserIds(), ConversationEventType.USER_ADDED);
         } catch (Exception e) {
             logger.error("Failed to add participants. conversationId={}, initiator={}", conversationId, initiatorUserId, e);
             throw new CustomBadRequestException("Some users are already participants.");
@@ -860,16 +873,31 @@ public class ConversationService {
         Conversation conversation = adminParticipant.getConversation();
 
         String newName = groupConversationDTO.getName().trim();
+        boolean isGroupNameChanged = !newName.equals(conversation.getName());
+        boolean isGroupDescriptionChanged = !groupConversationDTO.getDescription().equals(conversation.getDescription());
+
         conversation.setName(newName);
         conversation.setDescription(groupConversationDTO.getDescription());
         try {
             conversationRepository.save(conversation);
+            setGroupUpdateChangeEvents(adminUserId, isGroupNameChanged, conversation, isGroupDescriptionChanged);
+
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+
             return buildConversationDTO(conversation);
         } catch (Exception e) {
             logger.error("failed to update group info for conversationId: {} by user id: {}",
                     conversationId, adminUserId, e);
             throw new CustomInternalServerErrorException("Failed to update group name!");
+        }
+    }
+
+    private void setGroupUpdateChangeEvents(Long adminUserId, boolean isGroupNameChanged, Conversation conversation, boolean isGroupDescriptionChanged) {
+        if (isGroupNameChanged) {
+            messageService.createMessageWithConversationEvent(conversation.getId(), adminUserId, null, ConversationEventType.GROUP_RENAMED);
+        }
+        if (isGroupDescriptionChanged) {
+            messageService.createMessageWithConversationEvent(conversation.getId(), adminUserId, null, ConversationEventType.GROUP_DESCRIPTION_CHANGED);
         }
     }
 
@@ -1193,6 +1221,8 @@ public class ConversationService {
 
         try {
             conversationParticipantRepository.updateIsActiveById(participantIdToRemove, false);
+
+            messageService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(participantIdToRemove), ConversationEventType.USER_REMOVED);
         } catch (Exception e) {
             logger.error("Cant remove user: %s due to an error".formatted(participantIdToRemove), e);
             throw new CustomInternalServerErrorException("Failed to remove user from conversation");
