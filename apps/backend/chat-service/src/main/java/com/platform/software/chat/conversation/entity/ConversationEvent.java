@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter
 public class ConversationEvent extends AuditModel {
     @Id
-    @GeneratedValue(generator = "conversation_generator")
+    @GeneratedValue(generator = "conversation_event_generator")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
