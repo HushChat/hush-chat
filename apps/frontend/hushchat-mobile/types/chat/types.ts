@@ -36,7 +36,7 @@ export interface IMessageAttachment {
 export enum MessageTypeEnum {
   TEXT = "TEXT",
   ATTACHMENT = "ATTACHMENT",
-  SYSTEM_EVENT = "SYSTEM_EVENT"
+  SYSTEM_EVENT = "SYSTEM_EVENT",
 }
 
 export interface IMessage {
@@ -56,7 +56,7 @@ export interface IMessage {
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
-  messageType?: MessageTypeEnum
+  messageType?: MessageTypeEnum;
 }
 
 export interface IMessageView extends IMessage {
