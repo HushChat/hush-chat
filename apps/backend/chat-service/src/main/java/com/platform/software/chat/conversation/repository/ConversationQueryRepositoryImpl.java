@@ -29,10 +29,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
@@ -135,19 +132,49 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 mutedCount);
     }
 
+    @Override
+    public Map<Long, MessageViewDTO> getLatestMessagesForConversations(Collection<Long> conversationIds) {
+        if (conversationIds == null || conversationIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        QMessage qMessage2 = new QMessage("qMessage2");
+        QMessage qMaxMessage = new QMessage("qMaxMessage");
+
+        List<Tuple> latestMessages = jpaQueryFactory
+            .select(qMessage2.conversation.id, qMessage2)
+            .from(qMessage2)
+            .where(
+                qMessage2.conversation.id.in(conversationIds)
+                    .and(qMessage2.id.in(
+                        JPAExpressions
+                            .select(qMaxMessage.id.max())
+                            .from(qMaxMessage)
+                            .where(qMaxMessage.conversation.id.in(conversationIds))
+                            .groupBy(qMaxMessage.conversation.id)
+                    ))
+            )
+            .fetch();
+
+        return latestMessages.stream()
+            .collect(Collectors.toMap(
+                tuple -> tuple.get(qMessage2.conversation.id),
+                tuple -> new MessageViewDTO(tuple.get(qMessage2))
+            ));
+    }
+
+    @Override
     public Page<ConversationDTO> findAllConversationsByUserIdWithLatestMessages(
         Long userId,
         ConversationFilterCriteriaDTO conversationFilterCriteria,
         Pageable pageable
     ) {
-        QMessage qUnreadMessage = new QMessage("unreadMessage");
-
         boolean isArchived = conversationFilterCriteria.getIsArchived() != null
-                ? conversationFilterCriteria.getIsArchived()
-                : false;
+            ? conversationFilterCriteria.getIsArchived()
+            : false;
         boolean isFavorite = conversationFilterCriteria.getIsFavorite() != null
-                ? conversationFilterCriteria.getIsFavorite()
-                : false;
+            ? conversationFilterCriteria.getIsFavorite()
+            : false;
         boolean isUnread = conversationFilterCriteria.getIsUnread() != null
             ? conversationFilterCriteria.getIsUnread()
             : false;
@@ -155,10 +182,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
                 .and(qConversation.deleted.eq(false))
                 .and(qConversationParticipant.isDeleted.eq(false));
-
-        whereConditions = whereConditions.and(
-                qMessage.isNotNull().or(qConversation.isGroup.eq(true))
-        );
 
         if (isArchived) {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
@@ -170,16 +193,13 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         }
 
         JPAQuery<?> baseQuery = jpaQueryFactory
-                .from(qConversation)
-                .innerJoin(qConversationParticipant).on(qConversationParticipant.conversation.eq(qConversation))
+            .from(qConversation)
+            .innerJoin(qConversationParticipant).on(qConversationParticipant.conversation.eq(qConversation));
 
-                .leftJoin(qMessage).on(qMessage.conversation.eq(qConversation) // joining messages to get the latest message of the conversation by max msg id
-                    .and(qMessage.id.eq(
-                        JPAExpressions.select(qMessage2.id.max())
-                            .from(qMessage2)
-                            .where(qMessage2.conversation.eq(qConversation)))))
+        if (isUnread) {
+            QMessage qUnreadMessage = new QMessage("unreadMessage");
 
-                .leftJoin(qConversationReadStatus) // joining read statues of the user, to get unread message counts of each conversation
+            baseQuery.leftJoin(qConversationReadStatus)
                 .on(qConversationReadStatus.conversation.id.eq(qConversation.id)
                     .and(qConversationReadStatus.user.id.eq(userId)))
                 .leftJoin(qUnreadMessage)
@@ -188,10 +208,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     .and(qConversationReadStatus.message.id.isNull()
                         .or(qUnreadMessage.id.gt(qConversationReadStatus.message.id))))
                 .where(whereConditions)
-                .groupBy(qConversation.id, qMessage.id, qConversationParticipant.id);
-
-        if (isUnread) {
-            baseQuery.having(qUnreadMessage.id.count().gt(0L));
+                .groupBy(qConversation.id, qConversationParticipant.id)
+                .having(qUnreadMessage.id.count().gt(0L));
+        } else {
+            baseQuery.where(whereConditions)
+                .groupBy(qConversation.id, qConversationParticipant.id);
         }
 
         boolean isValidSearchKey = StringUtils.hasText(conversationFilterCriteria.getSearchKeyword());
@@ -204,16 +225,14 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .select(qConversation.countDistinct())
                 .fetchOne();
 
-        // Get all conversations where user is a participant, with unread count
+        // Get all conversations where user is a participant
         List<Tuple> results = baseQuery.clone()
-                .select(qConversation, qMessage, qConversationParticipant, qUnreadMessage.id.count())
+                .select(qConversation, qConversationParticipant)
                 .orderBy(
                         // Primary sort: Pinned conversations first
                         qConversationParticipant.isPinned.desc().nullsLast(),
                         // Secondary sort: Among pinned conversations, most recently pinned first
                         qConversationParticipant.pinnedAt.desc().nullsLast(),
-                        // Tertiary sort: Latest message timestamp (for both pinned and non-pinned)
-                        qMessage.createdAt.desc().nullsLast(),
                         // Final sort: Conversation creation time
                         qConversation.createdAt.desc())
                 .limit(pageable.getPageSize())
@@ -223,11 +242,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         List<ConversationDTO> conversationDTOs = results.stream()
                 .map(tuple -> {
                     Conversation conversation = tuple.get(qConversation);
-                    Message latestMessage = tuple.get(qMessage);
-                    Long unreadCount = tuple.get(3, Long.class);
+                    ConversationParticipant conversationParticipant = tuple.get(qConversationParticipant);
 
                     ConversationDTO dto = new ConversationDTO(conversation);
-                    dto.setUnreadCount(unreadCount != null ? unreadCount : 0L);
 
                     if (conversation != null && conversation.getConversationParticipants() != null) {
                         ConversationParticipant loggedInParticipant = null;
@@ -271,14 +288,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         }
                     }
 
-                    if (latestMessage != null) {
-                        MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
-                        dto.setMessages(List.of(messageViewDTO));
-                    }
-
-                    return dto;
-                })
-                .collect(Collectors.toList());
+                return dto;
+            })
+            .collect(Collectors.toList());
 
         return new PageImpl<>(conversationDTOs, pageable, totalCount);
     }
