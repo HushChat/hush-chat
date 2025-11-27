@@ -94,11 +94,12 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
-    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser) {
+    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType) {
         Message newMessage = new Message();
         newMessage.setMessageText(messageText);
         newMessage.setConversation(conversation);
         newMessage.setSender(loggedInUser);
+        newMessage.setMessageType(messageType);
         return newMessage;
     }
 
@@ -131,7 +132,7 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO);
+        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
@@ -179,7 +180,7 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO);
+        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
@@ -229,14 +230,14 @@ public class MessageService {
      * @param message the message details
      * @return the saved Message entity
      */
-    public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message) {
+    public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
         ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
         ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
         Conversation conversation = participant.getConversation();
 
         validateInteractionAllowed(conversation, senderUserId);
 
-        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser);
+        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
 
         try {
@@ -314,7 +315,7 @@ public class MessageService {
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
             messages.forEach(message -> {
-                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser);
+                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
                 forwardingMessages.add(newMessage);
@@ -325,7 +326,8 @@ public class MessageService {
                 Message customMessage = MessageService.buildMessage(
                         messageForwardRequestDTO.getCustomText(),
                         targetConversation.getModel(),
-                        loggedInUser
+                        loggedInUser,
+                        MessageTypeEnum.TEXT
                 );
                 forwardingMessages.add(customMessage);
             }
