@@ -1,13 +1,14 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Linking, TextStyle, Text } from "react-native";
+import { Linking, TextStyle } from "react-native";
 import ParsedText, { ParseShape } from "react-native-parsed-text";
 import classNames from "classnames";
 import { TUser } from "@/types/user/types";
 import { HASHTAG_REGEX, MENTION_REGEX } from "@/constants/regex";
 import { PLATFORM } from "@/constants/platformConstants";
-import { copyToClipboard } from "@/utils/messageUtils";
+import { copyToClipboard, normalizeUrl } from "@/utils/messageUtils";
 import WebContextMenu from "@/components/WebContextMenu";
 import { IOption } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
 
 interface FormattedTextProps {
   text: string;
@@ -40,7 +41,11 @@ const FormattedText = ({
 
   const handleUrlPress = useCallback(
     async (url: string) => {
-      const finalUrl = url.startsWith("http") ? url : `https://${url}`;
+      const finalUrl = normalizeUrl(url);
+      if (!finalUrl) {
+        return;
+      }
+
       if (onLinkPress) return onLinkPress(finalUrl);
       if (await Linking.canOpenURL(finalUrl)) await Linking.openURL(finalUrl);
     },
@@ -48,7 +53,7 @@ const FormattedText = ({
   );
 
   const handleUrlContextMenu = useCallback(
-    (url: string) => (event: any) => {
+    (url: string) => (event: React.MouseEvent) => {
       event.preventDefault();
       setMenuPos({ x: event.nativeEvent.pageX, y: event.nativeEvent.pageY });
       setSelectedUrl(url);
@@ -80,7 +85,11 @@ const FormattedText = ({
         name: "Copy link address",
         iconName: "copy-outline",
         action: async () => {
-          const finalUrl = selectedUrl.startsWith("http") ? selectedUrl : `https://${selectedUrl}`;
+          const finalUrl = normalizeUrl(selectedUrl);
+          if (!finalUrl) {
+            return;
+          }
+
           await copyToClipboard(finalUrl);
           setMenuVisible(false);
         },
@@ -94,7 +103,7 @@ const FormattedText = ({
       {
         type: "url",
         renderText: ((matchingString: string) => (
-          <Text
+          <AppText
             onPress={() => handleUrlPress(matchingString)}
             {...(PLATFORM.IS_WEB && {
               onContextMenu: handleUrlContextMenu(matchingString),
@@ -107,7 +116,7 @@ const FormattedText = ({
             }}
           >
             {matchingString}
-          </Text>
+          </AppText>
         )) as any,
       },
       {

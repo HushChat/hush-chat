@@ -5,6 +5,7 @@ import { DEFAULT_HIT_SLOP } from "@/constants/ui";
 import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { AppText } from "@/components/AppText";
+import HeaderAction from "@/components/conversations/conversation-info-panel/common/HeaderAction";
 
 interface ActionsHeaderProps {
   message: IMessage;
@@ -58,38 +59,20 @@ const ActionsHeader = ({
 
         <View className="flex-row items-center gap-2">
           {!message.isUnsend && message.messageText && (
-            <TouchableOpacity
-              className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
-              onPress={() => onCopy(message)}
-            >
-              <Ionicons name="copy-outline" size={20} color={"#6B7280"} />
-            </TouchableOpacity>
+            <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
           )}
 
           {message.senderId === Number(user.id) && !message.isUnsend && (
-            <TouchableOpacity
-              className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
-              onPress={() => onUnsend(message)}
-            >
-              <Ionicons name={"trash-outline"} size={20} color={"#6B7280"} />
-            </TouchableOpacity>
+            <HeaderAction iconName="trash-outline" onPress={() => onUnsend(message)} />
           )}
-          <TouchableOpacity
-            className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
+
+          <HeaderAction
+            iconName={isPinned ? "pin" : "pin-outline"}
             onPress={() => onPinToggle(message)}
-          >
-            <Ionicons
-              name={isPinned ? "pin" : "pin-outline"}
-              size={20}
-              color={isPinned ? "#6B4EFF" : "#6B7280"}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
-            onPress={() => onForward(message)}
-          >
-            <Ionicons name="arrow-redo-outline" size={20} color={"#6B7280"} />
-          </TouchableOpacity>
+            color={isPinned ? "#6B4EFF" : "#6B7280"}
+          />
+
+          <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
         </View>
       </View>
     </View>
