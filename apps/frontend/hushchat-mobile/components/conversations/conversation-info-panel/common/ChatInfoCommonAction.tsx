@@ -4,7 +4,7 @@
  * Shared action row used inside conversation info panels (one-to-one and group).
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { ToastUtils } from "@/utils/toastUtils";
@@ -21,6 +21,7 @@ import { useDeleteConversationByIdMutation } from "@/query/delete/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import ActionList from "@/components/conversations/conversation-info-panel/common/ActionList";
+import { IActionConfig } from "@/types/chat/types";
 
 type TChatInfoActionProps = {
   conversationId: number;
@@ -165,14 +166,35 @@ export default function ChatInfoCommonAction({
     });
   }, [openModal, closeModal, deleteConversation, conversationId]);
 
+  const actions: IActionConfig[] = useMemo(
+    () => [
+      {
+        label: isPinnedState ? "Unpin" : "Pin",
+        icon: isPinnedState ? "pin-outline" : "pin",
+        onPress: handleTogglePinConversation,
+      },
+      {
+        label: isFavoriteState ? "Remove from Favorites" : "Add to Favorites",
+        icon: isFavoriteState ? "heart" : "heart-outline",
+        onPress: handleToggleFavorite,
+      },
+      {
+        label: isMutedState ? "Unmute Conversation" : "Mute Conversation",
+        icon: isMutedState ? "notifications-off-outline" : "notifications-outline",
+        onPress: handleToggleMuteConversation,
+      },
+      {
+        label: "Delete Conversation",
+        icon: "trash-bin-outline",
+        onPress: handleDeleteConversation,
+      },
+    ],
+    [isPinnedState, isFavoriteState, isMutedState, handleDeleteConversation]
+  );
+
   return (
     <View>
-      <ActionList
-        pinOption={{ state: isPinnedState, handler: handleTogglePinConversation }}
-        favoriteOption={{ state: isFavoriteState, handler: handleToggleFavorite }}
-        mutedOption={{ state: isMutedState, handler: handleToggleMuteConversation }}
-        deleteOption={{ handler: handleDeleteConversation }}
-      />
+      <ActionList actions={actions} />
     </View>
   );
 }
