@@ -103,7 +103,6 @@ public class  DBSeeder implements ApplicationListener<ApplicationReadyEvent> {
     private void seedChatData() {
         userSeeder.seedChatUsers();
         conversationSeeder.seedConversationsAndParticipants();
-//        messageSeeder.seedConversationEvents();
         messageSeeder.seedMessages();
         messageReactionSeeder.seedMessageReactions();
         favouriteMessageSeeder.seedFavouriteMessages();

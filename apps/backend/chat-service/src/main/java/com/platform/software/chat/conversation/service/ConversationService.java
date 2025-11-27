@@ -3,11 +3,13 @@ package com.platform.software.chat.conversation.service;
 
 import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.entity.ConversationReport;
 import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
+import com.platform.software.chat.conversation.repository.ConversationEventRepository;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
@@ -21,6 +23,7 @@ import com.platform.software.chat.message.dto.MessageReactionSummaryDTO;
 import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
+import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.service.MessageMentionService;
@@ -45,6 +48,8 @@ import com.platform.software.exception.CustomForbiddenException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.utils.CommonUtils;
 import com.platform.software.utils.ValidationUtils;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -61,8 +66,8 @@ import java.util.stream.Collectors;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class ConversationService {
-    private final ConversationReadStatusRepository conversationReadStatusRepository;
     Logger logger = LoggerFactory.getLogger(ConversationService.class);
 
     private final ConversationRepository conversationRepository;
@@ -78,38 +83,9 @@ public class ConversationService {
     private final ConversationParticipantCommandRepository participantCommandRepository;
     private final ConversationReportRepository reportRepository;
     private final WebSocketSessionManager webSocketSessionManager;
-
-    public ConversationService(
-            ConversationRepository conversationRepository,
-            ConversationParticipantRepository conversationParticipantRepository,
-            ConversationParticipantCommandRepository participantCommandRepository,
-            UserService userService,
-            MessageService messageService,
-            CloudPhotoHandlingService cloudPhotoHandlingService,
-            ConversationUtilService conversationUtilService,
-            ConversationReadStatusService conversationReadStatusService,
-            MessageReactionRepository messageReactionRepository,
-            MessageMentionService messageMentionService, 
-            RedisCacheService cacheService,
-            ConversationReportRepository reportRepository,
-            ConversationReadStatusRepository conversationReadStatusRepository,
-            WebSocketSessionManager webSocketSessionManager
-    ) {
-        this.conversationRepository = conversationRepository;
-        this.conversationParticipantRepository = conversationParticipantRepository;
-        this.participantCommandRepository = participantCommandRepository;
-        this.userService = userService;
-        this.messageService = messageService;
-        this.cloudPhotoHandlingService = cloudPhotoHandlingService;
-        this.conversationUtilService = conversationUtilService;
-        this.messageMentionService = messageMentionService;
-        this.conversationReadStatusService = conversationReadStatusService;
-        this.messageReactionRepository = messageReactionRepository;
-        this.cacheService = cacheService;
-        this.reportRepository = reportRepository;
-        this.conversationReadStatusRepository = conversationReadStatusRepository;
-        this.webSocketSessionManager = webSocketSessionManager;
-    }
+    private final ConversationReadStatusRepository conversationReadStatusRepository;
+    private final ConversationEventRepository conversationEventRepository;
+    private final ConversationEventMessageService conversationEventMessageService;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -367,26 +343,53 @@ public class ConversationService {
 
         Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserIdWithLatestMessages(loggedInUserId, conversationFilterCriteria, pageable);
 
+
         Map<Long, Long> conversationUnreadCounts = conversationReadStatusRepository.findUnreadMessageCountsByConversationIdsAndUserId(
             conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet()),
             loggedInUserId
         );
 
+        List<MessageViewDTO> messages = getMessageViewDTOSList(conversations);
+        Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messages);
+
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
-                .map(dto -> {
+                .peek(dto -> {
                     String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
 
                     long unreadMessageCount = conversationUnreadCounts.getOrDefault(dto.getId(), 0L);
                     dto.setUnreadCount(unreadMessageCount);
-                    return dto;
+
+                    setEventMessageIfExists(loggedInUserId, dto, conversationEventMap);
                 })
                 .collect(Collectors.toList());
 
         Page<ConversationDTO> updatedConversationPageDTO = new PageImpl<>(updatedContent, pageable, conversations.getTotalElements());
 
         return updatedConversationPageDTO;
+    }
+
+    @NotNull
+    private static List<MessageViewDTO> getMessageViewDTOSList(Page<ConversationDTO> conversations) {
+        List<MessageViewDTO> messages = conversations.getContent().stream().map(conversationDTO -> {
+                Optional<MessageViewDTO> opMessageViewDTO = conversationDTO.getMessages().stream().findFirst();
+                return opMessageViewDTO.orElse(null);
+            })
+            .filter(Objects::nonNull)
+            .toList();
+        return messages;
+    }
+
+    private void setEventMessageIfExists(Long loggedInUserId, ConversationDTO dto, Map<Long, ConversationEvent> conversationEventMap) {
+        if(dto.getMessages() != null) {
+            MessageViewDTO msg = dto.getMessages().getFirst();
+
+            if (conversationEventMap.containsKey(msg.getId())) {
+                ConversationEvent event = conversationEventMap.get(msg.getId());
+                conversationEventMessageService.setEventMessageText(event, msg, loggedInUserId);
+            }
+        }
     }
 
     /**
@@ -562,6 +565,8 @@ public class ConversationService {
 
         List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap, cloudPhotoHandlingService);
         messageMentionService.appendMessageMentions(messageViewDTOS);
+
+        Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messageViewDTOS);
         
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));
@@ -570,6 +575,11 @@ public class ConversationService {
             .map(dto -> {
                 Message matchedMessage = messageMap.get(dto.getId());
                 List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+                if (conversationEventMap.containsKey(dto.getId())) {
+                    ConversationEvent event = conversationEventMap.get(dto.getId());
+                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId);
+                }
 
                 boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
                 dto.setIsReadByEveryone(isReadByEveryone);
@@ -605,6 +615,22 @@ public class ConversationService {
             })
             .collect(Collectors.toList());
         return new PageImpl<>(enrichedDTOs, messages.getPageable(), messages.getTotalElements());
+    }
+
+    private Map<Long, ConversationEvent> getMessageConversationEventMap(Collection<MessageViewDTO> messages) {
+        Set<Long> systemEventIds = messages.stream().map(message -> {
+                boolean isMessageSystemEvent = message.getMessageType() != null && message.getMessageType().equals(MessageTypeEnum.SYSTEM_EVENT);
+                if (isMessageSystemEvent) {
+                    return message.getId();
+                }
+
+                return null;
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+        Map<Long, ConversationEvent> conversationEventMap = conversationEventRepository.findByMessageIdsAsMap(systemEventIds);
+        return conversationEventMap;
     }
 
     /**

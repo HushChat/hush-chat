@@ -33,6 +33,25 @@ export interface IMessageAttachment {
   fileUrl: string;
 }
 
+export enum ConversationEventType {
+  USER_ADDED = "USER_ADDED",
+  USER_REMOVED = "USER_REMOVED",
+  USER_LEFT = "USER_LEFT",
+  USER_JOINED = "USER_JOINED",
+  GROUP_RENAMED = "GROUP_RENAMED",
+  GROUP_IMAGE_CHANGED = "GROUP_IMAGE_CHANGED",
+  GROUP_DESCRIPTION_CHANGED = "GROUP_DESCRIPTION_CHANGED",
+  USER_PROMOTED_TO_ADMIN = "USER_PROMOTED_TO_ADMIN",
+  USER_REMOVED_FROM_ADMIN = "USER_REMOVED_FROM_ADMIN",
+  GROUP_CREATED = "GROUP_CREATED",
+}
+
+export enum MessageTypeEnum {
+  TEXT = "TEXT",
+  ATTACHMENT = "ATTACHMENT",
+  SYSTEM_EVENT = "SYSTEM_EVENT"
+}
+
 export interface IMessage {
   id: number;
   senderId: number;
@@ -50,6 +69,7 @@ export interface IMessage {
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
+  messageType?: MessageTypeEnum
 }
 
 export interface IMessageView extends IMessage {
