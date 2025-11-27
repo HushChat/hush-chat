@@ -5,6 +5,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.amazonaws.services.simpleemail.model.*;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service("awsSesProvider")
 class SESEmailSenderServiceImpl implements EmailSenderService {
 
-    Logger logger = LoggerFactory.getLogger(SESEmailSenderServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(SESEmailSenderServiceImpl.class);
     private static final String CHARSET = "UTF-8";
 
     @Value("${email-service.ses.access-key}")
@@ -29,15 +30,20 @@ class SESEmailSenderServiceImpl implements EmailSenderService {
     @Value("${email-service.ses.from-mail}")
     private String fromEmail;
 
-    @Override
-    @Async
-    public void sendEmail(String to, String subject, String content, String contentType) {
-        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+    private AmazonSimpleEmailService sesClient;
 
-        AmazonSimpleEmailService sesClient = AmazonSimpleEmailServiceClientBuilder.standard()
+    @PostConstruct
+    public void init() {
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+        sesClient = AmazonSimpleEmailServiceClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
                 .withRegion(awsRegion)
                 .build();
+    }
+
+    @Override
+    @Async
+    public void sendEmail(String to, String subject, String content, String contentType) {
 
         Body body;
         if (EmailContentType.TEXT_HTML.getType().equals(contentType)) {

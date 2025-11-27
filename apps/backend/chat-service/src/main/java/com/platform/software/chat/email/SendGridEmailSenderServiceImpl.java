@@ -19,15 +19,18 @@ import java.util.Arrays;
 @Service("sendGridProvider")
 class SendGridEmailSenderServiceImpl implements EmailSenderService {
 
-    Logger logger = LoggerFactory.getLogger(SendGridEmailSenderServiceImpl.class);
-
-    @Value("${email-service.sendgrid.api.key}")
-    private String sendgridApiKey;
+    private final Logger logger = LoggerFactory.getLogger(SendGridEmailSenderServiceImpl.class);
 
     @Value("${email-service.sendgrid.from-mail}")
     private String fromEmail;
 
+    private final SendGrid sendGrid;
+
     private static final String SENDGRID_ENDPOINT = "mail/send";
+
+    SendGridEmailSenderServiceImpl(SendGrid sendGrid) {
+        this.sendGrid = sendGrid;
+    }
 
     @Override
     @Async
@@ -37,19 +40,19 @@ class SendGridEmailSenderServiceImpl implements EmailSenderService {
         Content mailBody = new Content(contentType, content);
         Mail mail = new Mail(fromEmail, subject, toEmail, mailBody);
 
-        SendGrid sendGrid = new SendGrid(sendgridApiKey);
         Request request = new Request();
 
+        request.setMethod(Method.POST);
+        request.setEndpoint(SENDGRID_ENDPOINT);
+
         try {
-            request.setMethod(Method.POST);
-            request.setEndpoint(SENDGRID_ENDPOINT);
             request.setBody(mail.build());
             Response response = sendGrid.api(request);
             if (response.getStatusCode() != 202) {
                 logger.error("failed to send email: {}", response.getBody());
             }
         } catch (IOException ex) {
-            logger.error("failed to send email: {}", Arrays.toString(ex.getStackTrace()), ex);
+            logger.error("failed to send email: ", ex);
         }
     }
 }

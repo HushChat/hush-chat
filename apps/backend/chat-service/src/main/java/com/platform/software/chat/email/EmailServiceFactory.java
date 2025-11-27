@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailServiceFactory {
 
-    Logger logger = LoggerFactory.getLogger(EmailServiceFactory.class);
+    private final Logger logger = LoggerFactory.getLogger(EmailServiceFactory.class);
 
     @Value("${email-service.default.sender}")
     private String defaultSenderService;
@@ -42,10 +42,9 @@ public class EmailServiceFactory {
         };
     }
 
-    public boolean sendEmail(String toEmail, String subject, String content, String contentType, EmailProviderType provider) {
+    public void sendEmail(String toEmail, String subject, String content, String contentType, EmailProviderType provider) {
         EmailSenderService emailSenderService = getProvider(provider);
         emailSenderService.sendEmail(toEmail, subject, content, contentType);
-        return true;
     }
 
     public void sendEmail(String toEmail, String subject, String content, String contentType) {
