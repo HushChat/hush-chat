@@ -107,7 +107,6 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
 
     @Override
     public Map<Long, Long> findLastReadMessageIdsByConversationId(Long conversationId) {
-        QConversationParticipant qParticipant = QConversationParticipant.conversationParticipant;
 
         List<Tuple> results = queryFactory
             .select(

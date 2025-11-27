@@ -614,11 +614,11 @@ public class ConversationService {
     private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
         // read statuses of every participant, with their user id and last read message id
         Map<Long, Long> userReadStatuses =
-            conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId);
+            new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
         userReadStatuses.remove(loggedInUserId);
 
         // If any participant has null last-read message ID, return null
-        if (userReadStatuses.values().stream().anyMatch(Objects::isNull)) {
+        if (userReadStatuses.containsValue(null)) {
             return null;
         }
 
