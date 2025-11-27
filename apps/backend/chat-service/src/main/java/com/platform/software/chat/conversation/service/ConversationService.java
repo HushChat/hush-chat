@@ -332,9 +332,15 @@ public class ConversationService {
         return messages.getContent().stream()
                 .map(message -> {
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
-                    
-                     String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageViewDTO.getImageIndexedName());
-                     messageViewDTO.setSenderSignedImageUrl(signedUrl);
+
+                    String imageIndexedName = messageViewDTO.getImageIndexedName();
+                    if (imageIndexedName != null) {
+                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                        messageViewDTO.setSenderSignedImageUrl(signedUrl);
+                    } else {
+                        messageViewDTO.setSenderSignedImageUrl(null);
+                    }
+
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
                         messageViewDTO.setReactionSummary(summary != null ? summary : new MessageReactionSummaryDTO());
@@ -412,8 +418,13 @@ public class ConversationService {
             ConversationParticipantViewDTO participantViewDTO = new ConversationParticipantViewDTO(participant);
             UserViewDTO user = new UserViewDTO(participant.getUser());
 
-            String signedImageUrl =  cloudPhotoHandlingService.getPhotoViewSignedURL(participant.getUser().getImageIndexedName());
-            user.setSignedImageUrl(signedImageUrl);
+            String imageIndexedName = participant.getUser().getImageIndexedName();
+            if (imageIndexedName != null) {
+                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                user.setSignedImageUrl(signedImageUrl);
+            } else {
+                user.setSignedImageUrl(null);
+            }
 
             participantViewDTO.setUser(user);
             return participantViewDTO;
