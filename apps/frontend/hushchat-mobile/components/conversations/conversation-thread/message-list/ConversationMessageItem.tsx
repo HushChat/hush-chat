@@ -351,6 +351,7 @@ export const ConversationMessageItem = ({
               onOpenPicker={handleOpenPicker}
               onOpenMenu={openWebMenuAtEvent}
               messageText={message.messageText}
+              isRead={message.isReadByEveryone}
             />
 
             {renderParentMessage()}
