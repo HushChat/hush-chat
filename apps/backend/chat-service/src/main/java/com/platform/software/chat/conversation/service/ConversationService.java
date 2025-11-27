@@ -367,23 +367,29 @@ public class ConversationService {
      * @return a Page of ConversationDTOs containing conversation details
      */
     public Page<ConversationDTO> getAllConversations(Long loggedInUserId, ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable) {
-
         Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserIdWithLatestMessages(loggedInUserId, conversationFilterCriteria, pageable);
 
+        Set<Long> conversationIds = conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet());
+
+        Map<Long, MessageViewDTO> lastMessages = conversationRepository.getLatestMessagesForConversations(conversationIds);
+
         Map<Long, Long> conversationUnreadCounts = conversationReadStatusRepository.findUnreadMessageCountsByConversationIdsAndUserId(
-            conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet()),
-            loggedInUserId
+            conversationIds, loggedInUserId
         );
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
-                .map(dto -> {
+                .peek(dto -> {
                     String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
 
-                    long unreadMessageCount = conversationUnreadCounts.getOrDefault(dto.getId(), 0L);
+                    Long conversationId = dto.getId();
+
+                    MessageViewDTO lastMessage = lastMessages.getOrDefault(conversationId, null);
+                    dto.setMessages(List.of(lastMessage));
+
+                    long unreadMessageCount = conversationUnreadCounts.getOrDefault(conversationId, 0L);
                     dto.setUnreadCount(unreadMessageCount);
-                    return dto;
                 })
                 .collect(Collectors.toList());
 
