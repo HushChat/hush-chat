@@ -17,5 +17,5 @@ public class ErrorResponses {
     public static final String DATABASE_UNAVAILABLE_RESPONSE = "Database is currently unavailable. Please try again later.";
     public static final String FAILED_TO_VALIDATE_TOKEN_RESPONSE = "failed to validate token";
     public static final String INVALID_USER_TYPE_RESPONSE = "invalid user type";
-    public static final String INCORRECT_PUBLIC_KEY_RESPONSE = "incorrect api key";
+    public static final String INCORRECT_PUBLIC_KEY_RESPONSE = "incorrect public key";
 }
