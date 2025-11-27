@@ -333,7 +333,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                     onPress={() => {
                       if (existingFileUri) saveToGallery(existingFileUri);
                     }}
-                    className="px-4 py-2.5 bg-blue-500 rounded-lg active:opacity-90"
+                    className="px-4 py-2.5 bg-primary-light dark:bg-primary-dark rounded-lg active:opacity-90"
                   >
                     <Text style={styles.textPoppins} className="text-base font-bold text-white">
                       Save Again
