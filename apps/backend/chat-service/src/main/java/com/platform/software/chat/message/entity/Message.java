@@ -2,6 +2,7 @@ package com.platform.software.chat.message.entity;
 
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
+import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.common.model.AuditModel;
 import io.hypersistence.utils.hibernate.type.search.PostgreSQLTSVectorType;
@@ -58,4 +59,7 @@ public class Message extends AuditModel{
 
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MessageAttachment> attachments = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    private MessageTypeEnum messageType;
 }
