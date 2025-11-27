@@ -260,7 +260,7 @@ public class ConversationService {
 
             return saveConversationAndBuildDTO(conversation);
         }
-        System.out.println("conversationDTO: " + conversationDTO.getId());
+
         messageService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
 
         return conversationDTO;

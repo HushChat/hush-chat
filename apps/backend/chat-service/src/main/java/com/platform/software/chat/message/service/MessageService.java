@@ -309,7 +309,7 @@ public class MessageService {
      * @return the saved Message entity
      */
     public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
-        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
+        conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
         ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
