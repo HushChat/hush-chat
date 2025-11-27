@@ -311,8 +311,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                   style={styles.textPoppins}
                   className="text-base text-gray-600 dark:text-gray-300 mb-6 leading-5"
                 >
-                  This image is already in your temporary storage. Do you want to save it to your
-                  Gallery again?
+                  Do you want to save it to your gallery again?
                 </Text>
                 <View className="flex-row justify-end gap-3">
                   <Pressable
