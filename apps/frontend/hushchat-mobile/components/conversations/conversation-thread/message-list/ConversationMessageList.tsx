@@ -31,6 +31,7 @@ interface IMessagesListProps {
   onLoadNewer: () => void;
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
+  onPinnedMessageNavigate?: (messageId: number) => void;
 }
 
 const ConversationMessageList = ({
@@ -43,6 +44,7 @@ const ConversationMessageList = ({
   onLoadNewer,
   hasMoreNewer,
   isFetchingNewer,
+  onPinnedMessageNavigate,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -67,6 +69,12 @@ const ConversationMessageList = ({
   const groupedSections = useMemo(() => {
     return groupMessagesByDate(messages);
   }, [messages]);
+
+  const handlePinnedMessageClick = useCallback(() => {
+    if (onPinnedMessageNavigate && pinnedMessage) {
+      onPinnedMessageNavigate(pinnedMessage.id);
+    }
+  }, [onPinnedMessageNavigate]);
 
   const renderMessage = useMemo(
     () =>
@@ -134,6 +142,7 @@ const ConversationMessageList = ({
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
           onUnpin={() => togglePin(pinnedMessage)}
+          onPress={handlePinnedMessageClick}
         />
       )}
 
