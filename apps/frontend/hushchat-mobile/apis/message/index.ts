@@ -84,3 +84,8 @@ export const getMessageReactions = async (
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
+
+export const getMessageUrlMetadata = async (messageId: number) => {
+  const response = await axios.get(MESSAGE_API_ENDPOINTS.GET_URL_METADATA(messageId));
+  return response.data;
+};
