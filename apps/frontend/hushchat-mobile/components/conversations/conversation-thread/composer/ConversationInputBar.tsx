@@ -1,7 +1,7 @@
 /**
  * MessageComposer
  *
- * Input component for composing and sending chat messages.
+ * Input component for composing and sending chat messages with audio recording support.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -29,6 +29,7 @@ import { getDraftKey } from "@/constants/constants";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ToastUtils } from "@/utils/toastUtils";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
+import { AudioRecorder } from "@/apis/audio-upload-service/audio-upload-service";
 
 import {
   ANIM_EASING,
@@ -56,6 +57,7 @@ import { logInfo } from "@/utils/logger";
 
 type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onSendAudio: (message: string, parentMessage?: IMessage, recordingInstance?: any) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   conversationId: number;
@@ -74,23 +76,24 @@ type MessageInputProps = {
 };
 
 const ConversationInputBar = ({
-  conversationId,
-  onSendMessage,
-  onOpenImagePicker,
-  disabled = false,
-  isSending = false,
-  placeholder = "Type a message...",
-  minLines = 1,
-  maxLines = 6,
-  lineHeight = 22,
-  verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
-  maxChars,
-  autoFocus = false,
-  replyToMessage,
-  onCancelReply,
-  isGroupChat,
-  onOpenImagePickerNative,
-}: MessageInputProps) => {
+                                conversationId,
+                                onSendMessage,
+                                onSendAudio,
+                                onOpenImagePicker,
+                                disabled = false,
+                                isSending = false,
+                                placeholder = "Type a message...",
+                                minLines = 1,
+                                maxLines = 6,
+                                lineHeight = 22,
+                                verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
+                                maxChars,
+                                autoFocus = false,
+                                replyToMessage,
+                                onCancelReply,
+                                isGroupChat,
+                                onOpenImagePickerNative,
+                              }: MessageInputProps) => {
   const storage = useMemo(() => StorageFactory.createStorage(), []);
   const initialHeight = useMemo(
     () => lineHeight * minLines + verticalPadding,
@@ -106,9 +109,14 @@ const ConversationInputBar = ({
     x: 0,
     y: 0,
   });
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingInstance, setRecordingInstance] = useState<any>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+
   const textInputRef = useRef<TextInput>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addButtonContainerRef = useRef<View>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const minHeight = useMemo(() => {
     const base = lineHeight * minLines + verticalPadding;
@@ -159,6 +167,14 @@ const ConversationInputBar = ({
     setMentionQuery(null);
     setCursorPosition(0);
   }, [conversationId]);
+
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
+  }, []);
 
   const saveDraftDebounced = useRef(
     debounce((id: number, text: string) => {
@@ -280,6 +296,115 @@ const ConversationInputBar = ({
     ]
   );
 
+  /**
+   * Start audio recording
+   */
+  const handleStartRecording = useCallback(async () => {
+    try {
+      const recording = await AudioRecorder.startRecording();
+
+      if (!recording) {
+        ToastUtils.error("Failed to start recording. Please check microphone permissions.");
+        return;
+      }
+
+      setRecordingInstance(recording);
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      // Start duration timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("Failed to start recording:", error);
+      ToastUtils.error("Failed to start recording");
+    }
+  }, []);
+
+  /**
+   * Stop recording and send audio
+   */
+  const handleStopRecording = useCallback(async () => {
+    if (!recordingInstance) return;
+
+    try {
+      // Clear timer
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+
+      setIsRecording(false);
+
+      // Call the onSendAudio callback with the recording instance
+      // The parent component will handle the upload
+      onSendAudio(message, replyToMessage || undefined, recordingInstance);
+
+      // Reset state
+      setRecordingInstance(null);
+      setRecordingDuration(0);
+      setMessage("");
+
+      if (replyToMessage) {
+        onCancelReply?.();
+      }
+
+      void storage.remove(getDraftKey(conversationId));
+    } catch (error) {
+      console.error("Failed to stop recording:", error);
+      ToastUtils.error("Failed to stop recording");
+    }
+  }, [
+    recordingInstance,
+    message,
+    replyToMessage,
+    onSendAudio,
+    onCancelReply,
+    conversationId,
+    storage,
+  ]);
+
+  /**
+   * Cancel recording without sending
+   */
+  const handleCancelRecording = useCallback(async () => {
+    if (!recordingInstance) return;
+
+    try {
+      // Clear timer
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+
+      // Stop recording without uploading
+      if (PLATFORM.IS_WEB) {
+        recordingInstance.mediaRecorder.stop();
+        recordingInstance.mediaRecorder.stream
+          .getTracks()
+          .forEach((track: any) => track.stop());
+      } else {
+        await recordingInstance.stopAndUnloadAsync();
+      }
+
+      setIsRecording(false);
+      setRecordingInstance(null);
+      setRecordingDuration(0);
+    } catch (error) {
+      console.error("Failed to cancel recording:", error);
+    }
+  }, [recordingInstance]);
+
+  /**
+   * Format duration as MM:SS
+   */
+  const formatDuration = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }, []);
+
   const handleAddButtonPress = useCallback(async () => {
     if (PLATFORM.IS_WEB) {
       const element =
@@ -349,6 +474,25 @@ const ConversationInputBar = ({
         <ReplyPreview replyToMessage={replyToMessage} onCancelReply={onCancelReply!} />
       )}
 
+      {isRecording && (
+        <View className="px-4 py-2 bg-red-50 dark:bg-red-900/20 border-t border-gray-200 dark:border-gray-800">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <View className="w-3 h-3 bg-red-500 rounded-full mr-2" style={styles.pulse} />
+              <AppText className="text-red-600 dark:text-red-400 font-medium">
+                Recording {formatDuration(recordingDuration)}
+              </AppText>
+            </View>
+            <Ionicons
+              name="close-circle"
+              size={24}
+              color="#EF4444"
+              onPress={handleCancelRecording}
+            />
+          </View>
+        </View>
+      )}
+
       <View
         className={classNames(
           "flex-row items-end",
@@ -359,7 +503,7 @@ const ConversationInputBar = ({
       >
         <View ref={addButtonContainerRef} style={styles.addButtonWrapper}>
           <PrimaryCircularButton
-            disabled={disabled}
+            disabled={disabled || isRecording}
             iconSize={20}
             onPress={handleAddButtonPress}
             toggled={menuVisible}
@@ -385,7 +529,7 @@ const ConversationInputBar = ({
                 placeholderTextColor={COLOR_PLACEHOLDER}
                 multiline
                 scrollEnabled
-                editable={!disabled}
+                editable={!disabled && !isRecording}
                 value={message}
                 onChangeText={handleChangeText}
                 onContentSizeChange={handleContentSizeChange}
@@ -396,14 +540,14 @@ const ConversationInputBar = ({
                 }}
                 {...(PLATFORM.IS_WEB
                   ? {
-                      onKeyDown: (e: WebKeyboardEvent) => {
-                        if (mentionVisible && e.key === "Enter") {
-                          e.preventDefault();
-                          return;
-                        }
-                        specialCharHandler(e);
-                      },
-                    }
+                    onKeyDown: (e: WebKeyboardEvent) => {
+                      if (mentionVisible && e.key === "Enter") {
+                        e.preventDefault();
+                        return;
+                      }
+                      specialCharHandler(e);
+                    },
+                  }
                   : {})}
                 style={textInputStyle}
                 returnKeyType="send"
@@ -419,6 +563,14 @@ const ConversationInputBar = ({
                   color={COLOR_ACTIVITY}
                   className="absolute right-3 bottom-2"
                 />
+              ) : isRecording ? (
+                <Ionicons
+                  name="stop-circle"
+                  size={SEND_ICON_SIZE}
+                  color="#EF4444"
+                  onPress={handleStopRecording}
+                  className="absolute right-3 bottom-2"
+                />
               ) : showSend ? (
                 <Ionicons
                   name="send"
@@ -431,6 +583,7 @@ const ConversationInputBar = ({
                   name="mic-sharp"
                   size={SEND_ICON_SIZE}
                   color={COLOR_ACTIVITY}
+                  onPress={handleStartRecording}
                   className="absolute right-3 bottom-2"
                 />
               )}
@@ -500,5 +653,8 @@ const styles = StyleSheet.create({
   },
   hiddenFileInput: {
     display: "none",
+  },
+  pulse: {
+    opacity: 1,
   },
 });
