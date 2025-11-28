@@ -96,6 +96,14 @@ export type TForgotPasswordResetFormProps = {
   onBackToLogin: () => void;
 };
 
+export type TProfileFormProps = {
+  firstName: string;
+  lastName: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 export interface WorkspaceDropdownProps {
   label?: string;
   placeholder?: string;

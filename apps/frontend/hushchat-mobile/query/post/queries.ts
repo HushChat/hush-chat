@@ -10,8 +10,9 @@ import {
   ToggleMuteConversationParams,
   exitGroupConversation,
   reportConversation,
+  ReportReason,
 } from "@/apis/conversation";
-import { blockUser } from "@/apis/user";
+import { blockUser, changePassword } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { addMessageReaction, pinMessage } from "@/apis/message";
 import {
@@ -144,5 +145,16 @@ export const useExitGroupConversationMutation = createMutationHook<void, number>
 
 export const useReportConversationMutation = createMutationHook<{
   conversationId: number;
-  reason: string;
+  reason: ReportReason;
 }>(reportConversation);
+
+export const useChangePasswordQuery = createMutationHook<
+  any,
+  { currentPassword: string; newPassword: string }
+>(async ({ currentPassword, newPassword }) => {
+  const result = await changePassword(currentPassword, newPassword);
+  if (result.error) {
+    throw new Error(result.error);
+  }
+  return result;
+});
