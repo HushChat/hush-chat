@@ -19,20 +19,25 @@ public class FirebaseNotificationService implements NotificationService{
     @Async
     public void sendNotification(NotificationRequestDTO request) {
         try {
-            MulticastMessage message = MulticastMessage.builder()
+            MulticastMessage.Builder messageBuilder = MulticastMessage.builder()
                     .addAllTokens(request.tokens())
                     .setNotification(Notification.builder()
                             .setTitle(request.title())
                             .setBody(request.body())
-                            .build())
-                    .build();
+                            .build());
 
+            if (request.data() != null && !request.data().isEmpty()) {
+                messageBuilder.putAllData(request.data());
+            }
+
+            MulticastMessage message = messageBuilder.build();
             BatchResponse response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
-            if(response!= null){
+            
+            if(response != null){
                 logger.info("Notification sent: {} succeeded, {} failed", response.getSuccessCount(), response.getFailureCount());
             }
         } catch (Exception e) {
-            logger.error("Firebase initialization failed!",e);
+            logger.error("Firebase notification sending failed!", e);
         }
     }
 

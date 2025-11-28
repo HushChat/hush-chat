@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, Messaging, onMessage } from "firebase/messaging";
 import { INotificationService } from "./INotificationService";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
-import { logError, logWarn } from "@/utils/logger";
+import { logError } from "@/utils/logger";
 
 let messaging: Messaging | null = null;
 
@@ -36,11 +36,43 @@ export const FcmWebNotificationService: INotificationService = {
 
   onMessage(callback) {
     if (!messaging) {
-      logWarn("[FCM] Messaging not initialized; skipping onMessage listener.");
+      console.warn("[FCM] Messaging not initialized; skipping onMessage listener.");
       return;
     }
 
     onMessage(messaging, (payload) => {
+      console.log("[FCM] Foreground message received:", payload);
+
+      const title = payload.notification?.title || "New Message";
+      const body = payload.notification?.body || "";
+      const conversationId = payload.data?.conversationId;
+      const messageId = payload.data?.messageId;
+
+      if (Notification.permission === "granted") {
+        const notification = new Notification(title, {
+          body: body,
+          icon: "/favicon.png",
+          badge: "/favicon.png",
+          tag: `conversation-${conversationId}`,
+          data: {
+            conversationId: conversationId,
+            messageId: messageId,
+            url: conversationId
+              ? `/conversation-threads?conversationId=${conversationId}${messageId ? `&messageId=${messageId}` : ""}`
+              : "/",
+          },
+        });
+
+        notification.onclick = (event) => {
+          event.preventDefault();
+          const notificationData = (event.target as Notification).data;
+          const url = notificationData?.url || "/";
+          window.focus();
+          window.location.href = url;
+          notification.close();
+        };
+      }
+
       callback(payload.notification);
     });
   },
