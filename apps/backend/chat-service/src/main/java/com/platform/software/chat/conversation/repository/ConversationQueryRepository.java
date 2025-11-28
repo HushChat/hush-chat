@@ -7,13 +7,11 @@ import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
 import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
-import com.platform.software.chat.message.dto.MessageViewDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,8 +20,6 @@ public interface ConversationQueryRepository {
     Optional<Conversation> findDirectConversationBetweenUsers(Long userId1, Long userId2);
     
     ChatSummaryDTO getChatSummaryForUser(Long userId);
-
-    Map<Long, MessageViewDTO> getLatestMessagesForConversations(Collection<Long> conversationIds);
 
     Page<ConversationDTO> findAllConversationsByUserIdWithLatestMessages(Long userId, ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable);
 
