@@ -92,7 +92,8 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         pageSize: PAGE_SIZE,
         getPageItems: (page) => page?.content,
         setPageItems: (page, items) => ({ ...page, content: items }),
-        dedupeAcrossPages: true,
+        moveUpdatedToTop: true,
+        isPinned: (conversation) => conversation.pinnedByLoggedInUser,
       }
     );
   }, [notificationConversation, queryClient, loggedInUserId, criteria, selectedConversationId]);
