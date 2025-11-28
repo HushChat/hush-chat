@@ -237,6 +237,12 @@ public class MessageService {
      */
     private static MessageViewDTO getMessageViewDTO(Long loggedInUserId, Long parentMessageId, Message savedMessage) {
         MessageViewDTO messageViewDTO = new MessageViewDTO(savedMessage);
+
+        String extractedUrl = CommonUtils.extractUrl(messageViewDTO.getMessageText());
+        if (extractedUrl != null) {
+            messageViewDTO.setIsIncludeUrlMetadata(true);
+        }
+
         return messageViewDTO;
     }
 
