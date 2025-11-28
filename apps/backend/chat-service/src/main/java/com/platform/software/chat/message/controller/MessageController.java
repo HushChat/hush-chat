@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/messages")
 public class MessageController {
@@ -191,5 +193,12 @@ public class MessageController {
         return ResponseEntity.ok(messageReactionService
                 .getMessageReactions(messageId, userDetails.getId(), pageable)
         );
+    }
+
+    @ApiOperation(value = "get message url meta data")
+    @GetMapping("urlMetadata")
+    public ResponseEntity<List<MessageUrlMetadataDTO>> getMessageUrlMetadata(@RequestParam List<Long> messageIds) {
+        List<MessageUrlMetadataDTO> messageUrlMetaData = messageService.getMessageUrlMetadata(messageIds);
+        return ResponseEntity.ok(messageUrlMetaData);
     }
 }

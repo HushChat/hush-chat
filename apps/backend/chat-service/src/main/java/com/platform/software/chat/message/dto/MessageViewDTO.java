@@ -30,6 +30,7 @@ public class MessageViewDTO {
     private String senderSignedImageUrl;
     private String imageIndexedName;
     private Boolean isReadByEveryone;
+    private Boolean isIncludeUrlMetadata = false;
 
     public MessageViewDTO(Message message) {
         initializeFromMessage(message);

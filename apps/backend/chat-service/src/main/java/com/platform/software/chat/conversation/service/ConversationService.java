@@ -580,6 +580,11 @@ public class ConversationService {
                 boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
                 dto.setIsReadByEveryone(isReadByEveryone);
 
+                String extractedUrl = CommonUtils.extractUrl(dto.getMessageText());
+                if (extractedUrl != null) {
+                    dto.setIsIncludeUrlMetadata(true);
+                }
+
                 if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
                     return dto;
                 }
