@@ -263,3 +263,11 @@ export enum chatUserStatus {
   AWAY = "AWAY",
   BUSY = "BUSY",
 }
+
+export interface IActionConfig {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  color?: string;
+  critical?: boolean;
+}

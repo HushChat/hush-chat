@@ -17,6 +17,8 @@ export const TITLES = {
   ADD_TO_FAVOURITES: "Add to favourites",
   REMOVE_FROM_FAVOURITES: "Remove from favourites",
   DELETE_CHAT: "Delete chat",
+  PIN_CONVERSATION: "Pin Conversation",
+  UNPIN_CONVERSATION: "Unpin Conversation",
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";
