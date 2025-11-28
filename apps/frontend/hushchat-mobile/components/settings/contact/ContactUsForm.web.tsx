@@ -1,11 +1,11 @@
 import React from "react";
-import { View } from "react-native";
 import { ContactUsFormFields } from "@/components/settings/contact/ContactUsFormFields";
+import { ContentViewWrapper } from "@/components/ContentViewWrapper";
 
 export function ContactUsForm() {
   return (
-    <View className="flex-1 p-6">
+    <ContentViewWrapper>
       <ContactUsFormFields />
-    </View>
+    </ContentViewWrapper>
   );
 }
