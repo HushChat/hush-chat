@@ -196,9 +196,9 @@ public class MessageController {
     }
 
     @ApiOperation(value = "get message url meta data")
-    @GetMapping("urlMetadata")
-    public ResponseEntity<List<MessageUrlMetadataDTO>> getMessageUrlMetadata(@RequestParam List<Long> messageIds) {
-        List<MessageUrlMetadataDTO> messageUrlMetaData = messageService.getMessageUrlMetadata(messageIds);
+    @GetMapping("urlMetadata/{messageId}")
+    public ResponseEntity<MessageUrlMetadataDTO> getMessageUrlMetadata(@PathVariable Long messageId) {
+        MessageUrlMetadataDTO messageUrlMetaData = messageService.getMessageUrlMetadata(messageId);
         return ResponseEntity.ok(messageUrlMetaData);
     }
 }

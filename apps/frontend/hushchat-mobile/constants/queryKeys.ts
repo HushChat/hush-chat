@@ -60,8 +60,8 @@ export const conversationMessageQueryKeys = {
     conversationId,
     userId,
   ],
-
   messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
+  messageUrlMetadata: (messageId: number) => ["message-url-metadata", messageId],
 };
 
 export const userQueryKeys = {

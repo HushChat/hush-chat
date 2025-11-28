@@ -50,6 +50,7 @@ export interface IMessage {
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
+  isIncludeUrlMetadata: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -262,4 +263,11 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
+}
+
+export interface TMessageUrlMetadata {
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  domain?: string;
 }

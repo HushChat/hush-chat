@@ -7,6 +7,9 @@ import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
+import { useMessageUrlMetadataQuery } from "@/query/useMessageUrlMetadataQuery";
+import { PLATFORM } from "@/constants/platformConstants";
+import LinkPreviewCard from "@/components/conversations/LinkPreviewCard";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
@@ -50,7 +53,16 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
       : styles.forwardedLeft
     : null;
 
-  const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+  const bubbleMaxWidthStyle = hasAttachments
+    ? styles.maxWidthAttachments
+    : !PLATFORM.IS_WEB
+      ? styles.maxWidthRegular
+      : styles.maxWidthWebForLink;
+
+  const { messageUrlMetadata, isMessageUrlMetadataLoading } = useMessageUrlMetadataQuery(
+    message.id,
+    message.isIncludeUrlMetadata
+  );
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
@@ -88,7 +100,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 
             "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasImages && !messageContent),
+            "px-3 py-2": !(messageContent && !hasImages && messageUrlMetadata),
+            "p-1": messageUrlMetadata,
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
@@ -98,11 +111,18 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
             </View>
           )}
 
-          {!message.isUnsend && messageContent ? (
+          {!message.isUnsend && !message.isIncludeUrlMetadata && messageContent ? (
             <FormattedText
               text={message.messageText}
               style={messageTextStyle || styles.messageText}
               mentions={message.mentions}
+              isCurrentUser={isCurrentUser}
+            />
+          ) : !message.isUnsend && message.isIncludeUrlMetadata && messageContent ? (
+            <LinkPreviewCard
+              messageText={message.messageText}
+              messageUrlMetadata={messageUrlMetadata}
+              isLoading={isMessageUrlMetadataLoading}
               isCurrentUser={isCurrentUser}
             />
           ) : message.isUnsend ? (
@@ -125,6 +145,9 @@ const styles = StyleSheet.create({
   },
   maxWidthRegular: {
     maxWidth: "70%",
+  },
+  maxWidthWebForLink: {
+    maxWidth: "40%",
   },
   forwardedRight: {
     borderRightWidth: 2,
