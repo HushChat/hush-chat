@@ -98,6 +98,8 @@ const ConversationThreadScreen = ({
     invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
+    targetMessageId,
+    clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId);
 
   const { updateConversation } = useConversationNotificationsContext();
@@ -112,7 +114,7 @@ const ConversationThreadScreen = ({
     },
     (data) => {
       updateConversation(currentConversationId, {
-        unreadCount: data.unreadCount || 0,
+        unreadCount: data.data?.unreadCount || 0,
       });
     },
     (error) => {
@@ -159,6 +161,10 @@ const ConversationThreadScreen = ({
       handleNavigateToMessage(searchedMessageId);
     }
   }, [searchedMessageId, handleNavigateToMessage]);
+
+  const handleTargetMessageScrolled = useCallback(() => {
+    clearTargetMessage();
+  }, [clearTargetMessage]);
 
   const {
     selectedFiles,
@@ -311,6 +317,8 @@ const ConversationThreadScreen = ({
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
         onPinnedMessageNavigate={handleNavigateToMessage}
+        targetMessageId={targetMessageId}
+        onTargetMessageScrolled={handleTargetMessageScrolled}
       />
     );
   }, [
@@ -330,6 +338,8 @@ const ConversationThreadScreen = ({
     currentConversationId,
     searchedMessageId,
     handleNavigateToMessage,
+    targetMessageId,
+    handleTargetMessageScrolled,
   ]);
 
   const renderTextInput = useCallback(() => {

@@ -3,7 +3,7 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, SectionList, View } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
@@ -32,6 +32,8 @@ interface IMessagesListProps {
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
   onPinnedMessageNavigate?: (messageId: number) => void;
+  targetMessageId?: number | null;
+  onTargetMessageScrolled?: () => void;
 }
 
 const ConversationMessageList = ({
@@ -45,10 +47,13 @@ const ConversationMessageList = ({
   hasMoreNewer,
   isFetchingNewer,
   onPinnedMessageNavigate,
+  targetMessageId,
+  onTargetMessageScrolled,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
+  const sectionListRef = useRef<SectionList>(null);
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
   const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
@@ -75,6 +80,57 @@ const ConversationMessageList = ({
       onPinnedMessageNavigate(pinnedMessage.id);
     }
   }, [onPinnedMessageNavigate]);
+
+  useEffect(() => {
+    if (!targetMessageId || !sectionListRef.current || groupedSections.length === 0) {
+      return;
+    }
+
+    let sectionIndex = -1;
+    let itemIndex = -1;
+
+    for (let i = 0; i < groupedSections.length; i++) {
+      const section = groupedSections[i];
+      const foundIndex = section.data.findIndex((msg) => msg.id === targetMessageId);
+
+      if (foundIndex !== -1) {
+        sectionIndex = i;
+        itemIndex = foundIndex;
+        break;
+      }
+    }
+
+    if (sectionIndex !== -1 && itemIndex !== -1) {
+      const timeoutId = setTimeout(() => {
+        try {
+          sectionListRef.current?.scrollToLocation({
+            sectionIndex,
+            itemIndex,
+            animated: true,
+            viewPosition: 0.5,
+          });
+
+          if (onTargetMessageScrolled) {
+            setTimeout(() => {
+              onTargetMessageScrolled();
+            }, 800);
+          }
+        } catch (error) {
+          console.warn("failed to scroll to target message:", error);
+
+          if (onTargetMessageScrolled) {
+            onTargetMessageScrolled();
+          }
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      if (onTargetMessageScrolled) {
+        onTargetMessageScrolled();
+      }
+    }
+  }, [targetMessageId, groupedSections, onTargetMessageScrolled]);
 
   const renderMessage = useMemo(
     () =>
@@ -147,6 +203,7 @@ const ConversationMessageList = ({
       )}
 
       <SectionList
+        ref={sectionListRef}
         sections={groupedSections}
         keyExtractor={(item, index) => {
           const fallbackKey = `temp-${item.conversationId}-${index}`;
@@ -173,6 +230,7 @@ const ConversationMessageList = ({
           selectedMessageIdsSize: selectedMessageIds.size,
           hasMoreNewer,
           isFetchingNewer,
+          targetMessageId,
         }}
       />
       {reactionsModal.visible && (
