@@ -164,7 +164,10 @@ export function appendToOffsetPaginatedCache<T>(
       const { pinned, unpinned } = separatePinnedItems(items, isPinned);
       const orderedItems = [...pinned, ...unpinned];
 
-      const first = setPageItems({}, orderedItems.slice(0, Math.min(orderedItems.length, pageSize)));
+      const first = setPageItems(
+        {},
+        orderedItems.slice(0, Math.min(orderedItems.length, pageSize))
+      );
       const pages = [{ ...first }];
       // Carry any overflow beyond pageSize down the chain
       const carry =
