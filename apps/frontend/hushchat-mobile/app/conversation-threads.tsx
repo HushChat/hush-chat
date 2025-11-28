@@ -36,6 +36,7 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
+import { useMessageAudioUploader } from "@/apis/audio-upload-service/audio-upload-service";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -178,6 +179,9 @@ const ConversationThreadScreen = ({
     error: uploadError,
   } = useMessageAttachmentUploader(currentConversationId, imageMessage);
 
+  const { uploadAudioRecordingNative, uploadAudioRecordingWeb, uploadAudioFilesFromWeb } =
+    useMessageAudioUploader(conversationId, imageMessage);
+
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImages();
@@ -201,6 +205,10 @@ const ConversationThreadScreen = ({
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
+
+  const handleAudioSend = (message: string, parentMessage?: IMessage, files?: File[]) => {
+
+  }
 
   const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
     currentConversationId,
@@ -356,6 +364,7 @@ const ConversationThreadScreen = ({
       <ConversationInputBar
         conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
+        onSendAudio={handleAudioSend}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
         disabled={isLoadingConversationMessages}
