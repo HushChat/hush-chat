@@ -3,6 +3,7 @@
     "id": 1,
     "name": "localhost",
     "description": "localhost workspace",
-    "workspaceIdentifier": "localhost"
+    "workspaceIdentifier": "localhost",
+    "status": "ACTIVE"
   }
 ]

@@ -2,9 +2,10 @@ import { useCallback, useState } from "react";
 import { router } from "expo-router";
 import { CreateWorkspace, ICreateWorkspace } from "@/types/user/types";
 import { createWorkspace } from "@/services/authService";
-import { WORKSPACE_REGISTER_PATH } from "@/constants/routes";
+import { AUTH_WORKSPACE_FORM_PATH } from "@/constants/routes";
 import { useForm } from "@/hooks/useForm";
 import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
+import { ToastUtils } from "@/utils/toastUtils";
 
 export function useCreateWorkspaceForm() {
   const [errorMessage, setErrorMessage] = useState("");
@@ -33,7 +34,8 @@ export function useCreateWorkspaceForm() {
       }
 
       await saveWorkspace(validated.name);
-      router.push(WORKSPACE_REGISTER_PATH);
+      ToastUtils.success("Create workspace request sent. we'll notify you once it's approved.");
+      router.push(AUTH_WORKSPACE_FORM_PATH);
     } catch (err: any) {
       setErrorMessage(err?.message || "Workspace create failed.");
     } finally {
