@@ -19,6 +19,7 @@ interface IRenderMessageParams {
   unSendMessage: (msg: IMessage) => void;
   selectedConversationId: number;
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
+  onNavigateToMessage?: (messageId: number) => void;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -46,6 +47,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       unSendMessage,
       selectedConversationId,
       viewReactions,
+      onNavigateToMessage,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -77,6 +79,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         selectedConversationId={selectedConversationId}
         onViewReactions={viewReactions}
         showSenderAvatar={showSenderAvatar}
+        onNavigateToMessage={onNavigateToMessage}
       />
     );
   };
