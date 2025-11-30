@@ -221,6 +221,7 @@ export interface ISectionedSearchResult extends ISearchResults {
 export interface TMessageForward {
   forwardedMessageIds: number[];
   conversationIds: number[];
+  userIds?: number[];
   customText: string;
 }
 

@@ -44,12 +44,14 @@ export const pinMessage = async (params: { conversationId: number; messageId: nu
 export const forwardMessages = async (params: {
   forwardedMessageIds: number[];
   conversationIds: number[];
+  userIds: number[];
   customText: string;
 }) => {
   try {
     const response = await axios.put(MESSAGE_API_ENDPOINTS.FORWARD, {
       forwardedMessageIds: params.forwardedMessageIds,
       conversationIds: params.conversationIds,
+      userIds: params.userIds,
       customText: params.customText,
     });
     return { data: response.data };
