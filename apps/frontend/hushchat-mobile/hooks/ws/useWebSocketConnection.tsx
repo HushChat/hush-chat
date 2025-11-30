@@ -1,51 +1,78 @@
 import { useAuthStore } from "@/store/auth/authStore";
 import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
-import { getAllTokens, decodeJWTToken } from "@/utils/authUtils";
+import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
-import { emitNewMessage } from "@/services/eventBus";
-import { IConversation } from "@/types/chat/types";
-import { MESSAGE_RECEIVED_TOPIC } from "@/constants/wsConstants";
-import { WebSocketStatus } from "@/types/ws/types";
+import { emitNewMessage, emitUserStatus } from "@/services/eventBus";
+import { IConversation, IUserStatus } from "@/types/chat/types";
+import {
+  CONNECTED_RESPONSE,
+  ERROR_RESPONSE,
+  MESSAGE_RECEIVED_TOPIC,
+  MESSAGE_RESPONSE,
+  ONLINE_STATUS_TOPIC,
+  RETRY_TIME_MS,
+} from "@/constants/wsConstants";
+import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
+import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
 
-interface DecodedJWTPayload {
-  sub: string;
-  email: string;
-  exp: number;
-  iat: number;
-  custom_user_type?: string;
-  custom_tenant?: string;
+// Define topics to subscribe to
+const TOPICS = [
+  { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
+  { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
+];
 
-  [key: string]: any;
-}
+export const publishUserActivity = (
+  ws: WebSocket | null,
+  data: UserActivityWSSubscriptionData
+): boolean => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    logInfo("WebSocket not connected, cannot publish user activity");
+    return false;
+  }
 
-const RETRY_TIME_MS = 10000;
-const INVALID_ACCESS_TOKEN_ERROR = "Invalid access token format or structure";
-const ERROR_RESPONSE = "ERROR";
-const MESSAGE_RESPONSE = "MESSAGE";
-const CONNECTED_RESPONSE = "CONNECTED";
-
-const decodeAndValidateToken = (
-  tokenToDecode: string
-): {
-  isValid: boolean;
-  decodedToken?: DecodedJWTPayload;
-  error?: string;
-} => {
   try {
-    const decoded = decodeJWTToken(tokenToDecode);
-    const currentTime = new Date();
-    const expiryTime = new Date(decoded.exp * 1000);
+    const body = JSON.stringify(data);
 
-    return {
-      isValid: expiryTime.getTime() > currentTime.getTime(),
-    };
-  } catch {
-    return {
-      isValid: false,
-      error: INVALID_ACCESS_TOKEN_ERROR,
-    };
+    const sendFrameBytes = [
+      ...Array.from(new TextEncoder().encode("SEND\n")),
+      ...Array.from(new TextEncoder().encode("destination:/app/subscribed-conversations\n")),
+      ...Array.from(new TextEncoder().encode(`content-length:${body.length}\n`)),
+      ...Array.from(new TextEncoder().encode("content-type:application/json\n")),
+      0x0a, // empty line
+      ...Array.from(new TextEncoder().encode(body)),
+      0x00, // null terminator
+    ];
+
+    const uint8Array = new Uint8Array(sendFrameBytes);
+    ws.send(uint8Array.buffer);
+
+    return true;
+  } catch (error) {
+    logInfo("Error publishing user activity:", error);
+    return false;
+  }
+};
+
+// Handle different message types based on topic
+const handleMessageByTopic = (topic: string, body: string) => {
+  try {
+    if (topic.includes(MESSAGE_RECEIVED_TOPIC)) {
+      // Handle message received
+      const wsMessageWithConversation = JSON.parse(body) as IConversation;
+      if (wsMessageWithConversation.messages?.length !== 0) {
+        emitNewMessage(wsMessageWithConversation);
+      }
+    } else if (topic.includes(ONLINE_STATUS_TOPIC)) {
+      // Handle online status update
+      const onlineStatusData = JSON.parse(body) as IUserStatus;
+      emitUserStatus(onlineStatusData);
+    } else {
+      logDebug("Received message from unknown topic:", topic);
+    }
+  } catch (error) {
+    logInfo("Error parsing message from topic:", topic, error);
   }
 };
 
@@ -60,16 +87,6 @@ export default function useWebSocketConnection() {
   const [connectionStatus, setConnectionStatus] = useState<WebSocketStatus>(
     WebSocketStatus.Disconnected
   );
-
-  const validateToken = (token: string): boolean => {
-    const { isValid, error } = decodeAndValidateToken(token);
-
-    if (!isValid && error) {
-      logInfo("Token validation failed:", error);
-    }
-
-    return isValid;
-  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -134,22 +151,10 @@ export default function useWebSocketConnection() {
             logDebug("STOMP Connected successfully");
             setConnectionStatus(WebSocketStatus.Connected);
 
-            // Subscribe to messages
-            const subscribeFrameBytes = [
-              ...Array.from(new TextEncoder().encode("SUBSCRIBE\n")),
-              ...Array.from(
-                new TextEncoder().encode(
-                  `destination:${MESSAGE_RECEIVED_TOPIC}${encodeURIComponent(email)}\n`
-                )
-              ),
-              ...Array.from(new TextEncoder().encode("id:sub-0\n")),
-              0x0a, // empty line
-              0x00, // null terminator
-            ];
-
-            const subscribeArray = new Uint8Array(subscribeFrameBytes);
-            ws.send(subscribeArray.buffer);
-            logDebug("Subscribed to messages");
+            // Subscribe to all topics
+            TOPICS.forEach((topic) => {
+              subscribeToTopic(ws, topic.destination, email, topic.id);
+            });
           } else if (event.data.startsWith(ERROR_RESPONSE)) {
             logInfo("STOMP error:", event.data);
             setConnectionStatus(WebSocketStatus.Error);
@@ -167,20 +172,16 @@ export default function useWebSocketConnection() {
             // Parse message body (everything after empty line)
             const lines = event.data.split("\n");
             const emptyLineIndex = lines.findIndex((line: string) => line === "");
-            if (emptyLineIndex > -1) {
+            const topic = extractTopicFromMessage(event.data);
+
+            if (emptyLineIndex > -1 && topic) {
               const body = lines
                 .slice(emptyLineIndex + 1)
                 .join("\n")
                 .replace(/\0$/, "");
 
-              try {
-                const wsMessageWithConversation = JSON.parse(body) as IConversation;
-                if (wsMessageWithConversation.messages?.length !== 0) {
-                  emitNewMessage(wsMessageWithConversation);
-                }
-              } catch (error) {
-                logInfo("Error parsing message:", error);
-              }
+              // Route message to appropriate handler based on topic
+              handleMessageByTopic(topic, body);
             }
           }
         };
@@ -229,6 +230,16 @@ export default function useWebSocketConnection() {
     };
   }, [email, isAuthenticated]);
 
+  const publishActivity = (data: UserActivityWSSubscriptionData) => {
+    if (connectionStatus !== WebSocketStatus.Connected) {
+      logInfo("Cannot publish activity: WebSocket not connected", {
+        status: connectionStatus,
+      });
+      return false;
+    }
+    return publishUserActivity(wsRef.current, data);
+  };
+
   // return the connection status
-  return { connectionStatus };
+  return { connectionStatus, publishActivity };
 }

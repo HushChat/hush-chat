@@ -1,19 +1,17 @@
 package com.platform.software.config.interceptors.websocket;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class WebSocketSessionInfoDAO {
     private String stompSessionId;
 
@@ -24,4 +22,8 @@ public class WebSocketSessionInfoDAO {
     private ZonedDateTime connectedTime;
     private ZonedDateTime createdTime;
     private ZonedDateTime updatedTime;
+    private ZonedDateTime disconnectedTime; // to get the last seen date time
+
+    private Set<Long> visibleConversations; // list of conversations visible - mobile or web
+    private Long openedConversation; // indicates user's selected conversation, could be null
 }

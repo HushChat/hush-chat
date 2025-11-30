@@ -1,11 +1,6 @@
 import mitt from "mitt";
-import {
-  TypingIndicator,
-  UserPresence,
-  WebSocketError,
-  NotificationPayload,
-} from "@/types/ws/types";
-import { IConversation } from "@/types/chat/types";
+import { TypingIndicator, WebSocketError, NotificationPayload } from "@/types/ws/types";
+import { IConversation, IUserStatus } from "@/types/chat/types";
 
 export type WebSocketEvents = {
   // Core WebSocket events
@@ -33,7 +28,7 @@ export type WebSocketEvents = {
   };
 
   // User presence events
-  "user:presence": UserPresence;
+  "user:presence": IUserStatus;
   "user:joined": { conversationId: number; user: { id: string; name: string } };
   "user:left": { conversationId: number; userId: string };
 
@@ -67,6 +62,10 @@ export const emitNewMessage = (messageWithConversation: IConversation) => {
     conversationId: messageWithConversation.id as number,
     messageWithConversation: messageWithConversation,
   });
+};
+
+export const emitUserStatus = (userStatus: IUserStatus) => {
+  eventBus.emit("user:presence", userStatus);
 };
 
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {
