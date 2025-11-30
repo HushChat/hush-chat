@@ -25,7 +25,6 @@ export const staticStyles = StyleSheet.create({
     marginTop: 2,
   },
   documentTextContainer: {
-    flex: 1,
     minWidth: 0,
   },
   documentTitle: {

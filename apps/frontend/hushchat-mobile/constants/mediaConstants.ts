@@ -1,5 +1,5 @@
-export const ACCEPT_FILE_TYPES = [
-  "image/*",
+export const ACCEPT_IMAGE_TYPES = ["image/*"].join(",");
+export const ACCEPT_DOC_TYPES = [
   ".pdf",
   "application/pdf",
   ".doc",
@@ -11,6 +11,8 @@ export const ACCEPT_FILE_TYPES = [
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ].join(",");
+
+export const ACCEPT_FILE_TYPES = [ACCEPT_IMAGE_TYPES, ACCEPT_DOC_TYPES].join(",");
 
 export const DOC_EXTENSIONS = ["pdf", "doc", "docx", "xls", "xlsx"];
 

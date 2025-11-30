@@ -174,14 +174,38 @@ const ConversationThreadScreen = ({
   const {
     pickAndUploadImages,
     uploadFilesFromWeb,
+    pickAndUploadDocuments,
     isUploading: isUploadingImages,
     error: uploadError,
   } = useMessageAttachmentUploader(currentConversationId, imageMessage);
+
+  const handleOpenDocumentPickerNative = useCallback(async () => {
+    try {
+      const results = await pickAndUploadDocuments();
+
+      if (results?.some((r) => r.success)) {
+        refetchConversationMessages();
+        setSelectedMessage(null);
+        setImageMessage("");
+      } else if (uploadError) {
+        ToastUtils.error(uploadError);
+      }
+    } catch {
+      ToastUtils.error("Failed to pick or upload documents.");
+    }
+  }, [
+    pickAndUploadDocuments,
+    refetchConversationMessages,
+    setSelectedMessage,
+    setImageMessage,
+    uploadError,
+  ]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImages();
       if (results?.some((r) => r.success)) {
+        await refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
@@ -358,6 +382,7 @@ const ConversationThreadScreen = ({
         onSendMessage={handleSendMessage}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
+        onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
         disabled={isLoadingConversationMessages}
         isSending={isSendingMessage || isUploadingImages}
         replyToMessage={selectedMessage}
@@ -373,6 +398,7 @@ const ConversationThreadScreen = ({
     handleSendMessage,
     handleOpenImagePicker,
     handleOpenImagePickerNative,
+    handleOpenDocumentPickerNative,
     isLoadingConversationMessages,
     isSendingMessage,
     isUploadingImages,
