@@ -1,5 +1,6 @@
 package com.platform.software.config.security;
 
+import com.platform.software.config.interceptors.ApiKeyAuthorizationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,11 +24,13 @@ public class WebSecurityConfiguration {
     private final JwtAuthorizationFilter jwtRequestFilter;
     private final PublicRouteConfig publicRouteConfig;
     private final CorsConfig corsConfig;
+    private final ApiKeyAuthorizationFilter apiKeyAuthorizationFilter;
 
-    public WebSecurityConfiguration (JwtAuthorizationFilter jwtRequestFilter, PublicRouteConfig publicRouteConfig, CorsConfig corsConfig) {
+    public WebSecurityConfiguration (JwtAuthorizationFilter jwtRequestFilter, PublicRouteConfig publicRouteConfig, CorsConfig corsConfig, ApiKeyAuthorizationFilter apiKeyAuthorizationFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
         this.publicRouteConfig = publicRouteConfig;
         this.corsConfig = corsConfig;
+        this.apiKeyAuthorizationFilter = apiKeyAuthorizationFilter;
     }
 
     @Bean
@@ -41,7 +44,8 @@ public class WebSecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(apiKeyAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtRequestFilter, ApiKeyAuthorizationFilter.class)
                 .build();
     }
 
