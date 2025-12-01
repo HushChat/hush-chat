@@ -23,7 +23,6 @@ import java.util.List;
 @Service
 public class MessagePublisherService {
     private final String MESSAGE_INVOKE_PATH = "/topic/message-received";
-    private final String ONLINE_STATUS_INVOKE_PATH = "/topic/online-status";
 
     private final ConversationUtilService conversationUtilService;
     private final WebSocketSessionManager webSocketSessionManager;
@@ -94,19 +93,6 @@ public class MessagePublisherService {
                         participantDTO
                     ));
             });
-    }
-
-    public void invokeOnlineStatusChange(List<String> emails, String workspaceId, Boolean isOnline) {
-        emails.forEach(email -> {
-            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-            String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
-
-            webSocketSessionManager.getValidSession(sessionKey)
-                    .ifPresent(session -> template.convertAndSend(
-                            "%s/%s".formatted(ONLINE_STATUS_INVOKE_PATH, encodedEmail),
-                            isOnline
-                    ));
-        });
     }
 
     private static ConversationDTO getConversationDTO(ConversationParticipantViewDTO participant, ConversationDTO conversationDTO) {
