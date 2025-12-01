@@ -1,0 +1,28 @@
+name: Auto Label Workflow Changes
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '**/*.properties'
+      - '**/.env.example'
+
+jobs:
+  add-label:
+    name: Add Workflow Change Label
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Add WORKFLOW CHANGE NEEDED label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['WORKFLOW CHANGE NEEDED']
+            })
