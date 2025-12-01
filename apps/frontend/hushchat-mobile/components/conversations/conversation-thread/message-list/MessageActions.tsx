@@ -1,9 +1,9 @@
 import React from "react";
-import { GestureResponderEvent, Pressable, View } from "react-native";
-import classNames from "classnames";
+import { GestureResponderEvent, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { PLATFORM } from "@/constants/platformConstants";
 import { copyToClipboard } from "@/utils/messageUtils";
+import { MessageAction } from "@/components/conversations/conversation-thread/message-list/MessageAction";
 
 interface IMessageActionsProps {
   messageText?: string;
@@ -26,92 +26,45 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
 }) => {
   if (!PLATFORM.IS_WEB || messageIsUnsend) return null;
 
+  const handleCopy = () => {
+    if (messageText) {
+      copyToClipboard(messageText);
+    }
+  };
+
+  const CopyIconContent = (
+    <Ionicons
+      name="copy-outline"
+      size={16}
+      className="text-text-secondary-light dark:text-text-secondary-dark"
+    />
+  );
+
   return (
     <View className="flex-row items-center">
       {!isCurrentUser && (
-        <Pressable
-          onPress={() => copyToClipboard(messageText)}
-          className={classNames({
-            "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
-            "opacity-100": !PLATFORM.IS_WEB,
-          })}
-          style={({ pressed }) => ({
-            minWidth: 24,
-            minHeight: 24,
-            opacity: pressed ? 0.7 : 1,
-            cursor: "pointer" as const,
-            marginLeft: 6,
-          })}
-        >
-          <Ionicons
-            name="copy-outline"
-            size={16}
-            className="text-text-secondary-light dark:text-text-secondary-dark"
-          />
-        </Pressable>
+        <MessageAction onPress={handleCopy} style={{ marginLeft: 6 }}>
+          {CopyIconContent}
+        </MessageAction>
       )}
 
-      <Pressable
-        onPress={onOpenPicker}
-        disabled={!currentUserId || selectionMode}
-        className={classNames({
-          "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
-          "opacity-100": !PLATFORM.IS_WEB,
-        })}
-        style={({ pressed }) => ({
-          minWidth: 24,
-          minHeight: 24,
-          opacity: pressed ? 0.7 : 1,
-          cursor: "pointer" as const,
-        })}
-      >
+      <MessageAction onPress={onOpenPicker} disabled={!currentUserId || selectionMode}>
         <View className="p-1 rounded items-center justify-center">
           <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
         </View>
-      </Pressable>
+      </MessageAction>
 
       {isCurrentUser && (
-        <Pressable
-          onPress={() => copyToClipboard(messageText)}
-          className={classNames({
-            "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
-            "opacity-100": !PLATFORM.IS_WEB,
-          })}
-          style={({ pressed }) => ({
-            minWidth: 24,
-            minHeight: 24,
-            opacity: pressed ? 0.7 : 1,
-            cursor: "pointer" as const,
-            marginLeft: 6,
-          })}
-        >
-          <Ionicons
-            name="copy-outline"
-            size={16}
-            className="text-text-secondary-light dark:text-text-secondary-dark"
-          />
-        </Pressable>
+        <MessageAction onPress={handleCopy} style={{ marginLeft: 6 }}>
+          {CopyIconContent}
+        </MessageAction>
       )}
 
-      <Pressable
-        onPress={onOpenMenu}
-        disabled={selectionMode}
-        className={classNames({
-          "opacity-0 group-hover:opacity-100 hover:opacity-100": PLATFORM.IS_WEB,
-          "opacity-100": !PLATFORM.IS_WEB,
-        })}
-        style={({ pressed }) => ({
-          minWidth: 24,
-          minHeight: 24,
-          opacity: pressed ? 0.7 : 1,
-          cursor: "pointer" as const,
-          marginLeft: 6,
-        })}
-      >
+      <MessageAction onPress={onOpenMenu} disabled={selectionMode} style={{ marginLeft: 6 }}>
         <View className="p-1 rounded items-center justify-center">
           <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
         </View>
-      </Pressable>
+      </MessageAction>
     </View>
   );
 };
