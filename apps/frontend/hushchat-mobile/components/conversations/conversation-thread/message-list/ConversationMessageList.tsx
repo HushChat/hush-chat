@@ -18,6 +18,7 @@ import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReact
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
 import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
 import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
+import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -27,6 +28,10 @@ interface IMessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  onLoadNewer: () => void;
+  hasMoreNewer: boolean;
+  isFetchingNewer: boolean;
+  onPinnedMessageNavigate?: (messageId: number) => void;
 }
 
 const ConversationMessageList = ({
@@ -36,6 +41,10 @@ const ConversationMessageList = ({
   onMessageSelect,
   conversationAPIResponse,
   selectedConversationId,
+  onLoadNewer,
+  hasMoreNewer,
+  isFetchingNewer,
+  onPinnedMessageNavigate,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -60,6 +69,12 @@ const ConversationMessageList = ({
   const groupedSections = useMemo(() => {
     return groupMessagesByDate(messages);
   }, [messages]);
+
+  const handlePinnedMessageClick = useCallback(() => {
+    if (onPinnedMessageNavigate && pinnedMessage) {
+      onPinnedMessageNavigate(pinnedMessage.id);
+    }
+  }, [onPinnedMessageNavigate]);
 
   const renderMessage = useMemo(
     () =>
@@ -127,6 +142,7 @@ const ConversationMessageList = ({
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
           onUnpin={() => togglePin(pinnedMessage)}
+          onPress={handlePinnedMessageClick}
         />
       )}
 
@@ -143,12 +159,20 @@ const ConversationMessageList = ({
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderLoadingFooter}
-        onScrollBeginDrag={closeAll}
+        ListHeaderComponent={
+          <LoadRecentMessagesButton
+            onLoadNewer={onLoadNewer}
+            hasMoreNewer={hasMoreNewer}
+            isFetchingNewer={isFetchingNewer}
+          />
+        }
         onTouchEnd={closeAll}
-        onMomentumScrollBegin={closeAll}
+        onScrollBeginDrag={closeAll}
         extraData={{
           selectionMode,
           selectedMessageIdsSize: selectedMessageIds.size,
+          hasMoreNewer,
+          isFetchingNewer,
         }}
       />
       {reactionsModal.visible && (
