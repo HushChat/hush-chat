@@ -12,13 +12,11 @@ import {
   TextInputSelectionChangeEvent,
   View,
   StyleSheet,
-  Modal,
-  TouchableOpacity,
 } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import classNames from "classnames";
 import { debounce } from "lodash";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import PrimaryCircularButton from "@/components/conversations/conversation-thread/composer/PrimaryCircularButton";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
@@ -55,6 +53,7 @@ import { validateFiles } from "@/utils/fileValidation";
 import { getConversationMenuOptions } from "@/components/conversations/conversation-thread/composer/menuOptions";
 import { AppText } from "@/components/AppText";
 import { logInfo } from "@/utils/logger";
+import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
 
 type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
@@ -325,21 +324,6 @@ const ConversationInputBar = ({
     [onOpenImagePicker]
   );
 
-  const handleMobileMenuSelect = useCallback(
-    async (option: "images" | "documents") => {
-      try {
-        if (option === "images") {
-          await onOpenImagePickerNative?.();
-        } else if (option === "documents") {
-          await onOpenDocumentPickerNative?.();
-        }
-      } finally {
-        setMobileMenuVisible(false);
-      }
-    },
-    [onOpenImagePickerNative, onOpenDocumentPickerNative]
-  );
-
   const enterSubmitHandler = useEnterSubmit(() => handleSend(message));
   const specialCharHandler = useSpecialCharHandler(message, cursorPosition, {
     handlers: { "@": () => setMentionQuery("") },
@@ -493,45 +477,12 @@ const ConversationInputBar = ({
       </View>
 
       {!PLATFORM.IS_WEB && (
-        <Modal
+        <MobileAttachmentModal
           visible={mobileMenuVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setMobileMenuVisible(false)}
-        >
-          <TouchableOpacity
-            className="flex-1"
-            activeOpacity={1}
-            onPress={() => setMobileMenuVisible(false)}
-          >
-            <View
-              style={styles.mobileMenuContainer}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[200px]"
-            >
-              <TouchableOpacity
-                className="flex-row items-center py-3 px-4 active:bg-gray-100 dark:active:bg-gray-700"
-                onPress={() => handleMobileMenuSelect("images")}
-              >
-                <MaterialIcons name="photo-library" size={20} color="#3B82F6" />
-                <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
-                  Upload Images
-                </AppText>
-              </TouchableOpacity>
-
-              <View className="h-px bg-gray-200 dark:bg-gray-700" />
-
-              <TouchableOpacity
-                className="flex-row items-center py-3 px-4 active:bg-gray-100 dark:active:bg-gray-700"
-                onPress={() => handleMobileMenuSelect("documents")}
-              >
-                <MaterialIcons name="insert-drive-file" size={20} color="#3B82F6" />
-                <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
-                  Upload Documents
-                </AppText>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Modal>
+          onClose={() => setMobileMenuVisible(false)}
+          onOpenImagePicker={onOpenImagePickerNative}
+          onOpenDocumentPicker={onOpenDocumentPickerNative}
+        />
       )}
 
       {PLATFORM.IS_WEB && (
@@ -576,10 +527,5 @@ const styles = StyleSheet.create({
   },
   hiddenInput: {
     display: "none",
-  },
-  mobileMenuContainer: {
-    position: "absolute",
-    bottom: 80,
-    left: 16,
   },
 });

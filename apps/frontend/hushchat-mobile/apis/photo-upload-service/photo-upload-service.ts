@@ -11,8 +11,7 @@ import {
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
-import * as DocumentPicker from "expo-document-picker";
-import { logError, logWarn } from "@/utils/logger";
+import { logWarn } from "@/utils/logger";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -33,33 +32,6 @@ export const ALLOWED_DOCUMENT_TYPES = [
 ];
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-
-export async function pickDocumentsForMobileUpload(
-  upload: (files: LocalFile[]) => Promise<UploadResult[]>
-) {
-  try {
-    const res = await DocumentPicker.getDocumentAsync({
-      type: ALLOWED_DOCUMENT_TYPES,
-      multiple: true,
-      copyToCacheDirectory: true,
-    });
-
-    if (res.canceled) return;
-
-    const items = res.assets ?? [res];
-    const locals = items.map((it: any) => ({
-      uri: it.uri,
-      name: it.name || `document_${Date.now()}`,
-      type: it.mimeType || "application/octet-stream",
-      size: it.size || 0,
-    }));
-
-    await upload(locals);
-  } catch (e) {
-    logError("Document picker error", e);
-    ToastUtils.error("Failed to pick documents");
-  }
-}
 
 export const pickAndUploadImage = async (
   id: string,
