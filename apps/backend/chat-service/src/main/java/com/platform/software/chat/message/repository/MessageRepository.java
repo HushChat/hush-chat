@@ -65,8 +65,14 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
         """, nativeQuery = true)
     List<MessageThreadProjection> getMessageWithParentChain(@Param("messageId") Long messageId);
 
-    @Query(value = "select m1_0.* from message m1_0 where m1_0.conversation_id = :conversationId and m1_0.search_vector @@ plainto_tsquery(:searchTerm)", nativeQuery = true)
-    List<Message> findBySearchTermAndConversationNative(@Param("searchTerm") String searchTerm, @Param("conversationId") Long conversationId);
+    @Query(value = """
+    SELECT m1_0.* 
+    FROM message m1_0
+    WHERE m1_0.conversation_id = :conversationId
+    AND (m1_0.created_at > :deletedAt)
+    AND m1_0.search_vector @@ plainto_tsquery(:searchTerm)
+    """, nativeQuery = true)
+    List<Message> findBySearchTermAndConversationNative(@Param("searchTerm") String searchTerm, @Param("conversationId") Long conversationId, @Param("deletedAt") Date deletedAt);
 
     @Query(value = """
         select
