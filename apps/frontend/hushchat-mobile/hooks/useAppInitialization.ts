@@ -8,17 +8,19 @@ import { sendTokenToBackend } from "@/apis/user";
 import { refreshIdToken, isTokenExpiringSoon } from "@/utils/authUtils";
 import { PLATFORM } from "@/constants/platformConstants";
 import { SplashScreen } from "expo-router";
+import { mobileBuildCommitCheck } from "@/utils/versionCheck";
 
 export function useAppInitialization(fontsLoaded: boolean) {
   const { isAuthenticated, isWorkspaceSelected } = useAuthStore();
   const { fetchUserData, loading } = useUserStore();
   const [appReady, setAppReady] = useState(false);
 
-  /** Initial setup: API defaults + global error handler */
+  /** Initial setup: API defaults + global error handler + version check */
   useEffect(() => {
     setAPIDefaults();
     setupAuthorizationHeader();
     setupGlobalErrorHandling();
+    mobileBuildCommitCheck();
   }, []);
 
   /** Load user data when authenticated */

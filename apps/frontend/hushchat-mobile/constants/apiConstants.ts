@@ -89,3 +89,5 @@ export const MESSAGE_API_ENDPOINTS = {
 export const SETTINGS_API_ENDPOINTS = {
   CONTACT_US: `${SETTINGS_API_BASE}/contact-us`,
 };
+
+export const VERSION_CHECK = "/health-check/commit";
