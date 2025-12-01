@@ -23,7 +23,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const queryClient = useQueryClient();
   const previousConversationId = useRef<number | null>(null);
-  const [isLoadingMessageWindow, setIsLoadingMessageWindow] = useState(false);
+  const [inMessageWindowView, setInMessageWindowView] = useState(false);
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
@@ -34,6 +34,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     if (previousConversationId.current !== conversationId) {
       queryClient.removeQueries({ queryKey });
       previousConversationId.current = conversationId;
+      setInMessageWindowView(false);
     }
   }, [conversationId, queryKey, queryClient]);
 
@@ -41,9 +42,12 @@ export function useConversationMessagesQuery(conversationId: number) {
     pages,
     isLoading,
     error,
-    fetchOlder,
-    hasMoreOlder,
-    isFetchingOlder,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    hasPreviousPage,
+    isFetchingPreviousPage,
     invalidateQuery,
     refetch,
   } = usePaginatedQueryWithCursor<IMessage>({
@@ -51,11 +55,12 @@ export function useConversationMessagesQuery(conversationId: number) {
     queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
+    allowForwardPagination: inMessageWindowView,
   });
 
   const loadMessageWindow = useCallback(
     async (targetMessageId: number) => {
-      setIsLoadingMessageWindow(true);
+      setInMessageWindowView(true);
 
       try {
         const messageWindowResponse = await getMessagesAroundMessageId(
@@ -82,8 +87,7 @@ export function useConversationMessagesQuery(conversationId: number) {
         );
       } catch (error) {
         logError("jumpToMessage: Failed to load target message window", error);
-      } finally {
-        setIsLoadingMessageWindow(false);
+        setInMessageWindowView(false);
       }
     },
     [conversationId, queryClient, queryKey]
@@ -150,16 +154,20 @@ export function useConversationMessagesQuery(conversationId: number) {
   }, [lastMessage, updateConversationMessagesCache, updateConversationsListCache]);
 
   return {
-    conversationMessagesPages: pages,
-    isLoadingConversationMessages: isLoading || isLoadingMessageWindow,
-    conversationMessagesError: error,
-    fetchNextPage: fetchOlder,
-    hasNextPage: hasMoreOlder,
-    isFetchingNextPage: isFetchingOlder,
-    refetchConversationMessages: invalidateQuery,
+    pages,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    hasPreviousPage,
+    isFetchingPreviousPage,
     refetch,
+    invalidateQuery,
     updateConversationMessagesCache,
     updateConversationsListCache,
     loadMessageWindow,
+    inMessageWindowView,
   } as const;
 }

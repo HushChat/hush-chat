@@ -49,6 +49,7 @@ export interface IMessage {
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
+  isReadByEveryone?: boolean;
   hasAttachment?: boolean;
 }
 
@@ -228,7 +229,7 @@ export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
   signedImageUrl: string;
-  chatUserStatus: chatUserStatus;
+  chatUserStatus?: chatUserStatus;
 }
 
 export type TPickerState = {
