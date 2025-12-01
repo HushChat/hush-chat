@@ -1,9 +1,14 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Linking, TextStyle } from "react-native";
 import ParsedText, { ParseShape } from "react-native-parsed-text";
 import classNames from "classnames";
 import { TUser } from "@/types/user/types";
 import { HASHTAG_REGEX, MENTION_REGEX } from "@/constants/regex";
+import { PLATFORM } from "@/constants/platformConstants";
+import { copyToClipboard, normalizeUrl } from "@/utils/messageUtils";
+import WebContextMenu from "@/components/WebContextMenu";
+import { IOption } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
 
 interface FormattedTextProps {
   text: string;
@@ -30,14 +35,33 @@ const FormattedText = ({
   onHashtagPress,
   isCurrentUser,
 }: FormattedTextProps) => {
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+  const [selectedUrl, setSelectedUrl] = useState<string>("");
+
   const handleUrlPress = useCallback(
     async (url: string) => {
-      const finalUrl = url.startsWith("http") ? url : `https://${url}`;
+      const finalUrl = normalizeUrl(url);
+      if (!finalUrl) {
+        return;
+      }
+
       if (onLinkPress) return onLinkPress(finalUrl);
       if (await Linking.canOpenURL(finalUrl)) await Linking.openURL(finalUrl);
     },
     [onLinkPress]
   );
+
+  const handleUrlContextMenu = useCallback(
+    (url: string) => (event: React.MouseEvent) => {
+      event.preventDefault();
+      setMenuPos({ x: event.nativeEvent.pageX, y: event.nativeEvent.pageY });
+      setSelectedUrl(url);
+      setMenuVisible(true);
+    },
+    []
+  );
+
   const handleEmailPress = useCallback((email: string) => onEmailPress?.(email), [onEmailPress]);
   const handlePhonePress = useCallback((phone: string) => onPhonePress?.(phone), [onPhonePress]);
   const handleHashtagPress = useCallback(
@@ -57,16 +81,46 @@ const FormattedText = ({
     [mentions, onMentionPress]
   );
 
+  const linkMenuOptions = useMemo<IOption[]>(
+    () => [
+      {
+        id: 1,
+        name: "Copy link address",
+        iconName: "copy-outline",
+        action: async () => {
+          const finalUrl = normalizeUrl(selectedUrl);
+          if (!finalUrl) {
+            return;
+          }
+
+          await copyToClipboard(finalUrl);
+          setMenuVisible(false);
+        },
+      },
+    ],
+    [selectedUrl]
+  );
+
   const parse = useMemo<ParseShape[]>(
     () => [
       {
         type: "url",
-        onPress: handleUrlPress,
-        style: {
-          textDecorationLine: "underline",
-          color: "#7dd3fc",
-          opacity: 0.9,
-        },
+        renderText: ((matchingString: string) => (
+          <AppText
+            onPress={() => handleUrlPress(matchingString)}
+            {...(PLATFORM.IS_WEB && {
+              onContextMenu: handleUrlContextMenu(matchingString),
+            })}
+            className={PLATFORM.IS_WEB ? "hover:underline hover:decoration-[#7dd3fc]" : undefined}
+            style={{
+              textDecorationLine: PLATFORM.IS_WEB ? undefined : "underline",
+              color: "#7dd3fc",
+              opacity: 0.9,
+            }}
+          >
+            {matchingString}
+          </AppText>
+        )) as any,
       },
       {
         type: "email",
@@ -106,22 +160,36 @@ const FormattedText = ({
       handlePhonePress,
       handleUrlPress,
       isCurrentUser,
+      handleUrlContextMenu,
     ]
   );
 
   return (
-    <ParsedText
-      style={style}
-      className={classNames(
-        "text-base text-text-primary-light dark:text-text-primary-dark",
-        isCurrentUser ? "text-white" : "",
-        className
+    <>
+      <ParsedText
+        style={style}
+        className={classNames(
+          "text-base text-text-primary-light dark:text-text-primary-dark",
+          isCurrentUser ? "text-white" : "",
+          className
+        )}
+        parse={parse}
+        childrenProps={{ allowFontScaling: false }}
+      >
+        {text}
+      </ParsedText>
+
+      {PLATFORM.IS_WEB && (
+        <WebContextMenu
+          visible={menuVisible}
+          position={menuPos}
+          onClose={() => setMenuVisible(false)}
+          options={linkMenuOptions}
+          iconSize={18}
+          onOptionSelect={async (action: any) => action()}
+        />
       )}
-      parse={parse}
-      childrenProps={{ allowFontScaling: false }}
-    >
-      {text}
-    </ParsedText>
+    </>
   );
 };
 

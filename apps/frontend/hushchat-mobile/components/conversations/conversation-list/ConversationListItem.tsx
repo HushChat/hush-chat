@@ -123,6 +123,7 @@ const ConversationListItem = ({
         onClose={handleOptionsClose}
         conversationId={conversation.id}
         isFavorite={conversation.favoriteByLoggedInUser}
+        isPinned={conversation.pinnedByLoggedInUser}
         handleArchivePress={handleArchivePress}
         handleDeletePress={handleDeletePress}
         conversationsRefetch={conversationsRefetch}

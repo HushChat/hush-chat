@@ -12,7 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -134,6 +134,7 @@ const ConversationMessageList = ({
             closeActions();
           }}
           onUnsend={(messages) => unSendMessage(messages)}
+          onCopy={(message) => copyToClipboard(message.messageText)}
         />
       )}
 

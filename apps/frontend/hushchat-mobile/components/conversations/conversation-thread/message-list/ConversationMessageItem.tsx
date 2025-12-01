@@ -396,6 +396,7 @@ export const ConversationMessageItem = ({
               currentUserId={currentUserId}
               onOpenPicker={handleOpenPicker}
               onOpenMenu={openWebMenuAtEvent}
+              messageText={message.messageText}
               isRead={message.isReadByEveryone}
             />
 
