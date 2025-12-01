@@ -2,9 +2,10 @@
  * MessageTextArea
  *
  * Platform-agnostic textarea component for message composition.
+ * Memoized to prevent unnecessary re-renders.
  */
 
-import React, { forwardRef, useMemo } from "react";
+import React, { forwardRef, useMemo, memo } from "react";
 import {
   TextInput,
   TextInputContentSizeChangeEvent,
@@ -41,7 +42,7 @@ interface MessageTextAreaProps {
   onSubmitEditing: () => void;
 }
 
-export const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
+const MessageTextAreaComponent = forwardRef<TextInput, MessageTextAreaProps>(
   (
     {
       value,
@@ -82,15 +83,21 @@ export const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
       [minHeight, maxHeight, inputHeight, lineHeight, verticalPadding]
     );
 
+    const className = useMemo(
+      () =>
+        classNames(
+          "flex-1 text-base text-text-primary-light dark:text-text-primary-dark outline-none",
+          PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3"
+        ),
+      []
+    );
+
     const webProps = PLATFORM.IS_WEB ? { onKeyDown } : { textAlignVertical: "top" as const };
 
     return (
       <TextInput
         ref={ref}
-        className={classNames(
-          "flex-1 text-base text-text-primary-light dark:text-text-primary-dark outline-none",
-          PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3"
-        )}
+        className={className}
         placeholder={placeholder}
         placeholderTextColor={COLOR_PLACEHOLDER}
         multiline
@@ -112,4 +119,21 @@ export const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
   }
 );
 
-MessageTextArea.displayName = "MessageTextArea";
+MessageTextAreaComponent.displayName = "MessageTextArea";
+
+// Memoize with custom comparison to prevent re-renders on handler changes
+export const MessageTextArea = memo(MessageTextAreaComponent, (prevProps, nextProps) => {
+  // Only re-render if these specific props change
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.placeholder === nextProps.placeholder &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.autoFocus === nextProps.autoFocus &&
+    prevProps.minHeight === nextProps.minHeight &&
+    prevProps.maxHeight === nextProps.maxHeight &&
+    prevProps.inputHeight === nextProps.inputHeight &&
+    prevProps.lineHeight === nextProps.lineHeight &&
+    prevProps.verticalPadding === nextProps.verticalPadding
+    // Intentionally NOT comparing handlers - they should be stable refs
+  );
+});

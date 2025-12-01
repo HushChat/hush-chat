@@ -2,6 +2,7 @@
  * useMessageInput
  *
  * Manages message state, draft persistence, and send actions.
+ * Optimized for performance with stable callback references.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -36,13 +37,21 @@ export function useMessageInput({
   const storage = useMemo(() => StorageFactory.createStorage(), []);
   const [message, setMessageState] = useState<string>("");
 
-  const saveDraftDebounced = useRef(
-    debounce((id: number, text: string) => {
-      void storage.save(getDraftKey(id), text);
-    }, DEBOUNCE_DELAY)
-  ).current;
+  const conversationIdRef = useRef(conversationId);
+  conversationIdRef.current = conversationId;
 
-  // Load draft on conversation change
+  const maxCharsRef = useRef(maxChars);
+  maxCharsRef.current = maxChars;
+
+  const saveDraft = useCallback(
+    (id: number, text: string) => {
+      void storage.save(getDraftKey(id), text);
+    },
+    [storage]
+  );
+
+  const saveDraftDebounced = useMemo(() => debounce(saveDraft, DEBOUNCE_DELAY), [saveDraft]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -66,12 +75,10 @@ export function useMessageInput({
     };
   }, [conversationId, storage, onDraftLoaded]);
 
-  // Reset on conversation switch
   useEffect(() => {
     setMessageState("");
   }, [conversationId]);
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       saveDraftDebounced.flush?.();
@@ -86,19 +93,20 @@ export function useMessageInput({
   const handleChangeText = useCallback(
     (raw: string) => {
       let text = raw;
-      if (typeof maxChars === "number" && text.length > maxChars) {
-        text = text.slice(0, maxChars);
+      const max = maxCharsRef.current;
+      if (typeof max === "number" && text.length > max) {
+        text = text.slice(0, max);
       }
       setMessageState(text);
-      saveDraftDebounced(conversationId, text);
+      saveDraftDebounced(conversationIdRef.current, text);
     },
-    [maxChars, conversationId, saveDraftDebounced]
+    [saveDraftDebounced]
   );
 
   const clearMessage = useCallback(() => {
     setMessageState("");
-    void storage.remove(getDraftKey(conversationId));
-  }, [storage, conversationId]);
+    void storage.remove(getDraftKey(conversationIdRef.current));
+  }, [storage]);
 
   const flushDraft = useCallback(() => {
     saveDraftDebounced.flush?.();
@@ -106,7 +114,8 @@ export function useMessageInput({
 
   const handleSend = useCallback(
     (messageOverride?: string): string | null => {
-      const finalMessage = (messageOverride ?? message).trim();
+      const currentMessage = messageOverride ?? message;
+      const finalMessage = currentMessage.trim();
       if (!finalMessage) return null;
 
       flushDraft();

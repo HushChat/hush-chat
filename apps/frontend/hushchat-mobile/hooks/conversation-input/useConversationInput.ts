@@ -2,9 +2,10 @@
  * useConversationInput
  *
  * Orchestrating hook that combines all conversation input functionality.
+ * Optimized for performance with stable references to prevent re-render lag.
  */
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useMemo } from "react";
 import { TextInput, TextInputSelectionChangeEvent } from "react-native";
 import { useEnterSubmit } from "@/utils/commonUtils";
 import { useSpecialCharHandler } from "@/hooks/useSpecialCharHandler";
@@ -56,7 +57,12 @@ export function useConversationInput({
 }: UseConversationInputOptions) {
   const textInputRef = useRef<TextInput>(null);
 
-  // Auto height management
+  const disabledRef = useRef(disabled);
+  disabledRef.current = disabled;
+
+  const onSendMessageRef = useRef(onSendMessage);
+  onSendMessageRef.current = onSendMessage;
+
   const autoHeight = useAutoHeight({
     minLines,
     maxLines,
@@ -64,93 +70,98 @@ export function useConversationInput({
     verticalPadding,
   });
 
-  // Message state and draft persistence
   const messageInput = useMessageInput({
     conversationId,
     maxChars,
-    onDraftLoaded: (draft) => {
-      if (draft.trim().length) {
-        const target = Math.min(
-          autoHeight.maxHeight,
-          Math.max(autoHeight.minHeight, autoHeight.inputHeight)
-        );
-        // Height will be adjusted on next content size change
-      }
-    },
   });
 
-  // Mentions handling
+  const messageRef = useRef(messageInput.message);
+  messageRef.current = messageInput.message;
+
   const mentions = useMentions({
     textInputRef,
     onMessageUpdate: messageInput.setMessage,
   });
 
-  // Reply handling
+  const cursorPositionRef = useRef(mentions.cursorPosition);
+  cursorPositionRef.current = mentions.cursorPosition;
+
   const reply = useReplyHandler({
     replyToMessage,
     onCancelReply,
   });
 
-  // File picker
+  const replyRef = useRef(reply);
+  replyRef.current = reply;
+
   const filePicker = useFilePicker({
     onFilesSelected: onOpenImagePicker,
     onOpenNativePicker: onOpenImagePickerNative,
   });
 
-  // Combined change handler
   const handleChangeText = useCallback(
     (text: string) => {
       messageInput.handleChangeText(text);
-      mentions.updateMentionQuery(text, mentions.cursorPosition);
+      mentions.updateMentionQuery(text, cursorPositionRef.current);
       autoHeight.updateHeightForText(text);
     },
-    [messageInput, mentions, autoHeight]
+    [messageInput.handleChangeText, mentions.updateMentionQuery, autoHeight.updateHeightForText]
   );
 
-  // Selection change handler
   const handleSelectionChange = useCallback(
     (e: TextInputSelectionChangeEvent) => {
       mentions.setCursorPosition(e.nativeEvent.selection.start);
     },
-    [mentions]
+    [mentions.setCursorPosition]
   );
 
-  // Send handler
   const handleSend = useCallback(
     (messageOverride?: string) => {
       const finalMessage = messageInput.handleSend(messageOverride);
-      if (!finalMessage || disabled) return;
+      if (!finalMessage || disabledRef.current) return;
 
-      onSendMessage(finalMessage, reply.replyToMessage || undefined);
+      onSendMessageRef.current(finalMessage, replyRef.current.replyToMessage || undefined);
 
       autoHeight.resetHeight();
       mentions.clearMention();
 
-      if (reply.isReplying) {
-        reply.handleCancelReply();
+      if (replyRef.current.isReplying) {
+        replyRef.current.handleCancelReply();
       }
 
       requestAnimationFrame(() => {
         textInputRef.current?.focus();
       });
     },
-    [messageInput, disabled, onSendMessage, reply, autoHeight, mentions]
+    [messageInput.handleSend, autoHeight.resetHeight, mentions.clearMention]
   );
 
   // Mention selection handler
   const handleSelectMention = useCallback(
     (participant: ConversationParticipant) => {
-      const newText = mentions.handleSelectMention(participant, messageInput.message);
+      const newText = mentions.handleSelectMention(participant, messageRef.current);
       messageInput.setMessage(newText);
     },
-    [mentions, messageInput]
+    [mentions.handleSelectMention, messageInput.setMessage]
   );
 
-  // Keyboard handlers
-  const enterSubmitHandler = useEnterSubmit(() => handleSend(messageInput.message));
-  const specialCharHandler = useSpecialCharHandler(messageInput.message, mentions.cursorPosition, {
-    handlers: { "@": () => mentions.triggerMention() },
+  // Keyboard handlers - use refs to keep stable
+  const handleSendRef = useRef(handleSend);
+  handleSendRef.current = handleSend;
+
+  const enterSubmitHandler = useEnterSubmit(() => {
+    handleSendRef.current(messageRef.current);
   });
+
+  const specialCharHandler = useSpecialCharHandler(messageInput.message, mentions.cursorPosition, {
+    handlers: { "@": mentions.triggerMention },
+  });
+
+  // Memoize the placeholder
+  const computedPlaceholder = useMemo(
+    () => reply.getPlaceholder(placeholder),
+    [reply.getPlaceholder, placeholder]
+  );
 
   return {
     // Refs
@@ -176,7 +187,6 @@ export function useConversationInput({
     isReplying: reply.isReplying,
     replyToMessage: reply.replyToMessage,
     handleCancelReply: reply.handleCancelReply,
-    getPlaceholder: reply.getPlaceholder,
 
     // File picker
     fileInputRef: filePicker.fileInputRef,
@@ -197,7 +207,7 @@ export function useConversationInput({
     specialCharHandler,
 
     // Config
-    placeholder: reply.getPlaceholder(placeholder),
+    placeholder: computedPlaceholder,
     lineHeight,
     verticalPadding,
     maxChars,

@@ -1,10 +1,4 @@
-/**
- * ConversationInput.web
- *
- * Web-specific implementation of the conversation input bar.
- */
-
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
@@ -53,13 +47,32 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
     placeholder,
   });
 
-  const handleKeyDown = (e: WebKeyboardEvent) => {
-    if (input.mentionVisible && e.key === "Enter") {
-      e.preventDefault();
-      return;
-    }
-    input.specialCharHandler(e);
-  };
+  const handleKeyDown = useCallback(
+    (e: WebKeyboardEvent) => {
+      if (input.mentionVisible && e.key === "Enter") {
+        e.preventDefault();
+        return;
+      }
+      input.specialCharHandler(e);
+    },
+    [input.mentionVisible, input.specialCharHandler]
+  );
+
+  const handleKeyPress = useCallback(
+    (e: any) => {
+      input.specialCharHandler(e);
+      input.enterSubmitHandler(e);
+    },
+    [input.specialCharHandler, input.enterSubmitHandler]
+  );
+
+  const handleSubmitEditing = useCallback(() => {
+    input.handleSend(input.message);
+  }, [input.handleSend, input.message]);
+
+  const handleSendPress = useCallback(() => {
+    input.handleSend(input.message);
+  }, [input.handleSend, input.message]);
 
   return (
     <View>
@@ -104,18 +117,15 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
                 onChangeText={input.handleChangeText}
                 onContentSizeChange={input.handleContentSizeChange}
                 onSelectionChange={input.handleSelectionChange}
-                onKeyPress={(e) => {
-                  input.specialCharHandler(e);
-                  input.enterSubmitHandler(e);
-                }}
+                onKeyPress={handleKeyPress}
                 onKeyDown={handleKeyDown}
-                onSubmitEditing={() => input.handleSend(input.message)}
+                onSubmitEditing={handleSubmitEditing}
               />
 
               <SendButton
                 showSend={input.isValidMessage}
                 isSending={isSending}
-                onPress={() => input.handleSend(input.message)}
+                onPress={handleSendPress}
               />
             </View>
 
@@ -147,7 +157,7 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
   );
 };
 
-export default ConversationInput;
+export default memo(ConversationInput);
 
 const styles = StyleSheet.create({
   inputContainer: {
