@@ -1,16 +1,45 @@
+/**
+ * Cursor-based pagination hook for messages.
+ *
+ * fetchNextPage  -> loads older messages (backwards in history)
+ * fetchPreviousPage -> loads newer messages (forward, only if enabled)
+ *
+ * Direction is controlled using:
+ *   PAGINATE_BACKWARD  = fetch older (beforeId)
+ *   PAGINATE_FORWARD   = fetch newer (afterId)
+ *
+ * `allowForwardPagination` must be true to load forward pages.
+ */
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { CursorPaginatedQueryOptions, CursorPaginatedResponse } from "@/apis/conversation";
 
-/**
- * A simplified hook for paginating (older) messages.
- * It only handles the initial load and fetching the next page (older items).
- * New items are expected to be handled by a WebSocket.
- */
+export const PAGINATE_BACKWARD = "paginate_backward" as const;
+export const PAGINATE_FORWARD = "paginate_forward" as const;
+
+type TPageParam = {
+  cursor: number | string | undefined;
+  direction: typeof PAGINATE_BACKWARD | typeof PAGINATE_FORWARD;
+};
+
+function buildCursorQuery(param?: TPageParam) {
+  if (!param) return {};
+
+  const cursor = Number(param.cursor);
+
+  const directionMap = {
+    [PAGINATE_BACKWARD]: { beforeId: cursor },
+    [PAGINATE_FORWARD]: { afterId: cursor },
+  } satisfies Record<TPageParam["direction"], Record<string, number>>;
+
+  return directionMap[param.direction];
+}
+
 export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
   queryKey,
   queryFn,
   pageSize = 20,
   enabled = true,
+  allowForwardPagination = false,
 }: CursorPaginatedQueryOptions<T>) {
   const queryClient = useQueryClient();
 
@@ -21,26 +50,56 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    fetchPreviousPage,
+    hasPreviousPage,
+    isFetchingPreviousPage,
     refetch,
   } = useInfiniteQuery<CursorPaginatedResponse<T>>({
     queryKey,
     enabled,
     initialPageParam: undefined,
     queryFn: async ({ pageParam }) => {
-      const response = await queryFn({
-        beforeId: Number(pageParam),
-        size: pageSize,
-      });
-      if (!response.data) throw new Error(response.error || "Failed to fetch data");
-      return response.data;
-    },
-    getNextPageParam: (lastPage) => {
-      const content = lastPage?.content ?? [];
-      if (content.length < pageSize) return undefined;
+      const cursorQuery = buildCursorQuery(pageParam as TPageParam);
 
-      const oldestMessage = content[content.length - 1];
-      return oldestMessage?.id;
+      const result = await queryFn({ size: pageSize, ...cursorQuery });
+      if (!result.data) throw new Error(result.error ?? "Query failed");
+
+      return result.data;
     },
+
+    getNextPageParam: (lastLoadedPage) => {
+      if (!lastLoadedPage?.content?.length) return undefined;
+
+      const currentPageMessages = lastLoadedPage.content;
+      const hasInsufficientMessagesToPaginate = currentPageMessages.length < pageSize;
+      if (hasInsufficientMessagesToPaginate) return undefined;
+
+      const oldestMessageInCurrentPage = currentPageMessages[currentPageMessages.length - 1];
+      if (!oldestMessageInCurrentPage) return undefined;
+
+      return {
+        cursor: oldestMessageInCurrentPage.id,
+        direction: PAGINATE_BACKWARD,
+      };
+    },
+
+    getPreviousPageParam: (firstLoadedPage) => {
+      if (!allowForwardPagination) return undefined;
+      if (!firstLoadedPage?.content?.length) return undefined;
+
+      const currentPageMessages = firstLoadedPage.content;
+      const hasInsufficientMessagesToPaginate = currentPageMessages.length < pageSize;
+      if (hasInsufficientMessagesToPaginate) return undefined;
+
+      const newestMessageInCurrentPage = currentPageMessages[0];
+      if (!newestMessageInCurrentPage) return undefined;
+
+      return {
+        cursor: newestMessageInCurrentPage.id,
+        direction: PAGINATE_FORWARD,
+      };
+    },
+
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
@@ -48,10 +107,13 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
   return {
     pages,
     isLoading,
-    error: error as Error | null,
-    fetchOlder: fetchNextPage,
-    hasMoreOlder: hasNextPage ?? false,
-    isFetchingOlder: isFetchingNextPage,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    hasPreviousPage,
+    isFetchingPreviousPage,
     refetch,
     invalidateQuery: () => queryClient.invalidateQueries({ queryKey }),
   };
