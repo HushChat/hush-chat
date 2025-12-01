@@ -26,6 +26,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
@@ -1288,6 +1289,10 @@ public class ConversationService {
         ConversationReadInfo conversationReadInfo = conversationReadStatusRepository
             .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
         return conversationReadInfo;
+    }
+
+    public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long messageId, Long userId) {
+        return null;
     }
 }
 
