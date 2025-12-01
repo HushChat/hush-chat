@@ -1,5 +1,6 @@
 package com.platform.software.chat.message.attachment.dto;
 
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.common.model.ModelMapper;
 import lombok.Data;
@@ -12,6 +13,7 @@ public class MessageAttachmentDTO implements ModelMapper<MessageAttachment> {
     private String originalFileName;
     private String indexedFileName;
     private String fileUrl;
+    private AttachmentTypeEnum type;
 
     public MessageAttachmentDTO(MessageAttachment messageAttachment) {
         this.mapToSelf(messageAttachment);
@@ -32,5 +34,6 @@ public class MessageAttachmentDTO implements ModelMapper<MessageAttachment> {
         this.id = dto.getId();
         this.originalFileName = dto.getOriginalFileName();
         this.indexedFileName = dto.getIndexedFileName();
+        this.type = dto.getType();
     }
 }
