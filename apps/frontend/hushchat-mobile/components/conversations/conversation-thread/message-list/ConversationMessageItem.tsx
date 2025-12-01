@@ -61,6 +61,7 @@ interface MessageItemProps {
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
+  onNavigateToMessage?: (messageId: number) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -85,6 +86,7 @@ export const ConversationMessageItem = ({
   onUnsendMessage,
   onViewReactions,
   showSenderAvatar,
+  onNavigateToMessage,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -329,6 +331,7 @@ export const ConversationMessageItem = ({
           message={message}
           parentMessage={parentMessage}
           currentUserId={currentUserId}
+          onNavigateToMessage={onNavigateToMessage}
         />
       </View>
     );
@@ -374,6 +377,7 @@ export const ConversationMessageItem = ({
               currentUserId={currentUserId}
               onOpenPicker={handleOpenPicker}
               onOpenMenu={openWebMenuAtEvent}
+              messageText={message.messageText}
               isRead={message.isReadByEveryone}
             />
 

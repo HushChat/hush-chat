@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { ReactNode } from "react";
+import React, { JSX, ReactNode } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
@@ -269,4 +269,12 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
+}
+
+export interface IActionConfig {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  color?: string;
+  critical?: boolean;
 }
