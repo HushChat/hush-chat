@@ -44,7 +44,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const [notificationConversation, setNotificationConversation] = useState<IConversation | null>(
     null
   );
-  const { selectedConversationType, selectedConversationId } = useConversationStore();
+  const { selectedConversationType } = useConversationStore();
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
@@ -96,7 +96,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         isPinned: (conversation) => conversation.pinnedByLoggedInUser,
       }
     );
-  }, [notificationConversation, queryClient, loggedInUserId, criteria, selectedConversationId]);
+  }, [notificationConversation, queryClient, loggedInUserId, criteria]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
     updatePaginatedItemInCache<IConversation>(
