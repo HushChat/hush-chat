@@ -88,7 +88,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     setIsDownloading(true);
 
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
+      const { status } = await MediaLibrary.requestPermissionsAsync(true);
       if (status !== "granted") {
         ToastUtils.error("Permission Required", "Please allow access to your photos.");
         setIsDownloading(false);
@@ -97,7 +97,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
 
       const cacheDir = new Directory(Paths.cache, "downloads");
       if (!cacheDir.exists) {
-        cacheDir.create();
+        await cacheDir.create();
       }
 
       const destinationFile = new File(cacheDir, currentImage.originalFileName);
