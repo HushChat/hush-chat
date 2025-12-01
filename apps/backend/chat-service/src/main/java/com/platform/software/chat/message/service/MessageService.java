@@ -39,6 +39,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -537,9 +539,12 @@ public class MessageService {
      * @return the list
      */
     public List<MessageViewDTO> searchMessagesFromConversation(Long conversationId, Long loggedInUserId, MessageSearchRequestDTO messageSearchRequestDTO) {
-        conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
+                .map(zdt -> Date.from(zdt.toInstant()))
+                .orElse(new Date(0));
 
-        return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId)
+        return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId, deletedAt)
             .stream().map(MessageViewDTO::new).toList();
     }
 
