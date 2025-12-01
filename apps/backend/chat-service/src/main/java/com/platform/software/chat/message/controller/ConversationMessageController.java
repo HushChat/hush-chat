@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
@@ -192,5 +193,15 @@ public class ConversationMessageController {
     ) {
         Page<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
         return new ResponseEntity<>(messages, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get a page of participants who read the message", response = UserBasicViewDTO.class)
+    @GetMapping("{messageId/message-seen-participants}")
+    public ResponseEntity<Page<UserBasicViewDTO>> getMessageSeenGroupParticipants(
+            @PathVariable Long messageId,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        Page<UserBasicViewDTO> userBasicViewDTOs = conversationService.getMessageSeenGroupParticipants(messageId, userDetails.getId());
+        return new ResponseEntity<>(userBasicViewDTOs, HttpStatus.OK);
     }
 }
