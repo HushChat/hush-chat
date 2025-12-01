@@ -3,6 +3,7 @@ package com.platform.software.chat.message.service;
 import com.platform.software.chat.message.dto.MessageReactionEvent;
 import com.platform.software.chat.message.dto.MessageCreatedEvent;
 import com.platform.software.chat.notification.service.ChatNotificationService;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -17,8 +18,9 @@ public class ChatEventListener {
         this.chatNotificationService = chatNotificationService;
     }
 
+    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleMessageCreated(MessageCreatedEvent event) {
+    public void onMessageCreated(MessageCreatedEvent event) {
         messagePublisherService.invokeNewMessageToParticipants(
                 event.getConversationId(),
                 event.getMessageViewDTO(),
@@ -33,8 +35,9 @@ public class ChatEventListener {
         );
     }
 
+    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleMessageReaction(MessageReactionEvent event) {
+    public void onMessageReaction(MessageReactionEvent event) {
         chatNotificationService.sendMessageReactionNotifications(
                 event.getMessage(),
                 event.getUser()
