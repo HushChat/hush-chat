@@ -327,7 +327,6 @@ const ConversationInputBar = ({
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
     } catch (error) {
-      console.error("Failed to start recording:", error);
       ToastUtils.error("Failed to start recording");
     }
   }, []);
@@ -403,7 +402,6 @@ const ConversationInputBar = ({
 
       void storage.remove(getDraftKey(conversationId));
     } catch (error) {
-      console.error("Failed to stop recording:", error);
       ToastUtils.error("Failed to upload audio");
     }
   }, [
