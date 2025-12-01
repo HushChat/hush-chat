@@ -112,7 +112,7 @@ const ConversationThreadScreen = ({
     },
     (data) => {
       updateConversation(currentConversationId, {
-        unreadCount: data.unreadCount || 0,
+        unreadCount: data.data?.unreadCount || 0,
       });
     },
     (error) => {
@@ -334,7 +334,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
-        onPinnedMessageNavigate={handleNavigateToMessage}
+        onNavigateToMessage={handleNavigateToMessage}
       />
     );
   }, [
