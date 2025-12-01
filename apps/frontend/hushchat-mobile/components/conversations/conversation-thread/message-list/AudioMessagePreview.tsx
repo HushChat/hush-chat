@@ -18,7 +18,6 @@ export const AudioMessagePreview = ({
   isCurrentUser,
   duration: providedDuration,
 }: AudioMessagePreviewProps) => {
-  // Separate refs for web and native
   const webAudioRef = useRef<HTMLAudioElement | null>(null);
   const nativeSoundRef = useRef<Audio.Sound | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);

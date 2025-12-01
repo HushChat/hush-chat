@@ -309,9 +309,6 @@ const ConversationInputBar = ({
     ]
   );
 
-  /**
-   * Start audio recording
-   */
   const handleStartRecording = useCallback(async () => {
     try {
       const recording = await AudioRecorder.startRecording();
@@ -335,9 +332,6 @@ const ConversationInputBar = ({
     }
   }, []);
 
-  /**
-   * Stop recording and send audio
-   */
   const handleStopRecording = useCallback(async () => {
     if (!recordingInstance) return;
 
@@ -422,9 +416,6 @@ const ConversationInputBar = ({
     audioUploader,
   ]);
 
-  /**
-   * Cancel recording without sending
-   */
   const handleCancelRecording = useCallback(async () => {
     if (!recordingInstance) return;
 
