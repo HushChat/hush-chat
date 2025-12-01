@@ -16,7 +16,7 @@ import lombok.Setter;
 @Setter
 @PropertySource("classpath:git.properties")
 public class GitLoggingConfiguration {
-    private static final Logger logger = LoggerFactory.getLogger(CommitInfoLogger.class);
+    private static final Logger logger = LoggerFactory.getLogger(GitLoggingConfiguration.class);
 
     @Value("${git.commit.id.abbrev}")
     private String commitId;
@@ -26,7 +26,6 @@ public class GitLoggingConfiguration {
 
     @Component
     public class CommitInfoLogger {
-
         @EventListener(ApplicationReadyEvent.class)
         public void logCommitInfo() {
             logger.info("commit id: {}", commitId);

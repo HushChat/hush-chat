@@ -117,17 +117,31 @@ public class HealthCheckController {
 
     @GetMapping("commit")
     public ResponseEntity<Map<String, String>> getCommitInfo(
-            @RequestParam(required = true) String secretKey
+            @RequestParam String secretKey
     ) {
         if (!commitInfoSecretKey.equals(secretKey)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         Map<String, String> data = new LinkedHashMap<>();
-        data.put("service", "main-service");
+        data.put("service", "hush-chat");
         data.put("commitId", gitConfiguration.getCommitId());
         data.put("commitMessage", gitConfiguration.getCommitMessage());
         data.put("databaseUrl", databaseUrl);
+
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+
+    @GetMapping("commit-id")
+    public ResponseEntity<Map<String, String>> getCommitId(
+            @RequestParam String secretKey
+    ) {
+        if (!commitInfoSecretKey.equals(secretKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("commitId", gitConfiguration.getCommitId());
 
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
