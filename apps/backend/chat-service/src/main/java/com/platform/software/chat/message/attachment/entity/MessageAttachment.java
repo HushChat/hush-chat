@@ -27,4 +27,7 @@ public class MessageAttachment extends AuditModel {
 
     @NotNull
     private String indexedFileName;
+
+    @Enumerated(EnumType.STRING)
+    private AttachmentTypeEnum type;
 }
