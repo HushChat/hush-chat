@@ -22,12 +22,17 @@ import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface";
+import { router, useLocalSearchParams } from "expo-router";
+import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
 
 export default function ConversationScreen() {
+  const params = useLocalSearchParams();
   const { selectedConversationType } = useConversationStore();
   const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const paramConversationId = params.conversationId ? Number(params.conversationId) : null;
 
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
 
@@ -59,6 +64,29 @@ export default function ConversationScreen() {
     useGlobalSearchQuery(searchQuery);
 
   const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+
+  const conversationInList = useMemo(
+    () => conversations.find((c) => c.id === paramConversationId),
+    [conversations, paramConversationId]
+  );
+
+  const { conversationAPIResponse: missingConversationData, conversationAPILoading } =
+    useConversationByIdQuery(
+      paramConversationId || 0,
+      !!paramConversationId && !conversationInList
+    );
+
+  useEffect(() => {
+    if (!paramConversationId) return;
+
+    if (conversationInList) {
+      setSelectedConversation(conversationInList);
+      router.setParams({ conversationId: undefined });
+    } else if (missingConversationData) {
+      setSelectedConversation(missingConversationData as IConversation);
+      router.setParams({ conversationId: undefined });
+    }
+  }, [conversationInList, missingConversationData, paramConversationId]);
 
   const filters: IFilter[] = [
     {
@@ -101,7 +129,9 @@ export default function ConversationScreen() {
     <>
       <ChatInterface
         chatItemList={chatItemList}
-        conversationsLoading={isLoadingConversations}
+        conversationsLoading={
+          isLoadingConversations || (!!paramConversationId && conversationAPILoading)
+        }
         conversationsRefetch={refetch}
         filters={filters}
         selectedConversation={selectedConversation}

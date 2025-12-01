@@ -34,30 +34,22 @@ const RichMentionProfileCard: React.FC<{
 
   return (
     <View className="items-center w-full">
-      {/* Avatar Container */}
-      {/* Reduced bottom margin from mb-4 to mb-3 */}
       <View className="items-center justify-center mb-3 relative">
-        {/* Avatar: Reduced from w-32 (128px) to w-28 (112px) to fit compact card */}
-        <View className={`w-28 h-28 rounded-full shadow-sm overflow-hidden`}>
+        <View className={`rounded-full shadow-sm overflow-hidden`}>
           {user.signedImageUrl ? (
-            <Image
-              source={{ uri: user.signedImageUrl }}
-              className="w-full h-full"
-              contentFit="cover"
-              cachePolicy="memory-disk"
-            />
+            <View className="w-28 h-28">
+              <Image
+                source={{ uri: user.signedImageUrl }}
+                className="w-full h-full"
+                contentFit="cover"
+                cachePolicy="memory-disk"
+              />
+            </View>
           ) : (
-            <InitialsAvatar
-              imageUrl={user.signedImageUrl}
-              size="lg" // InitialsAvatar size handles itself, but wrapper constrains it
-              name={userName}
-            />
+            <InitialsAvatar imageUrl={user.signedImageUrl} size="lg" name={userName} />
           )}
         </View>
       </View>
-
-      {/* Name and Secondary Text */}
-      {/* Reduced bottom margin from mb-8 to mb-6 */}
       <View className="items-center mb-6">
         <Text
           className="text-xl font-bold mb-1 text-center"
@@ -77,13 +69,10 @@ const RichMentionProfileCard: React.FC<{
         )}
       </View>
 
-      {/* Action Buttons */}
-      <View className="flex-row items-center w-full justify-between">
-        {/* Message Button */}
-        {/* Reduced padding (py-3 px-4) to fit narrower container */}
+      <View className="flex-row items-center w-full justify-center gap-2">
         <Pressable
           onPress={onMessagePress}
-          className="flex-1 flex-row items-center justify-center py-3 px-4 rounded-full mr-2"
+          className="flex-1 flex-row items-center justify-center py-3 px-4 rounded-full ml-2"
           style={{ backgroundColor: buttonBg }}
         >
           <Feather name="message-circle" size={18} color={buttonText} style={{ marginRight: 6 }} />
@@ -92,10 +81,8 @@ const RichMentionProfileCard: React.FC<{
           </Text>
         </Pressable>
 
-        {/* Call Button */}
-        {/* Reduced size to w-12 h-12 */}
         <Pressable
-          className="w-12 h-12 items-center justify-center rounded-full mr-2"
+          className="w-12 h-12 items-center justify-center rounded-full"
           style={{ backgroundColor: buttonBg }}
         >
           <Ionicons name="call-outline" size={20} color={buttonText} disabled />
@@ -121,8 +108,6 @@ export const MentionProfileModal: React.FC<MentionProfileModalProps> = ({
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          // CHANGED: max-w-sm -> max-w-xs (Matches ProfilePictureModalContent size ~320px)
-          // Padding Adjusted: pt-8 pb-6 px-5
           className={`rounded-[28px] pt-8 pb-6 px-5 w-full max-w-xs ${isDark ? "bg-gray-900" : "bg-white"}`}
           style={styles.modalContainer}
         >

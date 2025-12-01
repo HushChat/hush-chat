@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationQueryKeys } from "@/constants/queryKeys";
 
-export const useConversationByIdQuery = (conversationId: number) => {
+export const useConversationByIdQuery = (conversationId: number, isEnabled: boolean = true) => {
   const {
     user: { id: userId },
   } = useUserStore();
@@ -17,6 +17,7 @@ export const useConversationByIdQuery = (conversationId: number) => {
     queryKey: conversationQueryKeys.metaDataById(Number(userId), conversationId),
     queryFn: () => getConversationById(conversationId),
     staleTime: 5 * 60 * 1000, // 5 minutes stale time
+    enabled: isEnabled && !!conversationId,
   });
 
   const refetchConversation = () => {

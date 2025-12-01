@@ -20,7 +20,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
@@ -30,6 +30,9 @@ import { MessageReactions } from "@/components/conversations/conversation-thread
 import { isImageAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import { CHAT_VIEW_PATH, CHATS_PATH } from "@/constants/routes";
+import { router } from "expo-router";
+import { createOneToOneConversation } from "@/apis/conversation";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -222,6 +225,40 @@ export const ConversationMessageItem = ({
     message.id,
   ]);
 
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        if (PLATFORM.IS_WEB) {
+          router.push({
+            pathname: CHATS_PATH,
+            params: {
+              conversationId: String(result.data.id),
+            },
+          } as any);
+        } else {
+          router.push({
+            pathname: CHAT_VIEW_PATH,
+            params: {
+              conversationId: String(result.data.id),
+            },
+          } as any);
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessageMentionedUser = useCallback(
+    (user: TUser) => {
+      setShowMentionProfileModal(false);
+      createConversation(user.id);
+    },
+    [createConversation]
+  );
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
     () => {
@@ -396,6 +433,7 @@ export const ConversationMessageItem = ({
               visible={showMentionProfileModal}
               user={selectedMentionUser}
               onClose={() => setShowMentionProfileModal(false)}
+              onMessagePress={handleMessageMentionedUser}
             />
           </View>
         </View>
