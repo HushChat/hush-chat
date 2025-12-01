@@ -51,10 +51,7 @@ const FormattedText = ({
       const match = mentions.find((m) => m.username === username);
 
       if (match) {
-        console.log("✅ Match found! Calling onMentionPress...");
         onMentionPress?.(username);
-      } else {
-        console.log("❌ No match found in mentions array.");
       }
     },
     [mentions, onMentionPress]

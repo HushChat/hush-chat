@@ -5,8 +5,9 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { TUser } from "@/types/user/types";
 import InitialsAvatar from "@/components/InitialsAvatar";
 
-const BG = {
+const COLORS = {
   modalBackdrop: "rgba(9, 15, 29, 0.8)",
+  shadow: "#000000",
 };
 
 interface MentionProfileModalProps {
@@ -16,7 +17,6 @@ interface MentionProfileModalProps {
   onMessagePress?: (user: TUser) => void;
 }
 
-// Internal component used ONLY for this modal's rich layout
 const RichMentionProfileCard: React.FC<{
   user: TUser;
   onMessagePress?: () => void;
@@ -75,7 +75,7 @@ const RichMentionProfileCard: React.FC<{
           className="flex-1 flex-row items-center justify-center py-3 px-4 rounded-full ml-2"
           style={{ backgroundColor: buttonBg }}
         >
-          <Feather name="message-circle" size={18} color={buttonText} style={{ marginRight: 6 }} />
+          <Feather name="message-circle" size={18} color={buttonText} style={styles.icon} />
           <Text className="font-semibold text-sm" style={{ color: buttonText }}>
             Message
           </Text>
@@ -129,11 +129,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: BG.modalBackdrop,
+    backgroundColor: COLORS.modalBackdrop,
     padding: 20,
   },
   modalContainer: {
-    shadowColor: "#000",
+    shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: 10,
@@ -141,5 +141,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 24,
+  },
+  icon: {
+    marginRight: 6,
   },
 });
