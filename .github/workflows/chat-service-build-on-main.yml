@@ -42,6 +42,19 @@ jobs:
       TEST_CHAT_PARTICIPANT_EMAIL: ${{ vars.DEV_CHAT_PARTICIPANT_EMAIL }}
       TEST_CHAT_PARTICIPANT_PASSWORD: ${{ vars.DEV_CHAT_PARTICIPANT_PASSWORD }}
 
+      # Email service
+      EMAIL_DEFAULT_SENDER: ${{ vars.EMAIL_DEFAULT_SENDER }}
+
+      SENDGRID_API_KEY: ${{ vars.SENDGRID_API_KEY }}
+      SENDGRID_FROM_MAIL: ${{ vars.SENDGRID_FROM_MAIL }}
+
+      AWS_SES_ACCESS_KEY: ${{ vars.AWS_SES_ACCESS_KEY }}
+      AWS_SES_SECRET_KEY: ${{ vars.AWS_SES_SECRET_KEY }}
+      AWS_SES_REGION: ${{ vars.AWS_SES_REGION }}
+      AWS_SES_FROM_MAIL: ${{ vars.AWS_SES_FROM_MAIL }}
+      
+      FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
