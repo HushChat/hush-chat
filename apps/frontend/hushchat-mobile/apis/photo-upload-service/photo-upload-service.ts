@@ -157,7 +157,10 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
 };
 
 export function useMessageAttachmentUploader(conversationId: number, messageToSend: string) {
-  const getSignedUrls = async (files: LocalFile[], type?: MessageTypeEnum): Promise<SignedUrl[] | null> => {
+  const getSignedUrls = async (
+    files: LocalFile[],
+    type?: MessageTypeEnum
+  ): Promise<SignedUrl[] | null> => {
     const fileNames = files.map((file) => file.name);
     const response = await sendMessageByConversationIdFiles(
       conversationId,
