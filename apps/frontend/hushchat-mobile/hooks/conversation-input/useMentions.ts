@@ -1,84 +1,79 @@
-/**
- * useMentions
- *
- * Handles @-mention detection, suggestion visibility, and selection.
- */
-
 import { useCallback, useState, RefObject } from "react";
 import { TextInput } from "react-native";
 import { detectMentionToken, replaceMentionAtCaret, setCaretPosition } from "@/utils/mentionUtils";
 import { PLATFORM } from "@/constants/platformConstants";
 import type { ConversationParticipant } from "@/types/chat/types";
 
-interface UseMentionsOptions {
+type TMentionsOptions = {
   textInputRef: RefObject<TextInput | null>;
-  onMessageUpdate: (text: string) => void;
+  onMessageUpdate: (updatedMessageText: string) => void;
+};
+
+interface IMentionsReturn {
+  activeMentionQueryText: string | null;
+  isMentionSuggestionsVisible: boolean;
+  currentCursorIndex: number;
+  updateCursorIndex: (newPosition: number) => void;
+  evaluateMentionQueryFromInput: (messageText: string, caretIndex: number) => void;
+  handleUserSelectedMention: (
+    selectedParticipant: ConversationParticipant,
+    existingMessageText: string
+  ) => string;
+  clearActiveMentionQuery: () => void;
+  manuallyTriggerMentionPicker: () => void;
 }
 
-interface UseMentionsReturn {
-  mentionQuery: string | null;
-  mentionVisible: boolean;
-  cursorPosition: number;
-  setCursorPosition: (pos: number) => void;
-  updateMentionQuery: (text: string, position: number) => void;
-  handleSelectMention: (participant: ConversationParticipant, currentMessage: string) => string;
-  clearMention: () => void;
-  triggerMention: () => void;
-}
+export function useMentions({ textInputRef, onMessageUpdate }: TMentionsOptions): IMentionsReturn {
+  const [activeMentionQueryText, setActiveMentionQueryText] = useState<string | null>(null);
+  const [currentCursorIndex, updateCursorIndex] = useState<number>(0);
 
-export function useMentions({
-  textInputRef,
-  onMessageUpdate,
-}: UseMentionsOptions): UseMentionsReturn {
-  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
-  const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const isMentionSuggestionsVisible = activeMentionQueryText !== null;
 
-  const mentionVisible = mentionQuery !== null;
-
-  const updateMentionQuery = useCallback((text: string, position: number) => {
-    const token = detectMentionToken(text, position);
-    setMentionQuery(token);
+  const evaluateMentionQueryFromInput = useCallback((messageText: string, caretIndex: number) => {
+    const mentionToken = detectMentionToken(messageText, caretIndex);
+    setActiveMentionQueryText(mentionToken);
   }, []);
 
-  const handleSelectMention = useCallback(
-    (participant: ConversationParticipant, currentMessage: string): string => {
-      const username = participant.user.username;
-      const { nextText, nextCaret } = replaceMentionAtCaret(
-        currentMessage,
-        cursorPosition,
-        username
+  const handleUserSelectedMention = useCallback(
+    (selectedParticipant: ConversationParticipant, existingMessageText: string): string => {
+      const selectedUsername = selectedParticipant.user.username;
+
+      const { nextText: updatedMessageText, nextCaret } = replaceMentionAtCaret(
+        existingMessageText,
+        currentCursorIndex,
+        selectedUsername
       );
 
-      onMessageUpdate(nextText);
-      setMentionQuery(null);
+      onMessageUpdate(updatedMessageText);
+      setActiveMentionQueryText(null);
 
       if (PLATFORM.IS_WEB) {
         requestAnimationFrame(() => setCaretPosition(textInputRef, nextCaret));
       } else {
-        setCursorPosition(nextCaret);
+        updateCursorIndex(nextCaret);
       }
 
-      return nextText;
+      return updatedMessageText;
     },
-    [cursorPosition, textInputRef, onMessageUpdate]
+    [currentCursorIndex, textInputRef, onMessageUpdate]
   );
 
-  const clearMention = useCallback(() => {
-    setMentionQuery(null);
+  const clearActiveMentionQuery = useCallback(() => {
+    setActiveMentionQueryText(null);
   }, []);
 
-  const triggerMention = useCallback(() => {
-    setMentionQuery("");
+  const manuallyTriggerMentionPicker = useCallback(() => {
+    setActiveMentionQueryText("");
   }, []);
 
   return {
-    mentionQuery,
-    mentionVisible,
-    cursorPosition,
-    setCursorPosition,
-    updateMentionQuery,
-    handleSelectMention,
-    clearMention,
-    triggerMention,
+    activeMentionQueryText,
+    isMentionSuggestionsVisible,
+    currentCursorIndex,
+    updateCursorIndex,
+    evaluateMentionQueryFromInput,
+    handleUserSelectedMention,
+    clearActiveMentionQuery,
+    manuallyTriggerMentionPicker,
   };
 }

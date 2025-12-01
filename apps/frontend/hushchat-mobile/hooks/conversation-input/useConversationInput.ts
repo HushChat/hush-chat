@@ -1,10 +1,3 @@
-/**
- * useConversationInput
- *
- * Orchestrating hook that combines all conversation input functionality.
- * Optimized for performance with stable references to prevent re-render lag.
- */
-
 import { useCallback, useRef, useMemo } from "react";
 import { TextInput, TextInputSelectionChangeEvent } from "react-native";
 import { useEnterSubmit } from "@/utils/commonUtils";
@@ -55,159 +48,165 @@ export function useConversationInput({
   verticalPadding,
   placeholder,
 }: UseConversationInputOptions) {
-  const textInputRef = useRef<TextInput>(null);
+  const messageTextInputRef = useRef<TextInput>(null);
 
-  const disabledRef = useRef(disabled);
-  disabledRef.current = disabled;
+  const inputDisabledStatusRef = useRef(disabled);
+  inputDisabledStatusRef.current = disabled;
 
-  const onSendMessageRef = useRef(onSendMessage);
-  onSendMessageRef.current = onSendMessage;
+  const sendMessageCallbackRef = useRef(onSendMessage);
+  sendMessageCallbackRef.current = onSendMessage;
 
-  const autoHeight = useAutoHeight({
+  const autoHeightController = useAutoHeight({
     minLines,
     maxLines,
     lineHeight,
     verticalPadding,
   });
 
-  const messageInput = useMessageInput({
+  const messageInputController = useMessageInput({
     conversationId,
     maxChars,
   });
 
-  const messageRef = useRef(messageInput.message);
-  messageRef.current = messageInput.message;
+  const latestMessageTextRef = useRef(messageInputController.currentTypedMessage);
+  latestMessageTextRef.current = messageInputController.currentTypedMessage;
 
-  const mentions = useMentions({
-    textInputRef,
-    onMessageUpdate: messageInput.setMessage,
+  const mentionsController = useMentions({
+    textInputRef: messageTextInputRef,
+    onMessageUpdate: messageInputController.updateTypedMessageText,
   });
 
-  const cursorPositionRef = useRef(mentions.cursorPosition);
-  cursorPositionRef.current = mentions.cursorPosition;
+  const cursorLocationRef = useRef(mentionsController.currentCursorIndex);
+  cursorLocationRef.current = mentionsController.currentCursorIndex;
 
-  const reply = useReplyHandler({
+  const replyManager = useReplyHandler({
     replyToMessage,
     onCancelReply,
   });
 
-  const replyRef = useRef(reply);
-  replyRef.current = reply;
+  const replyManagerRef = useRef(replyManager);
+  replyManagerRef.current = replyManager;
 
-  const filePicker = useFilePicker({
+  const fileAttachmentPicker = useFilePicker({
     onFilesSelected: onOpenImagePicker,
     onOpenNativePicker: onOpenImagePickerNative,
   });
 
-  const handleChangeText = useCallback(
-    (text: string) => {
-      messageInput.handleChangeText(text);
-      mentions.updateMentionQuery(text, cursorPositionRef.current);
-      autoHeight.updateHeightForText(text);
+  const handleMessageTextChangedByUser = useCallback(
+    (newTypedText: string) => {
+      messageInputController.onMessageTextChangedByUser(newTypedText);
+      mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
+      autoHeightController.updateHeightForClearedText(newTypedText);
     },
-    [messageInput.handleChangeText, mentions.updateMentionQuery, autoHeight.updateHeightForText]
+    [
+      messageInputController.onMessageTextChangedByUser,
+      mentionsController.evaluateMentionQueryFromInput,
+      autoHeightController.updateHeightForClearedText,
+    ]
   );
 
-  const handleSelectionChange = useCallback(
-    (e: TextInputSelectionChangeEvent) => {
-      mentions.setCursorPosition(e.nativeEvent.selection.start);
+  const handleInputCursorSelectionChanged = useCallback(
+    (event: TextInputSelectionChangeEvent) => {
+      mentionsController.updateCursorIndex(event.nativeEvent.selection.start);
     },
-    [mentions.setCursorPosition]
+    [mentionsController.updateCursorIndex]
   );
 
-  const handleSend = useCallback(
-    (messageOverride?: string) => {
-      const finalMessage = messageInput.handleSend(messageOverride);
-      if (!finalMessage || disabledRef.current) return;
+  const handleSendFinalProcessedMessage = useCallback(
+    (overrideMessageText?: string) => {
+      const processedMessage =
+        messageInputController.finalizeAndReturnMessageForSending(overrideMessageText);
 
-      onSendMessageRef.current(finalMessage, replyRef.current.replyToMessage || undefined);
+      if (!processedMessage || inputDisabledStatusRef.current) return;
 
-      autoHeight.resetHeight();
-      mentions.clearMention();
+      sendMessageCallbackRef.current(
+        processedMessage,
+        replyManagerRef.current.activeReplyTargetMessage ?? undefined
+      );
 
-      if (replyRef.current.isReplying) {
-        replyRef.current.handleCancelReply();
+      autoHeightController.animateHeightResetToMinimum();
+      mentionsController.clearActiveMentionQuery();
+
+      if (replyManagerRef.current.isReplyModeActive) {
+        replyManagerRef.current.cancelReplyMode();
       }
 
-      requestAnimationFrame(() => {
-        textInputRef.current?.focus();
-      });
+      requestAnimationFrame(() => messageTextInputRef.current?.focus());
     },
-    [messageInput.handleSend, autoHeight.resetHeight, mentions.clearMention]
+    [
+      messageInputController.finalizeAndReturnMessageForSending,
+      autoHeightController.animateHeightResetToMinimum,
+      mentionsController.clearActiveMentionQuery,
+    ]
   );
 
-  // Mention selection handler
-  const handleSelectMention = useCallback(
+  const handleUserSelectedMention = useCallback(
     (participant: ConversationParticipant) => {
-      const newText = mentions.handleSelectMention(participant, messageRef.current);
-      messageInput.setMessage(newText);
+      const updatedMessage = mentionsController.handleUserSelectedMention(
+        participant,
+        latestMessageTextRef.current
+      );
+
+      messageInputController.updateTypedMessageText(updatedMessage);
     },
-    [mentions.handleSelectMention, messageInput.setMessage]
+    [mentionsController.handleUserSelectedMention, messageInputController.updateTypedMessageText]
   );
 
-  // Keyboard handlers - use refs to keep stable
-  const handleSendRef = useRef(handleSend);
-  handleSendRef.current = handleSend;
+  const stableSendHandlerRef = useRef(handleSendFinalProcessedMessage);
+  stableSendHandlerRef.current = handleSendFinalProcessedMessage;
 
-  const enterSubmitHandler = useEnterSubmit(() => {
-    handleSendRef.current(messageRef.current);
+  const keyboardEnterToSendHandler = useEnterSubmit(() => {
+    stableSendHandlerRef.current(latestMessageTextRef.current);
   });
 
-  const specialCharHandler = useSpecialCharHandler(messageInput.message, mentions.cursorPosition, {
-    handlers: { "@": mentions.triggerMention },
-  });
+  const specialCharacterInputController = useSpecialCharHandler(
+    messageInputController.currentTypedMessage,
+    mentionsController.currentCursorIndex,
+    { handlers: { "@": mentionsController.manuallyTriggerMentionPicker } }
+  );
 
-  // Memoize the placeholder
-  const computedPlaceholder = useMemo(
-    () => reply.getPlaceholder(placeholder),
-    [reply.getPlaceholder, placeholder]
+  const resolvedPlaceholderText = useMemo(
+    () => replyManager.generateReplyAwarePlaceholder(placeholder),
+    [replyManager.generateReplyAwarePlaceholder, placeholder]
   );
 
   return {
-    // Refs
-    textInputRef,
+    messageTextInputRef,
 
-    // Message state
-    message: messageInput.message,
-    isValidMessage: messageInput.isValidMessage,
+    message: messageInputController.currentTypedMessage,
+    isValidMessage: messageInputController.isMessageNonEmptyAndSendable,
 
-    // Height
-    inputHeight: autoHeight.inputHeight,
-    minHeight: autoHeight.minHeight,
-    maxHeight: autoHeight.maxHeight,
-    animatedContainerStyle: autoHeight.animatedContainerStyle,
-    handleContentSizeChange: autoHeight.handleContentSizeChange,
+    inputHeight: autoHeightController.currentInputHeight,
+    minHeight: autoHeightController.minimumInputHeight,
+    maxHeight: autoHeightController.maximumInputHeight,
+    animatedContainerStyle: autoHeightController.animatedHeightStyle,
+    handleContentSizeChange: autoHeightController.handleTextContainerSizeChange,
 
-    // Mentions
-    mentionQuery: mentions.mentionQuery,
-    mentionVisible: mentions.mentionVisible,
-    handleSelectMention,
+    mentionQuery: mentionsController.activeMentionQueryText,
+    mentionVisible: mentionsController.isMentionSuggestionsVisible,
+    handleSelectMention: handleUserSelectedMention,
 
-    // Reply
-    isReplying: reply.isReplying,
-    replyToMessage: reply.replyToMessage,
-    handleCancelReply: reply.handleCancelReply,
+    isReplying: replyManager.isReplyModeActive,
+    replyToMessage: replyManager.activeReplyTargetMessage,
+    handleCancelReply: replyManager.cancelReplyMode,
 
-    // File picker
-    fileInputRef: filePicker.fileInputRef,
-    addButtonRef: filePicker.addButtonRef,
-    menuVisible: filePicker.menuVisible,
-    menuPosition: filePicker.menuPosition,
-    menuOptions: filePicker.menuOptions,
-    handleAddButtonPress: filePicker.handleAddButtonPress,
-    handleFileChange: filePicker.handleFileChange,
-    closeMenu: filePicker.closeMenu,
-    handleMenuOptionSelect: filePicker.handleMenuOptionSelect,
+    fileInputRef: fileAttachmentPicker.fileInputElementRef,
+    addButtonRef: fileAttachmentPicker.fileActionButtonRef,
+    menuVisible: fileAttachmentPicker.isMenuOpen,
+    menuPosition: fileAttachmentPicker.menuScreenCoordinates,
+    menuOptions: fileAttachmentPicker.menuActionOptions,
+    handleAddButtonPress: fileAttachmentPicker.handleFileActionButtonPress,
+    handleFileChange: fileAttachmentPicker.handleFileInputChange,
+    closeMenu: fileAttachmentPicker.closeFileActionMenu,
+    handleMenuOptionSelect: fileAttachmentPicker.executeMenuOption,
 
-    // Handlers
-    handleChangeText,
-    handleSelectionChange,
-    handleSend,
-    enterSubmitHandler,
-    specialCharHandler,
+    handleChangeText: handleMessageTextChangedByUser,
+    handleSelectionChange: handleInputCursorSelectionChanged,
+    handleSend: handleSendFinalProcessedMessage,
+    enterSubmitHandler: keyboardEnterToSendHandler,
+    specialCharHandler: specialCharacterInputController,
 
-    // Config
-    placeholder: computedPlaceholder,
+    placeholder: resolvedPlaceholderText,
     lineHeight,
     verticalPadding,
     maxChars,

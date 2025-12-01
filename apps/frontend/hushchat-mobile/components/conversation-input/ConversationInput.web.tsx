@@ -15,7 +15,7 @@ import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { HiddenFileInput } from "@/components/conversation-input/HiddenFileInput";
 
-const ConversationInput: React.FC<ConversationInputProps> = ({
+const ConversationInput = ({
   conversationId,
   onSendMessage,
   onOpenImagePicker,
@@ -31,7 +31,7 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
   replyToMessage,
   onCancelReply,
   isGroupChat,
-}) => {
+}: ConversationInputProps) => {
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -104,7 +104,7 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
               style={styles.inputContainer}
             >
               <MessageTextArea
-                ref={input.textInputRef}
+                ref={input.messageTextInputRef}
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}

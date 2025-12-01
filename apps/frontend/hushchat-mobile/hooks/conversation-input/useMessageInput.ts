@@ -1,10 +1,3 @@
-/**
- * useMessageInput
- *
- * Manages message state, draft persistence, and send actions.
- * Optimized for performance with stable callback references.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash";
 import { StorageFactory } from "@/utils/storage/storageFactory";
@@ -14,126 +7,139 @@ import { logInfo } from "@/utils/logger";
 interface UseMessageInputOptions {
   conversationId: number;
   maxChars?: number;
-  onDraftLoaded?: (draft: string) => void;
+  onDraftLoaded?: (loadedDraftText: string) => void;
 }
 
 interface UseMessageInputReturn {
-  message: string;
-  setMessage: (text: string) => void;
-  handleChangeText: (text: string) => void;
-  handleSend: (messageOverride?: string) => string | null;
-  clearMessage: () => void;
-  flushDraft: () => void;
-  isValidMessage: boolean;
+  currentTypedMessage: string;
+  updateTypedMessageText: (newMessageText: string) => void;
+  onMessageTextChangedByUser: (newInputText: string) => void;
+  finalizeAndReturnMessageForSending: (optionalOverrideText?: string) => string | null;
+  clearMessageAndDeleteDraft: () => void;
+  flushPendingDraftWritesImmediately: () => void;
+  isMessageNonEmptyAndSendable: boolean;
 }
 
-const DEBOUNCE_DELAY = 500;
+const AUTOSAVE_DEBOUNCE_INTERVAL_MS = 500;
 
 export function useMessageInput({
   conversationId,
   maxChars,
   onDraftLoaded,
 }: UseMessageInputOptions): UseMessageInputReturn {
-  const storage = useMemo(() => StorageFactory.createStorage(), []);
-  const [message, setMessageState] = useState<string>("");
+  const persistentDraftStorageInstance = useMemo(() => StorageFactory.createStorage(), []);
 
-  const conversationIdRef = useRef(conversationId);
-  conversationIdRef.current = conversationId;
+  const [currentTypedMessage, setCurrentTypedMessage] = useState<string>("");
 
-  const maxCharsRef = useRef(maxChars);
-  maxCharsRef.current = maxChars;
+  const activeConversationIdRef = useRef(conversationId);
+  activeConversationIdRef.current = conversationId;
 
-  const saveDraft = useCallback(
-    (id: number, text: string) => {
-      void storage.save(getDraftKey(id), text);
+  const configuredCharacterLimitRef = useRef(maxChars);
+  configuredCharacterLimitRef.current = maxChars;
+
+  const persistDraftToStorage = useCallback(
+    (conversationIdentifier: number, messageContentToSave: string) => {
+      void persistentDraftStorageInstance.save(
+        getDraftKey(conversationIdentifier),
+        messageContentToSave
+      );
     },
-    [storage]
+    [persistentDraftStorageInstance]
   );
 
-  const saveDraftDebounced = useMemo(() => debounce(saveDraft, DEBOUNCE_DELAY), [saveDraft]);
+  const persistDraftToStorageWithDelay = useMemo(
+    () => debounce(persistDraftToStorage, AUTOSAVE_DEBOUNCE_INTERVAL_MS),
+    [persistDraftToStorage]
+  );
 
   useEffect(() => {
-    let cancelled = false;
+    let effectWasCancelled = false;
 
-    const loadDraft = async () => {
+    const loadExistingDraftFromStorage = async () => {
       try {
-        const saved = await storage.get<string>(getDraftKey(conversationId));
-        if (cancelled) return;
+        const storedDraftText = await persistentDraftStorageInstance.get<string>(
+          getDraftKey(conversationId)
+        );
 
-        const value = saved ?? "";
-        setMessageState(value);
-        onDraftLoaded?.(value);
-      } catch (e) {
-        logInfo("Failed to load draft", e);
+        if (effectWasCancelled) return;
+
+        const recoveredDraftText = storedDraftText ?? "";
+        setCurrentTypedMessage(recoveredDraftText);
+        onDraftLoaded?.(recoveredDraftText);
+      } catch (error) {
+        logInfo("Draft load attempt failed", error);
       }
     };
 
-    void loadDraft();
+    void loadExistingDraftFromStorage();
 
     return () => {
-      cancelled = true;
+      effectWasCancelled = true;
     };
-  }, [conversationId, storage, onDraftLoaded]);
+  }, [conversationId, persistentDraftStorageInstance, onDraftLoaded]);
 
   useEffect(() => {
-    setMessageState("");
+    setCurrentTypedMessage("");
   }, [conversationId]);
 
   useEffect(() => {
     return () => {
-      saveDraftDebounced.flush?.();
-      saveDraftDebounced.cancel?.();
+      persistDraftToStorageWithDelay.flush?.();
+      persistDraftToStorageWithDelay.cancel?.();
     };
-  }, [saveDraftDebounced]);
+  }, [persistDraftToStorageWithDelay]);
 
-  const setMessage = useCallback((text: string) => {
-    setMessageState(text);
+  const updateTypedMessageText = useCallback((incomingTextValue: string) => {
+    setCurrentTypedMessage(incomingTextValue);
   }, []);
 
-  const handleChangeText = useCallback(
-    (raw: string) => {
-      let text = raw;
-      const max = maxCharsRef.current;
-      if (typeof max === "number" && text.length > max) {
-        text = text.slice(0, max);
+  const onMessageTextChangedByUser = useCallback(
+    (newRawInputText: string) => {
+      let sanitizedTextForInput = newRawInputText;
+      const characterLimit = configuredCharacterLimitRef.current;
+
+      if (typeof characterLimit === "number" && sanitizedTextForInput.length > characterLimit) {
+        sanitizedTextForInput = sanitizedTextForInput.slice(0, characterLimit);
       }
-      setMessageState(text);
-      saveDraftDebounced(conversationIdRef.current, text);
+
+      setCurrentTypedMessage(sanitizedTextForInput);
+      persistDraftToStorageWithDelay(activeConversationIdRef.current, sanitizedTextForInput);
     },
-    [saveDraftDebounced]
+    [persistDraftToStorageWithDelay]
   );
 
-  const clearMessage = useCallback(() => {
-    setMessageState("");
-    void storage.remove(getDraftKey(conversationIdRef.current));
-  }, [storage]);
+  const clearMessageAndDeleteDraft = useCallback(() => {
+    setCurrentTypedMessage("");
+    void persistentDraftStorageInstance.remove(getDraftKey(activeConversationIdRef.current));
+  }, [persistentDraftStorageInstance]);
 
-  const flushDraft = useCallback(() => {
-    saveDraftDebounced.flush?.();
-  }, [saveDraftDebounced]);
+  const flushPendingDraftWritesImmediately = useCallback(() => {
+    persistDraftToStorageWithDelay.flush?.();
+  }, [persistDraftToStorageWithDelay]);
 
-  const handleSend = useCallback(
-    (messageOverride?: string): string | null => {
-      const currentMessage = messageOverride ?? message;
-      const finalMessage = currentMessage.trim();
-      if (!finalMessage) return null;
+  const finalizeAndReturnMessageForSending = useCallback(
+    (optionalOverrideText?: string): string | null => {
+      const messageToProcess = optionalOverrideText ?? currentTypedMessage;
+      const cleanedAndTrimmedMessage = messageToProcess.trim();
 
-      flushDraft();
-      clearMessage();
-      return finalMessage;
+      if (!cleanedAndTrimmedMessage) return null;
+
+      flushPendingDraftWritesImmediately();
+      clearMessageAndDeleteDraft();
+      return cleanedAndTrimmedMessage;
     },
-    [message, flushDraft, clearMessage]
+    [currentTypedMessage, flushPendingDraftWritesImmediately, clearMessageAndDeleteDraft]
   );
 
-  const isValidMessage = message.trim().length > 0;
+  const isMessageNonEmptyAndSendable = currentTypedMessage.trim().length > 0;
 
   return {
-    message,
-    setMessage,
-    handleChangeText,
-    handleSend,
-    clearMessage,
-    flushDraft,
-    isValidMessage,
+    currentTypedMessage,
+    updateTypedMessageText,
+    onMessageTextChangedByUser,
+    finalizeAndReturnMessageForSending,
+    clearMessageAndDeleteDraft,
+    flushPendingDraftWritesImmediately,
+    isMessageNonEmptyAndSendable,
   };
 }

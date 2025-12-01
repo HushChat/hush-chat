@@ -1,9 +1,3 @@
-/**
- * useFilePicker
- *
- * Handles file selection, validation, and upload for web and native platforms.
- */
-
 import React, { useCallback, useRef, useState, useMemo } from "react";
 import { View } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -11,99 +5,115 @@ import { validateFiles } from "@/utils/fileValidation";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getConversationMenuOptions } from "@/components/conversations/conversation-thread/composer/menuOptions";
 
-interface MenuPosition {
+type TMenuCoordinates = {
   x: number;
   y: number;
-}
+};
 
-interface UseFilePickerOptions {
-  onFilesSelected?: (files: File[]) => void;
+type TFilePickerOptions = {
+  onFilesSelected?: (selectedFiles: File[]) => void;
   onOpenNativePicker?: () => void;
-}
+};
 
-interface UseFilePickerReturn {
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
-  addButtonRef: React.RefObject<View | null>;
-  menuVisible: boolean;
-  menuPosition: MenuPosition;
-  menuOptions: ReturnType<typeof getConversationMenuOptions>;
-  handleAddButtonPress: () => void;
-  handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  closeMenu: () => void;
-  handleMenuOptionSelect: (fn: () => Promise<void> | void) => Promise<void>;
+interface IFilePickerReturn {
+  fileInputElementRef: React.RefObject<HTMLInputElement | null>;
+  fileActionButtonRef: React.RefObject<View | null>;
+  isMenuOpen: boolean;
+  menuScreenCoordinates: TMenuCoordinates;
+  menuActionOptions: ReturnType<typeof getConversationMenuOptions>;
+  handleFileActionButtonPress: () => void;
+  handleFileInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  closeFileActionMenu: () => void;
+  executeMenuOption: (callback: () => Promise<void> | void) => Promise<void>;
 }
 
 export function useFilePicker({
   onFilesSelected,
   onOpenNativePicker,
-}: UseFilePickerOptions): UseFilePickerReturn {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const addButtonRef = useRef<View>(null);
+}: TFilePickerOptions): IFilePickerReturn {
+  const fileInputElementRef = useRef<HTMLInputElement>(null);
+  const fileActionButtonRef = useRef<View>(null);
 
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<MenuPosition>({ x: 0, y: 0 });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuScreenCoordinates, setMenuScreenCoordinates] = useState<TMenuCoordinates>({
+    x: 0,
+    y: 0,
+  });
 
-  const menuOptions = useMemo(() => getConversationMenuOptions(fileInputRef), [fileInputRef]);
+  const menuActionOptions = useMemo(
+    () => getConversationMenuOptions(fileInputElementRef),
+    [fileInputElementRef]
+  );
 
-  const handleAddButtonPress = useCallback(() => {
+  const handleFileActionButtonPress = useCallback(() => {
     if (PLATFORM.IS_WEB) {
-      const element = addButtonRef.current as unknown as {
+      const element = fileActionButtonRef.current as unknown as {
         getBoundingClientRect?: () => DOMRect;
       } | null;
 
       if (element?.getBoundingClientRect) {
-        const rect = element.getBoundingClientRect();
-        setMenuPosition({ x: rect.left, y: rect.bottom + 8 });
+        const { left, bottom } = element.getBoundingClientRect();
+
+        setMenuScreenCoordinates({
+          x: left,
+          y: bottom + 8,
+        });
       } else {
-        setMenuPosition({ x: 0, y: 0 });
+        setMenuScreenCoordinates({
+          x: 0,
+          y: 0,
+        });
       }
-      setMenuVisible(true);
+
+      setIsMenuOpen(true);
       return;
     }
 
     onOpenNativePicker?.();
   }, [onOpenNativePicker]);
 
-  const handleFileChange = useCallback(
+  const handleFileInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const { files } = event.target;
-      if (files && files.length > 0) {
-        const { errors, validFiles } = validateFiles(files);
+      const selectedFiles = event.target.files;
 
-        errors.forEach((err) => ToastUtils.error(err));
+      if (selectedFiles && selectedFiles.length > 0) {
+        const { errors, validFiles } = validateFiles(selectedFiles);
+
+        errors.forEach((errorMessage) => ToastUtils.error(errorMessage));
 
         if (validFiles.length > 0) {
           onFilesSelected?.(validFiles);
         }
       }
+
       event.target.value = "";
     },
     [onFilesSelected]
   );
 
-  const closeMenu = useCallback(() => {
-    setMenuVisible(false);
+  const closeFileActionMenu = useCallback(() => {
+    setIsMenuOpen(false);
   }, []);
 
-  const handleMenuOptionSelect = useCallback(async (fn: () => Promise<void> | void) => {
+  const executeMenuOption = useCallback(async (callback: () => Promise<void> | void) => {
     try {
-      await fn();
+      await callback();
     } catch {
-      ToastUtils.error("Error with file selection");
+      ToastUtils.error("Error performing file action");
     } finally {
-      setMenuVisible(false);
+      setIsMenuOpen(false);
     }
   }, []);
 
   return {
-    fileInputRef,
-    addButtonRef,
-    menuVisible,
-    menuPosition,
-    menuOptions,
-    handleAddButtonPress,
-    handleFileChange,
-    closeMenu,
-    handleMenuOptionSelect,
+    fileInputElementRef,
+    fileActionButtonRef,
+    isMenuOpen,
+    menuScreenCoordinates,
+    menuActionOptions,
+    handleFileActionButtonPress,
+    handleFileInputChange,
+    closeFileActionMenu,
+    executeMenuOption,
   };
 }

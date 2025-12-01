@@ -1,17 +1,17 @@
 /**
  * MessageTextArea
  *
- * Platform-agnostic textarea component for message composition.
- * Memoized to prevent unnecessary re-renders.
+ * Platform–agnostic input area for composing chat messages.
+ * Fully uncontrolled by memo — simpler, predictable rendering.
  */
 
-import React, { forwardRef, useMemo, memo } from "react";
+import React, { forwardRef, useMemo } from "react";
 import {
   TextInput,
   TextInputContentSizeChangeEvent,
   TextInputSelectionChangeEvent,
   NativeSyntheticEvent,
-  TextInputKeyPressEventData,
+  TextInputKeyPressEvent,
 } from "react-native";
 import classNames from "classnames";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -23,6 +23,7 @@ import {
   SCROLLBAR_GUTTER,
 } from "@/constants/composerConstants";
 import { WebKeyboardEvent } from "@/hooks/useSpecialCharHandler";
+import { AppTextInput } from "@/components/AppText";
 
 interface MessageTextAreaProps {
   value: string;
@@ -37,12 +38,12 @@ interface MessageTextAreaProps {
   onChangeText: (text: string) => void;
   onContentSizeChange: (e: TextInputContentSizeChangeEvent) => void;
   onSelectionChange: (e: TextInputSelectionChangeEvent) => void;
-  onKeyPress: (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
+  onKeyPress: (e: NativeSyntheticEvent<TextInputKeyPressEvent>) => void;
   onKeyDown?: (e: WebKeyboardEvent) => void;
   onSubmitEditing: () => void;
 }
 
-const MessageTextAreaComponent = forwardRef<TextInput, MessageTextAreaProps>(
+const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
   (
     {
       value,
@@ -63,7 +64,7 @@ const MessageTextAreaComponent = forwardRef<TextInput, MessageTextAreaProps>(
     },
     ref
   ) => {
-    const textInputStyle = useMemo(
+    const computedInputStyle = useMemo(
       () => ({
         minHeight,
         maxHeight,
@@ -83,57 +84,42 @@ const MessageTextAreaComponent = forwardRef<TextInput, MessageTextAreaProps>(
       [minHeight, maxHeight, inputHeight, lineHeight, verticalPadding]
     );
 
-    const className = useMemo(
+    const inputClass = useMemo(
       () =>
         classNames(
-          "flex-1 text-base text-text-primary-light dark:text-text-primary-dark outline-none",
+          "flex-1 text-base text-text-primary-light dark:text-text-primary-dark",
           PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3"
         ),
       []
     );
 
-    const webProps = PLATFORM.IS_WEB ? { onKeyDown } : { textAlignVertical: "top" as const };
+    const platformProps = PLATFORM.IS_WEB ? { onKeyDown } : { textAlignVertical: "top" as const };
 
     return (
-      <TextInput
+      <AppTextInput
         ref={ref}
-        className={className}
+        className={inputClass}
+        style={computedInputStyle}
         placeholder={placeholder}
         placeholderTextColor={COLOR_PLACEHOLDER}
+        editable={!disabled}
         multiline
         scrollEnabled
-        editable={!disabled}
+        autoFocus={autoFocus}
         value={value}
         onChangeText={onChangeText}
         onContentSizeChange={onContentSizeChange}
         onSelectionChange={onSelectionChange}
         onKeyPress={onKeyPress}
-        style={textInputStyle}
+        onSubmitEditing={onSubmitEditing}
         returnKeyType="send"
         enablesReturnKeyAutomatically
-        autoFocus={autoFocus}
-        onSubmitEditing={onSubmitEditing}
-        {...webProps}
+        {...platformProps}
       />
     );
   }
 );
 
-MessageTextAreaComponent.displayName = "MessageTextArea";
+MessageTextArea.displayName = "MessageTextArea";
 
-// Memoize with custom comparison to prevent re-renders on handler changes
-export const MessageTextArea = memo(MessageTextAreaComponent, (prevProps, nextProps) => {
-  // Only re-render if these specific props change
-  return (
-    prevProps.value === nextProps.value &&
-    prevProps.placeholder === nextProps.placeholder &&
-    prevProps.disabled === nextProps.disabled &&
-    prevProps.autoFocus === nextProps.autoFocus &&
-    prevProps.minHeight === nextProps.minHeight &&
-    prevProps.maxHeight === nextProps.maxHeight &&
-    prevProps.inputHeight === nextProps.inputHeight &&
-    prevProps.lineHeight === nextProps.lineHeight &&
-    prevProps.verticalPadding === nextProps.verticalPadding
-    // Intentionally NOT comparing handlers - they should be stable refs
-  );
-});
+export { MessageTextArea };

@@ -1,45 +1,39 @@
-/**
- * useReplyHandler
- *
- * Manages reply-to-message state and cleanup.
- */
-
 import { useCallback } from "react";
 import type { IMessage } from "@/types/chat/types";
 
-interface UseReplyHandlerOptions {
+type TReplyHandlerOptions = {
   replyToMessage?: IMessage | null;
   onCancelReply?: () => void;
-}
+};
 
-interface UseReplyHandlerReturn {
-  isReplying: boolean;
-  replyToMessage: IMessage | null;
-  handleCancelReply: () => void;
-  getPlaceholder: (defaultPlaceholder: string) => string;
+interface IReplyHandlerReturn {
+  isReplyModeActive: boolean;
+  activeReplyTargetMessage: IMessage | null;
+  cancelReplyMode: () => void;
+  generateReplyAwarePlaceholder: (defaultPlaceholderText: string) => string;
 }
 
 export function useReplyHandler({
   replyToMessage,
   onCancelReply,
-}: UseReplyHandlerOptions): UseReplyHandlerReturn {
-  const isReplying = !!replyToMessage;
+}: TReplyHandlerOptions): IReplyHandlerReturn {
+  const isReplyModeActive = replyToMessage != null;
 
-  const handleCancelReply = useCallback(() => {
+  const cancelReplyMode = useCallback(() => {
     onCancelReply?.();
   }, [onCancelReply]);
 
-  const getPlaceholder = useCallback(
-    (defaultPlaceholder: string) => {
-      return isReplying ? "Reply to message..." : defaultPlaceholder;
+  const generateReplyAwarePlaceholder = useCallback(
+    (defaultPlaceholderText: string) => {
+      return isReplyModeActive ? "Replying to a message..." : defaultPlaceholderText;
     },
-    [isReplying]
+    [isReplyModeActive]
   );
 
   return {
-    isReplying,
-    replyToMessage: replyToMessage ?? null,
-    handleCancelReply,
-    getPlaceholder,
+    isReplyModeActive,
+    activeReplyTargetMessage: replyToMessage ?? null,
+    cancelReplyMode,
+    generateReplyAwarePlaceholder,
   };
 }

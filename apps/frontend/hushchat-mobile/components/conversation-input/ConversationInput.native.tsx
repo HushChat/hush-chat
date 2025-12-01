@@ -1,13 +1,6 @@
-/**
- * ConversationInput.native
- *
- * Native (iOS/Android) implementation of the conversation input bar.
- */
-
-import React from "react";
+import React, { useCallback } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
-import classNames from "classnames";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -19,7 +12,7 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 
-const ConversationInput: React.FC<ConversationInputProps> = ({
+const ConversationInput = ({
   conversationId,
   onSendMessage,
   onOpenImagePickerNative,
@@ -35,7 +28,7 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
   replyToMessage,
   onCancelReply,
   isGroupChat,
-}) => {
+}: ConversationInputProps) => {
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -51,6 +44,25 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
     placeholder,
   });
 
+  // Stable handler for send button - no arguments needed
+  const handleSendButtonPress = useCallback(() => {
+    input.handleSend();
+  }, [input.handleSend]);
+
+  // Stable handler for submit editing
+  const handleSubmitEditing = useCallback(() => {
+    input.handleSend();
+  }, [input.handleSend]);
+
+  // Stable handler for key press
+  const handleKeyPress = useCallback(
+    (e: any) => {
+      input.specialCharHandler(e);
+      input.enterSubmitHandler(e);
+    },
+    [input.specialCharHandler, input.enterSubmitHandler]
+  );
+
   return (
     <View>
       {input.replyToMessage && (
@@ -60,13 +72,7 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
         />
       )}
 
-      <View
-        className={classNames(
-          "flex-row items-end p-3",
-          "bg-background-light dark:bg-background-dark",
-          "border-gray-200 dark:border-gray-800"
-        )}
-      >
+      <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
         <AttachmentButton
           ref={input.addButtonRef}
           disabled={disabled}
@@ -80,7 +86,7 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
               style={styles.inputContainer}
             >
               <MessageTextArea
-                ref={input.textInputRef}
+                ref={input.messageTextInputRef}
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}
@@ -93,17 +99,14 @@ const ConversationInput: React.FC<ConversationInputProps> = ({
                 onChangeText={input.handleChangeText}
                 onContentSizeChange={input.handleContentSizeChange}
                 onSelectionChange={input.handleSelectionChange}
-                onKeyPress={(e) => {
-                  input.specialCharHandler(e);
-                  input.enterSubmitHandler(e);
-                }}
-                onSubmitEditing={() => input.handleSend(input.message)}
+                onKeyPress={handleKeyPress}
+                onSubmitEditing={handleSubmitEditing}
               />
 
               <SendButton
                 showSend={input.isValidMessage}
                 isSending={isSending}
-                onPress={() => input.handleSend(input.message)}
+                onPress={handleSendButtonPress}
               />
             </View>
 
