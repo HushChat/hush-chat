@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
+import { MessageTypeEnum } from "@/types/chat/types";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -156,12 +157,13 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
 };
 
 export function useMessageAttachmentUploader(conversationId: number, messageToSend: string) {
-  const getSignedUrls = async (files: LocalFile[]): Promise<SignedUrl[] | null> => {
+  const getSignedUrls = async (files: LocalFile[], type?: MessageTypeEnum): Promise<SignedUrl[] | null> => {
     const fileNames = files.map((file) => file.name);
     const response = await sendMessageByConversationIdFiles(
       conversationId,
       messageToSend,
-      fileNames
+      fileNames,
+      type
     );
     const signed = response?.signedURLs || [];
     return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({

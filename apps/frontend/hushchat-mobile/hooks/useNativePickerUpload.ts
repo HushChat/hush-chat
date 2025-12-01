@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { PLATFORM } from "@/constants/platformConstants";
+import { MessageTypeEnum } from "@/types/chat/types";
 
 export type PickSource = "media" | "document";
 export type MediaKind = "image" | "video" | "all";
@@ -114,7 +115,7 @@ async function putToSignedUrl(file: LocalFile, signedUrl: string): Promise<void>
  * You inject how to get signed URLs (per your endpoint), we handle the rest.
  */
 export function useNativePickerUpload(
-  getSignedUrls: (files: LocalFile[]) => Promise<SignedUrl[] | null>
+  getSignedUrls: (files: LocalFile[], type?: MessageTypeEnum) => Promise<SignedUrl[] | null>
 ) {
   const [state, setState] = useState<State>({
     isPicking: false,
@@ -226,7 +227,7 @@ export function useNativePickerUpload(
   );
 
   const upload = useCallback(
-    async (files: LocalFile[]): Promise<UploadResult[]> => {
+    async (files: LocalFile[], type?: MessageTypeEnum): Promise<UploadResult[]> => {
       if (!files || files.length === 0) return [];
 
       setState((s) => ({
@@ -237,7 +238,7 @@ export function useNativePickerUpload(
         results: [],
       }));
       try {
-        const signed = await getSignedUrls(files);
+        const signed = await getSignedUrls(files, type);
         if (!signed || signed.length === 0) throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];

@@ -36,7 +36,7 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
-import { useMessageAudioUploader } from "@/apis/audio-upload-service/audio-upload-service";
+import { LocalFile } from "@/hooks/useNativePickerUpload";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -179,9 +179,6 @@ const ConversationThreadScreen = ({
     error: uploadError,
   } = useMessageAttachmentUploader(currentConversationId, imageMessage);
 
-  const { uploadAudioRecordingNative, uploadAudioRecordingWeb, uploadAudioFilesFromWeb } =
-    useMessageAudioUploader(conversationId, imageMessage);
-
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImages();
@@ -206,9 +203,13 @@ const ConversationThreadScreen = ({
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
-  const handleAudioSend = (message: string, parentMessage?: IMessage, files?: File[]) => {
-
-  }
+  const handleAudioSend = (
+    message: string,
+    parentMessage?: IMessage,
+    recordingInstance?: File | LocalFile
+  ) => {
+    console.log(recordingInstance);
+  };
 
   const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
     currentConversationId,
@@ -372,6 +373,7 @@ const ConversationThreadScreen = ({
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        updateConversationMessagesCache={updateConversationMessagesCache}
       />
     );
   }, [

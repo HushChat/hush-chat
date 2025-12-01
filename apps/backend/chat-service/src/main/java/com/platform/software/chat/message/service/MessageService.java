@@ -211,12 +211,14 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
+        MessageTypeEnum messageType = messageDTO.getMessageType() != null && messageDTO.getMessageType().equals(MessageTypeEnum.AUDIO) ? MessageTypeEnum.AUDIO : MessageTypeEnum.ATTACHMENT;
+
+        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, messageType);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
         messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+            conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
         );
         return signedURLResponseDTO;
     }

@@ -1,16 +1,32 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Pressable, View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
-import { IMessage, IMessageAttachment } from "@/types/chat/types";
+import { IMessage, IMessageAttachment, MessageTypeEnum } from "@/types/chat/types";
 import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
+import { AudioMessagePreview } from "@/components/conversations/conversation-thread/message-list/AudioMessagePreview";
+import { PLATFORM } from "@/constants/platformConstants";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
   FORWARDED_LEFT_BORDER: "#9CA3AF30",
+};
+
+const AUDIO_MIME_TYPES = [
+  "audio/m4a",
+  "audio/mp4",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/webm",
+  "audio/aac",
+];
+
+const isAudioAttachment = (message: IMessage): boolean => {
+  return message.messageType === MessageTypeEnum.AUDIO;
 };
 
 interface IMessageBubbleProps {
@@ -44,13 +60,33 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 }) => {
   const messageContent = message.messageText;
 
+  // Separate audio and non-audio attachments
+  const { audioAttachments, otherAttachments } = useMemo(() => {
+    const audio: IMessageAttachment[] = [];
+    const other: IMessageAttachment[] = [];
+
+    attachments.forEach((attachment) => {
+      if (isAudioAttachment(message)) {
+        audio.push(attachment);
+      } else {
+        other.push(attachment);
+      }
+    });
+
+    return { audioAttachments: audio, otherAttachments: other };
+  }, [attachments]);
+
+  const hasAudio = PLATFORM.IS_WEB && audioAttachments.length > 0;
+  const hasOtherAttachments = otherAttachments.length > 0;
+
   const forwardedBorderStyle = isForwardedMessage
     ? isCurrentUser
       ? styles.forwardedRight
       : styles.forwardedLeft
     : null;
 
-  const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+  const bubbleMaxWidthStyle =
+    hasAttachments || hasAudio ? styles.maxWidthAttachments : styles.maxWidthRegular;
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
@@ -78,26 +114,41 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         <View
           className={classNames("rounded-lg border-2", {
             "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasImages) && isCurrentUser,
+              (hasText || hasImages || hasAudio) && isCurrentUser,
             "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasImages) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasImages),
+              (hasText || hasImages || hasAudio) && !isCurrentUser,
+            "bg-transparent": !(hasText || hasImages || hasAudio),
 
             "border-sky-500 dark:border-sky-400": selected && selectionMode,
             "border-transparent": !(selected && selectionMode),
 
             "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasImages && !messageContent),
+            "px-3 py-2": !(hasImages && !messageContent) && !hasAudio,
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
-          {hasAttachments && (
-            <View className={messageContent ? "mb-2" : ""}>
-              {renderFileGrid(attachments, isCurrentUser)}
+          {/* Audio Attachments (Web only) */}
+          {hasAudio && (
+            <View className={messageContent || hasOtherAttachments ? "mb-2" : ""}>
+              {audioAttachments.map((audio) => (
+                <AudioMessagePreview
+                  key={audio.id || audio.indexedFileName}
+                  audioUrl={audio.fileUrl}
+                  isCurrentUser={isCurrentUser}
+                />
+              ))}
             </View>
           )}
 
+          {/* Other File Attachments */}
+          {hasOtherAttachments && (
+            <View className={messageContent ? "mb-2" : ""}>
+              {renderFileGrid(otherAttachments, isCurrentUser)}
+            </View>
+          )}
+
+          {/* Text Content */}
           {!message.isUnsend && messageContent ? (
             <FormattedText
               text={message.messageText}

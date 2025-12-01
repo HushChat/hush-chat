@@ -7,5 +7,6 @@ import lombok.Data;
 public class MessageUpsertDTO {
     private String messageText;
     private DocUploadRequestDTO files;
+    private MessageTypeEnum messageType;
     private Long parentMessageId;
 }

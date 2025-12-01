@@ -1,7 +1,13 @@
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import axios, { AxiosError } from "axios";
-import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/types/chat/types";
+import {
+  IConversation,
+  IGroupConversation,
+  IMessage,
+  IMessageView,
+  MessageTypeEnum,
+} from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
@@ -45,12 +51,14 @@ export interface AddConversationParticipantsParams {
   conversationId: number;
   newParticipantIds: number[];
 }
+
 export interface ToggleMuteConversationParams {
   conversationId: number;
   duration: "15m" | "1h" | "1d" | "always";
 }
 
 export type ReportReason = "SPAM" | "HARASSMENT" | "INAPPROPRIATE_CONTENT" | "OTHER";
+
 export interface ReportConversationParams {
   conversationId: number;
   reason: ReportReason;
@@ -200,7 +208,8 @@ export const getLastSeenMessageByConversationId = async (conversationId: number)
 export const sendMessageByConversationIdFiles = async (
   conversationId: number,
   message: string,
-  fileNames: string[]
+  fileNames: string[],
+  type?: MessageTypeEnum
 ) => {
   try {
     const response = await axios.post(CONVERSATION_API_ENDPOINTS.SIGNED_URLS(conversationId), {
@@ -208,6 +217,7 @@ export const sendMessageByConversationIdFiles = async (
       files: {
         fileNames,
       },
+      messageType: type,
     });
     return response.data;
   } catch (error) {

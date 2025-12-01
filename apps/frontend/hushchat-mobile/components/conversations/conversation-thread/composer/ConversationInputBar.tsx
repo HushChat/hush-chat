@@ -29,7 +29,12 @@ import { getDraftKey } from "@/constants/constants";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ToastUtils } from "@/utils/toastUtils";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
-import { AudioRecorder } from "@/apis/audio-upload-service/audio-upload-service";
+import {
+  AudioRecorder,
+  stopAudioRecordingWeb,
+  stopAudioRecordingNative,
+  useMessageAudioUploader,
+} from "@/apis/audio-upload-service/audio-upload-service";
 
 import {
   ANIM_EASING,
@@ -54,10 +59,16 @@ import { validateFiles } from "@/utils/fileValidation";
 import { getConversationMenuOptions } from "@/components/conversations/conversation-thread/composer/menuOptions";
 import { AppText } from "@/components/AppText";
 import { logInfo } from "@/utils/logger";
+import { LocalFile, UploadResult } from "@/hooks/useNativePickerUpload";
+import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 
 type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
-  onSendAudio: (message: string, parentMessage?: IMessage, recordingInstance?: any) => void;
+  onSendAudio: (
+    message: string,
+    parentMessage?: IMessage,
+    recordingInstance?: File | LocalFile
+  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   conversationId: number;
@@ -73,27 +84,29 @@ type MessageInputProps = {
   replyToMessage?: IMessage | null;
   onCancelReply?: () => void;
   isGroupChat?: boolean;
+  updateConversationMessagesCache: (msg: IMessage) => void;
 };
 
 const ConversationInputBar = ({
-                                conversationId,
-                                onSendMessage,
-                                onSendAudio,
-                                onOpenImagePicker,
-                                disabled = false,
-                                isSending = false,
-                                placeholder = "Type a message...",
-                                minLines = 1,
-                                maxLines = 6,
-                                lineHeight = 22,
-                                verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
-                                maxChars,
-                                autoFocus = false,
-                                replyToMessage,
-                                onCancelReply,
-                                isGroupChat,
-                                onOpenImagePickerNative,
-                              }: MessageInputProps) => {
+  conversationId,
+  onSendMessage,
+  onSendAudio,
+  onOpenImagePicker,
+  disabled = false,
+  isSending = false,
+  placeholder = "Type a message...",
+  minLines = 1,
+  maxLines = 6,
+  lineHeight = 22,
+  verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
+  maxChars,
+  autoFocus = false,
+  replyToMessage,
+  onCancelReply,
+  isGroupChat,
+  onOpenImagePickerNative,
+  updateConversationMessagesCache,
+}: MessageInputProps) => {
   const storage = useMemo(() => StorageFactory.createStorage(), []);
   const initialHeight = useMemo(
     () => lineHeight * minLines + verticalPadding,
@@ -112,6 +125,12 @@ const ConversationInputBar = ({
   const [isRecording, setIsRecording] = useState(false);
   const [recordingInstance, setRecordingInstance] = useState<any>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
+
+  const audioUploader = useMessageAudioUploader(
+    conversationId,
+    message,
+    updateConversationMessagesCache
+  );
 
   const textInputRef = useRef<TextInput>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -329,7 +348,6 @@ const ConversationInputBar = ({
     if (!recordingInstance) return;
 
     try {
-      // Clear timer
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
         recordingTimerRef.current = null;
@@ -337,11 +355,54 @@ const ConversationInputBar = ({
 
       setIsRecording(false);
 
-      // Call the onSendAudio callback with the recording instance
-      // The parent component will handle the upload
-      onSendAudio(message, replyToMessage || undefined, recordingInstance);
+      let uploadResults: UploadResult[];
 
-      // Reset state
+      if (PLATFORM.IS_WEB) {
+        // Web: recordingInstance is { mediaRecorder, audioChunks }
+        const blob = await stopAudioRecordingWeb(
+          recordingInstance.mediaRecorder,
+          recordingInstance.audioChunks
+        );
+
+        if (!blob) {
+          ToastUtils.error("Failed to save recording");
+          return;
+        }
+
+        const extension = blob.type.includes("webm") ? "webm" : "mp4";
+        const audioFile = new File([blob], `audio_${Date.now()}.${extension}`, {
+          type: blob.type,
+        });
+
+        uploadResults = await audioUploader.uploadAudioFile(audioFile);
+      } else {
+        // Native: recordingInstance is Audio.Recording
+        const uri = await stopAudioRecordingNative(recordingInstance);
+
+        if (!uri) {
+          ToastUtils.error("Failed to save recording");
+          return;
+        }
+
+        const response = await fetch(uri);
+        const blob = await response.blob();
+
+        const localFile: LocalFile = {
+          uri,
+          name: `audio_${Date.now()}.m4a`,
+          type: "audio/m4a",
+          size: blob.size,
+        };
+
+        uploadResults = await audioUploader.uploadAudioLocalFile(localFile);
+      }
+
+      const failed = uploadResults.find((r) => !r.success);
+      if (failed) {
+        ToastUtils.error(failed.error || "Failed to upload audio");
+        return;
+      }
+
       setRecordingInstance(null);
       setRecordingDuration(0);
       setMessage("");
@@ -353,16 +414,16 @@ const ConversationInputBar = ({
       void storage.remove(getDraftKey(conversationId));
     } catch (error) {
       console.error("Failed to stop recording:", error);
-      ToastUtils.error("Failed to stop recording");
+      ToastUtils.error("Failed to upload audio");
     }
   }, [
     recordingInstance,
     message,
     replyToMessage,
-    onSendAudio,
     onCancelReply,
     conversationId,
     storage,
+    audioUploader,
   ]);
 
   /**
@@ -381,9 +442,7 @@ const ConversationInputBar = ({
       // Stop recording without uploading
       if (PLATFORM.IS_WEB) {
         recordingInstance.mediaRecorder.stop();
-        recordingInstance.mediaRecorder.stream
-          .getTracks()
-          .forEach((track: any) => track.stop());
+        recordingInstance.mediaRecorder.stream.getTracks().forEach((track: any) => track.stop());
       } else {
         await recordingInstance.stopAndUnloadAsync();
       }
@@ -540,14 +599,14 @@ const ConversationInputBar = ({
                 }}
                 {...(PLATFORM.IS_WEB
                   ? {
-                    onKeyDown: (e: WebKeyboardEvent) => {
-                      if (mentionVisible && e.key === "Enter") {
-                        e.preventDefault();
-                        return;
-                      }
-                      specialCharHandler(e);
-                    },
-                  }
+                      onKeyDown: (e: WebKeyboardEvent) => {
+                        if (mentionVisible && e.key === "Enter") {
+                          e.preventDefault();
+                          return;
+                        }
+                        specialCharHandler(e);
+                      },
+                    }
                   : {})}
                 style={textInputStyle}
                 returnKeyType="send"

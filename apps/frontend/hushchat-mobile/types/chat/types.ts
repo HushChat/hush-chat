@@ -34,7 +34,7 @@ export interface IMessageAttachment {
 }
 
 export interface IMessage {
-  id: number;
+  id?: number;
   senderId: number;
   senderFirstName: string;
   senderLastName: string;
@@ -45,11 +45,12 @@ export interface IMessage {
   reactionSummary?: ReactionSummary;
   conversationId: number;
   parentMessage?: IMessage;
-  isForwarded: boolean;
+  isForwarded?: boolean;
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
+  messageType?: MessageTypeEnum | null;
 }
 
 export interface IMessageView extends IMessage {
@@ -262,4 +263,11 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
+}
+
+export enum MessageTypeEnum {
+  TEXT = "TEXT",
+  ATTACHMENT = "ATTACHMENT",
+  AUDIO = "AUDIO",
+  SYSTEM_EVENT = "SYSTEM_EVENT",
 }

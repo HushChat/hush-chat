@@ -8,6 +8,8 @@ import {
 } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
+import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
+import { useUserStore } from "@/store/user/useUserStore";
 
 const MAX_AUDIO_KB = 1024 * 10; // 10 MB
 
@@ -152,9 +154,7 @@ export const startAudioRecordingWeb = async (): Promise<{
     }
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mimeType = MediaRecorder.isTypeSupported("audio/webm")
-      ? "audio/webm"
-      : "audio/mp4";
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
     const mediaRecorder = new MediaRecorder(stream, { mimeType });
     const audioChunks: Blob[] = [];
 
@@ -245,19 +245,33 @@ const validateAudioSize = (sizeInBytes: number): boolean => {
  * Hook for uploading audio recordings to S3 via signed URLs
  * @param conversationId - The conversation ID to upload audio to
  * @param messageToSend - The message text to send with the audio
+ * @param updateConversationMessagesCache
  */
-export function useMessageAudioUploader(conversationId: number, messageToSend: string) {
+export function useMessageAudioUploader(
+  conversationId: number,
+  messageToSend: string,
+  updateConversationMessagesCache: (msg: IMessage) => void
+) {
+  const {
+    user: { id: currentUserId },
+  } = useUserStore();
+
   /**
    * Fetches signed URLs from the backend for audio upload
    * @param files - Array of local files to get signed URLs for
+   * @param type
    * @returns Array of signed URLs or null if failed
    */
-  const getSignedUrls = async (files: LocalFile[]): Promise<SignedUrl[] | null> => {
+  const getSignedUrls = async (
+    files: LocalFile[],
+    type?: MessageTypeEnum
+  ): Promise<SignedUrl[] | null> => {
     const fileNames = files.map((file) => file.name);
     const response = await sendMessageByConversationIdFiles(
       conversationId,
       messageToSend,
-      fileNames
+      fileNames,
+      type
     );
     const signed = response?.signedURLs || [];
     return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
@@ -270,163 +284,99 @@ export function useMessageAudioUploader(conversationId: number, messageToSend: s
   const hook = useNativePickerUpload(getSignedUrls);
 
   /**
-   * Uploads a recorded audio file from native platform to S3
-   * @param recording - The Audio.Recording instance
-   * @returns Upload results array
+   * Updates the message list with optimistic audio message
+   * @param files - Array of File or LocalFile objects
    */
-  const uploadAudioRecordingNative = async (
-    recording: Audio.Recording
-  ): Promise<UploadResult[]> => {
-    try {
-      const uri = await stopAudioRecordingNative(recording);
+  const updateMessageList = (files: (File | LocalFile)[]) => {
+    const tempMessage: IMessage = {
+      senderId: Number(currentUserId),
+      senderFirstName: "",
+      senderLastName: "",
+      messageText: messageToSend,
+      createdAt: new Date().toISOString(),
+      conversationId: conversationId,
+      messageType: MessageTypeEnum.AUDIO,
+      messageAttachments: files.map((file) => ({
+        fileUrl: file instanceof File ? URL.createObjectURL(file) : file.uri,
+        originalFileName: file.name,
+        indexedFileName: "",
+        mimeType: file.type,
+      })),
+    };
 
-      if (!uri) {
-        return [
-          {
-            success: false,
-            fileName: "audio",
-            error: "No audio file generated",
-          },
-        ];
-      }
-
-      const fileName = `audio_${Date.now()}.m4a`;
-
-      // Validate file size
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      if (!validateAudioSize(blob.size)) {
-        return [
-          {
-            success: false,
-            fileName,
-            error: `Audio file too large (> ${MAX_AUDIO_KB / 1024} MB)`,
-          },
-        ];
-      }
-
-      const localFile: LocalFile = {
-        uri,
-        name: fileName,
-        type: "audio/m4a",
-        size: blob.size,
-      };
-
-      return await hook.upload([localFile]);
-    } catch (error) {
-      logWarn("Failed to upload native audio recording:", error);
-      return [
-        {
-          success: false,
-          fileName: "audio",
-          error: error instanceof Error ? error.message : "Upload failed",
-        },
-      ];
-    }
+    // Local optimistic update
+    updateConversationMessagesCache(tempMessage);
   };
 
   /**
-   * Uploads a recorded audio blob from web platform to S3
-   * @param blob - The audio blob from MediaRecorder
+   * Uploads a File object (web platform)
+   * @param file - The File object from web recording
    * @returns Upload results array
    */
-  const uploadAudioRecordingWeb = async (blob: Blob): Promise<UploadResult[]> => {
-    const extension = blob.type.includes("webm") ? "webm" : "mp4";
-    const fileName = `audio_${Date.now()}.${extension}`;
-
-    if (!validateAudioSize(blob.size)) {
+  const uploadAudioFile = async (file: File): Promise<UploadResult[]> => {
+    if (!validateAudioSize(file.size)) {
       return [
         {
           success: false,
-          fileName,
+          fileName: file.name,
           error: `Audio file too large (> ${MAX_AUDIO_KB / 1024} MB)`,
         },
       ];
     }
 
     const localFile: LocalFile = {
-      uri: URL.createObjectURL(blob),
-      name: fileName,
-      type: blob.type,
-      size: blob.size,
+      uri: URL.createObjectURL(file),
+      name: file.name,
+      type: file.type,
+      size: file.size,
     };
 
     try {
-      const results = await hook.upload([localFile]);
+      // Optimistic update
+      updateMessageList([file]);
+
+      const results = await hook.upload([localFile], MessageTypeEnum.AUDIO);
       URL.revokeObjectURL(localFile.uri);
+
       return results;
     } catch (error) {
       URL.revokeObjectURL(localFile.uri);
-      logWarn("Failed to upload web audio recording:", error);
+      logWarn("Failed to upload audio file:", error);
       throw error;
     }
   };
 
   /**
-   * Uploads audio files from web file input (drag & drop or file picker)
-   * @param files - Array of File objects from browser
+   * Uploads a LocalFile object (native platform)
+   * @param localFile - The LocalFile object from native recording
    * @returns Upload results array
    */
-  const uploadAudioFilesFromWeb = async (files: File[]): Promise<UploadResult[]> => {
-    if (!files || files.length === 0) return [];
-
-    const locals: (LocalFile & { _blobUrl: string })[] = [];
-    const skipped: UploadResult[] = [];
-
-    for (const file of files) {
-      const fileType = file.type || "";
-      const isAudio = ALLOWED_AUDIO_TYPES.some(
-        (type) => fileType === type || fileType.startsWith("audio/")
-      );
-
-      if (!isAudio) {
-        skipped.push({
+  const uploadAudioLocalFile = async (localFile: LocalFile): Promise<UploadResult[]> => {
+    if (!validateAudioSize(localFile.size)) {
+      return [
+        {
           success: false,
-          fileName: file.name,
-          error: `Unsupported file type: ${fileType || "unknown"}`,
-        });
-        continue;
-      }
-
-      if (!validateAudioSize(file.size)) {
-        skipped.push({
-          success: false,
-          fileName: file.name,
-          error: `File too large (> ${MAX_AUDIO_KB / 1024} MB)`,
-        });
-        continue;
-      }
-
-      const blobUrl = URL.createObjectURL(file);
-      locals.push({
-        uri: blobUrl,
-        name: file.name,
-        type: file.type || "audio/mpeg",
-        size: file.size,
-        _blobUrl: blobUrl,
-      });
+          fileName: localFile.name,
+          error: `Audio file too large (> ${MAX_AUDIO_KB / 1024} MB)`,
+        },
+      ];
     }
 
     try {
-      const results = await hook.upload(locals);
-      return [...results, ...skipped];
-    } finally {
-      locals.forEach((lf) => {
-        try {
-          URL.revokeObjectURL(lf._blobUrl);
-        } catch (err) {
-          logWarn("Failed to revoke object URL:", lf._blobUrl, err);
-        }
-      });
+      // Optimistic update
+      updateMessageList([localFile]);
+
+      return await hook.upload([localFile], MessageTypeEnum.AUDIO);
+    } catch (error) {
+      logWarn("Failed to upload native audio file:", error);
+      throw error;
     }
   };
 
   return {
     ...hook,
-    uploadAudioRecordingNative,
-    uploadAudioRecordingWeb,
-    uploadAudioFilesFromWeb,
+    uploadAudioFile,
+    uploadAudioLocalFile,
   };
 }
 
