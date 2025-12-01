@@ -538,7 +538,7 @@ public class MessageService {
         ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
         Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
                 .map(zdt -> Date.from(zdt.toInstant()))
-                .orElse(Date.from(ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant()));
+                .orElse(new Date(0));
 
         return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId, deletedAt)
             .stream().map(MessageViewDTO::new).toList();
