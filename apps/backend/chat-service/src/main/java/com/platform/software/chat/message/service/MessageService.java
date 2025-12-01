@@ -217,6 +217,8 @@ public class MessageService {
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+
+        setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
         messagePublisherService.invokeNewMessageToParticipants(
             conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
         );

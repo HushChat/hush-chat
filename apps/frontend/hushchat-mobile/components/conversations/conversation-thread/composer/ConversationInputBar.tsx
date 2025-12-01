@@ -116,6 +116,7 @@ const ConversationInputBar = ({
     y: 0,
   });
   const [isRecording, setIsRecording] = useState(false);
+  const [isRecordUploading, setIsRecordUploading] = useState(false);
   const [recordingInstance, setRecordingInstance] = useState<any>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
 
@@ -347,6 +348,7 @@ const ConversationInputBar = ({
       }
 
       setIsRecording(false);
+      setIsRecordUploading(true);
 
       let uploadResults: UploadResult[];
 
@@ -399,6 +401,7 @@ const ConversationInputBar = ({
       setRecordingInstance(null);
       setRecordingDuration(0);
       setMessage("");
+      setIsRecordUploading(false);
 
       if (replyToMessage) {
         onCancelReply?.();
@@ -609,7 +612,7 @@ const ConversationInputBar = ({
                 {...(PLATFORM.IS_WEB ? {} : { textAlignVertical: "top" })}
               />
 
-              {isSending ? (
+              {isSending || isRecordUploading ? (
                 <ActivityIndicator
                   size="small"
                   color={COLOR_ACTIVITY}
