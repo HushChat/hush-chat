@@ -8,7 +8,7 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { AudioMessagePreview } from "@/components/conversations/conversation-thread/message-list/AudioMessagePreview";
-i
+
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
   FORWARDED_LEFT_BORDER: "#9CA3AF30",
