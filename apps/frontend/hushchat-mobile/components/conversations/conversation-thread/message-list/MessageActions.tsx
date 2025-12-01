@@ -42,11 +42,7 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
 
   return (
     <View className="flex-row items-center">
-      {!isCurrentUser && (
-        <MessageAction onPress={handleCopy} style={{ marginLeft: 6 }}>
-          {CopyIconContent}
-        </MessageAction>
-      )}
+      {!isCurrentUser && <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>}
 
       <MessageAction onPress={onOpenPicker} disabled={!currentUserId || selectionMode}>
         <View className="p-1 rounded items-center justify-center">
@@ -54,11 +50,7 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
         </View>
       </MessageAction>
 
-      {isCurrentUser && (
-        <MessageAction onPress={handleCopy} style={{ marginLeft: 6 }}>
-          {CopyIconContent}
-        </MessageAction>
-      )}
+      {isCurrentUser && <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>}
 
       <MessageAction onPress={onOpenMenu} disabled={selectionMode} style={{ marginLeft: 6 }}>
         <View className="p-1 rounded items-center justify-center">
