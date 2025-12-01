@@ -899,6 +899,11 @@ public class ConversationService {
         String newName = groupConversationDTO.getName().trim();
         conversation.setName(newName);
         conversation.setDescription(groupConversationDTO.getDescription());
+        
+        if (groupConversationDTO.getOnlyAdminsCanSendMessages() != null) {
+            conversation.setOnlyAdminsCanSendMessages(groupConversationDTO.getOnlyAdminsCanSendMessages());
+        }
+
         try {
             conversationRepository.save(conversation);
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
