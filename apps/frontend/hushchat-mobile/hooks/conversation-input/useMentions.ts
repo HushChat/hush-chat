@@ -11,7 +11,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import type { ConversationParticipant } from "@/types/chat/types";
 
 interface UseMentionsOptions {
-  textInputRef: RefObject<TextInput>;
+  textInputRef: RefObject<TextInput | null>;
   onMessageUpdate: (text: string) => void;
 }
 
