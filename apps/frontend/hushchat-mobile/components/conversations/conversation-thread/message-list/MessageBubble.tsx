@@ -8,22 +8,11 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { AudioMessagePreview } from "@/components/conversations/conversation-thread/message-list/AudioMessagePreview";
-import { PLATFORM } from "@/constants/platformConstants";
-
+i
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
   FORWARDED_LEFT_BORDER: "#9CA3AF30",
 };
-
-const AUDIO_MIME_TYPES = [
-  "audio/m4a",
-  "audio/mp4",
-  "audio/mpeg",
-  "audio/mp3",
-  "audio/wav",
-  "audio/webm",
-  "audio/aac",
-];
 
 const isAudioAttachment = (message: IMessage): boolean => {
   return message.messageType === MessageTypeEnum.AUDIO;
@@ -76,7 +65,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
     return { audioAttachments: audio, otherAttachments: other };
   }, [attachments]);
 
-  const hasAudio = PLATFORM.IS_WEB && audioAttachments.length > 0;
+  const hasAudio = isAudioAttachment(message);
   const hasOtherAttachments = otherAttachments.length > 0;
 
   const forwardedBorderStyle = isForwardedMessage

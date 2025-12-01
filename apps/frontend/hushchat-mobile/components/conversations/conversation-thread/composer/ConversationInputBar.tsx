@@ -60,15 +60,9 @@ import { getConversationMenuOptions } from "@/components/conversations/conversat
 import { AppText } from "@/components/AppText";
 import { logInfo } from "@/utils/logger";
 import { LocalFile, UploadResult } from "@/hooks/useNativePickerUpload";
-import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 
 type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
-  onSendAudio: (
-    message: string,
-    parentMessage?: IMessage,
-    recordingInstance?: File | LocalFile
-  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   conversationId: number;
@@ -90,7 +84,6 @@ type MessageInputProps = {
 const ConversationInputBar = ({
   conversationId,
   onSendMessage,
-  onSendAudio,
   onOpenImagePicker,
   disabled = false,
   isSending = false,

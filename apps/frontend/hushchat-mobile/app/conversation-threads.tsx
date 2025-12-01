@@ -203,14 +203,6 @@ const ConversationThreadScreen = ({
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
-  const handleAudioSend = (
-    message: string,
-    parentMessage?: IMessage,
-    recordingInstance?: File | LocalFile
-  ) => {
-    console.log(recordingInstance);
-  };
-
   const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
     currentConversationId,
     currentUserId,
@@ -365,7 +357,6 @@ const ConversationThreadScreen = ({
       <ConversationInputBar
         conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
-        onSendAudio={handleAudioSend}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
         disabled={isLoadingConversationMessages}

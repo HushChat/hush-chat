@@ -10,18 +10,9 @@ import { sendMessageByConversationIdFiles } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
 import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 const MAX_AUDIO_KB = 1024 * 10; // 10 MB
-
-const ALLOWED_AUDIO_TYPES = [
-  "audio/m4a",
-  "audio/mp4",
-  "audio/mpeg",
-  "audio/mp3",
-  "audio/wav",
-  "audio/webm",
-  "audio/aac",
-];
 
 /**
  * Configuration for native audio recording (iOS and Android)
@@ -141,6 +132,7 @@ export const requestAudioPermissionWeb = async (): Promise<boolean> => {
 
 /**
  * Starts audio recording on web platform using MediaRecorder API
+ * Prioritizes audio/mp4 (m4a) for better cross-platform compatibility
  * @returns Object containing MediaRecorder and audio chunks array
  */
 export const startAudioRecordingWeb = async (): Promise<{
@@ -154,7 +146,21 @@ export const startAudioRecordingWeb = async (): Promise<{
     }
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+
+    // Prioritize audio/mp4 (m4a) for better iOS/cross-platform compatibility
+    let mimeType = "audio/webm"; // fallback
+
+    if (MediaRecorder.isTypeSupported("audio/mp4")) {
+      mimeType = "audio/mp4";
+    } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
+      // AAC codec - widely supported
+      mimeType = "audio/mp4;codecs=mp4a.40.2";
+    } else if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+      mimeType = "audio/webm;codecs=opus";
+    } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+      mimeType = "audio/webm";
+    }
+
     const mediaRecorder = new MediaRecorder(stream, { mimeType });
     const audioChunks: Blob[] = [];
 
@@ -255,6 +261,7 @@ export function useMessageAudioUploader(
   const {
     user: { id: currentUserId },
   } = useUserStore();
+  const queryClient = useQueryClient();
 
   /**
    * Fetches signed URLs from the backend for audio upload
@@ -287,7 +294,7 @@ export function useMessageAudioUploader(
    * Updates the message list with optimistic audio message
    * @param files - Array of File or LocalFile objects
    */
-  const updateMessageList = (files: (File | LocalFile)[]) => {
+  const updateMessageList = async (files: (File | LocalFile)[]) => {
     const tempMessage: IMessage = {
       senderId: Number(currentUserId),
       senderFirstName: "",
@@ -304,7 +311,6 @@ export function useMessageAudioUploader(
       })),
     };
 
-    // Local optimistic update
     updateConversationMessagesCache(tempMessage);
   };
 
@@ -333,9 +339,10 @@ export function useMessageAudioUploader(
 
     try {
       // Optimistic update
-      updateMessageList([file]);
+      await updateMessageList([file]);
 
       const results = await hook.upload([localFile], MessageTypeEnum.AUDIO);
+      await queryClient.invalidateQueries({ queryKey: ["conversations"] });
       URL.revokeObjectURL(localFile.uri);
 
       return results;
@@ -364,9 +371,11 @@ export function useMessageAudioUploader(
 
     try {
       // Optimistic update
-      updateMessageList([localFile]);
+      await updateMessageList([localFile]);
 
-      return await hook.upload([localFile], MessageTypeEnum.AUDIO);
+      const response = await hook.upload([localFile], MessageTypeEnum.AUDIO);
+      await queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      return response;
     } catch (error) {
       logWarn("Failed to upload native audio file:", error);
       throw error;
