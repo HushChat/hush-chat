@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
 
 export const useDragAndDrop = (onDropFiles: (files: File[]) => void) => {
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const dropZoneRef = useRef<View>(null);
   const dragCounter = useRef(0);
 
