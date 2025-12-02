@@ -30,6 +30,7 @@ public class MessageViewDTO {
     private String senderSignedImageUrl;
     private String imageIndexedName;
     private Boolean isReadByEveryone;
+    private Boolean hasAttachment;
 
     public MessageViewDTO(Message message) {
         initializeFromMessage(message);
@@ -66,6 +67,8 @@ public class MessageViewDTO {
         this.conversationId = message.getConversation().getId();
         this.isForwarded = message.getForwardedMessage() != null;
         this.isUnsend = message.getIsUnsend();
+        this.hasAttachment = message.getAttachments() != null 
+            && !message.getAttachments().isEmpty();
 
         if (message.getIsUnsend()) {
             this.setMessageText("");

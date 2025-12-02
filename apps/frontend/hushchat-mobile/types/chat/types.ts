@@ -50,6 +50,7 @@ export interface IMessage {
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
+  hasAttachment?: boolean;
 }
 
 export interface IMessageView extends IMessage {
