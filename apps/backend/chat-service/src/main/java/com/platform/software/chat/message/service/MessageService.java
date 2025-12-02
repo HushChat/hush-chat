@@ -236,7 +236,7 @@ public class MessageService {
 
         if(messageForwardRequestDTO.getUserIds() != null && !messageForwardRequestDTO.getUserIds().isEmpty()){
             // gathering conversation ids from user ids.
-            Set<Long> conversationIdsByUserIds = conversationUtilService.getConversationIdsByUserIds(
+            Set<Long> conversationIdsByUserIds = conversationUtilService.getOrCreateConversationIds(
                     messageForwardRequestDTO.getUserIds(), loggedInUserId
             );
 

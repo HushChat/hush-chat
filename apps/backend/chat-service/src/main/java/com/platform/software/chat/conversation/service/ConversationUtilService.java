@@ -261,7 +261,7 @@ public class ConversationUtilService {
      * @return a set containing the conversation IDs found or newly created
      */
     @Transactional
-    public Set<Long> getConversationIdsByUserIds(Set<Long> userIds, Long loggedInUserId) {
+    public Set<Long> getOrCreateConversationIds(Set<Long> userIds, Long loggedInUserId) {
 
         //get existing conversation ids by user ids map
         Map<Long, Long> existingConversationMap = conversationParticipantRepository
