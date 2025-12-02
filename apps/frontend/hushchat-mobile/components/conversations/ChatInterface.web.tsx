@@ -1,4 +1,4 @@
-import { View, Dimensions, StyleSheet } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import FilterButton from "@/components/FilterButton";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import usePanelManager from "@/hooks/useWebPanelManager";
@@ -17,6 +17,7 @@ import { AllParticipants } from "@/components/conversations/AllParticipants";
 import ConversationForwardPanelWeb from "@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel";
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
+import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel";
 
 export default function ChatInterface({
   chatItemList,
@@ -39,6 +40,7 @@ export default function ChatInterface({
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<number>(0);
 
   const { activePanel, isPanelOpen, isPanelContentReady, panelWidth, openPanel, closePanel } =
     usePanelManager(screenWidth);
@@ -74,6 +76,14 @@ export default function ChatInterface({
       openPanel(PanelType.FORWARD);
     },
     [openPanel, setSelectedMessageIds]
+  );
+
+  const handleShowMessageInfo = useCallback(
+    (messageId: number) => {
+      openPanel(PanelType.MESSAGE_INFO);
+      setSelectedMessageId(messageId);
+    },
+    [setSelectedMessageId]
   );
 
   useEffect(() => {
@@ -112,6 +122,16 @@ export default function ChatInterface({
         );
       case PanelType.FORWARD:
         return <ConversationForwardPanelWeb onClose={handleForwardPanelClose} />;
+
+      case PanelType.MESSAGE_INFO:
+        return (
+          <MessageInfoPanel
+            conversationId={selectedConversation.id}
+            messageId={selectedMessageId}
+            visible={activePanel === PanelType.MESSAGE_INFO}
+            onClose={closePanel}
+          />
+        );
       default:
         return null;
     }
@@ -195,6 +215,7 @@ export default function ChatInterface({
               onShowProfile={handleShowProfile}
               webSearchPress={handleShowSearch}
               webForwardPress={handleShowForward}
+              webMessageInfoPress={handleShowMessageInfo}
               messageToJump={messageToJump}
               onMessageJumped={() => setMessageToJump(null)}
             />

@@ -67,6 +67,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
   GET_LAST_SEEN_MESSAGE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
+  GET_MESSAGE_SEEN_PARTICIPANTS: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/seen-by`,
 };
 
 export const USER_API_ENDPOINTS = {

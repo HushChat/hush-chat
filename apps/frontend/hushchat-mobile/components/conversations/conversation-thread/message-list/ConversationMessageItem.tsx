@@ -56,6 +56,7 @@ interface MessageItemProps {
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -81,6 +82,7 @@ export const ConversationMessageItem = ({
   onViewReactions,
   showSenderAvatar,
   onNavigateToMessage,
+  webMessageInfoPress,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -183,6 +185,15 @@ export const ConversationMessageItem = ({
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
+
+      if (isCurrentUser && !message.isUnsend) {
+        options.push({
+          id: 4,
+          name: "Message Info",
+          iconName: "information-circle-outline" as keyof typeof Ionicons.glyphMap,
+          action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+        });
+      }
     }
     return options;
   }, [

@@ -32,6 +32,7 @@ interface IMessagesListProps {
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 const ConversationMessageList = ({
@@ -45,6 +46,7 @@ const ConversationMessageList = ({
   hasMoreNewer,
   isFetchingNewer,
   onNavigateToMessage,
+  webMessageInfoPress,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -94,6 +96,7 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        webMessageInfoPress,
       }),
     [
       currentUserId,
