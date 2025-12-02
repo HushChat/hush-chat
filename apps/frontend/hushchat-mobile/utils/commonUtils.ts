@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { KeyboardEvent, useCallback } from "react";
 import { ColorSchemeName, TextInputKeyPressEvent } from "react-native";
 
-type KeyEvent = KeyboardEvent | TextInputKeyPressEvent;
+export type KeyEvent = KeyboardEvent | TextInputKeyPressEvent;
 
 const getDateOnly = (daysAgo: number = 0): Date => {
   const date = new Date();

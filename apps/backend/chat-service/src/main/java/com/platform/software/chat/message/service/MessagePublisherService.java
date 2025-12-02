@@ -87,11 +87,12 @@ public class MessagePublisherService {
                 String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
 
                 ConversationDTO participantDTO = getConversationDTO(participant, conversationDTO);
+                ConversationDTO participantDTOWithSignedImageUrl = conversationUtilService.addSignedImageUrlToConversationDTO(participantDTO, participantDTO.getImageIndexedName());
 
                 webSocketSessionManager.getValidSession(sessionKey)
                     .ifPresent(session -> template.convertAndSend(
                         "%s/%s".formatted(MESSAGE_INVOKE_PATH, encodedEmail),
-                        participantDTO
+                        participantDTOWithSignedImageUrl
                     ));
             });
     }
