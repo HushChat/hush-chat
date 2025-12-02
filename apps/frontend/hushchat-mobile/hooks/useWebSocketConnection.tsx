@@ -130,9 +130,6 @@ export default function useWebSocketConnection() {
           ];
 
           const uint8Array = new Uint8Array(connectFrameBytes);
-          console.log(connectFrameBytes);
-          console.log(idToken);
-          console.log(workspace);
           ws.send(uint8Array.buffer);
         };
 
