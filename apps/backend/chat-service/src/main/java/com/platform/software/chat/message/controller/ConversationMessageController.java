@@ -4,6 +4,9 @@ import com.platform.software.chat.conversation.readstatus.dto.ConversationReadIn
 import com.platform.software.chat.conversation.readstatus.dto.MessageLastSeenRequestDTO;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.service.ConversationService;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.service.AttachmentFilterCriteria;
+import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.service.MessageService;
@@ -11,9 +14,9 @@ import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.platform.software.controller.external.OffsetBasedPageRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,11 +31,18 @@ public class ConversationMessageController {
     private final MessageService messageService;
     private final ConversationService conversationService;
     private final ConversationReadStatusService conversationReadStatusService;
+    private final MessageAttachmentService messageAttachmentService;
 
-    public ConversationMessageController(MessageService messageService, ConversationService conversationService, ConversationReadStatusService conversationReadStatusService) {
+    public ConversationMessageController(
+        MessageService messageService, 
+        ConversationService conversationService, 
+        ConversationReadStatusService conversationReadStatusService,
+        MessageAttachmentService messageAttachmentService
+    ) {
         this.messageService = messageService;
         this.conversationService = conversationService;
         this.conversationReadStatusService = conversationReadStatusService;
+        this.messageAttachmentService = messageAttachmentService;
     }
 
     /**
@@ -192,5 +202,25 @@ public class ConversationMessageController {
     ) {
         Page<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
         return new ResponseEntity<>(messages, HttpStatus.OK);
+    }
+
+    /**
+     * Get attachments of a specific conversation.
+     *
+     * @param conversationId the ID of the conversation
+     * @param filterCriteria the criteria used to filter attachments by type
+     * @param pageable       pagination information 
+     * @return ResponseEntity containing a Page of MessageAttachmentDTO
+     */
+    @ApiOperation(value = "Get conversation attachmnets", response = MessageAttachmentDTO.class)
+    @GetMapping("/attachments")
+    public ResponseEntity<Page<MessageAttachmentDTO>> getConversationAttachments(
+        @PathVariable Long conversationId,
+        AttachmentFilterCriteria filterCriteria,
+        Pageable pageable
+    ) {
+        Page<MessageAttachmentDTO> attachments = messageAttachmentService.getAttachments(conversationId, filterCriteria,
+                pageable);
+        return new ResponseEntity<>(attachments, HttpStatus.OK);
     }
 }

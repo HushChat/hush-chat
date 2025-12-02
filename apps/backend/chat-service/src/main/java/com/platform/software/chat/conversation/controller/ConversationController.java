@@ -7,9 +7,6 @@ import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.conversationparticipant.dto.JoinParticipantRequestDTO;
-import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
-import com.platform.software.chat.message.attachment.service.AttachmentFilterCriteria;
-import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.service.MessageService;
@@ -34,18 +31,15 @@ public class ConversationController {
     private final ConversationService conversationService;
     private final CallLogService callLogService;
     private final MessageService messageService;
-    private final MessageAttachmentService messageAttachmentService;
 
     public ConversationController(
         ConversationService conversationService,
         MessageService messageService,
-        CallLogService callLogService,
-        MessageAttachmentService messageAttachmentService
+        CallLogService callLogService
     ) {
         this.conversationService = conversationService;
         this.callLogService = callLogService;
         this.messageService = messageService;
-        this.messageAttachmentService = messageAttachmentService;
     }
 
     /**Create a new conversation, either one-to-one.
@@ -535,16 +529,5 @@ public class ConversationController {
             @AuthenticatedUser UserDetails userDetails) {
         conversationService.reportConversation(userDetails.getId(), conversationId, request.getReason());
         return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-    
-    @ApiOperation(value = "Get conversation attachmnets", response = MessageAttachmentDTO.class)
-    @GetMapping("{conversationId}/attachments")
-    public ResponseEntity<Page<MessageAttachmentDTO>> getConversationAttachments(
-        @PathVariable Long conversationId,
-        AttachmentFilterCriteria filterCriteria,
-        Pageable pageable
-    ) {
-        Page<MessageAttachmentDTO> attachments = messageAttachmentService.getAttachments(conversationId, filterCriteria, pageable);
-        return new ResponseEntity<>(attachments, HttpStatus.OK);
     }
 }

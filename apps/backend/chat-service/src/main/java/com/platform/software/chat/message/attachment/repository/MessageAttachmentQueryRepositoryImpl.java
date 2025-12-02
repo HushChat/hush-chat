@@ -1,11 +1,14 @@
 package com.platform.software.chat.message.attachment.repository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentFilterTypeEnum;
 import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
@@ -13,28 +16,29 @@ import com.platform.software.chat.message.attachment.service.AttachmentFilterCri
 import com.platform.software.chat.message.entity.QMessage;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 public class MessageAttachmentQueryRepositoryImpl implements MessageAttachmentQueryRepository {
     
-    @PersistenceContext
-    EntityManager entityManager;
+    private final JPAQueryFactory jpaQueryFactory;
 
     private static final QMessageAttachment qMessageAttachment = QMessageAttachment.messageAttachment;
     private static final QMessage qMessage = QMessage.message;
 
-    private static final String MEDIA = "media";
-    private static final String DOCS = "docs";
+    private static final Map<AttachmentFilterTypeEnum, Set<AttachmentTypeEnum>> FILTER_MAP = Map.of(
+        AttachmentFilterTypeEnum.MEDIA, Set.of(AttachmentTypeEnum.IMAGE, AttachmentTypeEnum.VIDEO, AttachmentTypeEnum.AUDIO),
+        AttachmentFilterTypeEnum.DOCS, Set.of(AttachmentTypeEnum.DOCUMENT)
+    );
+
+    public MessageAttachmentQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
+        this.jpaQueryFactory = jpaQueryFactory;
+    }
 
     @Override
     public Page<MessageAttachmentDTO> filterAttachments(
         AttachmentFilterCriteria filterCriteria,
         Pageable pageable
     ) {
-        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-
-        JPAQuery<MessageAttachment> query = queryFactory
+        JPAQuery<MessageAttachment> query = jpaQueryFactory
                 .select(qMessageAttachment)
                 .from(qMessageAttachment)
                 .join(qMessageAttachment.message, qMessage)
@@ -42,7 +46,10 @@ public class MessageAttachmentQueryRepositoryImpl implements MessageAttachmentQu
         
         applyFilters(query, filterCriteria);
 
-        long total = query.fetchCount();
+        Long totalCount = query.clone()
+                .select(qMessageAttachment.count())
+                .fetchOne();
+
 
         List<MessageAttachment> attachments = query
             .offset(pageable.getOffset())
@@ -51,21 +58,16 @@ public class MessageAttachmentQueryRepositoryImpl implements MessageAttachmentQu
 
         Page<MessageAttachmentDTO> attachmentDTOs = new PageImpl<>(
                 attachments.stream().map(MessageAttachmentDTO::new).collect(Collectors.toList()),
-                pageable, total);
+                pageable, totalCount);
 
         return attachmentDTOs;
     }
 
-    private void applyFilters(JPAQuery<?> query, AttachmentFilterCriteria filterCriteria) {
-        if (filterCriteria.getType() != null) {
-            String type = filterCriteria.getType().toLowerCase();
-
-            if (type.equals(MEDIA)) {
-                query.where(qMessageAttachment.type.in(AttachmentTypeEnum.IMAGE, AttachmentTypeEnum.VIDEO,
-                        AttachmentTypeEnum.AUDIO));
-            } else if (type.equals(DOCS)) {
-                query.where(qMessageAttachment.type.in(
-                        AttachmentTypeEnum.DOCUMENT));
+    private void applyFilters(JPAQuery<MessageAttachment> query, AttachmentFilterCriteria filterCriteria) {
+         if (filterCriteria.getType() != null) {
+            Set<AttachmentTypeEnum> types = FILTER_MAP.get(filterCriteria.getType());
+            if (types != null && !types.isEmpty()) {
+                query.where(qMessageAttachment.type.in(types));
             }
         }
     }
