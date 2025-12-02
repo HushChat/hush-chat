@@ -285,6 +285,7 @@ export interface ConversationInputProps {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
+  onOpenDocumentPickerNative?: () => void;
   disabled?: boolean;
   isSending?: boolean;
   placeholder?: string;

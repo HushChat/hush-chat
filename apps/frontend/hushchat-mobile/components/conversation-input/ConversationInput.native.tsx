@@ -1,8 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
+import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
 import { PLATFORM } from "@/constants/platformConstants";
 import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
 import { ConversationInputProps } from "@/types/chat/types";
@@ -16,6 +17,7 @@ const ConversationInput = ({
   conversationId,
   onSendMessage,
   onOpenImagePickerNative,
+  onOpenDocumentPickerNative,
   disabled = false,
   isSending = false,
   placeholder = "Type a message...",
@@ -29,6 +31,8 @@ const ConversationInput = ({
   onCancelReply,
   isGroupChat,
 }: ConversationInputProps) => {
+  const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -44,9 +48,31 @@ const ConversationInput = ({
     placeholder,
   });
 
+  const handleAddButtonPress = useCallback(() => {
+    setMobileMenuVisible(true);
+  }, []);
+
+  const handleCloseMobileMenu = useCallback(() => {
+    setMobileMenuVisible(false);
+  }, []);
+
+  const handleImagePickerSelect = useCallback(() => {
+    setMobileMenuVisible(false);
+    onOpenImagePickerNative?.();
+  }, [onOpenImagePickerNative]);
+
+  const handleDocumentPickerSelect = useCallback(() => {
+    setMobileMenuVisible(false);
+    onOpenDocumentPickerNative?.();
+  }, [onOpenDocumentPickerNative]);
+
+  const handleSendButtonPress = useCallback(() => {
+    input.handleSend();
+  }, [input.handleSend]);
+
   const handleSubmitEditing = useCallback(() => {
-    input.handleSend(input.message);
-  }, [input.handleSend, input.message]);
+    input.handleSend();
+  }, [input.handleSend]);
 
   const handleKeyPress = useCallback(
     (e: any) => {
@@ -69,11 +95,12 @@ const ConversationInput = ({
         <AttachmentButton
           ref={input.addButtonRef}
           disabled={disabled}
-          onPress={input.handleAddButtonPress}
+          toggled={mobileMenuVisible}
+          onPress={handleAddButtonPress}
         />
 
         <View className="flex-1 mx-3">
-          <Animated.View className="overflow-hidden">
+          <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
             <View
               className="flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-3"
               style={styles.inputContainer}
@@ -99,7 +126,7 @@ const ConversationInput = ({
               <SendButton
                 showSend={input.isValidMessage}
                 isSending={isSending}
-                onPress={input.handleSendButtonPress}
+                onPress={handleSendButtonPress}
               />
             </View>
 
@@ -109,6 +136,13 @@ const ConversationInput = ({
           </Animated.View>
         </View>
       </View>
+
+      <MobileAttachmentModal
+        visible={mobileMenuVisible}
+        onClose={handleCloseMobileMenu}
+        onOpenImagePicker={handleImagePickerSelect}
+        onOpenDocumentPicker={handleDocumentPickerSelect}
+      />
 
       {isGroupChat && input.mentionVisible && (
         <MentionSuggestions
