@@ -14,8 +14,17 @@ import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { useConversationParticipantQuery } from "@/query/useConversationParticipantQuery";
 import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import useDebounce from "@/hooks/useDebounce";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useUserStore } from "@/store/user/useUserStore";
+
+const COLORS = {
+  lightBg: "#fafafa",
+  darkBg: "#090f1d",
+  borderLight: "#E5E7EB",
+  borderDark: "#1f2937",
+  shadow: "#000000",
+};
 
 type MentionSuggestionsProps = {
   conversationId: number;
@@ -30,6 +39,8 @@ const MentionSuggestions = ({
   conversationId,
   mentionQuery,
 }: MentionSuggestionsProps) => {
+  const { isDark } = useAppTheme();
+
   const debouncedKeyword = useDebounce(mentionQuery ?? "", DEBOUNCE_DELAY_MS);
 
   const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -97,15 +108,14 @@ const MentionSuggestions = ({
   }
 
   return (
-    <View className="absolute bottom-24 left-3 z-50 w-[320px] max-w-[80%]">
+    <View className="absolute bottom-20 left-3 z-50 w-[250px] max-w-[80%]">
       <View
-        className={classNames(
-          "rounded-lg custom-scrollbar",
-          "bg-background-light dark:bg-background-dark",
-          {
-            "shadow-xl border border-gray-200 dark:border-gray-700": participants.length !== 0,
-          }
-        )}
+        style={[
+          styles.listContainer,
+          isDark && styles.listContainerDark,
+          participants.length !== 0 &&
+            (isDark ? styles.listContainerWithBorderDark : styles.listContainerWithBorderLight),
+        ]}
       >
         <FlatList
           data={participants}
@@ -133,6 +143,31 @@ const MentionSuggestions = ({
 export default MentionSuggestions;
 
 const styles = StyleSheet.create({
+  listContainer: {
+    borderRadius: 8,
+    backgroundColor: COLORS.lightBg,
+  },
+  listContainerDark: {
+    backgroundColor: COLORS.darkBg,
+  },
+  listContainerWithBorderLight: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  listContainerWithBorderDark: {
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark,
+  },
   listMaxHeight: {
     maxHeight: 300,
   },
