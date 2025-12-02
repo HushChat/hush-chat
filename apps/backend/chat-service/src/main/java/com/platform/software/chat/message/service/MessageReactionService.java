@@ -1,6 +1,7 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.message.dto.MessageReactionEvent;
 import com.platform.software.chat.message.dto.MessageReactionUpsertDTO;
 import com.platform.software.chat.message.dto.MessageReactionViewDTO;
 import com.platform.software.chat.message.entity.Message;
@@ -10,9 +11,9 @@ import com.platform.software.chat.notification.service.ChatNotificationService;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import com.platform.software.chat.user.service.UserService;
-import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.utils.ValidationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -20,8 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 
@@ -33,16 +32,20 @@ public class MessageReactionService {
     private final UserService userService;
     private final MessageReactionRepository messageReactionRepository;
     private final ChatNotificationService chatNotificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public MessageReactionService(
             MessageService messageService,
             UserService userService,
-            MessageReactionRepository messageReactionRepository, ChatNotificationService chatNotificationService
+            MessageReactionRepository messageReactionRepository,
+            ChatNotificationService chatNotificationService,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.messageService = messageService;
         this.userService = userService;
         this.messageReactionRepository = messageReactionRepository;
         this.chatNotificationService = chatNotificationService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -72,12 +75,7 @@ public class MessageReactionService {
             saveReaction(newReaction, messageId);
         }
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-            @Override
-            public void afterCommit() {
-                chatNotificationService.sendMessageReactionNotifications(message, user);
-            }
-        });
+        eventPublisher.publishEvent(new MessageReactionEvent(message, user));
     }
 
     /**
