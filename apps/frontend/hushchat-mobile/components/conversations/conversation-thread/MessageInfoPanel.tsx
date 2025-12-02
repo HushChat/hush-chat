@@ -44,7 +44,7 @@ export default function MessageInfoPanel({
           className="w-10 h-10 rounded-full bg-gray-200"
         />
       ) : (
-        <InitialsAvatar name={`${item.firstName ?? ""}`} size="lg" />
+        <InitialsAvatar name={`${item.firstName ?? ""} ${item.lastName}`} size="sm" />
       )}
 
       <View className="ml-3 flex-1">
