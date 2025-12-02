@@ -213,12 +213,15 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        MessageTypeEnum messageType = messageDTO.getMessageType() != null && messageDTO.getMessageType().equals(MessageTypeEnum.AUDIO) ? MessageTypeEnum.AUDIO : MessageTypeEnum.ATTACHMENT;
+        MessageTypeEnum messageType = messageDTO.getMessageType() != null && messageDTO.getMessageType().equals(MessageTypeEnum.AUDIO)
+            ? MessageTypeEnum.AUDIO
+            : MessageTypeEnum.ATTACHMENT;
 
         Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, messageType);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+        signedURLResponseDTO.setMessage(messageViewDTO);
 
         setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
         messagePublisherService.invokeNewMessageToParticipants(

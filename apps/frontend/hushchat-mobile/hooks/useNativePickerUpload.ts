@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { PLATFORM } from "@/constants/platformConstants";
-import { MessageTypeEnum } from "@/types/chat/types";
+import { IMessage, MessageTypeEnum } from "@/types/chat/types";
 
 export type PickSource = "media" | "document";
 export type MediaKind = "image" | "video" | "all";
@@ -25,10 +25,20 @@ export type LocalFile = {
   size?: number; // bytes (best-effort)
 };
 
+export type SignedUrlResponse = {
+  message: IMessage;
+  signedURLs?: SignedUrl[] | null;
+};
+
 export type SignedUrl = {
   originalFileName: string;
   url: string;
   indexedFileName?: string;
+};
+
+export type UploadResultResponse = {
+  message: IMessage | null;
+  uploads?: UploadResult[] | null;
 };
 
 export type UploadResult = {
@@ -115,7 +125,14 @@ async function putToSignedUrl(file: LocalFile, signedUrl: string): Promise<void>
  * You inject how to get signed URLs (per your endpoint), we handle the rest.
  */
 export function useNativePickerUpload(
-  getSignedUrls: (files: LocalFile[], type?: MessageTypeEnum) => Promise<SignedUrl[] | null>
+  conversationId: number,
+  messageToSend: string,
+  getSignedUrls: (
+    conversationId: number,
+    messageToSend: string,
+    files: LocalFile[],
+    type?: MessageTypeEnum
+  ) => Promise<SignedUrlResponse>
 ) {
   const [state, setState] = useState<State>({
     isPicking: false,
@@ -227,8 +244,12 @@ export function useNativePickerUpload(
   );
 
   const upload = useCallback(
-    async (files: LocalFile[], type?: MessageTypeEnum): Promise<UploadResult[]> => {
-      if (!files || files.length === 0) return [];
+    async (files: LocalFile[], type?: MessageTypeEnum): Promise<UploadResultResponse> => {
+      const uploadResultResponse = {
+        message: null,
+        uploads: [],
+      } as UploadResultResponse;
+      if (!files || files.length === 0) return uploadResultResponse;
 
       setState((s) => ({
         ...s,
@@ -238,7 +259,10 @@ export function useNativePickerUpload(
         results: [],
       }));
       try {
-        const signed = await getSignedUrls(files, type);
+        const signedResponse = await getSignedUrls(conversationId, messageToSend, files, type);
+        uploadResultResponse.message = signedResponse.message;
+
+        const signed = signedResponse.signedURLs;
         if (!signed || signed.length === 0) throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];
@@ -274,15 +298,19 @@ export function useNativePickerUpload(
           // tiny yield to keep UI snappy
           await new Promise((r) => setTimeout(r, 8));
         }
-        return results;
+
+        uploadResultResponse.uploads = results;
+        return uploadResultResponse;
       } catch (err: any) {
         const msg = err?.message ?? "Upload failed";
         setState((s) => ({ ...s, error: msg }));
-        return files.map((f) => ({
+
+        uploadResultResponse.uploads = files.map((f) => ({
           success: false,
           fileName: f.name,
           error: msg,
         }));
+        return uploadResultResponse;
       } finally {
         setState((s) => ({ ...s, isUploading: false }));
       }

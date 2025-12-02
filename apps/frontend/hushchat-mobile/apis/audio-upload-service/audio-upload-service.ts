@@ -4,6 +4,7 @@ import {
   LocalFile,
   SignedUrl,
   UploadResult,
+  UploadResultResponse,
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
@@ -11,6 +12,7 @@ import { logWarn } from "@/utils/logger";
 import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { getSignedUrls } from "@/utils/messageUtils";
 
 const MAX_AUDIO_KB = 1024 * 10; // 10 MB
 
@@ -263,39 +265,16 @@ export function useMessageAudioUploader(
   } = useUserStore();
   const queryClient = useQueryClient();
 
-  /**
-   * Fetches signed URLs from the backend for audio upload
-   * @param files - Array of local files to get signed URLs for
-   * @param type
-   * @returns Array of signed URLs or null if failed
-   */
-  const getSignedUrls = async (
-    files: LocalFile[],
-    type?: MessageTypeEnum
-  ): Promise<SignedUrl[] | null> => {
-    const fileNames = files.map((file) => file.name);
-    const response = await sendMessageByConversationIdFiles(
-      conversationId,
-      messageToSend,
-      fileNames,
-      type
-    );
-    const signed = response?.signedURLs || [];
-    return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
-      originalFileName: s.originalFileName,
-      url: s.url,
-      indexedFileName: s.indexedFileName,
-    }));
-  };
-
-  const hook = useNativePickerUpload(getSignedUrls);
+  const hook = useNativePickerUpload(conversationId, messageToSend, getSignedUrls);
 
   /**
    * Updates the message list with optimistic audio message
    * @param files - Array of File or LocalFile objects
+   * @param savedMessage
    */
-  const updateMessageList = async (files: (File | LocalFile)[]) => {
+  const updateMessageList = async (files: (File | LocalFile)[], savedMessage: IMessage | null) => {
     const tempMessage: IMessage = {
+      id: savedMessage?.id,
       senderId: Number(currentUserId),
       senderFirstName: "",
       senderLastName: "",
@@ -338,14 +317,13 @@ export function useMessageAudioUploader(
     };
 
     try {
-      // Optimistic update
-      await updateMessageList([file]);
-
       const results = await hook.upload([localFile], MessageTypeEnum.AUDIO);
+
+      await updateMessageList([file], results.message);
       await queryClient.invalidateQueries({ queryKey: ["conversations"] });
       URL.revokeObjectURL(localFile.uri);
 
-      return results;
+      return results?.uploads || [];
     } catch (error) {
       URL.revokeObjectURL(localFile.uri);
       logWarn("Failed to upload audio file:", error);
@@ -370,12 +348,11 @@ export function useMessageAudioUploader(
     }
 
     try {
-      // Optimistic update
-      await updateMessageList([localFile]);
-
       const response = await hook.upload([localFile], MessageTypeEnum.AUDIO);
+
+      await updateMessageList([localFile], response.message);
       await queryClient.invalidateQueries({ queryKey: ["conversations"] });
-      return response;
+      return response?.uploads || [];
     } catch (error) {
       logWarn("Failed to upload native audio file:", error);
       throw error;
