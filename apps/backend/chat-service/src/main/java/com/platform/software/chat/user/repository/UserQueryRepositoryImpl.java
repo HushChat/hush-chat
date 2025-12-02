@@ -5,7 +5,10 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.QChatUser;
+import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
+import com.platform.software.platform.workspaceuser.entity.QWorkspaceUser;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -74,5 +77,34 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
         Long total = countQuery.fetchOne();
 
         return new PageImpl<>(users, pageable, total != null ? total : 0L);
+    }
+
+    @Override
+    public Page<WorkspaceUserViewDTO> findAllWorkspaceUsers(Pageable pageable) {
+
+        QWorkspaceUser workspaceUser = QWorkspaceUser.workspaceUser;
+
+        JPAQuery<WorkspaceUserViewDTO> baseQuery = queryFactory
+                .select(Projections.constructor(
+                        WorkspaceUserViewDTO.class,
+                        workspaceUser.id,
+                        chatUser.firstName,
+                        chatUser.lastName,
+                        chatUser.username,
+                        workspaceUser.email,
+                        chatUser.imageIndexedName,
+                        workspaceUser.status
+                ))
+                .from(workspaceUser)
+                .leftJoin(chatUser).on(chatUser.email.eq(workspaceUser.email));
+
+        long total = baseQuery.fetchCount();
+
+        List<WorkspaceUserViewDTO> results = baseQuery
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
     }
 }

@@ -5,14 +5,14 @@ import com.platform.software.chat.user.dto.WorkSpaceUserUpsertDTO;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
-import com.platform.software.platform.workspace.dto.WorkspaceDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
+import com.platform.software.config.workspace.WorkspaceContext;
+import com.platform.software.platform.workspace.dto.*;
 import com.platform.software.platform.workspace.service.WorkspaceService;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import io.swagger.annotations.ApiOperation;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,11 +74,19 @@ public class WorkspaceController {
     @PatchMapping("/suspend")
     public ResponseEntity<Void> toggleSuspendWorkspaceUser(
             @AuthenticatedUser UserDetails userDetails,
-            @RequestHeader("X-Tenant") String workspaceIdentifier,
             @RequestBody WorkspaceUserSuspendDTO workspaceUserSuspendDTO
     ) {
-        workspaceUserService.toggleSuspendWorkspaceUser(userDetails.getEmail(), workspaceIdentifier, workspaceUserSuspendDTO);
+        workspaceUserService.toggleSuspendWorkspaceUser(userDetails.getEmail(), WorkspaceContext.getCurrentWorkspace(), workspaceUserSuspendDTO);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @ApiOperation(value = "Get all workspace users", response = WorkspaceUserViewDTO.class)
+    @GetMapping("/users")
+    public ResponseEntity<Page<WorkspaceUserViewDTO>> getAllWorkspaceUsers(
+            @AuthenticatedUser UserDetails userDetails,
+            Pageable pageable
+    ) {
+        Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsersByEmail(userDetails.getEmail(), pageable);
+        return new ResponseEntity<>(workspaceUsers, HttpStatus.OK);
+    }
 }

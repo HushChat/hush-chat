@@ -21,6 +21,7 @@ import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
+import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
@@ -395,5 +396,10 @@ public class UserServiceImpl implements UserService {
         userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
 
         return userDTO;
+    }
+
+    @Override
+    public Page<WorkspaceUserViewDTO> getAllWorkspaceUsersByEmail(String email, Pageable pageable) {
+        return userQueryRepository.findAllWorkspaceUsers(pageable);
     }
 }
