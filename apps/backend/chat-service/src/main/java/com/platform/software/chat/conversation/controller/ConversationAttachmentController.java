@@ -1,0 +1,44 @@
+package com.platform.software.chat.conversation.controller;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.service.AttachmentFilterCriteria;
+import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
+import io.swagger.annotations.ApiOperation;
+
+@RestController
+@RequestMapping("/conversations/{conversationId}/attachments")
+public class ConversationAttachmentController {
+    private final MessageAttachmentService messageAttachmentService;
+
+    public ConversationAttachmentController(MessageAttachmentService messageAttachmentService) {
+        this.messageAttachmentService = messageAttachmentService;
+    }
+
+    /**
+     * Get attachments of a specific conversation.
+     *
+     * @param conversationId the ID of the conversation
+     * @param filterCriteria the criteria used to filter attachments by type
+     * @param pageable       pagination information 
+     * @return ResponseEntity containing a Page of MessageAttachmentDTO
+     */
+    @ApiOperation(value = "Get conversation attachmnets", response = MessageAttachmentDTO.class)
+    @GetMapping
+    public ResponseEntity<Page<MessageAttachmentDTO>> getConversationAttachments(
+        @PathVariable Long conversationId,
+        AttachmentFilterCriteria filterCriteria,
+        Pageable pageable
+    ) {
+        Page<MessageAttachmentDTO> attachments = messageAttachmentService.getAttachments(conversationId, filterCriteria,
+                pageable);
+        return new ResponseEntity<>(attachments, HttpStatus.OK);
+    }
+}
