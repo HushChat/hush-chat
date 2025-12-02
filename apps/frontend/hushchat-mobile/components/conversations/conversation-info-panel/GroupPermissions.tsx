@@ -1,16 +1,10 @@
-import { Dimensions, TouchableOpacity, View, StyleSheet, ScrollView } from "react-native";
-import Animated, {
-  useSharedValue,
-  withTiming,
-  withDelay,
-  useAnimatedStyle,
-  Easing,
-} from "react-native-reanimated";
+import { Dimensions, TouchableOpacity, View, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
+import { MotionView } from "@/motion/MotionView";
 
 interface IGroupPermissionsProps {
   conversationId: number;
@@ -24,8 +18,6 @@ export default function GroupPermissions({
   visible,
 }: IGroupPermissionsProps) {
   const screenWidth = Dimensions.get("window").width;
-  const translateX = useSharedValue(screenWidth);
-  const opacity = useSharedValue(0);
 
   const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState(false);
   const [membersCanEditGroupInfo, setMembersCanEditGroupInfo] = useState(true);
@@ -34,47 +26,16 @@ export default function GroupPermissions({
   // TODO: Fetch current permissions from API on mount
   // TODO: Implement save functionality
   const handleSave = async () => {
-    console.log("Saving permissions:", {
-      conversationId,
-      onlyAdminsCanSendMessages,
-      membersCanEditGroupInfo,
-      membersCanAddParticipants,
-    });
+    console.log(conversationId);
     onClose();
   };
 
-  useEffect(() => {
-    if (visible) {
-      translateX.value = withTiming(0, {
-        duration: 240,
-        easing: Easing.out(Easing.cubic),
-      });
-      opacity.value = withDelay(
-        40,
-        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) })
-      );
-    } else {
-      translateX.value = withTiming(screenWidth, {
-        duration: 200,
-        easing: Easing.in(Easing.cubic),
-      });
-      opacity.value = withTiming(0, {
-        duration: 120,
-        easing: Easing.in(Easing.quad),
-      });
-    }
-  }, [visible, screenWidth, translateX, opacity]);
-
-  const containerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: opacity.value,
-  }));
-
   return (
-    <Animated.View
-      pointerEvents={visible ? "auto" : "none"}
-      style={[styles.absoluteFill, containerStyle]}
-      className="bg-background-light dark:bg-background-dark"
+    <MotionView
+      visible={visible}
+      className="absolute top-0 bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark"
+      from={{ translateX: screenWidth, opacity: 0 }}
+      to={{ translateX: 0, opacity: 1 }}
     >
       <View className="flex-row items-center justify-between px-4 py-4">
         <View className="flex-row items-center">
@@ -129,16 +90,6 @@ export default function GroupPermissions({
           />
         </View>
       </ScrollView>
-    </Animated.View>
+    </MotionView>
   );
 }
-
-const styles = StyleSheet.create({
-  absoluteFill: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-});
