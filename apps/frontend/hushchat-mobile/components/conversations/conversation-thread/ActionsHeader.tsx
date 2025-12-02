@@ -15,6 +15,7 @@ interface ActionsHeaderProps {
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
+  onSelectMessageInfo?: (c: ConversationAPIResponse, m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -25,6 +26,7 @@ const ActionsHeader = ({
   onForward,
   onUnsend,
   onCopy,
+  onSelectMessageInfo,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
@@ -71,6 +73,13 @@ const ActionsHeader = ({
             onPress={() => onPinToggle(message)}
             color={isPinned ? "#6B4EFF" : "#6B7280"}
           />
+
+          {!message.isUnsend && message.messageText && conversation && onSelectMessageInfo && (
+            <HeaderAction
+              iconName="information-circle-outline"
+              onPress={() => onSelectMessageInfo(conversation, message)}
+            />
+          )}
 
           <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
         </View>

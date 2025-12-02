@@ -19,6 +19,8 @@ import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions
 import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
 import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
 import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
+import { useRouter } from "expo-router";
+import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -49,6 +51,7 @@ const ConversationMessageList = ({
   webMessageInfoPress,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
+  const router = useRouter();
   const currentUserId = user?.id;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
@@ -77,6 +80,13 @@ const ConversationMessageList = ({
       onNavigateToMessage(pinnedMessage.id);
     }
   }, [onNavigateToMessage]);
+
+  const handleMessageInfoClick = useCallback((conversationId: number, messageId: number) => {
+    router.push({
+      pathname: MESSAGE_READ_PARTICIPANTS,
+      params: { conversationId, messageId },
+    });
+  }, []);
 
   const renderMessage = useMemo(
     () =>
@@ -114,6 +124,7 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      webMessageInfoPress,
     ]
   );
 
@@ -140,6 +151,9 @@ const ConversationMessageList = ({
           }}
           onUnsend={(messages) => unSendMessage(messages)}
           onCopy={(message) => copyToClipboard(message.messageText)}
+          onSelectMessageInfo={(conversationAPIResponse, message) =>
+            handleMessageInfoClick(conversationAPIResponse.id, message.id)
+          }
         />
       )}
 

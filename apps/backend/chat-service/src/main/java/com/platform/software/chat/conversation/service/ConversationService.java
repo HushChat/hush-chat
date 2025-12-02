@@ -1291,6 +1291,15 @@ public class ConversationService {
         return conversationReadInfo;
     }
 
+    /**
+     * Retrieves a paginated list of group participants who have seen a specific message.
+     *
+     * @param conversationId the ID of the conversation containing the message
+     * @param messageId the ID of the message to check read status for
+     * @param userId the ID of the current user requesting the seen list (excluded from results)
+     * @param pageable pagination information including page number, page size, and optional sorting criteria
+     * @return a {@link Page} of {@link UserBasicViewDTO} containing users who have seen the message
+     */
     public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
         // todo - write a single function to do both at once
         conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
@@ -1310,5 +1319,3 @@ public class ConversationService {
         return userDTOs;
     }
 }
-
-

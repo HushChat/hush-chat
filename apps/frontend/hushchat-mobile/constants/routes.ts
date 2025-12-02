@@ -17,3 +17,5 @@ export const FORWARD_PATH = "/conversations/forward-panel";
 export const GROUP_CONVERSATION_SELECT_PARTICIPANTS = "/group-conversation/select-participants";
 export const SETTINGS_CONTACT = "/settings/contact";
 export const SETTINGS_INVITE = "/settings/invite";
+export const MESSAGE_READ_PARTICIPANTS =
+  "/conversations/[conversationId]/messages/[messageId]/read-by";
