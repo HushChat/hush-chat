@@ -28,7 +28,7 @@ import { useSpecialCharHandler, WebKeyboardEvent } from "@/hooks/useSpecialCharH
 import { getDraftKey } from "@/constants/constants";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ToastUtils } from "@/utils/toastUtils";
-import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
+import { ACCEPT_IMAGE_TYPES, ACCEPT_DOC_TYPES } from "@/constants/mediaConstants";
 
 import {
   ANIM_EASING,
@@ -53,11 +53,13 @@ import { validateFiles } from "@/utils/fileValidation";
 import { getConversationMenuOptions } from "@/components/conversations/conversation-thread/composer/menuOptions";
 import { AppText } from "@/components/AppText";
 import { logInfo } from "@/utils/logger";
+import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
 
 type MessageInputProps = {
   onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
+  onOpenDocumentPickerNative?: () => void;
   conversationId: number;
   disabled?: boolean;
   isSending?: boolean;
@@ -90,6 +92,7 @@ const ConversationInputBar = ({
   onCancelReply,
   isGroupChat,
   onOpenImagePickerNative,
+  onOpenDocumentPickerNative,
 }: MessageInputProps) => {
   const storage = useMemo(() => StorageFactory.createStorage(), []);
   const initialHeight = useMemo(
@@ -106,8 +109,10 @@ const ConversationInputBar = ({
     x: 0,
     y: 0,
   });
+  const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const textInputRef = useRef<TextInput>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const addButtonContainerRef = useRef<View>(null);
 
   const minHeight = useMemo(() => {
@@ -122,7 +127,10 @@ const ConversationInputBar = ({
 
   const animatedHeight = useSharedValue(initialHeight);
   const mentionVisible = mentionQuery !== null;
-  const menuOptions = useMemo(() => getConversationMenuOptions(fileInputRef), [fileInputRef]);
+  const menuOptions = useMemo(
+    () => getConversationMenuOptions(fileInputRef, documentInputRef),
+    [fileInputRef, documentInputRef]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -296,8 +304,8 @@ const ConversationInputBar = ({
       return;
     }
 
-    onOpenImagePickerNative?.();
-  }, [onOpenImagePickerNative]);
+    setMobileMenuVisible(true);
+  }, []);
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -362,7 +370,7 @@ const ConversationInputBar = ({
             disabled={disabled}
             iconSize={20}
             onPress={handleAddButtonPress}
-            toggled={menuVisible}
+            toggled={menuVisible || mobileMenuVisible}
           />
         </View>
 
@@ -447,16 +455,35 @@ const ConversationInputBar = ({
         </View>
 
         {PLATFORM.IS_WEB && (
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPT_FILE_TYPES}
-            multiple
-            style={styles.hiddenFileInput}
-            onChange={handleFileChange}
-          />
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPT_IMAGE_TYPES}
+              multiple
+              style={styles.hiddenInput}
+              onChange={handleFileChange}
+            />
+            <input
+              ref={documentInputRef}
+              type="file"
+              accept={ACCEPT_DOC_TYPES}
+              multiple
+              style={styles.hiddenInput}
+              onChange={handleFileChange}
+            />
+          </>
         )}
       </View>
+
+      {!PLATFORM.IS_WEB && (
+        <MobileAttachmentModal
+          visible={mobileMenuVisible}
+          onClose={() => setMobileMenuVisible(false)}
+          onOpenImagePicker={onOpenImagePickerNative}
+          onOpenDocumentPicker={onOpenDocumentPickerNative}
+        />
+      )}
 
       {PLATFORM.IS_WEB && (
         <WebChatContextMenu
@@ -498,7 +525,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingRight: RIGHT_ICON_GUTTER,
   },
-  hiddenFileInput: {
+  hiddenInput: {
     display: "none",
   },
 });
