@@ -31,7 +31,11 @@ public class ConversationMessageController {
     private final ConversationService conversationService;
     private final ConversationReadStatusService conversationReadStatusService;
 
-    public ConversationMessageController(MessageService messageService, ConversationService conversationService, ConversationReadStatusService conversationReadStatusService) {
+    public ConversationMessageController(
+        MessageService messageService, 
+        ConversationService conversationService, 
+        ConversationReadStatusService conversationReadStatusService
+    ) {
         this.messageService = messageService;
         this.conversationService = conversationService;
         this.conversationReadStatusService = conversationReadStatusService;

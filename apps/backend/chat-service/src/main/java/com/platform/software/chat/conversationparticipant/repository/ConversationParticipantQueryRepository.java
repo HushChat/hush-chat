@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -16,6 +17,8 @@ public interface ConversationParticipantQueryRepository {
     Optional<ConversationDTO> findConversationByUserIdAndConversationId(Long userId, Long conversationId);
 
     List<ConversationDTO> findAllConversationByUserIdAndConversationIds(Long userId, Set<Long> conversationIds);
+
+    Map<Long, Long> findConversationIdsByUserIds(Set<Long> userIds, Long loggedInUserId);
 
     Optional<ConversationDTO> findConversationById(Long conversationId);
 
