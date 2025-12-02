@@ -242,6 +242,15 @@ public class MessageService {
         Conversation conversation = messages.stream().findFirst().get().getConversation();
         conversationUtilService.getConversationParticipantOrThrow(conversation.getId(), loggedInUserId);
 
+        if(messageForwardRequestDTO.getUserIds() != null && !messageForwardRequestDTO.getUserIds().isEmpty()){
+            // gathering conversation ids from user ids.
+            Set<Long> conversationIdsByUserIds = conversationUtilService.getOrCreateConversationIds(
+                    messageForwardRequestDTO.getUserIds(), loggedInUserId
+            );
+
+            messageForwardRequestDTO.addConversationIds(conversationIdsByUserIds);
+        }
+
         // validating if the logged-in user is in every conversation involved in this forwarding
         List<ConversationDTO> joinedConversations = conversationUtilService.verifyLoggedInUserHasAccessToEveryConversation(
             loggedInUserId, messageForwardRequestDTO, conversation
