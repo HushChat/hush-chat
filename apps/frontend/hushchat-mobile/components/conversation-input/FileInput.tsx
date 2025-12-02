@@ -19,7 +19,7 @@ export const FileInput = forwardRef<HTMLInputElement, IFileInputProps>(({ onChan
   );
 });
 
-FileInput.displayName = "HiddenFileInput";
+FileInput.displayName = "FileInput";
 
 const styles = StyleSheet.create({
   input: {

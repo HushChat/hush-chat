@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import PrimaryCircularButton from "@/components/conversations/conversation-thread/composer/PrimaryCircularButton";
 
 interface IAttachmentButtonProps {
@@ -11,7 +11,7 @@ interface IAttachmentButtonProps {
 export const AttachmentButton = forwardRef<View, IAttachmentButtonProps>(
   ({ disabled = false, toggled = false, onPress }, ref) => {
     return (
-      <View ref={ref} style={styles.wrapper}>
+      <View ref={ref} className="flex-end">
         <PrimaryCircularButton
           disabled={disabled}
           iconSize={20}
@@ -24,9 +24,3 @@ export const AttachmentButton = forwardRef<View, IAttachmentButtonProps>(
 );
 
 AttachmentButton.displayName = "AttachmentButton";
-
-const styles = StyleSheet.create({
-  wrapper: {
-    alignSelf: "flex-end",
-  },
-});

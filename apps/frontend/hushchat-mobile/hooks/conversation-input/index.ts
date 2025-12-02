@@ -1,7 +1,3 @@
-/**
- * Hooks barrel export
- */
-
 export { useMessageInput } from "./useMessageInput";
 export { useMentions } from "./useMentions";
 export { useAutoHeight } from "./useAutoHeight";
