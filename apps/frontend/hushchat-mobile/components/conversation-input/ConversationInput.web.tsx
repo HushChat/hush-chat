@@ -14,7 +14,6 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
-import { AppText } from "@/components/AppText";
 import { RecordingDisplayBar } from "@/components/conversation-input/RecordingDisplayBar";
 
 const ConversationInput = ({
