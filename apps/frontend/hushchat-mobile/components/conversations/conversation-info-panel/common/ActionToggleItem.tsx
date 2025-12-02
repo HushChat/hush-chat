@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { AppText } from "@/components/AppText";
 
-interface ActionToggleItemProps {
+interface IActionToggleItemProps {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   description: string;
@@ -19,7 +19,7 @@ export default function ActionToggleItem({
   value,
   onValueChange,
   disabled = false,
-}: ActionToggleItemProps) {
+}: IActionToggleItemProps) {
   return (
     <View className="px-4 py-4 border-b border-gray-200 dark:border-gray-700">
       <View className="flex-row items-start justify-between">
@@ -40,9 +40,12 @@ export default function ActionToggleItem({
           value={value}
           onValueChange={onValueChange}
           disabled={disabled}
-          trackColor={{ false: "#D1D5DB", true: "#3B82F6" }}
-          thumbColor="#FFFFFF"
-          ios_backgroundColor="#D1D5DB"
+          trackColor={{
+            false: "#1A243A",
+            true: "#563dc4",
+          }}
+          thumbColor="#ffffff"
+          ios_backgroundColor="#1A243A"
         />
       </View>
     </View>

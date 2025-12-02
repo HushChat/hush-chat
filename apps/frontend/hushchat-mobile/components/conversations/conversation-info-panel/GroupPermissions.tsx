@@ -12,7 +12,7 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
 
-interface GroupPermissionsProps {
+interface IGroupPermissionsProps {
   conversationId: number;
   onClose: () => void;
   visible: boolean;
@@ -22,7 +22,7 @@ export default function GroupPermissions({
   conversationId,
   onClose,
   visible,
-}: GroupPermissionsProps) {
+}: IGroupPermissionsProps) {
   const screenWidth = Dimensions.get("window").width;
   const translateX = useSharedValue(screenWidth);
   const opacity = useSharedValue(0);
