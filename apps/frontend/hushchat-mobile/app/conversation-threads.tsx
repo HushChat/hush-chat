@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -66,6 +66,7 @@ const ConversationThreadScreen = ({
     user: { id: currentUserId },
   } = useUserStore();
   const queryClient = useQueryClient();
+  const dropZoneRef = useRef<View>(null);
 
   const {
     selectionMode,
@@ -178,12 +179,14 @@ const ConversationThreadScreen = ({
     addMore: handleAddMoreFiles,
   } = useImagePreview();
 
-  const { isDragging, dropZoneRef } = useDragAndDrop((files) => {
-    if (selectedFiles.length === 0) {
-      handleOpenImagePicker(files);
-    } else {
-      handleAddMoreFiles(files);
-    }
+  const { isDragging } = useDragAndDrop(dropZoneRef, {
+    onDropFiles: (files) => {
+      if (selectedFiles.length === 0) {
+        handleOpenImagePicker(files);
+      } else {
+        handleAddMoreFiles(files);
+      }
+    },
   });
 
   const {

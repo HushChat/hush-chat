@@ -1,16 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, RefObject } from "react";
 import { View } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
 
-export const useDragAndDrop = (onDropFiles: (files: File[]) => void) => {
+interface DragAndDropOptions {
+  onDropFiles?: (files: File[]) => void;
+  onDragEnter?: (e: DragEvent) => void;
+  onDragLeave?: (e: DragEvent) => void;
+  onDrop?: (e: DragEvent) => void;
+}
+
+export const useDragAndDrop = <T extends View | unknown>(
+  ref: RefObject<T>,
+  options: DragAndDropOptions = {}
+) => {
+  const { onDropFiles, onDragEnter, onDragLeave, onDrop } = options;
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const dropZoneRef = useRef<View>(null);
   const dragCounter = useRef(0);
 
   useEffect(() => {
-    if (!PLATFORM.IS_WEB || !dropZoneRef.current) return;
+    if (!PLATFORM.IS_WEB || !ref.current) return;
 
-    const element = dropZoneRef.current as unknown as HTMLElement;
+    const element = ref.current as unknown as HTMLElement;
 
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
@@ -20,11 +30,14 @@ export const useDragAndDrop = (onDropFiles: (files: File[]) => void) => {
       if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
         setIsDragging(true);
       }
+      if (onDragEnter) onDragEnter(e);
     };
 
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
+
+      if (onDragLeave) onDragLeave(e);
 
       const relatedTarget = e.relatedTarget as Node | null;
 
@@ -52,7 +65,14 @@ export const useDragAndDrop = (onDropFiles: (files: File[]) => void) => {
       setIsDragging(false);
       dragCounter.current = 0;
 
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      if (onDrop) onDrop(e);
+
+      if (
+        onDropFiles &&
+        e.dataTransfer &&
+        e.dataTransfer.files &&
+        e.dataTransfer.files.length > 0
+      ) {
         const filesArray = Array.from(e.dataTransfer.files);
         onDropFiles(filesArray);
       }
@@ -78,7 +98,7 @@ export const useDragAndDrop = (onDropFiles: (files: File[]) => void) => {
       element.removeEventListener("drop", handleDrop);
       window.removeEventListener("dragleave", handleWindowDragLeave);
     };
-  }, [onDropFiles]);
+  }, [ref, onDropFiles, onDragEnter, onDragLeave, onDrop]);
 
-  return { isDragging, dropZoneRef };
+  return { isDragging };
 };

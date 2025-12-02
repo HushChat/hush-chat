@@ -1,17 +1,17 @@
 import React from "react";
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colorScheme } from "nativewind";
 import { AppText } from "@/components/AppText";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 type TDragDropOverlayProps = {
   visible: boolean;
 };
 
 export default function DragAndDropOverlay({ visible }: TDragDropOverlayProps) {
-  if (!visible) return null;
+  const { isDark } = useAppTheme();
 
-  const isDark = colorScheme.get() === "dark";
+  if (!visible) return null;
 
   return (
     <View
