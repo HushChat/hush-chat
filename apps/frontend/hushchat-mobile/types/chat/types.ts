@@ -33,6 +33,12 @@ export interface IMessageAttachment {
   fileUrl: string;
 }
 
+export enum MessageTypeEnum {
+  TEXT = "TEXT",
+  ATTACHMENT = "ATTACHMENT",
+  SYSTEM_EVENT = "SYSTEM_EVENT",
+}
+
 export interface IMessage {
   id: number;
   senderId: number;
@@ -50,6 +56,8 @@ export interface IMessage {
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
+  messageType?: MessageTypeEnum;
+  hasAttachment?: boolean;
 }
 
 export interface IMessageView extends IMessage {
