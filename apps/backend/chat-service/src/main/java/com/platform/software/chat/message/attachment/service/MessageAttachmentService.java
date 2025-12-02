@@ -1,8 +1,11 @@
 package com.platform.software.chat.message.attachment.service;
 
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.entity.Message;
+import com.platform.software.common.constants.Constants;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.DocUploadRequestDTO;
 import com.platform.software.config.aws.SignedURLDTO;
@@ -10,6 +13,8 @@ import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.exception.CustomBadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -67,6 +72,28 @@ public class MessageAttachmentService {
         messageAttachment.setMessage(message);
         messageAttachment.setOriginalFileName(signedURL.getOriginalFileName());
         messageAttachment.setIndexedFileName(signedURL.getIndexedFileName());
+        messageAttachment.setType(getAttachmentType(signedURL.getOriginalFileName()));
         return messageAttachment;
+    }
+
+    private AttachmentTypeEnum getAttachmentType(String fileName) {
+        if (fileName == null || !fileName.contains(".")) {
+            return AttachmentTypeEnum.OTHER;
+        }
+        
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        
+        if (Constants.IMAGE_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.IMAGE;
+        if (Constants.VIDEO_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.VIDEO;
+        if (Constants.AUDIO_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.AUDIO;
+        if (Constants.DOCUMENT_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.DOCUMENT;
+        
+        return AttachmentTypeEnum.OTHER;
+    }
+
+    public Page<MessageAttachmentDTO> getAttachments(Long conversationId, AttachmentFilterCriteria attachmentFilterCriteria, Pageable pageable) {
+        attachmentFilterCriteria.setConversationId(conversationId);
+        Page<MessageAttachmentDTO> attachmentDTOPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria, pageable);
+        return attachmentDTOPage;
     }
 }

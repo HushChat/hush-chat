@@ -9,16 +9,13 @@ import {
   getConversationMessagesByCursor,
   getMessagesAroundMessageId,
 } from "@/apis/conversation";
-import type { IMessage } from "@/types/chat/types";
+import type { IMessage, IConversation } from "@/types/chat/types";
+import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 
 const PAGE_SIZE = 20;
 
-/**
- * Hook: useConversationMessagesQuery
- * Handles fetching + caching + live updating of conversation messages
- */
 export function useConversationMessagesQuery(conversationId: number) {
   const {
     user: { id: userId },
@@ -119,19 +116,45 @@ export function useConversationMessagesQuery(conversationId: number) {
           const alreadyExists = firstPage.content.some((msg) => msg.id === newMessage.id);
           if (alreadyExists) return oldData;
 
-          const updatedFirstPage = {
-            ...firstPage,
-            content: [newMessage, ...firstPage.content],
-          };
-
-          return {
-            ...oldData,
-            pages: [updatedFirstPage, ...oldData.pages.slice(1)],
-          };
+          const updatedFirstPage = { ...firstPage, content: [newMessage, ...firstPage.content] };
+          return { ...oldData, pages: [updatedFirstPage, ...oldData.pages.slice(1)] };
         }
       );
     },
     [queryClient, queryKey]
+  );
+
+  const updateConversationsListCache = useCallback(
+    (newMessage: IMessage) => {
+      queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
+        { queryKey: ["conversations", userId] },
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => {
+              const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
+
+              if (conversationIndex === -1) return page;
+
+              const updatedConversation: IConversation = {
+                ...page.content[conversationIndex],
+                messages: [newMessage],
+              };
+
+              const newContent = [
+                updatedConversation,
+                ...page.content.filter((c) => c.id !== conversationId),
+              ];
+
+              return { ...page, content: newContent };
+            }),
+          };
+        }
+      );
+    },
+    [queryClient, conversationId, userId]
   );
 
   const { lastMessage } = useConversationMessages(conversationId);
@@ -139,7 +162,8 @@ export function useConversationMessagesQuery(conversationId: number) {
   useEffect(() => {
     if (!lastMessage) return;
     updateConversationMessagesCache(lastMessage);
-  }, [lastMessage, updateConversationMessagesCache]);
+    updateConversationsListCache(lastMessage);
+  }, [lastMessage, updateConversationMessagesCache, updateConversationsListCache]);
 
   return {
     pages,
@@ -154,6 +178,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     refetch,
     invalidateQuery,
     updateConversationMessagesCache,
+    updateConversationsListCache,
     loadMessageWindow,
     inMessageWindowView,
     targetMessageId,

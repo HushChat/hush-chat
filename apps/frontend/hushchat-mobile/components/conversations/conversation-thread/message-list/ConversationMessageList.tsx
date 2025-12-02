@@ -12,7 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -31,7 +31,7 @@ interface IMessagesListProps {
   onLoadNewer: () => void;
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
-  onPinnedMessageNavigate?: (messageId: number) => void;
+  onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
   onTargetMessageScrolled?: () => void;
 }
@@ -46,7 +46,7 @@ const ConversationMessageList = ({
   onLoadNewer,
   hasMoreNewer,
   isFetchingNewer,
-  onPinnedMessageNavigate,
+  onNavigateToMessage,
   targetMessageId,
   onTargetMessageScrolled,
 }: IMessagesListProps) => {
@@ -76,10 +76,10 @@ const ConversationMessageList = ({
   }, [messages]);
 
   const handlePinnedMessageClick = useCallback(() => {
-    if (onPinnedMessageNavigate && pinnedMessage) {
-      onPinnedMessageNavigate(pinnedMessage.id);
+    if (onNavigateToMessage && pinnedMessage) {
+      onNavigateToMessage(pinnedMessage.id);
     }
-  }, [onPinnedMessageNavigate]);
+  }, [onNavigateToMessage]);
 
   useEffect(() => {
     if (!targetMessageId || !sectionListRef.current || groupedSections.length === 0) {
@@ -149,6 +149,7 @@ const ConversationMessageList = ({
         unSendMessage,
         selectedConversationId,
         viewReactions,
+        onNavigateToMessage,
       }),
     [
       currentUserId,
@@ -165,6 +166,7 @@ const ConversationMessageList = ({
       unSendMessage,
       selectedConversationId,
       viewReactions,
+      onNavigateToMessage,
     ]
   );
 
@@ -190,6 +192,7 @@ const ConversationMessageList = ({
             closeActions();
           }}
           onUnsend={(messages) => unSendMessage(messages)}
+          onCopy={(message) => copyToClipboard(message.messageText)}
         />
       )}
 
