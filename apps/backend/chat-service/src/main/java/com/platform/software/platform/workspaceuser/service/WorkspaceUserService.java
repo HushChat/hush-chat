@@ -107,6 +107,15 @@ public class WorkspaceUserService {
         }
     }
 
+    /**
+     * Suspend or unsuspend a workspace user.
+     *
+     * @param requesterEmail          The email of the user making the request.
+     * @param workspaceIdentifier     The identifier of the workspace.
+     * @param workspaceUserSuspendDTO The DTO containing the email of the user to be suspended/unsuspended.
+     * @throws CustomAccessDeniedException if the requester is not an admin or if the requester is not found in the workspace.
+     * @throws CustomBadRequestException   if the user to be suspended/unsuspended is not found in the workspace.
+     */
     public void toggleSuspendWorkspaceUser(String requesterEmail, String workspaceIdentifier, WorkspaceUserSuspendDTO workspaceUserSuspendDTO) {
         WorkspaceUtils.runInGlobalSchema(() -> {
             transactionTemplate.executeWithoutResult(status -> {
