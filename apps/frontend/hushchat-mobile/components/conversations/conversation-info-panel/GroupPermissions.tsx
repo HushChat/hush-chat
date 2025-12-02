@@ -5,6 +5,7 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
 import { MotionView } from "@/motion/MotionView";
+import { logInfo } from "@/utils/logger";
 
 interface IGroupPermissionsProps {
   conversationId: number;
@@ -26,7 +27,7 @@ export default function GroupPermissions({
   // TODO: Fetch current permissions from API on mount
   // TODO: Implement save functionality
   const handleSave = async () => {
-    console.log(conversationId);
+    logInfo(conversationId);
     onClose();
   };
 
