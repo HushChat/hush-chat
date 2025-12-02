@@ -1,20 +1,14 @@
-/**
- * AttachmentButton
- *
- * Button for opening file/media picker.
- */
-
 import React, { forwardRef } from "react";
 import { View, StyleSheet } from "react-native";
 import PrimaryCircularButton from "@/components/conversations/conversation-thread/composer/PrimaryCircularButton";
 
-interface AttachmentButtonProps {
+interface IAttachmentButtonProps {
   disabled?: boolean;
   toggled?: boolean;
   onPress: () => void;
 }
 
-export const AttachmentButton = forwardRef<View, AttachmentButtonProps>(
+export const AttachmentButton = forwardRef<View, IAttachmentButtonProps>(
   ({ disabled = false, toggled = false, onPress }, ref) => {
     return (
       <View ref={ref} style={styles.wrapper}>

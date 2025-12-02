@@ -9,7 +9,7 @@ import { useMentions } from "@/hooks/conversation-input/useMentions";
 import { useReplyHandler } from "@/hooks/conversation-input/useReplyHandler";
 import { useFilePicker } from "@/hooks/conversation-input/useFilePicker";
 
-interface UseConversationInputOptions
+interface IConversationInputOptions
   extends Pick<
     ConversationInputProps,
     | "conversationId"
@@ -47,7 +47,7 @@ export function useConversationInput({
   lineHeight,
   verticalPadding,
   placeholder,
-}: UseConversationInputOptions) {
+}: IConversationInputOptions) {
   const messageTextInputRef = useRef<TextInput>(null);
 
   const inputDisabledStatusRef = useRef(disabled);

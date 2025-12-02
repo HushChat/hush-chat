@@ -1,6 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import { TextInputContentSizeChangeEvent } from "react-native";
-import { useSharedValue, withTiming, useAnimatedStyle } from "react-native-reanimated";
+import { TextInputContentSizeChangeEvent, ViewStyle } from "react-native";
+import {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+  AnimatedStyle,
+} from "react-native-reanimated";
 import { PLATFORM } from "@/constants/platformConstants";
 import {
   ANIM_EASING,
@@ -17,11 +22,13 @@ type TAutoHeightOptions = {
   verticalPadding: number;
 };
 
+type AnimatedViewStyle = AnimatedStyle<ViewStyle>;
+
 interface IAutoHeightReturn {
   currentInputHeight: number;
   minimumInputHeight: number;
   maximumInputHeight: number;
-  animatedHeightStyle: ReturnType<typeof useAnimatedStyle>;
+  animatedHeightStyle: AnimatedViewStyle;
   handleTextContainerSizeChange: (event: TextInputContentSizeChangeEvent) => void;
   animateHeightResetToMinimum: (onComplete?: () => void) => void;
   updateHeightForClearedText: (textValue: string) => void;
@@ -51,7 +58,7 @@ export function useAutoHeight({
   const [currentInputHeight, setCurrentInputHeight] = useState<number>(initialHeightValue);
   const animatedHeightValue = useSharedValue(initialHeightValue);
 
-  const animatedHeightStyle = useAnimatedStyle(() => ({
+  const animatedHeightStyle: AnimatedStyle<ViewStyle> = useAnimatedStyle(() => ({
     height: animatedHeightValue.value,
   }));
 

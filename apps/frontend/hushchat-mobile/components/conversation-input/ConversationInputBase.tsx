@@ -1,23 +1,31 @@
-import React, { memo, useCallback } from "react";
-import { View } from "react-native";
+import React, { useCallback, ReactNode } from "react";
+import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
-import WebChatContextMenu from "@/components/WebContextMenu";
 import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
-import { ConversationInputProps } from "@/types/chat/types";
-import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
-import { FileInput } from "@/components/conversation-input/FileInput";
+import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
+import { ConversationInputProps } from "@/types/chat/types";
 
-const ConversationInput = ({
+export interface ConversationInputBaseProps extends ConversationInputProps {
+  containerPadding?: string;
+  inputMargin?: string;
+  inputPadding?: string;
+  useAnimatedHeight?: boolean;
+  extraContent?: ReactNode;
+  afterContent?: ReactNode;
+}
+
+const ConversationInputBase = ({
   conversationId,
   onSendMessage,
   onOpenImagePicker,
+  onOpenImagePickerNative,
   disabled = false,
   isSending = false,
   placeholder = "Type a message...",
@@ -30,11 +38,18 @@ const ConversationInput = ({
   replyToMessage,
   onCancelReply,
   isGroupChat,
-}: ConversationInputProps) => {
+  containerPadding = "p-4",
+  inputMargin = "mx-4",
+  inputPadding = "px-4",
+  useAnimatedHeight = true,
+  extraContent,
+  afterContent,
+}: ConversationInputBaseProps) => {
   const input = useConversationInput({
     conversationId,
     onSendMessage,
     onOpenImagePicker,
+    onOpenImagePickerNative,
     disabled,
     replyToMessage,
     onCancelReply,
@@ -58,9 +73,7 @@ const ConversationInput = ({
     input.handleSend(input.message);
   }, [input.handleSend, input.message]);
 
-  const handleSendPress = useCallback(() => {
-    input.handleSend(input.message);
-  }, [input.handleSend, input.message]);
+  const animatedStyle = useAnimatedHeight ? input.animatedContainerStyle : undefined;
 
   return (
     <View>
@@ -73,7 +86,8 @@ const ConversationInput = ({
 
       <View
         className={classNames(
-          "flex-row items-end p-4",
+          "flex-row items-end",
+          containerPadding,
           "bg-background-light dark:bg-background-dark",
           "border-gray-200 dark:border-gray-800"
         )}
@@ -85,11 +99,15 @@ const ConversationInput = ({
           onPress={input.handleAddButtonPress}
         />
 
-        <View className="flex-1 mx-4">
-          <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
+        <View className={classNames("flex-1", inputMargin)}>
+          <Animated.View style={animatedStyle} className="overflow-hidden">
             <View
-              className="relative flex-row flex-end rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4"
-              style={{ paddingRight: RIGHT_ICON_GUTTER }}
+              className={classNames(
+                "relative flex-row flex-end rounded-3xl",
+                "bg-gray-300/30 dark:bg-secondary-dark",
+                inputPadding
+              )}
+              style={styles.inputContainer}
             >
               <MessageTextArea
                 ref={input.messageTextInputRef}
@@ -112,7 +130,7 @@ const ConversationInput = ({
               <SendButton
                 showSend={input.isValidMessage}
                 isSending={isSending}
-                onPress={handleSendPress}
+                onPress={input.handleSendButtonPress}
               />
             </View>
 
@@ -122,16 +140,10 @@ const ConversationInput = ({
           </Animated.View>
         </View>
 
-        <FileInput ref={input.fileInputRef} onChange={input.handleFileChange} />
+        {extraContent}
       </View>
 
-      <WebChatContextMenu
-        visible={input.menuVisible}
-        position={input.menuPosition}
-        onClose={input.closeMenu}
-        options={input.menuOptions}
-        onOptionSelect={input.handleMenuOptionSelect}
-      />
+      {afterContent}
 
       {isGroupChat && input.mentionVisible && (
         <MentionSuggestions
@@ -144,4 +156,10 @@ const ConversationInput = ({
   );
 };
 
-export default memo(ConversationInput);
+export default ConversationInputBase;
+
+const styles = StyleSheet.create({
+  inputContainer: {
+    paddingRight: RIGHT_ICON_GUTTER,
+  },
+});

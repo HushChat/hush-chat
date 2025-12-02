@@ -1,19 +1,13 @@
-/**
- * CharacterCounter
- *
- * Displays current character count vs maximum.
- */
-
 import React from "react";
 import { View } from "react-native";
 import { AppText } from "@/components/AppText";
 
-interface CharacterCounterProps {
+interface ICharacterCounterProps {
   currentLength: number;
   maxChars: number;
 }
 
-export const CharacterCounter: React.FC<CharacterCounterProps> = ({ currentLength, maxChars }) => {
+export const CharacterCounter = ({ currentLength, maxChars }: ICharacterCounterProps) => {
   return (
     <View className="absolute bottom-0 right-2">
       <AppText className="text-xs text-gray-400">

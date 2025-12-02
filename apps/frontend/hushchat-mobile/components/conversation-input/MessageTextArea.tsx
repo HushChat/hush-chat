@@ -1,16 +1,8 @@
-/**
- * MessageTextArea
- *
- * Platform–agnostic input area for composing chat messages.
- * Fully uncontrolled by memo — simpler, predictable rendering.
- */
-
 import React, { forwardRef, useMemo } from "react";
 import {
   TextInput,
   TextInputContentSizeChangeEvent,
   TextInputSelectionChangeEvent,
-  NativeSyntheticEvent,
   TextInputKeyPressEvent,
 } from "react-native";
 import classNames from "classnames";
@@ -25,7 +17,7 @@ import {
 import { WebKeyboardEvent } from "@/hooks/useSpecialCharHandler";
 import { AppTextInput } from "@/components/AppText";
 
-interface MessageTextAreaProps {
+interface IMessageTextAreaProps {
   value: string;
   placeholder: string;
   disabled?: boolean;
@@ -38,12 +30,12 @@ interface MessageTextAreaProps {
   onChangeText: (text: string) => void;
   onContentSizeChange: (e: TextInputContentSizeChangeEvent) => void;
   onSelectionChange: (e: TextInputSelectionChangeEvent) => void;
-  onKeyPress: (e: NativeSyntheticEvent<TextInputKeyPressEvent>) => void;
+  onKeyPress: (e: TextInputKeyPressEvent) => void;
   onKeyDown?: (e: WebKeyboardEvent) => void;
   onSubmitEditing: () => void;
 }
 
-const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
+const MessageTextArea = forwardRef<TextInput, IMessageTextAreaProps>(
   (
     {
       value,
@@ -59,7 +51,6 @@ const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
       onContentSizeChange,
       onSelectionChange,
       onKeyPress,
-      onKeyDown,
       onSubmitEditing,
     },
     ref
@@ -84,21 +75,13 @@ const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
       [minHeight, maxHeight, inputHeight, lineHeight, verticalPadding]
     );
 
-    const inputClass = useMemo(
-      () =>
-        classNames(
-          "flex-1 text-base text-text-primary-light dark:text-text-primary-dark",
-          PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3"
-        ),
-      []
-    );
-
-    const platformProps = PLATFORM.IS_WEB ? { onKeyDown } : { textAlignVertical: "top" as const };
-
     return (
       <AppTextInput
         ref={ref}
-        className={inputClass}
+        className={classNames(
+          "flex-1 text-base text-text-primary-light dark:text-text-primary-dark",
+          PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3"
+        )}
         style={computedInputStyle}
         placeholder={placeholder}
         placeholderTextColor={COLOR_PLACEHOLDER}
@@ -114,7 +97,6 @@ const MessageTextArea = forwardRef<TextInput, MessageTextAreaProps>(
         onSubmitEditing={onSubmitEditing}
         returnKeyType="send"
         enablesReturnKeyAutomatically
-        {...platformProps}
       />
     );
   }
