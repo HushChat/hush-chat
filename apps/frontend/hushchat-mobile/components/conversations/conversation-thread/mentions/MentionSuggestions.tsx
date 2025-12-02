@@ -39,9 +39,9 @@ const MentionSuggestions = ({
   const currentUserId = user?.id;
 
   const participants: ConversationParticipant[] = useMemo(() => {
-    const list = pages?.pages.flatMap((p) => p?.content as ConversationParticipant[]) ?? [];
+    const list = pages?.pages.flatMap((p) => p?.content ?? []) as ConversationParticipant[];
 
-    return list.filter((p) => String(p.user.id) !== String(currentUserId));
+    return list.filter((p) => p.user.id !== currentUserId);
   }, [pages, currentUserId]);
 
   const { activeIndex, setActiveIndex } = useKeyboardNavigation({
