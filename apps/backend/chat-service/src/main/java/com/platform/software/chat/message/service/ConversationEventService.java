@@ -10,6 +10,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -49,32 +50,36 @@ public class ConversationEventService {
         ConversationEventType conversationType
     ) {
         MessageUpsertDTO messageDTO = new MessageUpsertDTO(conversationType.getName());
-        Message savedMessage = messageUtilService.createTextMessage(conversationId, actorUserId, messageDTO, MessageTypeEnum.SYSTEM_EVENT);
-
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
-        messageService.setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
-
-        saveConversationEvent(conversationType, actorUserId, targetUserIds, savedMessage);
-    }
-
-    private void saveConversationEvent(ConversationEventType conversationType, Long actorUserId, Collection<Long> targetUserIds, Message savedMessage) {
-        ChatUser actorUser = userService.getUserOrThrow(actorUserId);
-        List<ChatUser> targetUsers;
-
-        List<ConversationEvent> events = new ArrayList<>();
-        if (targetUserIds != null && !targetUserIds.isEmpty()) {
-            targetUsers = userRepository.findByIdInAndActiveTrueAndDeletedFalse(targetUserIds);
-
-            for (ChatUser targetUser : targetUsers) {
-                events.add(buildConversationEvent(conversationType, savedMessage, actorUser, targetUser));
+        if (targetUserIds != null) {
+            for (Long targetUserId : targetUserIds) {
+                createEventWithMessage(conversationId, actorUserId, conversationType, targetUserId, messageDTO);
             }
         } else {
-            events.add(buildConversationEvent(conversationType, savedMessage, actorUser, null));
+            createEventWithMessage(conversationId, actorUserId, conversationType, null, messageDTO);
+        }
+    }
+
+    private void createEventWithMessage(Long conversationId, Long actorUserId, ConversationEventType conversationType, Long targetUserId, MessageUpsertDTO messageDTO) {
+        Message savedMessage = messageUtilService.createTextMessage(conversationId, actorUserId, messageDTO, MessageTypeEnum.SYSTEM_EVENT);
+        messageService.setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
+        saveConversationEvent(conversationType, actorUserId, targetUserId, savedMessage);
+    }
+
+    private void saveConversationEvent(ConversationEventType conversationType, Long actorUserId, Long targetUserId, Message savedMessage) {
+        ChatUser actorUser = userService.getUserOrThrow(actorUserId);
+
+        ConversationEvent event;
+        if (targetUserId != null) {
+            ChatUser targetUser = userService.getUserOrThrow(targetUserId);
+            event = buildConversationEvent(conversationType, savedMessage, actorUser, targetUser);
+        } else {
+            event = buildConversationEvent(conversationType, savedMessage, actorUser, null);
         }
 
         try {
-            conversationEventRepository.saveAll(events);
+            conversationEventRepository.save(event);
         } catch (Exception e) {
             logger.error("conversation event save failed.", e);
             throw new CustomInternalServerErrorException("Failed to send message");
