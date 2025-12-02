@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { TextInputContentSizeChangeEvent } from "react-native";
 import { useSharedValue, withTiming, useAnimatedStyle } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
 import { PLATFORM } from "@/constants/platformConstants";
 import {
   ANIM_EASING,
@@ -77,18 +76,16 @@ export function useAutoHeight({
 
   const animateHeightResetToMinimum = useCallback(
     (onComplete?: () => void) => {
-      animatedHeightValue.value = withTiming(
-        minimumInputHeight,
-        { duration: RESET_ANIM_MS, easing: ANIM_EASING },
-        (finished) => {
-          if (!finished) return;
+      animatedHeightValue.value = withTiming(minimumInputHeight, {
+        duration: RESET_ANIM_MS,
+        easing: ANIM_EASING,
+      });
 
-          scheduleOnRN(() => {
-            setCurrentInputHeight(minimumInputHeight);
-            onComplete?.();
-          });
-        }
-      );
+      setCurrentInputHeight(minimumInputHeight);
+
+      if (onComplete) {
+        setTimeout(onComplete, RESET_ANIM_MS);
+      }
     },
     [minimumInputHeight, animatedHeightValue]
   );

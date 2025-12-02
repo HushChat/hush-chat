@@ -1,11 +1,5 @@
-/**
- * SendButton
- *
- * Send/mic button with loading state indicator.
- */
-
 import React from "react";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLOR_ACTIVITY, SEND_ICON_SIZE } from "@/constants/composerConstants";
 
@@ -15,7 +9,7 @@ interface SendButtonProps {
   onPress: () => void;
 }
 
-export const SendButton: React.FC<SendButtonProps> = ({ showSend, isSending, onPress }) => {
+export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) => {
   if (isSending) {
     return (
       <ActivityIndicator
@@ -26,23 +20,13 @@ export const SendButton: React.FC<SendButtonProps> = ({ showSend, isSending, onP
     );
   }
 
-  if (showSend) {
-    return (
-      <Ionicons
-        name="send"
-        size={SEND_ICON_SIZE}
-        onPress={onPress}
-        className="absolute right-3 bottom-2 !text-primary-light dark:!text-primary-dark"
-      />
-    );
-  }
-
   return (
-    <Ionicons
-      name="mic-sharp"
-      size={SEND_ICON_SIZE}
-      color={COLOR_ACTIVITY}
-      className="absolute right-3 bottom-2"
-    />
+    <Pressable onPress={onPress} className="absolute right-3 bottom-2" disabled={!showSend}>
+      <Ionicons
+        name={showSend ? "send" : "mic-sharp"}
+        size={SEND_ICON_SIZE}
+        className={"!text-primary-light dark:!text-primary-dark"}
+      />
+    </Pressable>
   );
 };

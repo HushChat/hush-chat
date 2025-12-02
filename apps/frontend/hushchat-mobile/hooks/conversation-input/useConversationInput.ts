@@ -170,6 +170,10 @@ export function useConversationInput({
     [replyManager.generateReplyAwarePlaceholder, placeholder]
   );
 
+  const handleSendButtonPress = useCallback(() => {
+    stableSendHandlerRef.current(latestMessageTextRef.current);
+  }, []);
+
   return {
     messageTextInputRef,
 
@@ -205,6 +209,7 @@ export function useConversationInput({
     handleSend: handleSendFinalProcessedMessage,
     enterSubmitHandler: keyboardEnterToSendHandler,
     specialCharHandler: specialCharacterInputController,
+    handleSendButtonPress,
 
     placeholder: resolvedPlaceholderText,
     lineHeight,

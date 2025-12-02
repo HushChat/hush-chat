@@ -44,17 +44,10 @@ const ConversationInput = ({
     placeholder,
   });
 
-  // Stable handler for send button - no arguments needed
-  const handleSendButtonPress = useCallback(() => {
-    input.handleSend();
-  }, [input.handleSend]);
-
-  // Stable handler for submit editing
   const handleSubmitEditing = useCallback(() => {
-    input.handleSend();
-  }, [input.handleSend]);
+    input.handleSend(input.message);
+  }, [input.handleSend, input.message]);
 
-  // Stable handler for key press
   const handleKeyPress = useCallback(
     (e: any) => {
       input.specialCharHandler(e);
@@ -80,7 +73,7 @@ const ConversationInput = ({
         />
 
         <View className="flex-1 mx-3">
-          <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
+          <Animated.View className="overflow-hidden">
             <View
               className="flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-3"
               style={styles.inputContainer}
@@ -106,7 +99,7 @@ const ConversationInput = ({
               <SendButton
                 showSend={input.isValidMessage}
                 isSending={isSending}
-                onPress={handleSendButtonPress}
+                onPress={input.handleSendButtonPress}
               />
             </View>
 
