@@ -12,7 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -31,6 +31,7 @@ interface IMessagesListProps {
   onLoadNewer: () => void;
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
+  onNavigateToMessage?: (messageId: number) => void;
 }
 
 const ConversationMessageList = ({
@@ -43,6 +44,7 @@ const ConversationMessageList = ({
   onLoadNewer,
   hasMoreNewer,
   isFetchingNewer,
+  onNavigateToMessage,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -68,6 +70,12 @@ const ConversationMessageList = ({
     return groupMessagesByDate(messages);
   }, [messages]);
 
+  const handlePinnedMessageClick = useCallback(() => {
+    if (onNavigateToMessage && pinnedMessage) {
+      onNavigateToMessage(pinnedMessage.id);
+    }
+  }, [onNavigateToMessage]);
+
   const renderMessage = useMemo(
     () =>
       createRenderMessage({
@@ -85,6 +93,7 @@ const ConversationMessageList = ({
         unSendMessage,
         selectedConversationId,
         viewReactions,
+        onNavigateToMessage,
       }),
     [
       currentUserId,
@@ -101,6 +110,7 @@ const ConversationMessageList = ({
       unSendMessage,
       selectedConversationId,
       viewReactions,
+      onNavigateToMessage,
     ]
   );
 
@@ -126,6 +136,7 @@ const ConversationMessageList = ({
             closeActions();
           }}
           onUnsend={(messages) => unSendMessage(messages)}
+          onCopy={(message) => copyToClipboard(message.messageText)}
         />
       )}
 
@@ -134,6 +145,7 @@ const ConversationMessageList = ({
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
           onUnpin={() => togglePin(pinnedMessage)}
+          onPress={handlePinnedMessageClick}
         />
       )}
 

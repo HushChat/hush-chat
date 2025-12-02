@@ -30,12 +30,10 @@ import com.platform.software.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -56,9 +54,9 @@ public class MessageService {
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final MessageMentionService messageMentionService;
     private final ConversationRepository conversationRepository;
-    private final ChatNotificationService chatNotificationService;
     private final ConversationReadStatusRepository conversationReadStatusRepository;
     private final MessageHistoryRepository messageHistoryRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Message getMessageOrThrow(Long conversationId, Long messageId) {
         Message message = messageRepository
@@ -75,11 +73,12 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
-    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser) {
+    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType) {
         Message newMessage = new Message();
         newMessage.setMessageText(messageText);
         newMessage.setConversation(conversation);
         newMessage.setSender(loggedInUser);
+        newMessage.setMessageType(messageType);
         return newMessage;
     }
 
@@ -112,7 +111,7 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO);
+        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
@@ -121,16 +120,13 @@ public class MessageService {
 
         setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-            @Override
-            public void afterCommit() {
-                messagePublisherService.invokeNewMessageToParticipants(
-                    conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-                );
-
-                chatNotificationService.sendMessageNotificationsToParticipants(conversationId, loggedInUserId, savedMessage);
-            }
-        });
+        eventPublisher.publishEvent(new MessageCreatedEvent(
+                WorkspaceContext.getCurrentWorkspace(),
+                conversationId,
+                messageViewDTO,
+                loggedInUserId,
+                savedMessage
+        ));
 
         return messageViewDTO;
     }
@@ -210,7 +206,7 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO);
+        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
@@ -260,14 +256,14 @@ public class MessageService {
      * @param message the message details
      * @return the saved Message entity
      */
-    public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message) {
+    public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
         ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
         ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
         Conversation conversation = participant.getConversation();
 
         validateInteractionAllowed(conversation, senderUserId);
 
-        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser);
+        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
 
         try {
@@ -345,7 +341,7 @@ public class MessageService {
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
             messages.forEach(message -> {
-                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser);
+                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
                 forwardingMessages.add(newMessage);
@@ -356,7 +352,8 @@ public class MessageService {
                 Message customMessage = MessageService.buildMessage(
                         messageForwardRequestDTO.getCustomText(),
                         targetConversation.getModel(),
-                        loggedInUser
+                        loggedInUser,
+                        MessageTypeEnum.TEXT
                 );
                 forwardingMessages.add(customMessage);
             }
@@ -367,16 +364,13 @@ public class MessageService {
 
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message);
 
-                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            messagePublisherService.invokeNewMessageToParticipants(
-                                    message.getConversation().getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-                            );
-
-                            chatNotificationService.sendMessageNotificationsToParticipants(message.getConversation().getId(), loggedInUserId, message);
-                        }
-                    });
+                    eventPublisher.publishEvent(new MessageCreatedEvent(
+                            WorkspaceContext.getCurrentWorkspace(),
+                            message.getConversation().getId(),
+                            messageViewDTO,
+                            loggedInUserId,
+                            message
+                    ));
                 }
 
             } catch (Exception exception) {
@@ -531,9 +525,12 @@ public class MessageService {
      * @return the list
      */
     public List<MessageViewDTO> searchMessagesFromConversation(Long conversationId, Long loggedInUserId, MessageSearchRequestDTO messageSearchRequestDTO) {
-        conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
+                .map(zdt -> Date.from(zdt.toInstant()))
+                .orElse(new Date(0));
 
-        return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId)
+        return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId, deletedAt)
             .stream().map(MessageViewDTO::new).toList();
     }
 

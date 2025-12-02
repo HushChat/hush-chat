@@ -112,7 +112,7 @@ const ConversationThreadScreen = ({
     },
     (data) => {
       updateConversation(currentConversationId, {
-        unreadCount: data.unreadCount || 0,
+        unreadCount: data.data?.unreadCount || 0,
       });
     },
     (error) => {
@@ -144,12 +144,21 @@ const ConversationThreadScreen = ({
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
 
+  const handleNavigateToMessage = useCallback(
+    (messageId: number) => {
+      if (loadMessageWindow) {
+        void loadMessageWindow(messageId);
+        onMessageJumped?.();
+      }
+    },
+    [loadMessageWindow, onMessageJumped]
+  );
+
   useEffect(() => {
-    if (searchedMessageId && loadMessageWindow) {
-      void loadMessageWindow(searchedMessageId);
-      onMessageJumped?.();
+    if (searchedMessageId) {
+      handleNavigateToMessage(searchedMessageId);
     }
-  }, [searchedMessageId, loadMessageWindow, onMessageJumped]);
+  }, [searchedMessageId, handleNavigateToMessage]);
 
   const {
     selectedFiles,
@@ -301,6 +310,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
+        onNavigateToMessage={handleNavigateToMessage}
       />
     );
   }, [
@@ -319,6 +329,7 @@ const ConversationThreadScreen = ({
     pickerState,
     currentConversationId,
     searchedMessageId,
+    handleNavigateToMessage,
   ]);
 
   const renderTextInput = useCallback(() => {
