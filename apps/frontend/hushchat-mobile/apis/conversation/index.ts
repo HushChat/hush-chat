@@ -453,3 +453,23 @@ export const sendInviteToWorkspace = async (email: string) => {
     return { error: error.response?.data?.error || error.message };
   }
 };
+
+export const getConversationAttachments = async (
+  conversationId: number,
+  type: string,
+  page: number,
+  size: number
+) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_CONVERSATION_ATTACHMENTS(conversationId),
+      {
+        params: { type, page, size },
+      }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};

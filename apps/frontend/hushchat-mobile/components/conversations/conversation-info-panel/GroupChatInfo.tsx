@@ -34,12 +34,14 @@ interface GroupChatInfoProps {
   conversation: IConversation;
   onBack: () => void;
   setSelectedConversation: (conversation: null) => void;
+  onShowMediaAttachments: () => void;
 }
 
 export default function GroupChatInfo({
   conversation,
   onBack,
   setSelectedConversation,
+  onShowMediaAttachments,
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
 
@@ -256,6 +258,11 @@ export default function GroupChatInfo({
         showsVerticalScrollIndicator={true}
         className="custom-scrollbar"
       >
+        <ActionItem
+          icon="images-outline"
+          label="All Media files"
+          onPress={onShowMediaAttachments}
+        />
         {/* Participants Preview */}
         <View style={styles.participantsSection}>
           <View className="flex-row items-center mb-3">

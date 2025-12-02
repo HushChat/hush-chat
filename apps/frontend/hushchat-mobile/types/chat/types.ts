@@ -31,6 +31,13 @@ export interface IMessageAttachment {
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;
+  type: AttachmentType;
+  updatedAt: string;
+}
+
+export enum AttachmentType {
+  MEDIA = "MEDIA",
+  DOCS = "DOCS",
 }
 
 export enum MessageTypeEnum {
