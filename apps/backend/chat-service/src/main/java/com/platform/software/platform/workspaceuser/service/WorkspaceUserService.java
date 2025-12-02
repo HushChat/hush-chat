@@ -145,4 +145,26 @@ public class WorkspaceUserService {
             });
         });
     }
+
+    /**
+     * Validates if a user has access to a specific workspace.
+     *
+     * @param workspaceIdentifier The identifier of the workspace.
+     * @param email               The email of the user.
+     * @return true if the user has access to the workspace, false otherwise.
+     */
+    public boolean validateWorkspaceAccess(String workspaceIdentifier, String email) {
+        boolean hasAccess = WorkspaceUtils.runInGlobalSchema(
+                () -> workspaceUserRepository.validateWorkspaceAccess(workspaceIdentifier, email)
+        );
+
+        if (!hasAccess) {
+            logger.info(
+                    "Workspace access denied for user: {} on workspace: {}",
+                    email,
+                    workspaceIdentifier
+            );
+        }
+        return hasAccess;
+    }
 }
