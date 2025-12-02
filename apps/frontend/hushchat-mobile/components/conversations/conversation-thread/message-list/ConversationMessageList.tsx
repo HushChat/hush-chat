@@ -101,28 +101,36 @@ const ConversationMessageList = ({
     }
 
     if (sectionIndex !== -1 && itemIndex !== -1) {
-      const timeoutId = setTimeout(() => {
+      const scrollWithErrorHandling = (retryCount = 0) => {
         try {
           sectionListRef.current?.scrollToLocation({
             sectionIndex,
             itemIndex,
             animated: true,
             viewPosition: 0.5,
+            viewOffset: 0,
           });
 
           if (onTargetMessageScrolled) {
             setTimeout(() => {
               onTargetMessageScrolled();
-            }, 800);
+            }, 500);
           }
         } catch (error) {
           console.warn("failed to scroll to target message:", error);
-
-          if (onTargetMessageScrolled) {
+          if (retryCount < 3) {
+            setTimeout(() => scrollWithErrorHandling(retryCount + 1), 200);
+          } else if (onTargetMessageScrolled) {
             onTargetMessageScrolled();
           }
         }
-      }, 100);
+      };
+
+      const timeoutId = setTimeout(() => {
+        requestAnimationFrame(() => {
+          scrollWithErrorHandling();
+        });
+      }, 300);
 
       return () => clearTimeout(timeoutId);
     } else {
