@@ -24,13 +24,13 @@ import { PanelType } from "@/types/web-panel/types";
 import GroupPermissions from "./GroupPermissions";
 import ActionItem from "./common/ActionItem";
 
-interface GroupSettingsProps {
+interface IGroupSettingsProps {
   conversation: IConversation;
   onClose: () => void;
   visible: boolean;
 }
 
-export default function GroupSettings({ conversation, onClose, visible }: GroupSettingsProps) {
+export default function GroupSettings({ conversation, onClose, visible }: IGroupSettingsProps) {
   const { user } = useUserStore();
 
   const screenWidth = Dimensions.get("window").width;
