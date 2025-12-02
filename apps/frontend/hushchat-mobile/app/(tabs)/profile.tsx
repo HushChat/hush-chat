@@ -307,26 +307,33 @@ export default function Profile() {
       </View>
     </ScrollView>
   );
-
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
       {isMobile ? (
         profileContent
       ) : (
-        <View className="flex-1 flex-row">
-          <View className="w-full max-w-[460px] border-r border-gray-200 dark:border-gray-800">
-            {profileContent}
+        <ScrollView
+          horizontal={true}
+          style={{ flex: 1 }}
+          className="custom-scrollbar"
+          contentContainerStyle={{ flexGrow: 1, minWidth: 900 }}
+          showsHorizontalScrollIndicator={true}
+        >
+          <View className="flex-1 flex-row">
+            <View className="w-full max-w-[460px] border-r border-gray-200 dark:border-gray-800">
+              {profileContent}
+            </View>
+            <View className="flex-1">
+              <Placeholder
+                image={Images.userProfile}
+                title="My Profile"
+                showBackground={false}
+                imageWidth={50}
+                imageHeight={80}
+              />
+            </View>
           </View>
-          <View className="flex-1">
-            <Placeholder
-              image={Images.userProfile}
-              title="My Profile"
-              showBackground={false}
-              imageWidth={50}
-              imageHeight={80}
-            />
-          </View>
-        </View>
+        </ScrollView>
       )}
     </SafeAreaView>
   );
