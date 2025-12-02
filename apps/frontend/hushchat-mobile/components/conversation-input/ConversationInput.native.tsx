@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
@@ -14,7 +13,6 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
-import { AppText } from "@/components/AppText";
 import { RecordingDisplayBar } from "@/components/conversation-input/RecordingDisplayBar";
 
 const ConversationInput = ({

@@ -1,4 +1,3 @@
-// hooks/useAudioRecording.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getDraftKey } from "@/constants/constants";

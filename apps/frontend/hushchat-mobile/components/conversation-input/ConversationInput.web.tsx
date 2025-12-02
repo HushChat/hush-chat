@@ -2,7 +2,6 @@ import React, { memo, useCallback } from "react";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
-import { Ionicons } from "@expo/vector-icons";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import WebChatContextMenu from "@/components/WebContextMenu";
