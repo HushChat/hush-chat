@@ -7,7 +7,6 @@ import com.platform.software.chat.message.dto.MessageReactionViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageReaction;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
-import com.platform.software.chat.notification.service.ChatNotificationService;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
@@ -31,21 +30,21 @@ public class MessageReactionService {
     private final MessageService messageService;
     private final UserService userService;
     private final MessageReactionRepository messageReactionRepository;
-    private final ChatNotificationService chatNotificationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final MessageUtilService messageUtilService;
 
     public MessageReactionService(
             MessageService messageService,
             UserService userService,
             MessageReactionRepository messageReactionRepository,
-            ChatNotificationService chatNotificationService,
-            ApplicationEventPublisher eventPublisher
+            ApplicationEventPublisher eventPublisher,
+            MessageUtilService messageUtilService
     ) {
         this.messageService = messageService;
         this.userService = userService;
         this.messageReactionRepository = messageReactionRepository;
-        this.chatNotificationService = chatNotificationService;
         this.eventPublisher = eventPublisher;
+        this.messageUtilService = messageUtilService;
     }
 
     /**
@@ -63,7 +62,7 @@ public class MessageReactionService {
         Message message = messageService.getMessageIfUserParticipant(userId, messageId);
         Conversation conversation = message.getConversation();
 
-        messageService.validateInteractionAllowed(conversation, userId);
+        messageUtilService.validateInteractionAllowed(conversation, userId);
 
         Optional<MessageReaction> existingReaction = messageReactionRepository.findByMessageIdAndUserId(messageId, userId);
 
