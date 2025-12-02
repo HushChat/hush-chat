@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { GestureDetector, Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { File, Directory, Paths } from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import { TImagePreviewProps } from "@/types/chat/types";
@@ -30,6 +30,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [existingFileUri, setExistingFileUri] = useState<string | null>(null);
 
+  const insets = useSafeAreaInsets();
   const isZoomed = useSharedValue(false);
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -219,9 +220,12 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
       statusBarTranslucent
       presentationStyle="overFullScreen"
     >
-      <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
+      <SafeAreaView style={styles.flex1} edges={["bottom"]}>
         <View className="flex-1 bg-white dark:bg-black">
-          <View className="absolute left-0 right-0 flex-row justify-between items-center px-5 py-4 z-10 bg-white dark:bg-black backdrop-blur-sm">
+          <View
+            className="absolute left-0 right-0 flex-row justify-between items-center px-5 pb-4 z-10 bg-white/90 dark:bg-black/90 backdrop-blur-sm"
+            style={{ paddingTop: insets.top + 10 }}
+          >
             <AppText className="text-gray-900 dark:text-white text-base font-semibold">
               {currentIndex + 1} / {images.length}
             </AppText>
