@@ -6,7 +6,6 @@ import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationReport;
 import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
-import com.platform.software.chat.conversation.readstatus.dto.ConversationUnreadCount;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
@@ -364,7 +363,7 @@ public class ConversationService {
      * @return a Page of ConversationDTOs containing conversation details
      */
     public Page<ConversationDTO> getAllConversations(Long loggedInUserId, ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable) {
-        Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserIdWithLatestMessages(loggedInUserId, conversationFilterCriteria, pageable);
+        Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserId(loggedInUserId, conversationFilterCriteria, pageable);
 
         Set<Long> conversationIds = conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet());
 

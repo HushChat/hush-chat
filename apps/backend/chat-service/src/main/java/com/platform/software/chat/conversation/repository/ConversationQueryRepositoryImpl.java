@@ -12,7 +12,6 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.dto.MessageViewDTO;
-import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
@@ -164,7 +163,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
 
     @Override
-    public Page<ConversationDTO> findAllConversationsByUserIdWithLatestMessages(
+    public Page<ConversationDTO> findAllConversationsByUserId(
         Long userId,
         ConversationFilterCriteriaDTO conversationFilterCriteria,
         Pageable pageable

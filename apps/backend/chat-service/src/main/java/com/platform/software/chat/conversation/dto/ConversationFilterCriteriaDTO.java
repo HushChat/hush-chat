@@ -6,6 +6,7 @@ import lombok.Data;
 public class ConversationFilterCriteriaDTO {
     private Boolean isArchived;
     private Boolean isUnread;
+    private Boolean isGroup;
     private Boolean isFavorite;
     private String searchKeyword;
 }

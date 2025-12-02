@@ -25,7 +25,7 @@ public interface ConversationQueryRepository {
 
     Map<Long, MessageViewDTO> getLatestMessagesForConversations(Collection<Long> conversationIds);
 
-    Page<ConversationDTO> findAllConversationsByUserIdWithLatestMessages(Long userId, ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable);
+    Page<ConversationDTO> findAllConversationsByUserId(Long userId, ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable);
 
     ConversationParticipant getOtherParticipantInOneToOneConversationOrThrow(Long conversationId, Long userId);
 

@@ -146,7 +146,7 @@ public class SearchService {
         ConversationFilterCriteriaDTO conversationFilterCriteria = new ConversationFilterCriteriaDTO();
         conversationFilterCriteria.setSearchKeyword(searchKeyword);
 
-        Page<ConversationDTO> conversationDTOPage = conversationRepository.findAllConversationsByUserIdWithLatestMessages(
+        Page<ConversationDTO> conversationDTOPage = conversationRepository.findAllConversationsByUserId(
             loggedInUserId, conversationFilterCriteria, pageable
         );
 
