@@ -15,11 +15,23 @@ export const CONVERSATION_API_BASE = "/conversations";
 export const USER_API_BASE = "/users";
 export const MESSAGE_API_BASE = "/messages";
 export const SEARCH_API_BASE = "/search";
+export const WORKSPACES_API_BASE = "/workspaces";
+
+export const WORKSPACE_ENDPOINTS = {
+  GET: `${WORKSPACES_API_BASE}/my-workspaces`,
+  REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
+  CREATE_WORKSPACE: WORKSPACES_API_BASE,
+  INVITE_TO_WORKSPACE: `${WORKSPACES_API_BASE}/invite`,
+};
+
+export const SETTINGS_API_BASE = "/settings";
 
 export const CONVERSATION_API_ENDPOINTS = {
   ALL: CONVERSATION_API_BASE,
   GET_BY_ID: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/meta`,
   MESSAGES: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/messages`,
+  GET_MESSAGE_BY_ID: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}`,
   SIGNED_URLS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-signed-url`,
   ARCHIVE: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/archive`,
@@ -51,6 +63,10 @@ export const CONVERSATION_API_ENDPOINTS = {
   UPDATE_CONVERSATION: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}`,
   UPDATE_CONVERSATION_PARTICIPANT_ROLE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/admins`,
+  SET_LAST_SEEN_MESSAGE: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
+  GET_LAST_SEEN_MESSAGE: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
 };
 
 export const USER_API_ENDPOINTS = {
@@ -62,10 +78,15 @@ export const USER_API_ENDPOINTS = {
   CALL_LOGS: `${USER_API_BASE}/call-logs`,
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
   SAVE_TOKEN: `/notifications/device-token`,
+  CHANGE_PASSWORD: `/users/change-password`,
 };
 
 export const MESSAGE_API_ENDPOINTS = {
   REACTIONS: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/reactions`,
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
+};
+
+export const SETTINGS_API_ENDPOINTS = {
+  CONTACT_US: `${SETTINGS_API_BASE}/contact-us`,
 };

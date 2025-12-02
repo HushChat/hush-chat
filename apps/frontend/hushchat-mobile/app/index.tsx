@@ -1,10 +1,10 @@
-import { AUTH_WORKSPACE_FORM_PATH, CHATS_PATH } from "@/constants/routes";
+import { AUTH_LOGIN_PATH, AUTH_WORKSPACE_FORM_PATH, CHATS_PATH } from "@/constants/routes";
 import { useAuthStore } from "@/store/auth/authStore";
 import { Redirect } from "expo-router";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 
 export default function Index() {
-  const { isAuthenticated, hasHydrated } = useAuthStore();
+  const { isAuthenticated, hasHydrated, isWorkspaceSelected } = useAuthStore();
 
   if (!hasHydrated) {
     return (
@@ -14,11 +14,13 @@ export default function Index() {
     );
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && isWorkspaceSelected) {
     return <Redirect href={CHATS_PATH} />;
+  } else if (!isWorkspaceSelected) {
+    return <Redirect href={AUTH_WORKSPACE_FORM_PATH} />;
   }
 
-  return <Redirect href={AUTH_WORKSPACE_FORM_PATH} />;
+  return <Redirect href={AUTH_LOGIN_PATH} />;
 }
 
 const styles = StyleSheet.create({

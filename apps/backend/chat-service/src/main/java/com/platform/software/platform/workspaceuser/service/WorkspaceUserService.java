@@ -15,29 +15,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class WorkspaceUserService {
 
     private final WorkspaceUserRepository workspaceUserRepository;
     private final TransactionTemplate transactionTemplate;
+    private final WorkspaceUserUtilService workspaceUserUtilService;
     Logger logger = LoggerFactory.getLogger(WorkspaceUserService.class);
 
 
-    public WorkspaceUserService(WorkspaceUserRepository workspaceUserRepository, TransactionTemplate transactionTemplate) {
+    public WorkspaceUserService(WorkspaceUserRepository workspaceUserRepository, TransactionTemplate transactionTemplate, WorkspaceUserUtilService workspaceUserUtilService) {
         this.workspaceUserRepository = workspaceUserRepository;
         this.transactionTemplate = transactionTemplate;
-    }
-
-    public WorkspaceDTO verifyUserAccessToWorkspace(String email, Long workspaceId) {
-        WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_Id(email, workspaceId)
-            .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid workspace id"));
-
-        return new WorkspaceDTO(user.getWorkspace());
+        this.workspaceUserUtilService = workspaceUserUtilService;
     }
 
     public WorkspaceDTO verifyUserAccessToWorkspace(String email, String workspaceName) {
-        WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_Name(email, workspaceName)
+        WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(email, workspaceName)
             .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid name"));
 
         return new WorkspaceDTO(user.getWorkspace());
@@ -50,8 +46,8 @@ public class WorkspaceUserService {
         });
     }
 
-    public Workspace getInvitedWorkspace(String email) {
-        return WorkspaceUtils.runInGlobalSchema(() -> workspaceUserRepository.findPendingWorkspaceByUserEmailOrThrow(email));
+    public Workspace getInvitedWorkspace(String email, String currantTenant) {
+        return WorkspaceUtils.runInGlobalSchema(() -> workspaceUserRepository.findPendingWorkspaceByUserEmailOrThrow(email, currantTenant));
     }
 
     public void markInvitationAsAccepted(String email, Long workspaceId) {
@@ -65,6 +61,7 @@ public class WorkspaceUserService {
     }
 
     public void inviteUserToWorkspace(String inviterEmail, String workspaceIdentifier, WorkspaceUserInviteDTO workspaceUserInviteDTO) {
+        AtomicReference<Workspace> workspace = new AtomicReference<>(new Workspace());
         WorkspaceUtils.runInGlobalSchema(() -> {
             transactionTemplate.executeWithoutResult(status -> {
                 WorkspaceUser existingUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
@@ -75,15 +72,36 @@ public class WorkspaceUserService {
                 }
 
                 try {
-                    Workspace workspace = workspaceUserRepository.validateWorkspaceMembershipOrThrow(inviterEmail, workspaceIdentifier);
+                    workspace.set(workspaceUserRepository.validateWorkspaceMembershipOrThrow(inviterEmail, workspaceIdentifier));
                     WorkspaceUser newWorkspaceUser =
-                            WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, workspace, inviterEmail);
+                            WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, workspace.get(), inviterEmail);
                     workspaceUserRepository.save(newWorkspaceUser);
+                    logger.info("Successfully invited user: {} to workspace: {}", workspaceUserInviteDTO.getEmail(), workspaceIdentifier);
                 } catch (Exception e) {
                     logger.info("Failed to invite user: {} to workspace: {}. Error: {}", workspaceUserInviteDTO.getEmail(), workspaceIdentifier, e.getMessage());
+                    throw new CustomBadRequestException("Failed to invite user to workspace: " + e.getMessage());
                 }
             });
         });
+        workspaceUserUtilService.sendInvitationEmail(workspace.get(), workspaceUserInviteDTO.getEmail(), inviterEmail );
+    }
 
+    public List<WorkspaceDTO> getAllWorkspaceDTO(String email) {
+        try {
+            return WorkspaceUtils.runInGlobalSchema(() -> {
+                List<WorkspaceUser> workspaceUsers = workspaceUserRepository.findAllByEmail(email);
+
+                return workspaceUsers.stream()
+                        .map(workspaceUser ->
+                                new WorkspaceDTO(
+                                        workspaceUser.getWorkspace(),
+                                        workspaceUser.getStatus()
+                                )
+                        )
+                        .toList();
+            });
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 }

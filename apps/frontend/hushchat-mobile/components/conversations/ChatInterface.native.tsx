@@ -3,7 +3,12 @@ import React, { useEffect, useState } from "react";
 import FilterButton from "@/components/FilterButton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { CHAT_VIEW_PATH } from "@/constants/routes";
+import {
+  CHAT_VIEW_PATH,
+  GROUP_CONVERSATION_SELECT_PARTICIPANTS,
+  SETTINGS_CONTACT,
+  SETTINGS_INVITE,
+} from "@/constants/routes";
 import classNames from "classnames";
 import BackButton from "@/components/BackButton";
 import BottomSheet from "@/components/BottomSheet";
@@ -46,7 +51,25 @@ export default function ChatInterface({
       icon: "people-outline" as const,
       onPress: () => {
         setSheetVisible(false);
-        router.push("/group-conversation/select-participants");
+        router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
+      },
+    },
+    {
+      id: "contact",
+      title: "Contacts",
+      icon: "chatbubble-outline" as const,
+      onPress: () => {
+        setSheetVisible(false);
+        router.push(SETTINGS_CONTACT);
+      },
+    },
+    {
+      id: "invite",
+      title: "Invite",
+      icon: "person-add" as const,
+      onPress: () => {
+        setSheetVisible(false);
+        router.push(SETTINGS_INVITE);
       },
     },
   ];

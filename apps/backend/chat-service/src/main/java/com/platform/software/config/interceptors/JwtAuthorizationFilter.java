@@ -45,8 +45,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private static final List<String> PUBLIC_PATTERNS = List.of(
-        "/health-check/**", "/public/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
-        "/swagger-ui.html/**", "/swagger-resources/**", "/webjars/**", "/public/workspaces/**", "/ws-message-subscription/**"
+        "/health-check/**", "/public/user/**", "/public/workspaces/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
+        "/swagger-ui.html/**", "/swagger-resources/**", "/webjars/**", "/ws-message-subscription/**"
     );
 
     private final UserService userService;
@@ -111,18 +111,20 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         return;
                     }
 
-                    ChatUser user = userService.getUserByEmail(email);
-                    if (user == null) {
-                        ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.UNAUTHORIZED_ACCESS_RESPONSE);
-                        return;
-                    }
-
-                    UserDetails userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace());
-
                     handleTokenVerificationForUsers(
                         decodedJwt,
                         token
                     );
+
+                    UserDetails userDetails;
+                    try {
+                        ChatUser user = userService.getUserByEmail(email);
+                        userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace());
+                    } catch (Exception e) {
+                        userDetails = new UserDetails();
+                        userDetails.setEmail(email);
+                        userDetails.setWorkspaceId(WorkspaceContext.getCurrentWorkspace());
+                    }
 
                     //handle permissions later
                     Set<GrantedAuthority> authorities = new HashSet<>();
@@ -135,7 +137,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 } catch (JWTVerificationException | JwkException e) {
                     ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INVALID_TOKEN_PROVIDED_RESPONSE);
                 }
-
     }
 
 }

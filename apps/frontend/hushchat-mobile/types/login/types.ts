@@ -1,5 +1,5 @@
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
-import { IRegisterUser } from "@/types/user/types";
+import { ICreateWorkspace, IRegisterUser, IWorkspaceRegister } from "@/types/user/types";
 
 export interface AuthColors {
   background: string;
@@ -24,20 +24,47 @@ export type TLoginFormProps = {
   onValueChange: (arg: { name: string; value: string }) => void;
 };
 
+export interface Workspace {
+  id: number;
+  name: string;
+  description: string;
+  workspaceIdentifier: string;
+  imageUrl: string | null;
+  status: "PENDING" | "ACCEPTED";
+}
+
 export type TWorkspaceFormProps = {
   colors: AuthColors;
   isDark: boolean;
-  formValues: { workspaceName: string };
-  formErrors: Record<string, string>;
   showErrors: boolean;
-  onValueChange: (args: { name: string; value: string }) => void;
-  handleNext: () => void;
 };
 
 export type TRegisterFormProps = {
   colors: AuthColors;
   errorMessage: string;
   formValues: IRegisterUser;
+  formErrors: Record<string, string>;
+  showErrors: boolean;
+  onValueChange: (args: { name: string; value: string }) => void;
+  onSubmit: () => void;
+  isLoading: boolean;
+};
+
+export type TWorkspaceRegisterFormProps = {
+  colors: AuthColors;
+  errorMessage: string;
+  formValues: IWorkspaceRegister;
+  formErrors: Record<string, string>;
+  showErrors: boolean;
+  onValueChange: (args: { name: string; value: string }) => void;
+  onSubmit: () => void;
+  isLoading: boolean;
+};
+
+export type TCreateWorkspaceFormProps = {
+  colors: AuthColors;
+  errorMessage: string;
+  formValues: ICreateWorkspace;
   formErrors: Record<string, string>;
   showErrors: boolean;
   onValueChange: (args: { name: string; value: string }) => void;
@@ -68,3 +95,25 @@ export type TForgotPasswordResetFormProps = {
   onSubmit: () => void;
   onBackToLogin: () => void;
 };
+
+export type TProfileFormProps = {
+  firstName: string;
+  lastName: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export interface WorkspaceDropdownProps {
+  label?: string;
+  placeholder?: string;
+  workspaces: Workspace[];
+  selectedWorkspace: Workspace | null;
+  onSelectWorkspace: (workspace: Workspace) => void;
+  formErrors?: Record<string, string>;
+  showErrors?: boolean;
+  errorKey?: string;
+  size?: "sm" | "md" | "lg" | "xl";
+  platformAwareDefault?: boolean;
+  loading: boolean;
+}

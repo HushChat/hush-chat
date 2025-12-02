@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_role_attribute_to_workspace_user
+      author: ishan
+      tag: release-4.1
+      changes:
+        - addColumn:
+            tableName: message
+            columns:
+              - column:
+                  name: message_type
+                  type: VARCHAR(50)

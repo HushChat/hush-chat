@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_unique_conversation_user_read_status
+      author: Pavithra
+      tag: release-2.1
+      changes:
+        - addUniqueConstraint:
+            tableName: conversation_read_status
+            columnNames: conversation_id, user_id
+            constraintName: UK_conversation_user_read_status

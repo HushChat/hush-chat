@@ -10,7 +10,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { SplashScreen } from "expo-router";
 
 export function useAppInitialization(fontsLoaded: boolean) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isWorkspaceSelected } = useAuthStore();
   const { fetchUserData, loading } = useUserStore();
   const [appReady, setAppReady] = useState(false);
 
@@ -23,11 +23,11 @@ export function useAppInitialization(fontsLoaded: boolean) {
 
   /** Load user data when authenticated */
   useEffect(() => {
-    if (fontsLoaded && isAuthenticated) {
+    if (fontsLoaded && isAuthenticated && isWorkspaceSelected) {
       fetchUserData();
       initNotifications();
     }
-  }, [fontsLoaded, isAuthenticated]);
+  }, [fontsLoaded, isAuthenticated, isWorkspaceSelected]);
 
   /** Hide splash when ready */
   useEffect(() => {

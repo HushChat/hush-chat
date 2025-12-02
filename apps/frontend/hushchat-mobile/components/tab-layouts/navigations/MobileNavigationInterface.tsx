@@ -11,6 +11,8 @@ interface MobileNavigationInterfaceProps extends BottomTabBarProps {
   navigationItems: INavigationItem[];
 }
 
+const EXCLUDED_ROUTES = ["settings"];
+
 const MobileNavigationInterface = ({
   state,
   descriptors,
@@ -18,13 +20,14 @@ const MobileNavigationInterface = ({
   navigationItems,
 }: MobileNavigationInterfaceProps) => {
   const insets = useSafeAreaInsets();
+  const filteredRoutes = state.routes.filter((route) => !EXCLUDED_ROUTES.includes(route.name));
 
   const TabBarContent = () => (
     <View
       className="flex-row bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800 justify-center gap-2"
       style={{ paddingBottom: insets.bottom }}
     >
-      {state.routes.map((route, index) => {
+      {filteredRoutes.map((route, index) => {
         const { options } = descriptors[route.key];
         const navigationItem = navigationItems.find((item) => item.name === route.name);
 

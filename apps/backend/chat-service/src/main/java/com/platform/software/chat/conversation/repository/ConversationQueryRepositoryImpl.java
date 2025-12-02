@@ -13,8 +13,11 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
@@ -30,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -43,9 +48,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QConversationParticipant qConversationParticipant = QConversationParticipant.conversationParticipant;
     private static final QMessage qMessage = QMessage.message;
     private static final QMessage qMessage2 = QMessage.message;
+    private final WebSocketSessionManager webSocketSessionManager;
 
-    public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
+    public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory, @Lazy WebSocketSessionManager webSocketSessionManager) {
         this.jpaQueryFactory = jpaQueryFactory;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     @Override
@@ -143,6 +150,10 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .and(qConversation.deleted.eq(false))
                 .and(qConversationParticipant.isDeleted.eq(false));
 
+        whereConditions = whereConditions.and(
+                qMessage.isNotNull().or(qConversation.isGroup.eq(true))
+        );
+
         if (isArchived) {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
         } else if (isFavorite) {
@@ -228,6 +239,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 String imageIndexedName = otherParticipant.getUser().getImageIndexedName();
                                 dto.setName(name);
                                 dto.setImageIndexedName(imageIndexedName);
+
+                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
+                                        otherParticipant.getUser().getEmail());
+
+                                dto.setChatUserStatus(status);
                             }
                         }
                     }
@@ -315,6 +331,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                           uOther.id.as("otherUserId"),
                           uOther.firstName.as("firstName"),
                           uOther.lastName.as("lastName"),
+                          uOther.email.as("email"),
                           uOther.imageIndexedName.as("imageIndexedName"),
                           b.id.isNotNull().as("blocked")
                   ))

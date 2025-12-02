@@ -6,6 +6,7 @@ import com.platform.software.exception.CustomForbiddenException;
 import com.platform.software.platform.workspace.entity.QWorkspace;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspaceuser.entity.QWorkspaceUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.slf4j.Logger;
@@ -23,12 +24,13 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
     }
 
     @Override
-    public Workspace findPendingWorkspaceByUserEmailOrThrow(String email) {
+    public Workspace findPendingWorkspaceByUserEmailOrThrow(String email, String currantWorkspace) {
         Workspace workspace = jpaQueryFactory
             .select(qWorkspace)
             .from(qWorkspaceUser)
             .join(qWorkspaceUser.workspace, qWorkspace)
             .where(qWorkspaceUser.email.eq(email)
+                    .and(qWorkspace.name.eq(currantWorkspace))
                     .and(qWorkspaceUser.status.eq(WorkspaceUserStatus.PENDING)))
             .fetchOne();
 
@@ -48,7 +50,8 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
                 .join(qWorkspaceUser.workspace, qWorkspace)
                 .where(qWorkspaceUser.email.eq(inviterEmail)
                         .and(qWorkspace.workspaceIdentifier.eq(workspaceIdentifier))
-                        .and(qWorkspaceUser.status.ne(WorkspaceUserStatus.PENDING)))
+                        .and(qWorkspaceUser.status.ne(WorkspaceUserStatus.PENDING))
+                        .and(qWorkspaceUser.role.eq(WorkspaceUserRole.ADMIN)))
                 .fetchOne();
         if (workspace == null) {
             logger.info("User: {} does not have permission to invite to workspace: {}", inviterEmail, workspaceIdentifier);

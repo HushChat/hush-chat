@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { ReactNode } from "react";
+import React, { JSX, ReactNode } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
@@ -16,6 +16,8 @@ export interface IConversation {
   mutedByLoggedInUser: boolean;
   favoriteByLoggedInUser: boolean;
   archivedByLoggedInUser: boolean;
+  unreadCount: number;
+  chatUserStatus: chatUserStatus;
 }
 
 export interface ReactionSummary {
@@ -29,6 +31,12 @@ export interface IMessageAttachment {
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;
+}
+
+export enum MessageTypeEnum {
+  TEXT = "TEXT",
+  ATTACHMENT = "ATTACHMENT",
+  SYSTEM_EVENT = "SYSTEM_EVENT",
 }
 
 export interface IMessage {
@@ -47,6 +55,9 @@ export interface IMessage {
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
+  isReadByEveryone?: boolean;
+  messageType?: MessageTypeEnum;
+  hasAttachment?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -86,6 +97,11 @@ export interface oneToOneChatInfo {
   favorite: boolean;
   pinned: boolean;
   mutedUntil: number | null;
+}
+
+export interface ConversationReadInfo {
+  unreadCount: number | null;
+  lastSeenMessageId: number | null;
 }
 
 export interface UserView {
@@ -213,6 +229,7 @@ export interface ISectionedSearchResult extends ISearchResults {
 export interface TMessageForward {
   forwardedMessageIds: number[];
   conversationIds: number[];
+  userIds?: number[];
   customText: string;
 }
 
@@ -220,6 +237,7 @@ export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
   signedImageUrl: string;
+  chatUserStatus?: chatUserStatus;
 }
 
 export type TPickerState = {
@@ -247,3 +265,18 @@ export const REACTION_EMOJIS: Record<ReactionType, string> = {
   SAD: "😢",
   ANGRY: "😠",
 };
+
+export enum chatUserStatus {
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
+  AWAY = "AWAY",
+  BUSY = "BUSY",
+}
+
+export interface IActionConfig {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  color?: string;
+  critical?: boolean;
+}

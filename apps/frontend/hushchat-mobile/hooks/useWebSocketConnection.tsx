@@ -20,6 +20,8 @@ interface DecodedJWTPayload {
   [key: string]: any;
 }
 
+const RETRY_TIME_MS = 10000;
+const RETRY_FOR_MISSING_WORKSPACE = 1000;
 const INVALID_ACCESS_TOKEN_ERROR = "Invalid access token format or structure";
 const ERROR_RESPONSE = "ERROR";
 const MESSAGE_RESPONSE = "MESSAGE";
@@ -91,7 +93,12 @@ export default function useWebSocketConnection() {
       try {
         setConnectionStatus(WebSocketStatus.Connecting);
 
-        const { idToken } = await getAllTokens();
+        const { idToken, workspace } = await getAllTokens();
+
+        if (workspace == null) {
+          setTimeout(fetchAndSubscribe, RETRY_FOR_MISSING_WORKSPACE);
+        }
+
         if (idToken === null) {
           logInfo("aborting web socket connection due to missing token");
           shouldStopRetrying.current = true;
@@ -115,9 +122,7 @@ export default function useWebSocketConnection() {
           const connectFrameBytes = [
             ...Array.from(new TextEncoder().encode("CONNECT\n")),
             ...Array.from(new TextEncoder().encode(`Authorization:Bearer ${idToken}\n`)),
-            ...Array.from(
-              new TextEncoder().encode(`Workspace-Id:${process.env.EXPO_PUBLIC_TENANT}\n`)
-            ),
+            ...Array.from(new TextEncoder().encode(`Workspace-Id:${workspace}\n`)),
             ...Array.from(new TextEncoder().encode("accept-version:1.2\n")),
             ...Array.from(new TextEncoder().encode("heart-beat:0,0\n")),
             0x0a, // empty line
@@ -199,13 +204,20 @@ export default function useWebSocketConnection() {
           if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
             logInfo("Connection closed due to authentication failure");
             shouldStopRetrying.current = true;
+            return; // Exit early - no retry on auth failures
+          }
+
+          // Reconnect on all other disconnections (including after errors)
+          if (!isCancelled && !shouldStopRetrying.current) {
+            logInfo("WebSocket disconnected, attempting reconnection in 10 seconds...");
+            setTimeout(fetchAndSubscribe, RETRY_TIME_MS);
           }
         };
       } catch (error) {
         logInfo("Connection setup error:", error);
         setConnectionStatus(WebSocketStatus.Error);
         if (!isCancelled && !shouldStopRetrying.current) {
-          setTimeout(fetchAndSubscribe, 10000);
+          setTimeout(fetchAndSubscribe, RETRY_TIME_MS);
         }
       }
     };

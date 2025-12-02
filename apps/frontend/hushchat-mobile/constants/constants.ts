@@ -6,6 +6,8 @@ export const REFRESH_TOKEN_KEY = "refreshToken";
 export const getDraftKey = (conversationId: number | string) => `draft_${conversationId}`;
 export const MENTION_PREFIX = "@";
 export const EMPTY_SET = new Set<number>();
+export const WORKSPACE = "workspace";
+export const X_TENANT = "X-Tenant";
 
 export const TITLES = {
   ARCHIVE_CHAT: (conversationType: ConversationType) =>
@@ -15,6 +17,8 @@ export const TITLES = {
   ADD_TO_FAVOURITES: "Add to favourites",
   REMOVE_FROM_FAVOURITES: "Remove from favourites",
   DELETE_CHAT: "Delete chat",
+  PIN_CONVERSATION: "Pin Conversation",
+  UNPIN_CONVERSATION: "Unpin Conversation",
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";

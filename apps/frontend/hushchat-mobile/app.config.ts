@@ -10,7 +10,7 @@ export default () => ({
     scheme: "chat",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
-    owner: "hushchat",
+    owner: process.env.EAS_PROJECT_OWNER,
     ios: {
       supportsTablet: true,
     },
@@ -19,7 +19,7 @@ export default () => ({
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
-      package: "com.hushchat.chat",
+      package: "com.hush.chat",
       // versionCode: 2,
       // useNextNotificationsApi: true,
       // googleServicesFile: path.resolve(__dirname, 'google-services.json'),
@@ -28,6 +28,10 @@ export default () => ({
       bundler: "metro",
       output: "static",
       favicon: "./assets/images/favicon.png",
+      build: {
+        minify: true,
+        hashAssetFiles: true,
+      },
     },
     plugins: [
       "expo-router",
@@ -40,13 +44,22 @@ export default () => ({
           backgroundColor: "#ffffff",
         },
       ],
+      [
+        "expo-media-library",
+        {
+          photosPermission: "Allow $(PRODUCT_NAME) to access your photos.",
+          savePhotosPermission: "Allow $(PRODUCT_NAME) to save photos.",
+          isAccessMediaLocationEnabled: true,
+          granularPermissions: ["audio", "photo"],
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
     },
     extra: {
       eas: {
-        projectId: "5f708cde-5505-47a1-b187-4444651e1ead",
+        projectId: process.env.EAS_PROJECT_ID,
       },
     },
   },

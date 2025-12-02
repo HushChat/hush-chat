@@ -1,6 +1,6 @@
-import { TabLayoutProps } from "@/types/navigation/types";
 import { Tabs } from "expo-router";
 import MobileNavigationInterface from "@/components/tab-layouts/navigations/MobileNavigationInterface";
+import { TabLayoutProps } from "@/types/navigation/types";
 
 const MobileTabLayout = (tabLayoutProps: TabLayoutProps) => {
   const { navigationItems } = tabLayoutProps;

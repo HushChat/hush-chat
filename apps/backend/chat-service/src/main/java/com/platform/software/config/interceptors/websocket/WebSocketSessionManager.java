@@ -1,5 +1,6 @@
 package com.platform.software.config.interceptors.websocket;
 
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.common.constants.GeneralConstants;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -180,5 +181,16 @@ public class WebSocketSessionManager {
         if (!keysToRemove.isEmpty()) {
             logger.info("cleaned up {} invalid sessions", keysToRemove.size());
         }
+    }
+
+    public boolean isUserConnected(String tenantId, String email) {
+        String webSocketStoreKey = String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
+        return webSocketSessionInfos.containsKey(webSocketStoreKey);
+    }
+
+    public ChatUserStatus getUserChatStatus(String tenantId, String email) {
+        return isUserConnected(tenantId, email)
+                ? ChatUserStatus.ONLINE
+                : ChatUserStatus.OFFLINE;
     }
 }

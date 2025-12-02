@@ -53,6 +53,8 @@ const ChatHeader = ({
               name={conversationInfo.conversationName}
               size={AvatarSize.small}
               imageUrl={conversationInfo.signedImageUrl}
+              showOnlineStatus={true}
+              userStatus={conversationInfo.chatUserStatus}
             />
             <AppText
               className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark flex-1"
