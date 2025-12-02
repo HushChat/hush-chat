@@ -11,6 +11,7 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,17 +32,20 @@ public class SearchService {
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
     private final UserService userService;
+    private final CloudPhotoHandlingService  cloudPhotoHandlingService;
 
     public SearchService(
         ConversationParticipantRepository conversationParticipantRepository,
         MessageRepository messageRepository,
         ConversationRepository conversationRepository,
-        UserService userService
+        UserService userService,
+        CloudPhotoHandlingService cloudPhotoHandlingService
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
         this.userService = userService;
+        this.cloudPhotoHandlingService = cloudPhotoHandlingService;
     }
 
     /**
@@ -101,7 +105,7 @@ public class SearchService {
 
         Set<Long> conversationIds = loggedInUserAllConversations.stream()
                 .map(ConversationDTO::getId).collect(Collectors.toSet());
-        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, pageable);
+        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, loggedInUserId, pageable);
 
         List<ConversationDTO> conversationsFromMessages  = messagePage.getContent()
                 .stream()
@@ -145,6 +149,13 @@ public class SearchService {
         Page<ConversationDTO> conversationDTOPage = conversationRepository.findAllConversationsByUserIdWithLatestMessages(
             loggedInUserId, conversationFilterCriteria, pageable
         );
+
+        conversationDTOPage.map(dto -> {
+            String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(dto.getImageIndexedName());
+            dto.setSignedImageUrl(signedImageUrl);
+
+            return dto;
+        });
 
         return conversationDTOPage.getContent();
     }

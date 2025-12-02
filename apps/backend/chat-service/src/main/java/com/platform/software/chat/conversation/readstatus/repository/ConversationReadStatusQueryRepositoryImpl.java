@@ -3,18 +3,18 @@ package com.platform.software.chat.conversation.readstatus.repository;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationUnreadCount;
+import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.entity.QConversationReadStatus;
+import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.entity.QMessage;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -22,6 +22,7 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
     private static final QConversationReadStatus qConversationReadStatus = QConversationReadStatus.conversationReadStatus;
     private static final QConversation qConversation = QConversation.conversation;
     private static final QMessage qMessage = QMessage.message;
+    private static final QConversationParticipant qParticipant = QConversationParticipant.conversationParticipant;
     private final JPAQueryFactory queryFactory;
 
     public ConversationReadStatusQueryRepositoryImpl(JPAQueryFactory queryFactory) {
@@ -102,5 +103,31 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
                 qConversationReadStatus.message.id.isNull()
                     .or(qMessage.id.gt(qConversationReadStatus.message.id))
             );
+    }
+
+    @Override
+    public Map<Long, Long> findLastReadMessageIdsByConversationId(Long conversationId) {
+
+        List<Tuple> results = queryFactory
+            .select(
+                qParticipant.user.id,
+                qConversationReadStatus.message.id
+            )
+            .from(qParticipant)
+            .leftJoin(qConversationReadStatus)
+            .on(qConversationReadStatus.conversation.id.eq(conversationId)
+                .and(qConversationReadStatus.user.id.eq(qParticipant.user.id)))
+            .where(qParticipant.conversation.id.eq(conversationId)
+                .and(qParticipant.isActive.isTrue()))
+            .fetch();
+
+        Map<Long, Long> resultMap = new HashMap<>();
+        for (Tuple tuple : results) {
+            resultMap.put(
+                tuple.get(qParticipant.user.id),
+                tuple.get(qConversationReadStatus.message.id)
+            );
+        }
+        return resultMap;
     }
 }
