@@ -21,6 +21,7 @@ interface DecodedJWTPayload {
 }
 
 const RETRY_TIME_MS = 10000;
+const RETRY_FOR_MISSING_WORKSPACE = 1000;
 const INVALID_ACCESS_TOKEN_ERROR = "Invalid access token format or structure";
 const ERROR_RESPONSE = "ERROR";
 const MESSAGE_RESPONSE = "MESSAGE";
@@ -93,6 +94,11 @@ export default function useWebSocketConnection() {
         setConnectionStatus(WebSocketStatus.Connecting);
 
         const { idToken, workspace } = await getAllTokens();
+
+        if (workspace == null) {
+          setTimeout(fetchAndSubscribe, RETRY_FOR_MISSING_WORKSPACE);
+        }
+
         if (idToken === null) {
           logInfo("aborting web socket connection due to missing token");
           shouldStopRetrying.current = true;

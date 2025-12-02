@@ -69,10 +69,6 @@ const WorkspaceDropdown = ({
 
   const tokens = SIZE_PRESETS[effectiveSize];
 
-  const inputBase =
-    "border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 " +
-    "bg-white dark:bg-gray-900";
-
   const openDropdown = () => {
     setIsOpen(true);
     translateY.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.cubic) });
@@ -122,7 +118,7 @@ const WorkspaceDropdown = ({
       <View className="flex-col gap-y-1">
         <Pressable onPress={() => openDropdown()}>
           <View
-            className={`${inputBase} ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.radius} flex-row items-center justify-between`}
+            className={`border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.radius} flex-row items-center justify-between`}
           >
             <Text
               className={`${tokens.font} ${
