@@ -4,11 +4,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { AppText } from "@/components/AppText";
 
-interface DragDropOverlayProps {
+type TDragDropOverlayProps = {
   visible: boolean;
-}
+};
 
-export default function DragAndDropOverlay({ visible }: DragDropOverlayProps) {
+export default function DragAndDropOverlay({ visible }: TDragDropOverlayProps) {
   if (!visible) return null;
 
   const isDark = colorScheme.get() === "dark";
