@@ -386,4 +386,27 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                         .and(qConversationParticipant.isDeleted.eq(true)))
                 .execute();
     }
+
+    @Override
+    public Map<Long, Long> findConversationIdsByUserIds(Set<Long> userIds, Long loggedInUserId) {
+        QConversationParticipant cpTarget = new QConversationParticipant("cpTarget");
+
+        List<Tuple> rows = queryFactory
+                .select(cpTarget.user.id, qConversation.id)
+                .from(qConversation)
+                .join(qConversationParticipant).on(qConversationParticipant.conversation.id.eq(qConversation.id))
+                .join(cpTarget).on(cpTarget.conversation.id.eq(qConversation.id))
+                .where(
+                        qConversation.isGroup.eq(false),
+                        qConversationParticipant.user.id.eq(loggedInUserId),
+                        cpTarget.user.id.in(userIds)
+                )
+                .fetch();
+
+        return rows.stream()
+                .collect(Collectors.toMap(
+                        row -> row.get(cpTarget.user.id),
+                        row -> row.get(qConversation.id)
+                ));
+    }
 }
