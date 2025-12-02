@@ -1,4 +1,4 @@
-import { TWorkspaceFormProps, Workspace } from "@/types/login/types";
+import { TWorkspaceFormProps, Workspace, workspaceStatus } from "@/types/login/types";
 import React, { useEffect, useState } from "react";
 import { FormButton, FormContainer, FormHeader, LinkText } from "@/components/FormComponents";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
@@ -67,8 +67,10 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const handleContinue = () => {
     if (!selectedWorkspace) return;
 
-    if (selectedWorkspace.status === "PENDING") {
+    if (selectedWorkspace.status === workspaceStatus.PENDING) {
       onNavigateToRegister();
+    } else if (selectedWorkspace.status === workspaceStatus.SUSPENDED) {
+      setError("Your access to this workspace has been suspended. Please contact support.");
     } else {
       handleNext();
     }
@@ -101,7 +103,11 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
         )}
 
         <FormButton
-          title={selectedWorkspace?.status === "PENDING" ? "Continue to Registration" : "Next"}
+          title={
+            selectedWorkspace?.status === workspaceStatus.PENDING
+              ? "Continue to Registration"
+              : "Next"
+          }
           onPress={handleContinue}
           disabled={!selectedWorkspace || loading}
           colors={colors}

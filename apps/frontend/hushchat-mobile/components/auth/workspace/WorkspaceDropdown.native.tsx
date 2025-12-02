@@ -18,7 +18,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { PLATFORM } from "@/constants/platformConstants";
-import { Workspace, WorkspaceDropdownProps } from "@/types/login/types";
+import { STATUS_STYLES, Workspace, WorkspaceDropdownProps } from "@/types/login/types";
 import { SIZE_PRESETS } from "@/components/forms/TextField";
 
 type SizeKey = NonNullable<WorkspaceDropdownProps["size"]>;
@@ -94,18 +94,11 @@ const WorkspaceDropdown = ({
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "PENDING") {
-      return (
-        <View className="bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">
-          <Text className="text-yellow-700 dark:text-yellow-400 text-xs font-medium">
-            Invitation Pending
-          </Text>
-        </View>
-      );
-    }
+    const style = STATUS_STYLES[status];
+
     return (
-      <View className="bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">
-        <Text className="text-green-700 dark:text-green-400 text-xs font-medium">Active</Text>
+      <View className={`${style.bg} px-2 py-0.5 rounded`}>
+        <Text className={`${style.text} text-xs font-medium`}>{style.label}</Text>
       </View>
     );
   };
