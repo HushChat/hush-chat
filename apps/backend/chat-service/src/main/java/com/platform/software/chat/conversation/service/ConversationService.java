@@ -1291,8 +1291,23 @@ public class ConversationService {
         return conversationReadInfo;
     }
 
-    public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long messageId, Long userId) {
-        return null;
+    public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
+        // todo - write a single function to do both at once
+        conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+        messageService.getMessageOrThrow(conversationId, messageId);
+
+        Page<ChatUser> users = conversationReadStatusRepository
+                .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
+
+        Page<UserBasicViewDTO> userDTOs = users.map(user -> {
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(user.getImageIndexedName());
+
+            UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
+            userBasicViewDTO.setSignedImageUrl(signedUrl);
+            return userBasicViewDTO;
+        });
+
+        return userDTOs;
     }
 }
 

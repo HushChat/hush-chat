@@ -15,6 +15,7 @@ import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.controller.external.OffsetBasedPageRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -196,12 +197,14 @@ public class ConversationMessageController {
     }
 
     @ApiOperation(value = "Get a page of participants who read the message", response = UserBasicViewDTO.class)
-    @GetMapping("{messageId/message-seen-participants}")
+    @GetMapping("{messageId}/seen-by")
     public ResponseEntity<Page<UserBasicViewDTO>> getMessageSeenGroupParticipants(
+            @PathVariable Long conversationId,
             @PathVariable Long messageId,
-            @AuthenticatedUser UserDetails userDetails
+            @AuthenticatedUser UserDetails userDetails,
+            Pageable pageable
     ) {
-        Page<UserBasicViewDTO> userBasicViewDTOs = conversationService.getMessageSeenGroupParticipants(messageId, userDetails.getId());
+        Page<UserBasicViewDTO> userBasicViewDTOs = conversationService.getMessageSeenGroupParticipants(conversationId, messageId, userDetails.getId(), pageable);
         return new ResponseEntity<>(userBasicViewDTOs, HttpStatus.OK);
     }
 }
