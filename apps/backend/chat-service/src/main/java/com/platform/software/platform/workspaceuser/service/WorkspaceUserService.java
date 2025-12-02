@@ -55,7 +55,7 @@ public class WorkspaceUserService {
             WorkspaceUser workspaceUser = workspaceUserRepository.findByEmailAndWorkspace_Id(email, workspaceId)
                     .orElseThrow(() -> new CustomAccessDeniedException("No invitation found for the given email and workspace"));
 
-            workspaceUser.setStatus(WorkspaceUserStatus.ACCEPTED);
+            workspaceUser.setStatus(WorkspaceUserStatus.ACTIVE);
             workspaceUserRepository.save(workspaceUser);
         });
     }
