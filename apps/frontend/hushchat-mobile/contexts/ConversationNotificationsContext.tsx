@@ -44,7 +44,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const [notificationConversation, setNotificationConversation] = useState<IConversation | null>(
     null
   );
-  const { selectedConversationType, selectedConversationId } = useConversationStore();
+  const { selectedConversationType } = useConversationStore();
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
@@ -92,10 +92,11 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         pageSize: PAGE_SIZE,
         getPageItems: (page) => page?.content,
         setPageItems: (page, items) => ({ ...page, content: items }),
-        dedupeAcrossPages: true,
+        moveUpdatedToTop: true,
+        isPinned: (conversation) => conversation.pinnedByLoggedInUser,
       }
     );
-  }, [notificationConversation, queryClient, loggedInUserId, criteria, selectedConversationId]);
+  }, [notificationConversation, queryClient, loggedInUserId, criteria]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
     updatePaginatedItemInCache<IConversation>(

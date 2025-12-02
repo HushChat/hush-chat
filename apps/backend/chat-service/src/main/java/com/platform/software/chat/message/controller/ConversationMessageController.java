@@ -11,7 +11,6 @@ import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.platform.software.controller.external.OffsetBasedPageRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -29,7 +28,11 @@ public class ConversationMessageController {
     private final ConversationService conversationService;
     private final ConversationReadStatusService conversationReadStatusService;
 
-    public ConversationMessageController(MessageService messageService, ConversationService conversationService, ConversationReadStatusService conversationReadStatusService) {
+    public ConversationMessageController(
+        MessageService messageService, 
+        ConversationService conversationService, 
+        ConversationReadStatusService conversationReadStatusService
+    ) {
         this.messageService = messageService;
         this.conversationService = conversationService;
         this.conversationReadStatusService = conversationReadStatusService;
@@ -143,6 +146,27 @@ public class ConversationMessageController {
                 conversationId,
                 messageId
         );
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Edit message response entity.
+     *
+     * @param conversationId the conversation id
+     * @param messageId      the message id
+     * @param userDetails    the user details
+     * @param messageDTO     the message dto
+     * @return the response entity
+     */
+    @ApiOperation(value = "edit a message")
+    @PutMapping("{messageId}")
+    public ResponseEntity<Void> editMessage(
+        @PathVariable Long conversationId,
+        @PathVariable Long messageId,
+        @AuthenticatedUser UserDetails userDetails,
+        @RequestBody MessageUpsertDTO messageDTO
+    ) {
+        messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
         return ResponseEntity.ok().build();
     }
 

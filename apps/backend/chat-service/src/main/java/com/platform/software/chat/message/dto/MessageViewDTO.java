@@ -5,6 +5,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,9 +28,12 @@ public class MessageViewDTO {
     private Boolean isForwarded;
     private Boolean isUnsend;
     private String senderSignedImageUrl;
-     private String imageIndexedName;
+    private String imageIndexedName;
+    private Boolean isReadByEveryone;
+    private MessageTypeEnum messageType;
+    private Boolean hasAttachment;
 
-     public MessageViewDTO(Message message) {
+    public MessageViewDTO(Message message) {
         initializeFromMessage(message);
 
         Message parent = message.getParentMessage();
@@ -44,7 +48,7 @@ public class MessageViewDTO {
         this.isSeen = lastSeenMessageId != null && message.getId() <= lastSeenMessageId;
     }
 
-       public MessageViewDTO(Message message, boolean includeParent) {
+    public MessageViewDTO(Message message, boolean includeParent) {
         initializeFromMessage(message);
 
         Message parent = message.getParentMessage();
@@ -60,10 +64,13 @@ public class MessageViewDTO {
         this.senderId = message.getSender().getId();
         this.senderFirstName = message.getSender().getFirstName();
         this.senderLastName = message.getSender().getLastName();
-        this.imageIndexedName= message.getSender().getImageIndexedName();
+        this.imageIndexedName = message.getSender().getImageIndexedName();
         this.conversationId = message.getConversation().getId();
         this.isForwarded = message.getForwardedMessage() != null;
         this.isUnsend = message.getIsUnsend();
+        this.messageType = message.getMessageType();
+        this.hasAttachment = message.getAttachments() != null 
+            && !message.getAttachments().isEmpty();
 
         if (message.getIsUnsend()) {
             this.setMessageText("");

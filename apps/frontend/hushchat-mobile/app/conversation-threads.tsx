@@ -8,7 +8,6 @@ import ChatHeader from "@/components/conversations/conversation-thread/ChatHeade
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
 import EmptyChatState from "@/components/conversations/conversation-thread/message-list/EmptyChatState";
 import LoadingState from "@/components/LoadingState";
-import ConversationInputBar from "@/components/conversations/conversation-thread/composer/ConversationInputBar";
 import DisabledMessageInput from "@/components/conversations/conversation-thread/composer/DisabledMessageInput";
 import FilePreviewOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay";
 import MessageForwardActionBar from "@/components/conversations/conversation-thread/composer/MessageForwardActionBar";
@@ -36,6 +35,7 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
+import ConversationInput from "@/components/conversation-input/ConversationInput";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -74,7 +74,6 @@ const ConversationThreadScreen = ({
     selectedConversationId,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
-
   const currentConversationId = conversationId || Number(params.conversationId);
 
   useEffect(() => {
@@ -87,13 +86,16 @@ const ConversationThreadScreen = ({
     useConversationByIdQuery(currentConversationId);
 
   const {
-    conversationMessagesPages,
-    isLoadingConversationMessages,
-    conversationMessagesError,
+    pages: conversationMessagesPages,
+    isLoading: isLoadingConversationMessages,
+    error: conversationMessagesError,
     fetchNextPage,
-    isFetchingNextPage,
     hasNextPage,
-    refetchConversationMessages,
+    isFetchingNextPage,
+    fetchPreviousPage,
+    hasPreviousPage,
+    isFetchingPreviousPage,
+    invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
   } = useConversationMessagesQuery(currentConversationId);
@@ -110,7 +112,7 @@ const ConversationThreadScreen = ({
     },
     (data) => {
       updateConversation(currentConversationId, {
-        unreadCount: data.unreadCount || 0,
+        unreadCount: data.data?.unreadCount || 0,
       });
     },
     (error) => {
@@ -127,6 +129,11 @@ const ConversationThreadScreen = ({
       lastSeenMessageInfo?.lastSeenMessageId !== undefined
     ) {
       const firstMessage = messages[0];
+
+      if (!firstMessage.id || typeof firstMessage.id !== "number") {
+        return;
+      }
+
       const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
 
       if (!isFirstMessageLastSeen) {
@@ -142,12 +149,21 @@ const ConversationThreadScreen = ({
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
 
+  const handleNavigateToMessage = useCallback(
+    (messageId: number) => {
+      if (loadMessageWindow) {
+        void loadMessageWindow(messageId);
+        onMessageJumped?.();
+      }
+    },
+    [loadMessageWindow, onMessageJumped]
+  );
+
   useEffect(() => {
-    if (searchedMessageId && loadMessageWindow) {
-      void loadMessageWindow(searchedMessageId);
-      onMessageJumped?.();
+    if (searchedMessageId) {
+      handleNavigateToMessage(searchedMessageId);
     }
-  }, [searchedMessageId, loadMessageWindow, onMessageJumped]);
+  }, [searchedMessageId, handleNavigateToMessage]);
 
   const {
     selectedFiles,
@@ -163,14 +179,38 @@ const ConversationThreadScreen = ({
   const {
     pickAndUploadImages,
     uploadFilesFromWeb,
+    pickAndUploadDocuments,
     isUploading: isUploadingImages,
     error: uploadError,
   } = useMessageAttachmentUploader(currentConversationId, imageMessage);
+
+  const handleOpenDocumentPickerNative = useCallback(async () => {
+    try {
+      const results = await pickAndUploadDocuments();
+
+      if (results?.some((r) => r.success)) {
+        refetchConversationMessages();
+        setSelectedMessage(null);
+        setImageMessage("");
+      } else if (uploadError) {
+        ToastUtils.error(uploadError);
+      }
+    } catch {
+      ToastUtils.error("Failed to pick or upload documents.");
+    }
+  }, [
+    pickAndUploadDocuments,
+    refetchConversationMessages,
+    setSelectedMessage,
+    setImageMessage,
+    uploadError,
+  ]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImages();
       if (results?.some((r) => r.success)) {
+        await refetchConversationMessages();
         setSelectedMessage(null);
         setImageMessage("");
       } else if (uploadError) {
@@ -216,11 +256,17 @@ const ConversationThreadScreen = ({
     router.back();
   }, []);
 
-  const handleLoadMore = useCallback(async () => {
+  const handleLoadOlder = useCallback(async () => {
     if (hasNextPage && !isFetchingNextPage) {
       await fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleLoadNewer = useCallback(async () => {
+    if (hasPreviousPage && !isFetchingPreviousPage) {
+      await fetchPreviousPage();
+    }
+  }, [hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage]);
 
   const handleMessageSelect = useCallback((message: IMessage) => {
     setSelectedMessage(message);
@@ -284,13 +330,16 @@ const ConversationThreadScreen = ({
     return (
       <ConversationMessageList
         messages={conversationMessages}
-        onLoadMore={handleLoadMore}
+        onLoadMore={handleLoadOlder}
+        onLoadNewer={handleLoadNewer}
+        hasMoreNewer={hasPreviousPage}
+        isFetchingNewer={isFetchingPreviousPage}
         isFetchingNextPage={isFetchingNextPage}
         onMessageSelect={handleMessageSelect}
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
-        targetMessageId={Number(searchedMessageId)}
+        onNavigateToMessage={handleNavigateToMessage}
       />
     );
   }, [
@@ -299,13 +348,17 @@ const ConversationThreadScreen = ({
     conversationAPIError,
     conversationMessagesError,
     conversationMessages,
-    handleLoadMore,
+    handleLoadOlder,
+    handleLoadNewer,
+    hasPreviousPage,
+    isFetchingPreviousPage,
     isFetchingNextPage,
     handleMessageSelect,
     conversationAPIResponse,
     pickerState,
     currentConversationId,
     searchedMessageId,
+    handleNavigateToMessage,
   ]);
 
   const renderTextInput = useCallback(() => {
@@ -329,11 +382,12 @@ const ConversationThreadScreen = ({
     if (selectionMode) return null;
 
     return (
-      <ConversationInputBar
+      <ConversationInput
         conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
+        onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
         disabled={isLoadingConversationMessages}
         isSending={isSendingMessage || isUploadingImages}
         replyToMessage={selectedMessage}
@@ -349,6 +403,7 @@ const ConversationThreadScreen = ({
     handleSendMessage,
     handleOpenImagePicker,
     handleOpenImagePickerNative,
+    handleOpenDocumentPickerNative,
     isLoadingConversationMessages,
     isSendingMessage,
     isUploadingImages,
