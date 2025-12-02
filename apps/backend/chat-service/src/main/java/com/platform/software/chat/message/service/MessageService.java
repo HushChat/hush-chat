@@ -199,7 +199,7 @@ public class MessageService {
             ? MessageTypeEnum.AUDIO
             : MessageTypeEnum.ATTACHMENT;
 
-        Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
+        Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, messageType);
 
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 

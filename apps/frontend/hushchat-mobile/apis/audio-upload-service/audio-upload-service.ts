@@ -310,6 +310,7 @@ export function useMessageAudioUploader(
     };
 
     try {
+      console.log("awdawd")
       const results = await hook.upload([localFile], MessageTypeEnum.AUDIO);
 
       await updateMessageList([file], results.message);

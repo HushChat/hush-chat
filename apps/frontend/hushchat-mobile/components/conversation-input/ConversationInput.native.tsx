@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
@@ -8,10 +9,12 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
+import { useAudioRecording } from "@/hooks/useAudioRecording";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
+import { AppText } from "@/components/AppText";
 
 const ConversationInput = ({
   conversationId,
@@ -30,7 +33,8 @@ const ConversationInput = ({
   replyToMessage,
   onCancelReply,
   isGroupChat,
-}: ConversationInputProps) => {
+  updateConversationMessagesCache,
+}: ConversationInputProps & { updateConversationMessagesCache: (msg: any) => void }) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
   const input = useConversationInput({
@@ -46,6 +50,14 @@ const ConversationInput = ({
     lineHeight,
     verticalPadding,
     placeholder,
+  });
+
+  const audio = useAudioRecording({
+    conversationId,
+    message: input.message,
+    replyToMessage,
+    onCancelReply,
+    updateConversationMessagesCache,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -91,10 +103,29 @@ const ConversationInput = ({
         />
       )}
 
+      {audio.isRecording && (
+        <View className="px-4 py-2 bg-red-50 dark:bg-red-900/20 border-t border-gray-200 dark:border-gray-800">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <View className="w-3 h-3 bg-red-500 rounded-full mr-2" />
+              <AppText className="text-red-600 dark:text-red-400 font-medium">
+                Recording {audio.formatDuration(audio.recordingDuration)}
+              </AppText>
+            </View>
+            <Ionicons
+              name="close-circle"
+              size={24}
+              color="#EF4444"
+              onPress={audio.handleCancelRecording}
+            />
+          </View>
+        </View>
+      )}
+
       <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
         <AttachmentButton
           ref={input.addButtonRef}
-          disabled={disabled}
+          disabled={disabled || audio.isRecording}
           toggled={mobileMenuVisible}
           onPress={handleAddButtonPress}
         />
@@ -109,7 +140,7 @@ const ConversationInput = ({
                 ref={input.messageTextInputRef}
                 value={input.message}
                 placeholder={input.placeholder}
-                disabled={disabled}
+                disabled={disabled || audio.isRecording}
                 autoFocus={autoFocus}
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
@@ -125,8 +156,11 @@ const ConversationInput = ({
 
               <SendButton
                 showSend={input.isValidMessage}
-                isSending={isSending}
+                isSending={isSending || audio.isRecordUploading}
+                isRecording={audio.isRecording}
                 onPress={handleSendButtonPress}
+                onStartRecording={audio.handleStartRecording}
+                onStopRecording={audio.handleStopRecording}
               />
             </View>
 
