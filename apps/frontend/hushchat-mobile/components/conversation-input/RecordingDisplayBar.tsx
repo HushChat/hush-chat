@@ -20,4 +20,4 @@ export const RecordingDisplayBar = (audio: any) => (
       />
     </View>
   </View>
-)
+);

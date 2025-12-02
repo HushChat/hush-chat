@@ -310,7 +310,7 @@ export function useMessageAudioUploader(
     };
 
     try {
-      console.log("awdawd")
+      console.log("awdawd");
       const results = await hook.upload([localFile], MessageTypeEnum.AUDIO);
 
       await updateMessageList([file], results.message);
@@ -360,7 +360,6 @@ export function useMessageAudioUploader(
   };
 }
 
-// Export platform-agnostic recording functions
 export const AudioRecorder = {
   /**
    * Starts audio recording based on current platform
