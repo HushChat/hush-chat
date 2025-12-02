@@ -2,7 +2,7 @@ import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { IMessage, MessageTypeEnum } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
-import { LocalFile, SignedUrl, SignedUrlResponse } from "@/hooks/useNativePickerUpload";
+import { LocalFile, SignedUrlResponse } from "@/hooks/useNativePickerUpload";
 import { sendMessageByConversationIdFiles } from "@/apis/conversation";
 
 interface IGroupedMessages {

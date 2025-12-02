@@ -1,13 +1,6 @@
 import { Audio } from "expo-av";
 import { Platform } from "react-native";
-import {
-  LocalFile,
-  SignedUrl,
-  UploadResult,
-  UploadResultResponse,
-  useNativePickerUpload,
-} from "@/hooks/useNativePickerUpload";
-import { sendMessageByConversationIdFiles } from "@/apis/conversation";
+import { LocalFile, UploadResult, useNativePickerUpload } from "@/hooks/useNativePickerUpload";
 import { logWarn } from "@/utils/logger";
 import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";

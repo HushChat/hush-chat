@@ -4,15 +4,8 @@ import { CONVERSATION_API_ENDPOINTS, USER_API_ENDPOINTS } from "@/constants/apiC
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
-import {
-  LocalFile,
-  SignedUrl,
-  UploadResult,
-  useNativePickerUpload,
-} from "@/hooks/useNativePickerUpload";
-import { sendMessageByConversationIdFiles } from "@/apis/conversation";
+import { LocalFile, UploadResult, useNativePickerUpload } from "@/hooks/useNativePickerUpload";
 import { logWarn } from "@/utils/logger";
-import { MessageTypeEnum } from "@/types/chat/types";
 import { getSignedUrls } from "@/utils/messageUtils";
 
 export enum UploadType {
