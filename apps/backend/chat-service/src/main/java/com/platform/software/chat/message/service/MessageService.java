@@ -221,7 +221,7 @@ public class MessageService {
     ) {
         List<MessageViewDTO> createdMessages = new ArrayList<>();
         for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
-            Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
+            Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
             SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFileName(), savedMessage);
 
             MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
