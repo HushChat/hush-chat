@@ -61,6 +61,8 @@ export const CONVERSATION_API_ENDPOINTS = {
   TOGGLE_MUTE_CONVERSATION: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/mute`,
   UPDATE_CONVERSATION: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}`,
+  UPDATE_ONLY_ADMIN_CAN_SEND_MESSAGE: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/only-admins-can-send`,
   UPDATE_CONVERSATION_PARTICIPANT_ROLE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/admins`,
   SET_LAST_SEEN_MESSAGE: (conversationId: number) =>

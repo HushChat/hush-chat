@@ -112,6 +112,17 @@ export const updateConversationById = async (
   return { data: response.data };
 };
 
+export const updateOnlyAdminsCanSendMessages = async (
+  conversationId: number,
+  onlyAdminsCanSendMessages: boolean
+) => {
+  const response = await axios.patch(
+    `${CONVERSATION_API_ENDPOINTS.UPDATE_ONLY_ADMIN_CAN_SEND_MESSAGE(conversationId)}`,
+    { onlyAdminsCanSendMessages }
+  );
+  return { data: response.data };
+};
+
 export const getAllCallLogs = async (page: number = 0, size: number = 10) => {
   try {
     const response = await axios.get(USER_API_ENDPOINTS.CALL_LOGS, {

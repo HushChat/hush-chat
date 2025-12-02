@@ -974,6 +974,30 @@ public class ConversationService {
     }
 
     /**
+     * Update onlyAdminsCanSendMessages flag for a conversation. Only admins can update group setting.
+     * @param adminUserId id of requesting user (must be admin)
+     * @param conversationId id of conversation
+     * @param onlyAdmins flag to set
+     * @return updated ConversationDTO
+     */
+    public ConversationDTO updateOnlyAdminsCanSendMessages(Long adminUserId, Long conversationId, conversationParticipantPermissionUpdateDTO conversationPermissionUpdateDTO) {
+        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
+        Conversation conversation = adminParticipant.getConversation();
+
+        conversation.setOnlyAdminsCanSendMessages(Boolean.TRUE.equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages()));
+
+        try {
+            conversationRepository.save(conversation);
+            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+            return buildConversationDTO(conversation);
+        } catch (Exception e) {
+            logger.error("failed to update onlyAdminsCanSendMessages for conversationId: {} by user id: {}",
+                    conversationId, adminUserId, e);
+            throw new CustomInternalServerErrorException("Failed to update conversation permission setting");
+        }
+    }
+
+    /**
      * generate signed image url for uploading the image s3 bucket.
      *
      * @param loggedInUserId       the ID of the user updating the group info

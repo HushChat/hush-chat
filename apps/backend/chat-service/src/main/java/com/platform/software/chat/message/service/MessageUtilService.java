@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.entity.Message;
@@ -101,9 +102,15 @@ public class MessageUtilService {
      * @return the saved Message entity
      */
     public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
-        conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
         ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+
+        if (conversation.getOnlyAdminsCanSendMessages()) {
+            if (participant.getRole() != ConversationParticipantRoleEnum.ADMIN) {
+                throw new CustomForbiddenException("Only admins can send messages in this conversation");
+            }
+        }
 
         validateInteractionAllowed(conversation, senderUserId);
 

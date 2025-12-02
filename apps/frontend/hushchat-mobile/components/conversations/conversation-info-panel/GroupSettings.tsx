@@ -245,7 +245,7 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
       {isPanelContentReady && activePanel === PanelType.GROUP_PERMISSIONS && (
         <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
           <GroupPermissions
-            conversationId={conversation.id}
+            conversation={conversation}
             onClose={closePanel}
             visible={activePanel === PanelType.GROUP_PERMISSIONS}
           />
