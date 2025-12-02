@@ -8,6 +8,7 @@ import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.platform.workspace.dto.WorkspaceDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
+import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
 import com.platform.software.platform.workspace.service.WorkspaceService;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import io.swagger.annotations.ApiOperation;
@@ -68,4 +69,16 @@ public class WorkspaceController {
     public ResponseEntity<List<WorkspaceDTO>> getMyWorkspaces(@AuthenticatedUser UserDetails userDetails) {
         return new ResponseEntity<>(workspaceUserService.getAllWorkspaceDTO(userDetails.getEmail()), HttpStatus.OK);
     }
+
+    @ApiOperation(value = "Suspend/Unsuspend workspace user")
+    @PatchMapping("/suspend")
+    public ResponseEntity<Void> toggleSuspendWorkspaceUser(
+            @AuthenticatedUser UserDetails userDetails,
+            @RequestHeader("X-Tenant") String workspaceIdentifier,
+            @RequestBody WorkspaceUserSuspendDTO workspaceUserSuspendDTO
+    ) {
+        workspaceUserService.toggleSuspendWorkspaceUser(userDetails.getEmail(), workspaceIdentifier, workspaceUserSuspendDTO);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
 }

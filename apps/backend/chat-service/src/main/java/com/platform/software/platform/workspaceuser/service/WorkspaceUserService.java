@@ -4,8 +4,10 @@ import com.platform.software.exception.CustomAccessDeniedException;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.platform.workspace.dto.WorkspaceDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
+import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import com.platform.software.utils.WorkspaceUtils;
@@ -103,5 +105,35 @@ public class WorkspaceUserService {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    public void toggleSuspendWorkspaceUser(String requesterEmail, String workspaceIdentifier, WorkspaceUserSuspendDTO workspaceUserSuspendDTO) {
+        WorkspaceUtils.runInGlobalSchema(() -> {
+            transactionTemplate.executeWithoutResult(status -> {
+                WorkspaceUser requester = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
+                        requesterEmail, workspaceIdentifier).orElseThrow(() -> new CustomAccessDeniedException("Requester not found in any workspace."));
+
+                if (requester.getRole() != WorkspaceUserRole.ADMIN) {
+                    throw new CustomAccessDeniedException("Only admins can suspend/unsuspend users.");
+                }
+
+                WorkspaceUser userToSuspend = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
+                        workspaceUserSuspendDTO.getEmail(), workspaceIdentifier)
+                        .orElseThrow(() -> new CustomBadRequestException("User to suspend not found in the workspace."));
+
+                userToSuspend.setStatus(
+                        userToSuspend.getStatus() == WorkspaceUserStatus.SUSPENDED
+                                ? WorkspaceUserStatus.ACTIVE
+                                : WorkspaceUserStatus.SUSPENDED
+                );
+
+                workspaceUserRepository.save(userToSuspend);
+                logger.info("User: {} has been {} by requester: {} in workspace: {}",
+                        workspaceUserSuspendDTO.getEmail(),
+                        userToSuspend.getStatus().toString(),
+                        requesterEmail,
+                        workspaceIdentifier);
+            });
+        });
     }
 }
