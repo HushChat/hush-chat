@@ -26,9 +26,11 @@ import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
+import com.platform.software.chat.message.service.ConversationEventService;
 import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.message.service.MessageUtilService;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
@@ -86,6 +88,8 @@ public class ConversationService {
     private final ConversationReadStatusRepository conversationReadStatusRepository;
     private final ConversationEventRepository conversationEventRepository;
     private final ConversationEventMessageService conversationEventMessageService;
+    private final ConversationEventService conversationEventService;
+    private final MessageUtilService messageUtilService;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -236,7 +240,7 @@ public class ConversationService {
             return saveConversationAndBuildDTO(conversation);
         }
 
-        messageService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
+        conversationEventService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
 
         return conversationDTO;
     }
@@ -624,15 +628,9 @@ public class ConversationService {
     }
 
     private Map<Long, ConversationEvent> getMessageConversationEventMap(Collection<MessageViewDTO> messages) {
-        Set<Long> systemEventIds = messages.stream().map(message -> {
-                boolean isMessageSystemEvent = message.getMessageType() != null && message.getMessageType().equals(MessageTypeEnum.SYSTEM_EVENT);
-                if (isMessageSystemEvent) {
-                    return message.getId();
-                }
-
-                return null;
-            })
-            .filter(Objects::nonNull)
+        Set<Long> systemEventIds = messages.stream()
+            .filter(message -> message.getMessageType() != null && message.getMessageType() == MessageTypeEnum.SYSTEM_EVENT)
+            .map(MessageViewDTO::getId)
             .collect(Collectors.toSet());
 
         Map<Long, ConversationEvent> conversationEventMap = conversationEventRepository.findByMessageIdsAsMap(systemEventIds);
@@ -733,7 +731,7 @@ public class ConversationService {
         try {
             conversationParticipantRepository.save(targetParticipant);
 
-            messageService.createMessageWithConversationEvent(
+            conversationEventService.createMessageWithConversationEvent(
                 conversationId, loggedInUserId, List.of(targetUserId),
                 groupRoleManageRequest.getMakeAdmin()
                     ? ConversationEventType.USER_PROMOTED_TO_ADMIN
@@ -759,7 +757,7 @@ public class ConversationService {
         try {
             conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
 
-            messageService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
+            conversationEventService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
         } catch (Exception e) {
             logger.error("user: %s cannot leave the conversation due to an error".formatted(userId), e);
             throw new CustomInternalServerErrorException("Failed to leave the conversation");
@@ -815,7 +813,7 @@ public class ConversationService {
         try {
             conversationParticipantRepository.saveAll(participantsToSave);
 
-            messageService.createMessageWithConversationEvent(conversationId, initiatorUserId, joinRequest.getUserIds(), ConversationEventType.USER_ADDED);
+            conversationEventService.createMessageWithConversationEvent(conversationId, initiatorUserId, joinRequest.getUserIds(), ConversationEventType.USER_ADDED);
         } catch (Exception e) {
             logger.error("Failed to add participants. conversationId={}, initiator={}", conversationId, initiatorUserId, e);
             throw new CustomBadRequestException("Some users are already participants.");
@@ -955,11 +953,18 @@ public class ConversationService {
     }
 
     private void setGroupUpdateChangeEvents(Long adminUserId, boolean isGroupNameChanged, Conversation conversation, boolean isGroupDescriptionChanged) {
+        Long conversationId = conversation.getId();
+
         if (isGroupNameChanged) {
-            messageService.createMessageWithConversationEvent(conversation.getId(), adminUserId, null, ConversationEventType.GROUP_RENAMED);
+            conversationEventService.createMessageWithConversationEvent(
+                conversationId, adminUserId, null, ConversationEventType.GROUP_RENAMED
+            );
         }
-        if (isGroupDescriptionChanged) {
-            messageService.createMessageWithConversationEvent(conversation.getId(), adminUserId, null, ConversationEventType.GROUP_DESCRIPTION_CHANGED);
+
+        if (isGroupNameChanged || isGroupDescriptionChanged) {
+            conversationEventService.createMessageWithConversationEvent(
+                conversationId, adminUserId, null, ConversationEventType.GROUP_DESCRIPTION_CHANGED
+            );
         }
     }
 
@@ -1004,7 +1009,7 @@ public class ConversationService {
     public void togglePinMessage(Long userId, Long conversationId, Long messageId) {
         conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
 
-        Message message = messageService.getMessageOrThrow(conversationId, messageId);
+        Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
         boolean alreadyPinned = Optional.ofNullable(conversation.getPinnedMessage())
@@ -1284,7 +1289,7 @@ public class ConversationService {
         try {
             conversationParticipantRepository.updateIsActiveById(participantIdToRemove, false);
 
-            messageService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(participantIdToRemove), ConversationEventType.USER_REMOVED);
+            conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(participantIdToRemove), ConversationEventType.USER_REMOVED);
         } catch (Exception e) {
             logger.error("Cant remove user: %s due to an error".formatted(participantIdToRemove), e);
             throw new CustomInternalServerErrorException("Failed to remove user from conversation");
