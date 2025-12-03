@@ -33,6 +33,12 @@ export interface IMessageAttachment {
   fileUrl: string;
 }
 
+export enum MessageTypeEnum {
+  TEXT = "TEXT",
+  ATTACHMENT = "ATTACHMENT",
+  SYSTEM_EVENT = "SYSTEM_EVENT",
+}
+
 export interface IMessage {
   id: number;
   senderId: number;
@@ -50,6 +56,8 @@ export interface IMessage {
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
+  messageType?: MessageTypeEnum;
+  hasAttachment?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -221,6 +229,7 @@ export interface ISectionedSearchResult extends ISearchResults {
 export interface TMessageForward {
   forwardedMessageIds: number[];
   conversationIds: number[];
+  userIds?: number[];
   customText: string;
 }
 
@@ -271,3 +280,41 @@ export interface IActionConfig {
   color?: string;
   critical?: boolean;
 }
+
+export interface ConversationInputProps {
+  conversationId: number;
+  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onOpenImagePicker?: (files: File[]) => void;
+  onOpenImagePickerNative?: () => void;
+  onOpenDocumentPickerNative?: () => void;
+  disabled?: boolean;
+  isSending?: boolean;
+  placeholder?: string;
+  minLines?: number;
+  maxLines?: number;
+  lineHeight?: number;
+  verticalPadding?: number;
+  maxChars?: number;
+  autoFocus?: boolean;
+  replyToMessage?: IMessage | null;
+  onCancelReply?: () => void;
+  isGroupChat?: boolean;
+}
+
+export interface ConversationInputConfig {
+  minLines: number;
+  maxLines: number;
+  lineHeight: number;
+  verticalPadding: number;
+  placeholder: string;
+  autoFocus: boolean;
+}
+
+export const DEFAULT_CONFIG: ConversationInputConfig = {
+  minLines: 1,
+  maxLines: 6,
+  lineHeight: 22,
+  verticalPadding: 12,
+  placeholder: "Type a message...",
+  autoFocus: false,
+};

@@ -19,14 +19,18 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { usePatchConversationQuery } from "@/query/post/queries";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
 import { AppText, AppTextInput } from "@/components/AppText";
+import useWebPanelManager from "@/hooks/useWebPanelManager";
+import { PanelType } from "@/types/web-panel/types";
+import GroupPermissions from "./GroupPermissions";
+import ActionItem from "./common/ActionItem";
 
-interface GroupSettingsProps {
+interface IGroupSettingsProps {
   conversation: IConversation;
   onClose: () => void;
   visible: boolean;
 }
 
-export default function GroupSettings({ conversation, onClose, visible }: GroupSettingsProps) {
+export default function GroupSettings({ conversation, onClose, visible }: IGroupSettingsProps) {
   const { user } = useUserStore();
 
   const screenWidth = Dimensions.get("window").width;
@@ -42,6 +46,8 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
   const [signedImageUrl, setSignedImageUrl] = useState<string | null>(conversation.signedImageUrl);
   const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | undefined>();
   const isInitialMount = useRef(true);
+  const { activePanel, isPanelContentReady, openPanel, closePanel } =
+    useWebPanelManager(screenWidth);
 
   const { refetchConversation, conversationAPILoading } = useConversationByIdQuery(
     conversation?.id
@@ -85,6 +91,10 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
       name: newTitle,
       description,
     });
+  };
+
+  const handleGroupPermissions = () => {
+    openPanel(PanelType.GROUP_PERMISSIONS);
   };
 
   useEffect(() => {
@@ -225,6 +235,22 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
           </TouchableOpacity>
         )}
       </View>
+      <View className="mt-12 px-4">
+        <ActionItem
+          icon="shield-checkmark-outline"
+          label="Group Permissions"
+          onPress={handleGroupPermissions}
+        />
+      </View>
+      {isPanelContentReady && activePanel === PanelType.GROUP_PERMISSIONS && (
+        <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
+          <GroupPermissions
+            conversationId={conversation.id}
+            onClose={closePanel}
+            visible={activePanel === PanelType.GROUP_PERMISSIONS}
+          />
+        </View>
+      )}
     </Animated.View>
   );
 }

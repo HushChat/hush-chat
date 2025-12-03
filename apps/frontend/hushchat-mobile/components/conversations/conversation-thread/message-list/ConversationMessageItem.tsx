@@ -5,9 +5,15 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, View, StyleSheet } from "react-native";
+import { GestureResponderEvent, View, StyleSheet, Text } from "react-native";
 import { format } from "date-fns";
-import { ConversationAPIResponse, IMessage, IOption, ReactionType } from "@/types/chat/types";
+import {
+  ConversationAPIResponse,
+  IMessage,
+  IOption,
+  ReactionType,
+  MessageTypeEnum,
+} from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -110,6 +116,7 @@ export const ConversationMessageItem = ({
   const isForwardedMessage = message.isForwarded;
   const hasText = !!messageContent;
   const isGroupChat = conversationAPIResponse?.isGroup;
+  const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
@@ -132,7 +139,7 @@ export const ConversationMessageItem = ({
   );
 
   const outerGesture = useMemo(() => {
-    if (PLATFORM.IS_WEB && !message.isUnsend) {
+    if (PLATFORM.IS_WEB && !message.isUnsend && !isSystemEvent) {
       return Gesture.Tap()
         .numberOfTaps(2)
         .runOnJS(true)
@@ -142,35 +149,42 @@ export const ConversationMessageItem = ({
         });
     }
     return Gesture.Tap().enabled(false);
-  }, [conversationAPIResponse?.isBlocked, onMessageSelect, message]);
+  }, [conversationAPIResponse?.isBlocked, onMessageSelect, message, isSystemEvent]);
 
   const openWebMenuAtEvent = useCallback(
     (event: GestureResponderEvent) => {
       if (!PLATFORM.IS_WEB) return;
       if (selectionMode) return;
+      if (isSystemEvent) return;
       const { pageX, pageY } = event.nativeEvent;
       setWebMenuPos({ x: pageX ?? 0, y: pageY ?? 0 });
       setWebMenuVisible(true);
     },
-    [selectionMode]
+    [selectionMode, isSystemEvent]
   );
 
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
 
   const webOptions: IOption[] = useMemo(() => {
-    if (message.isUnsend) {
+    if (message.isUnsend || isSystemEvent) {
       return [];
     }
 
     const options: IOption[] = [
       {
         id: 1,
+        name: "Reply",
+        iconName: "arrow-undo-outline",
+        action: () => onMessageSelect?.(message),
+      },
+      {
+        id: 2,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
-        id: 2,
+        id: 3,
         name: "Select message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
@@ -178,7 +192,7 @@ export const ConversationMessageItem = ({
     ];
     if (isCurrentUser && !message.isUnsend) {
       options.push({
-        id: 3,
+        id: 4,
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
@@ -192,11 +206,13 @@ export const ConversationMessageItem = ({
     onMessagePin,
     onStartSelectionWith,
     onUnsendMessage,
+    isSystemEvent,
   ]);
 
   const handleLongPress = useCallback(() => {
     if (conversationAPIResponse?.isBlocked) return;
     if (selectionMode) return;
+    if (isSystemEvent) return;
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onOpenPicker(String(message.id));
     onMessageLongPress?.(message);
@@ -206,11 +222,13 @@ export const ConversationMessageItem = ({
     message,
     onMessageLongPress,
     onOpenPicker,
+    isSystemEvent,
   ]);
 
   const handleOpenPicker = useCallback(() => {
     if (conversationAPIResponse?.isBlocked || !conversationAPIResponse?.isActive) return;
     if (selectionMode) return;
+    if (isSystemEvent) return;
     onOpenPicker(String(message.id));
   }, [
     conversationAPIResponse?.isBlocked,
@@ -218,6 +236,7 @@ export const ConversationMessageItem = ({
     selectionMode,
     onOpenPicker,
     message.id,
+    isSystemEvent,
   ]);
 
   const addReaction = useAddMessageReactionMutation(
@@ -326,22 +345,35 @@ export const ConversationMessageItem = ({
 
   const handleBubblePress = useCallback(() => {
     if (!selectionMode) return;
+    if (isSystemEvent) return;
     onToggleSelection(Number(message.id));
-  }, [selectionMode, onToggleSelection, message.id]);
+  }, [selectionMode, onToggleSelection, message.id, isSystemEvent]);
+
+  if (isSystemEvent) {
+    return (
+      <View className="flex-row justify-center items-center py-2 px-4">
+        <View className="dark:bg-secondary-dark bg-secondary-light rounded-lg py-1.5 px-3 max-w-[80%]">
+          <Text className="dark:!text-gray-300 text-gray-700 text-xs text-center">
+            {messageContent}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const ContentBlock = () => (
     <View style={styles.contentBlockWrapper}>
       <View className="group mb-3">
         <View className="flex-row mx-2">
-          <View className="mr-2 pt-1 w-10 h-10">
-            {showSenderAvatar && (
+          {showSenderAvatar && (
+            <View className="mr-2 pt-1 w-10 h-10">
               <InitialsAvatar
                 name={senderName}
                 size={AvatarSize.extraSmall}
                 imageUrl={message.senderSignedImageUrl}
               />
-            )}
-          </View>
+            </View>
+          )}
           <View className="flex-1">
             <MessageHeader
               isCurrentUser={isCurrentUser}
