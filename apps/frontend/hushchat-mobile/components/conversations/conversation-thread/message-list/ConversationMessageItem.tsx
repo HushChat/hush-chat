@@ -173,12 +173,18 @@ export const ConversationMessageItem = ({
     const options: IOption[] = [
       {
         id: 1,
+        name: "Reply",
+        iconName: "arrow-undo-outline",
+        action: () => onMessageSelect?.(message),
+      },
+      {
+        id: 2,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
-        id: 2,
+        id: 3,
         name: "Select message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
@@ -186,7 +192,7 @@ export const ConversationMessageItem = ({
     ];
     if (isCurrentUser && !message.isUnsend) {
       options.push({
-        id: 3,
+        id: 4,
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
