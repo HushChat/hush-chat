@@ -1,5 +1,7 @@
 package com.platform.software.common.constants;
 
+import java.util.Set;
+
 public class Constants {
     public static final String X_TENANT_HEADER = "X-Tenant";
     public static final String DEFAULT_TEST_TENANT_ID = "localhost";
@@ -22,4 +24,16 @@ public class Constants {
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$";
     public static final String JWT_CLAIM_EMAIL = "email";
 
+    public static final Set<String> IMAGE_EXTENSIONS = Set.of(
+            "jpg", "jpeg", "png", "gif", "webp", "svg");
+
+    public static final Set<String> VIDEO_EXTENSIONS = Set.of(
+            "mp4", "avi", "mov", "wmv");
+
+    public static final Set<String> AUDIO_EXTENSIONS = Set.of(
+            "mp3", "wav");
+    
+    public static final Set<String> DOCUMENT_EXTENSIONS = Set.of(
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+            "txt", "csv");
 }

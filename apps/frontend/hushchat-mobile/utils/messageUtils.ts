@@ -1,5 +1,7 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { IMessage } from "@/types/chat/types";
+import { ToastUtils } from "@/utils/toastUtils";
+import * as Clipboard from "expo-clipboard";
 
 interface IGroupedMessages {
   title: string;
@@ -67,4 +69,31 @@ export const shouldShowSenderAvatar = (
   const sameSender = current.senderId === next.senderId;
 
   return !sameSender;
+};
+
+export const copyToClipboard = async (text: string | undefined): Promise<void> => {
+  if (!text) return;
+
+  try {
+    await Clipboard.setStringAsync(text);
+    ToastUtils.success("Copied to clipboard!");
+  } catch {
+    ToastUtils.error("Failed to copy to clipboard.");
+  }
+};
+
+export const normalizeUrl = (url: string | undefined | null): string | null => {
+  if (!url || !url.trim()) return null;
+
+  const trimmedUrl = url.trim();
+
+  const fullUrl = trimmedUrl.startsWith("http") ? trimmedUrl : `https://${trimmedUrl}`;
+
+  try {
+    new URL(fullUrl);
+    return fullUrl;
+  } catch {
+    console.warn("Invalid URL encountered:", fullUrl);
+    return null;
+  }
 };

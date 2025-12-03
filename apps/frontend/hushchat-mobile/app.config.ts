@@ -2,8 +2,9 @@ import "dotenv/config";
 
 export default () => ({
   expo: {
-    name: "chat",
+    name: "HushChat",
     slug: "chat",
+    displayName: "HushChat",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
@@ -42,6 +43,15 @@ export default () => ({
           imageWidth: 200,
           resizeMode: "contain",
           backgroundColor: "#ffffff",
+        },
+      ],
+      [
+        "expo-media-library",
+        {
+          photosPermission: "Allow $(PRODUCT_NAME) to access your photos.",
+          savePhotosPermission: "Allow $(PRODUCT_NAME) to save photos.",
+          isAccessMediaLocationEnabled: true,
+          granularPermissions: ["audio", "photo"],
         },
       ],
     ],
