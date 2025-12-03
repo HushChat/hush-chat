@@ -1,6 +1,8 @@
 package com.platform.software.chat.message.service;
 
 
+import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.FavouriteMessage;
 import com.platform.software.chat.message.entity.Message;
@@ -23,15 +25,18 @@ public class FavoriteMessageService {
     private final FavoriteMessageRepository favoriteMessageRepository;
     private final UserService userService;
     private final MessageService messageService;
+    private final ConversationUtilService conversationUtilService;
 
     public FavoriteMessageService(
         FavoriteMessageRepository favoriteMessageRepository,
         UserService userService,
-        MessageService messageService
+        MessageService messageService,
+        ConversationUtilService conversationUtilService
     ) {
         this.favoriteMessageRepository = favoriteMessageRepository;
         this.userService = userService;
         this.messageService = messageService;
+        this.conversationUtilService = conversationUtilService;
     }
 
     /**
@@ -41,9 +46,10 @@ public class FavoriteMessageService {
      * @param messageId the ID of the message to be favorited
      * @return MessageViewDTO containing the details of the favorited message
      */
-    public MessageViewDTO createFavoriteMessage(Long userId, Long messageId) {
+    public MessageViewDTO createFavoriteMessage(Long userId, Long conversationId, Long messageId) {
         ChatUser user = userService.getUserOrThrow(userId);
         Message message = messageService.getMessageIfUserParticipant(userId, messageId);
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
         if (favoriteMessageRepository.existsByUserIdAndMessageId(userId, messageId)) {
             logger.warn("user {} attempted to favorite message {} which is already favorited", userId, messageId);
@@ -53,6 +59,7 @@ public class FavoriteMessageService {
         FavouriteMessage favoriteMessage = new FavouriteMessage();
         favoriteMessage.setUser(user);
         favoriteMessage.setMessage(message);
+        favoriteMessage.setConversation(conversation);
         try {
             FavouriteMessage savedFavorite = favoriteMessageRepository.save(favoriteMessage);
             return new MessageViewDTO(savedFavorite.getMessage());

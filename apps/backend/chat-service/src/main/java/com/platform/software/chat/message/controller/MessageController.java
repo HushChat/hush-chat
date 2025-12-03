@@ -26,25 +26,6 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    /**
-     * Create a favorite message for the authenticated user.
-     *
-     * @param authenticatedUser the authenticated user details
-     * @param messageId the ID of the message to be favorited
-     * @return ResponseEntity containing the created MessageViewDTO
-     */
-    @ApiOperation(value = "Create favorite message", response = MessageViewDTO.class)
-    @PostMapping("{messageId}/favorite")
-    public ResponseEntity<MessageViewDTO> createFavoriteMessage(
-        @AuthenticatedUser UserDetails authenticatedUser,
-        @PathVariable Long messageId
-    ) {
-        MessageViewDTO favoriteMessage = favoriteMessageService.createFavoriteMessage(
-            authenticatedUser.getId(),
-            messageId
-        );
-        return ResponseEntity.ok(favoriteMessage);
-    }
 
     /**
      * Forward messages to one or more conversations.

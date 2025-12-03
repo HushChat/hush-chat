@@ -25,7 +25,9 @@ import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.entity.FavouriteMessage;
 import com.platform.software.chat.message.entity.Message;
+import com.platform.software.chat.message.repository.FavoriteMessageRepository;
 import com.platform.software.chat.message.service.ConversationEventService;
 import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
@@ -90,6 +92,7 @@ public class ConversationService {
     private final ConversationEventMessageService conversationEventMessageService;
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
+    private final FavoriteMessageRepository favoriteMessageRepository;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -572,6 +575,13 @@ public class ConversationService {
 
         List<Long> messageIds = extractMessageIds(messages);
 
+        List<FavouriteMessage> favouriteMessages =
+                favoriteMessageRepository.findByUserIdAndMessageIdInAndConversationId(loggedInUserId, messageIds, conversationId);
+
+        Set<Long> favoriteMessageIds = favouriteMessages.stream()
+                .map(favouriteMessage -> favouriteMessage.getMessage().getId())
+                .collect(Collectors.toSet());
+
         Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
                 messageReactionRepository.findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
 
@@ -587,6 +597,8 @@ public class ConversationService {
             .map(dto -> {
                 Message matchedMessage = messageMap.get(dto.getId());
                 List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+                dto.setIsFavorite(favoriteMessageIds.contains(dto.getId()));
 
                 if (conversationEventMap.containsKey(dto.getId())) {
                     ConversationEvent event = conversationEventMap.get(dto.getId());

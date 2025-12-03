@@ -58,6 +58,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isFavorite?: boolean;
 }
 
 export interface IMessageView extends IMessage {

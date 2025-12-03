@@ -86,3 +86,15 @@ export const getMessageReactions = async (
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
+
+export const favoriteMessage = async (params: { conversationId: number; messageId: number }) => {
+  try {
+    const response = await axios.post(
+      CONVERSATION_API_ENDPOINTS.ADD_MESSAGE_TO_FAVORITE(params.conversationId, params.messageId)
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};

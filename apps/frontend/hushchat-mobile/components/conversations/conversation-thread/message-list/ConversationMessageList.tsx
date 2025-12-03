@@ -51,7 +51,10 @@ const ConversationMessageList = ({
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
-  const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
+  const { togglePin, unSendMessage, toggleFavorite } = useMessageActions(
+    conversationAPIResponse,
+    currentUserId
+  );
 
   const {
     selectedActionMessage,
@@ -94,6 +97,7 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        toggleFavorite,
       }),
     [
       currentUserId,
@@ -111,6 +115,7 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      toggleFavorite,
     ]
   );
 

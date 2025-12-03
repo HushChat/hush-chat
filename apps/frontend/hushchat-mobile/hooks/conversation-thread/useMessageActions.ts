@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { usePinMessageMutation } from "@/query/post/queries";
+import { useFavoriteMessageMutation, usePinMessageMutation } from "@/query/post/queries";
 import { usePatchUnsendMessageMutation } from "@/query/patch/queries";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import { useUpdateCache } from "@/query/config/useUpdateCache";
@@ -95,9 +95,44 @@ export function useMessageActions(
     [unsend]
   );
 
+  /**
+   * Favorite/Unfavorite Messages
+   */
+  const { mutate: toggleFavoriteMessage } = useFavoriteMessageMutation(
+    undefined,
+    () => {
+      const newPinnedState =
+        conversation?.pinnedMessage?.id === selectedPinnedMessage?.id
+          ? null
+          : selectedPinnedMessage;
+
+      updateCache(
+        conversationQueryKeys.metaDataById(
+          Number(currentUserId ?? 0),
+          Number(conversation?.id ?? 0)
+        ),
+        (prev) => (prev ? { ...prev, pinnedMessage: newPinnedState } : prev)
+      );
+    },
+    (error) => {
+      ToastUtils.error(error as string);
+    }
+  );
+
+  const toggleFavorite = useCallback(
+    (message?: IBasicMessage) => {
+      const conversationId = conversation?.id;
+      if (!conversationId || !message) return;
+
+      toggleFavoriteMessage({ conversationId, messageId: message.id });
+    },
+    [conversation?.id]
+  );
+
   return {
     togglePin,
     unSendMessage,
     selectedPinnedMessage,
+    toggleFavorite,
   };
 }

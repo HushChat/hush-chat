@@ -62,6 +62,7 @@ interface MessageItemProps {
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  onMessageFavorite: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -87,6 +88,7 @@ export const ConversationMessageItem = ({
   onViewReactions,
   showSenderAvatar,
   onNavigateToMessage,
+  onMessageFavorite,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -179,12 +181,20 @@ export const ConversationMessageItem = ({
       },
       {
         id: 2,
+        name: message.isFavorite ? "Unfavorite" : "Favorite",
+        iconName: (message.isFavorite
+          ? "heart"
+          : "heart-outline") as keyof typeof Ionicons.glyphMap,
+        action: () => onMessageFavorite?.(message),
+      },
+      {
+        id: 3,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
-        id: 3,
+        id: 4,
         name: "Select message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
@@ -192,7 +202,7 @@ export const ConversationMessageItem = ({
     ];
     if (isCurrentUser && !message.isUnsend) {
       options.push({
-        id: 4,
+        id: 5,
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
