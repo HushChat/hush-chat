@@ -97,23 +97,3 @@ export const getUserWorkspaces = async () => {
     return { error: getAPIErrorMsg(error) };
   }
 };
-
-export const getAllWorkspaceUsers = async (page: number = 0, size: number = 15) => {
-  try {
-    const response = await axios.get(WORKSPACE_ENDPOINTS.USERS, {
-      params: { page, size },
-    });
-    return { data: response.data };
-  } catch (error: unknown) {
-    return { error: getAPIErrorMsg(error) };
-  }
-};
-
-export const toggleSuspendUser = async (email: string) => {
-  try {
-    const response = await axios.patch(WORKSPACE_ENDPOINTS.TOGGLE_SUSPEND_USER, { email });
-    return { data: response.data };
-  } catch (error: unknown) {
-    return { error: getAPIErrorMsg(error) };
-  }
-};

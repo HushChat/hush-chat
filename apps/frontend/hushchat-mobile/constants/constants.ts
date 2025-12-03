@@ -1,5 +1,4 @@
 import { ConversationType } from "@/types/chat/types";
-import { workspaceStatus } from "@/types/login/types";
 
 export const USER_TOKEN_KEY = "userToken";
 export const ACCESS_TOKEN_KEY = "accessToken";
@@ -14,8 +13,6 @@ export const TITLES = {
   ARCHIVE_CHAT: (conversationType: ConversationType) =>
     conversationType === ConversationType.ARCHIVED ? "Unarchive chat" : "Archive chat",
   TOGGLE_ROLE: (role: string) => (role === "ADMIN" ? "Remove Admin" : "Make Admin"),
-  TOGGLE_SUSPENSION: (userStatus: workspaceStatus) =>
-    userStatus === workspaceStatus.SUSPENDED ? "Unsuspend User" : "Suspend User",
   REMOVE_PARTICIPANT: "Remove participant",
   ADD_TO_FAVOURITES: "Add to favourites",
   REMOVE_FROM_FAVOURITES: "Remove from favourites",

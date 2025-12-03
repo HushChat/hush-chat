@@ -21,10 +21,7 @@ export function ContactUsFormFields() {
     >
       <View className="flex-row items-center mb-2">
         {!PLATFORM.IS_WEB && <BackButton onPress={() => router.back()} />}
-        <AppText
-          className="text-2xl
-         text-gray-900 dark:text-white leading-none"
-        >
+        <AppText className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
           Contact Us
         </AppText>
       </View>
