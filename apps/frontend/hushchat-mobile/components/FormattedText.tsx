@@ -35,18 +35,10 @@ const FormattedText = ({
   onMentionPress,
   onHashtagPress,
   isCurrentUser,
-  validMentionUsernames,
 }: FormattedTextProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [selectedUrl, setSelectedUrl] = useState<string>("");
-
-  const validUsernames = useMemo(() => {
-    if (validMentionUsernames) {
-      return validMentionUsernames;
-    }
-    return new Set(mentions.map((m) => m.username));
-  }, [mentions, validMentionUsernames]);
 
   const handleUrlPress = useCallback(
     async (url: string) => {
@@ -80,11 +72,13 @@ const FormattedText = ({
   const handleMentionPress = useCallback(
     (mention: string) => {
       const username = mention.replace(MENTION_REGEX, "");
-      if (validUsernames.has(username)) {
+      const isValidMention = mentions?.some((m) => m.username === username);
+
+      if (isValidMention) {
         onMentionPress?.(username);
       }
     },
-    [validUsernames, onMentionPress]
+    [mentions, onMentionPress]
   );
 
   const linkMenuOptions = useMemo<IOption[]>(
@@ -156,7 +150,8 @@ const FormattedText = ({
         onPress: handleMentionPress,
         renderText: ((matchingString: string) => {
           const username = matchingString.replace(/^@/, "");
-          const isValidMention = validUsernames.has(username);
+
+          const isValidMention = mentions?.some((m) => m.username === username);
 
           if (isValidMention) {
             return (
@@ -184,7 +179,6 @@ const FormattedText = ({
       handleUrlPress,
       isCurrentUser,
       handleUrlContextMenu,
-      validUsernames,
     ]
   );
 
