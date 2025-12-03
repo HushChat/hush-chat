@@ -15,6 +15,8 @@ public interface UserRepository extends JpaRepository<ChatUser, Long>, ChatUserQ
 
     List<ChatUser> findByIdInAndActiveTrueAndDeletedFalse(Collection<Long> ids);
 
+    Optional<ChatUser> findByIdAndActiveTrueAndDeletedFalse(Long id);
+
     List<ChatUser> findByUsernameIn(Collection<String> usernames);
 
     long countByIdIn(List<Long> ids);
