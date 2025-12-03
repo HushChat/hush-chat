@@ -70,15 +70,20 @@ export const setupGlobalErrorHandling = () => {
     (error: AxiosError) => {
       let errorMessage = "An unknown error occurred";
 
+      if (error.config?.skipErrorToast) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          safeLogoutAndRedirect();
+        }
+        return Promise.reject(error);
+      }
+
       if (error.response) {
         const responseData = error.response.data as ErrorResponse;
-        const statusCode = error.response.status;
         if (responseData) {
           errorMessage = extractErrorMessage(responseData);
         }
 
-        if (statusCode === 401 || statusCode === 403) {
-          ToastUtils.error("Session Expired", "Your session has expired. Logging out...");
+        if (error.response?.status === 401 || error.response?.status === 403) {
           safeLogoutAndRedirect();
           return Promise.reject(error);
         }
