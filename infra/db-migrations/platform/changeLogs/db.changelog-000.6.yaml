@@ -17,4 +17,6 @@ databaseChangeLog:
         - update:
             tableName: workspace
             columns:
-              status: 'ACTIVE'
+              - column:
+                  name: status
+                  value: ACTIVE
