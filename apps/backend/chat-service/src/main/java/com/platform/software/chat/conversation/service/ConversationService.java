@@ -598,6 +598,35 @@ public class ConversationService {
                     return dto;
                 }
 
+                if (matchedMessage.getParentMessage() != null) {
+                    List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage().getAttachments();
+
+                    if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
+
+                        // todo: send only one attachment from many for preview purpose, refactor as needed
+                        MessageAttachment parentMessageAttachment = parentMessageAttachments.stream()
+                                .findFirst()
+                                .orElse(null);
+
+                        try {
+                            String fileViewSignedURL = cloudPhotoHandlingService
+                                    .getPhotoViewSignedURL(parentMessageAttachment.getIndexedFileName());
+
+                            MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
+                            messageAttachmentDTO.setId(parentMessageAttachment.getId());
+                            messageAttachmentDTO.setFileUrl(fileViewSignedURL);
+                            messageAttachmentDTO.setIndexedFileName(parentMessageAttachment.getIndexedFileName());
+                            messageAttachmentDTO.setOriginalFileName(parentMessageAttachment.getOriginalFileName());
+                            messageAttachmentDTO.setType(parentMessageAttachment.getType());
+
+                            dto.getParentMessage().setMessageAttachments(List.of(messageAttachmentDTO));
+                        } catch (Exception e) {
+                            logger.error("failed to sign parent attachment url for parent message {}", matchedMessage.getParentMessage().getId(), e);
+                            throw new CustomInternalServerErrorException("Failed to get conversation!");
+                        }
+                    }
+                }
+
                 List<MessageAttachment> attachments = matchedMessage.getAttachments();
 
                 if (attachments == null || attachments.isEmpty()) {

@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.readstatus.repository.Conversatio
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.*;
@@ -17,10 +18,12 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.CustomResourceNotFoundException;
 import com.platform.software.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +56,7 @@ public class MessageService {
     private final MessageHistoryRepository messageHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
+    private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -103,7 +107,26 @@ public class MessageService {
         Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
-        messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
+        if (messageViewDTO.getParentMessage() != null) {
+            List<MessageAttachmentDTO> parentMessageAttachments = messageViewDTO.getParentMessage().getMessageAttachments();
+
+            if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
+                // todo: send only one attachment from many for preview purpose, refactor as needed
+                MessageAttachmentDTO parentMessageAttachment = parentMessageAttachments.stream()
+                        .findFirst()
+                        .orElse(null);
+
+                try {
+                    String fileViewSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(parentMessageAttachment.getIndexedFileName());
+
+                    parentMessageAttachment.setFileUrl(fileViewSignedURL);
+                } catch (Exception e) {
+                    logger.error("failed to sign parent attachment url for parent message {}", messageViewDTO.getParentMessage().getId(), e);
+                    throw new CustomInternalServerErrorException("Failed to Send Message");
+                }
+            }
+        }
 
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
