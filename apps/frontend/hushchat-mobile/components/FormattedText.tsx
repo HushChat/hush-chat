@@ -21,7 +21,6 @@ interface FormattedTextProps {
   onMentionPress?: (username: string) => void;
   onHashtagPress?: (hashtag: string) => void;
   isCurrentUser: boolean;
-  validMentionUsernames?: Set<string>;
 }
 
 const FormattedText = ({
