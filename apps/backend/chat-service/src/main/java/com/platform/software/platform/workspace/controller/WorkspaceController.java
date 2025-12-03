@@ -32,7 +32,7 @@ public class WorkspaceController {
         this.workspaceService = workspaceService;
     }
 
-    @ApiOperation(value = "Create new workspace")
+    @ApiOperation(value = "Submit new workspace creation request")
     @PostMapping
     public ResponseEntity<Void> submitCreateWorkspaceRequest(
             @Valid @RequestBody WorkspaceUpsertDTO workspaceUpsertDTO,
@@ -40,16 +40,6 @@ public class WorkspaceController {
     ){
         workspaceService.requestCreateWorkspace(workspaceUpsertDTO, userDetails.getEmail());
         return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @ApiOperation(value = "Approve new workspace creation")
-    @PostMapping("{workspaceId}/approve")
-    public ResponseEntity<Void> approveCreateWorkspaceRequest(
-            @PathVariable Long workspaceId,
-            @AuthenticatedUser UserDetails userDetails
-    ){
-        workspaceService.approveCreateWorkspaceRequest(workspaceId, userDetails.getEmail());
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @ApiOperation(value = "invite to workspaces")

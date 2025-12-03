@@ -45,6 +45,7 @@ public class WorkspaceService {
             }
 
             Workspace workspace = workspaceUpsertDTO.buildWorkspace();
+            workspace.setStatus(WorkspaceStatus.PENDING);
 
             Workspace createdWorkspace = workspaceRepository.save(workspace);
             logger.info("Workspace creation request initialized for workspace ID: {} and schema: {}", createdWorkspace.getId(), createdWorkspace.getName());
@@ -103,9 +104,7 @@ public class WorkspaceService {
         }
     }
 
-    public void approveCreateWorkspaceRequest(Long workspaceId, String approverEmail) {
-
-        //TODO: Approver validation
+    public void approveCreateWorkspaceRequest(Long workspaceId ) {
 
         WorkspaceUtils.runInGlobalSchema(() -> {
             Workspace workspace = workspaceRepository.findById(workspaceId)
@@ -119,7 +118,7 @@ public class WorkspaceService {
 
             workspace.setStatus(WorkspaceStatus.ACTIVE);
             workspaceRepository.save(workspace);
-            logger.info("Workspace with ID: {} has been approved and activated by {}", workspaceId, approverEmail);
+            logger.info("Workspace with ID: {} has been approved and activated", workspaceId);
         });
     }
 
