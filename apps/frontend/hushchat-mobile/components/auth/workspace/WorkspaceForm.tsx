@@ -1,51 +1,22 @@
 import { TWorkspaceFormProps, Workspace } from "@/types/login/types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FormButton, FormContainer, FormHeader, LinkText } from "@/components/FormComponents";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import WorkspaceDropdown from "@/components/auth/workspace/WorkspaceDropdown";
-import { getUserWorkspaces } from "@/apis/user";
 import { CHATS_PATH, WORKSPACE_CREATE_PATH, WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
 import { useAuthStore } from "@/store/auth/authStore";
-import { logError } from "@/utils/logger";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
 import { AppText } from "@/components/AppText";
+import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { saveWorkspace } = useSaveWorkspace();
   const { setWorkspaceSelected } = useAuthStore();
-
-  useEffect(() => {
-    const fetchWorkspaces = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await getUserWorkspaces();
-
-        if (response.error) {
-          setError(response.error);
-          logError(response.error);
-          return;
-        }
-
-        setWorkspaces(response.data || []);
-      } catch (err) {
-        logError("Error fetching workspaces:", err);
-        setError("Failed to load workspaces. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWorkspaces();
-  }, []);
+  const { workspaces, isLoadingWorkspaces, workspacesError } = useUserWorkspacesQuery();
 
   const onSelectWorkspace = (workspace: Workspace) => {
     setSelectedWorkspace(workspace);
@@ -91,19 +62,21 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
           onSelectWorkspace={onSelectWorkspace}
           showErrors={showErrors}
           errorKey="workspace"
-          loading={loading}
+          loading={isLoadingWorkspaces}
         />
 
-        {error && (
+        {workspacesError && (
           <View className="py-2 px-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <Text className="text-red-600 dark:text-red-400">{error}</Text>
+            <Text className="text-red-600 dark:text-red-400">
+              {workspacesError.message || "Failed to load workspaces"}
+            </Text>
           </View>
         )}
 
         <FormButton
           title={selectedWorkspace?.status === "PENDING" ? "Continue to Registration" : "Next"}
           onPress={handleContinue}
-          disabled={!selectedWorkspace || loading}
+          disabled={!selectedWorkspace || isLoadingWorkspaces}
           colors={colors}
         />
 

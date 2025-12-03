@@ -3,10 +3,8 @@ import { View, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import WorkspaceDropdown from "@/components/auth/workspace/WorkspaceDropdown";
-import { getUserWorkspaces } from "@/apis/user";
 import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
-import { logError } from "@/utils/logger";
-import { Workspace } from "@/types/login/types";
+import { Workspace, WorkspaceStatus } from "@/types/login/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PLATFORM } from "@/constants/platformConstants";
 import BackButton from "@/components/BackButton";
@@ -14,60 +12,42 @@ import { router } from "expo-router";
 import { WORKSPACE } from "@/constants/constants";
 import { StorageFactory } from "@/utils/storage/storageFactory";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 
 export default function ChangeWorkspaceScreen() {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { saveWorkspace } = useSaveWorkspace();
   const storage = StorageFactory.createStorage();
   const queryClient = useQueryClient();
 
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    const fetchWorkspaces = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const { workspaces, isLoadingWorkspaces, workspacesError } = useUserWorkspacesQuery();
 
+  useEffect(() => {
+    const initializeSelection = async () => {
+      if (workspaces.length > 0 && !selectedWorkspace) {
         const currentWorkspaceId = await storage.get(WORKSPACE);
 
-        const response = await getUserWorkspaces();
-
-        if (response.error) {
-          setError(response.error);
-          logError(response.error);
-          return;
-        }
-
-        const fetchedWorkspaces = response.data || [];
-        setWorkspaces(fetchedWorkspaces);
-
         if (currentWorkspaceId) {
-          const current = fetchedWorkspaces.find(
-            (w: any) => w.workspaceIdentifier === currentWorkspaceId
-          );
+          const current = workspaces.find((w) => w.workspaceIdentifier === currentWorkspaceId);
           if (current) {
             setSelectedWorkspace(current);
           }
         }
-      } catch (err) {
-        logError("Error fetching workspaces:", err);
-        setError("Failed to load workspaces. Please try again.");
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchWorkspaces();
-  }, []);
+    initializeSelection();
+  }, [workspaces]);
 
   const onSelectWorkspace = async (workspace: Workspace) => {
+    if (workspace.workspaceIdentifier === selectedWorkspace?.workspaceIdentifier) {
+      return;
+    }
     setSelectedWorkspace(workspace);
 
-    if (workspace.status === "ACCEPTED") {
+    if (workspace.status === WorkspaceStatus.ACCEPTED) {
       await saveWorkspace(workspace.workspaceIdentifier);
       await queryClient.invalidateQueries();
     }
@@ -89,7 +69,7 @@ export default function ChangeWorkspaceScreen() {
         Switch between your workspaces to access different environments.
       </AppText>
 
-      {loading ? (
+      {isLoadingWorkspaces ? (
         <View className="items-center justify-center py-8">
           <ActivityIndicator size="large" />
         </View>
@@ -119,13 +99,15 @@ export default function ChangeWorkspaceScreen() {
             loading={false}
           />
 
-          {error && (
+          {workspacesError && (
             <View className="py-2 px-4 bg-red-50 dark:bg-red-900/20 rounded-lg mt-4">
-              <AppText className="text-red-600 dark:text-red-400 text-sm">{error}</AppText>
+              <AppText className="text-red-600 dark:text-red-400 text-sm">
+                {workspacesError.message || "Failed to load workspaces."}
+              </AppText>
             </View>
           )}
 
-          {selectedWorkspace?.status === "PENDING" && (
+          {selectedWorkspace?.status === WorkspaceStatus.PENDING && (
             <View className="py-2 px-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg mt-4">
               <AppText className="text-yellow-700 dark:text-yellow-400 text-sm">
                 This workspace is pending approval. You cannot switch to it yet.

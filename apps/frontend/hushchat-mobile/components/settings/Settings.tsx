@@ -5,26 +5,31 @@ import { View, ActivityIndicator } from "react-native";
 import { AppText } from "@/components/AppText";
 import SidebarMenu, { SidebarMenuItem } from "@/components/SidebarMenu";
 import { getSettingsMenuItems, settingsPanels } from "@/configs/settingsMenu";
+import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 
 export default function Settings() {
   const [selected, setSelected] = useState("contact");
   const [menuItems, setMenuItems] = useState<SidebarMenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { workspaces, isLoadingWorkspaces } = useUserWorkspacesQuery();
 
   useEffect(() => {
-    const loadMenuItems = async () => {
-      setLoading(true);
-      const items = await getSettingsMenuItems();
+    const loadMenuItems = () => {
+      const workspaceCount = workspaces ? workspaces.length : 0;
+      const items = getSettingsMenuItems({ workspaceCount });
       setMenuItems(items);
-      setLoading(false);
+
+      if (items.length > 0 && !items.find((i) => i.key === selected)) {
+        setSelected(items[0].key);
+      }
     };
 
     loadMenuItems();
-  }, []);
+  }, [workspaces]);
 
   const SelectedPanel = settingsPanels[selected] ?? Contact;
 
-  if (loading) {
+  if (isLoadingWorkspaces) {
     return (
       <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark items-center justify-center">
         <ActivityIndicator size="large" />
