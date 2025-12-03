@@ -346,8 +346,10 @@ export const ConversationMessageItem = ({
   if (isSystemEvent) {
     return (
       <View className="flex-row justify-center items-center py-2 px-4">
-        <View className="bg-gray-200 rounded-lg py-1.5 px-3 max-w-[80%]">
-          <Text className="text-gray-600 text-xs text-center leading-[18px]">{messageContent}</Text>
+        <View className="dark:bg-secondary-dark bg-secondary-light rounded-lg py-1.5 px-3 max-w-[80%]">
+          <Text className="dark:!text-gray-300 text-gray-700 text-xs text-center">
+            {messageContent}
+          </Text>
         </View>
       </View>
     );
