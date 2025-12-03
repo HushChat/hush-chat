@@ -4,9 +4,13 @@ import {
   removeConversationParticipant,
   updateConversationParticipantRole,
 } from "@/apis/conversation";
-import { unblockUser } from "@/apis/user";
+import { toggleSuspendUser, unblockUser } from "@/apis/user";
 import { removeMessageReaction } from "@/apis/message";
-import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
+import {
+  conversationMessageQueryKeys,
+  conversationQueryKeys,
+  workspaceQueryKeys,
+} from "@/constants/queryKeys";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 
 export const useDeleteConversationByIdMutation = createMutationHook<void, number>(
@@ -64,4 +68,9 @@ export const useUpdateConversationParticipantRoleMutation = createMutationHook<
         keyParams.participantId
       ),
     ] as string[][]
+);
+
+export const useToggleSuspendUserMutation = createMutationHook<void, { email: string }>(
+  (params: { email: string }) => toggleSuspendUser(params.email),
+  () => () => [workspaceQueryKeys.workspaceUsers()] as string[][]
 );

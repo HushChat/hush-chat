@@ -1,6 +1,7 @@
 import * as yup from "yup";
 import type { Asserts } from "yup";
 import { passwordRules } from "@/utils/passwordRules";
+import { workspaceStatus } from "@/types/login/types";
 
 export const UserSchema = yup.object({
   id: yup.number().nullable().notRequired(),
@@ -188,4 +189,9 @@ export type TUser = {
 export type DeviceToken = {
   token: string;
   platform: "MOBILE" | "WEB";
+};
+
+export type WorkspaceUser = TUser & {
+  imageIndexedName: string | null;
+  status: workspaceStatus;
 };

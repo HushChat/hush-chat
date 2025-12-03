@@ -1,0 +1,109 @@
+import React, { useCallback, useRef, useState } from "react";
+import { View, Pressable, GestureResponderEvent } from "react-native";
+import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import { PLATFORM } from "@/constants/platformConstants";
+import ChevronButton from "@/components/ChevronButton";
+import classNames from "classnames";
+import * as Haptics from "expo-haptics";
+import { useUserStore } from "@/store/user/useUserStore";
+import { AppText } from "@/components/AppText";
+import { WorkspaceUser } from "@/types/user/types";
+import WebWorkspaceUsersContextMenu from "@/components/settings/users/WebWorkspaceUsersContextMenu";
+import MobileWorkspaceUsersContextMenu from "@/components/settings/users/MobileWorkspaceUsersContextMenu";
+
+export const WorkspaceUserRow = ({
+  user,
+  showMenu = false,
+  onToggleSuspend,
+}: {
+  user: WorkspaceUser;
+  showMenu?: boolean;
+  onToggleSuspend?: (email: string) => void;
+}) => {
+  const chevronButtonRef = useRef<View>(null);
+  const [showOptions, setShowOptions] = useState(false);
+  const [showMobileOptions, setShowMobileOptions] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const isCurrentUser = Number(useUserStore.getState().user.id) === user.id;
+
+  const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
+    e.stopPropagation();
+    if (chevronButtonRef.current) {
+      chevronButtonRef.current.measure(
+        (fx: number, fy: number, width: number, height: number, px: number, py: number) => {
+          const position = {
+            x: px,
+            y: py + height,
+          };
+          setMenuPosition(position);
+          setShowOptions(true);
+        }
+      );
+    }
+  }, []);
+
+  const handleLongPress = useCallback(() => {
+    if (!showMenu) return;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowMobileOptions(true);
+  }, [showMenu]);
+
+  const handleOptionsClose = useCallback(() => {
+    setShowOptions(false);
+  }, []);
+
+  const handleMobileOptionsClose = useCallback(() => {
+    setShowMobileOptions(false);
+  }, []);
+
+  return (
+    <>
+      <Pressable
+        className={classNames(
+          "group flex-row items-center px-6 py-4 active:bg-gray-100 dark:active:bg-gray-800",
+          PLATFORM.IS_WEB &&
+            showMenu &&
+            "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark"
+        )}
+        onLongPress={handleLongPress}
+      >
+        <InitialsAvatar
+          name={`${user.firstName} ${user.lastName}`}
+          size={AvatarSize.medium}
+          imageUrl={user.signedImageUrl || null}
+        />
+        <View className="flex-1 ml-3">
+          <AppText className="text-base font-medium text-gray-900 dark:text-white">
+            {`${user.firstName} ${user.lastName}`}
+          </AppText>
+          <AppText className="text-sm text-gray-500 dark:text-gray-400">{user.email}</AppText>
+        </View>
+        {PLATFORM.IS_WEB && showMenu && (
+          <ChevronButton
+            chevronButtonRef={chevronButtonRef}
+            handleOptionsPress={handleOptionsPress}
+          />
+        )}
+      </Pressable>
+      {showMenu && (
+        <WebWorkspaceUsersContextMenu
+          visible={showOptions}
+          position={menuPosition}
+          onClose={handleOptionsClose}
+          user={user}
+          isCurrentUser={isCurrentUser}
+          handleToggleSuspend={onToggleSuspend!}
+        />
+      )}
+      {!PLATFORM.IS_WEB && showMenu && (
+        <MobileWorkspaceUsersContextMenu
+          visible={showMobileOptions}
+          onClose={handleMobileOptionsClose}
+          user={user}
+          isCurrentUser={isCurrentUser}
+          handleToggleSuspend={onToggleSuspend!}
+        />
+      )}
+    </>
+  );
+};

@@ -8,6 +8,7 @@ const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
 const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
 const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
 const USER_QUERY_BASE_KEY = "users";
+const WORKSPACE_USERS_QUERY_BASE_KEY = "workspace-users";
 
 export const conversationQueryKeys = {
   metaDataById: (userId: number, conversationId: number) => [
@@ -68,4 +69,8 @@ export const userQueryKeys = {
   callLogs: (userId: number) => [USER_QUERY_BASE_KEY, CALL_LOGS, userId],
 
   userProfile: (userId: number) => [USER_QUERY_BASE_KEY, userId],
+};
+
+export const workspaceQueryKeys = {
+  workspaceUsers: () => [WORKSPACE_USERS_QUERY_BASE_KEY],
 };
