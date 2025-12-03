@@ -198,12 +198,14 @@ export function useConversationInput({
     handleCancelReply: replyManager.cancelReplyMode,
 
     fileInputRef: fileAttachmentPicker.fileInputElementRef,
+    documentInputRef: fileAttachmentPicker.documentInputElementRef,
     addButtonRef: fileAttachmentPicker.fileActionButtonRef,
     menuVisible: fileAttachmentPicker.isMenuOpen,
     menuPosition: fileAttachmentPicker.menuScreenCoordinates,
     menuOptions: fileAttachmentPicker.menuActionOptions,
     handleAddButtonPress: fileAttachmentPicker.handleFileActionButtonPress,
     handleFileChange: fileAttachmentPicker.handleFileInputChange,
+    handleDocumentChange: fileAttachmentPicker.handleDocumentInputChange,
     closeMenu: fileAttachmentPicker.closeFileActionMenu,
     handleMenuOptionSelect: fileAttachmentPicker.executeMenuOption,
 
