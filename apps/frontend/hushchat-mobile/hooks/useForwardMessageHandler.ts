@@ -39,9 +39,20 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
   );
 
   const handleSend = () => {
+    const conversationIds: number[] = [];
+    const userIds: number[] = [];
+
+    selectedConversations.forEach((item) => {
+      if ("username" in item) {
+        userIds.push(Number(item.id));
+      } else {
+        conversationIds.push(Number(item.id));
+      }
+    });
     forwardMessage({
       forwardedMessageIds: Array.from(selectedMessageIds),
-      conversationIds: selectedConversations.map((conversation) => Number(conversation.id)),
+      conversationIds: conversationIds.length > 0 ? conversationIds : undefined,
+      userIds: userIds.length > 0 ? userIds : undefined,
       customText: customText,
     });
   };

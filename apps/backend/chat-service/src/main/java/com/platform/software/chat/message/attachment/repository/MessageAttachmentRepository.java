@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface MessageAttachmentRepository extends JpaRepository<MessageAttachment, Long> {
+public interface MessageAttachmentRepository extends JpaRepository<MessageAttachment, Long>, MessageAttachmentQueryRepository {
     List<MessageAttachment> findByMessageId(Long messageId);
 
     List<MessageAttachment> findByMessage_ConversationId(Long conversationId);

@@ -1,11 +1,12 @@
-import React, { ReactNode, useMemo } from "react";
+import React, { ReactNode } from "react";
 import {
   View,
   Text,
   Image,
-  StyleSheet,
   useWindowDimensions,
   ImageSourcePropType,
+  StyleSheet,
+  ScrollView,
 } from "react-native";
 
 type TAuthWebLayoutProps = {
@@ -29,36 +30,33 @@ export default function AuthWebLayout({
   children,
 }: TAuthWebLayoutProps) {
   const { width } = useWindowDimensions();
+  const isWide = width >= 1024;
 
-  const styles = useMemo(() => {
-    const isWide = width >= 1024;
-
-    return {
-      shell: [
-        s.shell,
-        {
-          flexDirection: isWide ? ("row" as const) : ("column" as const),
-        },
-      ],
-      left: [
-        s.left,
-        {
-          width: isWide ? ("60%" as const) : ("100%" as const),
-        },
-      ],
-      right: [
-        s.right,
-        {
-          width: isWide ? ("40%" as const) : ("100%" as const),
-        },
-      ],
-    };
-  }, [width]);
+  if (!isWide) {
+    return (
+      <View style={[s.container, { backgroundColor: colors.background }]}>
+        <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={s.mobileHeader}>
+            <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
+              {title}
+            </Text>
+            {subtitle ? (
+              <Text style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+            ) : null}
+          </View>
+          <View>{children}</View>
+          <View style={s.mobileImageWrap}>
+            <Image source={image} style={s.mobileImage} resizeMode="contain" />
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={[s.container, { backgroundColor: colors.background }]}>
-      <View style={styles.shell}>
-        <View style={styles.left}>
+      <View style={s.shell}>
+        <View style={s.left}>
           <View style={s.leftInner}>
             <View style={s.headerBlock}>
               <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
@@ -73,7 +71,7 @@ export default function AuthWebLayout({
             </View>
           </View>
         </View>
-        <View style={styles.right}>{children}</View>
+        <View style={s.right}>{children}</View>
       </View>
     </View>
   );
@@ -81,14 +79,35 @@ export default function AuthWebLayout({
 
 const s = StyleSheet.create({
   container: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  mobileHeader: {
+    marginBottom: 32,
+  },
+  mobileImageWrap: {
+    alignItems: "center",
+    width: "100%",
+    marginTop: 32,
+  },
+  mobileImage: {
+    width: "100%",
+    height: 300,
+  },
   shell: {
     flex: 1,
+    flexDirection: "row",
     alignItems: "stretch",
     paddingHorizontal: 48,
     paddingVertical: 42,
-    gap: 24,
+    gap: 8,
   },
-  left: { justifyContent: "center" },
+  left: {
+    width: "60%",
+    justifyContent: "center",
+  },
   leftInner: {
     flex: 1,
     justifyContent: "space-between",
@@ -106,7 +125,7 @@ const s = StyleSheet.create({
   subtitle: {
     marginTop: 10,
     fontSize: 18,
-    lineHeight: 26,
+    lineHeight: 28,
     maxWidth: 520,
   },
   imageWrap: {
@@ -116,10 +135,12 @@ const s = StyleSheet.create({
   },
   image: {
     width: "100%",
-    aspectRatio: 2,
+    maxWidth: 900,
+    height: 700,
     resizeMode: "contain",
   },
   right: {
+    width: "40%",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 48,
