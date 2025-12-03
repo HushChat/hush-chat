@@ -11,6 +11,10 @@ databaseChangeLog:
               - column:
                   name: status
                   type: VARCHAR(50)
-                  defaultValue: 'ACTIVE'
+                  defaultValue: 'PENDING'
                   constraints:
                     nullable: false
+        - update:
+            tableName: workspace
+            columns:
+              status: 'ACTIVE'
