@@ -21,7 +21,7 @@ public class WorkspaceAdminController {
         this.conversationService = conversationService;
     }
 
-    @ApiOperation(value = "Get all group conversations in a workspace")
+    @ApiOperation(value = "Get all group conversations in a workspace", response = ConversationAdminViewDTO.class)
     @GetMapping("/group-conversations")
     public ResponseEntity<Page<ConversationAdminViewDTO>> getAllGroupConversations( Pageable pageable )
     {
