@@ -173,12 +173,18 @@ export const ConversationMessageItem = ({
     const options: IOption[] = [
       {
         id: 1,
+        name: "Reply",
+        iconName: "arrow-undo-outline",
+        action: () => onMessageSelect?.(message),
+      },
+      {
+        id: 2,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
-        id: 2,
+        id: 3,
         name: "Select message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
@@ -186,7 +192,7 @@ export const ConversationMessageItem = ({
     ];
     if (isCurrentUser && !message.isUnsend) {
       options.push({
-        id: 3,
+        id: 4,
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
@@ -359,15 +365,15 @@ export const ConversationMessageItem = ({
     <View style={styles.contentBlockWrapper}>
       <View className="group mb-3">
         <View className="flex-row mx-2">
-          <View className="mr-2 pt-1 w-10 h-10">
-            {showSenderAvatar && (
+          {showSenderAvatar && (
+            <View className="mr-2 pt-1 w-10 h-10">
               <InitialsAvatar
                 name={senderName}
                 size={AvatarSize.extraSmall}
                 imageUrl={message.senderSignedImageUrl}
               />
-            )}
-          </View>
+            </View>
+          )}
           <View className="flex-1">
             <MessageHeader
               isCurrentUser={isCurrentUser}
