@@ -241,7 +241,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         List<ConversationDTO> conversationDTOs = results.stream()
                 .map(tuple -> {
                     Conversation conversation = tuple.get(qConversation);
-                    ConversationParticipant conversationParticipant = tuple.get(qConversationParticipant);
 
                     ConversationDTO dto = new ConversationDTO(conversation);
 

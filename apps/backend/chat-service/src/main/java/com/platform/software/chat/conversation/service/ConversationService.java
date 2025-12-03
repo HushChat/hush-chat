@@ -362,22 +362,42 @@ public class ConversationService {
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messages);
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
-                .peek(dto -> {
-                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
-                    dto.setSignedImageUrl(imageViewSignedUrl);
-                    dto.setImageIndexedName(null);
+            .peek(dto -> {
+                String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
+                dto.setSignedImageUrl(imageViewSignedUrl);
+                dto.setImageIndexedName(null);
 
-                    Long conversationId = dto.getId();
+                Long conversationId = dto.getId();
 
-                    MessageViewDTO lastMessage = lastMessages.getOrDefault(conversationId, null);
-                    dto.setMessages(List.of(lastMessage));
+                MessageViewDTO lastMessage = lastMessages.getOrDefault(conversationId, null);
+                dto.setMessages(lastMessage != null ? List.of(lastMessage) : Collections.emptyList());
 
-                    long unreadMessageCount = conversationUnreadCounts.getOrDefault(conversationId, 0L);
-                    dto.setUnreadCount(unreadMessageCount);
+                long unreadMessageCount = conversationUnreadCounts.getOrDefault(conversationId, 0L);
+                dto.setUnreadCount(unreadMessageCount);
 
-                    setEventMessageIfExists(loggedInUserId, dto, conversationEventMap);
-                })
-                .collect(Collectors.toList());
+                setEventMessageIfExists(loggedInUserId, dto, conversationEventMap);
+            })
+            .sorted((conv1, conv2) -> {
+                MessageViewDTO msg1 = conv1.getMessages() != null && !conv1.getMessages().isEmpty()
+                    ? conv1.getMessages().get(0) : null;
+                MessageViewDTO msg2 = conv2.getMessages() != null && !conv2.getMessages().isEmpty()
+                    ? conv2.getMessages().get(0) : null;
+
+                if (msg1 != null && msg2 != null) {
+                    return msg2.getCreatedAt().compareTo(msg1.getCreatedAt());
+                }
+
+                if (msg1 != null) {
+                    return -1;
+                }
+
+                if (msg2 != null) {
+                    return 1;
+                }
+
+                return conv2.getCreatedAt().compareTo(conv1.getCreatedAt());
+            })
+            .collect(Collectors.toList());
 
         Page<ConversationDTO> updatedConversationPageDTO = new PageImpl<>(updatedContent, pageable, conversations.getTotalElements());
 
@@ -386,7 +406,9 @@ public class ConversationService {
 
     @NotNull
     private static List<MessageViewDTO> getMessageViewDTOSList(Page<ConversationDTO> conversations) {
-        List<MessageViewDTO> messages = conversations.getContent().stream().map(conversationDTO -> {
+        List<MessageViewDTO> messages = conversations.getContent().stream()
+            .filter(conversationDTO -> conversationDTO.getMessages() != null)
+            .map(conversationDTO -> {
                 Optional<MessageViewDTO> opMessageViewDTO = conversationDTO.getMessages().stream().findFirst();
                 return opMessageViewDTO.orElse(null);
             })
