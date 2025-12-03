@@ -11,6 +11,6 @@ databaseChangeLog:
               - column:
                   name: status
                   type: VARCHAR(50)
-                  defaultValue: 'PENDING'
+                  defaultValue: 'ACTIVE'
                   constraints:
                     nullable: false
