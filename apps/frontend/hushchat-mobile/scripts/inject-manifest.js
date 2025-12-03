@@ -19,10 +19,10 @@ if (fs.existsSync(indexPath)) {
     );
 
     fs.writeFileSync(indexPath, html);
-    console.log("✅ Manifest injected into index.html");
+    console.log("Manifest injected into index.html");
   } else {
-    console.log("ℹ️  Manifest already present");
+    console.log("Manifest already present");
   }
 } else {
-  console.error("❌ index.html not found in dist/");
+  console.error("index.html not found in dist/");
 }
