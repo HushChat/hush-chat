@@ -13,6 +13,7 @@ import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
 import { WORKSPACE } from "@/constants/constants";
 import { StorageFactory } from "@/utils/storage/storageFactory";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ChangeWorkspaceScreen() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -21,6 +22,7 @@ export default function ChangeWorkspaceScreen() {
   const [error, setError] = useState<string | null>(null);
   const { saveWorkspace } = useSaveWorkspace();
   const storage = StorageFactory.createStorage();
+  const queryClient = useQueryClient();
 
   const insets = useSafeAreaInsets();
 
@@ -67,6 +69,7 @@ export default function ChangeWorkspaceScreen() {
 
     if (workspace.status === "ACCEPTED") {
       await saveWorkspace(workspace.workspaceIdentifier);
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     }
   };
 
