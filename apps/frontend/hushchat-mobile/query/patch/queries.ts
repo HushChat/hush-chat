@@ -5,9 +5,9 @@ import {
   toggleConversationFavorite,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
-import { toggleSuspendUser, updateUser } from "@/apis/user";
+import { updateUser } from "@/apis/user";
 import { ConversationReadInfo, TMessageForward, UpdateUserInput } from "@/types/chat/types";
-import { conversationQueryKeys, userQueryKeys, workspaceQueryKeys } from "@/constants/queryKeys";
+import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
 import { forwardMessages, unsendMessage } from "@/apis/message";
 
@@ -48,8 +48,3 @@ export const useSetLastSeenMessageMutation = createMutationHook<
   { data: ConversationReadInfo },
   { messageId: number; conversationId: number }
 >(({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId));
-
-export const useToggleSuspendUserMutation = createMutationHook<void, { email: string }>(
-  (params: { email: string }) => toggleSuspendUser(params.email),
-  () => () => [workspaceQueryKeys.workspaceUsers()] as string[][]
-);
