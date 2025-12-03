@@ -69,7 +69,7 @@ export default function ChangeWorkspaceScreen() {
 
     if (workspace.status === "ACCEPTED") {
       await saveWorkspace(workspace.workspaceIdentifier);
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      await queryClient.invalidateQueries();
     }
   };
 
