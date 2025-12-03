@@ -1,16 +1,11 @@
 package com.platform.software.platform.workspace.dto;
 
 import com.platform.software.platform.workspace.entity.Workspace;
-import com.platform.software.platform.workspace.entity.WorkspaceStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class WorkspaceUpsertDTO {
 
     @NotBlank

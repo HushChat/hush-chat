@@ -34,7 +34,4 @@ public class Workspace extends AuditModel {
     private String imageUrl;
 
     private boolean deleted = false;
-
-    @Enumerated(EnumType.STRING)
-    private WorkspaceStatus status = WorkspaceStatus.PENDING;
 }
