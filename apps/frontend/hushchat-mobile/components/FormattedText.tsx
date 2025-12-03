@@ -21,6 +21,7 @@ interface FormattedTextProps {
   onMentionPress?: (username: string) => void;
   onHashtagPress?: (hashtag: string) => void;
   isCurrentUser: boolean;
+  validMentionUsernames?: Set<string>;
 }
 
 const FormattedText = ({
@@ -34,10 +35,18 @@ const FormattedText = ({
   onMentionPress,
   onHashtagPress,
   isCurrentUser,
+  validMentionUsernames,
 }: FormattedTextProps) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [selectedUrl, setSelectedUrl] = useState<string>("");
+
+  const validUsernames = useMemo(() => {
+    if (validMentionUsernames) {
+      return validMentionUsernames;
+    }
+    return new Set(mentions.map((m) => m.username));
+  }, [mentions, validMentionUsernames]);
 
   const handleUrlPress = useCallback(
     async (url: string) => {
@@ -71,11 +80,11 @@ const FormattedText = ({
   const handleMentionPress = useCallback(
     (mention: string) => {
       const username = mention.replace(MENTION_REGEX, "");
-      if (mentions.some((m) => m.username === username)) {
+      if (validUsernames.has(username)) {
         onMentionPress?.(username);
       }
     },
-    [mentions, onMentionPress]
+    [validUsernames, onMentionPress]
   );
 
   const linkMenuOptions = useMemo<IOption[]>(
@@ -145,9 +154,26 @@ const FormattedText = ({
       {
         pattern: MENTION_REGEX,
         onPress: handleMentionPress,
-        style: isCurrentUser
-          ? { fontWeight: "700", borderRadius: 4, color: "#beb4e8" }
-          : { fontWeight: "700", borderRadius: 4, color: "#6366f1" },
+        renderText: ((matchingString: string) => {
+          const username = matchingString.replace(/^@/, "");
+          const isValidMention = validUsernames.has(username);
+
+          if (isValidMention) {
+            return (
+              <AppText
+                style={
+                  isCurrentUser
+                    ? { fontWeight: "700", borderRadius: 4, color: "#beb4e8" }
+                    : { fontWeight: "700", borderRadius: 4, color: "#6366f1" }
+                }
+              >
+                {matchingString}
+              </AppText>
+            );
+          }
+
+          return matchingString;
+        }) as any,
       },
     ],
     [
@@ -158,6 +184,7 @@ const FormattedText = ({
       handleUrlPress,
       isCurrentUser,
       handleUrlContextMenu,
+      validUsernames,
     ]
   );
 
