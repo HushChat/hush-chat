@@ -10,7 +10,6 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.chat.user.service.UserService;
-import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -52,6 +51,12 @@ public class ConversationEventService {
         MessageUpsertDTO messageDTO = new MessageUpsertDTO(conversationType.getName());
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
+        List<ConversationEvent> events = buildConversationEvents(conversationId, actorUserId, targetUserIds, conversationType, messageDTO);
+
+        saveConversationEvents(events);
+    }
+
+    private List<ConversationEvent> buildConversationEvents(Long conversationId, Long actorUserId, Collection<Long> targetUserIds, ConversationEventType conversationType, MessageUpsertDTO messageDTO) {
         List<ConversationEvent> events = new ArrayList<>();
 
         if (targetUserIds != null) {
@@ -63,8 +68,7 @@ public class ConversationEventService {
             ConversationEvent event = createEventWithMessage(conversationId, actorUserId, conversationType, null, messageDTO);
             events.add(event);
         }
-
-        saveConversationEvents(events);
+        return events;
     }
 
     private ConversationEvent createEventWithMessage(Long conversationId, Long actorUserId, ConversationEventType conversationType, Long targetUserId, MessageUpsertDTO messageDTO) {
