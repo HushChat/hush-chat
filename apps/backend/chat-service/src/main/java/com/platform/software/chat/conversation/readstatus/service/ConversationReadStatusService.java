@@ -7,7 +7,7 @@ import com.platform.software.chat.conversation.readstatus.repository.Conversatio
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.entity.Message;
-import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.message.service.MessageUtilService;
 import com.platform.software.exception.CustomBadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,23 +19,23 @@ public class ConversationReadStatusService {
     Logger logger = LoggerFactory.getLogger(ConversationReadStatusService.class);
 
     private final ConversationReadStatusRepository conversationReadStatusRepository;
-    private final MessageService messageService;
     private final ConversationUtilService conversationUtilService;
+    private final MessageUtilService messageUtilService;
 
     public ConversationReadStatusService(
         ConversationReadStatusRepository conversationReadStatusRepository,
-        MessageService messageService,
-        ConversationUtilService conversationUtilService
+        ConversationUtilService conversationUtilService,
+        MessageUtilService messageUtilService
     ) {
         this.conversationReadStatusRepository = conversationReadStatusRepository;
-        this.messageService = messageService;
         this.conversationUtilService = conversationUtilService;
+        this.messageUtilService = messageUtilService;
     }
 
     @Transactional
     public ConversationReadInfo setConversationLastSeenMessage(Long conversationId, Long loggedInUserId, MessageLastSeenRequestDTO messageLastSeenRequestDTO) {
         ConversationParticipant conversationParticipant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
-        Message message = messageService.getMessageOrThrow(conversationId, messageLastSeenRequestDTO.getMessageId());
+        Message message = messageUtilService.getMessageOrThrow(conversationId, messageLastSeenRequestDTO.getMessageId());
 
         ConversationReadStatus updatingStatus = conversationReadStatusRepository
             .findByConversationIdAndUserId(conversationId, loggedInUserId)
@@ -72,7 +72,7 @@ public class ConversationReadStatusService {
 
     public Message getLastSeenMessageOrNull(Long conversationId, Long loggedInUserId) {
         return conversationReadStatusRepository.findLastSeenMessageIdByConversationIdAndUserId(conversationId, loggedInUserId)
-                .map(lastSeenMessageId -> messageService.getMessageOrThrow(conversationId, lastSeenMessageId))
+                .map(lastSeenMessageId -> messageUtilService.getMessageOrThrow(conversationId, lastSeenMessageId))
                 .orElse(null);
     }
 }

@@ -5,8 +5,9 @@ const commit = execSync("git rev-parse --short HEAD").toString().trim();
 
 export default () => ({
   expo: {
-    name: "chat",
+    name: "HushChat",
     slug: "chat",
+    displayName: "HushChat",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
