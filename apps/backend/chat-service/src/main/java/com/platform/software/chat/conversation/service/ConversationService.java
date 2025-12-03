@@ -1351,6 +1351,16 @@ public class ConversationService {
             .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
         return conversationReadInfo;
     }
+
+    /**
+     * Retrieves all group conversations for admin view with pagination.
+     *
+     * @param pageable the pagination information
+     * @return a Page of ConversationAdminViewDTOs containing group conversation details
+     */
+    public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
+        return conversationRepository.findAllGroupConversationsAdminView(pageable);
+    }
 }
 
 
