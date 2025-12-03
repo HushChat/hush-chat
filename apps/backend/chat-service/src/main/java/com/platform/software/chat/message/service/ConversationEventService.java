@@ -52,36 +52,43 @@ public class ConversationEventService {
         MessageUpsertDTO messageDTO = new MessageUpsertDTO(conversationType.getName());
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
+        List<ConversationEvent> events = new ArrayList<>();
+
         if (targetUserIds != null) {
             for (Long targetUserId : targetUserIds) {
-                createEventWithMessage(conversationId, actorUserId, conversationType, targetUserId, messageDTO);
+                ConversationEvent event = createEventWithMessage(conversationId, actorUserId, conversationType, targetUserId, messageDTO);
+                events.add(event);
             }
         } else {
-            createEventWithMessage(conversationId, actorUserId, conversationType, null, messageDTO);
+            ConversationEvent event = createEventWithMessage(conversationId, actorUserId, conversationType, null, messageDTO);
+            events.add(event);
         }
+
+        saveConversationEvents(events);
     }
 
-    private void createEventWithMessage(Long conversationId, Long actorUserId, ConversationEventType conversationType, Long targetUserId, MessageUpsertDTO messageDTO) {
+    private ConversationEvent createEventWithMessage(Long conversationId, Long actorUserId, ConversationEventType conversationType, Long targetUserId, MessageUpsertDTO messageDTO) {
         Message savedMessage = messageUtilService.createTextMessage(conversationId, actorUserId, messageDTO, MessageTypeEnum.SYSTEM_EVENT);
         messageService.setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
-        saveConversationEvent(conversationType, actorUserId, targetUserId, savedMessage);
+        return buildConversationEvent(conversationType, actorUserId, targetUserId, savedMessage);
     }
 
-    private void saveConversationEvent(ConversationEventType conversationType, Long actorUserId, Long targetUserId, Message savedMessage) {
+    private ConversationEvent buildConversationEvent(ConversationEventType conversationType, Long actorUserId, Long targetUserId, Message savedMessage) {
         ChatUser actorUser = userService.getUserOrThrow(actorUserId);
 
-        ConversationEvent event;
         if (targetUserId != null) {
             ChatUser targetUser = userService.getUserOrThrow(targetUserId);
-            event = buildConversationEvent(conversationType, savedMessage, actorUser, targetUser);
+            return buildConversationEvent(conversationType, savedMessage, actorUser, targetUser);
         } else {
-            event = buildConversationEvent(conversationType, savedMessage, actorUser, null);
+            return buildConversationEvent(conversationType, savedMessage, actorUser, null);
         }
+    }
 
+    private void saveConversationEvents(List<ConversationEvent> events) {
         try {
-            conversationEventRepository.save(event);
+            conversationEventRepository.saveAll(events);
         } catch (Exception e) {
-            logger.error("conversation event save failed.", e);
+            logger.error("conversation events save failed.", e);
             throw new CustomInternalServerErrorException("Failed to send message");
         }
     }
