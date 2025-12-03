@@ -105,7 +105,7 @@ public class SearchService {
 
         Set<Long> conversationIds = loggedInUserAllConversations.stream()
                 .map(ConversationDTO::getId).collect(Collectors.toSet());
-        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, pageable);
+        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, loggedInUserId, pageable);
 
         List<ConversationDTO> conversationsFromMessages  = messagePage.getContent()
                 .stream()

@@ -3,9 +3,7 @@ import { IOption } from "@/types/chat/types";
 import { TITLES } from "@/constants/constants";
 import { ToastUtils } from "@/utils/toastUtils";
 import WebChatContextMenu from "@/components/WebContextMenu";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useConversationFavorites } from "@/hooks/useConversationFavorites";
-import { getCriteria } from "@/utils/conversationUtils";
+import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
 
 interface ConversationWebChatContextMenuProps {
   visible: boolean;
@@ -13,6 +11,7 @@ interface ConversationWebChatContextMenuProps {
   onClose: () => void;
   conversationId: number;
   isFavorite: boolean;
+  isPinned: boolean;
   handleArchivePress: (conversationId: number) => void;
   handleDeletePress: (conversationId: number) => void;
   conversationsRefetch: () => void;
@@ -23,14 +22,18 @@ const ConversationWebChatContextMenu = ({
   position,
   onClose,
   conversationId,
-  isFavorite,
+  isFavorite: initialFavorite,
+  isPinned: initialPinned,
   handleArchivePress,
   handleDeletePress,
   conversationsRefetch,
 }: ConversationWebChatContextMenuProps) => {
-  const { selectedConversationType } = useConversationStore();
-  const criteria = getCriteria(selectedConversationType);
-  const { handleToggleFavorites } = useConversationFavorites(conversationId, criteria);
+  const { isPinned, isFavorite, togglePin, toggleFavorite, selectedConversationType } =
+    useCommonConversationInfoActions({
+      conversationId,
+      initialPinned,
+      initialFavorite,
+    });
 
   const handleOptionSelect = useCallback(
     async (action: () => Promise<void> | void) => {
@@ -48,27 +51,40 @@ const ConversationWebChatContextMenu = ({
 
   const chatOptions: IOption[] = useMemo(
     () => [
+      isPinned
+        ? {
+            id: 1,
+            name: TITLES.UNPIN_CONVERSATION,
+            iconName: "pin-outline",
+            action: togglePin,
+          }
+        : {
+            id: 1,
+            name: TITLES.PIN_CONVERSATION,
+            iconName: "pin",
+            action: togglePin,
+          },
       {
-        id: 1,
+        id: 2,
         name: TITLES.ARCHIVE_CHAT(selectedConversationType),
         iconName: "archive-outline",
         action: () => handleArchivePress(conversationId),
       },
       isFavorite
         ? {
-            id: 2,
+            id: 3,
             name: TITLES.REMOVE_FROM_FAVOURITES,
             iconName: "heart",
-            action: () => handleToggleFavorites(conversationId),
+            action: toggleFavorite,
           }
         : {
-            id: 2,
+            id: 3,
             name: TITLES.ADD_TO_FAVOURITES,
             iconName: "heart-outline",
-            action: () => handleToggleFavorites(conversationId),
+            action: toggleFavorite,
           },
       {
-        id: 3,
+        id: 4,
         name: TITLES.DELETE_CHAT,
         iconName: "trash-outline",
         action: () => handleDeletePress(conversationId),
@@ -78,9 +94,11 @@ const ConversationWebChatContextMenu = ({
     [
       selectedConversationType,
       isFavorite,
+      isPinned,
       handleArchivePress,
       conversationId,
-      handleToggleFavorites,
+      toggleFavorite,
+      togglePin,
       handleDeletePress,
     ]
   );
