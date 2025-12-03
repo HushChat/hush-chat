@@ -3,8 +3,11 @@ package com.platform.software.chat.notification.service;
 import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.MulticastMessage;
-import com.google.firebase.messaging.Notification;
 import com.platform.software.chat.notification.dto.NotificationRequestDTO;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -20,24 +23,25 @@ public class FirebaseNotificationService implements NotificationService{
     public void sendNotification(NotificationRequestDTO request) {
         try {
             MulticastMessage.Builder messageBuilder = MulticastMessage.builder()
-                    .addAllTokens(request.tokens())
-                    .setNotification(Notification.builder()
-                            .setTitle(request.title())
-                            .setBody(request.body())
-                            .build());
+                    .addAllTokens(request.tokens());                
 
-            if (request.data() != null && !request.data().isEmpty()) {
-                messageBuilder.putAllData(request.data());
+            Map<String, String> dataMap = new HashMap<>();
+            if (request.data() != null) {
+                dataMap.putAll(request.data());
             }
+
+            dataMap.put("title", request.title());
+            dataMap.put("body", request.body());
+            messageBuilder.putAllData(dataMap);
 
             MulticastMessage message = messageBuilder.build();
             BatchResponse response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
             
             if(response != null){
-                logger.info("Notification sent: {} succeeded, {} failed", response.getSuccessCount(), response.getFailureCount());
+                logger.info("notification sent: {} succeeded, {} failed", response.getSuccessCount(), response.getFailureCount());
             }
         } catch (Exception e) {
-            logger.error("Firebase notification sending failed!", e);
+            logger.error("firebase notification sending failed!", e);
         }
     }
 

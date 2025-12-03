@@ -43,8 +43,8 @@ export const FcmWebNotificationService: INotificationService = {
     onMessage(messaging, (payload) => {
       console.log("[FCM] Foreground message received:", payload);
 
-      const title = payload.notification?.title || "New Message";
-      const body = payload.notification?.body || "";
+      const title = payload.data?.title || "New Message";
+      const body = payload.data?.body || "";
       const conversationId = payload.data?.conversationId;
       const messageId = payload.data?.messageId;
 
@@ -58,7 +58,7 @@ export const FcmWebNotificationService: INotificationService = {
             conversationId: conversationId,
             messageId: messageId,
             url: conversationId
-              ? `/conversation-threads?conversationId=${conversationId}${messageId ? `&messageId=${messageId}` : ""}`
+              ? `/conversations?conversationId=${conversationId}${messageId ? `&messageId=${messageId}` : ""}`
               : "/",
           },
         });
@@ -66,22 +66,12 @@ export const FcmWebNotificationService: INotificationService = {
         notification.onclick = (event) => {
           event.preventDefault();
           const notificationData = (event.target as Notification).data;
-          const url = notificationData?.url || "/";
-          window.focus();
-          window.location.href = url;
+          window.location.href = notificationData?.url || "/";
           notification.close();
         };
       }
 
-      callback(payload.notification);
+      callback({ title, body });
     });
-  },
-
-  showLocalNotification(title, body) {
-    if (Notification.permission === "granted") {
-      new Notification(title, { body });
-    } else {
-      logError("[FCM] Messaging not initialized; skipping onMessage listener.");
-    }
   },
 };
