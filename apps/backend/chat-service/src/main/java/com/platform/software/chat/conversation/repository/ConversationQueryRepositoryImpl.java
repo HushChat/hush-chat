@@ -404,6 +404,12 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             ));
     }
 
+    /**
+     * Admin view: Paginated retrieval of all group conversations with participant counts.
+     *
+     * @param pageable Pagination information
+     * @return Page of ConversationAdminViewDTO containing group conversation details
+     */
     @Override
     public Page<ConversationAdminViewDTO> findAllGroupConversationsAdminView(Pageable pageable){
         JPAQuery<ConversationAdminViewDTO> query = jpaQueryFactory
