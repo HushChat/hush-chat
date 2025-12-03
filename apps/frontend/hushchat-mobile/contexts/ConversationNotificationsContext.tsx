@@ -8,7 +8,7 @@ import {
   useMemo,
 } from "react";
 import { eventBus } from "@/services/eventBus";
-import { IConversation } from "@/types/chat/types";
+import { ConversationType, IConversation } from "@/types/chat/types";
 import { playMessageSound } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
@@ -74,6 +74,17 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
           break;
         }
       }
+    }
+
+    if (
+      (selectedConversationType.includes(ConversationType.ARCHIVED) &&
+        !notificationConversation.archivedByLoggedInUser) ||
+      (selectedConversationType.includes(ConversationType.GROUP) &&
+        !notificationConversation.isGroup) ||
+      (selectedConversationType.includes(ConversationType.FAVORITES) &&
+        !notificationConversation.favoriteByLoggedInUser)
+    ) {
+      return;
     }
 
     const updatedUnreadCount = existingUnreadCount + 1;
