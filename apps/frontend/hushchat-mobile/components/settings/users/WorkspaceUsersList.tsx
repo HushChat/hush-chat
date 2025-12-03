@@ -11,7 +11,8 @@ import { WorkspaceUserRow } from "@/components/settings/users/WorkspaceUserRow";
 import { PLATFORM } from "@/constants/platformConstants";
 import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
-import { useToggleSuspendUserMutation } from "@/query/delete/queries";
+
+import { useToggleSuspendUserMutation } from "@/query/patch/queries";
 
 export const WorkspaceUsersList = () => {
   const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
