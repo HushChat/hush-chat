@@ -123,7 +123,7 @@ public class WorkspaceUserService {
                         requesterEmail, workspaceIdentifier).orElseThrow(() -> new CustomAccessDeniedException("Requester not found in any workspace."));
 
                 if (requester.getRole() != WorkspaceUserRole.ADMIN) {
-                    throw new CustomAccessDeniedException("Only admins can suspend/unsuspend users.");
+                    throw new CustomBadRequestException("Only admins can suspend/unsuspend users.");
                 }
 
                 WorkspaceUser userToSuspend = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
