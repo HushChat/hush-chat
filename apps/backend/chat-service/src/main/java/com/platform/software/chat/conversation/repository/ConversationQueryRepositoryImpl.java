@@ -177,6 +177,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         boolean isUnread = conversationFilterCriteria.getIsUnread() != null
             ? conversationFilterCriteria.getIsUnread()
             : false;
+        boolean isGroup = conversationFilterCriteria.getIsGroup() != null
+            ? conversationFilterCriteria.getIsGroup()
+            : false;
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
                 .and(qConversation.deleted.eq(false))
@@ -187,7 +190,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         } else if (isFavorite) {
             whereConditions = whereConditions.and(qConversationParticipant.isFavorite.eq(true))
                                              .and(qConversationParticipant.archived.eq(false));
-        } else {
+        } else if(isGroup) {
+            whereConditions = whereConditions.and(qConversation.isGroup.eq(true));
+        }else {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(false));
         }
 
@@ -227,13 +232,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         // Get all conversations where user is a participant
         List<Tuple> results = baseQuery.clone()
                 .select(qConversation, qConversationParticipant)
-                .orderBy(
-                        // Primary sort: Pinned conversations first
-                        qConversationParticipant.isPinned.desc().nullsLast(),
-                        // Secondary sort: Among pinned conversations, most recently pinned first
-                        qConversationParticipant.pinnedAt.desc().nullsLast(),
-                        // Final sort: Conversation creation time
-                        qConversation.createdAt.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetch();
@@ -268,6 +266,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         if (loggedInParticipant != null) {
                             dto.setFavoriteByLoggedInUser(loggedInParticipant.getIsFavorite());
                             dto.setPinnedByLoggedInUser(loggedInParticipant.getIsPinned());
+                            dto.setPinnedAtByLoggedInUser(loggedInParticipant.getPinnedAt());
                             dto.setMutedByLoggedInUser(ConversationUtilService.isMuted(loggedInParticipant.getMutedUntil()));
                         }
 
@@ -290,7 +289,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             })
             .collect(Collectors.toList());
 
-        return new PageImpl<>(conversationDTOs, pageable, totalCount);
+        return new PageImpl<>(conversationDTOs, pageable, totalCount != null ? totalCount : 0);
     }
 
     @Override

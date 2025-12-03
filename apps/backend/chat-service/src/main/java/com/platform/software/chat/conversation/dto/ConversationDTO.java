@@ -7,6 +7,7 @@ import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.common.model.ModelMapper;
 import lombok.Data;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private String description;
 
     private boolean isPinnedByLoggedInUser;
+    private ZonedDateTime pinnedAtByLoggedInUser;
     private boolean isArchivedByLoggedInUser;
     private boolean isMutedByLoggedInUser;
     private boolean isFavoriteByLoggedInUser;

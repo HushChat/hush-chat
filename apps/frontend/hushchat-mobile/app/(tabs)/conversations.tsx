@@ -72,6 +72,11 @@ export default function ConversationScreen() {
       isActive: selectedConversationType === ConversationType.UNREAD,
     },
     {
+      key: ConversationType.GROUP,
+      label: "Group",
+      isActive: selectedConversationType === ConversationType.GROUP,
+    },
+    {
       key: ConversationType.FAVORITES,
       label: "Favorites",
       isActive: selectedConversationType === ConversationType.FAVORITES,

@@ -88,6 +88,7 @@ export enum ConversationType {
   ARCHIVED = "ARCHIVED",
   FAVORITES = "FAVORITES",
   UNREAD = "UNREAD",
+  GROUP = "GROUP",
 }
 
 export interface oneToOneChatInfo {
