@@ -7,7 +7,6 @@ import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.conversationparticipant.dto.JoinParticipantRequestDTO;
-import com.platform.software.chat.conversation.dto.ConversationOneToOneProfileDTO;
 import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.service.MessageService;

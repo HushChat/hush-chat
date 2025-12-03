@@ -120,7 +120,7 @@ public class ConversationService {
      * @param isGroup whether the conversation is a group conversation
      * @return a new Conversation entity
      */
-    private Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
+    public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
         Conversation conversation = new Conversation();
         conversation.setIsGroup(isGroup);
         conversation.setCreatedBy(userService.getUserOrThrow(loggedInUserId));
@@ -152,7 +152,7 @@ public class ConversationService {
      * @param conversation the Conversation entity to save
      * @return a ConversationDTO with the saved conversation data
      */
-    private ConversationDTO saveConversationAndBuildDTO(Conversation conversation) {
+    public ConversationDTO saveConversationAndBuildDTO(Conversation conversation) {
         try {
             return buildConversationDTO(conversationRepository.save(conversation));
         } catch (Exception e) {
@@ -379,7 +379,9 @@ public class ConversationService {
 
     @NotNull
     private static List<MessageViewDTO> getMessageViewDTOSList(Page<ConversationDTO> conversations) {
-        List<MessageViewDTO> messages = conversations.getContent().stream().map(conversationDTO -> {
+        List<MessageViewDTO> messages = conversations.getContent().stream()
+            .filter(conversationDTO -> conversationDTO.getMessages() != null)
+            .map(conversationDTO -> {
                 Optional<MessageViewDTO> opMessageViewDTO = conversationDTO.getMessages().stream().findFirst();
                 return opMessageViewDTO.orElse(null);
             })

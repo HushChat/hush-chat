@@ -1,5 +1,6 @@
 package com.platform.software.chat.message.attachment.service;
 
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
@@ -12,6 +13,8 @@ import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.exception.CustomBadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -86,5 +89,11 @@ public class MessageAttachmentService {
         if (Constants.DOCUMENT_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.DOCUMENT;
         
         return AttachmentTypeEnum.OTHER;
+    }
+
+    public Page<MessageAttachmentDTO> getAttachments(Long conversationId, AttachmentFilterCriteria attachmentFilterCriteria, Pageable pageable) {
+        attachmentFilterCriteria.setConversationId(conversationId);
+        Page<MessageAttachmentDTO> attachmentDTOPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria, pageable);
+        return attachmentDTOPage;
     }
 }
