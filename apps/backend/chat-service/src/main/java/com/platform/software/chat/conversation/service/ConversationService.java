@@ -51,7 +51,6 @@ import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.utils.CommonUtils;
 import com.platform.software.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -348,48 +347,90 @@ public class ConversationService {
      * @return a Page of ConversationDTOs containing conversation details
      */
     public Page<ConversationDTO> getAllConversations(Long loggedInUserId, ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable) {
+        Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserId(loggedInUserId, conversationFilterCriteria, pageable);
 
-        Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserIdWithLatestMessages(loggedInUserId, conversationFilterCriteria, pageable);
+        Set<Long> conversationIds = conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet());
+
+        Map<Long, MessageViewDTO> lastMessages = conversationRepository.getLatestMessagesForConversations(conversationIds);
 
         Map<Long, Long> conversationUnreadCounts = conversationReadStatusRepository.findUnreadMessageCountsByConversationIdsAndUserId(
-            conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet()),
-            loggedInUserId
+            conversationIds, loggedInUserId
         );
 
-        List<MessageViewDTO> messages = getMessageViewDTOSList(conversations);
-        Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messages);
+        Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(lastMessages.values());
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
-                .peek(dto -> {
-                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
-                    dto.setSignedImageUrl(imageViewSignedUrl);
-                    dto.setImageIndexedName(null);
+            .peek(dto -> {
+                String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
+                dto.setSignedImageUrl(imageViewSignedUrl);
+                dto.setImageIndexedName(null);
 
-                    long unreadMessageCount = conversationUnreadCounts.getOrDefault(dto.getId(), 0L);
-                    dto.setUnreadCount(unreadMessageCount);
+                Long conversationId = dto.getId();
 
-                    setEventMessageIfExists(loggedInUserId, dto, conversationEventMap);
-                })
-                .collect(Collectors.toList());
+                MessageViewDTO lastMessage = lastMessages.getOrDefault(conversationId, null);
+                dto.setMessages(lastMessage != null ? List.of(lastMessage) : Collections.emptyList());
+
+                long unreadMessageCount = conversationUnreadCounts.getOrDefault(conversationId, 0L);
+                dto.setUnreadCount(unreadMessageCount);
+
+                setEventMessageIfExists(loggedInUserId, dto, conversationEventMap);
+            })
+            .sorted((conv1, conv2) -> {
+                // 1. Primary sort: Pinned conversations first
+                boolean isPinned1 = conv1.isPinnedByLoggedInUser();
+                boolean isPinned2 = conv2.isPinnedByLoggedInUser();
+
+                if (isPinned1 && !isPinned2) return -1;
+                if (!isPinned1 && isPinned2) return 1;
+
+                // 2. Secondary sort: Among pinned conversations, sort by pinnedAt
+                if (isPinned1 && isPinned2) {
+                    ZonedDateTime pinnedAt1 = conv1.getPinnedAtByLoggedInUser();
+                    ZonedDateTime pinnedAt2 = conv2.getPinnedAtByLoggedInUser();
+
+                    if (pinnedAt1 != null && pinnedAt2 != null) {
+                        int pinnedComparison = pinnedAt2.compareTo(pinnedAt1);
+                        if (pinnedComparison != 0) return pinnedComparison;
+                    } else if (pinnedAt1 != null) {
+                        return -1;
+                    } else if (pinnedAt2 != null) {
+                        return 1;
+                    }
+                }
+
+                // 3. Tertiary sort: Latest message timestamp
+                MessageViewDTO msg1 = conv1.getMessages() != null && !conv1.getMessages().isEmpty()
+                    ? conv1.getMessages().getFirst() : null;
+                MessageViewDTO msg2 = conv2.getMessages() != null && !conv2.getMessages().isEmpty()
+                    ? conv2.getMessages().getFirst() : null;
+
+                // Both have messages - sort by message createdAt (descending)
+                if (msg1 != null && msg2 != null) {
+                    return msg2.getCreatedAt().compareTo(msg1.getCreatedAt());
+                }
+
+                // Only conv1 has messages - it should come first
+                if (msg1 != null) {
+                    return -1;
+                }
+
+                // Only conv2 has messages - it should come first
+                if (msg2 != null) {
+                    return 1;
+                }
+
+                // 4. Final sort: Both don't have messages - sort by conversation createdAt (descending)
+                return conv2.getCreatedAt().compareTo(conv1.getCreatedAt());
+            })
+            .collect(Collectors.toList());
 
         Page<ConversationDTO> updatedConversationPageDTO = new PageImpl<>(updatedContent, pageable, conversations.getTotalElements());
 
         return updatedConversationPageDTO;
     }
 
-    @NotNull
-    private static List<MessageViewDTO> getMessageViewDTOSList(Page<ConversationDTO> conversations) {
-        List<MessageViewDTO> messages = conversations.getContent().stream().map(conversationDTO -> {
-                Optional<MessageViewDTO> opMessageViewDTO = conversationDTO.getMessages().stream().findFirst();
-                return opMessageViewDTO.orElse(null);
-            })
-            .filter(Objects::nonNull)
-            .toList();
-        return messages;
-    }
-
     private void setEventMessageIfExists(Long loggedInUserId, ConversationDTO dto, Map<Long, ConversationEvent> conversationEventMap) {
-        if(dto.getMessages() != null) {
+        if(dto.getMessages() != null && !dto.getMessages().isEmpty()) {
             MessageViewDTO msg = dto.getMessages().getFirst();
 
             if (conversationEventMap.containsKey(msg.getId())) {
