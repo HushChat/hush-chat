@@ -38,6 +38,7 @@ import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
+import MessageThreadScreen from "./message-threads";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -150,7 +151,16 @@ const ConversationThreadScreen = ({
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
+  const [activeThreadMessageId, setActiveThreadMessageId] = useState<number | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
+
+  const handleViewThread = useCallback((messageId: number) => {
+    setActiveThreadMessageId(messageId);
+  }, []);
+
+  const handleBackFromThread = useCallback(() => {
+    setActiveThreadMessageId(null);
+  }, []);
 
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
@@ -340,6 +350,17 @@ const ConversationThreadScreen = ({
     if (conversationMessages.length === 0) {
       return <EmptyChatState />;
     }
+
+    if (activeThreadMessageId) {
+      return (
+        <MessageThreadScreen
+          messageId={activeThreadMessageId}
+          conversationId={currentConversationId}
+          conversationAPIResponse={conversationAPIResponse}
+          onBack={handleBackFromThread}
+        />
+      );
+    }
     return (
       <ConversationMessageList
         messages={conversationMessages}
@@ -353,6 +374,8 @@ const ConversationThreadScreen = ({
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
         onNavigateToMessage={handleNavigateToMessage}
+        onViewThread={handleViewThread}
+        isThreadView={false}
       />
     );
   }, [
@@ -361,6 +384,8 @@ const ConversationThreadScreen = ({
     conversationAPIError,
     conversationMessagesError,
     conversationMessages,
+    activeThreadMessageId,
+    handleBackFromThread,
     handleLoadOlder,
     handleLoadNewer,
     hasPreviousPage,
@@ -372,11 +397,14 @@ const ConversationThreadScreen = ({
     currentConversationId,
     searchedMessageId,
     handleNavigateToMessage,
+    handleViewThread,
   ]);
 
   const renderTextInput = useCallback(() => {
     const isBlocked = conversationAPIResponse?.isBlocked === true;
     const isInactive = conversationAPIResponse?.isActive === false;
+
+    if (activeThreadMessageId) return null;
 
     if (isBlocked || isInactive) {
       return (

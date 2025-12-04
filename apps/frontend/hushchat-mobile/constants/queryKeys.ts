@@ -8,6 +8,7 @@ const CONVERSATION_QUERY_BASE_KEY = "conversations";
 const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
 const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
 const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
+const MESSAGE_THREAD_QUERY_BASE_KEY = "message-thread";
 const USER_QUERY_BASE_KEY = "users";
 
 export const conversationQueryKeys = {
@@ -63,6 +64,8 @@ export const conversationMessageQueryKeys = {
   ],
 
   messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
+
+  messageThread: (messageId: number) => [MESSAGE_THREAD_QUERY_BASE_KEY, messageId],
 };
 
 export const userQueryKeys = {

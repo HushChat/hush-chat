@@ -86,3 +86,13 @@ export const getMessageReactions = async (
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
+
+export const getMessageThread = async (messageId: number) => {
+  try {
+    const response = await axios.get(MESSAGE_API_ENDPOINTS.THREAD(messageId));
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};

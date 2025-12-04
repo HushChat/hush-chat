@@ -62,6 +62,8 @@ interface MessageItemProps {
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  onViewThread?: (messageId: number) => void;
+  isThreadView?: boolean;
 }
 
 const REMOVE_ONE = 1;
@@ -87,6 +89,8 @@ export const ConversationMessageItem = ({
   onViewReactions,
   showSenderAvatar,
   onNavigateToMessage,
+  onViewThread,
+  isThreadView = false,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -177,22 +181,33 @@ export const ConversationMessageItem = ({
         iconName: "arrow-undo-outline",
         action: () => onMessageSelect?.(message),
       },
-      {
+    ];
+    if (onViewThread) {
+      options.push({
         id: 2,
+        name: "View Thread",
+        iconName: "chatbubbles-outline",
+        action: () => onViewThread(message.id),
+      });
+    }
+    options.push(
+      {
+        id: 3,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => onMessagePin(message),
       },
       {
-        id: 3,
+        id: 4,
         name: "Select message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
-      },
-    ];
+      }
+    );
+
     if (isCurrentUser && !message.isUnsend) {
       options.push({
-        id: 4,
+        id: 5,
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
@@ -207,6 +222,9 @@ export const ConversationMessageItem = ({
     onStartSelectionWith,
     onUnsendMessage,
     isSystemEvent,
+    isThreadView,
+    onViewThread,
+    onMessageSelect,
   ]);
 
   const handleLongPress = useCallback(() => {
@@ -421,7 +439,7 @@ export const ConversationMessageItem = ({
         </View>
       </View>
 
-      {PLATFORM.IS_WEB && (
+      {PLATFORM.IS_WEB && !isThreadView && (
         <WebContextMenu
           visible={webMenuVisible && !selectionMode}
           position={webMenuPos}
