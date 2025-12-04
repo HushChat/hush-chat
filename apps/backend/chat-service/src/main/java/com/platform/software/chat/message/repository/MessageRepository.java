@@ -27,26 +27,22 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
 
     @Query(value = """
             WITH RECURSIVE ancestors AS (
-                -- Start with the clicked message
                 SELECT id, parent_message_id
                 FROM message
                 WHERE id = :messageId
 
                 UNION ALL
 
-                -- Walk up to get all parent messages
                 SELECT m.id, m.parent_message_id
                 FROM message m
                 INNER JOIN ancestors a ON m.id = a.parent_message_id
             ),
             descendants AS (
-                -- Start with all ancestors (including the clicked message)
                 SELECT id, parent_message_id
                 FROM ancestors
 
                 UNION ALL
 
-                -- Walk down to get all child messages
                 SELECT m.id, m.parent_message_id
                 FROM message m
                 INNER JOIN descendants d ON m.parent_message_id = d.id
