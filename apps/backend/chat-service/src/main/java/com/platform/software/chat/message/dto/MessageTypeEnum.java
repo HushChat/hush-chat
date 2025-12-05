@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum MessageTypeEnum {
     TEXT("TEXT"),
     ATTACHMENT("ATTACHMENT"),
+    AUDIO("AUDIO"),
     SYSTEM_EVENT("SYSTEM_EVENT");
 
     private final String name;
