@@ -46,4 +46,7 @@ public class Conversation extends AuditModel{
     private Message pinnedMessage;
 
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    private ConversationStatus status;
 }

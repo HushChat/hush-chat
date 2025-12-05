@@ -2,10 +2,7 @@ package com.platform.software.chat.conversation.service;
 
 
 import com.platform.software.chat.conversation.dto.*;
-import com.platform.software.chat.conversation.entity.Conversation;
-import com.platform.software.chat.conversation.entity.ConversationEvent;
-import com.platform.software.chat.conversation.entity.ConversationReport;
-import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
+import com.platform.software.chat.conversation.entity.*;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
@@ -123,6 +120,7 @@ public class ConversationService {
     public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
         Conversation conversation = new Conversation();
         conversation.setIsGroup(isGroup);
+        conversation.setStatus(isGroup ? ConversationStatus.PENDING : ConversationStatus.ACTIVE);
         conversation.setCreatedBy(userService.getUserOrThrow(loggedInUserId));
         List<ConversationParticipant> participants = new ArrayList<>();
 

@@ -2,6 +2,7 @@ package com.platform.software.chat.conversation.repository;
 
 import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationStatus;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
@@ -144,7 +145,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
                 .and(qConversation.deleted.eq(false))
-                .and(qConversationParticipant.isDeleted.eq(false));
+                .and(qConversationParticipant.isDeleted.eq(false)
+                .and(qConversation.status.eq(ConversationStatus.ACTIVE)));
 
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
