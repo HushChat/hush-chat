@@ -77,7 +77,7 @@ export const setupGlobalErrorHandling = () => {
           errorMessage = extractErrorMessage(responseData);
         }
 
-        if (statusCode === 401 || statusCode === 403) {
+        if (statusCode === 401 || statusCode === 403 || statusCode === 430) {
           ToastUtils.error("Session Expired", "Your session has expired. Logging out...");
           safeLogoutAndRedirect();
           return Promise.reject(error);
