@@ -4,7 +4,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { CHAT_VIEW_PATH } from "@/constants/routes";
 import { IConversation } from "@/types/chat/types";
 
-interface UseLinkConversationParams {
+interface ILinkConversationParams {
   initialConversationId?: number;
   conversations: IConversation[];
   onConversationFound: (conversation: IConversation) => void;
@@ -14,7 +14,7 @@ export function useLinkConversation({
   initialConversationId,
   conversations,
   onConversationFound,
-}: UseLinkConversationParams) {
+}: ILinkConversationParams) {
   const hasInitialized = useRef(false);
   const previousConversationId = useRef<number | undefined>(undefined);
 

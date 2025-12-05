@@ -8,9 +8,10 @@
  * - Provides filtering options (All, Unread, Favorites)
  * - Global search across users, conversations, and messages with debounced input
  * - Conversation selection and state management
- * - Deep linking support: navigates to /conversations/[id] when a conversation is selected (web)
- *   and opens the correct chat when a shared link is opened (mobile)
  * - Delegates layout rendering to a dynamically selected component from the factory
+ *
+ * The screen combines conversation browsing and search functionality in a unified interface,
+ * ensuring flexibility in UI presentation through the component factory pattern.
  */
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
