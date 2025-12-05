@@ -26,7 +26,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
@@ -34,6 +34,11 @@ import { MessageHeader } from "@/components/conversations/conversation-thread/me
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment } from "@/utils/messageHelpers";
+import { TUser } from "@/types/user/types";
+import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import { CHAT_VIEW_PATH, CHATS_PATH } from "@/constants/routes";
+import { router } from "expo-router";
+import { createOneToOneConversation } from "@/apis/conversation";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -100,6 +105,8 @@ export const ConversationMessageItem = ({
     x: 0,
     y: 0,
   });
+  const [showMentionProfileModal, setShowMentionProfileModal] = useState(false);
+  const [selectedMentionUser, setSelectedMentionUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
@@ -239,6 +246,40 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        if (PLATFORM.IS_WEB) {
+          router.push({
+            pathname: CHATS_PATH,
+            params: {
+              conversationId: String(result.data.id),
+            },
+          } as any);
+        } else {
+          router.push({
+            pathname: CHAT_VIEW_PATH,
+            params: {
+              conversationId: String(result.data.id),
+            },
+          } as any);
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessageMentionedUser = useCallback(
+    (user: TUser) => {
+      setShowMentionProfileModal(false);
+      createConversation(user.id);
+    },
+    [createConversation]
+  );
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
     () => {
@@ -329,6 +370,11 @@ export const ConversationMessageItem = ({
     ]
   );
 
+  const handleMentionClick = useCallback((user: TUser) => {
+    setSelectedMentionUser(user);
+    setShowMentionProfileModal(true);
+  }, []);
+
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
     return (
@@ -402,6 +448,7 @@ export const ConversationMessageItem = ({
               isForwardedMessage={isForwardedMessage}
               attachments={attachments}
               onBubblePress={handleBubblePress}
+              onMentionClick={handleMentionClick}
             />
 
             <MessageReactions
@@ -416,6 +463,13 @@ export const ConversationMessageItem = ({
               onSelectReaction={handleSelectReaction}
               onCloseAllOverlays={onCloseAllOverlays}
               onViewReactions={handleViewReactions}
+            />
+
+            <MentionProfileModal
+              visible={showMentionProfileModal}
+              user={selectedMentionUser}
+              onClose={() => setShowMentionProfileModal(false)}
+              onMessagePress={handleMessageMentionedUser}
             />
           </View>
         </View>

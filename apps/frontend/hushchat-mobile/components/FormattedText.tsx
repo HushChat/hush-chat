@@ -70,8 +70,11 @@ const FormattedText = ({
   );
   const handleMentionPress = useCallback(
     (mention: string) => {
-      const username = mention.replace(MENTION_REGEX, "");
-      if (mentions.some((m) => m.username === username)) {
+      const username = mention.replace(/^@/, "").trim();
+
+      const match = mentions.find((m) => m.username === username);
+
+      if (match) {
         onMentionPress?.(username);
       }
     },
