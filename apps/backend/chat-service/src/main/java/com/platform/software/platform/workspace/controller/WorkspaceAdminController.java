@@ -7,12 +7,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/workspaces")
+@RequestMapping("/admin/workspace")
 public class WorkspaceAdminController {
 
     private final ConversationService conversationService;
@@ -22,9 +20,18 @@ public class WorkspaceAdminController {
     }
 
     @ApiOperation(value = "Get all group conversations in a workspace", response = ConversationAdminViewDTO.class)
-    @GetMapping("/group-conversations")
+    @GetMapping("/conversations")
     public ResponseEntity<Page<ConversationAdminViewDTO>> getAllGroupConversations( Pageable pageable )
     {
         return new ResponseEntity<>(conversationService.getAllGroupConversations(pageable), HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Delete conversation by id", response = ConversationAdminViewDTO.class)
+    @DeleteMapping("/conversations/{conversationId}")
+    public ResponseEntity<Void> deleteGroupConversation(
+            @PathVariable Long conversationId
+    ) {
+        conversationService.deleteConversationById(conversationId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

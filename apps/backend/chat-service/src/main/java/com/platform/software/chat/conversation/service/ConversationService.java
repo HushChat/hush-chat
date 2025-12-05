@@ -679,7 +679,7 @@ public class ConversationService {
     }
 
     /**
-     * Deletes a conversation by its ID for a specific user.
+     * Deletes a conversation by its ID. The requesting user must be a group admin.
      *
      * @param id     the ID of the conversation to delete
      * @param userId the ID of the user deleting the conversation
@@ -688,16 +688,24 @@ public class ConversationService {
     public Conversation deleteConversationById(Long id, Long userId) {
         Conversation conversation = conversationRepository.findByIdAndCreatedById(id, userId).orElseThrow(() -> {
             logger.warn("invalid conversation id {} provided or the user {} doesn't have permission to delete it", id, userId);
-            throw new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
+            return new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
         });
 
-        conversation.setDeleted(true);
-        try {
-            return conversationRepository.save(conversation);
-        } catch (Exception exception) {
-            logger.error("failed to delete conversation id: {}", id, exception);
-            throw new CustomBadRequestException("Failed to delete conversation");
-        }
+        return conversationUtilService.deleteConversation(conversation);
+    }
+
+    /**
+     * Deletes a conversation by its ID. This method is intended for admin use.
+     *
+     * @param id the ID of the conversation to delete
+     */
+    public void deleteConversationById(Long id) {
+        Conversation conversation = conversationRepository.findById(id).orElseThrow(() -> {
+            logger.warn("invalid conversation id {} provided", id);
+            return new CustomBadRequestException("Conversation does not exist!");
+        });
+
+        conversationUtilService.deleteConversation(conversation);
     }
 
     /**
