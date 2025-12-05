@@ -1367,6 +1367,27 @@ public class ConversationService {
     public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
         return conversationRepository.findAllGroupConversationsAdminView(pageable);
     }
+
+    /**
+     * Approves a group conversation by setting its status to ACTIVE.
+     *
+     * @param conversationId the ID of the conversation to delete
+     */
+    @Transactional
+    public void approveConversationById(Long conversationId) {
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+        if (!conversation.getIsGroup()) {
+            throw new CustomBadRequestException("Only group conversations can be approved");
+        }
+
+        conversation.setStatus(ConversationStatus.ACTIVE);
+        try {
+            conversationRepository.save(conversation);
+        } catch (Exception e) {
+            logger.error("Failed to approve conversationId: {}", conversationId, e);
+            throw new CustomInternalServerErrorException("Failed to approve conversation");
+        }
+    }
 }
 
 

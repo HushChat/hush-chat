@@ -34,4 +34,13 @@ public class WorkspaceAdminController {
         conversationService.deleteConversationById(conversationId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @ApiOperation(value = "Approve group conversation by id", response = ConversationAdminViewDTO.class)
+    @PatchMapping("/conversations/{conversationId}")
+    public ResponseEntity<Void> approveGroupConversation(
+            @PathVariable Long conversationId
+    ) {
+        conversationService.approveConversationById(conversationId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
