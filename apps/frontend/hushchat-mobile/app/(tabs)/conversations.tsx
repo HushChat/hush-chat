@@ -21,7 +21,7 @@ import { IConversation, IFilter, ConversationType } from "@/types/chat/types";
 import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
 import { useEffect, useMemo, useState } from "react";
-import ChatInterface from "@/components/conversations/ChatInterface";
+import ChatInterface from "@/components/conversations/ChatInterface/ChatInterface";
 
 export default function ConversationScreen() {
   const { selectedConversationType } = useConversationStore();

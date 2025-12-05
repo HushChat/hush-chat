@@ -21,9 +21,9 @@ import { useImagePreview } from "@/hooks/useImagePreview";
 
 import { Images } from "@/assets/images";
 import { PLATFORM } from "@/constants/platformConstants";
-import { FORWARD_PATH } from "@/constants/routes";
+import { CHATS_PATH, FORWARD_PATH } from "@/constants/routes";
 import { EMPTY_SET } from "@/constants/constants";
-import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { getAPIErrorMsg, navigateBackOrFallback } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
@@ -254,7 +254,6 @@ const ConversationThreadScreen = ({
     selectedFiles,
     sendMessage,
     uploadFilesFromWeb,
-    updateConversationMessagesCache,
     handleCloseImagePreview,
   });
 
@@ -266,7 +265,7 @@ const ConversationThreadScreen = ({
   }, [currentConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
 
   const handleBackPress = useCallback(() => {
-    router.back();
+    navigateBackOrFallback(CHATS_PATH);
   }, []);
 
   const handleLoadOlder = useCallback(async () => {

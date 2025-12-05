@@ -20,7 +20,7 @@ import SearchBar from "@/components/SearchBar";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 
-export default function ChatInterface({
+export default function ChatInterfaceMobile({
   chatItemList,
   filters,
   selectedConversation,
