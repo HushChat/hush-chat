@@ -26,14 +26,11 @@ const MobileAttachmentModal = ({
   onOpenImagePicker,
   onOpenDocumentPicker,
 }: MobileAttachmentModalProps) => {
-  const handleOptionPress = async (
-    option: AttachmentOption,
-    pickerFn?: () => void | Promise<void>
-  ) => {
+  const handleOptionPress = (option: AttachmentOption, pickerFn?: () => void | Promise<void>) => {
     if (!pickerFn) return;
 
     try {
-      await pickerFn();
+      pickerFn();
       onClose();
     } catch (error) {
       const optionLabel = option === "images" ? "image" : "document";

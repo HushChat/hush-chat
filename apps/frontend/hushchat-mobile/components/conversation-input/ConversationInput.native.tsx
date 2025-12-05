@@ -58,12 +58,18 @@ const ConversationInput = ({
 
   const handleImagePickerSelect = useCallback(() => {
     setMobileMenuVisible(false);
-    onOpenImagePickerNative?.();
+
+    setTimeout(() => {
+      onOpenImagePickerNative?.();
+    }, 500);
   }, [onOpenImagePickerNative]);
 
   const handleDocumentPickerSelect = useCallback(() => {
     setMobileMenuVisible(false);
-    onOpenDocumentPickerNative?.();
+
+    setTimeout(() => {
+      onOpenDocumentPickerNative?.();
+    }, 800);
   }, [onOpenDocumentPickerNative]);
 
   const handleSendButtonPress = useCallback(() => {
