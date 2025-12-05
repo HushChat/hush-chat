@@ -1,5 +1,5 @@
 import { TWorkspaceFormProps, Workspace, WorkspaceStatus } from "@/types/login/types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FormButton, FormContainer, FormHeader, LinkText } from "@/components/FormComponents";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import WorkspaceDropdown from "@/components/auth/workspace/WorkspaceDropdown";
@@ -10,6 +10,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
 import { AppText } from "@/components/AppText";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
+import { ToastUtils } from "@/utils/toastUtils";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
@@ -40,8 +41,8 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
 
     if (selectedWorkspace.status === WorkspaceStatus.PENDING) {
       onNavigateToRegister();
-    } else if (selectedWorkspace.status === workspaceStatus.SUSPENDED) {
-      setError("Your access to this workspace has been suspended. Please contact support.");
+    } else if (selectedWorkspace.status === WorkspaceStatus.SUSPENDED) {
+      ToastUtils.error("Your access to this workspace has been suspended. Please contact support.");
     } else {
       handleNext();
     }

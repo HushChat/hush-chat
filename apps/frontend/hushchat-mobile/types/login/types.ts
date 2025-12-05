@@ -30,18 +30,13 @@ export interface Workspace {
   description: string;
   workspaceIdentifier: string;
   imageUrl: string | null;
-  status: workspaceStatus;
-}
-
-export enum workspaceStatus {
-  PENDING = "PENDING",
-  ACCEPTED = "ACCEPTED",
-  SUSPENDED = "SUSPENDED",
+  status: WorkspaceStatus;
 }
 
 export enum WorkspaceStatus {
   PENDING = "PENDING",
   ACCEPTED = "ACCEPTED",
+  SUSPENDED = "SUSPENDED",
 }
 
 export type TWorkspaceFormProps = {
