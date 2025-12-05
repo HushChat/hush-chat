@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { usePinMessageMutation } from "@/query/post/queries";
+import { useFavoriteMessageMutation, usePinMessageMutation } from "@/query/post/queries";
 import { usePatchUnsendMessageMutation } from "@/query/patch/queries";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import { useUpdateCache } from "@/query/config/useUpdateCache";
@@ -95,9 +95,56 @@ export function useMessageActions(
     [unsend]
   );
 
+  /**
+   * Favorite/Unfavorite Messages
+   */
+  const { mutate: toggleFavoriteMessage } = useFavoriteMessageMutation(
+    undefined,
+    (message: IMessage) => {
+      updateCache(
+        conversationMessageQueryKeys.messages(
+          Number(currentUserId),
+          Number(message.conversationId)
+        ),
+        (prev: { pages: PaginatedResponse<IMessage>[] } | undefined) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              content: page.content.map((msg) =>
+                msg.id === message.id
+                  ? {
+                      ...msg,
+                      isFavorite: !msg.isFavorite,
+                    }
+                  : msg
+              ),
+            })),
+          };
+        }
+      );
+    },
+    (error) => {
+      ToastUtils.error(error as string);
+    }
+  );
+
+  const toggleFavorite = useCallback(
+    (message?: IBasicMessage) => {
+      const conversationId = conversation?.id;
+      if (!conversationId || !message) return;
+
+      toggleFavoriteMessage({ conversationId, messageId: message.id });
+    },
+    [conversation?.id]
+  );
+
   return {
     togglePin,
     unSendMessage,
     selectedPinnedMessage,
+    toggleFavorite,
   };
 }

@@ -32,6 +32,7 @@ public class MessageViewDTO {
     private Boolean isReadByEveryone;
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
+    private Boolean isFavorite;
 
     public MessageViewDTO(Message message) {
         initializeFromMessage(message);

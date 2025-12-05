@@ -26,25 +26,6 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    /**
-     * Create a favorite message for the authenticated user.
-     *
-     * @param authenticatedUser the authenticated user details
-     * @param messageId the ID of the message to be favorited
-     * @return ResponseEntity containing the created MessageViewDTO
-     */
-    @ApiOperation(value = "Create favorite message", response = MessageViewDTO.class)
-    @PostMapping("{messageId}/favorite")
-    public ResponseEntity<MessageViewDTO> createFavoriteMessage(
-        @AuthenticatedUser UserDetails authenticatedUser,
-        @PathVariable Long messageId
-    ) {
-        MessageViewDTO favoriteMessage = favoriteMessageService.createFavoriteMessage(
-            authenticatedUser.getId(),
-            messageId
-        );
-        return ResponseEntity.ok(favoriteMessage);
-    }
 
     /**
      * Forward messages to one or more conversations.
@@ -61,26 +42,6 @@ public class MessageController {
     ) {
         messageService.forwardMessages(userDetails.getId(), messageForwardRequestDTO);
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    /**
-     * Get all favorite messages for the logged-in user.
-     *
-     * @param authenticatedUser the authenticated user details
-     * @param pageable pagination information
-     * @return ResponseEntity containing a page of MessageViewDTO
-     */
-    @ApiOperation(value = "Get all favorite messages for logged in user", response = Page.class)
-    @GetMapping("favorites")
-    public ResponseEntity<Page<MessageViewDTO>> getFavoriteMessages(
-        @AuthenticatedUser UserDetails authenticatedUser,
-        Pageable pageable
-    ) {
-        Page<MessageViewDTO> favoriteMessages = favoriteMessageService.getFavoriteMessagesByUserId(
-            authenticatedUser.getId(),
-            pageable
-        );
-        return ResponseEntity.ok(favoriteMessages);
     }
 
     /**

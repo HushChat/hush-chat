@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, StyleSheet, Dimensions } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { useModalContext } from "@/context/modal-context";
@@ -15,6 +15,8 @@ import { useBlockUserMutation } from "@/query/post/queries";
 import { useUnblockUserMutation } from "@/query/delete/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { PanelType } from "@/types/web-panel/types";
+import useWebPanelManager from "@/hooks/useWebPanelManager";
 
 interface OneToOneChatInfoProps {
   conversation: IConversation;
@@ -34,6 +36,19 @@ export default function OneToOneChatInfo({
   const {
     user: { id: userId },
   } = useUserStore();
+
+  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
+
+  const { openPanel, closePanel } = useWebPanelManager(screenWidth);
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setScreenWidth(window.width);
+    });
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   const blockUserMutation = useBlockUserMutation(
     { userId: Number(userId), conversationId: conversation.id },
@@ -93,6 +108,10 @@ export default function OneToOneChatInfo({
     });
   };
 
+  const handleFavoriteMessages = useCallback(() => {
+    openPanel(PanelType.FAVORITE_MESSAGES);
+  }, [openPanel, closePanel]);
+
   if (isLoadingConversationInfo) return <LoadingState />;
 
   return (
@@ -133,6 +152,7 @@ export default function OneToOneChatInfo({
             isMuted={!!conversationInfo?.mutedUntil}
             onBack={onBack}
             setSelectedConversation={setSelectedConversation}
+            showFavoriteMessages={handleFavoriteMessages}
           />
           <ActionItem
             icon="ban-outline"

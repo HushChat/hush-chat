@@ -11,7 +11,7 @@ export interface IConversation {
   signedImageUrl: string | null;
   messages: IMessage[];
   description: string;
-
+  isBlocked: boolean;
   pinnedByLoggedInUser: boolean;
   mutedByLoggedInUser: boolean;
   favoriteByLoggedInUser: boolean;
@@ -58,6 +58,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isFavorite?: boolean;
 }
 
 export interface IMessageView extends IMessage {
