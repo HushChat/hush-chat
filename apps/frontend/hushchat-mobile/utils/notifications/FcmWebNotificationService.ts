@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, Messaging, onMessage } from "firebase/messaging";
 import { INotificationService } from "./INotificationService";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
-import { logError, logWarn } from "@/utils/logger";
+import { logError } from "@/utils/logger";
 
 let messaging: Messaging | null = null;
 
@@ -36,20 +36,42 @@ export const FcmWebNotificationService: INotificationService = {
 
   onMessage(callback) {
     if (!messaging) {
-      logWarn("[FCM] Messaging not initialized; skipping onMessage listener.");
+      console.warn("[FCM] Messaging not initialized; skipping onMessage listener.");
       return;
     }
 
     onMessage(messaging, (payload) => {
-      callback(payload.notification);
-    });
-  },
+      console.log("[FCM] Foreground message received:", payload);
 
-  showLocalNotification(title, body) {
-    if (Notification.permission === "granted") {
-      new Notification(title, { body });
-    } else {
-      logError("[FCM] Messaging not initialized; skipping onMessage listener.");
-    }
+      const title = payload.data?.title || "New Message";
+      const body = payload.data?.body || "";
+      const conversationId = payload.data?.conversationId;
+      const messageId = payload.data?.messageId;
+
+      if (Notification.permission === "granted") {
+        const notification = new Notification(title, {
+          body: body,
+          icon: "/favicon.png",
+          badge: "/favicon.png",
+          tag: `conversation-${conversationId}`,
+          data: {
+            conversationId: conversationId,
+            messageId: messageId,
+            url: conversationId
+              ? `/conversations?conversationId=${conversationId}${messageId ? `&messageId=${messageId}` : ""}`
+              : "/",
+          },
+        });
+
+        notification.onclick = (event) => {
+          event.preventDefault();
+          const notificationData = (event.target as Notification).data;
+          window.location.href = notificationData?.url || "/";
+          notification.close();
+        };
+      }
+
+      callback({ title, body });
+    });
   },
 };
