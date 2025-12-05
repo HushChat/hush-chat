@@ -57,7 +57,7 @@ function SwipeableRow<T>({
   onDelete?: (conversationId: number) => Promise<void>;
   allowSwipe: boolean;
   selectedConversationType: ConversationType;
-  onMorePress: (conversation: IConversation, resetSwipe: () => void) => void; // 👈 updated
+  onMorePress: (conversation: IConversation, resetSwipe: () => void) => void;
 }) {
   const sectionedItem = item as unknown as ISectionedSearchResult;
 
