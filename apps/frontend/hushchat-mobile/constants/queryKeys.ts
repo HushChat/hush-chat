@@ -2,6 +2,7 @@ import type { ConversationFilterCriteria } from "@/apis/conversation";
 
 const CALL_LOGS = "call-logs";
 const GROUP_INFO = "group-info";
+const WORKSPACES = "workspaces";
 
 const CONVERSATION_QUERY_BASE_KEY = "conversations";
 const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
@@ -68,4 +69,6 @@ export const userQueryKeys = {
   callLogs: (userId: number) => [USER_QUERY_BASE_KEY, CALL_LOGS, userId],
 
   userProfile: (userId: number) => [USER_QUERY_BASE_KEY, userId],
+
+  userWorkspace: (userId: number) => [USER_QUERY_BASE_KEY, WORKSPACES, userId],
 };
