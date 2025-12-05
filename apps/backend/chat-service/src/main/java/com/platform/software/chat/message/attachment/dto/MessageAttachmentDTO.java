@@ -1,5 +1,6 @@
 package com.platform.software.chat.message.attachment.dto;
 
+import java.util.Date;
 import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.common.model.ModelMapper;
@@ -14,6 +15,7 @@ public class MessageAttachmentDTO implements ModelMapper<MessageAttachment> {
     private String indexedFileName;
     private String fileUrl;
     private AttachmentTypeEnum type;
+    private Date updatedAt;
 
     public MessageAttachmentDTO(MessageAttachment messageAttachment) {
         this.mapToSelf(messageAttachment);
@@ -35,5 +37,6 @@ public class MessageAttachmentDTO implements ModelMapper<MessageAttachment> {
         this.originalFileName = dto.getOriginalFileName();
         this.indexedFileName = dto.getIndexedFileName();
         this.type = dto.getType();
+        this.updatedAt = dto.getUpdatedAt();
     }
 }

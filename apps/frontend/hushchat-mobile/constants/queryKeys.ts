@@ -1,4 +1,4 @@
-import type { ConversationFilterCriteria } from "@/apis/conversation";
+import { type ConversationFilterCriteria } from "@/apis/conversation";
 
 const CALL_LOGS = "call-logs";
 const GROUP_INFO = "group-info";
@@ -7,6 +7,7 @@ const WORKSPACES = "workspaces";
 const CONVERSATION_QUERY_BASE_KEY = "conversations";
 const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
 const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
+const CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY = "conversation-attachments";
 const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
 const USER_QUERY_BASE_KEY = "users";
 
@@ -52,6 +53,13 @@ export const conversationQueryKeys = {
   lastSeenMessage: (conversationId: number) => [
     CONVERSATION_MESSAGE_QUERY_BASE_KEY,
     conversationId,
+  ],
+
+  conversationAttachments: (conversationId: number, type: string, pageSize: number) => [
+    CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY,
+    conversationId,
+    type,
+    pageSize,
   ],
 };
 
