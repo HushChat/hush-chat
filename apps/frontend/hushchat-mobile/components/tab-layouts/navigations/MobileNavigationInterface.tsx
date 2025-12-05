@@ -11,7 +11,7 @@ interface MobileNavigationInterfaceProps extends BottomTabBarProps {
   navigationItems: INavigationItem[];
 }
 
-const EXCLUDED_ROUTES = ["settings"];
+const EXCLUDED_ROUTES = ["settings", "conversations/index"];
 
 const MobileNavigationInterface = ({
   state,

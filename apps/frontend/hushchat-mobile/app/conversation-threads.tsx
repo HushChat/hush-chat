@@ -49,6 +49,7 @@ interface ConversationThreadScreenProps {
   webForwardPress?: (messageIds: Set<number>) => void;
   messageToJump?: number | null;
   onMessageJumped?: () => void;
+  onConversationDeleted?: () => void;
 }
 
 const ConversationThreadScreen = ({
@@ -254,7 +255,6 @@ const ConversationThreadScreen = ({
     selectedFiles,
     sendMessage,
     uploadFilesFromWeb,
-    updateConversationMessagesCache,
     handleCloseImagePreview,
   });
 
