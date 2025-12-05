@@ -32,7 +32,13 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
     try {
       const accessToken = (await getAllTokens()).accessToken;
       if (accessToken) {
-        await axios.post(AUTH_API_ENDPOINTS.LOGOUT(accessToken));
+        await axios.post(
+          AUTH_API_ENDPOINTS.LOGOUT(accessToken),
+          {},
+          {
+            skipErrorToast: true,
+          }
+        );
       }
     } catch (error) {
       logInfo("Error during logout:", error);
