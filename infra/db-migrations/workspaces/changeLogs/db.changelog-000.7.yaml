@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: add_only_admins_can_send_messages_to_conversation
       author: wenura
-      tag: release-6.1
+      tag: release-7.1
       changes:
         - addColumn:
             tableName: conversation
