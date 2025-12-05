@@ -296,6 +296,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .join(qConversation.conversationParticipants, qConversationParticipant)
                 .where(qConversation.id.eq(conversationId)
                         .and(qConversation.deleted.isFalse())
+                        .and(qConversation.status.eq(ConversationStatus.ACTIVE))
                         .and(qConversationParticipant.user.id.eq(userId))
                         .and(qConversationParticipant.isDeleted.isFalse()))
                 .fetchFirst();
