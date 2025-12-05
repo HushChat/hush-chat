@@ -2,10 +2,9 @@ package com.platform.software.controller.external;
 
 import com.platform.software.platform.workspace.service.WorkspaceService;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,5 +22,14 @@ public class PublicWorkspaceController {
     @GetMapping
     public ResponseEntity<List<String>> getWorkspaces() {
         return ResponseEntity.ok(workspaceService.getAllWorkspaces());
+    }
+
+    @ApiOperation(value = "Approve new workspace creation")
+    @PostMapping("{workspaceId}/approve")
+    public ResponseEntity<Void> approveCreateWorkspaceRequest(
+            @PathVariable Long workspaceId
+    ){
+        workspaceService.approveCreateWorkspaceRequest(workspaceId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
