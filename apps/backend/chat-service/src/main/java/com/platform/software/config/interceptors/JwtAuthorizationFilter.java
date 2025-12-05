@@ -5,8 +5,6 @@ import com.platform.software.common.service.ErrorResponseHandler;
 import com.platform.software.common.utils.AuthUtils;
 import com.platform.software.config.aws.AWSCognitoConfig;
 import com.platform.software.exception.ErrorResponses;
-import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
-import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,18 +51,14 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final UserService userService;
     private final AWSCognitoConfig awsCognitoConfig;
-    private final WorkspaceUserService workspaceUserService;
-
     private final Map<String, RSAPublicKey> cachedPublicKeys = new ConcurrentHashMap<>();
 
     public JwtAuthorizationFilter(
         UserService userService,
-        AWSCognitoConfig awsCognitoConfig,
-        WorkspaceUserService workspaceUserService
+        AWSCognitoConfig awsCognitoConfig
     ) {
         this.userService = userService;
         this.awsCognitoConfig = awsCognitoConfig;
-        this.workspaceUserService = workspaceUserService;
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
@@ -72,14 +66,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         return PUBLIC_PATTERNS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private String setCurrentWorkspace(HttpServletRequest request) {
+    private void setCurrentWorkspace(HttpServletRequest request) {
         String tenantId = request.getHeader(Constants.X_TENANT_HEADER);
         if (tenantId != null) {
             WorkspaceContext.setCurrentWorkspace(tenantId);
         } else {
             log.warn("Missing tenant header");
         }
-        return tenantId;
     }
 
     private void handleTokenVerificationForUsers(
@@ -93,7 +86,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                String workspaceId = setCurrentWorkspace(request);
+                setCurrentWorkspace(request);
 
                 // Allow through for public routes
                 if (isPublicEndpoint(request)) {
@@ -122,12 +115,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         decodedJwt,
                         token
                     );
-                    WorkspaceUser workspaceUser = workspaceUserService.verifyUserAccessToWorkspace(email, workspaceId);
 
                     UserDetails userDetails;
                     try {
                         ChatUser user = userService.getUserByEmail(email);
-                        userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace(), workspaceUser.getRole());
+                        userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace());
                     } catch (Exception e) {
                         userDetails = new UserDetails();
                         userDetails.setEmail(email);

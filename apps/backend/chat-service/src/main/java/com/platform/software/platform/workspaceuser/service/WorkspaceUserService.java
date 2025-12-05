@@ -32,11 +32,11 @@ public class WorkspaceUserService {
         this.workspaceUserUtilService = workspaceUserUtilService;
     }
 
-    public WorkspaceUser verifyUserAccessToWorkspace(String email, String workspaceName) {
+    public WorkspaceDTO verifyUserAccessToWorkspace(String email, String workspaceName) {
         WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(email, workspaceName)
             .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid name"));
 
-        return user;
+        return new WorkspaceDTO(user.getWorkspace());
     }
 
     public List<Workspace> getAllWorkspaces(String email) {
