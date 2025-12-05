@@ -1,16 +1,11 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import React, { memo, useCallback, useMemo, useRef } from "react";
 import { View, Pressable, StyleSheet } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
 import { REACTION_META } from "@/constants/reactions";
 import classNames from "classnames";
 import { ReactionType } from "@/types/chat/types";
 import EmojiGlyph from "@/components/conversations/conversation-thread/message-list/reaction/EmojiGlyph";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
+import { MotionView } from "@/motion/MotionView";
 
 type ReactionPickerProps = {
   visible: boolean;
@@ -39,30 +34,6 @@ const ReactionPicker = memo(
   }: ReactionPickerProps) => {
     const rootRef = useRef<View | null>(null);
     useOutsideClick(rootRef, () => onRequestClose?.(), visible);
-
-    const scale = useSharedValue(0.8);
-    const opacity = useSharedValue(0);
-
-    useEffect(() => {
-      if (visible) {
-        scale.value = withTiming(1, {
-          duration: 150,
-          easing: Easing.out(Easing.quad),
-        });
-        opacity.value = withTiming(1, {
-          duration: 120,
-          easing: Easing.out(Easing.quad),
-        });
-      } else {
-        scale.value = 0.8;
-        opacity.value = 0;
-      }
-    }, [opacity, scale, visible]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }],
-      opacity: opacity.value,
-    }));
 
     const handleSelect = useCallback(
       (type: ReactionType) => {
@@ -102,18 +73,24 @@ const ReactionPicker = memo(
 
     return (
       <View pointerEvents="box-none" style={[styles.overlay, alignmentStyle]}>
-        <Animated.View
-          ref={rootRef}
-          style={animatedStyle}
+        <MotionView
+          visible={visible}
+          from={{ opacity: 0, scale: 0.8 }}
+          to={{ opacity: 1, scale: 1 }}
+          duration={{ enter: 150, exit: 120 }}
+          easing="decelerate"
           pointerEvents="auto"
-          onStartShouldSetResponder={() => true}
-          onResponderStart={(e) => e.stopPropagation?.()}
           className="z-20"
         >
-          <View className="flex-row w-fit p-1.5 items-center rounded-full shadow-lg bg-secondary-light dark:bg-secondary-dark border border-gray-200 dark:border-gray-600">
+          <View
+            ref={rootRef}
+            onStartShouldSetResponder={() => true}
+            onResponderStart={(e) => e.stopPropagation?.()}
+            className="flex-row w-fit p-1.5 items-center rounded-full shadow-lg bg-secondary-light dark:bg-secondary-dark border border-gray-200 dark:border-gray-600"
+          >
             {emojiButtons}
           </View>
-        </Animated.View>
+        </MotionView>
       </View>
     );
   }

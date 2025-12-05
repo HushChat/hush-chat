@@ -1,19 +1,13 @@
+import React, { useState } from "react";
 import { Dimensions, Text, TouchableOpacity, View, StyleSheet } from "react-native";
-import Animated, {
-  useSharedValue,
-  withTiming,
-  withDelay,
-  useAnimatedStyle,
-  Easing,
-} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { UserMultiSelectList } from "@/components/UserMultiSelect";
-import React, { useEffect, useState } from "react";
 import { TUser } from "@/types/user/types";
 import { useCreateAddParticipantsMutation } from "@/query/post/queries";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { MotionView } from "@/motion/MotionView";
 
 interface AddParticipantsProps {
   conversationId: number;
@@ -27,9 +21,6 @@ export default function AddMoreGroupParticipants({
   visible,
 }: AddParticipantsProps) {
   const screenWidth = Dimensions.get("window").width;
-  const translateX = useSharedValue(screenWidth);
-  const opacity = useSharedValue(0);
-
   const [selectedUsers, setSelectedUsers] = useState<TUser[]>([]);
 
   const { mutate: addParticipants } = useCreateAddParticipantsMutation(
@@ -48,38 +39,16 @@ export default function AddMoreGroupParticipants({
     addParticipants({ conversationId, newParticipantIds });
   };
 
-  useEffect(() => {
-    if (visible) {
-      translateX.value = withTiming(0, {
-        duration: 240,
-        easing: Easing.out(Easing.cubic),
-      });
-      opacity.value = withDelay(
-        40,
-        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) })
-      );
-    } else {
-      translateX.value = withTiming(screenWidth, {
-        duration: 200,
-        easing: Easing.in(Easing.cubic),
-      });
-      opacity.value = withTiming(0, {
-        duration: 120,
-        easing: Easing.in(Easing.quad),
-      });
-    }
-  }, [visible, screenWidth, translateX, opacity]);
-
-  const containerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: opacity.value,
-  }));
-
   return (
-    <Animated.View
-      pointerEvents={visible ? "auto" : "none"}
-      style={[styles.absoluteFill, containerStyle]}
+    <MotionView
+      visible={visible}
+      from={{ translateX: screenWidth, opacity: 0 }}
+      to={{ translateX: 0, opacity: 1 }}
+      duration={{ enter: 250, exit: 200 }}
+      easing="standard"
+      style={styles.absoluteFill}
       className="dark:bg-gray-900"
+      pointerEvents={visible ? "auto" : "none"}
     >
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800">
         <View className="flex-row items-center">
@@ -119,7 +88,7 @@ export default function AddMoreGroupParticipants({
           conversationId={conversationId}
         />
       </View>
-    </Animated.View>
+    </MotionView>
   );
 }
 
