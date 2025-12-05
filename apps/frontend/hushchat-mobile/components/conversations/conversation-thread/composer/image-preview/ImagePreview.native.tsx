@@ -15,12 +15,15 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-na
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { File, Directory, Paths } from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
+import { VideoView, useVideoPlayer } from "expo-video";
 import { TImagePreviewProps } from "@/types/chat/types";
 import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
 import { usePanGesture } from "@/gestures/base/usePanGesture";
 import { useDoubleTapGesture } from "@/gestures/base/useDoubleTapGesture";
 import { ToastUtils } from "@/utils/toastUtils";
 import { AppText } from "@/components/AppText";
+import { getFileType } from "@/utils/files/getFileType";
+import { useVideoThumbnails } from "@/hooks/useVideoThumbnails";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -38,6 +41,18 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
   const savedScale = useSharedValue(1);
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
+
+  const videoThumbnails = useVideoThumbnails(visible ? images : []);
+  const currentImage = images[currentIndex];
+  const currentFileType = getFileType(
+    currentImage?.originalFileName || currentImage?.indexedFileName || ""
+  );
+  const isCurrentVideo = currentFileType === "video";
+
+  const player = useVideoPlayer(isCurrentVideo ? currentImage?.fileUrl : null, (player) => {
+    player.loop = false;
+    player.muted = false;
+  });
 
   const resetTransform = useCallback(() => {
     scale.value = withSpring(1);
@@ -135,18 +150,16 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     allowRight: currentIndex > 0,
   });
 
-  // Create pinch gesture directly instead of using the hook
+  // Create pinch gesture (disabled for videos)
   const pinchGesture = Gesture.Pinch()
+    .enabled(!isCurrentVideo)
     .onStart(() => {
       savedScale.value = scale.value;
     })
     .onUpdate((event) => {
       const newScale = savedScale.value * event.scale;
-      // Clamp scale between 1 and 4
       scale.value = Math.min(Math.max(newScale, 1), 4);
       isZoomed.value = scale.value > 1.1;
-
-      // Store focal point for proper zoom centering
       focalX.value = event.focalX;
       focalY.value = event.focalY;
     })
@@ -163,7 +176,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     });
 
   const { gesture: panGesture } = usePanGesture({
-    enabled: true,
+    enabled: !isCurrentVideo,
     axis: "free",
     onUpdate: ({ translationX: tx, translationY: ty }) => {
       if (scale.value > 1) {
@@ -180,7 +193,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
   });
 
   const { gesture: doubleTapGesture } = useDoubleTapGesture({
-    enabled: true,
+    enabled: !isCurrentVideo,
     onEnd: () => {
       if (scale.value > 1) {
         scale.value = withSpring(1);
@@ -208,8 +221,6 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
   }));
 
   if (!visible) return null;
-
-  const currentImage = images[currentIndex];
 
   return (
     <Modal
@@ -248,18 +259,38 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
           </View>
 
           <GestureHandlerRootView style={styles.flex1}>
-            <View className="flex-1 justify-center items-center">
-              <GestureDetector gesture={composedGesture}>
-                <Animated.View
-                  style={[{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }, animatedStyle]}
-                >
-                  <Image
-                    source={{ uri: currentImage?.fileUrl }}
-                    className="w-full h-full"
-                    resizeMode="contain"
+            <View
+              className="flex-1 justify-center items-center"
+              style={images.length > 1 ? { paddingBottom: 100 } : undefined}
+            >
+              {isCurrentVideo ? (
+                <View className="w-full h-full justify-center items-center">
+                  <VideoView
+                    player={player}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      maxWidth: SCREEN_WIDTH,
+                      maxHeight: images.length > 1 ? SCREEN_HEIGHT - 200 : SCREEN_HEIGHT,
+                    }}
+                    contentFit="contain"
+                    allowsFullscreen
+                    allowsPictureInPicture
                   />
-                </Animated.View>
-              </GestureDetector>
+                </View>
+              ) : (
+                <GestureDetector gesture={composedGesture}>
+                  <Animated.View
+                    style={[{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }, animatedStyle]}
+                  >
+                    <Image
+                      source={{ uri: currentImage?.fileUrl }}
+                      className="w-full h-full"
+                      resizeMode="contain"
+                    />
+                  </Animated.View>
+                </GestureDetector>
+              )}
             </View>
           </GestureHandlerRootView>
 
@@ -270,26 +301,40 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.thumbListContainer}
               >
-                {images.map((img, idx) => (
-                  <Pressable
-                    key={img.id || idx}
-                    onPress={() => {
-                      setCurrentIndex(idx);
-                      resetTransform();
-                    }}
-                    className="active:opacity-70"
-                  >
-                    <Image
-                      source={{ uri: img.fileUrl }}
-                      className={`w-[60px] h-[60px] rounded-lg border-2 ${
-                        currentIndex === idx
-                          ? "border-4 border-primary-light dark:border-primary-dark"
-                          : "border-transparent"
-                      }`}
-                      resizeMode="cover"
-                    />
-                  </Pressable>
-                ))}
+                {images.map((img, idx) => {
+                  const thumbFileType = getFileType(
+                    img?.originalFileName || img?.indexedFileName || ""
+                  );
+                  const isThumbVideo = thumbFileType === "video";
+                  const thumbnailUri =
+                    isThumbVideo && videoThumbnails[idx] ? videoThumbnails[idx] : img.fileUrl;
+
+                  return (
+                    <Pressable
+                      key={img.id || idx}
+                      onPress={() => {
+                        setCurrentIndex(idx);
+                        resetTransform();
+                      }}
+                      className="active:opacity-70 relative"
+                    >
+                      <Image
+                        source={{ uri: thumbnailUri }}
+                        className={`w-[60px] h-[60px] rounded-lg border-2 ${
+                          currentIndex === idx
+                            ? "border-4 border-primary-light dark:border-primary-dark"
+                            : "border-transparent"
+                        }`}
+                        resizeMode="cover"
+                      />
+                      {isThumbVideo && (
+                        <View style={styles.thumbnailPlayIcon}>
+                          <Ionicons name="play-circle" size={20} color="#fff" />
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
             </View>
           )}
@@ -347,5 +392,16 @@ const styles = StyleSheet.create({
   },
   thumbListContainer: {
     gap: 8,
+  },
+  thumbnailPlayIcon: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 8,
   },
 });

@@ -11,19 +11,19 @@ import { AppText } from "@/components/AppText";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 
-export type AttachmentOption = "images" | "documents";
+export type AttachmentOption = "media" | "documents";
 
 type MobileAttachmentModalProps = {
   visible: boolean;
   onClose: () => void;
-  onOpenImagePicker?: () => void | Promise<void>;
+  onOpenMediaPicker?: () => void | Promise<void>;
   onOpenDocumentPicker?: () => void | Promise<void>;
 };
 
 const MobileAttachmentModal = ({
   visible,
   onClose,
-  onOpenImagePicker,
+  onOpenMediaPicker,
   onOpenDocumentPicker,
 }: MobileAttachmentModalProps) => {
   const handleOptionPress = (option: AttachmentOption, pickerFn?: () => void | Promise<void>) => {
@@ -33,14 +33,14 @@ const MobileAttachmentModal = ({
       pickerFn();
       onClose();
     } catch (error) {
-      const optionLabel = option === "images" ? "image" : "document";
+      const optionLabel = option === "media" ? "media" : "document";
       logError(`Failed to open ${optionLabel} picker`, error);
       ToastUtils.error(`Unable to open ${optionLabel} picker. Please try again.`);
       onClose();
     }
   };
 
-  const showImages = !!onOpenImagePicker;
+  const showMedia = !!onOpenMediaPicker;
   const showDocuments = !!onOpenDocumentPicker;
 
   return (
@@ -52,19 +52,19 @@ const MobileAttachmentModal = ({
           onStartShouldSetResponder={() => true}
           onTouchEnd={(e) => e.stopPropagation()}
         >
-          {showImages && (
+          {showMedia && (
             <TouchableOpacity
               className="flex-row items-center py-3 px-4 active:bg-gray-100 dark:active:bg-gray-700"
-              onPress={() => handleOptionPress("images", onOpenImagePicker)}
+              onPress={() => handleOptionPress("media", onOpenMediaPicker)}
             >
               <MaterialIcons name="photo-library" size={20} color="#3B82F6" />
               <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
-                Upload Images
+                Photos & Videos
               </AppText>
             </TouchableOpacity>
           )}
 
-          {showImages && showDocuments && <View className="h-px bg-gray-200 dark:bg-gray-700" />}
+          {showMedia && showDocuments && <View className="h-px bg-gray-200 dark:bg-gray-700" />}
 
           {showDocuments && (
             <TouchableOpacity
@@ -73,7 +73,7 @@ const MobileAttachmentModal = ({
             >
               <MaterialIcons name="insert-drive-file" size={20} color="#3B82F6" />
               <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
-                Upload Documents
+                Documents
               </AppText>
             </TouchableOpacity>
           )}

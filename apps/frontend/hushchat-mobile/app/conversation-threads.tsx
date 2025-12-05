@@ -190,7 +190,7 @@ const ConversationThreadScreen = ({
   });
 
   const {
-    pickAndUploadImages,
+    pickAndUploadImagesAndVideos,
     uploadFilesFromWeb,
     pickAndUploadDocuments,
     isUploading: isUploadingImages,
@@ -221,7 +221,7 @@ const ConversationThreadScreen = ({
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadImages();
+      const results = await pickAndUploadImagesAndVideos();
       if (results?.some((r) => r.success)) {
         await refetchConversationMessages();
         setSelectedMessage(null);
@@ -232,7 +232,7 @@ const ConversationThreadScreen = ({
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickAndUploadImages, setSelectedMessage, setImageMessage, uploadError]);
+  }, [pickAndUploadImagesAndVideos, setSelectedMessage, setImageMessage, uploadError]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,

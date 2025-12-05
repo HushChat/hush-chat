@@ -3,7 +3,15 @@ import { View, TextInput, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
-import { DOC_EXTENSIONS, SIZES } from "@/constants/mediaConstants";
+import { DOC_EXTENSIONS, SIZES, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
+
+const VideoPlayer = ({ uri, style }: { uri: string; style: any }) => {
+  return (
+    <video src={uri} style={style} controls preload="metadata" className="rounded-lg">
+      Your browser does not support the video tag.
+    </video>
+  );
+};
 
 type TFilePreviewPaneProps = {
   file: File;
@@ -14,7 +22,7 @@ type TFilePreviewPaneProps = {
 
 const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState<"image" | "document">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video">("image");
 
   const isDark = colorScheme.get() === "dark";
   const iconColor = isDark ? "#ffffff" : "#6B4EFF";
@@ -26,7 +34,9 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
 
     const ext = file.name.split(".").pop()?.toLowerCase();
     const isDocument = DOC_EXTENSIONS.includes(ext || "");
-    setFileType(isDocument ? "document" : "image");
+    const isVideo = VIDEO_EXTENSIONS.includes(ext || "");
+
+    setFileType(isDocument ? "document" : isVideo ? "video" : "image");
 
     if (!isDocument) {
       const obj = URL.createObjectURL(file);
@@ -49,6 +59,10 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
       <View className="flex-1 items-center justify-center px-6">
         {fileType === "image" ? (
           <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />
+        ) : fileType === "video" ? (
+          <View style={styles.videoContainer}>
+            <VideoPlayer uri={url} style={styles.video} />
+          </View>
         ) : (
           <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
             <Ionicons name="document-text-outline" size={64} color={iconColor} />
@@ -65,7 +79,7 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
       <View className="px-6 pb-4">
         <TextInput
           className="w-full outline-none rounded-xl bg-secondary-light/60 dark:bg-secondary-dark/70 border border-gray-200 dark:border-gray-700 px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
-          placeholder={`Write a caption for your ${fileType === "document" ? "document" : "image"}...`}
+          placeholder={`Write a caption for your ${fileType === "document" ? "document" : fileType === "video" ? "video" : "image"}...`}
           placeholderTextColor="#9ca3af"
           multiline
           numberOfLines={3}
@@ -85,6 +99,18 @@ const styles = StyleSheet.create({
   previewImage: {
     width: "100%",
     height: 420,
+  },
+  videoContainer: {
+    width: "100%",
+    height: 420,
+    backgroundColor: "#000",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  video: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
   },
   captionInput: {
     minHeight: 84,

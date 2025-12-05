@@ -6,6 +6,7 @@ import type { IMessage } from "@/types/chat/types";
 import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
+import { DOC_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
 
 interface IUseSendMessageHandlerParams {
   currentConversationId: number;
@@ -35,6 +36,16 @@ export const useSendMessageHandler = ({
   const { updateConversationMessagesCache, updateConversationsListCache } =
     useConversationMessagesQuery(currentConversationId);
 
+  const getFileType = (fileName: string): "image" | "video" | "document" => {
+    const ext = fileName.split(".").pop()?.toLowerCase() || "";
+
+    if (IMAGE_EXTENSIONS.includes(ext)) return "image";
+    if (VIDEO_EXTENSIONS.includes(ext)) return "video";
+    if (DOC_EXTENSIONS.includes(ext)) return "document";
+
+    return "document"; // default
+  };
+
   const handleSendMessage = useCallback(
     async (message: string, parentMessage?: IMessage, files?: File[]) => {
       const trimmed = message?.trim() ?? "";
@@ -44,17 +55,26 @@ export const useSendMessageHandler = ({
 
       try {
         const validFiles = filesToSend.filter((f) => f instanceof File);
-        const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg"];
 
         if (validFiles.length > 0) {
           const renamedFiles = validFiles.map((file, index) => {
             const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
             const ext = file.name.split(".").pop() || "";
-            const isImage = IMAGE_EXTENSIONS.includes(ext);
+            const fileType = getFileType(file.name);
 
-            const newName = isImage
-              ? `ChatApp Image ${currentConversationId}${index} ${timestamp}.${ext}`
-              : file.name;
+            let newName: string;
+            switch (fileType) {
+              case "image":
+                newName = `ChatApp Image ${currentConversationId}${index} ${timestamp}.${ext}`;
+                break;
+              case "video":
+                newName = `ChatApp Video ${currentConversationId}${index} ${timestamp}.${ext}`;
+                break;
+              case "document":
+              default:
+                newName = file.name; // Keep original name for documents
+                break;
+            }
 
             return new File([file], newName, {
               type: file.type,
@@ -82,7 +102,7 @@ export const useSendMessageHandler = ({
           updateConversationMessagesCache(tempMessage);
           updateConversationsListCache(tempMessage);
 
-          // Upload files
+          // Upload files (this handles images, videos, and documents)
           await uploadFilesFromWeb(renamedFiles);
 
           setSelectedMessage(null);
