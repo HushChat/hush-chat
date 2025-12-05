@@ -32,6 +32,8 @@ interface IMessagesListProps {
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  onViewThread?: (messageId: number) => void;
+  isThreadView?: boolean;
 }
 
 const ConversationMessageList = ({
@@ -45,6 +47,8 @@ const ConversationMessageList = ({
   hasMoreNewer,
   isFetchingNewer,
   onNavigateToMessage,
+  onViewThread,
+  isThreadView = false,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -52,7 +56,6 @@ const ConversationMessageList = ({
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
   const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
-
   const {
     selectedActionMessage,
     openPickerMessageId,
@@ -94,6 +97,8 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        onViewThread,
+        isThreadView,
       }),
     [
       currentUserId,
@@ -111,6 +116,8 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      onViewThread,
+      isThreadView,
     ]
   );
 
@@ -137,6 +144,8 @@ const ConversationMessageList = ({
           }}
           onUnsend={(messages) => unSendMessage(messages)}
           onCopy={(message) => copyToClipboard(message.messageText)}
+          onViewThread={onViewThread}
+          isThreadView={isThreadView}
         />
       )}
 

@@ -20,6 +20,8 @@ interface IRenderMessageParams {
   selectedConversationId: number;
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   onNavigateToMessage?: (messageId: number) => void;
+  onViewThread?: (messageId: number) => void;
+  isThreadView?: boolean;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -48,11 +50,14 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      onViewThread,
+      isThreadView,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
     const isSelected = selectedMessageIds.has(Number(item.id));
 
+    console.log(conversationAPIResponse?.isGroup);
     const showSenderAvatar = shouldShowSenderAvatar(
       section.data,
       index,
@@ -80,6 +85,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         onViewReactions={viewReactions}
         showSenderAvatar={showSenderAvatar}
         onNavigateToMessage={onNavigateToMessage}
+        onViewThread={onViewThread}
+        isThreadView={isThreadView}
       />
     );
   };

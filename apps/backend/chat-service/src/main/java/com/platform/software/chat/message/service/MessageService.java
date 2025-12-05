@@ -14,9 +14,9 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageHistory;
 import com.platform.software.chat.message.repository.MessageHistoryRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
-import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
@@ -53,6 +53,7 @@ public class MessageService {
     private final MessageHistoryRepository messageHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
+    private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -357,80 +358,35 @@ public class MessageService {
     }
 
     /**
-     * Retrieves a message thread for a specific message.
+     * Retrieves all messages in a thread for a given message ID.
      *
-     * @param userId             the ID of the user
-     * @param messageId          the ID of the message
-     * @param includeParentChain whether to include the parent message chain
-     * @return the MessageThreadResponseDTO containing the message thread
+     * @param messageId the ID of any message within the thread
+     * @return a flat list of MessageViewDTO objects representing all messages in the thread,
+     *         ordered by creation time, with parent message references preserved
+     * @throws CustomResourceNotFoundException if no messages are found for the given message ID
      */
-    public MessageThreadResponseDTO getMessageThread(
-            Long userId,
-            Long messageId,
-            boolean includeParentChain) {
-        Message targetMessage = getMessageIfUserParticipant(userId, messageId);
+    public List<MessageViewDTO> getMessageThread(Long messageId) {
+        List<Message> messages = messageRepository.getFullMessageThread(messageId);
 
-        if (includeParentChain) {
-            return getMessageThreadWithFullParentChain(messageId);
+        if (messages.isEmpty()) {
+            logger.error("Thread fetch failed: No message found for messageId={}", messageId);
+            throw new CustomResourceNotFoundException("No messages found for thread!");
         }
 
-        return getMessageThreadWithImmediateParent(targetMessage);
-    }
+        return messages.stream()
+                .map(message -> {
+                    MessageViewDTO messageDTO = new MessageViewDTO(message, true);
 
-    /**
-     * Retrieves a message thread with the full parent chain.
-     *
-     * @param messageId the ID of the message
-     * @return the MessageThreadResponseDTO containing the message and full parent
-     *         chain
-     */
-    private MessageThreadResponseDTO getMessageThreadWithFullParentChain(Long messageId) {
-        List<MessageThreadProjection> chainResults = messageRepository.getMessageWithParentChain(messageId);
+                    if (message.getSender() != null &&
+                            message.getSender().getImageIndexedName() != null) {
+                        String signedUrl = cloudPhotoHandlingService
+                                .getPhotoViewSignedURL(message.getSender().getImageIndexedName());
+                        messageDTO.setSenderSignedImageUrl(signedUrl);
+                    }
 
-        if (chainResults.isEmpty()) {
-            throw new CustomBadRequestException("Message not found");
-        }
-
-        MessageThreadProjection targetProjection = chainResults.get(0);
-        MessageViewDTO targetMessageDto = convertProjectionToMessageViewDTO(targetProjection);
-
-        List<MessageViewDTO> parentChain = chainResults.stream()
-                .skip(1)
-                .map(this::convertProjectionToMessageViewDTO)
+                    return messageDTO;
+                })
                 .collect(Collectors.toList());
-
-        return new MessageThreadResponseDTO(targetMessageDto, parentChain);
-    }
-
-    /**
-     * Retrieves a message thread with only the immediate parent.
-     *
-     * @param targetMessage the target message
-     * @return the MessageThreadResponseDTO containing the message and immediate
-     *         parent only
-     */
-    private MessageThreadResponseDTO getMessageThreadWithImmediateParent(Message targetMessage) {
-        MessageViewDTO targetMessageDto = new MessageViewDTO(targetMessage);
-
-        List<MessageViewDTO> parentChain = null;
-        if (targetMessage.getParentMessage() != null) {
-            parentChain = new ArrayList<>();
-            parentChain.add(new MessageViewDTO(targetMessage.getParentMessage()));
-        }
-
-        return new MessageThreadResponseDTO(targetMessageDto, parentChain);
-    }
-
-    private MessageViewDTO convertProjectionToMessageViewDTO(MessageThreadProjection projection) {
-        MessageViewDTO messageViewDTO = new MessageViewDTO();
-        messageViewDTO.setId(projection.getId());
-        messageViewDTO.setMessageText(projection.getMessageText());
-        messageViewDTO.setCreatedAt(projection.getCreatedAt());
-        messageViewDTO.setSenderId(projection.getSenderId());
-        messageViewDTO.setSenderFirstName(projection.getSenderFirstName());
-        messageViewDTO.setSenderLastName(projection.getSenderLastName());
-
-        return messageViewDTO;
     }
 
     /**

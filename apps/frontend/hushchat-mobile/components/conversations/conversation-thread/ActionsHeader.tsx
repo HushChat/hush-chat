@@ -15,6 +15,8 @@ interface ActionsHeaderProps {
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
+  onViewThread?: (messageId: number) => void;
+  isThreadView?: boolean;
 }
 
 const ActionsHeader = ({
@@ -25,9 +27,18 @@ const ActionsHeader = ({
   onForward,
   onUnsend,
   onCopy,
+  onViewThread,
+  isThreadView = false,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
+
+  const handleViewThread = () => {
+    if (onViewThread && message.id) {
+      onViewThread(message.id);
+      onClose();
+    }
+  };
 
   return (
     <View className="absolute bottom-full !z-50 w-full bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
@@ -57,23 +68,27 @@ const ActionsHeader = ({
           </View>
         </View>
 
-        <View className="flex-row items-center gap-2">
-          {!message.isUnsend && message.messageText && (
-            <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
-          )}
+        {!isThreadView && onViewThread && (
+          <View className="flex-row items-center gap-2">
+            {!message.isUnsend && message.messageText && (
+              <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
+            )}
 
-          {message.senderId === Number(user.id) && !message.isUnsend && (
-            <HeaderAction iconName="trash-outline" onPress={() => onUnsend(message)} />
-          )}
+            {message.senderId === Number(user.id) && !message.isUnsend && (
+              <HeaderAction iconName="trash-outline" onPress={() => onUnsend(message)} />
+            )}
 
-          <HeaderAction
-            iconName={isPinned ? "pin" : "pin-outline"}
-            onPress={() => onPinToggle(message)}
-            color={isPinned ? "#6B4EFF" : "#6B7280"}
-          />
+            <HeaderAction iconName="chatbubbles-outline" onPress={handleViewThread} />
 
-          <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
-        </View>
+            <HeaderAction
+              iconName={isPinned ? "pin" : "pin-outline"}
+              onPress={() => onPinToggle(message)}
+              color={isPinned ? "#6B4EFF" : "#6B7280"}
+            />
+
+            <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
+          </View>
+        )}
       </View>
     </View>
   );

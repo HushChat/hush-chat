@@ -7,6 +7,7 @@ import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -146,19 +147,20 @@ public class MessageController {
         return ResponseEntity.noContent().build();
     }
 
-    @ApiOperation(value = "Get message thread with replies and optional parent chain", response = MessageThreadResponseDTO.class)
+    /**
+     * Retrieves all messages in a thread for a given message ID.
+     *
+     * @param messageId the ID of the message for which the thread is requested
+     * @return ResponseEntity containing a list of MessageViewDTO objects representing 
+     *         all messages in the thread, ordered by creation time
+     */
+    @ApiOperation(value = "Get message thread", response = MessageViewDTO.class)
     @GetMapping("{messageId}/thread")
-    public ResponseEntity<MessageThreadResponseDTO> getMessageThread(
-        @AuthenticatedUser UserDetails authenticatedUser,
-        @PathVariable Long messageId,
-        @RequestParam(defaultValue = "false") boolean includeParentChain
+    public ResponseEntity<List<MessageViewDTO>> getMessageThread(
+        @PathVariable Long messageId
     ) {
-        MessageThreadResponseDTO threadResponse = messageService.getMessageThread(
-            authenticatedUser.getId(),
-            messageId,
-            includeParentChain
-        );
-        return ResponseEntity.ok(threadResponse);
+        List<MessageViewDTO> threadMessages = messageService.getMessageThread(messageId);
+        return ResponseEntity.ok(threadMessages);
     }
 
     /** unsend a message in a conversation
