@@ -13,7 +13,8 @@
     "build-android": "expo prebuild && eas build -p android --local --non-interactive",
     "build-android-preview": "eas build -p android --profile preview --local --non-interactive",
     "build-ios": "expo prebuild && eas build -p ios --local --non-interactive",
-    "build-android-production": "eas build -p android --profile production --local --non-interactive"
+    "build-android-production": "eas build -p android --profile production --local --non-interactive",
+    "build:web": "expo export -p web && node scripts/inject-manifest.js"
   },
   "jest": {
     "preset": "jest-expo"
