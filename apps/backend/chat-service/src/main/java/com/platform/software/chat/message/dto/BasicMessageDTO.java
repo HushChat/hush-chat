@@ -1,8 +1,12 @@
 package com.platform.software.chat.message.dto;
 
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.entity.Message;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +17,8 @@ public class BasicMessageDTO {
     private String senderLastName;
     private String messageText;
     private Boolean isUnsend;
+    private Boolean hasAttachment;
+    private List<MessageAttachmentDTO> messageAttachments;
 
     public BasicMessageDTO(Message message) {
         this.id = message.getId();
@@ -21,5 +27,16 @@ public class BasicMessageDTO {
         this.senderLastName = message.getSender().getLastName();
         this.messageText = message.getMessageText();
         this.isUnsend = message.getIsUnsend();
+        this.hasAttachment = message.getAttachments() != null
+                && !message.getAttachments().isEmpty();
+
+        if (message.getAttachments() != null && !message.getAttachments().isEmpty()) {
+            List<MessageAttachmentDTO> attachmentServices = message.getAttachments()
+                    .stream()
+                    .map(MessageAttachmentDTO::new)
+                    .collect(Collectors.toList());
+
+            this.setMessageAttachments(attachmentServices);
+        }
     }
 }
