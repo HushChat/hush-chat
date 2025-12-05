@@ -76,6 +76,16 @@ export default function ConversationScreen() {
       label: "Favorites",
       isActive: selectedConversationType === ConversationType.FAVORITES,
     },
+    {
+      key: ConversationType.GROUPS,
+      label: "Groups",
+      isActive: selectedConversationType === ConversationType.GROUPS,
+    },
+    {
+      key: ConversationType.MUTED,
+      label: "Muted",
+      isActive: selectedConversationType === ConversationType.MUTED,
+    },
   ];
 
   const chatItemList = (
