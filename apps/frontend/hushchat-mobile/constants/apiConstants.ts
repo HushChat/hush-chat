@@ -69,6 +69,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
   ADD_MESSAGE_TO_FAVORITE: (conversationId: number, messageId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/favorite`,
+  GET_ALL_FAVORITE_MESSAGES: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/favorite-messages`,
 };
 
 export const USER_API_ENDPOINTS = {

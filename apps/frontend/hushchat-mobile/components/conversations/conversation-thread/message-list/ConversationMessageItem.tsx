@@ -6,7 +6,6 @@
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureResponderEvent, View, StyleSheet, Text } from "react-native";
-import { format } from "date-fns";
 import {
   ConversationAPIResponse,
   IMessage,
@@ -17,7 +16,6 @@ import {
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import ParentMessagePreview from "./ParentMessagePreview";
 import WebContextMenu from "@/components/WebContextMenu";
 import { SwipeableMessageRow } from "@/gestures/components/SwipeableMessageRow";
 import { useAddMessageReactionMutation } from "@/query/post/queries";
@@ -29,11 +27,8 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
-import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
-import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
-import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
-import { isImageAttachment } from "@/utils/messageHelpers";
+import MessageContentBlock from "@/components/conversations/conversation-thread/MessageContentBlock";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -90,12 +85,7 @@ export const ConversationMessageItem = ({
   onNavigateToMessage,
   onMessageFavorite,
 }: MessageItemProps) => {
-  const attachments = message.messageAttachments ?? [];
-  const hasAttachments = attachments.length > 0;
-
   const queryClient = useQueryClient();
-
-  const hasImages = () => attachments.some(isImageAttachment);
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
   const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
@@ -104,7 +94,7 @@ export const ConversationMessageItem = ({
   });
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
-  const parentMessage = message.parentMessage;
+
   const [reactionSummary, setReactionSummary] = useState(
     message.reactionSummary || { counts: {}, currentUserReaction: "" }
   );
@@ -115,15 +105,7 @@ export const ConversationMessageItem = ({
   const { selectionMode } = useConversationStore();
 
   const messageContent = message.messageText;
-  const isForwardedMessage = message.isForwarded;
-  const hasText = !!messageContent;
-  const isGroupChat = conversationAPIResponse?.isGroup;
   const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
-
-  const messageTime = useMemo(
-    () => format(new Date(message.createdAt), "h:mm a"),
-    [message.createdAt]
-  );
 
   useEffect(() => {
     if (message.reactionSummary) setReactionSummary(message.reactionSummary);
@@ -132,12 +114,6 @@ export const ConversationMessageItem = ({
   const hasReactions = useMemo(
     () => Object.values(reactionSummary?.counts || {}).some((count) => (count || 0) > 0),
     [reactionSummary]
-  );
-
-  const senderName = useMemo(
-    () =>
-      `${message.senderFirstName || ""} ${message.senderLastName || ""}`.trim() || "Unknown User",
-    [message.senderFirstName, message.senderLastName]
   );
 
   const outerGesture = useMemo(() => {
@@ -339,20 +315,6 @@ export const ConversationMessageItem = ({
     ]
   );
 
-  const renderParentMessage = () => {
-    if (!parentMessage || message.isUnsend) return null;
-    return (
-      <View className="mb-1">
-        <ParentMessagePreview
-          message={message}
-          parentMessage={parentMessage}
-          currentUserId={currentUserId}
-          onNavigateToMessage={onNavigateToMessage}
-        />
-      </View>
-    );
-  };
-
   const handleBubblePress = useCallback(() => {
     if (!selectionMode) return;
     if (isSystemEvent) return;
@@ -373,63 +335,34 @@ export const ConversationMessageItem = ({
 
   const ContentBlock = () => (
     <View style={styles.contentBlockWrapper}>
-      <View className="group mb-3">
-        <View className="flex-row mx-2">
-          {showSenderAvatar && (
-            <View className="mr-2 pt-1 w-10 h-10">
-              <InitialsAvatar
-                name={senderName}
-                size={AvatarSize.extraSmall}
-                imageUrl={message.senderSignedImageUrl}
-              />
-            </View>
-          )}
-          <View className="flex-1">
-            <MessageHeader
-              isCurrentUser={isCurrentUser}
-              isGroupChat={isGroupChat}
-              senderName={senderName}
-              messageTime={messageTime}
-              messageIsUnsend={message.isUnsend}
-              selectionMode={selectionMode}
-              currentUserId={currentUserId}
-              onOpenPicker={handleOpenPicker}
-              onOpenMenu={openWebMenuAtEvent}
-              messageText={message.messageText}
-              isRead={message.isReadByEveryone}
-            />
-
-            {renderParentMessage()}
-
-            <MessageBubble
-              message={message}
-              isCurrentUser={isCurrentUser}
-              hasText={hasText}
-              hasAttachments={hasAttachments}
-              hasImages={hasImages()}
-              selected={selected}
-              selectionMode={selectionMode}
-              isForwardedMessage={isForwardedMessage}
-              attachments={attachments}
-              onBubblePress={handleBubblePress}
-            />
-
-            <MessageReactions
-              message={message}
-              isCurrentUser={isCurrentUser}
-              isPickerOpen={isPickerOpen}
-              conversationIsBlocked={conversationAPIResponse?.isBlocked ?? false}
-              selectionMode={selectionMode}
-              reactedByCurrentUser={reactedByCurrentUser}
-              reactionSummary={reactionSummary}
-              hasReactions={hasReactions}
-              onSelectReaction={handleSelectReaction}
-              onCloseAllOverlays={onCloseAllOverlays}
-              onViewReactions={handleViewReactions}
-            />
-          </View>
-        </View>
-      </View>
+      <MessageContentBlock
+        isGroup={conversationAPIResponse?.isGroup}
+        message={message}
+        isCurrentUser={isCurrentUser}
+        currentUserId={currentUserId}
+        showSenderAvatar={showSenderAvatar}
+        selected={selected}
+        selectionMode={selectionMode}
+        handleOpenPicker={handleOpenPicker}
+        openWebMenuAtEvent={openWebMenuAtEvent}
+        onBubblePress={handleBubblePress}
+        onNavigateToMessage={onNavigateToMessage}
+        showHeader={true}
+      >
+        <MessageReactions
+          message={message}
+          isCurrentUser={isCurrentUser}
+          isPickerOpen={isPickerOpen}
+          conversationIsBlocked={conversationAPIResponse?.isBlocked ?? false}
+          selectionMode={selectionMode}
+          reactedByCurrentUser={reactedByCurrentUser}
+          reactionSummary={reactionSummary}
+          hasReactions={hasReactions}
+          onSelectReaction={handleSelectReaction}
+          onCloseAllOverlays={onCloseAllOverlays}
+          onViewReactions={handleViewReactions}
+        />
+      </MessageContentBlock>
 
       {PLATFORM.IS_WEB && (
         <WebContextMenu

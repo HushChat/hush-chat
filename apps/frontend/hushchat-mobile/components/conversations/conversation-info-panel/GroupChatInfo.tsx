@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dimensions, Pressable, ScrollView, View, StyleSheet } from "react-native";
+import { Dimensions, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { router } from "expo-router";
@@ -25,6 +25,8 @@ import {
 } from "@/query/post/queries";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
+import { MotionView } from "@/motion/MotionView";
+import FavoriteMessages from "@/components/conversations/conversation-info-panel/FavoriteMessages";
 
 const COLORS = {
   button: "#3b82f6",
@@ -96,6 +98,10 @@ export default function GroupChatInfo({
 
   const handleAddMoreParticipants = () => {
     openPanel(PanelType.ADD_PARTICIPANTS);
+  };
+
+  const handleFavoriteMessages = () => {
+    openPanel(PanelType.FAVORITE_MESSAGES);
   };
 
   const exitGroupMutation = useExitGroupConversationMutation(
@@ -314,6 +320,7 @@ export default function GroupChatInfo({
                 isMuted={conversationInfo?.mutedUntil ? true : false}
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
+                showFavoriteMessages={handleFavoriteMessages}
               />
               <ActionItem
                 icon="exit-outline"
@@ -361,6 +368,17 @@ export default function GroupChatInfo({
             visible={activePanel === PanelType.GROUP_SETTINGS}
           />
         </View>
+      )}
+
+      {isPanelContentReady && activePanel === PanelType.FAVORITE_MESSAGES && (
+        <MotionView
+          visible={activePanel === PanelType.FAVORITE_MESSAGES}
+          className="flex-1 absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondary-dark"
+          from={{ translateX: panelWidth, opacity: 0 }}
+          to={{ translateX: 0, opacity: 1 }}
+        >
+          <FavoriteMessages conversationId={conversation.id} onClose={closePanel} />
+        </MotionView>
       )}
     </View>
   );

@@ -11,7 +11,7 @@ export interface IConversation {
   signedImageUrl: string | null;
   messages: IMessage[];
   description: string;
-
+  isBlocked: boolean;
   pinnedByLoggedInUser: boolean;
   mutedByLoggedInUser: boolean;
   favoriteByLoggedInUser: boolean;

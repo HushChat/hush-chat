@@ -45,26 +45,6 @@ public class MessageController {
     }
 
     /**
-     * Get all favorite messages for the logged-in user.
-     *
-     * @param authenticatedUser the authenticated user details
-     * @param pageable pagination information
-     * @return ResponseEntity containing a page of MessageViewDTO
-     */
-    @ApiOperation(value = "Get all favorite messages for logged in user", response = Page.class)
-    @GetMapping("favorites")
-    public ResponseEntity<Page<MessageViewDTO>> getFavoriteMessages(
-        @AuthenticatedUser UserDetails authenticatedUser,
-        Pageable pageable
-    ) {
-        Page<MessageViewDTO> favoriteMessages = favoriteMessageService.getFavoriteMessagesByUserId(
-            authenticatedUser.getId(),
-            pageable
-        );
-        return ResponseEntity.ok(favoriteMessages);
-    }
-
-    /**
      * Unfavorite a message for the authenticated user.
      *
      * @param authenticatedUser the authenticated user details

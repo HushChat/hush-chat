@@ -2,23 +2,31 @@ package com.platform.software.chat.message.service;
 
 
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.FavouriteMessage;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.repository.FavoriteMessageRepository;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.CustomResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class FavoriteMessageService {
@@ -28,17 +36,20 @@ public class FavoriteMessageService {
     private final UserService userService;
     private final MessageService messageService;
     private final ConversationUtilService conversationUtilService;
+    private final CloudPhotoHandlingService  cloudPhotoHandlingService;
 
     public FavoriteMessageService(
         FavoriteMessageRepository favoriteMessageRepository,
         UserService userService,
         MessageService messageService,
-        ConversationUtilService conversationUtilService
+        ConversationUtilService conversationUtilService,
+        CloudPhotoHandlingService cloudPhotoHandlingService
     ) {
         this.favoriteMessageRepository = favoriteMessageRepository;
         this.userService = userService;
         this.messageService = messageService;
         this.conversationUtilService = conversationUtilService;
+        this.cloudPhotoHandlingService = cloudPhotoHandlingService;
     }
 
     /**
@@ -92,8 +103,58 @@ public class FavoriteMessageService {
      * @param pageable the pagination information
      * @return a paginated list of MessageViewDTOs representing the user's favorite messages
      */
-    public Page<MessageViewDTO> getFavoriteMessagesByUserId(Long userId, Pageable pageable) {
-        return favoriteMessageRepository.findFavoriteMessagesByUserId(userId, pageable);
+    public Page<MessageViewDTO> getFavoriteMessages(Long conversationId, Long userId, Pageable pageable) {
+        Page<Message> favoriteMessagePages = favoriteMessageRepository.findFavoriteMessagesOfUserForConversation(conversationId, userId, pageable);
+
+        Map<Long, String> senderImageSignedUrlMap = favoriteMessagePages.stream()
+                .map(Message::getSender)
+                .filter(sender -> sender != null && sender.getImageIndexedName() != null)
+                .collect(Collectors.toMap(
+                        ChatUser:: getId,
+                        sender -> cloudPhotoHandlingService.getPhotoViewSignedURL(sender.getImageIndexedName()),
+                        (existing, replacement) -> existing
+                ));
+
+        List<MessageViewDTO> enrichedDTOs = favoriteMessagePages.stream()
+                .map(message -> {
+                    MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+
+                    List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+                    List<MessageAttachment> attachments = message.getAttachments();
+
+                    if (message.getSender() != null) {
+                        String senderImageUrl = senderImageSignedUrlMap.get(message.getSender().getId());
+                        messageViewDTO.setSenderSignedImageUrl(senderImageUrl);
+                    }
+
+                    if (attachments == null || attachments.isEmpty()) {
+                        return new MessageViewDTO(message);
+                    }
+
+                    for (MessageAttachment attachment : attachments) {
+                        try {
+                            String fileViewSignedURL = cloudPhotoHandlingService
+                                    .getPhotoViewSignedURL(attachment.getIndexedFileName());
+
+                            MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
+                            messageAttachmentDTO.setId(attachment.getId());
+                            messageAttachmentDTO.setFileUrl(fileViewSignedURL);
+                            messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
+                            messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
+                            attachmentDTOs.add(messageAttachmentDTO);
+                        } catch (Exception e) {
+                            logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
+                            throw new CustomInternalServerErrorException("Failed to get conversation!");
+                        }
+                    }
+                    messageViewDTO.setMessageAttachments(attachmentDTOs);
+                    messageViewDTO.setIsFavorite(true);
+                    return messageViewDTO;
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(enrichedDTOs, favoriteMessagePages.getPageable(), favoriteMessagePages.getTotalElements());
     }
 
 
