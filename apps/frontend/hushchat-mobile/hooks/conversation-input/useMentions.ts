@@ -13,6 +13,7 @@ interface IMentionsReturn {
   activeMentionQueryText: string | null;
   isMentionSuggestionsVisible: boolean;
   currentCursorIndex: number;
+  validMentions: Set<string>;
   updateCursorIndex: (newPosition: number) => void;
   evaluateMentionQueryFromInput: (messageText: string, caretIndex: number) => void;
   handleUserSelectedMention: (
@@ -21,11 +22,13 @@ interface IMentionsReturn {
   ) => string;
   clearActiveMentionQuery: () => void;
   manuallyTriggerMentionPicker: () => void;
+  clearValidMentions: () => void;
 }
 
 export function useMentions({ textInputRef, onMessageUpdate }: TMentionsOptions): IMentionsReturn {
   const [activeMentionQueryText, setActiveMentionQueryText] = useState<string | null>(null);
   const [currentCursorIndex, updateCursorIndex] = useState<number>(0);
+  const [validMentions, setValidMentions] = useState<Set<string>>(new Set());
 
   const isMentionSuggestionsVisible = activeMentionQueryText !== null;
 
@@ -43,6 +46,8 @@ export function useMentions({ textInputRef, onMessageUpdate }: TMentionsOptions)
         currentCursorIndex,
         selectedUsername
       );
+
+      setValidMentions((prev) => new Set(prev).add(selectedUsername));
 
       onMessageUpdate(updatedMessageText);
       setActiveMentionQueryText(null);
@@ -66,14 +71,20 @@ export function useMentions({ textInputRef, onMessageUpdate }: TMentionsOptions)
     setActiveMentionQueryText("");
   }, []);
 
+  const clearValidMentions = useCallback(() => {
+    setValidMentions(new Set());
+  }, []);
+
   return {
     activeMentionQueryText,
     isMentionSuggestionsVisible,
     currentCursorIndex,
+    validMentions,
     updateCursorIndex,
     evaluateMentionQueryFromInput,
     handleUserSelectedMention,
     clearActiveMentionQuery,
     manuallyTriggerMentionPicker,
+    clearValidMentions,
   };
 }
