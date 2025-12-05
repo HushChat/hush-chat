@@ -100,18 +100,30 @@ export function useMessageActions(
    */
   const { mutate: toggleFavoriteMessage } = useFavoriteMessageMutation(
     undefined,
-    () => {
-      const newPinnedState =
-        conversation?.pinnedMessage?.id === selectedPinnedMessage?.id
-          ? null
-          : selectedPinnedMessage;
-
+    (message: IMessage) => {
       updateCache(
-        conversationQueryKeys.metaDataById(
-          Number(currentUserId ?? 0),
-          Number(conversation?.id ?? 0)
+        conversationMessageQueryKeys.messages(
+          Number(currentUserId),
+          Number(message.conversationId)
         ),
-        (prev) => (prev ? { ...prev, pinnedMessage: newPinnedState } : prev)
+        (prev: { pages: PaginatedResponse<IMessage>[] } | undefined) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              content: page.content.map((msg) =>
+                msg.id === message.id
+                  ? {
+                      ...msg,
+                      isFavorite: !msg.isFavorite,
+                    }
+                  : msg
+              ),
+            })),
+          };
+        }
       );
     },
     (error) => {

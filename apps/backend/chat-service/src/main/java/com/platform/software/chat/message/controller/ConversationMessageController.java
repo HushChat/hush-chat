@@ -215,7 +215,7 @@ public class ConversationMessageController {
             @PathVariable Long conversationId,
             @PathVariable Long messageId
     ) {
-        MessageViewDTO favoriteMessage = favoriteMessageService.createFavoriteMessage(
+        MessageViewDTO favoriteMessage = favoriteMessageService.toggleFavoriteMessage(
                 authenticatedUser.getId(),
                 conversationId,
                 messageId

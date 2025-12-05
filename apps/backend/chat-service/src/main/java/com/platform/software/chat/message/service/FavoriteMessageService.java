@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class FavoriteMessageService {
     private static final Logger logger = LoggerFactory.getLogger(FavoriteMessageService.class);
@@ -40,32 +42,46 @@ public class FavoriteMessageService {
     }
 
     /**
-     * Creates a favorite message for the user.
+     * Toggles the favorite status of a message for a specific user in a conversation.
      *
-     * @param userId the ID of the user
-     * @param messageId the ID of the message to be favorited
+     * @param userId the ID of the user toggling the favorite status
+     * @param conversationId the ID of the conversation containing the message
+     * @param messageId the ID of the message to toggle favorite status for
      * @return MessageViewDTO containing the details of the favorited message
      */
-    public MessageViewDTO createFavoriteMessage(Long userId, Long conversationId, Long messageId) {
+    public MessageViewDTO toggleFavoriteMessage(Long userId, Long conversationId, Long messageId) {
         ChatUser user = userService.getUserOrThrow(userId);
         Message message = messageService.getMessageIfUserParticipant(userId, messageId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
-        if (favoriteMessageRepository.existsByUserIdAndMessageId(userId, messageId)) {
-            logger.warn("user {} attempted to favorite message {} which is already favorited", userId, messageId);
-            throw new CustomBadRequestException("Message is already a favorite!");
-        }
+        // this return list of one message if exist
+        List<FavouriteMessage> existingFavorite = favoriteMessageRepository
+                .findByUserIdAndMessageIdInAndConversationId(userId, List.of(messageId), conversationId);
 
-        FavouriteMessage favoriteMessage = new FavouriteMessage();
-        favoriteMessage.setUser(user);
-        favoriteMessage.setMessage(message);
-        favoriteMessage.setConversation(conversation);
         try {
-            FavouriteMessage savedFavorite = favoriteMessageRepository.save(favoriteMessage);
-            return new MessageViewDTO(savedFavorite.getMessage());
+            if (!existingFavorite.isEmpty()) {
+                favoriteMessageRepository.deleteById(existingFavorite.getFirst().getId());
+
+                MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+                messageViewDTO.setIsFavorite(false);
+
+                return messageViewDTO;
+            } else {
+                FavouriteMessage newFavorite = new FavouriteMessage();
+                newFavorite.setUser(user);
+                newFavorite.setMessage(message);
+                newFavorite.setConversation(conversation);
+
+                favoriteMessageRepository.save(newFavorite);
+
+                MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+                messageViewDTO.setIsFavorite(true);
+
+                return messageViewDTO;
+            }
         } catch (Exception exception) {
-            logger.error("failed to create favorite message for user {} and message {}", userId, messageId, exception);
-            throw new CustomInternalServerErrorException("Failed to add message to favorites!");
+            logger.error("Failed to toggle favorite message for user {} and message {}", userId, messageId, exception);
+            throw new CustomInternalServerErrorException("Failed to update favorite status!");
         }
     }
 
