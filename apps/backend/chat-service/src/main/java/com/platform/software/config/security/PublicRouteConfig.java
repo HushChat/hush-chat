@@ -13,7 +13,6 @@ public class PublicRouteConfig {
                     .requestMatchers(HttpMethod.HEAD, "/health-check/**")
                     .requestMatchers(HttpMethod.POST, "/public/user/**")
                     .requestMatchers(HttpMethod.GET, "/ws-message-subscription/**")
-                    .requestMatchers(HttpMethod.GET,"/public/workspaces/**")
                     .requestMatchers("/swagger-ui/**")
                     .requestMatchers("/swagger-ui.html")
                     .requestMatchers("/v3/api-docs/**");
