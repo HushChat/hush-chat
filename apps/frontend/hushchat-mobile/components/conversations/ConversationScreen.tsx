@@ -26,11 +26,11 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 
-interface ConversationScreenProps {
+interface IConversationScreenProps {
   initialConversationId?: number;
 }
 
-export default function ConversationScreen({ initialConversationId }: ConversationScreenProps) {
+export default function ConversationScreen({ initialConversationId }: IConversationScreenProps) {
   const { selectedConversationType } = useConversationStore();
   const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");

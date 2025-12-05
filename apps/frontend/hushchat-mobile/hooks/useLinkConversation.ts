@@ -28,7 +28,9 @@ export function useLinkConversation({
       return;
     }
 
-    const conversation = conversations.find((c) => c.id === initialConversationId);
+    const conversation = conversations.find(
+      (conversation) => conversation.id === initialConversationId
+    );
     if (!conversation) return;
 
     hasInitialized.current = true;
