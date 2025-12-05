@@ -20,10 +20,18 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { IConversation, IFilter, ConversationType } from "@/types/chat/types";
 import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface";
+import { router } from "expo-router";
+import { PLATFORM } from "@/constants/platformConstants";
+import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
+import { useLinkConversation } from "@/hooks/useLinkConversation";
 
-export default function ConversationScreen() {
+interface IConversationScreenProps {
+  initialConversationId?: number;
+}
+
+export default function ConversationScreen({ initialConversationId }: IConversationScreenProps) {
   const { selectedConversationType } = useConversationStore();
   const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
@@ -60,6 +68,24 @@ export default function ConversationScreen() {
 
   const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
 
+  useLinkConversation({
+    initialConversationId,
+    conversations,
+    onConversationFound: setSelectedConversation,
+  });
+
+  const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
+    setSelectedConversation(conversation);
+
+    if (PLATFORM.IS_WEB) {
+      if (conversation) {
+        router.replace(CONVERSATION(conversation.id));
+      } else {
+        router.replace(CHATS_PATH);
+      }
+    }
+  }, []);
+
   const filters: IFilter[] = [
     {
       key: ConversationType.ALL,
@@ -87,7 +113,7 @@ export default function ConversationScreen() {
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
       conversationsRefetch={refetch}
-      setSelectedConversation={setSelectedConversation}
+      setSelectedConversation={handleSetSelectedConversation}
       selectedConversation={selectedConversation}
       searchedConversationsResult={searchResults}
       isSearchingConversations={isSearching}
@@ -98,20 +124,18 @@ export default function ConversationScreen() {
   );
 
   return (
-    <>
-      <ChatInterface
-        chatItemList={chatItemList}
-        conversationsLoading={isLoadingConversations}
-        conversationsRefetch={refetch}
-        filters={filters}
-        selectedConversation={selectedConversation}
-        setSelectedConversation={setSelectedConversation}
-        onSearchQueryInserting={(searchQuery: string) => {
-          setSearchInput(searchQuery);
-          debouncedSearchQuery(searchQuery);
-        }}
-        searchQuery={searchInput}
-      />
-    </>
+    <ChatInterface
+      chatItemList={chatItemList}
+      conversationsLoading={isLoadingConversations}
+      conversationsRefetch={refetch}
+      filters={filters}
+      selectedConversation={selectedConversation}
+      setSelectedConversation={handleSetSelectedConversation}
+      onSearchQueryInserting={(searchQuery: string) => {
+        setSearchInput(searchQuery);
+        debouncedSearchQuery(searchQuery);
+      }}
+      searchQuery={searchInput}
+    />
   );
 }
