@@ -60,4 +60,21 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
             return workspace;
         }
     }
+
+    @Override
+    public boolean validateWorkspaceAccess(String workspaceIdentifier, String email) {
+        Integer result = jpaQueryFactory
+                .selectOne()
+                .from(qWorkspaceUser)
+                .join(qWorkspaceUser.workspace, qWorkspace)
+                .where(
+                        qWorkspaceUser.email.eq(email)
+                                .and(qWorkspace.workspaceIdentifier.eq(workspaceIdentifier))
+                                .and(qWorkspaceUser.status.ne(WorkspaceUserStatus.SUSPENDED))
+                )
+                .fetchFirst();
+
+        return result != null;
+    }
+
 }

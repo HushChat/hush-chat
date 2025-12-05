@@ -64,7 +64,7 @@ public class WorkspaceSeeder {
                 WorkspaceUser workspaceUser = new WorkspaceUser();
                 workspaceUser.setWorkspace(workspaces.stream().findFirst().get());
                 workspaceUser.setEmail(wu.getEmail());
-                workspaceUser.setStatus(WorkspaceUserStatus.ACCEPTED);
+                workspaceUser.setStatus(WorkspaceUserStatus.ACTIVE);
 
                 return workspaceUser;
             }).toList();

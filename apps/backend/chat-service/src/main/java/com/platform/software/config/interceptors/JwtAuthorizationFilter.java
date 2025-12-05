@@ -5,6 +5,7 @@ import com.platform.software.common.service.ErrorResponseHandler;
 import com.platform.software.common.utils.AuthUtils;
 import com.platform.software.config.aws.AWSCognitoConfig;
 import com.platform.software.exception.ErrorResponses;
+import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,13 +53,16 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final AWSCognitoConfig awsCognitoConfig;
     private final Map<String, RSAPublicKey> cachedPublicKeys = new ConcurrentHashMap<>();
+    private final WorkspaceUserService workspaceUserService;
 
     public JwtAuthorizationFilter(
-        UserService userService,
-        AWSCognitoConfig awsCognitoConfig
+            UserService userService,
+            AWSCognitoConfig awsCognitoConfig,
+            WorkspaceUserService workspaceUserService
     ) {
         this.userService = userService;
         this.awsCognitoConfig = awsCognitoConfig;
+        this.workspaceUserService = workspaceUserService;
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
@@ -66,9 +70,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         return PUBLIC_PATTERNS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private void setCurrentWorkspace(HttpServletRequest request) {
+    private void setCurrentWorkspace(HttpServletRequest request, String email) {
         String tenantId = request.getHeader(Constants.X_TENANT_HEADER);
-        if (tenantId != null) {
+        if (tenantId != null && workspaceUserService.validateWorkspaceAccess(tenantId, email)) {
             WorkspaceContext.setCurrentWorkspace(tenantId);
         } else {
             log.warn("Missing tenant header");
@@ -86,7 +90,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                setCurrentWorkspace(request);
 
                 // Allow through for public routes
                 if (isPublicEndpoint(request)) {
@@ -115,6 +118,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         decodedJwt,
                         token
                     );
+
+                    setCurrentWorkspace(request, email);
 
                     UserDetails userDetails;
                     try {
