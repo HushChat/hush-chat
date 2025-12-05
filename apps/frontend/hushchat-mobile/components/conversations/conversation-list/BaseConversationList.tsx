@@ -16,6 +16,8 @@ import { GestureDetector } from "react-native-gesture-handler";
 import MobileConversationContextMenu from "@/components/conversations/MobileConversationContextMenu";
 import { useGroupConversationInfoQuery } from "@/query/useGroupConversationInfoQuery";
 import { useOneToOneConversationInfoQuery } from "@/query/useOneToOneConversationInfoQuery";
+import { MotionConfig } from "@/motion/config/index";
+import { MotionEasing } from "@/motion/easing/index";
 
 const MAX_TO_RENDER_PER_BATCH = 20;
 const WINDOW_SIZE = 20;
@@ -78,19 +80,29 @@ function SwipeableRow<T>({
   const conversation = sectionedItem as unknown as IConversation;
   const isSwipedOpen = useSharedValue(false);
 
+  const animConfig = {
+    duration: MotionConfig.duration.md,
+    easing: MotionEasing.standard,
+  };
+
+  const fastAnimConfig = {
+    duration: MotionConfig.duration.sm,
+    easing: MotionEasing.standard,
+  };
+
   const { gesture, translateX, progress } = useSwipeGesture({
     enabled: isSwipeable(),
     direction: "horizontal",
     trigger: SWIPE_TRIGGER,
     maxDrag: MAX_SWIPE_DISTANCE,
     onSwipeLeft: () => {
-      translateX.value = withTiming(-FULL_SWIPE_DISTANCE, { duration: 250 });
-      progress.value = withTiming(1, { duration: 250 });
+      translateX.value = withTiming(-FULL_SWIPE_DISTANCE, animConfig);
+      progress.value = withTiming(1, animConfig);
       isSwipedOpen.value = true;
     },
     onSwipeRight: () => {
-      translateX.value = withTiming(0, { duration: 200 });
-      progress.value = withTiming(0, { duration: 200 });
+      translateX.value = withTiming(0, fastAnimConfig);
+      progress.value = withTiming(0, fastAnimConfig);
       isSwipedOpen.value = false;
     },
     shouldReset: false,
@@ -99,24 +111,21 @@ function SwipeableRow<T>({
     velocity: { horizontal: 400, vertical: 500 },
   });
 
+  const resetSwipe = useCallback(() => {
+    translateX.value = withTiming(0, fastAnimConfig);
+    progress.value = withTiming(0, fastAnimConfig);
+    isSwipedOpen.value = false;
+  }, [translateX, progress, isSwipedOpen, fastAnimConfig]);
+
   const handleArchivePress = useCallback(async () => {
     if (isSwipeable() && conversation?.id) {
-      translateX.value = withTiming(0, { duration: 200 });
-      progress.value = withTiming(0, { duration: 200 });
-      isSwipedOpen.value = false;
+      resetSwipe();
 
       setTimeout(async () => {
         await onArchive(conversation.id);
-      }, 100);
+      }, MotionConfig.duration.sm);
     }
-    //
-  }, [isSwipeable, conversation.id, translateX, progress, isSwipedOpen, onArchive]);
-
-  const resetSwipe = useCallback(() => {
-    translateX.value = withTiming(0, { duration: 200 });
-    progress.value = withTiming(0, { duration: 200 });
-    isSwipedOpen.value = false;
-  }, [translateX, progress, isSwipedOpen]);
+  }, [isSwipeable, conversation.id, resetSwipe, onArchive]);
 
   const handleMorePress = useCallback(() => {
     if (conversation) {
