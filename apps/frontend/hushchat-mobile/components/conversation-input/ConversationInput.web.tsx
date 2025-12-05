@@ -122,7 +122,11 @@ const ConversationInput = ({
           </Animated.View>
         </View>
 
-        <FileInput ref={input.fileInputRef} onChange={input.handleFileChange} accept="image/*" />
+        <FileInput
+          ref={input.fileInputRef}
+          onChange={input.handleFileChange}
+          accept="image/*,video/*"
+        />
         <FileInput
           ref={input.documentInputRef}
           onChange={input.handleDocumentChange}

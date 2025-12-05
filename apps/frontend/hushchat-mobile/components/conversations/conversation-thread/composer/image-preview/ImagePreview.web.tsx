@@ -3,10 +3,18 @@ import { Modal, View, Text, Pressable, ScrollView, StyleSheet, ViewStyle } from 
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { TImagePreviewProps } from "@/types/chat/types";
+import { getFileType } from "@/utils/files/getFileType";
+import { useVideoThumbnails } from "@/hooks/useVideoThumbnails";
 
 export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const thumbnailScrollRef = useRef<ScrollView>(null);
+  const videoThumbnails = useVideoThumbnails(images);
+  const currentImage = images[currentIndex];
+  const fileType = getFileType(
+    currentImage?.originalFileName || currentImage?.indexedFileName || ""
+  );
+  const isVideo = fileType === "video";
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -52,8 +60,6 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
 
   if (!visible) return null;
 
-  const currentImage = images[currentIndex];
-
   return (
     <Modal
       visible={visible}
@@ -66,7 +72,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
         <View className="bg-background-light dark:bg-background-dark px-6 py-4 flex-row justify-between items-center">
           <View className="flex-1">
             <Text className="text-gray-900 dark:text-white text-base font-normal" numberOfLines={1}>
-              {currentImage?.originalFileName || "Image"}
+              {currentImage?.originalFileName || (isVideo ? "Video" : "Image")}
             </Text>
             <Text className="text-gray-500 dark:text-[#8696A0] text-sm mt-0.5">
               {currentIndex + 1} of {images.length}
@@ -90,12 +96,28 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
           )}
 
           <View className="flex-1 justify-center items-center p-4">
-            <Image
-              source={{ uri: currentImage?.fileUrl }}
-              className="w-full h-full"
-              contentFit="contain"
-              cachePolicy="memory-disk"
-            />
+            {isVideo ? (
+              <video
+                src={currentImage?.fileUrl}
+                controls
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  width: "auto",
+                  height: "auto",
+                  objectFit: "contain",
+                }}
+              >
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <Image
+                source={{ uri: currentImage?.fileUrl }}
+                className="w-full h-full"
+                contentFit="contain"
+                cachePolicy="memory-disk"
+              />
+            )}
           </View>
 
           {images.length > 1 && currentIndex < images.length - 1 && (
@@ -123,27 +145,41 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                 ]}
                 style={styles.thumbnailScroll}
               >
-                {images.map((image, index) => (
-                  <Pressable
-                    key={image.id || index}
-                    onPress={() => setCurrentIndex(index)}
-                    className="active:opacity-70 cursor-pointer"
-                  >
-                    <View
-                      className={`rounded-lg overflow-hidden ${
-                        currentIndex === index
-                          ? "border-4 border-primary-light dark:border-primary-dark"
-                          : "opacity-60 hover:opacity-100"
-                      }`}
+                {images.map((image, index) => {
+                  const thumbFileType = getFileType(
+                    image?.originalFileName || image?.indexedFileName || ""
+                  );
+                  const isThumbVideo = thumbFileType === "video";
+                  const thumbnailUri =
+                    isThumbVideo && videoThumbnails[index] ? videoThumbnails[index] : image.fileUrl;
+
+                  return (
+                    <Pressable
+                      key={image.id || index}
+                      onPress={() => setCurrentIndex(index)}
+                      className="active:opacity-70 cursor-pointer"
                     >
-                      <Image
-                        source={{ uri: image.fileUrl }}
-                        className="w-20 h-20"
-                        contentFit="cover"
-                      />
-                    </View>
-                  </Pressable>
-                ))}
+                      <View
+                        className={`rounded-lg overflow-hidden ${
+                          currentIndex === index
+                            ? "border-4 border-primary-light dark:border-primary-dark"
+                            : "opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        <Image
+                          source={{ uri: thumbnailUri }}
+                          className="w-20 h-20"
+                          contentFit="cover"
+                        />
+                        {isThumbVideo && (
+                          <View style={styles.thumbnailPlayIcon}>
+                            <Ionicons name="play-circle" size={24} color="#fff" />
+                          </View>
+                        )}
+                      </View>
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
             </View>
           </View>
@@ -161,5 +197,15 @@ const styles = StyleSheet.create({
   },
   thumbnailScroll: {
     maxWidth: "100%",
+  },
+  thumbnailPlayIcon: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
 });

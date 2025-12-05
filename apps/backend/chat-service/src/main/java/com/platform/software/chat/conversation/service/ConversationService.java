@@ -611,11 +611,8 @@ public class ConversationService {
                         String fileViewSignedURL = cloudPhotoHandlingService
                             .getPhotoViewSignedURL(attachment.getIndexedFileName());
 
-                        MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
-                        messageAttachmentDTO.setId(attachment.getId());
+                        MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO(attachment);
                         messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                        messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
-                        messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
                         attachmentDTOs.add(messageAttachmentDTO);
                     } catch (Exception e) {
                         logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
