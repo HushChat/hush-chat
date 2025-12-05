@@ -1,12 +1,9 @@
 package com.platform.software.chat.conversation.repository;
 
-import com.platform.software.chat.conversation.dto.ConversationDTO;
-import com.platform.software.chat.conversation.dto.ConversationFilterCriteriaDTO;
-import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
-import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
+import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationStatus;
 import com.platform.software.chat.conversation.entity.QConversation;
-import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
@@ -148,7 +145,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
                 .and(qConversation.deleted.eq(false))
-                .and(qConversationParticipant.isDeleted.eq(false));
+                .and(qConversationParticipant.isDeleted.eq(false)
+                .and(qConversation.status.eq(ConversationStatus.ACTIVE)));
 
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
@@ -298,6 +296,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .join(qConversation.conversationParticipants, qConversationParticipant)
                 .where(qConversation.id.eq(conversationId)
                         .and(qConversation.deleted.isFalse())
+                        .and(qConversation.status.eq(ConversationStatus.ACTIVE))
                         .and(qConversationParticipant.user.id.eq(userId))
                         .and(qConversationParticipant.isDeleted.isFalse()))
                 .fetchFirst();
@@ -408,4 +407,42 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             ));
     }
 
+    /**
+     * Admin view: Paginated retrieval of all group conversations with participant counts.
+     *
+     * @param pageable Pagination information
+     * @return Page of ConversationAdminViewDTO containing group conversation details
+     */
+    @Override
+    public Page<ConversationAdminViewDTO> findAllGroupConversationsAdminView(Pageable pageable){
+        JPAQuery<ConversationAdminViewDTO> query = jpaQueryFactory
+                .select(Projections.constructor(ConversationAdminViewDTO.class,
+                        qConversation.id,
+                        qConversation.name,
+                        qConversation.createdAt,
+                        qConversation.description,
+                        qConversation.imageIndexedName,
+                        qConversation.status,
+                        qConversation.createdBy.id,
+                        qConversation.createdBy.firstName,
+                        qConversation.createdBy.lastName,
+                        qConversation.createdBy.email,
+                        JPAExpressions.select(qConversationParticipant.count())
+                                .from(qConversationParticipant)
+                                .where(qConversationParticipant.conversation.id.eq(qConversation.id))
+                ))
+                .from(qConversation)
+                .where(qConversation.isGroup.eq(true));
+
+        Long totalCount = query.clone()
+                .select(qConversation.count())
+                .fetchOne();
+
+        List<ConversationAdminViewDTO> results = query
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, totalCount);
+    }
 }

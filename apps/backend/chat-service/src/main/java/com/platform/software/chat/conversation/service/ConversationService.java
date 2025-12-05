@@ -2,10 +2,7 @@ package com.platform.software.chat.conversation.service;
 
 
 import com.platform.software.chat.conversation.dto.*;
-import com.platform.software.chat.conversation.entity.Conversation;
-import com.platform.software.chat.conversation.entity.ConversationEvent;
-import com.platform.software.chat.conversation.entity.ConversationReport;
-import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
+import com.platform.software.chat.conversation.entity.*;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
@@ -123,6 +120,7 @@ public class ConversationService {
     public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
         Conversation conversation = new Conversation();
         conversation.setIsGroup(isGroup);
+        conversation.setStatus(isGroup ? ConversationStatus.PENDING : ConversationStatus.ACTIVE);
         conversation.setCreatedBy(userService.getUserOrThrow(loggedInUserId));
         List<ConversationParticipant> participants = new ArrayList<>();
 
@@ -679,7 +677,7 @@ public class ConversationService {
     }
 
     /**
-     * Deletes a conversation by its ID for a specific user.
+     * Deletes a conversation by its ID. The requesting user must be a group admin.
      *
      * @param id     the ID of the conversation to delete
      * @param userId the ID of the user deleting the conversation
@@ -688,16 +686,24 @@ public class ConversationService {
     public Conversation deleteConversationById(Long id, Long userId) {
         Conversation conversation = conversationRepository.findByIdAndCreatedById(id, userId).orElseThrow(() -> {
             logger.warn("invalid conversation id {} provided or the user {} doesn't have permission to delete it", id, userId);
-            throw new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
+            return new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
         });
 
-        conversation.setDeleted(true);
-        try {
-            return conversationRepository.save(conversation);
-        } catch (Exception exception) {
-            logger.error("failed to delete conversation id: {}", id, exception);
-            throw new CustomBadRequestException("Failed to delete conversation");
-        }
+        return conversationUtilService.deleteConversation(conversation);
+    }
+
+    /**
+     * Deletes a conversation by its ID. This method is intended for admin use.
+     *
+     * @param id the ID of the conversation to delete
+     */
+    public void deleteConversationById(Long id) {
+        Conversation conversation = conversationRepository.findById(id).orElseThrow(() -> {
+            logger.warn("invalid conversation id {} provided", id);
+            return new CustomBadRequestException("Conversation does not exist!");
+        });
+
+        conversationUtilService.deleteConversation(conversation);
     }
 
     /**
@@ -1350,6 +1356,37 @@ public class ConversationService {
         ConversationReadInfo conversationReadInfo = conversationReadStatusRepository
             .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
         return conversationReadInfo;
+    }
+
+    /**
+     * Retrieves all group conversations for admin view with pagination.
+     *
+     * @param pageable the pagination information
+     * @return a Page of ConversationAdminViewDTOs containing group conversation details
+     */
+    public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
+        return conversationRepository.findAllGroupConversationsAdminView(pageable);
+    }
+
+    /**
+     * Approves a group conversation by setting its status to ACTIVE.
+     *
+     * @param conversationId the ID of the conversation to delete
+     */
+    @Transactional
+    public void approveConversationById(Long conversationId) {
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+        if (!conversation.getIsGroup()) {
+            throw new CustomBadRequestException("Only group conversations can be approved");
+        }
+
+        conversation.setStatus(ConversationStatus.ACTIVE);
+        try {
+            conversationRepository.save(conversation);
+        } catch (Exception e) {
+            logger.error("Failed to approve conversationId: {}", conversationId, e);
+            throw new CustomInternalServerErrorException("Failed to approve conversation");
+        }
     }
 }
 
