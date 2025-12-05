@@ -422,6 +422,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         qConversation.createdAt,
                         qConversation.description,
                         qConversation.imageIndexedName,
+                        qConversation.status,
                         qConversation.createdBy.id,
                         qConversation.createdBy.firstName,
                         qConversation.createdBy.lastName,
