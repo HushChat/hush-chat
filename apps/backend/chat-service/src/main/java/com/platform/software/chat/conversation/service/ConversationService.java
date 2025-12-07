@@ -379,7 +379,9 @@ public class ConversationService {
 
     @NotNull
     private static List<MessageViewDTO> getMessageViewDTOSList(Page<ConversationDTO> conversations) {
-        List<MessageViewDTO> messages = conversations.getContent().stream().map(conversationDTO -> {
+        List<MessageViewDTO> messages = conversations.getContent().stream()
+            .filter(conversationDTO -> conversationDTO.getMessages() != null)
+            .map(conversationDTO -> {
                 Optional<MessageViewDTO> opMessageViewDTO = conversationDTO.getMessages().stream().findFirst();
                 return opMessageViewDTO.orElse(null);
             })

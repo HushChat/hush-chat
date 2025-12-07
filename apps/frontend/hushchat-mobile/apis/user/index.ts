@@ -92,7 +92,7 @@ export const changePassword = async (oldPassword: string, newPassword: string) =
 export const getUserWorkspaces = async () => {
   try {
     const response = await axios.get(WORKSPACE_ENDPOINTS.GET);
-    return { data: response.data };
+    return response.data;
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
   }
