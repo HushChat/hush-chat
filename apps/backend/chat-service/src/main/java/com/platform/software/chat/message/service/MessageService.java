@@ -23,7 +23,6 @@ import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
-import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.CustomResourceNotFoundException;
 import com.platform.software.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
@@ -107,25 +106,13 @@ public class MessageService {
         Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
+        messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
+
+
         if (messageViewDTO.getParentMessage() != null) {
-            List<MessageAttachmentDTO> parentMessageAttachments = messageViewDTO.getParentMessage().getMessageAttachments();
-
-            if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
-                // todo: send only one attachment from many for preview purpose, refactor as needed
-                MessageAttachmentDTO parentMessageAttachment = parentMessageAttachments.stream()
-                        .findFirst()
-                        .orElse(null);
-
-                try {
-                    String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(parentMessageAttachment.getIndexedFileName());
-
-                    parentMessageAttachment.setFileUrl(fileViewSignedURL);
-                } catch (Exception e) {
-                    logger.error("failed to sign parent attachment url for parent message {}", messageViewDTO.getParentMessage().getId(), e);
-                    throw new CustomInternalServerErrorException("Failed to Send Message");
-                }
-            }
+            MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
+            List<MessageAttachmentDTO> enrichedMessageAttachmentDTOts = messageUtilService.enrichParentMessageAttachmentsWithSignedUrl(List.of(attachmentDTO));
+            messageViewDTO.getParentMessage().setMessageAttachments(enrichedMessageAttachmentDTOts);
         }
 
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);

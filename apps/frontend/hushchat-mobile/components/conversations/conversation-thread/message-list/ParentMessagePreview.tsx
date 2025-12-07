@@ -1,9 +1,11 @@
 import React, { memo } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import classNames from "classnames";
-import { IMessage, MessageAttachmentTypeEnum } from "@/types/chat/types";
+import { IMessage } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { AttachmentPreview } from "@/components/conversations/conversation-thread/message-list/AttachmentPreview";
+import { ParentMessageTextPreview } from "@/components/conversations/conversation-thread/message-list/ParentMessageTextPreview";
 
 interface ParentMessagePreviewProps {
   message: IMessage;
@@ -16,17 +18,19 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
   ({ message, parentMessage, currentUserId, onNavigateToMessage }) => {
     const isCurrentUser = message.senderId === Number(currentUserId);
 
-    const firstAttachment = parentMessage.messageAttachments?.[0];
-    const hasAttachment = !!firstAttachment;
+    const hasAttachment = !!parentMessage.messageAttachments?.[0];
 
-    const attachmentType = firstAttachment?.type;
-    const attachmentUrl = firstAttachment?.fileUrl;
-    const fileName = firstAttachment?.originalFileName || "File";
+    const getHeaderLabel = () => {
+      const isSelfReply =
+        message.senderId === Number(currentUserId) &&
+        parentMessage?.senderId === Number(currentUserId);
+      const isReplyingToMe =
+        message.senderId !== Number(currentUserId) &&
+        parentMessage?.senderId === Number(currentUserId);
 
-    const getFallbackText = () => {
-      if (attachmentType === MessageAttachmentTypeEnum.DOCUMENT) return fileName;
-      if (attachmentType === MessageAttachmentTypeEnum.IMAGE) return "Photo";
-      return "Attachment";
+      if (isSelfReply) return "Replying to myself";
+      if (isReplyingToMe) return "Replying to me";
+      return `Replying to ${parentMessage?.senderFirstName}`;
     };
 
     const handlePress = () => {
@@ -57,47 +61,14 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
                 : "text-primary-dark dark:text-primary-light text-left"
             )}
           >
-            {message.senderId === Number(currentUserId) &&
-            parentMessage?.senderId === Number(currentUserId)
-              ? "Replying to myself"
-              : message.senderId !== Number(currentUserId) &&
-                  parentMessage?.senderId === Number(currentUserId)
-                ? "Replying to me"
-                : `Replying to ${parentMessage?.senderFirstName}`}
+            {getHeaderLabel()}
           </AppText>
 
           <View className="flex-row items-center justify-between gap-x-3">
-            <View className="flex-1">
-              <AppText
-                className={classNames(
-                  "text-sm leading-5",
-                  isCurrentUser
-                    ? "text-text-primary-light dark:text-text-primary-dark text-right"
-                    : "text-text-primary-light dark:text-text-primary-dark text-left"
-                )}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {parentMessage.messageText ? parentMessage.messageText : getFallbackText()}
-              </AppText>
-            </View>
+            <ParentMessageTextPreview message={parentMessage} isCurrentUser={isCurrentUser} />
 
-            {hasAttachment && attachmentUrl && (
-              <>
-                {attachmentType === MessageAttachmentTypeEnum.DOCUMENT ? (
-                  <View className="w-12 h-12 rounded-md bg-white items-center justify-center border border-gray-200 shadow-sm">
-                    <AppText className="text-[10px] font-bold text-gray-500 text-center uppercase">
-                      {firstAttachment?.originalFileName?.split(".").pop() || "DOC"}
-                    </AppText>
-                  </View>
-                ) : (
-                  <Image
-                    source={{ uri: attachmentUrl }}
-                    className="w-12 h-12 rounded-md bg-gray-200 dark:bg-gray-700"
-                    resizeMode="cover"
-                  />
-                )}
-              </>
+            {hasAttachment && (
+              <AttachmentPreview attachment={parentMessage.messageAttachments?.[0]} />
             )}
           </View>
         </View>

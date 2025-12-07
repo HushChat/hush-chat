@@ -604,54 +604,17 @@ public class ConversationService {
                     List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage().getAttachments();
 
                     if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
+                        MessageAttachment parentMessageAttachment = parentMessageAttachments.getFirst();
 
-                        // todo: send only one attachment from many for preview purpose, refactor as needed
-                        MessageAttachment parentMessageAttachment = parentMessageAttachments.stream()
-                                .findFirst()
-                                .orElse(null);
-
-                        try {
-                            String fileViewSignedURL = cloudPhotoHandlingService
-                                    .getPhotoViewSignedURL(parentMessageAttachment.getIndexedFileName());
-
-                            MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
-                            messageAttachmentDTO.setId(parentMessageAttachment.getId());
-                            messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                            messageAttachmentDTO.setIndexedFileName(parentMessageAttachment.getIndexedFileName());
-                            messageAttachmentDTO.setOriginalFileName(parentMessageAttachment.getOriginalFileName());
-                            messageAttachmentDTO.setType(parentMessageAttachment.getType());
-
-                            dto.getParentMessage().setMessageAttachments(List.of(messageAttachmentDTO));
-                        } catch (Exception e) {
-                            logger.error("failed to sign parent attachment url for parent message {}", matchedMessage.getParentMessage().getId(), e);
-                            throw new CustomInternalServerErrorException("Failed to get conversation!");
-                        }
+                        List<MessageAttachmentDTO> enrichedParentMessageAttachmentDTO = conversationUtilService.getEnrichedMessageAttachmentsDTO(List.of(parentMessageAttachment));
+                        dto.getParentMessage().setMessageAttachments(enrichedParentMessageAttachmentDTO);
                     }
                 }
 
                 List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService.getEnrichedMessageAttachmentsDTO(attachments);
+                dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
 
-                if (attachments == null || attachments.isEmpty()) {
-                    return dto;
-                }
-
-                for (MessageAttachment attachment : attachments) {
-                    try {
-                        String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
-
-                        MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
-                        messageAttachmentDTO.setId(attachment.getId());
-                        messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                        messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
-                        messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
-                        attachmentDTOs.add(messageAttachmentDTO);
-                    } catch (Exception e) {
-                        logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
-                        throw new CustomInternalServerErrorException("Failed to get conversation!");
-                    }
-                }
-                dto.setMessageAttachments(attachmentDTOs);
                 return dto;
             })
             .collect(Collectors.toList());
