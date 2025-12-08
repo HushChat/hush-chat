@@ -97,7 +97,7 @@ const ConversationInput = ({
         />
       )}
 
-      <View className="flex-row items-end p-3  bg-background-light dark:bg-background-dark  border-gray-200 dark:border-gray-800">
+      <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
         <AttachmentButton
           ref={input.addButtonRef}
           disabled={disabled}
