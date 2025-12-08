@@ -50,6 +50,9 @@ const MentionSuggestions = ({
   const currentUserId = user?.id;
 
   const participants: ConversationParticipant[] = useMemo(() => {
+    if (!pages?.pages) {
+      return [];
+    }
     const list = pages?.pages.flatMap((p) => p?.content ?? []) as ConversationParticipant[];
 
     return list.filter((p) => p.user.id !== currentUserId);
