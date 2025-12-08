@@ -365,15 +365,15 @@ export const ConversationMessageItem = ({
     <View style={styles.contentBlockWrapper}>
       <View className="group mb-3">
         <View className="flex-row mx-2">
-          <View className="mr-2 pt-1 w-10 h-10">
-            {showSenderAvatar && (
+          {showSenderAvatar && (
+            <View className="mr-2 pt-1 w-10 h-10">
               <InitialsAvatar
                 name={senderName}
                 size={AvatarSize.extraSmall}
                 imageUrl={message.senderSignedImageUrl}
               />
-            )}
-          </View>
+            </View>
+          )}
           <View className="flex-1">
             <MessageHeader
               isCurrentUser={isCurrentUser}

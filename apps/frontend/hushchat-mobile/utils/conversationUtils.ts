@@ -4,6 +4,8 @@ const conversationCriteriaMap: Record<ConversationType, () => object> = {
   [ConversationType.ARCHIVED]: () => ({ isArchived: true }),
   [ConversationType.FAVORITES]: () => ({ isFavorite: true }),
   [ConversationType.UNREAD]: () => ({ isUnread: true }),
+  [ConversationType.GROUPS]: () => ({ isGroup: true }),
+  [ConversationType.MUTED]: () => ({ isMuted: true }),
   [ConversationType.ALL]: () => ({}),
 };
 
