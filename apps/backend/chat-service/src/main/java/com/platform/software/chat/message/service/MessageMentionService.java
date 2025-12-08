@@ -1,6 +1,5 @@
 package com.platform.software.chat.message.service;
 
-import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageMention;
@@ -8,12 +7,12 @@ import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
-import com.platform.software.common.constants.Constants;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,16 +29,10 @@ public class MessageMentionService {
 
     private final UserRepository userRepository;
     private final MessageMentionRepository messageMentionRepository;
-    private final ConversationUtilService conversationUtilService;
 
-    public MessageMentionService(
-        UserRepository userRepository, 
-        MessageMentionRepository messageMentionRepository, 
-        ConversationUtilService conversationUtilService
-    ) {
+    public MessageMentionService(UserRepository userRepository, MessageMentionRepository messageMentionRepository) {
         this.userRepository = userRepository;
         this.messageMentionRepository = messageMentionRepository;
-        this.conversationUtilService = conversationUtilService;
     }
 
     /**
@@ -50,18 +43,12 @@ public class MessageMentionService {
     @Transactional
     public void saveMessageMentions(Message savedMessage, MessageViewDTO messageViewDTO) {
         String messageText = savedMessage.getMessageText();
-
-        boolean mentionsAll = constainsMentionAll(messageText);
-
-        List<ChatUser> mentionedUsers = mentionsAll
-                ? conversationUtilService.getAllParticipantsExceptSender(
-                    messageViewDTO.getConversationId(),
-                    messageViewDTO.getSenderId())
-                : getMentionedUsersByUsernames(messageText);
-
-        if (mentionedUsers.isEmpty() || mentionedUsers == null) {
+        List<String> usernames = extractUsernames(messageText);
+        if (usernames.isEmpty()) {
             return;
         }
+
+        List<ChatUser> mentionedUsers = userRepository.findByUsernameIn(usernames);
 
         List<MessageMention> messageMentions = buildMessageMentions(savedMessage, mentionedUsers);
 
@@ -76,15 +63,6 @@ public class MessageMentionService {
         }
     }
 
-    private List<ChatUser> getMentionedUsersByUsernames(String messageText) {
-        List<String> usernames = extractUsernames(messageText);
-        if (usernames.isEmpty()) {
-            return null;
-        }
-
-        return userRepository.findByUsernameIn(usernames);
-    }
-
     private static List<MessageMention> buildMessageMentions(Message savedMessage, List<ChatUser> mentionedUsers) {
         List<MessageMention> messageMentions = mentionedUsers.stream()
             .map(u -> {
@@ -95,10 +73,6 @@ public class MessageMentionService {
             })
             .toList();
         return messageMentions;
-    }
-
-    private boolean constainsMentionAll(String messageText) {
-        return messageText.toLowerCase().contains(Constants.MENTION_ALL);
     }
 
     /**

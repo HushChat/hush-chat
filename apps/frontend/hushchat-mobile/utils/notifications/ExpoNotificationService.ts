@@ -1,6 +1,8 @@
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { INotificationService } from "./INotificationService";
+import Constants from "expo-constants";
+import { logError } from "@/utils/logger";
 import { router } from "expo-router";
 import { CHAT_VIEW_PATH } from "@/constants/routes";
 
@@ -19,7 +21,14 @@ export const ExpoNotificationService: INotificationService = {
     if (!Device.isDevice) return null;
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== "granted") return null;
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    const projectId =
+      Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+
+    if (!projectId) {
+      logError("EAS Project ID is not defined in app config.");
+      return null;
+    }
+
     Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data;
       const conversationId = data?.conversationId as string;
@@ -35,7 +44,12 @@ export const ExpoNotificationService: INotificationService = {
         });
       }
     });
-    return token;
+
+    return (
+      await Notifications.getExpoPushTokenAsync({
+        projectId,
+      })
+    ).data;
   },
 
   onMessage(callback) {
