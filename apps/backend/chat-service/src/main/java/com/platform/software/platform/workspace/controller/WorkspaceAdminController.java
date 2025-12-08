@@ -2,6 +2,7 @@ package com.platform.software.platform.workspace.controller;
 
 import com.platform.software.chat.conversation.dto.ConversationAdminViewDTO;
 import com.platform.software.chat.conversation.service.ConversationService;
+import com.platform.software.config.interceptors.WorkspaceAdminRestrictedAccess;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@WorkspaceAdminRestrictedAccess
 @RestController
 @RequestMapping("/admin/workspace")
 public class WorkspaceAdminController {
