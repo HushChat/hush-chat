@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MotionView } from "@/motion/MotionView";
+import { MotionConfig } from "@/motion/config";
 
 export interface SelectionActionBarProps {
   visible: boolean;
@@ -29,7 +30,7 @@ const MessageForwardActionBar = ({
     <MotionView
       visible={visible}
       preset="slideUp"
-      duration={200}
+      duration={MotionConfig.duration.md}
       pointerEvents={visible ? "auto" : "none"}
       className="absolute left-4 right-4 bottom-4"
       testID="selectionActionBar"

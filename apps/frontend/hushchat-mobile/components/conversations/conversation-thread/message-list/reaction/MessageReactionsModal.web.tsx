@@ -16,7 +16,7 @@ import { MessageReact, REACTION_EMOJIS } from "@/types/chat/types";
 import { useMessageReactionsQuery } from "@/query/useMessageReactionsQuery";
 import { getAdjustedPosition } from "@/utils/commonUtils";
 import { MotionView } from "@/motion/MotionView";
-import { MotionConfig } from "@/motion/config/index";
+import { MotionConfig } from "@/motion/config";
 
 interface MessageReactionsModalProps {
   visible: boolean;
@@ -58,12 +58,12 @@ const MessageReactionsModalWeb = ({
     setShowContent(false);
     setTimeout(() => {
       setShowModal(false);
-    }, MotionConfig.duration.xs);
+    }, 120);
   };
 
   const onBackdropPress = () => {
     handleCloseInternal();
-    setTimeout(onClose, MotionConfig.duration.xs);
+    setTimeout(onClose, 120);
   };
 
   const handleLoadMore = () => {

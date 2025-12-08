@@ -3,8 +3,6 @@ import { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-
 import { scheduleOnRN } from "react-native-worklets";
 import { usePanGesture } from "@/gestures/base/usePanGesture";
 import Toast from "react-native-toast-message";
-import { MotionConfig } from "@/motion/config/index";
-import { MotionEasing } from "@/motion/easing/index";
 
 export const TOAST_POSITION = {
   TOP: "top",
@@ -57,17 +55,11 @@ export const useToastAnimation = (
 
       if (isTop ? event.translationY < threshold : event.translationY > threshold) {
         scheduleOnRN(hideToast);
-        translateY.value = withTiming(exitValue, {
-          duration: MotionConfig.duration.sm,
-          easing: MotionEasing.accelerate,
-        });
+        translateY.value = withTiming(exitValue, { duration: 150 });
         opacity.value = withTiming(0, { duration: 150 });
       } else {
         translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
-        opacity.value = withTiming(1, {
-          duration: MotionConfig.duration.sm,
-          easing: MotionEasing.standard,
-        });
+        opacity.value = withTiming(1, { duration: 200 });
       }
     },
   });

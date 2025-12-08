@@ -3,6 +3,7 @@ import { View, Text, ImageSourcePropType } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { MotionView } from "@/motion/MotionView";
 import { AppText } from "@/components/AppText";
+import { MotionConfig } from "@/motion/config";
 
 type PlaceholderProps = {
   title: string;
@@ -60,7 +61,7 @@ export default function Placeholder({
         visible={visible}
         from={{ opacity: 0, translateY: slideFromY }}
         to={{ opacity: 1, translateY: 0 }}
-        duration={400}
+        duration={MotionConfig.duration.md}
         easing="emphasized"
         className="items-center"
       >

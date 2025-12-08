@@ -6,6 +6,7 @@ import { ReactionType } from "@/types/chat/types";
 import EmojiGlyph from "@/components/conversations/conversation-thread/message-list/reaction/EmojiGlyph";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { MotionView } from "@/motion/MotionView";
+import { MotionConfig } from "@/motion/config";
 
 type ReactionPickerProps = {
   visible: boolean;
@@ -77,7 +78,7 @@ const ReactionPicker = memo(
           visible={visible}
           from={{ opacity: 0, scale: 0.8 }}
           to={{ opacity: 1, scale: 1 }}
-          duration={{ enter: 150, exit: 120 }}
+          duration={{ enter: MotionConfig.duration.sm, exit: MotionConfig.duration.xs }}
           easing="decelerate"
           pointerEvents="auto"
           className="z-20"

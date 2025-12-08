@@ -11,6 +11,8 @@ import { AppText } from "@/components/AppText";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 import { MotionView } from "@/motion/MotionView";
+import { MotionConfig } from "@/motion/config";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 
 export type AttachmentOption = "images" | "documents";
 
@@ -46,13 +48,22 @@ const MobileAttachmentModal = ({
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <MotionView visible={visible} preset="fadeIn" duration={200} className="flex-1">
-        <TouchableOpacity className="flex-1" activeOpacity={1} onPress={onClose}>
+      <MotionView
+        visible={visible}
+        preset="fadeIn"
+        duration={MotionConfig.duration.sm}
+        className="flex-1"
+      >
+        <TouchableOpacity
+          className="flex-1"
+          activeOpacity={DEFAULT_ACTIVE_OPACITY}
+          onPress={onClose}
+        >
           <MotionView
             visible={visible}
             from={{ opacity: 0, scale: 0.9, translateY: 15 }}
             to={{ opacity: 1, scale: 1, translateY: 0 }}
-            duration={250}
+            duration={MotionConfig.duration.md}
             easing="springy"
             style={styles.menuContainer}
             className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[200px]"

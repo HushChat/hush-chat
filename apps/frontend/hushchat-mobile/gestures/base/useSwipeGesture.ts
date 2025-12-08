@@ -2,8 +2,6 @@ import { withTiming, useSharedValue, type SharedValue } from "react-native-reani
 import { usePanGesture } from "./usePanGesture";
 import { PLATFORM } from "@/constants/platformConstants";
 import { OffsetThresholds, VelocityThresholds } from "@/types/gestures/types";
-import { MotionConfig } from "@/motion/config/index";
-import { MotionEasing } from "@/motion/easing/index";
 
 type Direction = "horizontal" | "vertical";
 
@@ -113,14 +111,9 @@ export function useSwipeGesture({
         else if (translationY <= -trigger || velocityY < -vThresh) onSwipeUp?.();
       }
 
-      const resetConfig = {
-        duration: MotionConfig.duration.sm,
-        easing: MotionEasing.standard,
-      };
-
-      translateX.value = withTiming(0, resetConfig);
-      translateY.value = withTiming(0, resetConfig);
-      progress.value = withTiming(0, resetConfig);
+      translateX.value = withTiming(0, { duration: 150 });
+      translateY.value = withTiming(0, { duration: 150 });
+      progress.value = withTiming(0, { duration: 150 });
     },
   });
 

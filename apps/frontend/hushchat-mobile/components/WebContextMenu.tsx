@@ -8,7 +8,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppText } from "./AppText";
 import { getAdjustedPosition } from "@/utils/commonUtils";
 import { MotionView } from "@/motion/MotionView";
-import { MotionConfig } from "@/motion/config/index";
+import { MotionConfig } from "@/motion/config";
 
 interface WebChatContextMenuProps {
   visible: boolean;
