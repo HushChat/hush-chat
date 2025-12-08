@@ -122,7 +122,12 @@ const ConversationInput = ({
           </Animated.View>
         </View>
 
-        <FileInput ref={input.fileInputRef} onChange={input.handleFileChange} />
+        <FileInput ref={input.fileInputRef} onChange={input.handleFileChange} accept="image/*" />
+        <FileInput
+          ref={input.documentInputRef}
+          onChange={input.handleDocumentChange}
+          accept={".pdf,.doc,.docx,.xls,.xlsx,.txt"}
+        />
       </View>
 
       <WebChatContextMenu
