@@ -1373,6 +1373,10 @@ public class ConversationService {
             throw new CustomBadRequestException("Only group conversations can be approved");
         }
 
+        if(conversation.getStatus() == ConversationStatus.ACTIVE) {
+            return;
+        }
+
         conversation.setStatus(ConversationStatus.ACTIVE);
         try {
             conversationRepository.save(conversation);
