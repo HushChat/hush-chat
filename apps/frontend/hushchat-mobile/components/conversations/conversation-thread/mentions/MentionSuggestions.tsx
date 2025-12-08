@@ -16,7 +16,6 @@ import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import useDebounce from "@/hooks/useDebounce";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { PLATFORM } from "@/constants/platformConstants";
-import { useUserStore } from "@/store/user/useUserStore";
 
 const COLORS = {
   lightBg: "#fafafa",
@@ -46,14 +45,10 @@ const MentionSuggestions = ({
   const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useConversationParticipantQuery(conversationId, debouncedKeyword);
 
-  const { user } = useUserStore();
-  const currentUserId = user?.id;
-
-  const participants: ConversationParticipant[] = useMemo(() => {
-    const list = pages?.pages.flatMap((p) => p?.content ?? []) as ConversationParticipant[];
-
-    return list.filter((p) => p.user.id !== currentUserId);
-  }, [pages, currentUserId]);
+  const participants: ConversationParticipant[] = useMemo(
+    () => pages?.pages.flatMap((p) => p?.content as ConversationParticipant[]) ?? [],
+    [pages]
+  );
 
   const { activeIndex, setActiveIndex } = useKeyboardNavigation({
     items: participants,
