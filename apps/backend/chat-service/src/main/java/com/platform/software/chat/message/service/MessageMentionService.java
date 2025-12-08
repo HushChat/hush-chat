@@ -59,7 +59,7 @@ public class MessageMentionService {
                     messageViewDTO.getSenderId())
                 : getMentionedUsersByUsernames(messageText);
 
-        if (mentionedUsers.isEmpty() || mentionedUsers == null) {
+        if (mentionedUsers == null) {
             return;
         }
 
