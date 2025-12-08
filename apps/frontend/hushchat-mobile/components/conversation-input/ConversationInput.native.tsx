@@ -12,6 +12,7 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
+import EditMessagePreview from "@/components/conversations/conversation-thread/message-list/EditMessagePreview";
 
 const ConversationInput = ({
   conversationId,
@@ -30,6 +31,8 @@ const ConversationInput = ({
   replyToMessage,
   onCancelReply,
   isGroupChat,
+  editMessage,
+  onCancelEdit,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
@@ -46,6 +49,7 @@ const ConversationInput = ({
     lineHeight,
     verticalPadding,
     placeholder,
+    editMessage,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -97,6 +101,8 @@ const ConversationInput = ({
         />
       )}
 
+      {editMessage && <EditMessagePreview editMessage={editMessage} onCancelEdit={onCancelEdit} />}
+
       <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
         <AttachmentButton
           ref={input.addButtonRef}
@@ -130,6 +136,7 @@ const ConversationInput = ({
               />
 
               <SendButton
+                isMessageEditing={editMessage !== null}
                 showSend={input.isValidMessage}
                 isSending={isSending}
                 onPress={handleSendButtonPress}

@@ -20,6 +20,7 @@ interface IRenderMessageParams {
   selectedConversationId: number;
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   onNavigateToMessage?: (messageId: number) => void;
+  setEditMessage: (msg: IMessage) => void;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -48,6 +49,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      setEditMessage,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -80,6 +82,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         onViewReactions={viewReactions}
         showSenderAvatar={showSenderAvatar}
         onNavigateToMessage={onNavigateToMessage}
+        setEditMessage={setEditMessage}
       />
     );
   };

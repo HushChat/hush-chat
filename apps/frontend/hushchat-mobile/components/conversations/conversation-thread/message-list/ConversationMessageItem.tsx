@@ -62,6 +62,7 @@ interface MessageItemProps {
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  setEditMessage: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -87,6 +88,7 @@ export const ConversationMessageItem = ({
   onViewReactions,
   showSenderAvatar,
   onNavigateToMessage,
+  setEditMessage,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -197,6 +199,15 @@ export const ConversationMessageItem = ({
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
+
+      if (message.messageType !== MessageTypeEnum.ATTACHMENT) {
+        options.push({
+          id: 4,
+          name: "Edit Message",
+          iconName: "pencil" as keyof typeof Ionicons.glyphMap,
+          action: () => setEditMessage(message),
+        });
+      }
     }
     return options;
   }, [

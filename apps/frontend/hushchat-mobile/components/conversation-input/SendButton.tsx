@@ -7,9 +7,15 @@ interface SendButtonProps {
   showSend: boolean;
   isSending: boolean;
   onPress: () => void;
+  isMessageEditing?: boolean;
 }
 
-export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) => {
+export const SendButton = ({
+  showSend,
+  isSending,
+  onPress,
+  isMessageEditing = false,
+}: SendButtonProps) => {
   if (isSending) {
     return (
       <ActivityIndicator
@@ -23,7 +29,7 @@ export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) =>
   return (
     <Pressable onPress={onPress} className="absolute right-3 bottom-2" disabled={!showSend}>
       <Ionicons
-        name={showSend ? "send" : "mic-sharp"}
+        name={showSend || isMessageEditing ? "send" : "mic-sharp"}
         size={SEND_ICON_SIZE}
         className={"!text-primary-light dark:!text-primary-dark"}
       />

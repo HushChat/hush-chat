@@ -13,6 +13,7 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
+import EditMessagePreview from "@/components/conversations/conversation-thread/message-list/EditMessagePreview";
 
 const ConversationInput = ({
   conversationId,
@@ -30,6 +31,8 @@ const ConversationInput = ({
   replyToMessage,
   onCancelReply,
   isGroupChat,
+  editMessage,
+  onCancelEdit,
 }: ConversationInputProps) => {
   const input = useConversationInput({
     conversationId,
@@ -44,6 +47,7 @@ const ConversationInput = ({
     lineHeight,
     verticalPadding,
     placeholder,
+    editMessage,
   });
 
   const handleKeyPress = useCallback(
@@ -70,6 +74,8 @@ const ConversationInput = ({
           onCancelReply={input.handleCancelReply}
         />
       )}
+
+      {editMessage && <EditMessagePreview editMessage={editMessage} onCancelEdit={onCancelEdit} />}
 
       <View
         className={classNames(
@@ -110,6 +116,7 @@ const ConversationInput = ({
               />
 
               <SendButton
+                isMessageEditing={editMessage !== null}
                 showSend={input.isValidMessage}
                 isSending={isSending}
                 onPress={handleSendPress}

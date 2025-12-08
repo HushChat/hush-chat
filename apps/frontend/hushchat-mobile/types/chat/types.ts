@@ -301,6 +301,8 @@ export interface ConversationInputProps {
   replyToMessage?: IMessage | null;
   onCancelReply?: () => void;
   isGroupChat?: boolean;
+  editMessage: IMessage | null;
+  onCancelEdit: () => void;
 }
 
 export interface ConversationInputConfig {

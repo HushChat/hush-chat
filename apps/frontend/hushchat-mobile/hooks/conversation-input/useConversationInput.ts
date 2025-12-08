@@ -2,7 +2,7 @@ import { useCallback, useRef, useMemo } from "react";
 import { TextInput, TextInputSelectionChangeEvent } from "react-native";
 import { useEnterSubmit } from "@/utils/commonUtils";
 import { useSpecialCharHandler } from "@/hooks/useSpecialCharHandler";
-import type { ConversationInputProps, ConversationParticipant } from "@/types/chat/types";
+import type { ConversationInputProps, ConversationParticipant, IMessage } from "@/types/chat/types";
 import { useAutoHeight } from "@/hooks/conversation-input/useAutoHeight";
 import { useMessageInput } from "@/hooks/conversation-input/useMessageInput";
 import { useMentions } from "@/hooks/conversation-input/useMentions";
@@ -31,6 +31,7 @@ interface IConversationInputOptions
   lineHeight: number;
   verticalPadding: number;
   placeholder: string;
+  editMessage: IMessage | null;
 }
 
 export function useConversationInput({
@@ -47,6 +48,7 @@ export function useConversationInput({
   lineHeight,
   verticalPadding,
   placeholder,
+  editMessage,
 }: IConversationInputOptions) {
   const messageTextInputRef = useRef<TextInput>(null);
 
@@ -66,6 +68,7 @@ export function useConversationInput({
   const messageInputController = useMessageInput({
     conversationId,
     maxChars,
+    editMessage
   });
 
   const latestMessageTextRef = useRef(messageInputController.currentTypedMessage);
