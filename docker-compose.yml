@@ -33,6 +33,7 @@ services:
       AWS_SES_REGION: ${AWS_SES_REGION}
       AWS_SES_FROM_MAIL: ${AWS_SES_FROM_MAIL}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+      PUBLIC_API_KEY: ${PUBLIC_API_KEY}
     volumes:
       - ./infra/db-migrations/workspaces:/app/db-migrations
     networks:
