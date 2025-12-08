@@ -57,9 +57,7 @@ export const FcmWebNotificationService: INotificationService = {
           data: {
             conversationId: conversationId,
             messageId: messageId,
-            url: conversationId
-              ? `/conversations?conversationId=${conversationId}${messageId ? `&messageId=${messageId}` : ""}`
-              : "/",
+            url: conversationId ? `/conversations/${conversationId}` : "/",
           },
         });
 

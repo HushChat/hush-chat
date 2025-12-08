@@ -94,10 +94,10 @@ public class ChatNotificationService {
             String title = chatNotificationUtilService.getNotificationTitle(message);
             String body = isGroup ? message.getSender().getFirstName() + ": " + message.getMessageText() : message.getMessageText();
 
-            Map<String, String> data = new HashMap<>();
-            data.put("conversationId", String.valueOf(conversationId));
-            data.put("messageId", String.valueOf(message.getId()));
-            data.put("type", "MESSAGE");
+            Map<String, String> data = buildNotificationData(
+                conversationId, 
+                message.getId()
+            );
 
             sendNotificationToTokens(tokens, title, body, data);
         }
@@ -110,12 +110,19 @@ public class ChatNotificationService {
             String title = chatNotificationUtilService.getNotificationTitle(message);
             String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
 
-            Map<String, String> data = new HashMap<>();
-            data.put("conversationId", String.valueOf(message.getConversation().getId()));
-            data.put("messageId", String.valueOf(message.getId()));
-            data.put("type", "REACTION");
+            Map<String, String> data = buildNotificationData(
+                message.getConversation().getId(), 
+                message.getId()
+            );
 
             sendNotificationToTokens(tokens, title, body, data);
         }
+    }
+
+    private Map<String, String> buildNotificationData(Long conversationId, Long messageId) {
+        Map<String, String> data = new HashMap<>();
+        data.put("conversationId", String.valueOf(conversationId));
+        data.put("messageId", String.valueOf(messageId));
+        return data;
     }
 }
