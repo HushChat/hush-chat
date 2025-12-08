@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.platform.software.common.constants.Constants.API_KEY_USER;
+
 @Component
 public class ApiKeyAuthorizationFilter extends OncePerRequestFilter {
 
@@ -42,15 +44,16 @@ public class ApiKeyAuthorizationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String apiKey = request.getHeader(Constants.X_PUBLIC_KEY);
+        String path = request.getRequestURI();
 
         if (apiKey == null) {
-            logger.warn("Missing API key in request headers");
+            logger.warn("Missing API key in request headers. Path: {}", path);
             ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.FAILED_TO_GET_PUBLIC_KEY_RESPONSE);
             return;
         }
 
-        if (!expectedApiKey.equals(apiKey)) {
-            logger.warn("Incorrect API key provided");
+        if (!apiKey.equals(expectedApiKey)) {
+            logger.warn("Incorrect API key provided. Path: {}", path);
             ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INCORRECT_PUBLIC_KEY_RESPONSE);
             return;
         }
@@ -59,7 +62,7 @@ public class ApiKeyAuthorizationFilter extends OncePerRequestFilter {
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
-                        "api-key-user",
+                        API_KEY_USER,
                         null,
                         authorities
                 );

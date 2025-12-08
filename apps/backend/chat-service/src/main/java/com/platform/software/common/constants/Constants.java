@@ -36,4 +36,6 @@ public class Constants {
     public static final Set<String> DOCUMENT_EXTENSIONS = Set.of(
             "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
             "txt", "csv");
+
+    public static final String API_KEY_USER = "api-key-user";
 }
