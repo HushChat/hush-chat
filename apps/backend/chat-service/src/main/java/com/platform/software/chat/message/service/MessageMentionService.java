@@ -1,7 +1,6 @@
 package com.platform.software.chat.message.service;
 
-import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
-import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageMention;
@@ -13,8 +12,6 @@ import com.platform.software.common.constants.Constants;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -33,16 +30,16 @@ public class MessageMentionService {
 
     private final UserRepository userRepository;
     private final MessageMentionRepository messageMentionRepository;
-    private final ConversationParticipantRepository conversationParticipantRepository;
+    private final ConversationUtilService conversationUtilService;
 
     public MessageMentionService(
         UserRepository userRepository, 
         MessageMentionRepository messageMentionRepository, 
-        ConversationParticipantRepository conversationParticipantRepository
+        ConversationUtilService conversationUtilService
     ) {
         this.userRepository = userRepository;
         this.messageMentionRepository = messageMentionRepository;
-        this.conversationParticipantRepository = conversationParticipantRepository;
+        this.conversationUtilService = conversationUtilService;
     }
 
     /**
@@ -56,7 +53,10 @@ public class MessageMentionService {
 
         boolean mentionsAll = constainsMentionAll(messageText);
 
-        List<ChatUser> mentionedUsers = mentionsAll ? getAllParticipantsExceptSender(messageViewDTO)
+        List<ChatUser> mentionedUsers = mentionsAll
+                ? conversationUtilService.getAllParticipantsExceptSender(
+                    messageViewDTO.getConversationId(),
+                    messageViewDTO.getSenderId())
                 : getMentionedUsersByUsernames(messageText);
 
         if (mentionedUsers.isEmpty() || mentionedUsers == null) {
@@ -74,14 +74,6 @@ public class MessageMentionService {
             logger.error("cannot save message mentions for message: {}", savedMessage, e);
             throw new CustomInternalServerErrorException("Cannot save message mentions");
         }
-    }
-
-    private List<ChatUser> getAllParticipantsExceptSender(MessageViewDTO messageViewDTO) {
-        Page<ConversationParticipant> participants = conversationParticipantRepository
-                    .findByConversationId(messageViewDTO.getConversationId(), Pageable.unpaged());
-
-        return participants.stream().map(participant -> participant.getUser())
-                    .filter(user -> !user.getId().equals(messageViewDTO.getSenderId())).toList();
     }
 
     private List<ChatUser> getMentionedUsersByUsernames(String messageText) {
