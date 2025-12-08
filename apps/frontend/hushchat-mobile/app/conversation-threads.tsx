@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -36,6 +36,8 @@ import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessag
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -64,6 +66,7 @@ const ConversationThreadScreen = ({
     user: { id: currentUserId },
   } = useUserStore();
   const queryClient = useQueryClient();
+  const dropZoneRef = useRef<View>(null);
 
   const {
     selectionMode,
@@ -175,6 +178,16 @@ const ConversationThreadScreen = ({
     removeAt: handleRemoveFile,
     addMore: handleAddMoreFiles,
   } = useImagePreview();
+
+  const { isDragging } = useDragAndDrop(dropZoneRef, {
+    onDropFiles: (files) => {
+      if (selectedFiles.length === 0) {
+        handleOpenImagePicker(files);
+      } else {
+        handleAddMoreFiles(files);
+      }
+    },
+  });
 
   const {
     pickAndUploadImages,
@@ -424,60 +437,63 @@ const ConversationThreadScreen = ({
       className="flex-1 bg-background-light dark:bg-background-dark"
       style={PLATFORM.IS_ANDROID && { paddingBottom: insets.bottom }}
     >
-      <ChatHeader
-        conversationInfo={conversationInfo}
-        onBackPress={handleBackPress}
-        onShowProfile={onShowProfile}
-        refetchConversationMessages={refetchConversationMessages}
-        isLoadingConversationMessages={isLoadingConversationMessages}
-        webPressSearch={webSearchPress}
-      />
+      <View ref={dropZoneRef} className="flex-1 relative">
+        <DragAndDropOverlay visible={isDragging} />
+        <ChatHeader
+          conversationInfo={conversationInfo}
+          onBackPress={handleBackPress}
+          onShowProfile={onShowProfile}
+          refetchConversationMessages={refetchConversationMessages}
+          isLoadingConversationMessages={isLoadingConversationMessages}
+          webPressSearch={webSearchPress}
+        />
 
-      <KeyboardAvoidingView className="flex-1" behavior="padding">
-        <ImageBackground
-          source={Images.chatBackground}
-          className="flex-1"
-          imageStyle={{
-            opacity: isDark ? CHAT_BG_OPACITY_DARK : CHAT_BG_OPACITY_LIGHT,
-          }}
-        >
-          <View className="flex-1">
+        <KeyboardAvoidingView className="flex-1" behavior="padding">
+          <ImageBackground
+            source={Images.chatBackground}
+            className="flex-1"
+            imageStyle={{
+              opacity: isDark ? CHAT_BG_OPACITY_DARK : CHAT_BG_OPACITY_LIGHT,
+            }}
+          >
             <View className="flex-1">
-              {showImagePreview ? (
-                <FilePreviewOverlay
-                  files={selectedFiles}
-                  onClose={handleCloseImagePreview}
-                  onRemoveFile={handleRemoveFile}
-                  onSendFiles={handleSendFiles}
-                  onFileSelect={handleAddMoreFiles}
-                  isSending={isSendingMessage}
-                  message={imageMessage}
-                  onMessageChange={setImageMessage}
-                />
-              ) : (
-                <>
-                  {renderContent()}
-                  <View style={styles.textInputWrapper}>{renderTextInput()}</View>
-                  {selectionMode && (
-                    <View style={actionBarStyle}>
-                      <MessageForwardActionBar
-                        visible={selectionMode}
-                        count={selectedMessageIds.size}
-                        isDark={isDark}
-                        onCancel={() => {
-                          setSelectionMode(false);
-                          setSelectedMessageIds(EMPTY_SET);
-                        }}
-                        onForward={onForwardPress}
-                      />
-                    </View>
-                  )}
-                </>
-              )}
+              <View className="flex-1">
+                {showImagePreview ? (
+                  <FilePreviewOverlay
+                    files={selectedFiles}
+                    onClose={handleCloseImagePreview}
+                    onRemoveFile={handleRemoveFile}
+                    onSendFiles={handleSendFiles}
+                    onFileSelect={handleAddMoreFiles}
+                    isSending={isSendingMessage}
+                    message={imageMessage}
+                    onMessageChange={setImageMessage}
+                  />
+                ) : (
+                  <>
+                    {renderContent()}
+                    <View style={styles.textInputWrapper}>{renderTextInput()}</View>
+                    {selectionMode && (
+                      <View style={actionBarStyle}>
+                        <MessageForwardActionBar
+                          visible={selectionMode}
+                          count={selectedMessageIds.size}
+                          isDark={isDark}
+                          onCancel={() => {
+                            setSelectionMode(false);
+                            setSelectedMessageIds(EMPTY_SET);
+                          }}
+                          onForward={onForwardPress}
+                        />
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
             </View>
-          </View>
-        </ImageBackground>
-      </KeyboardAvoidingView>
+          </ImageBackground>
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
