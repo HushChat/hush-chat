@@ -167,6 +167,7 @@ export default function ChatInfoCommonAction({
       togglePin,
       toggleFavorite,
       handleToggleMuteConversation,
+      showFavoriteMessages,
     ]
   );
 

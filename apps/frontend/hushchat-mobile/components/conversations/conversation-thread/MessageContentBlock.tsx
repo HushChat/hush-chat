@@ -22,6 +22,7 @@ interface IMessageContentBlock {
   onBubblePress?: () => void;
   children?: React.ReactNode;
   showHeader: boolean;
+  isFavoriteView?: boolean;
 }
 
 export default function MessageContentBlock({
@@ -38,6 +39,7 @@ export default function MessageContentBlock({
   onBubblePress = () => {},
   showHeader = true,
   children,
+  isFavoriteView = false,
 }: IMessageContentBlock) {
   const hasImages = () => attachments.some(isImageAttachment);
 
@@ -64,6 +66,7 @@ export default function MessageContentBlock({
           parentMessage={parentMessage}
           currentUserId={currentUserId}
           onNavigateToMessage={onNavigateToMessage}
+          isFavoriteView={isFavoriteView}
         />
       </View>
     );
@@ -95,6 +98,7 @@ export default function MessageContentBlock({
               onOpenMenu={openWebMenuAtEvent}
               messageText={message.messageText}
               isRead={message.isReadByEveryone}
+              isFavoriteView={isFavoriteView}
             />
           )}
 
@@ -111,6 +115,7 @@ export default function MessageContentBlock({
             isForwardedMessage={message.isForwarded}
             attachments={attachments}
             onBubblePress={onBubblePress}
+            isFavoriteView={isFavoriteView}
           />
 
           {children ?? null}

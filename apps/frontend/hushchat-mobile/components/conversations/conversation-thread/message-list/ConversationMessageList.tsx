@@ -142,6 +142,7 @@ const ConversationMessageList = ({
           }}
           onUnsend={(messages) => unSendMessage(messages)}
           onCopy={(message) => copyToClipboard(message.messageText)}
+          onStarMessage={toggleFavorite}
         />
       )}
 

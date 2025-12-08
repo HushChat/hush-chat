@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
@@ -17,6 +17,8 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { PanelType } from "@/types/web-panel/types";
 import useWebPanelManager from "@/hooks/useWebPanelManager";
+import { MotionView } from "@/motion/MotionView";
+import FavoriteMessages from "@/components/conversations/conversation-info-panel/FavoriteMessages";
 
 interface OneToOneChatInfoProps {
   conversation: IConversation;
@@ -39,7 +41,12 @@ export default function OneToOneChatInfo({
 
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
 
-  const { openPanel, closePanel } = useWebPanelManager(screenWidth);
+  const { activePanel, closePanel, openPanel, panelWidth, isPanelContentReady } =
+    useWebPanelManager(screenWidth);
+
+  const handleFavoriteMessages = () => {
+    openPanel(PanelType.FAVORITE_MESSAGES);
+  };
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
@@ -108,10 +115,6 @@ export default function OneToOneChatInfo({
     });
   };
 
-  const handleFavoriteMessages = useCallback(() => {
-    openPanel(PanelType.FAVORITE_MESSAGES);
-  }, [openPanel, closePanel]);
-
   if (isLoadingConversationInfo) return <LoadingState />;
 
   return (
@@ -154,6 +157,7 @@ export default function OneToOneChatInfo({
             setSelectedConversation={setSelectedConversation}
             showFavoriteMessages={handleFavoriteMessages}
           />
+
           <ActionItem
             icon="ban-outline"
             label={`${conversationInfo?.blocked ? "Unblock" : "Block"} ${
@@ -164,6 +168,16 @@ export default function OneToOneChatInfo({
           />
         </View>
       </View>
+      {isPanelContentReady && activePanel === PanelType.FAVORITE_MESSAGES && (
+        <MotionView
+          visible={activePanel === PanelType.FAVORITE_MESSAGES}
+          className="flex-1 absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondary-dark"
+          from={{ translateX: panelWidth, opacity: 0 }}
+          to={{ translateX: 0, opacity: 10 }}
+        >
+          <FavoriteMessages conversationId={conversation.id} onClose={closePanel} />
+        </MotionView>
+      )}
     </View>
   );
 }

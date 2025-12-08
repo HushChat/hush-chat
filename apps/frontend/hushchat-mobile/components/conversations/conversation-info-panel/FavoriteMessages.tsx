@@ -34,75 +34,21 @@ export default function FavoriteMessages({ conversationId, onClose }: IFavoriteM
   };
 
   const render = ({ item }: { item: IMessage }) => {
+    const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
+
     return (
       <MessageContentBlock
         message={item}
-        isCurrentUser={true}
+        isCurrentUser={!!isCurrentUser}
         currentUserId={String(currentUserId)}
         showSenderAvatar={true}
         selected={false}
         selectionMode={false}
-        showHeader={false}
+        showHeader={true}
+        isFavoriteView={true}
       />
     );
   };
-
-  // const renderFavoriteMessage = ({ item }: { item: IMessage }) => {
-  //   const dateObject = parseISO(item.createdAt);
-  //   const dateTitle = getDateTitle(dateObject);
-  //
-  //   const isCurrentUser = item.senderId === currentUserId;
-  //   const hasText = !!item.messageText;
-  //
-  //   return (
-  //     <View className="flex-col ml-1 py-3">
-  //       <View className="flex-1 flex-row justify-between">
-  //         <View className="flex-row items-center gap-x-2">
-  //           <View>
-  //             {item.senderSignedImageUrl ? (
-  //               <Image
-  //                 source={{ uri: item.senderSignedImageUrl }}
-  //                 className="w-8 h-8 rounded-full bg-gray-200"
-  //               />
-  //             ) : (
-  //               <InitialsAvatar
-  //                 name={`${item.senderFirstName} ${item.senderLastName}`}
-  //                 size="esm"
-  //               />
-  //             )}
-  //           </View>
-  //           <View>
-  //             <AppText className="text-sm font-medium text-gray-900 dark:text-gray-100">
-  //               {isCurrentUser ? "You" : `${item.senderFirstName} ${item.senderLastName}`}
-  //             </AppText>
-  //           </View>
-  //         </View>
-  //
-  //         <View>
-  //           <AppText className="text-sm font-medium text-gray-900 dark:text-gray-100">
-  //             {dateTitle}
-  //           </AppText>
-  //         </View>
-  //       </View>
-  //
-  //       <View>
-  //         {item.messageText}
-  //         {/*<MessageBubble*/}
-  //         {/*  message={item}*/}
-  //         {/*  isCurrentUser={item.senderId === currentUserId}*/}
-  //         {/*  hasText={hasText}*/}
-  //         {/*  hasAttachments={item.hasAttachment}*/}
-  //         {/*  hasImages={hasImages()}*/}
-  //         {/*  selected={selected}*/}
-  //         {/*  selectionMode={selectionMode}*/}
-  //         {/*  isForwardedMessage={isForwardedMessage}*/}
-  //         {/*  attachments={attachments}*/}
-  //         {/*  onBubblePress={handleBubblePress}*/}
-  //         {/*/>*/}
-  //       </View>
-  //     </View>
-  //   );
-  // };
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
