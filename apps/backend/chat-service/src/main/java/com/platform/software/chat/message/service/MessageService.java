@@ -349,7 +349,7 @@ public class MessageService {
      * @return the Message entity
      */
     public Message getMessageOrThrow(Long messageId) {
-        return messageRepository.findById(messageId)
+        return messageRepository.findByIdWithSenderAndConversation(messageId)
             .orElseThrow(() -> {
                 logger.error("message with id {} not found when creating favorite message", messageId);
                 return new CustomResourceNotFoundException("Message not found!");

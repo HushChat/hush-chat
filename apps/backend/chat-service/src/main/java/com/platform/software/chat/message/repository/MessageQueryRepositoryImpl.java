@@ -229,4 +229,22 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         return new PageImpl<>(messages, pageable, messages.size());
     }
+
+    @Override
+    public Optional<Message> findByIdWithSenderAndConversation(Long messageId) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+
+        QMessage m = QMessage.message;
+        QChatUser sender = QChatUser.chatUser;
+        QConversation c = QConversation.conversation;
+
+        Message result = queryFactory
+                .selectFrom(m)
+                .innerJoin(m.sender, sender).fetchJoin()
+                .innerJoin(m.conversation, c).fetchJoin()
+                .where(m.id.eq(messageId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
 }
