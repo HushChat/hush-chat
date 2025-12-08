@@ -15,6 +15,7 @@ interface ActionsHeaderProps {
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
+  onStarMessage: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -25,9 +26,11 @@ const ActionsHeader = ({
   onForward,
   onUnsend,
   onCopy,
+  onStarMessage,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
+  const isFavourite = message.isFavorite;
 
   return (
     <View className="absolute bottom-full !z-50 w-full bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
@@ -70,6 +73,11 @@ const ActionsHeader = ({
             iconName={isPinned ? "pin" : "pin-outline"}
             onPress={() => onPinToggle(message)}
             color={isPinned ? "#6B4EFF" : "#6B7280"}
+          />
+
+          <HeaderAction
+            iconName={isFavourite ? "star" : "star-outline"}
+            onPress={() => onStarMessage(message)}
           />
 
           <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />

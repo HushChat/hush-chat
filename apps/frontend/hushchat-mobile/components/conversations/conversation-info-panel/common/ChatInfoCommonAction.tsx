@@ -26,6 +26,7 @@ type TChatInfoActionProps = {
   isMuted: boolean;
   onBack: () => void;
   setSelectedConversation: (conversation: null) => void;
+  showFavoriteMessages: () => void;
 };
 
 export default function ChatInfoCommonAction({
@@ -35,6 +36,7 @@ export default function ChatInfoCommonAction({
   isMuted,
   onBack,
   setSelectedConversation,
+  showFavoriteMessages,
 }: TChatInfoActionProps) {
   const { openModal, closeModal } = useModalContext();
   const { selectedConversationType } = useConversationStore();
@@ -151,6 +153,11 @@ export default function ChatInfoCommonAction({
         icon: "trash-bin-outline",
         onPress: handleDeleteConversation,
       },
+      {
+        label: "Favorite Messages",
+        icon: "star",
+        onPress: showFavoriteMessages,
+      },
     ],
     [
       isPinned,
@@ -160,6 +167,7 @@ export default function ChatInfoCommonAction({
       togglePin,
       toggleFavorite,
       handleToggleMuteConversation,
+      showFavoriteMessages,
     ]
   );
 
