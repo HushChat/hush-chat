@@ -49,6 +49,7 @@ interface ConversationThreadScreenProps {
   webForwardPress?: (messageIds: Set<number>) => void;
   messageToJump?: number | null;
   onMessageJumped?: () => void;
+  onConversationDeleted?: () => void;
 }
 
 const ConversationThreadScreen = ({
@@ -101,6 +102,8 @@ const ConversationThreadScreen = ({
     invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
+    targetMessageId,
+    clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId);
 
   const { updateConversation } = useConversationNotificationsContext();
@@ -167,6 +170,10 @@ const ConversationThreadScreen = ({
       handleNavigateToMessage(searchedMessageId);
     }
   }, [searchedMessageId, handleNavigateToMessage]);
+
+  const handleTargetMessageScrolled = useCallback(() => {
+    clearTargetMessage();
+  }, [clearTargetMessage]);
 
   const {
     selectedFiles,
@@ -254,7 +261,6 @@ const ConversationThreadScreen = ({
     selectedFiles,
     sendMessage,
     uploadFilesFromWeb,
-    updateConversationMessagesCache,
     handleCloseImagePreview,
   });
 
@@ -353,6 +359,8 @@ const ConversationThreadScreen = ({
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
         onNavigateToMessage={handleNavigateToMessage}
+        targetMessageId={targetMessageId}
+        onTargetMessageScrolled={handleTargetMessageScrolled}
       />
     );
   }, [
@@ -372,6 +380,8 @@ const ConversationThreadScreen = ({
     currentConversationId,
     searchedMessageId,
     handleNavigateToMessage,
+    targetMessageId,
+    handleTargetMessageScrolled,
   ]);
 
   const renderTextInput = useCallback(() => {

@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -292,4 +294,24 @@ public class ConversationUtilService {
         return notExisting;
     }
 
+    /**
+     * Retrieves all participants of a conversation except the sender.
+     * <p>
+     * This method fetches all users associated with the specified conversation ID
+     * and filters out the user with the given sender ID, effectively returning
+     * only the other participants in the conversation.
+     * </p>
+     *
+     * @param conversationId  the ID of the conversation 
+     * @param senderId        the ID of the user to be excluded from the result
+     * @return a list of ChatUser objects representing all participants
+     *         in the conversation except the sender
+     */
+    public List<ChatUser> getAllParticipantsExceptSender(Long conversationId, Long sernderId) {
+        Page<ConversationParticipant> participants = conversationParticipantRepository
+                    .findByConversationId(conversationId, Pageable.unpaged());
+
+        return participants.stream().map(participant -> participant.getUser())
+                    .filter(user -> !user.getId().equals(sernderId)).toList();
+    }
 }
