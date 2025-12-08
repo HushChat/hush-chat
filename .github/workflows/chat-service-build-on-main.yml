@@ -55,6 +55,9 @@ jobs:
       
       FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
 
+      #Public api key
+      PUBLIC_API_KEY: ${{ vars.PUBLIC_API_KEY}}
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
