@@ -45,7 +45,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private static final List<String> PUBLIC_PATTERNS = List.of(
-        "/health-check/**", "/public/user/**", "/public/workspaces/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
+        "/health-check/**", "/public/user/**", "/protected/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
         "/swagger-ui.html/**", "/swagger-resources/**", "/webjars/**", "/ws-message-subscription/**"
     );
 
