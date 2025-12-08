@@ -33,7 +33,7 @@ public class CorsConfig {
         }
 
         config.setAllowedOrigins(allowedOriginList);
-        config.setAllowedHeaders(Arrays.asList("Origin", Constants.API_REQUEST_ID, "Content-Type", "Accept", "Authorization", GeneralConstants.X_TENANT_HEADER, Constants.X_SECRET_KEY, Constants.X_PLATFORM_ID_HEADER));
+        config.setAllowedHeaders(Arrays.asList("Origin", Constants.API_REQUEST_ID, "Content-Type", "Accept", "Authorization", GeneralConstants.X_TENANT_HEADER, Constants.X_PUBLIC_KEY, Constants.X_PLATFORM_ID_HEADER));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);

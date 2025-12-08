@@ -142,6 +142,12 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         boolean isFavorite = conversationFilterCriteria.getIsFavorite() != null
                 ? conversationFilterCriteria.getIsFavorite()
                 : false;
+        boolean isGroup = conversationFilterCriteria.getIsGroup() != null
+                ? conversationFilterCriteria.getIsGroup()
+                : false;
+        boolean isMuted = conversationFilterCriteria.getIsMuted() != null
+                ? conversationFilterCriteria.getIsMuted()
+                : false;
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
                 .and(qConversation.deleted.eq(false))
@@ -151,6 +157,14 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
         );
+
+        if (isGroup) {
+                whereConditions = whereConditions.and(qConversation.isGroup.eq(isGroup));
+        }
+
+        if (isMuted) {
+                whereConditions = whereConditions.and(qConversationParticipant.mutedUntil.isNotNull());
+        }
 
         if (isArchived) {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
