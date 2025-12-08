@@ -56,24 +56,10 @@ public class MessageMentionService {
 
         boolean mentionsAll = constainsMentionAll(messageText);
 
-        List<ChatUser> mentionedUsers;
+        List<ChatUser> mentionedUsers = mentionsAll ? getAllParticipantsExceptSender(messageViewDTO)
+                : getMentionedUsersByUsernames(messageText);
 
-        if (mentionsAll) {
-            Page<ConversationParticipant> participants = conversationParticipantRepository
-                    .findByConversationId(messageViewDTO.getConversationId(), Pageable.unpaged());
-
-            mentionedUsers = participants.stream().map(participant -> participant.getUser())
-                    .filter(user -> !user.getId().equals(messageViewDTO.getSenderId())).toList();
-        } else {
-            List<String> usernames = extractUsernames(messageText);
-            if (usernames.isEmpty()) {
-                return;
-            }
-
-            mentionedUsers = userRepository.findByUsernameIn(usernames);
-        }
-
-        if (mentionedUsers.isEmpty()) {
+        if (mentionedUsers.isEmpty() || mentionedUsers == null) {
             return;
         }
 
@@ -88,6 +74,23 @@ public class MessageMentionService {
             logger.error("cannot save message mentions for message: {}", savedMessage, e);
             throw new CustomInternalServerErrorException("Cannot save message mentions");
         }
+    }
+
+    private List<ChatUser> getAllParticipantsExceptSender(MessageViewDTO messageViewDTO) {
+        Page<ConversationParticipant> participants = conversationParticipantRepository
+                    .findByConversationId(messageViewDTO.getConversationId(), Pageable.unpaged());
+
+        return participants.stream().map(participant -> participant.getUser())
+                    .filter(user -> !user.getId().equals(messageViewDTO.getSenderId())).toList();
+    }
+
+    private List<ChatUser> getMentionedUsersByUsernames(String messageText) {
+        List<String> usernames = extractUsernames(messageText);
+        if (usernames.isEmpty()) {
+            return null;
+        }
+
+        return userRepository.findByUsernameIn(usernames);
     }
 
     private static List<MessageMention> buildMessageMentions(Message savedMessage, List<ChatUser> mentionedUsers) {
