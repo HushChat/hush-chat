@@ -122,12 +122,19 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         decodedJwt,
                         token
                     );
-                    WorkspaceUser workspaceUser = workspaceUserService.verifyUserAccessToWorkspace(email, workspaceId);
+
+                    WorkspaceUser workspaceUser = null;
+                    if (workspaceId != null) {
+                        workspaceUser = workspaceUserService.verifyUserAccessToWorkspace(email, workspaceId);
+                    }
 
                     UserDetails userDetails;
                     try {
                         ChatUser user = userService.getUserByEmail(email);
-                        userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace(), workspaceUser.getRole());
+                        userDetails = new UserDetails(
+                            user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace(),
+                            workspaceUser != null ? workspaceUser.getRole() : null
+                        );
                     } catch (Exception e) {
                         userDetails = new UserDetails();
                         userDetails.setEmail(email);
