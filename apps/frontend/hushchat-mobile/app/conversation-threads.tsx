@@ -458,7 +458,11 @@ const ConversationThreadScreen = ({
           webPressSearch={webSearchPress}
         />
 
-        <KeyboardAvoidingView className="flex-1" behavior="padding">
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={PLATFORM.IS_IOS ? "padding" : undefined}
+          keyboardVerticalOffset={PLATFORM.IS_IOS ? 90 : 0}
+        >
           <ImageBackground
             source={Images.chatBackground}
             className="flex-1"
