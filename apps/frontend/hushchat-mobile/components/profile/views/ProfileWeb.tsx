@@ -1,30 +1,27 @@
-import React, { ReactNode } from "react";
-import { View, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Placeholder from "@/components/Placeholder";
 import { Images } from "@/assets/images";
-import { profileStyles } from "@/components/profile/profile.styles";
+import React from "react";
+import { ProfileForm } from "@/components/profile/components/ProfileForm";
 
-interface DesktopLayoutProps {
-  children: ReactNode;
-}
+const MIN_DESKTOP_WIDTH = 900;
 
-export function DesktopLayout({ children }: DesktopLayoutProps) {
+export const ProfileWeb = () => {
   return (
     <ScrollView
       horizontal={true}
-      style={profileStyles.desktopScrollContainer}
-      className="custom-scrollbar"
-      contentContainerStyle={profileStyles.desktopContentContainer}
+      className="custom-scrollbar flex-1"
+      contentContainerStyle={styles.desktopContentContainer}
       showsHorizontalScrollIndicator={true}
     >
       <View className="flex-1 flex-row">
         <View className="w-full max-w-[460px] border-r border-gray-200 dark:border-gray-800">
-          {children}
+          <ProfileForm />
         </View>
         <View className="flex-1">
           <Placeholder
             image={Images.userProfile}
-            title="My Profile"
+            title="My ProfileForm"
             showBackground={false}
             imageWidth={50}
             imageHeight={80}
@@ -33,4 +30,11 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
       </View>
     </ScrollView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  desktopContentContainer: {
+    flexGrow: 1,
+    minWidth: MIN_DESKTOP_WIDTH,
+  },
+});

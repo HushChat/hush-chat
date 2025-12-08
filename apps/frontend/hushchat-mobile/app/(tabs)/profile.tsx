@@ -1,6 +1,6 @@
 import React from "react";
-import ProfileC from "@/components/profile/Profile";
+import { ProfileView } from "@/components/profile/ProfileView";
 
 export default function Profile() {
-  return <ProfileC />;
+  return <ProfileView />;
 }

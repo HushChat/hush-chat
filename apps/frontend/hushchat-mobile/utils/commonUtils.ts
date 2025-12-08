@@ -73,7 +73,7 @@ const getInitials = (name: string): string => {
  * Otherwise, performs a fallback navigation to a safe screen.
  */
 const navigateBackOrFallback = (fallbackPath: Href) => {
-  const hasHistory = typeof window !== "undefined" && window.history.length > 1;
+  const hasHistory = typeof window !== "undefined";
 
   if (hasHistory) {
     router.back();

@@ -1,7 +1,7 @@
 import React from "react";
-import { View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { AppText } from "@/components/AppText";
-import { PROFILE_COLORS } from "@/components/profile/profile.constants";
+import LoadingState from "@/components/LoadingState";
 
 interface ProfileActionsProps {
   onUpdate: () => void;
@@ -27,7 +27,7 @@ export function ProfileActions({
           }`}
         >
           {isLoading ? (
-            <ActivityIndicator size={20} color={PROFILE_COLORS.WHITE} />
+            <LoadingState />
           ) : (
             <AppText className="text-white text-base font-semibold">Update</AppText>
           )}
