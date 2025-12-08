@@ -23,7 +23,6 @@ public class Constants {
     public static final String API_REQUEST_ID = "x-uuid";
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$";
     public static final String JWT_CLAIM_EMAIL = "email";
-    public static final String MENTION_ALL = "@all";
 
     public static final Set<String> IMAGE_EXTENSIONS = Set.of(
             "jpg", "jpeg", "png", "gif", "webp", "svg");

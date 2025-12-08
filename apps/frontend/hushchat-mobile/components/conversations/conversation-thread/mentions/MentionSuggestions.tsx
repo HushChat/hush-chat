@@ -33,7 +33,6 @@ type MentionSuggestionsProps = {
 };
 
 const DEBOUNCE_DELAY_MS = 250;
-const ALL_PARTICIPANT_ID = -999;
 
 const MentionSuggestions = ({
   onSelect,
@@ -50,46 +49,20 @@ const MentionSuggestions = ({
   const { user } = useUserStore();
   const currentUserId = user?.id;
 
-  const allOptionItem = useMemo(() => {
-    return {
-      id: ALL_PARTICIPANT_ID,
-      user: {
-        id: ALL_PARTICIPANT_ID,
-        username: "all",
-        firstName: "notifies all",
-        lastName: "participants",
-        signedImageUrl: null,
-      },
-    } as unknown as ConversationParticipant;
-  }, []);
+  const participants: ConversationParticipant[] = useMemo(() => {
+    const list = pages?.pages.flatMap((p) => p?.content ?? []) as ConversationParticipant[];
 
-  const dataToRender = useMemo(() => {
-    let list: ConversationParticipant[] = [];
-
-    if (pages?.pages) {
-      list = pages.pages.flatMap((p) => p?.content ?? []) as ConversationParticipant[];
-      list = list.filter((p) => p.user.id !== currentUserId);
-    }
-
-    const queryLower = (debouncedKeyword || "").toLowerCase();
-    const shouldShowAll = "all".startsWith(queryLower);
-
-    if (shouldShowAll) {
-      return [allOptionItem, ...list];
-    }
-
-    return list;
-  }, [pages, currentUserId, debouncedKeyword, allOptionItem]);
+    return list.filter((p) => p.user.id !== currentUserId);
+  }, [pages, currentUserId]);
 
   const { activeIndex, setActiveIndex } = useKeyboardNavigation({
-    items: dataToRender,
+    items: participants,
     onSelect,
     enabled: true,
   });
 
   const renderItem = ({ item, index }: ListRenderItemInfo<ConversationParticipant>) => {
     const isActive = index === activeIndex;
-    const isAllOption = item.id === ALL_PARTICIPANT_ID;
     const fullName =
       `${item.user.firstName ?? ""} ${item.user.lastName ?? ""}`.trim() || `@${item.user.username}`;
 
@@ -103,42 +76,23 @@ const MentionSuggestions = ({
         )}
       >
         <View className="mr-3">
-          {isAllOption ? (
-            <View className="h-7 w-12 bg-gray-200 dark:bg-gray-700 rounded-md items-center justify-center border border-dashed border-gray-400 dark:border-gray-500">
-              <Text className="text-sm font-semibold text-text-primary-light dark:text-text-primary-dark">
-                @all
-              </Text>
-            </View>
-          ) : (
-            <InitialsAvatar
-              name={fullName}
-              size={AvatarSize.small}
-              imageUrl={item.user.signedImageUrl}
-            />
-          )}
+          <InitialsAvatar
+            name={fullName}
+            size={AvatarSize.small}
+            imageUrl={item.user.signedImageUrl}
+          />
         </View>
-
         <View className="flex-1">
-          {isAllOption ? (
-            <Text className="text-sm text-gray-500 dark:text-gray-400">
-              notifies all participants
-            </Text>
-          ) : (
-            <>
-              <Text className="text-sm text-text-primary-light dark:text-text-primary-dark">
-                {fullName}
-              </Text>
-              <Text className="text-xs text-gray-500 dark:text-gray-400">
-                @{item.user.username}
-              </Text>
-            </>
-          )}
+          <Text className="text-sm text-text-primary-light dark:text-text-primary-dark">
+            {fullName}
+          </Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">@{item.user.username}</Text>
         </View>
       </Pressable>
     );
   };
 
-  if (isLoading && !dataToRender.length) {
+  if (isLoading) {
     return (
       <View className="absolute bottom-24 left-3 z-50 w-[320px] max-w-[80%]">
         <View
@@ -153,19 +107,18 @@ const MentionSuggestions = ({
     );
   }
 
-  if (dataToRender.length === 0) return null;
-
   return (
     <View className="absolute bottom-20 left-3 z-50 w-[250px] max-w-[80%]">
       <View
         style={[
           styles.listContainer,
           isDark && styles.listContainerDark,
-          isDark ? styles.listContainerWithBorderDark : styles.listContainerWithBorderLight,
+          participants.length !== 0 &&
+            (isDark ? styles.listContainerWithBorderDark : styles.listContainerWithBorderLight),
         ]}
       >
         <FlatList
-          data={dataToRender}
+          data={participants}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           style={styles.listMaxHeight}
@@ -193,7 +146,6 @@ const styles = StyleSheet.create({
   listContainer: {
     borderRadius: 8,
     backgroundColor: COLORS.lightBg,
-    overflow: "hidden",
   },
   listContainerDark: {
     backgroundColor: COLORS.darkBg,
