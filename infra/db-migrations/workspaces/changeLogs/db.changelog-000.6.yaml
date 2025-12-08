@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: create conversation_event sequence
       author: ishan
-      tag: release-5.1
+      tag: release-6.1
       changes:
         - createSequence:
             sequenceName: conversation_event_generator
@@ -16,7 +16,7 @@ databaseChangeLog:
   - changeSet:
       id: create conversation_event table
       author: ishan
-      tag: release-5.2
+      tag: release-6.2
       changes:
         - createTable:
             tableName: conversation_event
@@ -67,7 +67,7 @@ databaseChangeLog:
   - changeSet:
       id: add foreign key constraints for conversation_event
       author: ishan
-      tag: release-5.3
+      tag: release-6.3
       changes:
         - addForeignKeyConstraint:
             baseTableName: conversation_event
@@ -94,7 +94,7 @@ databaseChangeLog:
   - changeSet:
       id: create indexes for conversation_event
       author: ishan
-      tag: release-5.4
+      tag: release-6.4
       changes:
         - createIndex:
             indexName: idx_conversation_event_message_id

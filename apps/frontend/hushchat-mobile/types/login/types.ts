@@ -33,6 +33,11 @@ export interface Workspace {
   status: "PENDING" | "ACCEPTED";
 }
 
+export enum WorkspaceStatus {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+}
+
 export type TWorkspaceFormProps = {
   colors: AuthColors;
   isDark: boolean;
