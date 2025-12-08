@@ -70,11 +70,11 @@ public class ConversationController {
         @Valid @RequestBody GroupConversationUpsertDTO groupConversationUpsertDTO,
         @AuthenticatedUser UserDetails userDetails
     ) {
-        ConversationDTO conversationDTO = conversationService.createGroupConversation(
+        conversationService.createGroupConversation(
             groupConversationUpsertDTO,
             userDetails.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(conversationDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     /**Get all conversations for the authenticated user.

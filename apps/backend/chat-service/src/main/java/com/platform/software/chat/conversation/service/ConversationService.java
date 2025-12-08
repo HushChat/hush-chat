@@ -201,10 +201,9 @@ public class ConversationService {
      *
      * @param groupConversationDTO the DTO containing group conversation details
      * @param loggedInUserId       the ID of the user creating the group conversation
-     * @return a ConversationDTO with the created group conversation data
      */
     @Transactional
-    public ConversationDTO createGroupConversation(
+    public void createGroupConversation(
             GroupConversationUpsertDTO groupConversationDTO,
             Long loggedInUserId
     ) {
@@ -234,13 +233,7 @@ public class ConversationService {
             ConversationDTO conversationDTOWithSignedUrl = conversationUtilService.addSignedImageUrlToConversationDTO(updatedConversationDTO, groupConversationDTO.getImageFileName());
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
-
-            return saveConversationAndBuildDTO(conversation);
         }
-
-        conversationEventService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
-
-        return conversationDTO;
     }
 
     /**
@@ -1383,6 +1376,7 @@ public class ConversationService {
         conversation.setStatus(ConversationStatus.ACTIVE);
         try {
             conversationRepository.save(conversation);
+            conversationEventService.createMessageWithConversationEvent(conversation.getId(), conversation.getCreatedBy().getId(), null, ConversationEventType.GROUP_CREATED);
         } catch (Exception e) {
             logger.error("Failed to approve conversationId: {}", conversationId, e);
             throw new CustomInternalServerErrorException("Failed to approve conversation");

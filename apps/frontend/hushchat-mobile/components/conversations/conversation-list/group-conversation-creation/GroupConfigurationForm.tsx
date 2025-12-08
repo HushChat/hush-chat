@@ -11,9 +11,6 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { IConversation, IGroupConversation } from "@/types/chat/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-import { PLATFORM } from "@/constants/platformConstants";
-import { router } from "expo-router";
-import { CHAT_VIEW_PATH } from "@/constants/routes";
 import {
   getImagePickerAsset,
   uploadImage,
@@ -45,7 +42,6 @@ export interface IGroupConfigurationFormProps {
 const GroupConfigurationForm = ({
   participantUserIds,
   onSuccess,
-  setSelectedConversation,
   initialName = "",
   submitLabel = "Create group",
 }: IGroupConfigurationFormProps) => {
@@ -77,17 +73,9 @@ const GroupConfigurationForm = ({
         uploadImageToSignedUrl(imageAssetData?.fileUri, conversation?.signedImageUrl);
       }
 
-      if (!PLATFORM.IS_WEB) {
-        router.push({
-          pathname: CHAT_VIEW_PATH,
-          params: {
-            conversationId: conversation.id,
-            conversationName: conversation.name,
-          },
-        });
-      } else {
-        setSelectedConversation(conversation);
-      }
+      ToastUtils.success(
+        "Group created successfully! It will become available once approved by the admin."
+      );
     },
     () => {
       ToastUtils.error("Failed to create group!");
