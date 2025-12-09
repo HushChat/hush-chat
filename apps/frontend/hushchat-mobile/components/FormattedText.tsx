@@ -148,9 +148,27 @@ const FormattedText = ({
       {
         pattern: MENTION_REGEX,
         onPress: handleMentionPress,
-        style: isCurrentUser
-          ? { fontWeight: "700", borderRadius: 4, color: "#beb4e8" }
-          : { fontWeight: "700", borderRadius: 4, color: "#6366f1" },
+        renderText: ((matchingString: string) => {
+          const username = matchingString.replace(/^@/, "");
+
+          const isValidMention = mentions?.some((m) => m.username === username);
+
+          if (isValidMention) {
+            return (
+              <AppText
+                style={
+                  isCurrentUser
+                    ? { fontWeight: "700", borderRadius: 4, color: "#beb4e8" }
+                    : { fontWeight: "700", borderRadius: 4, color: "#6366f1" }
+                }
+              >
+                {matchingString}
+              </AppText>
+            );
+          }
+
+          return matchingString;
+        }) as any,
       },
     ],
     [
