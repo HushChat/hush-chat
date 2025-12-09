@@ -5,6 +5,7 @@ import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.platform.workspace.dto.WorkspaceDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
+import com.platform.software.platform.workspace.entity.WorkspaceStatus;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
@@ -32,11 +33,11 @@ public class WorkspaceUserService {
         this.workspaceUserUtilService = workspaceUserUtilService;
     }
 
-    public WorkspaceDTO verifyUserAccessToWorkspace(String email, String workspaceName) {
+    public WorkspaceUser verifyUserAccessToWorkspace(String email, String workspaceName) {
         WorkspaceUser user = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(email, workspaceName)
             .orElseThrow(() -> new CustomAccessDeniedException("You dont have permission to access this workspace or invalid name"));
 
-        return new WorkspaceDTO(user.getWorkspace());
+        return user;
     }
 
     public List<Workspace> getAllWorkspaces(String email) {
@@ -92,6 +93,7 @@ public class WorkspaceUserService {
                 List<WorkspaceUser> workspaceUsers = workspaceUserRepository.findAllByEmail(email);
 
                 return workspaceUsers.stream()
+                        .filter(workspaceUser -> workspaceUser.getWorkspace().getStatus() != WorkspaceStatus.PENDING)
                         .map(workspaceUser ->
                                 new WorkspaceDTO(
                                         workspaceUser.getWorkspace(),
