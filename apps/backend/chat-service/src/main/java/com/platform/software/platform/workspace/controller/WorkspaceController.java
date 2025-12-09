@@ -69,24 +69,4 @@ public class WorkspaceController {
     public ResponseEntity<List<WorkspaceDTO>> getMyWorkspaces(@AuthenticatedUser UserDetails userDetails) {
         return new ResponseEntity<>(workspaceUserService.getAllWorkspaceDTO(userDetails.getEmail()), HttpStatus.OK);
     }
-
-    @ApiOperation(value = "Suspend/Unsuspend workspace user")
-    @PatchMapping("/suspend")
-    public ResponseEntity<Void> toggleSuspendWorkspaceUser(
-            @AuthenticatedUser UserDetails userDetails,
-            @RequestBody WorkspaceUserSuspendDTO workspaceUserSuspendDTO
-    ) {
-        workspaceUserService.toggleSuspendWorkspaceUser(userDetails.getEmail(), WorkspaceContext.getCurrentWorkspace(), workspaceUserSuspendDTO);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @ApiOperation(value = "Get all workspace users", response = WorkspaceUserViewDTO.class)
-    @GetMapping("/users")
-    public ResponseEntity<Page<WorkspaceUserViewDTO>> getAllWorkspaceUsers(
-            @AuthenticatedUser UserDetails userDetails,
-            Pageable pageable
-    ) {
-        Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsersByEmail(userDetails.getEmail(), pageable);
-        return new ResponseEntity<>(workspaceUsers, HttpStatus.OK);
-    }
 }
