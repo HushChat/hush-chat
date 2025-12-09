@@ -226,10 +226,10 @@ public class ConversationService {
         conversation.setName(groupConversationDTO.getName().trim());
         conversation.setDescription(groupConversationDTO.getDescription().trim());
 
-        ConversationDTO conversationDTO = saveConversationAndBuildDTO(conversation);
+        ConversationDTO savedConversationDTO = saveConversationAndBuildDTO(conversation);
 
         if (groupConversationDTO.getImageFileName() != null) {
-            conversation.setId(conversationDTO.getId());
+            conversation.setId(savedConversationDTO.getId());
 
             ConversationDTO updatedConversationDTO = new ConversationDTO(conversation);
 
@@ -237,12 +237,39 @@ public class ConversationService {
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
 
-            return saveConversationAndBuildDTO(conversation);
+            savedConversationDTO = saveConversationAndBuildDTO(conversation);
         }
 
-        conversationEventService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
+        triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
 
-        return conversationDTO;
+        return savedConversationDTO;
+    }
+
+    /**
+     * Helper method to handle the specific event sequence for new groups.
+     * Segregating this keeps the main method clean.
+     */
+    private void triggerGroupCreationEvents(Long conversationId, Long actorUserId, List<Long> initialParticipantIds) {
+        // Event 1: Group Created
+        conversationEventService.createMessageWithConversationEvent(
+                conversationId,
+                actorUserId,
+                null, 
+                ConversationEventType.GROUP_CREATED
+        );
+        // Event 2: Users Added
+        List<Long> targetsForAddEvent = initialParticipantIds.stream()
+                .filter(id -> !id.equals(actorUserId))
+                .toList();
+
+        if (!targetsForAddEvent.isEmpty()) {
+            conversationEventService.createMessageWithConversationEvent(
+                    conversationId,
+                    actorUserId,
+                    targetsForAddEvent, 
+                    ConversationEventType.USER_ADDED
+            );
+        }
     }
 
     /**
@@ -1014,15 +1041,27 @@ public class ConversationService {
         Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
-        boolean alreadyPinned = Optional.ofNullable(conversation.getPinnedMessage())
+        boolean currentlyPinned = Optional.ofNullable(conversation.getPinnedMessage())
                 .map(Message::getId)
                 .filter(id -> id.equals(messageId))
                 .isPresent();
 
-        conversation.setPinnedMessage(alreadyPinned ? null : message);
+        boolean isPinningAction = !currentlyPinned;
+
+        conversation.setPinnedMessage(isPinningAction ? message : null);
 
         try {
             conversationRepository.save(conversation);
+
+            if (isPinningAction) {
+                conversationEventService.createMessageWithConversationEvent(
+                        conversationId,
+                        userId,
+                        null,
+                        ConversationEventType.MESSAGE_PINNED
+                );
+            }
+
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
         } catch (Exception exception) {
             logger.error("Failed to pin messageId: {} in conversationId: {}", messageId, conversationId, exception);
