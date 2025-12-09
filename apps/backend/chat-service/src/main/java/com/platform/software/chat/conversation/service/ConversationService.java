@@ -1327,10 +1327,13 @@ public class ConversationService {
             throw new CustomBadRequestException("You cannot remove yourself. Use leave conversation instead.");
         }
 
+        long chatUserIdToRemove = conversationParticipantRepository
+                .chatUserIdByConversationParticipantId(participantIdToRemove);
+
         try {
             conversationParticipantRepository.updateIsActiveById(participantIdToRemove, false);
 
-            conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(participantIdToRemove), ConversationEventType.USER_REMOVED);
+            conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(chatUserIdToRemove), ConversationEventType.USER_REMOVED);
         } catch (Exception e) {
             logger.error("Cant remove user: %s due to an error".formatted(participantIdToRemove), e);
             throw new CustomInternalServerErrorException("Failed to remove user from conversation");
