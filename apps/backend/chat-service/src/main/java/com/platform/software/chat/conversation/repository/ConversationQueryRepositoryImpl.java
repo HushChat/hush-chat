@@ -1,12 +1,8 @@
 package com.platform.software.chat.conversation.repository;
 
-import com.platform.software.chat.conversation.dto.ConversationDTO;
-import com.platform.software.chat.conversation.dto.ConversationFilterCriteriaDTO;
-import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
-import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
+import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.QConversation;
-import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
@@ -145,6 +141,12 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         boolean isFavorite = conversationFilterCriteria.getIsFavorite() != null
                 ? conversationFilterCriteria.getIsFavorite()
                 : false;
+        boolean isGroup = conversationFilterCriteria.getIsGroup() != null
+                ? conversationFilterCriteria.getIsGroup()
+                : false;
+        boolean isMuted = conversationFilterCriteria.getIsMuted() != null
+                ? conversationFilterCriteria.getIsMuted()
+                : false;
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
                 .and(qConversation.deleted.eq(false))
@@ -153,6 +155,14 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
         );
+
+        if (isGroup) {
+                whereConditions = whereConditions.and(qConversation.isGroup.eq(isGroup));
+        }
+
+        if (isMuted) {
+                whereConditions = whereConditions.and(qConversationParticipant.mutedUntil.isNotNull());
+        }
 
         if (isArchived) {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
@@ -408,4 +418,44 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             ));
     }
 
+    /**
+     * Admin view: Paginated retrieval of all group conversations with participant counts.
+     *
+     * @param pageable Pagination information
+     * @return Page of ConversationAdminViewDTO containing group conversation details
+     */
+    @Override
+    public Page<ConversationAdminViewDTO> findAllGroupConversationsAdminView(Pageable pageable){
+        JPAQuery<ConversationAdminViewDTO> query = jpaQueryFactory
+                .select(Projections.constructor(ConversationAdminViewDTO.class,
+                        qConversation.id,
+                        qConversation.name,
+                        qConversation.createdAt,
+                        qConversation.description,
+                        qConversation.imageIndexedName,
+                        qConversation.deleted,
+                        qConversation.createdBy.id,
+                        qConversation.createdBy.firstName,
+                        qConversation.createdBy.lastName,
+                        qConversation.createdBy.email,
+                        JPAExpressions.select(qConversationParticipant.count())
+                                .from(qConversationParticipant)
+                                .where(qConversationParticipant.conversation.id.eq(qConversation.id))
+                ))
+                .from(qConversation)
+                .where(qConversation.isGroup.eq(true));
+
+        Long totalCount = jpaQueryFactory
+                .select(qConversation.count())
+                .from(qConversation)
+                .where(qConversation.isGroup.eq(true))
+                .fetchOne();
+
+        List<ConversationAdminViewDTO> results = query
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, totalCount);
+    }
 }
