@@ -17,6 +17,7 @@ export interface ConversationsMultiSelectProps {
   selectedConversations: TConversation[];
   onChange: (nextSelected: TConversation[]) => void;
   searchPlaceholder?: string;
+  sourceConversationId?: number;
 }
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -40,6 +41,7 @@ export const ConversationsMultiSelect = ({
   selectedConversations,
   onChange,
   searchPlaceholder = "Search conversations...",
+  sourceConversationId,
 }: ConversationsMultiSelectProps) => {
   const [searchText, setSearchText] = useState("");
   const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS).trim();
@@ -80,13 +82,15 @@ export const ConversationsMultiSelect = ({
       extractData={(dataPages) => {
         if (!dataPages) return [];
 
+        const sourceId = sourceConversationId;
+
         if (debouncedSearch) {
           const { chats = [], users = [] } = (dataPages as ISearchResults) ?? {};
-          return [...chats, ...users];
+          return [...chats, ...users].filter((item) => item.id !== sourceId);
         }
 
         const pages = (dataPages as { pages?: PaginatedResponse<IConversation>[] })?.pages ?? [];
-        return pages.flatMap((page) => page?.content ?? []);
+        return pages.flatMap((page) => page?.content ?? []).filter((item) => item.id !== sourceId);
       }}
       renderItemRow={(conversation, isSelected, toggle) => (
         <SelectableListItem

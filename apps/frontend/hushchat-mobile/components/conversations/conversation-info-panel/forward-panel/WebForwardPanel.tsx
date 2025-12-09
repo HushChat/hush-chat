@@ -4,7 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import ConversationForwardPanelBase from "@/components/conversations/conversation-info-panel/forward-panel/ConversationForwardPanel";
 import { useForwardMessageHandler } from "@/hooks/useForwardMessageHandler";
 
-const ConversationForwardPanelWeb = ({ onClose }: { onClose: () => void }) => {
+const ConversationForwardPanelWeb = ({
+  onClose,
+  currentConversationId,
+}: {
+  onClose: () => void;
+  currentConversationId: number;
+}) => {
   const handler = useForwardMessageHandler(onClose);
 
   return (
@@ -25,7 +31,11 @@ const ConversationForwardPanelWeb = ({ onClose }: { onClose: () => void }) => {
         </TouchableOpacity>
       </View>
 
-      <ConversationForwardPanelBase onClose={onClose} {...handler} />
+      <ConversationForwardPanelBase
+        onClose={onClose}
+        {...handler}
+        sourceConversationId={currentConversationId}
+      />
     </View>
   );
 };

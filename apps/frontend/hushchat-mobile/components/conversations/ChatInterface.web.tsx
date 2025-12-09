@@ -111,7 +111,12 @@ export default function ChatInterface({
           />
         );
       case PanelType.FORWARD:
-        return <ConversationForwardPanelWeb onClose={handleForwardPanelClose} />;
+        return (
+          <ConversationForwardPanelWeb
+            onClose={handleForwardPanelClose}
+            currentConversationId={selectedConversation.id}
+          />
+        );
       default:
         return null;
     }

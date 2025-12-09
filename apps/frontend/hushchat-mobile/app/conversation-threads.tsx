@@ -299,7 +299,10 @@ const ConversationThreadScreen = ({
     if (PLATFORM.IS_WEB) {
       webForwardPress?.(selectedMessageIds);
     } else {
-      router.push({ pathname: FORWARD_PATH, params: {} });
+      router.push({
+        pathname: FORWARD_PATH,
+        params: { currentConversationId: currentConversationId },
+      });
     }
   }, [selectedMessageIds, webForwardPress]);
 
