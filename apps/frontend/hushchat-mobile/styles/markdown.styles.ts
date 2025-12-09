@@ -1,5 +1,5 @@
 import { PLATFORM } from "@/constants/platformConstants";
-import { TextStyle, ViewStyle, ImageStyle } from "react-native";
+import { StyleSheet } from "react-native";
 
 type BaseSpecs = {
   fontFamily: string;
@@ -8,57 +8,46 @@ type BaseSpecs = {
   color: string;
 };
 
-type MarkdownStyle = {
-  [key: string]: TextStyle | ViewStyle | ImageStyle;
-};
-
-export const createMarkdownStyles = (baseSpecs: BaseSpecs, textColor: string): MarkdownStyle => {
-  return {
+export const getMarkdownStyles = (specs: BaseSpecs) => {
+  return StyleSheet.create({
     body: {
       padding: 0,
       margin: 0,
-      color: baseSpecs.color,
-      fontFamily: baseSpecs.fontFamily,
-      fontSize: baseSpecs.fontSize,
-      lineHeight: baseSpecs.lineHeight,
+      color: specs.color,
+      fontFamily: specs.fontFamily,
     },
 
     paragraph: {
       marginTop: 0,
       marginBottom: 8,
-      flexWrap: "wrap",
-      flexDirection: "row",
-      alignItems: "flex-start",
-      color: baseSpecs.color,
+      fontSize: specs.fontSize,
+      lineHeight: specs.lineHeight,
     },
 
     heading1: {
-      ...baseSpecs,
-      fontSize: 24,
       fontWeight: "bold",
       marginBottom: 8,
       marginTop: 4,
     },
 
     heading2: {
-      ...baseSpecs,
-      fontSize: 20,
       fontWeight: "bold",
       marginBottom: 8,
       marginTop: 4,
     },
 
-    list_item: { marginVertical: 2 },
+    list_item: { marginVertical: 2, fontSize: specs.fontSize },
     bullet_list: { marginBottom: 8 },
     ordered_list: { marginBottom: 8 },
+
     bullet_list_icon: {
-      ...baseSpecs,
+      fontSize: specs.fontSize,
       fontWeight: "bold",
       marginLeft: 8,
       marginRight: 8,
     },
     ordered_list_icon: {
-      ...baseSpecs,
+      fontSize: specs.fontSize,
       fontWeight: "bold",
       marginLeft: 8,
       marginRight: 8,
@@ -66,14 +55,12 @@ export const createMarkdownStyles = (baseSpecs: BaseSpecs, textColor: string): M
 
     fence: {
       backgroundColor: "transparent",
-      color: textColor,
       borderWidth: 0,
       borderColor: "transparent",
       padding: 10,
       marginTop: 8,
       marginBottom: 8,
-      fontFamily: baseSpecs.fontFamily,
-      fontSize: baseSpecs.fontSize * 0.85,
+      fontSize: specs.fontSize * 0.85,
     },
 
     link: {
@@ -82,13 +69,8 @@ export const createMarkdownStyles = (baseSpecs: BaseSpecs, textColor: string): M
       textDecorationColor: "#7dd3fc",
       opacity: 0.9,
     },
-
-    text: {
-      fontFamily: baseSpecs.fontFamily,
-      fontSize: baseSpecs.fontSize,
-    },
     strong: { fontWeight: "bold" },
     em: { fontStyle: "italic" },
     del: { textDecorationLine: "line-through" },
-  };
+  });
 };

@@ -9,7 +9,7 @@ import WebContextMenu from "@/components/WebContextMenu";
 import { MarkdownImage } from "@/components/MarkdownImage";
 import { AppText } from "@/components/AppText";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { createMarkdownStyles } from "@/styles/markdown.styles";
+import { getMarkdownStyles } from "@/styles/markdown.styles";
 
 interface FormattedTextProps {
   text: string;
@@ -61,8 +61,8 @@ const FormattedText = ({
   );
 
   const markdownStyles = useMemo(() => {
-    return createMarkdownStyles(baseSpecs, textColor);
-  }, [baseSpecs, textColor]);
+    return getMarkdownStyles(baseSpecs);
+  }, [baseSpecs]);
 
   const processedText = useMemo(() => {
     let newText = text;
@@ -162,14 +162,6 @@ const FormattedText = ({
               })}
           >
             {content}
-          </AppText>
-        );
-      },
-
-      s: (node: any, children: any, styles: any) => {
-        return (
-          <AppText key={node.key} style={styles.del}>
-            {children}
           </AppText>
         );
       },
