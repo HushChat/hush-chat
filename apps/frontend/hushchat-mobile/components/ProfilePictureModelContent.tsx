@@ -1,18 +1,14 @@
-/**
- * ProfilePictureModalContent.tsx
- */
 import React from "react";
 import { View, Text, useColorScheme, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import InitialsAvatar from "@/components/InitialsAvatar";
 
-// Defining the interface here for reusability across different modal types
 export interface IProfileDisplayData {
   name: string;
   signedImageUrl: string | null;
   isGroup?: boolean;
-  secondaryText?: string; // For Email, Username, or Group description
+  secondaryText?: string;
 }
 
 interface ProfilePictureModalContentProps {
@@ -30,13 +26,11 @@ const ProfilePictureModalContent: React.FC<ProfilePictureModalContentProps> = ({
   const isDark = colorScheme === "dark";
   const iconColor = isDark ? "#D1D5DB" : "#6B7280";
 
-  // Action Button Colors
   const buttonBg = isDark ? "#374151" : "#E5E7EB";
   const buttonText = isDark ? "#F9FAFB" : "#374151";
 
   return (
     <View className="items-center py-4 w-full">
-      {/* Simple Avatar */}
       {profileData.signedImageUrl ? (
         <View className="w-28 h-28 rounded-full overflow-hidden mb-6 shadow-sm">
           <Image
@@ -52,7 +46,6 @@ const ProfilePictureModalContent: React.FC<ProfilePictureModalContentProps> = ({
         </View>
       )}
 
-      {/* Text Info */}
       <View className="items-center mb-6 px-4">
         <Text
           className="text-xl font-bold text-center text-text-primary-light dark:text-text-primary-dark mb-1"
