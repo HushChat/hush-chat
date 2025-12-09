@@ -18,6 +18,7 @@ export interface IConversation {
   archivedByLoggedInUser: boolean;
   unreadCount: number;
   chatUserStatus: chatUserStatus;
+  onlyAdminsCanSendMessages: boolean;
 }
 
 export interface ReactionSummary {
