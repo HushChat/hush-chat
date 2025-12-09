@@ -6,6 +6,7 @@ import com.platform.software.exception.CustomForbiddenException;
 import com.platform.software.platform.workspace.entity.QWorkspace;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspaceuser.entity.QWorkspaceUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -62,10 +63,9 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
     }
 
     @Override
-    public boolean validateWorkspaceAccess(String workspaceIdentifier, String email) {
-        Integer result = jpaQueryFactory
-                .selectOne()
-                .from(qWorkspaceUser)
+    public WorkspaceUser validateWorkspaceAccess(String workspaceIdentifier, String email) {
+        return jpaQueryFactory
+                .selectFrom(qWorkspaceUser)
                 .join(qWorkspaceUser.workspace, qWorkspace)
                 .where(
                         qWorkspaceUser.email.eq(email)
@@ -73,8 +73,5 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
                                 .and(qWorkspaceUser.status.ne(WorkspaceUserStatus.SUSPENDED))
                 )
                 .fetchFirst();
-
-        return result != null;
     }
-
 }

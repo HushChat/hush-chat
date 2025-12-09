@@ -62,7 +62,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final WorkspaceUserService workspaceUserService;
 
     private final Map<String, RSAPublicKey> cachedPublicKeys = new ConcurrentHashMap<>();
-    private final WorkspaceUserService workspaceUserService;
 
     public JwtAuthorizationFilter(
         UserService userService,
@@ -84,16 +83,26 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         return PLATFORM_PATTERNS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private String setCurrentWorkspace(HttpServletRequest request) throws IOException {
+    private WorkspaceUser setCurrentWorkspace(HttpServletRequest request, String email) {
         String tenantId = request.getHeader(Constants.X_TENANT_HEADER);
-        if (tenantId != null && workspaceUserService.validateWorkspaceAccess(tenantId, email)) {
-            WorkspaceContext.setCurrentWorkspace(tenantId);
-        } else {
-            log.warn("Missing workspace header");
-            throw new CustomWorkspaceMissingException("Workspace header is missing");
+
+        // Validate header
+        if (tenantId == null) {
+            log.warn("Workspace validation failed: missing header. email={}", email);
+            throw new CustomWorkspaceMissingException("Workspace header is missing or invalid.");
         }
-        return tenantId;
+
+        WorkspaceUser workspaceUser = workspaceUserService.validateWorkspaceAccess(tenantId, email);
+
+        if (workspaceUser == null) {
+            log.warn("Unauthorized workspace access. tenantId={}, email={}", tenantId, email);
+            throw new CustomWorkspaceMissingException("You don't have access to this workspace.");
+        }
+
+        WorkspaceContext.setCurrentWorkspace(tenantId);
+        return workspaceUser;
     }
+
 
     private void handleTokenVerificationForUsers(
         DecodedJWT decodedJwt,
@@ -106,7 +115,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                String workspaceId = null;
+                WorkspaceUser workspaceUser = null;
 
                 // Allow through for public routes
                 if (isPublicEndpoint(request)) {
@@ -114,16 +123,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                //skip setting workspace for platform only endpoints
-                if(!isPlatformOnlyEndpoint(request)){
-                    try {
-                        workspaceId = setCurrentWorkspace(request);
-                    } catch (CustomWorkspaceMissingException e){
-                        ErrorResponseHandler.sendErrorResponse(response, CustomHttpStatus.WORKSPACE_ID_MISSING, ErrorResponses.WORKSPACE_ID_MISSING_RESPONSE);
-                        return;
-                    }
-                }
-
+                // Extract Token
                 String token = AuthUtils.extractTokenFromHeader(request);
                 if (token == null) {
                     ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.JWT_TOKEN_MISSING_RESPONSE);
@@ -136,6 +136,16 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     String email = claims.get(Constants.EMAIL_ATTR).asString().replace("\"", "");
                     String userType = claims.get(Constants.COGNITO_CUSTOM_USER_TYPE_KEY).asString();
 
+                    //skip setting workspace for platform only endpoints
+                    if(!isPlatformOnlyEndpoint(request)){
+                        try {
+                            workspaceUser = setCurrentWorkspace(request, email);
+                        } catch (CustomWorkspaceMissingException e){
+                            ErrorResponseHandler.sendErrorResponse(response, CustomHttpStatus.WORKSPACE_ID_MISSING, ErrorResponses.WORKSPACE_ID_MISSING_RESPONSE);
+                            return;
+                        }
+                    }
+
                     if (userType == null) {
                         ErrorResponseHandler.sendErrorResponse(response, HttpStatus.FORBIDDEN, ErrorResponses.USER_TYPE_IS_NULL_RESPONSE);
                         return;
@@ -145,11 +155,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         decodedJwt,
                         token
                     );
-
-                    WorkspaceUser workspaceUser = null;
-                    if (workspaceId != null) {
-                        workspaceUser = workspaceUserService.verifyUserAccessToWorkspace(email, workspaceId);
-                    }
 
                     UserDetails userDetails;
                     try {

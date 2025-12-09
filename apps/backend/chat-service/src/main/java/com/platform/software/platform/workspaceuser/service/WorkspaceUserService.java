@@ -153,20 +153,20 @@ public class WorkspaceUserService {
      *
      * @param workspaceIdentifier The identifier of the workspace.
      * @param email               The email of the user.
-     * @return true if the user has access to the workspace, false otherwise.
+     * @return workspaceUser if the user has access to the workspace, null otherwise.
      */
-    public boolean validateWorkspaceAccess(String workspaceIdentifier, String email) {
-        boolean hasAccess = WorkspaceUtils.runInGlobalSchema(
+    public WorkspaceUser validateWorkspaceAccess(String workspaceIdentifier, String email) {
+        WorkspaceUser workspaceUser = WorkspaceUtils.runInGlobalSchema(
                 () -> workspaceUserRepository.validateWorkspaceAccess(workspaceIdentifier, email)
         );
 
-        if (!hasAccess) {
+        if (workspaceUser == null) {
             logger.info(
                     "Workspace access denied for user: {} on workspace: {}",
                     email,
                     workspaceIdentifier
             );
         }
-        return hasAccess;
+        return workspaceUser;
     }
 }
