@@ -7,7 +7,7 @@ import pluginReactNative from 'eslint-plugin-react-native';
 
 export default [
     {
-        ignores: ['node_modules/**', 'android/**', 'ios/**', 'build/**', 'dist/**', 'scripts/**', '**/apps/frontend/hushchat-mobile/scripts/**']
+        ignores: ['node_modules/**', 'android/**', 'ios/**', 'build/**', 'dist/**', 'scripts/**', '**/apps/frontend/hushchat-mobile/scripts/**', "**/apps/frontend/hushchat-mobile/public/**"]
     },
     js.configs.recommended,
     ...tseslint.configs.recommended,
@@ -61,6 +61,21 @@ export default [
             'no-var': 'error',
             'no-duplicate-imports': 'error',
             'max-lines': ['warn', { max: 300, skipBlankLines: true }],
+
+            //Custom rules
+            'react/no-restricted-elements': [
+              'error',
+              {
+                type: 'JSXElement',
+                name: 'Text',
+                message: 'Do not use <Text>. Use <AppText> instead.',
+              },
+              {
+                type: 'JSXElement',
+                name: 'TextInput',
+                message: 'Do not use <TextInput>. Use <AppTextInput> instead.',
+              }
+            ],
         },
         settings: {
             react: { version: 'detect' },
