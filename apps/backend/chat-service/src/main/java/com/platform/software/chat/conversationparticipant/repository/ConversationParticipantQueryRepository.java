@@ -37,4 +37,6 @@ public interface ConversationParticipantQueryRepository {
     );
 
     void restoreParticipantsByConversationId(Long conversationId);
+
+    long chatUserIdByConversationParticipantId(Long conversationParticipantId);
 }
