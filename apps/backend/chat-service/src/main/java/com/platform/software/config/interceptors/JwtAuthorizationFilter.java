@@ -160,7 +160,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     } catch (Exception e) {
                         userDetails = new UserDetails();
                         userDetails.setEmail(email);
-                        userDetails.setWorkspaceId(WorkspaceContext.getCurrentWorkspace());
                     }
 
                     //handle permissions later
