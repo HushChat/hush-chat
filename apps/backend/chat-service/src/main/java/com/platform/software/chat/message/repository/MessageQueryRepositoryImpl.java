@@ -7,9 +7,7 @@ import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
-import com.platform.software.common.model.CustomPageImpl;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -232,8 +230,6 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
     @Override
     public Optional<Message> findByIdWithSenderAndConversation(Long messageId) {
-        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-
         QMessage m = QMessage.message;
         QChatUser sender = QChatUser.chatUser;
         QConversation c = QConversation.conversation;
