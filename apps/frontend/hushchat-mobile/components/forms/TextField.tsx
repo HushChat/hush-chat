@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { TextInput, TextInputProps, View, Text, Pressable } from "react-native";
+import { TextInputProps, View, Pressable } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
+import { AppText, AppTextInput } from "../AppText";
 
 interface FormTextInputProps extends TextInputProps {
   label?: string;
@@ -123,14 +124,14 @@ const TextField = (props: FormTextInputProps) => {
   return (
     <View className="flex-col gap-y-1">
       {label && (
-        <Text className={`text-gray-900 dark:text-gray-100 font-medium ${tokens.label}`}>
+        <AppText className={`text-gray-900 dark:text-gray-100 font-medium ${tokens.label}`}>
           {label}
-        </Text>
+        </AppText>
       )}
 
       <View className="flex-col gap-y-1">
         <View className="relative">
-          <TextInput
+          <AppTextInput
             value={(formValues?.[name] as string) ?? ""}
             className={`${inputBase} ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.font} ${tokens.radius} ${className || ""}`}
             secureTextEntry={isPasswordField}
@@ -149,7 +150,7 @@ const TextField = (props: FormTextInputProps) => {
         </View>
 
         {formErrors?.[name] && showErrors && (
-          <Text className={`text-red-600 ${tokens.error}`}>{formErrors?.[name]}</Text>
+          <AppText className={`text-red-600 ${tokens.error}`}>{formErrors?.[name]}</AppText>
         )}
       </View>
     </View>

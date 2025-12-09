@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ViewStyle, StyleSheet } from "react-native";
+import { View, TouchableOpacity, ViewStyle, StyleSheet } from "react-native";
 import { AuthColors } from "@/types/login/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { AppText } from "@/components/AppText";
 
 interface FormHeaderProps {
   title: string;
@@ -43,8 +44,8 @@ const COLORS = {
 
 export const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle, colors }) => (
   <View style={styles.headerContainer}>
-    <Text style={[styles.headerTitle, { color: colors.primary }]}>{title}</Text>
-    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+    <AppText style={[styles.headerTitle, { color: colors.primary }]}>{title}</AppText>
+    <AppText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{subtitle}</AppText>
   </View>
 );
 
@@ -69,28 +70,28 @@ export const FormButton: React.FC<FormButtonProps> = ({
       style,
     ]}
   >
-    <Text
+    <AppText
       style={[
         styles.buttonText,
         disabled ? { color: colors.textSecondary } : styles.buttonTextEnabled,
       ]}
     >
       {title}
-    </Text>
+    </AppText>
   </TouchableOpacity>
 );
 
 export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => (
   <View style={styles.errorContainer}>
-    <Text style={styles.errorText}>{message}</Text>
+    <AppText style={styles.errorText}>{message}</AppText>
   </View>
 );
 
 export const LinkText: React.FC<LinkTextProps> = ({ text, linkText, onPress, colors }) => (
   <View style={styles.linkContainer}>
-    <Text style={[styles.linkText, { color: colors.textSecondary }]}>{text}</Text>
+    <AppText style={[styles.linkText, { color: colors.textSecondary }]}>{text}</AppText>
     <TouchableOpacity onPress={onPress}>
-      <Text style={[styles.linkButton, { color: colors.primary }]}>{linkText}</Text>
+      <AppText style={[styles.linkButton, { color: colors.primary }]}>{linkText}</AppText>
     </TouchableOpacity>
   </View>
 );

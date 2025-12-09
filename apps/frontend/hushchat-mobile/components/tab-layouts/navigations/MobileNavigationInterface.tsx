@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,6 +7,7 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { PLATFORM } from "@/constants/platformConstants";
 import { INavigationItem } from "@/types/navigation/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { AppText } from "@/components/AppText";
 interface MobileNavigationInterfaceProps extends BottomTabBarProps {
   navigationItems: INavigationItem[];
 }
@@ -73,7 +74,7 @@ const MobileNavigationInterface = ({
               <Ionicons name={iconName} size={24} color={isFocused ? "#ffffff" : "#6B7280"} />
             </View>
 
-            <Text
+            <AppText
               className={`text-xs mt-1 font-medium ${
                 isFocused
                   ? "text-text-primary-light dark:text-text-primary-dark"
@@ -81,7 +82,7 @@ const MobileNavigationInterface = ({
               }`}
             >
               {typeof label === "string" ? label : "Tab"}
-            </Text>
+            </AppText>
           </TouchableOpacity>
         );
       })}
