@@ -23,8 +23,6 @@ interface FormattedTextProps {
   isCurrentUser: boolean;
 }
 
-const LINK_COLOR = "#7dd3fc";
-
 const FormattedText = ({
   text,
   className,
@@ -166,9 +164,9 @@ const FormattedText = ({
       },
 
       link: {
-        color: LINK_COLOR,
+        color: "#7dd3fc",
         textDecorationLine: PLATFORM.IS_WEB ? "none" : "underline",
-        textDecorationColor: LINK_COLOR,
+        textDecorationColor: "#7dd3fc",
         opacity: 0.9,
       },
 
@@ -184,14 +182,17 @@ const FormattedText = ({
 
   const processedText = useMemo(() => {
     let newText = text;
+
     newText = newText.replace(MENTION_REGEX, (match) => {
       const username = match.replace(/^@/, "");
       return mentions?.some((m) => m.username === username)
         ? `[${match}](mention:${username})`
         : match;
     });
-    newText = newText.replace(HASHTAG_REGEX, (match) => {
-      return `[${match}](hashtag:${match.replace("#", "")})`;
+
+    newText = newText.replace(HASHTAG_REGEX, (match, space, hashtag) => {
+      const cleanTag = hashtag.replace("#", "");
+      return `${space}[${hashtag}](hashtag:${cleanTag})`;
     });
 
     newText = newText.replace(PHONE_REGEX, (match) => {
@@ -251,6 +252,10 @@ const FormattedText = ({
           };
         }
 
+        const content = isSpecial
+          ? node.children.map((child: any) => child.content).join("")
+          : children;
+
         return (
           <AppText
             key={node.key}
@@ -272,7 +277,7 @@ const FormattedText = ({
                 },
               })}
           >
-            {children}
+            {content}
           </AppText>
         );
       },
