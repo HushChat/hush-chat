@@ -1,13 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Linking,
-  TextStyle,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-  Platform,
-  Text,
-} from "react-native";
+import { Linking, TextStyle, StyleSheet, View, useWindowDimensions } from "react-native";
 import Markdown, { MarkdownIt } from "react-native-markdown-display";
 import { TUser } from "@/types/user/types";
 import { HASHTAG_REGEX, MENTION_REGEX, PHONE_REGEX } from "@/constants/regex";
@@ -15,6 +7,9 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { copyToClipboard, normalizeUrl } from "@/utils/messageUtils";
 import WebContextMenu from "@/components/WebContextMenu";
 import { MarkdownImage } from "@/components/MarkdownImage";
+import { AppText } from "@/components/AppText";
+import classNames from "classnames";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface FormattedTextProps {
   text: string;
@@ -48,24 +43,30 @@ const FormattedText = ({
   const [selectedUrl, setSelectedUrl] = useState<string>("");
 
   const { width: screenWidth } = useWindowDimensions();
+  const { isDark } = useAppTheme();
 
   const flatStyle = useMemo(() => StyleSheet.flatten(style || {}), [style]);
 
   const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
+
+  const getTextColor = () => {
+    if (flatStyle.color) return flatStyle.color;
+    if (isCurrentUser) return "#FFFFFF";
+
+    return isDark ? "#EDEDED" : "#333333";
+  };
 
   const baseSpecs = useMemo(
     () => ({
       fontFamily: flatStyle.fontFamily || "Poppins-Regular",
       fontSize: flatStyle.fontSize || 16,
       lineHeight: flatStyle.lineHeight || 22,
-      color: flatStyle.color || (isCurrentUser ? "#FFFFFF" : "#333333"),
+      color: getTextColor(),
     }),
-    [flatStyle, isCurrentUser]
+    [flatStyle, isCurrentUser, isDark]
   );
 
   const markdownStyles = useMemo(() => {
-    const codeFontFamily = Platform.OS === "ios" ? "Menlo" : "monospace";
-
     return {
       body: {
         padding: 0,
@@ -86,17 +87,43 @@ const FormattedText = ({
         color: baseSpecs.color,
       },
 
-      heading1: { ...baseSpecs, fontSize: 24, fontWeight: "bold", marginBottom: 8, marginTop: 4 },
-      heading2: { ...baseSpecs, fontSize: 20, fontWeight: "bold", marginBottom: 8, marginTop: 4 },
+      heading1: {
+        ...baseSpecs,
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 8,
+        marginTop: 4,
+      },
+      heading2: {
+        ...baseSpecs,
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 8,
+        marginTop: 4,
+      },
 
       list_item: { marginVertical: 2 },
       bullet_list: { marginBottom: 8 },
       ordered_list: { marginBottom: 8 },
-      bullet_list_icon: { ...baseSpecs, fontWeight: "bold", marginLeft: 8, marginRight: 8 },
-      ordered_list_icon: { ...baseSpecs, fontWeight: "bold", marginLeft: 8, marginRight: 8 },
+      bullet_list_icon: {
+        ...baseSpecs,
+        fontWeight: "bold",
+        marginLeft: 8,
+        marginRight: 8,
+      },
+      ordered_list_icon: {
+        ...baseSpecs,
+        fontWeight: "bold",
+        marginLeft: 8,
+        marginRight: 8,
+      },
 
       blockquote: {
-        borderLeftColor: isCurrentUser ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.2)",
+        borderLeftColor: isCurrentUser
+          ? "rgba(255,255,255,0.5)"
+          : isDark
+            ? "rgba(255,255,255,0.2)"
+            : "rgba(0,0,0,0.2)",
         borderLeftWidth: 3,
         paddingLeft: 8,
         opacity: 0.9,
@@ -109,7 +136,7 @@ const FormattedText = ({
         padding: 10,
         marginTop: 8,
         marginBottom: 8,
-        fontFamily: codeFontFamily,
+        fontFamily: baseSpecs.fontFamily,
         fontSize: baseSpecs.fontSize * 0.85,
         borderColor: "rgba(255,255,255,0.1)",
         borderWidth: 1,
@@ -122,16 +149,20 @@ const FormattedText = ({
         padding: 10,
         marginTop: 8,
         marginBottom: 8,
-        fontFamily: codeFontFamily,
+        fontFamily: baseSpecs.fontFamily,
         fontSize: baseSpecs.fontSize * 0.85,
       },
 
       code_inline: {
-        backgroundColor: isCurrentUser ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.1)",
+        backgroundColor: isCurrentUser
+          ? "rgba(255,255,255,0.25)"
+          : isDark
+            ? "rgba(255,255,255,0.15)"
+            : "rgba(0,0,0,0.1)",
         borderRadius: 4,
         paddingHorizontal: 4,
         paddingVertical: 2,
-        fontFamily: codeFontFamily,
+        fontFamily: baseSpecs.fontFamily,
         fontSize: baseSpecs.fontSize * 0.9,
         color: baseSpecs.color,
       },
@@ -150,27 +181,8 @@ const FormattedText = ({
       strong: { fontWeight: "bold" },
       em: { fontStyle: "italic" },
       del: { textDecorationLine: "line-through" },
-
-      table: {
-        borderColor: isCurrentUser ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.1)",
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-      tr: {
-        borderBottomWidth: 1,
-        borderColor: isCurrentUser ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
-        flexDirection: "row",
-      },
-      th: {
-        padding: 8,
-        fontWeight: "bold",
-        backgroundColor: isCurrentUser ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
-      },
-      td: {
-        padding: 8,
-      },
     };
-  }, [baseSpecs, isCurrentUser]);
+  }, [baseSpecs, isCurrentUser, isDark]);
 
   const processedText = useMemo(() => {
     let newText = text;
@@ -242,35 +254,39 @@ const FormattedText = ({
         }
 
         return (
-          <Text
+          <AppText
             key={node.key}
             style={activeStyle}
             onPress={() => handleLinkPress(url)}
-            className={
-              PLATFORM.IS_WEB && !isSpecial
-                ? "hover:underline hover:decoration-[#7dd3fc]"
-                : undefined
-            }
+            className={classNames(
+              "text-base text-text-primary-light dark:text-text-primary-dark",
+              isCurrentUser ? "text-white" : "",
+              PLATFORM.IS_WEB && !isSpecial ? "hover:underline hover:decoration-[#7dd3fc]" : "",
+              className
+            )}
             {...(PLATFORM.IS_WEB &&
               !isSpecial && {
                 onContextMenu: (e: any) => {
                   e.preventDefault();
-                  setMenuPos({ x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+                  setMenuPos({
+                    x: e.nativeEvent.pageX,
+                    y: e.nativeEvent.pageY,
+                  });
                   setSelectedUrl(url);
                   setMenuVisible(true);
                 },
               })}
           >
             {children}
-          </Text>
+          </AppText>
         );
       },
 
       s: (node: any, children: any, styles: any) => {
         return (
-          <Text key={node.key} style={styles.del}>
+          <AppText key={node.key} style={styles.del}>
             {children}
-          </Text>
+          </AppText>
         );
       },
     }),
