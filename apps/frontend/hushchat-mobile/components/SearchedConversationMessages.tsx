@@ -11,6 +11,7 @@ import useConversationMessagesSearchQuery from "@/query/useConversationMessagesS
 import BackButton from "@/components/BackButton";
 import SearchBar from "@/components/SearchBar";
 import { SearchedMessagesList } from "@/components/conversations/conversation-thread/message-list/SearchedMessagesList";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 interface WebSearchedConversationMessages {
   conversationId?: number;
@@ -27,6 +28,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 }) => {
   const [inputValue, setInputValue] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const isMobileLayout = useIsMobileLayout();
 
   const debouncedSearch = useMemo(
     () =>
@@ -59,9 +61,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 
   const handleMessagePress = useCallback(
     (message: any) => {
-      if (PLATFORM.IS_WEB) {
-        onMessageClicked?.(message);
-      } else {
+      if (isMobileLayout) {
         router.push({
           pathname: CHAT_VIEW_PATH,
           params: {
@@ -69,9 +69,11 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
             messageId: message.id,
           },
         });
+      } else {
+        onMessageClicked?.(message);
       }
     },
-    [conversationId, onMessageClicked]
+    [isMobileLayout, conversationId, onMessageClicked]
   );
 
   const renderEmptyState = useCallback(() => {

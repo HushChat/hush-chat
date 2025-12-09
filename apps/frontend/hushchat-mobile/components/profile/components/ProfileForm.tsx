@@ -67,7 +67,7 @@ export const ProfileForm = () => {
   return (
     <ScrollView
       contentContainerStyle={{ paddingBottom: SCROLL_CONTENT_PADDING_BOTTOM }}
-      className="custom-scrollbar"
+      className="custom-scrollbar dark:bg-background-dark bg-background-light"
     >
       <View className="mt-8 px-4 items-center">
         <InitialsAvatar
