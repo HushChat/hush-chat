@@ -8,7 +8,6 @@ import { copyToClipboard, normalizeUrl } from "@/utils/messageUtils";
 import WebContextMenu from "@/components/WebContextMenu";
 import { MarkdownImage } from "@/components/MarkdownImage";
 import { AppText } from "@/components/AppText";
-import classNames from "classnames";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface FormattedTextProps {
@@ -130,16 +129,14 @@ const FormattedText = ({
       },
 
       fence: {
-        backgroundColor: "#2e2e2e",
-        color: "#e6e6e6",
-        borderRadius: 8,
+        backgroundColor: "transparent",
+        color: getTextColor(),
+        border: "none",
         padding: 10,
         marginTop: 8,
         marginBottom: 8,
         fontFamily: baseSpecs.fontFamily,
         fontSize: baseSpecs.fontSize * 0.85,
-        borderColor: "rgba(255,255,255,0.1)",
-        borderWidth: 1,
       },
 
       code_block: {
@@ -258,12 +255,9 @@ const FormattedText = ({
             key={node.key}
             style={activeStyle}
             onPress={() => handleLinkPress(url)}
-            className={classNames(
-              "text-base text-text-primary-light dark:text-text-primary-dark",
-              isCurrentUser ? "text-white" : "",
-              PLATFORM.IS_WEB && !isSpecial ? "hover:underline hover:decoration-[#7dd3fc]" : "",
-              className
-            )}
+            className={
+              PLATFORM.IS_WEB && !isSpecial ? "hover:underline hover:decoration-[#7dd3fc]" : ""
+            }
             {...(PLATFORM.IS_WEB &&
               !isSpecial && {
                 onContextMenu: (e: any) => {
