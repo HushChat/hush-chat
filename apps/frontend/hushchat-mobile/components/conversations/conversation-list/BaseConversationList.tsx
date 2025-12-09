@@ -57,7 +57,7 @@ function SwipeableRow<T>({
   onDelete?: (conversationId: number) => Promise<void>;
   allowSwipe: boolean;
   selectedConversationType: ConversationType;
-  onMorePress: (conversation: IConversation, resetSwipe: () => void) => void; // 👈 updated
+  onMorePress: (conversation: IConversation, resetSwipe: () => void) => void;
 }) {
   const sectionedItem = item as unknown as ISectionedSearchResult;
 
@@ -109,8 +109,7 @@ function SwipeableRow<T>({
         await onArchive(conversation.id);
       }, 100);
     }
-    //
-  }, [isSwipeable, conversation.id, translateX, progress, isSwipedOpen, onArchive]);
+  }, [isSwipeable, conversation.id, onArchive]);
 
   const resetSwipe = useCallback(() => {
     translateX.value = withTiming(0, { duration: 200 });

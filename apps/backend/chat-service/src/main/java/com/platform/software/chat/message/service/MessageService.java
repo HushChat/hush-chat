@@ -287,7 +287,9 @@ public class MessageService {
 
             try {
                 for(Message message: forwardingMessages){
-                    messageRepository.saveMessageWthSearchVector(message);
+                    Message savedMessage = messageRepository.saveMessageWthSearchVector(message);
+
+                    setLastSeenMessageForMessageSentUser(targetConversation.getModel(), savedMessage, loggedInUser);
 
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message);
 
