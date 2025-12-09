@@ -19,12 +19,9 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantCommandRepository;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
-import com.platform.software.chat.message.dto.MessageReactionSummaryDTO;
-import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
+import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
-import com.platform.software.chat.message.dto.MessageTypeEnum;
-import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.service.ConversationEventService;
 import com.platform.software.chat.message.service.MessageMentionService;
@@ -547,13 +544,21 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId){
+    public MessageWindowPage<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId){
         ConversationParticipant loggedInParticipant =
                 conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
+        MessageWindowPage<Message> messagesPage = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        Page<MessageViewDTO> messageViewPage = getMessageViewDTOs(messagesPage, conversationId, loggedInUserId);
+
+        return new MessageWindowPage<>(
+                messageViewPage.getContent(),
+                messageViewPage.getPageable(),
+                messageViewPage.getTotalElements(),
+                messagesPage.isHasMoreBefore(),
+                messagesPage.isHasMoreAfter()
+        );
     }
 
     /**
@@ -579,10 +584,10 @@ public class ConversationService {
         messageMentionService.appendMessageMentions(messageViewDTOS);
 
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messageViewDTOS);
-        
+
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));
-    
+
          List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
             .map(dto -> {
                 Message matchedMessage = messageMap.get(dto.getId());

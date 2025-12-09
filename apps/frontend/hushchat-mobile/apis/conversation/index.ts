@@ -25,6 +25,8 @@ export interface CursorPaginatedResponse<T> {
   size?: number;
   number?: number;
   last?: boolean;
+  hasMoreBefore?: boolean;
+  hasMoreAfter?: boolean;
 }
 
 export type CursorQueryFnType<T> = (params: {
