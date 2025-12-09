@@ -105,7 +105,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                String workspaceId;
+                String workspaceId = null;
 
                 // Allow through for public routes
                 if (isPublicEndpoint(request)) {
