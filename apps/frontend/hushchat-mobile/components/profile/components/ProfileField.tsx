@@ -4,16 +4,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { PLATFORM } from "@/constants/platformConstants";
 
-export type ProfileFieldName =
+export type TProfileFieldName =
   | "firstName"
   | "lastName"
   | "currentPassword"
   | "newPassword"
   | "confirmPassword";
 
-export interface ProfileFieldProps {
+export interface IProfileFieldProps {
   label: string;
-  name?: ProfileFieldName;
+  name?: TProfileFieldName;
   value?: string | null;
   editable?: boolean;
   onValueChange?: (args: { name: string; value: string }) => void;
@@ -62,7 +62,7 @@ export function ProfileField({
   onRightIconPress,
   error,
   showError = true,
-}: ProfileFieldProps) {
+}: IProfileFieldProps) {
   const shouldShowError = showError && error;
   const isEditable = editable && onValueChange && name;
 

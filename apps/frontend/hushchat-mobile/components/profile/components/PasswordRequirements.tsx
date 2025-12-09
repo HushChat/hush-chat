@@ -3,11 +3,11 @@ import { View } from "react-native";
 import { AppText } from "@/components/AppText";
 import { passwordRules } from "@/utils/passwordRules";
 
-interface PasswordRequirementsProps {
+interface IPasswordRequirementsProps {
   password: string;
 }
 
-export function PasswordRequirements({ password }: PasswordRequirementsProps) {
+export function PasswordRequirements({ password }: IPasswordRequirementsProps) {
   if (!password) return null;
 
   return (

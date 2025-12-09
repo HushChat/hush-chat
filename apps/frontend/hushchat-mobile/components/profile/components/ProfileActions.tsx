@@ -3,7 +3,7 @@ import { View, TouchableOpacity } from "react-native";
 import { AppText } from "@/components/AppText";
 import LoadingState from "@/components/LoadingState";
 
-interface ProfileActionsProps {
+interface IProfileActionsProps {
   onUpdate: () => void;
   onLogout: () => void;
   isUpdateDisabled: boolean;
@@ -15,7 +15,7 @@ export function ProfileActions({
   onLogout,
   isUpdateDisabled,
   isLoading,
-}: ProfileActionsProps) {
+}: IProfileActionsProps) {
   return (
     <View className="mt-6 px-4">
       <View className="max-w-3xl w-full mx-auto">

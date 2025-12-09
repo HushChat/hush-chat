@@ -4,7 +4,7 @@ import { AppText } from "@/components/AppText";
 import { ProfileField } from "./ProfileField";
 import { PasswordRequirements } from "./PasswordRequirements";
 
-interface PasswordSectionProps {
+interface IPasswordSectionProps {
   formValues: {
     currentPassword: string;
     newPassword: string;
@@ -34,7 +34,7 @@ export function PasswordSection({
   showErrors,
   onValueChange,
   passwordVisibility,
-}: PasswordSectionProps) {
+}: IPasswordSectionProps) {
   const {
     showCurrentPassword,
     showNewPassword,
