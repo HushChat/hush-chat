@@ -13,10 +13,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import ConversationInfoPanel from "@/components/conversations/conversation-info-panel/ConversationInfoPanel";
 import { useEffect } from "react";
 import { CHATS_PATH } from "@/constants/routes";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
 
 export default function ConversationIdRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { setSelectedConversationId } = useConversationStore();
 
   useEffect(() => {
     if (!id) {
@@ -24,5 +26,19 @@ export default function ConversationIdRoute() {
     }
   }, [id, router]);
 
-  return <ConversationInfoPanel conversationId={+id} />;
+  const handleSetSelectedConversation = () => {
+    setSelectedConversationId(null);
+  };
+
+  const handleClose = () => {
+    router.replace(CHATS_PATH);
+  };
+
+  return (
+    <ConversationInfoPanel
+      conversationId={+id}
+      setSelectedConversation={handleSetSelectedConversation}
+      onClose={handleClose}
+    />
+  );
 }
