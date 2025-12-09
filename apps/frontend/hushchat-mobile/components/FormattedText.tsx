@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Linking, TextStyle, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Linking, TextStyle, StyleSheet, View } from "react-native";
 import Markdown, { MarkdownIt } from "react-native-markdown-display";
 import { TUser } from "@/types/user/types";
 import { HASHTAG_REGEX, MENTION_REGEX, PHONE_REGEX } from "@/constants/regex";
@@ -38,8 +38,6 @@ const FormattedText = ({
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [selectedUrl, setSelectedUrl] = useState<string>("");
-
-  const { width: screenWidth } = useWindowDimensions();
   const { isDark } = useAppTheme();
 
   const flatStyle = useMemo(() => StyleSheet.flatten(style || {}), [style]);
@@ -80,7 +78,6 @@ const FormattedText = ({
         flexWrap: "wrap",
         flexDirection: "row",
         alignItems: "flex-start",
-        width: "100%",
         color: baseSpecs.color,
       },
 
@@ -290,7 +287,7 @@ const FormattedText = ({
         );
       },
     }),
-    [handleLinkPress, isCurrentUser, screenWidth, baseSpecs]
+    [handleLinkPress, isCurrentUser, baseSpecs]
   );
 
   return (
