@@ -82,15 +82,15 @@ export const ConversationsMultiSelect = ({
       extractData={(dataPages) => {
         if (!dataPages) return [];
 
-        const sourceId = sourceConversationId;
-
         if (debouncedSearch) {
           const { chats = [], users = [] } = (dataPages as ISearchResults) ?? {};
-          return [...chats, ...users].filter((item) => item.id !== sourceId);
+          return [...chats, ...users].filter((item) => item.id !== sourceConversationId);
         }
 
         const pages = (dataPages as { pages?: PaginatedResponse<IConversation>[] })?.pages ?? [];
-        return pages.flatMap((page) => page?.content ?? []).filter((item) => item.id !== sourceId);
+        return pages
+          .flatMap((page) => page?.content ?? [])
+          .filter((item) => item.id !== sourceConversationId);
       }}
       renderItemRow={(conversation, isSelected, toggle) => (
         <SelectableListItem
