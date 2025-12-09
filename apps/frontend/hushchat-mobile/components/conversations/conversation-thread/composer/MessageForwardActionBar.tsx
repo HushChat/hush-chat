@@ -44,7 +44,7 @@ const MessageForwardActionBar = ({
   return (
     <Animated.View
       pointerEvents={visible ? "auto" : "none"}
-      className="absolute left-4 right-4 bottom-4"
+      className="absolute left-0 right-0 bottom-4"
       style={{
         opacity,
         transform: [{ translateY }],
