@@ -131,7 +131,8 @@ const FormattedText = ({
       fence: {
         backgroundColor: "transparent",
         color: getTextColor(),
-        border: "none",
+        borderWidth: 0,
+        borderColor: "transparent",
         padding: 10,
         marginTop: 8,
         marginBottom: 8,
