@@ -552,13 +552,7 @@ public class ConversationService {
 
         Page<MessageViewDTO> messageViewPage = getMessageViewDTOs(messagesPage, conversationId, loggedInUserId);
 
-        return new MessageWindowPage<>(
-                messageViewPage.getContent(),
-                messageViewPage.getPageable(),
-                messageViewPage.getTotalElements(),
-                messagesPage.isHasMoreBefore(),
-                messagesPage.isHasMoreAfter()
-        );
+        return MessageWindowPage.from(messageViewPage, messagesPage.isHasMoreBefore(), messagesPage.isHasMoreAfter());
     }
 
     /**
