@@ -409,4 +409,13 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                         row -> row.get(qConversation.id)
                 ));
     }
+
+    public long chatUserIdByConversationParticipantId(Long conversationParticipantId){
+        Long userId = queryFactory
+                .select(qConversationParticipant.user.id)
+                .from(qConversationParticipant)
+                .where(qConversationParticipant.id.eq(conversationParticipantId))
+                .fetchOne();
+        return userId != null ? userId : 0L;
+    }
 }

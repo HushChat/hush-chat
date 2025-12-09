@@ -6,7 +6,7 @@ public class Constants {
     public static final String X_TENANT_HEADER = "X-Tenant";
     public static final String DEFAULT_TEST_TENANT_ID = "localhost";
     public static final String EMAIL_ATTR = "email";
-    public static final String X_SECRET_KEY = "X-Secret-Key";
+    public static final String X_PUBLIC_KEY = "X-Public-Key";
     public static final String X_PLATFORM_ID_HEADER = "X-Platform-Id";
     public static final String PREFERRED_USERNAME_ATTR = "preferred_username";
     public static final String COGNITO_CUSTOM_USER_TYPE_KEY = "custom:user_type";
@@ -37,4 +37,6 @@ public class Constants {
     public static final Set<String> DOCUMENT_EXTENSIONS = Set.of(
             "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
             "txt", "csv");
+
+    public static final String API_KEY_USER = "api-key-user";
 }
