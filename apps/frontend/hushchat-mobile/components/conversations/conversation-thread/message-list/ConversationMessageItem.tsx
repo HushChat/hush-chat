@@ -36,7 +36,6 @@ import { MessageReactions } from "@/components/conversations/conversation-thread
 import { isImageAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
-import { CHAT_VIEW_PATH, CHATS_PATH } from "@/constants/routes";
 import { router } from "expo-router";
 import { createOneToOneConversation } from "@/apis/conversation";
 
@@ -250,23 +249,10 @@ export const ConversationMessageItem = ({
     mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
     onSuccess: (result) => {
       if (result.data) {
-        if (PLATFORM.IS_WEB) {
-          router.push({
-            pathname: CHATS_PATH,
-            params: {
-              conversationId: String(result.data.id),
-            },
-          } as any);
-        } else {
-          router.push({
-            pathname: CHAT_VIEW_PATH,
-            params: {
-              conversationId: String(result.data.id),
-            },
-          } as any);
-        }
-
-        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        router.push({
+          pathname: "/conversations/[id]",
+          params: { id: String(result.data.id) },
+        });
       } else if (result.error) {
         ToastUtils.error(result.error);
       }
