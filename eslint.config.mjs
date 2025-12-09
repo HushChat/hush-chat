@@ -63,17 +63,15 @@ export default [
             'max-lines': ['warn', { max: 300, skipBlankLines: true }],
 
             //Custom rules
-            'react/no-restricted-elements': [
-              'error',
+            "no-restricted-syntax": [
+              "error",
               {
-                type: 'JSXElement',
-                name: 'Text',
-                message: 'Do not use <Text>. Use <AppText> instead.',
+                selector: "JSXOpeningElement[name.name='Text']",
+                message: "Do not use <Text>. Use <AppText> instead."
               },
               {
-                type: 'JSXElement',
-                name: 'TextInput',
-                message: 'Do not use <TextInput>. Use <AppTextInput> instead.',
+                selector: "JSXOpeningElement[name.name='TextInput']",
+                message: "Do not use <TextInput>. Use <AppTextInput> instead."
               }
             ],
         },
