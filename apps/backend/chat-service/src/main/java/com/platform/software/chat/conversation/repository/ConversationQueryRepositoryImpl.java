@@ -437,6 +437,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         qConversation.description,
                         qConversation.imageIndexedName,
                         qConversation.status,
+                        qConversation.deleted,
                         qConversation.createdBy.id,
                         qConversation.createdBy.firstName,
                         qConversation.createdBy.lastName,
@@ -448,8 +449,10 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .from(qConversation)
                 .where(qConversation.isGroup.eq(true));
 
-        Long totalCount = query.clone()
+        Long totalCount = jpaQueryFactory
                 .select(qConversation.count())
+                .from(qConversation)
+                .where(qConversation.isGroup.eq(true))
                 .fetchOne();
 
         List<ConversationAdminViewDTO> results = query

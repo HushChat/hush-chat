@@ -17,6 +17,7 @@ public class ConversationAdminViewDTO {
     private String description;
     private String imageIndexedName;
     private ConversationStatus status;
+    private boolean isDeleted;
     private Long createdByUserId;
     private String createdByUserFirstName;
     private String createdByUserLastName;
