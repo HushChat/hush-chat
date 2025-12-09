@@ -87,7 +87,12 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
       if (!allowForwardPagination) return undefined;
       if (!firstLoadedPage?.content?.length) return undefined;
 
-      if (firstLoadedPage.hasMoreAfter === false) return undefined;
+      if ("hasMoreAfter" in firstLoadedPage) {
+        if (firstLoadedPage.hasMoreAfter === false) return undefined;
+      } else {
+        const hasInsufficientMessagesToPaginate = firstLoadedPage.content.length < pageSize;
+        if (hasInsufficientMessagesToPaginate) return undefined;
+      }
 
       const newestMessageInCurrentPage = firstLoadedPage.content[0];
       if (!newestMessageInCurrentPage) return undefined;
