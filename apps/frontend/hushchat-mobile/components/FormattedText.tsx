@@ -9,6 +9,7 @@ import WebContextMenu from "@/components/WebContextMenu";
 import { MarkdownImage } from "@/components/MarkdownImage";
 import { AppText } from "@/components/AppText";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { createMarkdownStyles } from "@/styles/markdown.styles";
 
 interface FormattedTextProps {
   text: string;
@@ -25,7 +26,6 @@ interface FormattedTextProps {
 
 const FormattedText = ({
   text,
-  className,
   style,
   mentions = [],
   onLinkPress,
@@ -44,138 +44,25 @@ const FormattedText = ({
 
   const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
 
-  const getTextColor = () => {
-    if (flatStyle.color) return flatStyle.color;
+  const textColor = useMemo(() => {
+    if (flatStyle.color) return flatStyle.color as string;
     if (isCurrentUser) return "#FFFFFF";
-
     return isDark ? "#EDEDED" : "#333333";
-  };
+  }, [flatStyle.color, isCurrentUser, isDark]);
 
   const baseSpecs = useMemo(
     () => ({
       fontFamily: flatStyle.fontFamily || "Poppins-Regular",
       fontSize: flatStyle.fontSize || 16,
       lineHeight: flatStyle.lineHeight || 22,
-      color: getTextColor(),
+      color: textColor,
     }),
-    [flatStyle, isCurrentUser, isDark]
+    [flatStyle, textColor]
   );
 
   const markdownStyles = useMemo(() => {
-    return {
-      body: {
-        padding: 0,
-        margin: 0,
-        color: baseSpecs.color,
-        fontFamily: baseSpecs.fontFamily,
-        fontSize: baseSpecs.fontSize,
-        lineHeight: baseSpecs.lineHeight,
-      },
-
-      paragraph: {
-        marginTop: 0,
-        marginBottom: 8,
-        flexWrap: "wrap",
-        flexDirection: "row",
-        alignItems: "flex-start",
-        color: baseSpecs.color,
-      },
-
-      heading1: {
-        ...baseSpecs,
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 8,
-        marginTop: 4,
-      },
-      heading2: {
-        ...baseSpecs,
-        fontSize: 20,
-        fontWeight: "bold",
-        marginBottom: 8,
-        marginTop: 4,
-      },
-
-      list_item: { marginVertical: 2 },
-      bullet_list: { marginBottom: 8 },
-      ordered_list: { marginBottom: 8 },
-      bullet_list_icon: {
-        ...baseSpecs,
-        fontWeight: "bold",
-        marginLeft: 8,
-        marginRight: 8,
-      },
-      ordered_list_icon: {
-        ...baseSpecs,
-        fontWeight: "bold",
-        marginLeft: 8,
-        marginRight: 8,
-      },
-
-      blockquote: {
-        borderLeftColor: isCurrentUser
-          ? "rgba(255,255,255,0.5)"
-          : isDark
-            ? "rgba(255,255,255,0.2)"
-            : "rgba(0,0,0,0.2)",
-        borderLeftWidth: 3,
-        paddingLeft: 8,
-        opacity: 0.9,
-      },
-
-      fence: {
-        backgroundColor: "transparent",
-        color: getTextColor(),
-        borderWidth: 0,
-        borderColor: "transparent",
-        padding: 10,
-        marginTop: 8,
-        marginBottom: 8,
-        fontFamily: baseSpecs.fontFamily,
-        fontSize: baseSpecs.fontSize * 0.85,
-      },
-
-      code_block: {
-        backgroundColor: "#2e2e2e",
-        color: "#e6e6e6",
-        borderRadius: 8,
-        padding: 10,
-        marginTop: 8,
-        marginBottom: 8,
-        fontFamily: baseSpecs.fontFamily,
-        fontSize: baseSpecs.fontSize * 0.85,
-      },
-
-      code_inline: {
-        backgroundColor: isCurrentUser
-          ? "rgba(255,255,255,0.25)"
-          : isDark
-            ? "rgba(255,255,255,0.15)"
-            : "rgba(0,0,0,0.1)",
-        borderRadius: 4,
-        paddingHorizontal: 4,
-        paddingVertical: 2,
-        fontFamily: baseSpecs.fontFamily,
-        fontSize: baseSpecs.fontSize * 0.9,
-        color: baseSpecs.color,
-      },
-
-      link: {
-        color: "#7dd3fc",
-        textDecorationLine: PLATFORM.IS_WEB ? "none" : "underline",
-        textDecorationColor: "#7dd3fc",
-        opacity: 0.9,
-      },
-
-      text: {
-        fontFamily: baseSpecs.fontFamily,
-        fontSize: baseSpecs.fontSize,
-      },
-      strong: { fontWeight: "bold" },
-      em: { fontStyle: "italic" },
-      del: { textDecorationLine: "line-through" },
-    };
-  }, [baseSpecs, isCurrentUser, isDark]);
+    return createMarkdownStyles(baseSpecs, textColor);
+  }, [baseSpecs, textColor]);
 
   const processedText = useMemo(() => {
     let newText = text;
@@ -223,7 +110,7 @@ const FormattedText = ({
         return <MarkdownImage key={node.key} src={src} alt={alt} />;
       },
 
-      link: (node: any, children: any, parent: any, styles: any) => {
+      link: (node: any, children: any, styles: any) => {
         const url = node.attributes.href;
         let activeStyle = styles.link;
         let isSpecial = false;
@@ -292,7 +179,7 @@ const FormattedText = ({
 
   return (
     <>
-      <View className={className} style={{ flexShrink: 1 }}>
+      <View style={{ flexShrink: 1 }}>
         <Markdown style={markdownStyles as any} rules={rules} markdownit={markdownItInstance}>
           {processedText}
         </Markdown>
