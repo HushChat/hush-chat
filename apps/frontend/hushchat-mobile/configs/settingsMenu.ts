@@ -3,7 +3,6 @@ import Contact from "@/app/settings/contact";
 import { FC } from "react";
 import ChangeWorkspace from "@/app/settings/change-workspace";
 import Invite from "@/app/settings/invite";
-import Users from "@/app/settings/users";
 
 type TMenuItem = {
   key: string;
@@ -17,7 +16,6 @@ type MenuBuilderContext = {
 
 const baseMenuItems: TMenuItem[] = [
   { key: "contact", label: "Contact", icon: "contacts" },
-  { key: "users", label: "Users", icon: "people" },
   { key: "invite", label: "Invite", icon: "person-add" },
 ];
 
@@ -39,7 +37,6 @@ export const getSettingsMenuItems = (context: MenuBuilderContext): TMenuItem[] =
 
 export const settingsPanels: Record<string, FC> = {
   contact: Contact,
-  users: Users,
   invite: Invite,
   changeWorkspace: ChangeWorkspace,
 };
