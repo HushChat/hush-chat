@@ -1,10 +1,12 @@
 package com.platform.software.chat.message.dto;
 
+import lombok.Getter;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+@Getter
 public class MessageWindowPage<T> extends PageImpl<T> {
     private final boolean hasMoreBefore;
     private final boolean hasMoreAfter;
@@ -13,13 +15,5 @@ public class MessageWindowPage<T> extends PageImpl<T> {
         super(content, pageable, total);
         this.hasMoreBefore = hasMoreBefore;
         this.hasMoreAfter = hasMoreAfter;
-    }
-
-    public boolean isHasMoreBefore() {
-        return hasMoreBefore;
-    }
-
-    public boolean isHasMoreAfter() {
-        return hasMoreAfter;
     }
 }

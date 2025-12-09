@@ -41,6 +41,11 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
+    private enum Direction {
+        BEFORE,
+        AFTER
+    }
+
     public MessageQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.queryFactory = jpaQueryFactory;
     }
@@ -221,25 +226,11 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                 .limit(windowSize)
                 .fetch();
 
-        Long lastBeforeId = before.isEmpty()
-                ? targetMessage.getId()
-                : before.getLast().getId();
+        Long lastBeforeId = getOldestFetchedMessageIdOrFallback(before, targetMessage.getId());
+        Long lastAfterId  = getOldestFetchedMessageIdOrFallback(after, targetMessage.getId());
 
-        boolean hasMoreBefore = baseQuery.clone()
-                .where(message.id.lt(lastBeforeId))
-                .orderBy(message.id.desc())
-                .limit(1)
-                .fetchFirst() != null;
-
-        Long lastAfterId = after.isEmpty()
-                ? targetMessage.getId()
-                : after.getLast().getId();
-
-        boolean hasMoreAfter = baseQuery.clone()
-                .where(message.id.gt(lastAfterId))
-                .orderBy(message.id.asc())
-                .limit(1)
-                .fetchFirst() != null;
+        boolean hasMoreBefore = existsMessageInDirection(baseQuery, lastBeforeId, Direction.BEFORE);
+        boolean hasMoreAfter = existsMessageInDirection(baseQuery, lastAfterId, Direction.AFTER);
 
         Collections.reverse(after);
         List<Message> messages = new ArrayList<>(after);
@@ -249,5 +240,21 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
 
         return new MessageWindowPage<>(messages, pageable, messages.size(), hasMoreBefore, hasMoreAfter);
+    }
+
+    private Long getOldestFetchedMessageIdOrFallback(List<Message> messages, Long fallbackId) {
+        return messages.isEmpty() ? fallbackId : messages.getLast().getId();
+    }
+
+    private boolean existsMessageInDirection(JPAQuery<Message> baseQuery, Long id, Direction direction) {
+        JPAQuery<Message> query = baseQuery.clone();
+
+        if (direction == Direction.BEFORE) {
+            query.where(message.id.lt(id)).orderBy(message.id.desc());
+        } else {
+            query.where(message.id.gt(id)).orderBy(message.id.asc());
+        }
+
+        return query.limit(1).fetchFirst() != null;
     }
 }
