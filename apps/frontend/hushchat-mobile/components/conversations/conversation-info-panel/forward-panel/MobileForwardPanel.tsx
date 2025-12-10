@@ -1,12 +1,14 @@
 import React from "react";
 import { View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import MobileHeader from "@/components/MobileHeader";
 import ConversationForwardPanelBase from "@/components/conversations/conversation-info-panel/forward-panel/ConversationForwardPanel";
 import { useForwardMessageHandler } from "@/hooks/useForwardMessageHandler";
 
 const ConversationForwardPanelNative = () => {
   const handler = useForwardMessageHandler(() => router.back());
+  const params = useLocalSearchParams();
+  const currentConversationId = Number(params.currentConversationId);
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
@@ -23,7 +25,11 @@ const ConversationForwardPanelNative = () => {
         }}
       />
 
-      <ConversationForwardPanelBase onClose={() => router.back()} {...handler} />
+      <ConversationForwardPanelBase
+        onClose={() => router.back()}
+        {...handler}
+        sourceConversationId={currentConversationId}
+      />
     </View>
   );
 };

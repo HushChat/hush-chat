@@ -5,7 +5,13 @@ import ConversationForwardPanelBase from "@/components/conversations/conversatio
 import { useForwardMessageHandler } from "@/hooks/useForwardMessageHandler";
 import { AppText } from "@/components/AppText";
 
-const ConversationForwardPanelWeb = ({ onClose }: { onClose: () => void }) => {
+const ConversationForwardPanelWeb = ({
+  onClose,
+  currentConversationId,
+}: {
+  onClose: () => void;
+  currentConversationId: number;
+}) => {
   const handler = useForwardMessageHandler(onClose);
 
   return (
@@ -26,7 +32,11 @@ const ConversationForwardPanelWeb = ({ onClose }: { onClose: () => void }) => {
         </TouchableOpacity>
       </View>
 
-      <ConversationForwardPanelBase onClose={onClose} {...handler} />
+      <ConversationForwardPanelBase
+        onClose={onClose}
+        {...handler}
+        sourceConversationId={currentConversationId}
+      />
     </View>
   );
 };
