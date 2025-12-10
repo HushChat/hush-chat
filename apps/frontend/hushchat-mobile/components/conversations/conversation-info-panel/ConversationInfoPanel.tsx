@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -9,6 +9,7 @@ import { Images } from "@/assets/images";
 import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
 import OneToOneChatInfo from "@/components/conversations/conversation-info-panel/OneToOneChatInfo";
 import GroupChatInfo from "@/components/conversations/conversation-info-panel/GroupChatInfo";
+import { AppText } from "@/components/AppText";
 
 export interface ChatInfoScreenProps {
   conversationId: number;
@@ -45,9 +46,9 @@ export default function ConversationInfoPanel({
         ]}
       >
         <ActivityIndicator size="large" color="#3b82f6" />
-        <Text className="mt-4 text-gray-600 dark:text-text-secondary-dark">
+        <AppText className="mt-4 text-gray-600 dark:text-text-secondary-dark">
           Loading conversation...
-        </Text>
+        </AppText>
       </View>
     );
   }
