@@ -15,6 +15,7 @@ interface ActionsHeaderProps {
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
+  onMarkAsUnread: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -25,6 +26,7 @@ const ActionsHeader = ({
   onForward,
   onUnsend,
   onCopy,
+  onMarkAsUnread,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
@@ -58,6 +60,9 @@ const ActionsHeader = ({
         </View>
 
         <View className="flex-row items-center gap-2">
+          {message.senderId !== Number(user.id) && !message.isUnsend && (
+            <HeaderAction iconName="mail-unread-outline" onPress={() => onMarkAsUnread(message)} />
+          )}
           {!message.isUnsend && message.messageText && (
             <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
           )}

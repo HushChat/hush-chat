@@ -209,6 +209,10 @@ const ConversationMessageList = ({
           }}
           onUnsend={(messages) => unSendMessage(messages)}
           onCopy={(message) => copyToClipboard(message.messageText)}
+          onMarkAsUnread={(message) => {
+            markMessageAsUnread(message);
+            closeActions();
+          }}
         />
       )}
 

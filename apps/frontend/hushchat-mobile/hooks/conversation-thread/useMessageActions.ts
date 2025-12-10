@@ -120,7 +120,7 @@ export function useMessageActions(
     },
     () => {
       setSelectedConversation(null);
-      router.replace(CHATS_PATH);
+      router.push(CHATS_PATH);
     },
     (error) => {
       ToastUtils.error(error as string);
