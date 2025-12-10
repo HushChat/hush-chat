@@ -13,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Repository
@@ -56,6 +58,45 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                             .from(conversationParticipant)
                             .where(conversationParticipant.conversation.id.eq(userFilterCriteriaDTO.getExcludeUsersInConversationId()))
                             .where(conversationParticipant.isActive.eq(true))
+            ));
+        }
+
+        boolean isFilteringByStatus = Boolean.TRUE.equals(userFilterCriteriaDTO.getIsFavorite())
+                || Boolean.TRUE.equals(userFilterCriteriaDTO.getIsMuted());
+
+        List<Long> conversationIdsOfInterest = null;
+
+        if (isFilteringByStatus) {
+            BooleanBuilder participantConditions = new BooleanBuilder();
+
+            participantConditions.and(conversationParticipant.user.id.eq(loggedInUserId));
+            participantConditions.and(conversationParticipant.conversation.isGroup.isFalse());
+
+            if (Boolean.TRUE.equals(userFilterCriteriaDTO.getIsFavorite())) {
+                participantConditions.and(conversationParticipant.isFavorite.isTrue());
+            }
+
+            if (Boolean.TRUE.equals(userFilterCriteriaDTO.getIsMuted())) {
+                participantConditions.and(conversationParticipant.mutedUntil.after(ZonedDateTime.now()));
+            }
+
+            conversationIdsOfInterest = queryFactory
+                    .select(conversationParticipant.conversation.id)
+                    .from(conversationParticipant)
+                    .where(participantConditions)
+                    .fetch();
+
+            if (conversationIdsOfInterest.isEmpty()) {
+                return new PageImpl<>(List.of(), pageable, 0);
+            }
+        }
+
+        if (conversationIdsOfInterest != null) {
+            where.and(chatUser.id.in(
+                    JPAExpressions.select(conversationParticipant.user.id)
+                            .from(conversationParticipant)
+                            .where(conversationParticipant.conversation.id.in(conversationIdsOfInterest))
+                            .where(conversationParticipant.user.id.ne(loggedInUserId))
             ));
         }
 

@@ -6,4 +6,6 @@ import lombok.Data;
 public class UserFilterCriteriaDTO {
     private String keyword;
     private Long excludeUsersInConversationId;
+    private Boolean isFavorite ;
+    private Boolean isMuted;
 }

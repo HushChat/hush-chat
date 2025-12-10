@@ -65,8 +65,8 @@ public class SearchService {
         }
         Pageable pageable = PageRequest.of(0, MAX_SEARCH_RESULT_SIZE);
 
-        List<UserDTO> userWithNameMatched = getUsersWithConversations(searchKeyword, pageable, userId);
-        List<ConversationDTO> conversationsWithNameMatched = conversationsWithNameMatched(searchKeyword, userId, pageable);
+        List<UserDTO> userWithNameMatched = getUsersWithConversations(searchKeyword, searchRequestDTO.getConversationType(), pageable, userId);
+        List<ConversationDTO> conversationsWithNameMatched = conversationsWithNameMatched(searchKeyword, searchRequestDTO.getConversationType(), userId, pageable);
         List<ConversationDTO> conversationsWithMessagesMatched = new ArrayList<>();
 
         if(searchRequestDTO.isIncludeMessages()){
@@ -80,9 +80,19 @@ public class SearchService {
         return conversationSearchResults;
     }
 
-    private List<UserDTO> getUsersWithConversations(String searchKeyword, Pageable pageable, Long loggedInUserId) {
+    private List<UserDTO> getUsersWithConversations(String searchKeyword, ConversationType conversationType,  Pageable pageable, Long loggedInUserId) {
         UserFilterCriteriaDTO userFilterCriteriaDTO = new UserFilterCriteriaDTO();
         userFilterCriteriaDTO.setKeyword(searchKeyword);
+
+        Boolean isFavorite = null;
+        Boolean isMuted = null;
+        if (conversationType.equals(ConversationType.FAVORITES)) {
+            isFavorite = true;
+            userFilterCriteriaDTO.setIsFavorite(isFavorite);
+        } else if (conversationType.equals(ConversationType.MUTED)) {
+            isMuted = true;
+            userFilterCriteriaDTO.setIsMuted(isMuted);
+        }
 
         Page<UserDTO> userDTOPage = userService.getAllUsersWithConversations(
             pageable, userFilterCriteriaDTO, loggedInUserId
@@ -154,9 +164,15 @@ public class SearchService {
      * @return a list of ConversationDTO objects representing conversations with matching names,
      *         including their latest messages
      */
-    private List<ConversationDTO> conversationsWithNameMatched(String searchKeyword, Long loggedInUserId, Pageable pageable) {
+    private List<ConversationDTO> conversationsWithNameMatched(String searchKeyword, ConversationType conversationType, Long loggedInUserId, Pageable pageable) {
         ConversationFilterCriteriaDTO conversationFilterCriteria = new ConversationFilterCriteriaDTO();
         conversationFilterCriteria.setSearchKeyword(searchKeyword);
+
+        if (conversationType.equals(ConversationType.FAVORITES)) {
+            conversationFilterCriteria.setIsFavorite(true);
+        } else if (conversationType.equals(ConversationType.MUTED)) {
+            conversationFilterCriteria.setIsMuted(true);
+        }
 
         Page<ConversationDTO> conversationDTOPage = conversationRepository.findAllConversationsByUserIdWithLatestMessages(
             loggedInUserId, conversationFilterCriteria, pageable
