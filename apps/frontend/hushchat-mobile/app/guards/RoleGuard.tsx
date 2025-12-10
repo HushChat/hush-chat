@@ -13,16 +13,14 @@ type RoleGuardProps = {
 };
 
 export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
-  const {
-    user: { workspaceRole },
-    isAuthenticatedAndDataFetched,
-  } = useUserStore();
+  const { user, isAuthenticatedAndDataFetched } = useUserStore();
+  const workspaceRole = user?.workspaceRole;
 
   if (!isAuthenticatedAndDataFetched) return null;
 
   if (!workspaceRole || !allowedRoles.includes(workspaceRole)) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View className="flex-1 justify-center item-center">
         <AppText>You do not have permission to access this screen.</AppText>
       </View>
     );

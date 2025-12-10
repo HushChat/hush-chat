@@ -9,11 +9,10 @@ import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 
 export default function Settings() {
-  const {
-    user: { workspaceRole },
-  } = useUserStore();
+  const { user } = useUserStore();
   const [selected, setSelected] = useState("contact");
   const [menuItems, setMenuItems] = useState<SidebarMenuItem[]>([]);
+  const workspaceRole = user?.workspaceRole;
 
   const { workspaces, isLoadingWorkspaces } = useUserWorkspacesQuery();
 

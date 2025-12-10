@@ -1,11 +1,9 @@
 package com.platform.software.more.seeder.helper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
-import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import org.slf4j.Logger;
@@ -59,19 +57,12 @@ public class WorkspaceSeeder {
                 logger.error("users.json file not found");
                 return;
             }
-            List<ChatUser> users = objectMapper.readValue(inputStream,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, ChatUser.class));
+            List<WorkspaceUser> users = objectMapper.readValue(inputStream,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, WorkspaceUser.class));
             List<WorkspaceUser> workspaceUsers = users.stream().map(wu -> {
-                WorkspaceUser workspaceUser = new WorkspaceUser();
-                workspaceUser.setWorkspace(workspaces.stream().findFirst().get());
-                workspaceUser.setEmail(wu.getEmail());
-                workspaceUser.setStatus(WorkspaceUserStatus.ACCEPTED);
-
-                if ("jane@chat.com".equalsIgnoreCase(wu.getEmail())) {
-                    workspaceUser.setRole(WorkspaceUserRole.ADMIN);
-                }
-
-                return workspaceUser;
+                wu.setWorkspace(workspaces.stream().findFirst().get());
+                wu.setStatus(WorkspaceUserStatus.ACCEPTED);
+                return wu;
             }).toList();
             workspaceUserRepository.saveAll(workspaceUsers);
             logger.info("finished seeding chat users: {}", users.size());

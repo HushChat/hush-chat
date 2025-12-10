@@ -9,7 +9,7 @@ type TMenuItem = {
   key: string;
   label: string;
   icon: keyof typeof MaterialIcons.glyphMap;
-  adminOnly: boolean;
+  allowedRoles: WorkspaceUserRole[];
 };
 
 type MenuBuilderContext = {
@@ -17,15 +17,25 @@ type MenuBuilderContext = {
 };
 
 const baseMenuItems: TMenuItem[] = [
-  { key: "contact", label: "Contact", icon: "contacts", adminOnly: false },
-  { key: "invite", label: "Invite", icon: "person-add", adminOnly: false },
+  {
+    key: "contact",
+    label: "Contact",
+    icon: "contacts",
+    allowedRoles: [WorkspaceUserRole.MEMBER, WorkspaceUserRole.ADMIN],
+  },
+  {
+    key: "invite",
+    label: "Invite",
+    icon: "person-add",
+    allowedRoles: [WorkspaceUserRole.MEMBER, WorkspaceUserRole.ADMIN],
+  },
 ];
 
 const changeWorkspaceItem: TMenuItem = {
   key: "changeWorkspace",
   label: "Change Workspace",
   icon: "track-changes",
-  adminOnly: false,
+  allowedRoles: [WorkspaceUserRole.MEMBER, WorkspaceUserRole.ADMIN],
 };
 
 export const getSettingsMenuItems = (
@@ -38,8 +48,8 @@ export const getSettingsMenuItems = (
     items.push(changeWorkspaceItem);
   }
 
-  if (role !== WorkspaceUserRole.ADMIN) {
-    items = items.filter((item) => !item.adminOnly);
+  if (role) {
+    items = items.filter((item) => item.allowedRoles.includes(role));
   }
 
   return items;
