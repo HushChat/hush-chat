@@ -1,7 +1,6 @@
 import React from "react";
 import {
   View,
-  Text,
   Modal,
   TouchableWithoutFeedback,
   Dimensions,
@@ -15,6 +14,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { MotionView } from "@/motion/MotionView";
 import { MotionEasing } from "@/motion/easing";
 import { MessageReact, REACTION_EMOJIS } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
 
 interface MessageReactionsBottomSheetProps {
   visible: boolean;
@@ -43,13 +43,13 @@ const MessageReactionsBottomSheet = ({
 
   const renderReactionItem = ({ item }: { item: MessageReact }) => (
     <View className="flex-row items-center py-4 px-4">
-      <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
-      <Text
+      <AppText className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</AppText>
+      <AppText
         className="text-base font-medium flex-1 text-text-primary-light dark:text-text-primary-dark"
         numberOfLines={1}
       >
         {item.name}
-      </Text>
+      </AppText>
     </View>
   );
 
@@ -65,9 +65,9 @@ const MessageReactionsBottomSheet = ({
     return (
       <View className="py-12 items-center justify-center">
         <Ionicons name="heart-outline" size={48} color="#D1D5DB" />
-        <Text className="mt-3 text-base text-text-secondary-light dark:text-text-secondary-dark">
+        <AppText className="mt-3 text-base text-text-secondary-light dark:text-text-secondary-dark">
           No reactions yet
-        </Text>
+        </AppText>
       </View>
     );
   };
@@ -80,7 +80,6 @@ const MessageReactionsBottomSheet = ({
       statusBarTranslucent
       animationType="none"
     >
-      {/* BACKDROP */}
       <TouchableWithoutFeedback onPress={handleClose}>
         <MotionView
           visible={visible}
@@ -95,7 +94,6 @@ const MessageReactionsBottomSheet = ({
         />
       </TouchableWithoutFeedback>
 
-      {/* SHEET */}
       <MotionView
         visible={visible}
         from={{ translateY: SCREEN_HEIGHT }}
@@ -113,9 +111,9 @@ const MessageReactionsBottomSheet = ({
         </View>
 
         <View className="px-4 pb-2">
-          <Text className="text-lg font-semibold text-center text-text-primary-light dark:text-text-primary-dark">
+          <AppText className="text-lg font-semibold text-center text-text-primary-light dark:text-text-primary-dark">
             {title}
-          </Text>
+          </AppText>
         </View>
 
         <View

@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import {
   Modal,
   Pressable,
-  Text,
   View,
   TouchableWithoutFeedback,
   ScrollView,
@@ -16,6 +15,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { STATUS_STYLES, Workspace, WorkspaceDropdownProps } from "@/types/login/types";
 import { SIZE_PRESETS } from "@/components/forms/TextField";
 import { MotionView } from "@/motion/MotionView";
+import { AppText } from "@/components/AppText";
 
 type SizeKey = NonNullable<WorkspaceDropdownProps["size"]>;
 
@@ -84,7 +84,7 @@ const WorkspaceDropdown = ({
 
     return (
       <View className={`${style.bg} px-2 py-0.5 rounded`}>
-        <Text className={`${style.text} text-xs font-medium`}>{style.label}</Text>
+        <AppText className={`${style.text} text-xs font-medium`}>{style.label}</AppText>
       </View>
     );
   };
@@ -92,9 +92,9 @@ const WorkspaceDropdown = ({
   return (
     <View className="flex-col gap-y-1">
       {label && (
-        <Text className={`text-gray-900 dark:text-gray-100 font-medium ${tokens.label}`}>
+        <AppText className={`text-gray-900 dark:text-gray-100 font-medium ${tokens.label}`}>
           {label}
-        </Text>
+        </AppText>
       )}
 
       <View className="flex-col gap-y-1">
@@ -102,13 +102,13 @@ const WorkspaceDropdown = ({
           <View
             className={`border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.radius} flex-row items-center justify-between`}
           >
-            <Text
+            <AppText
               className={`${tokens.font} ${
                 selectedWorkspace ? "text-gray-900 dark:text-gray-100" : "text-gray-400"
               }`}
             >
               {selectedWorkspace ? selectedWorkspace.name : placeholder}
-            </Text>
+            </AppText>
             <Ionicons
               name={isModalVisible ? "chevron-up" : "chevron-down"}
               size={tokens.iconSize}
@@ -118,7 +118,7 @@ const WorkspaceDropdown = ({
         </Pressable>
 
         {formErrors?.[errorKey] && showErrors && (
-          <Text className={`text-red-600 ${tokens.error}`}>{formErrors[errorKey]}</Text>
+          <AppText className={`text-red-600 ${tokens.error}`}>{formErrors[errorKey]}</AppText>
         )}
       </View>
 
@@ -152,17 +152,17 @@ const WorkspaceDropdown = ({
                 </View>
 
                 <View className="px-4 pb-2">
-                  <Text className="text-lg font-semibold text-center text-gray-900 dark:text-gray-100">
+                  <AppText className="text-lg font-semibold text-center text-gray-900 dark:text-gray-100">
                     Select Workspace
-                  </Text>
+                  </AppText>
                 </View>
 
                 <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
                   {workspaces.length === 0 || loading ? (
                     <View className="p-8 items-center">
-                      <Text className="text-gray-500 dark:text-gray-400 text-center">
+                      <AppText className="text-gray-500 dark:text-gray-400 text-center">
                         No workspaces available
-                      </Text>
+                      </AppText>
                     </View>
                   ) : (
                     <ScrollView
@@ -186,15 +186,15 @@ const WorkspaceDropdown = ({
                           >
                             <View className="flex-row items-start justify-between gap-3">
                               <View className="flex-1">
-                                <Text
+                                <AppText
                                   className={`${tokens.font} font-semibold text-gray-900 dark:text-gray-100 mb-1`}
                                 >
                                   {item.name}
-                                </Text>
+                                </AppText>
                                 {item.description && (
-                                  <Text className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                  <AppText className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                     {item.description}
-                                  </Text>
+                                  </AppText>
                                 )}
                                 {getStatusBadge(item.status)}
                               </View>
