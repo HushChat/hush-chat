@@ -127,15 +127,14 @@ export default function ChatInterface({
           </TouchableOpacity>
         </View>
       </View>
-      {selectedConversationType === ConversationType.ALL && (
-        <View className="px-4 h-12">
-          <SearchBar
-            value={searchQuery}
-            onChangeText={onSearchQueryInserting}
-            onClear={() => onSearchQueryInserting("")}
-          />
-        </View>
-      )}
+
+      <View className="px-4 h-12">
+        <SearchBar
+          value={searchQuery}
+          onChangeText={onSearchQueryInserting}
+          onClear={() => onSearchQueryInserting("")}
+        />
+      </View>
 
       {selectedConversationType !== ConversationType.ARCHIVED && (
         <View className="bg-background-light dark:bg-background-dark px-4 py-3">

@@ -3,6 +3,7 @@ package com.platform.software.chat.search;
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.dto.ConversationFilterCriteriaDTO;
 import com.platform.software.chat.conversation.dto.ConversationSearchResults;
+import com.platform.software.chat.conversation.dto.ConversationType;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.message.dto.MessageViewDTO;
@@ -69,7 +70,7 @@ public class SearchService {
         List<ConversationDTO> conversationsWithMessagesMatched = new ArrayList<>();
 
         if(searchRequestDTO.isIncludeMessages()){
-            conversationsWithMessagesMatched = conversationsWithMessagesMatched(searchKeyword, userId, pageable);
+            conversationsWithMessagesMatched = conversationsWithMessagesMatched(searchKeyword,searchRequestDTO.getConversationType(), userId, pageable);
         }
 
         ConversationSearchResults conversationSearchResults = new ConversationSearchResults(
@@ -100,12 +101,23 @@ public class SearchService {
      * @return a list of ConversationDTO objects containing the matched messages,
      *         where each conversation includes only the matching message(s)
      */
-    private List<ConversationDTO> conversationsWithMessagesMatched(String searchKeyword, Long loggedInUserId, Pageable pageable) {
+    private List<ConversationDTO> conversationsWithMessagesMatched(String searchKeyword, ConversationType conversationType, Long loggedInUserId, Pageable pageable) {
         List<ConversationDTO> loggedInUserAllConversations = conversationParticipantRepository.findAllConversationsByUserId(loggedInUserId);
+        Boolean isFavorite = null;
+        Boolean isGroup = null;
+        Boolean isMuted = null;
+
+        if (conversationType.equals(ConversationType.FAVORITES)) {
+            isFavorite = true;
+        } else if(conversationType.equals(ConversationType.GROUPS)) {
+            isGroup = true;
+        } else if (conversationType.equals(ConversationType.MUTED)) {
+            isMuted = true;
+        }
 
         Set<Long> conversationIds = loggedInUserAllConversations.stream()
                 .map(ConversationDTO::getId).collect(Collectors.toSet());
-        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, loggedInUserId, pageable);
+        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, loggedInUserId, isFavorite, isGroup, isMuted, pageable);
 
         List<ConversationDTO> conversationsFromMessages  = messagePage.getContent()
                 .stream()

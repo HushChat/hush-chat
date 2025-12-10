@@ -1,7 +1,13 @@
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import axios, { AxiosError } from "axios";
-import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/types/chat/types";
+import {
+  ConversationType,
+  IConversation,
+  IGroupConversation,
+  IMessage,
+  IMessageView,
+} from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
@@ -275,10 +281,14 @@ export const getGroupProfile = async (conversationId: number) => {
   }
 };
 
-export const globalSearch = async (searchQuery: string) => {
+export const globalSearch = async (
+  searchQuery: string,
+  selectedConversationType: ConversationType
+) => {
   try {
     const response = await axios.post(SEARCH_API_BASE, {
       searchKeyword: searchQuery,
+      conversationType: selectedConversationType,
     });
     return response.data;
   } catch (error: unknown) {

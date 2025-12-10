@@ -85,11 +85,17 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
       AND cp1_0.user_id = :userId
       AND (cp1_0.last_deleted_time IS NULL OR m1_0.created_at > cp1_0.last_deleted_time)
       AND m1_0.search_vector @@ plainto_tsquery(:searchTerm)
+        AND (:isFavorite IS NULL OR cp1_0.is_favorite = :isFavorite)
+        AND (:isGroup IS NULL OR c1_0.is_group = :isGroup)
+        AND (:isMuted IS NULL OR :isMuted = TRUE AND cp1_0.muted_until > NOW())
     """, nativeQuery = true)
     Page<Message> findBySearchTermInConversations(
         @Param("searchTerm") String searchTerm,
         @Param("conversationIds") Collection<Long> conversationIds,
         @Param("userId") Long userId,
+        @Param("isFavorite") Boolean isFavorite,
+        @Param("isGroup") Boolean isGroup,
+        @Param("isMuted") Boolean isMuted,
         Pageable pageable
     );
 }

@@ -1,11 +1,14 @@
 import { globalSearch } from "@/apis/conversation";
-import { ISearchResults } from "@/types/chat/types";
+import { ConversationType, ISearchResults } from "@/types/chat/types";
 import { useQuery } from "@tanstack/react-query";
 
 /**
  * To search across users, conversations, and messages globally
  */
-export default function useGlobalSearchQuery(searchQuery: string) {
+export default function useGlobalSearchQuery(
+  searchQuery: string,
+  selectedConversationType: ConversationType
+) {
   const {
     data: searchResults = {} as ISearchResults,
     isLoading,
@@ -13,7 +16,7 @@ export default function useGlobalSearchQuery(searchQuery: string) {
     refetch,
   } = useQuery({
     queryKey: ["global-search", searchQuery],
-    queryFn: () => globalSearch(searchQuery),
+    queryFn: () => globalSearch(searchQuery, selectedConversationType),
     enabled: searchQuery.length > 0,
     staleTime: 0,
   });

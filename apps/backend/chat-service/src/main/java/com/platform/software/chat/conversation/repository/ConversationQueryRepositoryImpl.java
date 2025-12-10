@@ -161,7 +161,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         }
 
         if (isMuted) {
-                whereConditions = whereConditions.and(qConversationParticipant.mutedUntil.isNotNull());
+            whereConditions = whereConditions.and(qConversationParticipant.mutedUntil.after(ZonedDateTime.now()));
         }
 
         if (isArchived) {

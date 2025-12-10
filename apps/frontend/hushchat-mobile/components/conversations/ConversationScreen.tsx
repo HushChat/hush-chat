@@ -63,8 +63,10 @@ export default function ConversationScreen({ initialConversationId }: IConversat
     refetch,
   } = useConversationsQuery(criteria);
 
-  const { searchResults, isSearching, searchError, refetchSearch } =
-    useGlobalSearchQuery(searchQuery);
+  const { searchResults, isSearching, searchError, refetchSearch } = useGlobalSearchQuery(
+    searchQuery,
+    selectedConversationType
+  );
 
   const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
 
