@@ -15,7 +15,7 @@ export default function useGlobalSearchQuery(
     error,
     refetch,
   } = useQuery({
-    queryKey: ["global-search", searchQuery],
+    queryKey: ["global-search", selectedConversationType, searchQuery],
     queryFn: () => globalSearch(searchQuery, selectedConversationType),
     enabled: searchQuery.length > 0,
     staleTime: 0,
