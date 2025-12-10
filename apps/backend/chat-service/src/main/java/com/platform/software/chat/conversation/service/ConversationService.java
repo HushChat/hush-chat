@@ -2,10 +2,7 @@ package com.platform.software.chat.conversation.service;
 
 
 import com.platform.software.chat.conversation.dto.*;
-import com.platform.software.chat.conversation.entity.Conversation;
-import com.platform.software.chat.conversation.entity.ConversationEvent;
-import com.platform.software.chat.conversation.entity.ConversationReport;
-import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
+import com.platform.software.chat.conversation.entity.*;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
@@ -123,6 +120,7 @@ public class ConversationService {
     public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
         Conversation conversation = new Conversation();
         conversation.setIsGroup(isGroup);
+        conversation.setStatus(isGroup ? ConversationStatus.PENDING : ConversationStatus.ACTIVE);
         conversation.setCreatedBy(userService.getUserOrThrow(loggedInUserId));
         List<ConversationParticipant> participants = new ArrayList<>();
 
@@ -203,10 +201,9 @@ public class ConversationService {
      *
      * @param groupConversationDTO the DTO containing group conversation details
      * @param loggedInUserId       the ID of the user creating the group conversation
-     * @return a ConversationDTO with the created group conversation data
      */
     @Transactional
-    public ConversationDTO createGroupConversation(
+    public void createGroupConversation(
             GroupConversationUpsertDTO groupConversationDTO,
             Long loggedInUserId
     ) {
@@ -236,13 +233,7 @@ public class ConversationService {
             ConversationDTO conversationDTOWithSignedUrl = conversationUtilService.addSignedImageUrlToConversationDTO(updatedConversationDTO, groupConversationDTO.getImageFileName());
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
-
-            return saveConversationAndBuildDTO(conversation);
         }
-
-        conversationEventService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
-
-        return conversationDTO;
     }
 
     /**
@@ -1371,6 +1362,32 @@ public class ConversationService {
      */
     public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
         return conversationRepository.findAllGroupConversationsAdminView(pageable);
+    }
+
+    /**
+     * Approves a group conversation by setting its status to ACTIVE.
+     *
+     * @param conversationId the ID of the conversation to delete
+     */
+    @Transactional
+    public void approveConversationById(Long conversationId) {
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+        if (!conversation.getIsGroup()) {
+            throw new CustomBadRequestException("Only group conversations can be approved");
+        }
+
+        if(conversation.getStatus() == ConversationStatus.ACTIVE) {
+            return;
+        }
+
+        conversation.setStatus(ConversationStatus.ACTIVE);
+        try {
+            conversationRepository.save(conversation);
+            conversationEventService.createMessageWithConversationEvent(conversation.getId(), conversation.getCreatedBy().getId(), null, ConversationEventType.GROUP_CREATED);
+        } catch (Exception e) {
+            logger.error("Failed to approve conversationId: {}", conversationId, e);
+            throw new CustomInternalServerErrorException("Failed to approve conversation");
+        }
     }
 }
 
