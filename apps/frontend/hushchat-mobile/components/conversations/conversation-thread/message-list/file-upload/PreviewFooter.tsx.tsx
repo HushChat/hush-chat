@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import classNames from "classnames";
+import { AppText } from "@/components/AppText";
 
 type TPreviewFooterProps = {
   isSending: boolean;
@@ -35,7 +36,7 @@ const PreviewFooter = ({
           size={16}
           color={isSending || isAtLimit ? "#9ca3af" : "#6B4EFF"}
         />
-        <Text
+        <AppText
           className={classNames(
             "ml-2 text-sm font-medium",
             isSending || isAtLimit
@@ -44,7 +45,7 @@ const PreviewFooter = ({
           )}
         >
           {isAtLimit ? "Limit Reached" : "Add More"}
-        </Text>
+        </AppText>
       </View>
     </TouchableOpacity>
 
@@ -59,9 +60,9 @@ const PreviewFooter = ({
             : "bg-secondary-light/60 dark:bg-secondary-dark/70"
         )}
       >
-        <Text className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
+        <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
           Cancel
-        </Text>
+        </AppText>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -80,12 +81,12 @@ const PreviewFooter = ({
               className="w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full mr-2"
               style={{ transform: [{ rotate: "45deg" }] }}
             />
-            <Text className="text-white/90 font-semibold text-sm">Sending…</Text>
+            <AppText className="text-white/90 font-semibold text-sm">Sending…</AppText>
           </>
         ) : (
           <>
             <Ionicons name="send" size={16} color="#fff" />
-            <Text className="text-white font-semibold text-sm ml-2">Send</Text>
+            <AppText className="text-white font-semibold text-sm ml-2">Send</AppText>
           </>
         )}
       </TouchableOpacity>

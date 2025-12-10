@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, useColorScheme } from "react-native";
+import { View, useColorScheme } from "react-native";
 import { Image } from "expo-image";
 
 import { Ionicons } from "@expo/vector-icons";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { IConversation } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
 
 interface ProfilePictureModalContentProps {
   conversation: IConversation;
@@ -40,7 +41,7 @@ const ProfilePictureModalContent: React.FC<ProfilePictureModalContentProps> = ({
         {conversation.isGroup && (
           <View className="flex-row items-center gap-1 mb-3">
             <Ionicons name="people" size={16} color={iconColor} />
-            <Text className="text-gray-500 dark:text-gray-400 text-sm">Group Chat</Text>
+            <AppText className="text-gray-500 dark:text-gray-400 text-sm">Group Chat</AppText>
           </View>
         )}
       </View>

@@ -18,7 +18,7 @@ import ConversationForwardPanelWeb from "@/components/conversations/conversation
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
 
-export default function ChatInterface({
+export default function ChatInterfaceWeb({
   chatItemList,
   conversationsRefetch,
   conversationsLoading,

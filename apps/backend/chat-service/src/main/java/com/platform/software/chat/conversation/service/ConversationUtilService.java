@@ -314,4 +314,20 @@ public class ConversationUtilService {
         return participants.stream().map(participant -> participant.getUser())
                     .filter(user -> !user.getId().equals(sernderId)).toList();
     }
+  
+    /**
+     * Deletes a conversation.
+     *
+     * @param conversation the Conversation entity to be deleted
+     * @return the deleted Conversation entity
+     */
+    public Conversation deleteConversation(Conversation conversation) {
+        conversation.setDeleted(true);
+        try {
+            return conversationRepository.save(conversation);
+        } catch (Exception exception) {
+            logger.error("failed to delete conversation id: {}", conversation.getId(), exception);
+            throw new CustomBadRequestException("Failed to delete conversation");
+        }
+    }
 }
