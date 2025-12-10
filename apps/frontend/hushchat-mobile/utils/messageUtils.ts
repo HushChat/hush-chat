@@ -1,7 +1,9 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
-import { IMessage } from "@/types/chat/types";
+import { IMessage, IMessageAttachment } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
+import { Directory, Paths, File } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 interface IGroupedMessages {
   title: string;
@@ -95,5 +97,40 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
   } catch {
     console.warn("Invalid URL encountered:", fullUrl);
     return null;
+  }
+};
+
+export const downloadDocument = async (attachment: IMessageAttachment) => {
+  const fileUrl = attachment.fileUrl;
+  const fileName = attachment.originalFileName || attachment.indexedFileName;
+  const cacheDir = new Directory(Paths.cache, "downloads");
+
+  if (!cacheDir.exists) {
+    await cacheDir.create();
+  }
+
+  const destinationFile = new File(cacheDir, fileName);
+
+  if (destinationFile.exists) {
+    try {
+      await destinationFile.delete();
+    } catch {
+      return;
+    }
+  }
+
+  try {
+    await File.downloadFileAsync(fileUrl, destinationFile);
+
+    const canShare = await Sharing.isAvailableAsync();
+    if (canShare) {
+      await Sharing.shareAsync(destinationFile.uri, {
+        mimeType: attachment.mimeType || "application/octet-stream",
+      });
+    } else {
+      ToastUtils.success("Document downloaded");
+    }
+  } catch {
+    ToastUtils.error("Failed to download document");
   }
 };

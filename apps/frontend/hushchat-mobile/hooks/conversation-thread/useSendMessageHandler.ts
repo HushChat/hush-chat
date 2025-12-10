@@ -32,7 +32,7 @@ export const useSendMessageHandler = ({
   uploadFilesFromWeb,
   handleCloseImagePreview,
 }: IUseSendMessageHandlerParams) => {
-  const { updateConversationMessagesCache, updateConversationsListCache } =
+  const { updateConversationMessagesCache, updateConversationsListCache, invalidateQuery: refetchConversationMessages } =
     useConversationMessagesQuery(currentConversationId);
 
   const handleSendMessage = useCallback(
@@ -85,6 +85,7 @@ export const useSendMessageHandler = ({
           // Upload files
           await uploadFilesFromWeb(renamedFiles);
 
+          refetchConversationMessages();
           setSelectedMessage(null);
           setImageMessage("");
           return;

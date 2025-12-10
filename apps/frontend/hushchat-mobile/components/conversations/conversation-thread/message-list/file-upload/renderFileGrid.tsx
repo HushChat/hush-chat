@@ -33,9 +33,11 @@ const dynamicStyles = {
 const RenderFileGrid = ({
   attachments,
   isCurrentUser,
+  onAttachmentLongPress,
 }: {
   attachments: IMessageAttachment[];
   isCurrentUser: boolean;
+  onAttachmentLongPress?: (attachment: IMessageAttachment) => void;
 }) => {
   const {
     images,
@@ -58,7 +60,11 @@ const RenderFileGrid = ({
             key={doc.id || `doc-${index}`}
             style={dynamicStyles.documentSpacing(documents.length > 1, images.length > 0)}
           >
-            <DocumentCard attachment={doc} isCurrentUser={isCurrentUser} />
+            <DocumentCard
+              attachment={doc}
+              isCurrentUser={isCurrentUser}
+              onLongPress={onAttachmentLongPress}
+            />
           </View>
         ))}
 
@@ -79,6 +85,8 @@ const RenderFileGrid = ({
   );
 };
 
-export const renderFileGrid = (attachments: IMessageAttachment[], isCurrentUser: boolean) => (
-  <RenderFileGrid attachments={attachments} isCurrentUser={isCurrentUser} />
-);
+export const renderFileGrid = (
+  attachments: IMessageAttachment[],
+  isCurrentUser: boolean,
+  onAttachmentLongPress?: (attachment: IMessageAttachment) => void
+) => <RenderFileGrid attachments={attachments} isCurrentUser={isCurrentUser} />;

@@ -12,7 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDate, downloadDocument } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -60,6 +60,7 @@ const ConversationMessageList = ({
 
   const {
     selectedActionMessage,
+    selectedAttachment,
     openPickerMessageId,
     openActions,
     closeActions,
@@ -192,6 +193,7 @@ const ConversationMessageList = ({
       {selectedActionMessage && !PLATFORM.IS_WEB && (
         <ActionsHeader
           message={selectedActionMessage}
+          selectedAttachment={selectedAttachment}
           conversation={conversationAPIResponse}
           onClose={closeActions}
           onPinToggle={(message) => togglePin(message)}
@@ -201,6 +203,7 @@ const ConversationMessageList = ({
           }}
           onUnsend={(messages) => unSendMessage(messages)}
           onCopy={(message) => copyToClipboard(message.messageText)}
+          onDownload={(attachment) => downloadDocument(attachment)}
         />
       )}
 

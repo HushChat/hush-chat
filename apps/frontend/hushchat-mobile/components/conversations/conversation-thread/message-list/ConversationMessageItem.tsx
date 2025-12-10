@@ -13,6 +13,7 @@ import {
   IOption,
   ReactionType,
   MessageTypeEnum,
+  IMessageAttachment,
 } from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
@@ -54,7 +55,7 @@ interface MessageItemProps {
   selected: boolean;
   onStartSelectionWith: (messageId: number) => void;
   onToggleSelection: (messageId: number) => void;
-  onMessageLongPress?: (message: IMessage) => void;
+  onMessageLongPress?: (message: IMessage, attachment?: IMessageAttachment) => void;
   onCloseAllOverlays?: () => void;
   onMessagePin: (message: IMessage) => void;
   onUnsendMessage: (message: IMessage) => void;
@@ -209,13 +210,13 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
-  const handleLongPress = useCallback(() => {
+  const handleLongPress = useCallback((attachment?: IMessageAttachment) => {
     if (conversationAPIResponse?.isBlocked) return;
     if (selectionMode) return;
     if (isSystemEvent) return;
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onOpenPicker(String(message.id));
-    onMessageLongPress?.(message);
+    onMessageLongPress?.(message, attachment);
   }, [
     conversationAPIResponse?.isBlocked,
     selectionMode,
