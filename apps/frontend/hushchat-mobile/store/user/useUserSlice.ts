@@ -21,6 +21,7 @@ const initialUserState: IUser = {
   lastName: "",
   signedImageUrl: "",
   active: false,
+  workspaceName: "",
 };
 
 export const createUserSlice: StateCreator<UserState> = (set) => ({

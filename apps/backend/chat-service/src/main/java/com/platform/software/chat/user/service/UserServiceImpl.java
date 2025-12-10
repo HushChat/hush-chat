@@ -25,6 +25,7 @@ import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
 import com.platform.software.chat.user.repository.UserBlockRepository;
+import com.platform.software.platform.workspace.repository.WorkspaceRepository; 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,7 @@ public class UserServiceImpl implements UserService {
     private final UserUtilService userUtilService;
     private final AWSconfig awSconfig;
     private final ChatNotificationRepository chatNotificationRepository;
+    private final WorkspaceRepository workspaceRepository;
 
 
     public UserServiceImpl(
@@ -80,7 +82,8 @@ public class UserServiceImpl implements UserService {
             ConversationRepository conversationRepository,
             UserUtilService userUtilService,
             AWSconfig awSconfig,
-            ChatNotificationRepository chatNotificationRepository
+            ChatNotificationRepository chatNotificationRepository,
+            WorkspaceRepository workspaceRepository
     ) {
         this.userRepository = userRepository;
         this.cognitoService = cognitoService;
@@ -93,6 +96,7 @@ public class UserServiceImpl implements UserService {
         this.userUtilService = userUtilService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.awSconfig = awSconfig;
+        this.workspaceRepository = workspaceRepository;
     }
 
     @Override
@@ -190,6 +194,15 @@ public class UserServiceImpl implements UserService {
         
         UserViewDTO userViewDTO = new UserViewDTO(user);
         userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        
+        String currentWorkspaceIdentifier = WorkspaceContext.getCurrentWorkspace();
+
+        if (currentWorkspaceIdentifier != null) {
+            workspaceRepository.findByWorkspaceIdentifier(currentWorkspaceIdentifier)
+                .ifPresent(workspace -> {
+                    userViewDTO.setWorkspaceName(workspace.getName());
+                });
+        }
         return userViewDTO;
     }
 
