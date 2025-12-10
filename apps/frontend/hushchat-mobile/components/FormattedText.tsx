@@ -11,6 +11,14 @@ import { AppText } from "@/components/AppText";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { getMarkdownStyles } from "@/styles/markdown.styles";
 
+interface ASTNode {
+  key: string;
+  attributes: Record<string, any>;
+  children: ASTNode[];
+  content: string;
+  type: string;
+}
+
 interface FormattedTextProps {
   text: string;
   className?: string;
@@ -106,30 +114,30 @@ const FormattedText = ({
   // read `https://github.com/iamacup/react-native-markdown-display/blob/master/src/lib/renderRules.js` for rules
   const rules = useMemo(
     () => ({
-      paragraph: (node: any, children: any, styles: any) => (
+      paragraph: (node: ASTNode, children: React.ReactNode, styles: Record<string, any>) => (
         <AppText key={node.key} style={styles.paragraph}>
           {children}
         </AppText>
       ),
 
-      image: (node: any) => {
+      image: (node: ASTNode) => {
         const { src, alt } = node.attributes;
         return <MarkdownImage key={node.key} src={src} alt={alt} />;
       },
 
-      bullet_list: (node: any, children: any, styles: any) => (
+      bullet_list: (node: ASTNode, children: React.ReactNode, styles: Record<string, any>) => (
         <AppText key={node.key} style={styles.bullet_list}>
           {children}
         </AppText>
       ),
 
-      ordered_list: (node: any, children: any, styles: any) => (
+      ordered_list: (node: ASTNode, children: React.ReactNode, styles: Record<string, any>) => (
         <AppText key={node.key} style={styles.ordered_list}>
           {children}
         </AppText>
       ),
 
-      link: (node: any, children: any, styles: any) => {
+      link: (node: ASTNode, children: React.ReactNode, styles: Record<string, any>) => {
         const url = node.attributes.href;
         let activeStyle = styles.link;
         let isSpecial = false;
@@ -155,9 +163,7 @@ const FormattedText = ({
           };
         }
 
-        const content = isSpecial
-          ? node.children.map((child: any) => child.content).join("")
-          : children;
+        const content = isSpecial ? node.children.map((child) => child.content).join("") : children;
 
         return (
           <AppText
@@ -190,7 +196,7 @@ const FormattedText = ({
 
   return (
     <>
-      <Markdown style={markdownStyles as any} rules={rules} markdownit={markdownItInstance}>
+      <Markdown style={markdownStyles} rules={rules} markdownit={markdownItInstance}>
         {processedText}
       </Markdown>
 
