@@ -22,7 +22,7 @@ import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatus
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { AppText } from "@/components/AppText";
 
-export default function ChatInterface({
+export default function ChatInterfaceMobile({
   chatItemList,
   filters,
   selectedConversation,
