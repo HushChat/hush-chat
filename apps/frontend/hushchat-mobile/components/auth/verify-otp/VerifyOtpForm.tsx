@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { FormHeader, FormButton, ErrorMessage, FormContainer } from "@/components/FormComponents";
 import TextField from "@/components/forms/TextField";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { AppText } from "@/components/AppText";
 
 type TVerifyOtpFormProps = {
   colors: any;
@@ -47,12 +48,12 @@ export const VerifyOtpForm = ({
       </View>
 
       <View style={styles.resendContainer}>
-        <Text style={[styles.resendText, { color: colors.textSecondary }]}>
+        <AppText style={[styles.resendText, { color: colors.textSecondary }]}>
           Didn&apos;t receive the verification code?{" "}
-        </Text>
+        </AppText>
 
         <TouchableOpacity onPress={onResendOtp} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
-          <Text style={[styles.resendLink, { color: colors.primary }]}>Resend</Text>
+          <AppText style={[styles.resendLink, { color: colors.primary }]}>Resend</AppText>
         </TouchableOpacity>
       </View>
 

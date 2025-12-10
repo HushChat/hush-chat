@@ -1,12 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import classNames from "classnames";
 import React, { useEffect, useMemo, useState } from "react";
-import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { colorScheme } from "nativewind";
 import { DOC_EXTENSIONS, SIZES } from "@/constants/mediaConstants";
+import { AppText } from "@/components/AppText";
 
 interface TFilePreviewItemProps {
   file: File;
@@ -47,9 +48,9 @@ const DocumentPreview = ({
 }) => (
   <View className="relative mr-3 w-12 h-12 rounded-lg items-center justify-center bg-gray-200 dark:bg-gray-700">
     <Ionicons name="document-text" size={24} color={iconColor} />
-    <Text className="text-[8px] font-bold mt-0.5" style={{ color: iconColor }}>
+    <AppText className="text-[8px] font-bold mt-0.5" style={{ color: iconColor }}>
       {extension}
-    </Text>
+    </AppText>
     {isSelected && <SelectedBadge />}
   </View>
 );
@@ -116,18 +117,18 @@ export const FilePreviewItem = ({
         )}
 
         <View className="flex-1 min-w-0 pr-2">
-          <Text
+          <AppText
             className="text-[12px] leading-[16px] font-semibold text-text-primary-light dark:text-text-primary-dark"
             numberOfLines={2}
           >
             {file?.name || "file"}
-          </Text>
+          </AppText>
 
           <View className="mt-1 flex-row items-center">
             <View className="px-1.5 py-0.5 rounded bg-secondary-light/80 dark:bg-secondary-dark/80">
-              <Text className="text-[11px] text-text-secondary-light dark:text-text-secondary-dark">
+              <AppText className="text-[11px] text-text-secondary-light dark:text-text-secondary-dark">
                 {prettySize}
-              </Text>
+              </AppText>
             </View>
           </View>
         </View>

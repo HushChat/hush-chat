@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useMemo } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import InitialsAvatar from "@/components/InitialsAvatar";
@@ -15,6 +15,7 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { PLATFORM } from "@/constants/platformConstants";
 import { CallDirection, Direction, ICallLog } from "@/types/call/types";
 import { formatRelativeTime, handleConversationNavigation } from "@/utils/commonUtils";
+import { AppText } from "@/components/AppText";
 
 type CallItemProps = {
   callLog: ICallLog | null | undefined;
@@ -57,12 +58,12 @@ const CallLogItem = ({ callLog, direction, missed }: CallItemProps) => {
 
       <View className="flex-1 ml-3">
         <View className="flex-row items-center justify-between mb-0.5">
-          <Text
+          <AppText
             numberOfLines={1}
             className="text-text-primary-light dark:text-text-primary-dark font-medium text-base"
           >
             {name}
-          </Text>
+          </AppText>
         </View>
 
         <View className="flex-row items-center">
@@ -72,12 +73,12 @@ const CallLogItem = ({ callLog, direction, missed }: CallItemProps) => {
             color={arrowColor}
             style={{ transform: [{ rotate: arrowRotation }] }}
           />
-          <Text
+          <AppText
             numberOfLines={1}
             className="ml-2 text-text-secondary-light dark:text-text-secondary-dark text-sm flex-1"
           >
             {timeText}
-          </Text>
+          </AppText>
         </View>
       </View>
       <View className="ml-3">
