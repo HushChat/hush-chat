@@ -15,13 +15,13 @@ export interface ChatInfoScreenProps {
   conversationId: number;
   onClose?: () => void;
   isWebView?: boolean;
-  setSelectedConversation: (conversation: null) => void;
+  setSelectedConversation?: (conversation: null) => void;
 }
 
 export default function ConversationInfoPanel({
   conversationId,
   onClose,
-  setSelectedConversation,
+  setSelectedConversation = () => {},
 }: ChatInfoScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
