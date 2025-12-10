@@ -1,4 +1,7 @@
 import "dotenv/config";
+import { execSync } from "node:child_process";
+
+const commit = execSync("git rev-parse --short HEAD").toString().trim();
 
 export default () => ({
   expo: {
@@ -61,6 +64,7 @@ export default () => ({
     extra: {
       eas: {
         projectId: process.env.EAS_PROJECT_ID,
+        commitHash: commit,
       },
     },
   },
