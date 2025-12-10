@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, TextInput } from "react-native";
+import { View } from "react-native";
 import { ConversationsMultiSelect, TConversation } from "@/components/ConversationsMultiSelect";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ForwardPanelFooter } from "@/components/conversations/conversation-info-panel/forward-panel/ForwardPanelFooter";
+import { AppText, AppTextInput } from "@/components/AppText";
 
 export interface ConversationForwardPanelBaseProps {
   onClose: () => void;
@@ -30,10 +31,10 @@ const ConversationForwardPanelBase = ({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="px-4 pt-3">
-        <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
+        <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
           Add a note (optional)
-        </Text>
-        <TextInput
+        </AppText>
+        <AppTextInput
           value={customText}
           onChangeText={setCustomText}
           placeholder="Type a note to send with the forwarded messages…"
