@@ -416,6 +416,7 @@ const ConversationThreadScreen = ({
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        updateConversationMessagesCache={updateConversationMessagesCache}
       />
     );
   }, [

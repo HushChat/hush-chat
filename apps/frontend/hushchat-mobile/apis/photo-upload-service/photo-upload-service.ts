@@ -4,14 +4,9 @@ import { CONVERSATION_API_ENDPOINTS, USER_API_ENDPOINTS } from "@/constants/apiC
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
-import {
-  LocalFile,
-  SignedUrl,
-  UploadResult,
-  useNativePickerUpload,
-} from "@/hooks/useNativePickerUpload";
-import { sendMessageByConversationIdFiles } from "@/apis/conversation";
+import { LocalFile, UploadResult, useNativePickerUpload } from "@/hooks/useNativePickerUpload";
 import { logWarn } from "@/utils/logger";
+import { getSignedUrls } from "@/utils/messageUtils";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -153,22 +148,7 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
 };
 
 export function useMessageAttachmentUploader(conversationId: number, messageToSend: string) {
-  const getSignedUrls = async (files: LocalFile[]): Promise<SignedUrl[] | null> => {
-    const fileNames = files.map((file) => file.name);
-    const response = await sendMessageByConversationIdFiles(
-      conversationId,
-      messageToSend,
-      fileNames
-    );
-    const signed = response?.signedURLs || [];
-    return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
-      originalFileName: s.originalFileName,
-      url: s.url,
-      indexedFileName: s.indexedFileName,
-    }));
-  };
-
-  const hook = useNativePickerUpload(getSignedUrls);
+  const hook = useNativePickerUpload(conversationId, messageToSend, getSignedUrls);
 
   const pickAndUploadImages = async () =>
     hook.pickAndUpload({
@@ -236,7 +216,8 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
 
     try {
       const results = await hook.upload(locals);
-      return [...results, ...skipped];
+      const uploads = results.uploads || [];
+      return [...uploads, ...skipped];
     } finally {
       locals.forEach((lf) => {
         try {
