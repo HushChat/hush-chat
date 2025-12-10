@@ -1,5 +1,6 @@
+import { AppText } from "@/components/AppText";
 import React from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity, ActivityIndicator } from "react-native";
 
 interface ForwardPanelFooterProps {
   isPending: boolean;
@@ -23,7 +24,7 @@ export const ForwardPanelFooter = ({
         className="px-4 py-2 rounded-lg bg-secondary-light dark:bg-secondary-dark"
         disabled={isPending}
       >
-        <Text className="text-gray-800 dark:text-gray-200">Cancel</Text>
+        <AppText className="text-gray-800 dark:text-gray-200">Cancel</AppText>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -34,9 +35,9 @@ export const ForwardPanelFooter = ({
         } flex-row items-center`}
       >
         {isPending && <ActivityIndicator size="small" color="#fff" className="mr-2" />}
-        <Text className="text-white">
+        <AppText className="text-white">
           {isPending ? "Sending…" : `Send to ${selectedCount || ""}`}
-        </Text>
+        </AppText>
       </TouchableOpacity>
     </View>
   );

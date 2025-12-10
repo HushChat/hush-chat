@@ -2,6 +2,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, TextInput, View, StyleSheet } from "react-native";
+import { AppTextInput } from "./AppText";
 
 const COLORS = {
   BORDER_TRANSPARENT: "transparent",
@@ -10,7 +11,7 @@ const COLORS = {
 const webInputStyle = PLATFORM.IS_WEB ? { outline: "none", boxShadow: "none" } : {};
 
 interface SearchBarProps {
-  ref?: React.RefObject<TextInput>;
+  inputRef?: React.RefObject<TextInput>;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
@@ -18,7 +19,7 @@ interface SearchBarProps {
 }
 
 const SearchBar = ({
-  ref,
+  inputRef,
   value,
   onChangeText,
   placeholder = "Search...",
@@ -33,8 +34,8 @@ const SearchBar = ({
         size={20}
         className="!text-text-secondary-light dark:!text-text-secondary-dark"
       />
-      <TextInput
-        ref={ref || null}
+      <AppTextInput
+        ref={inputRef}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}

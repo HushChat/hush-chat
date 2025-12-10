@@ -14,6 +14,7 @@ export const PLATFORM = {
   IS_WEB: Platform.OS === PLATFORM_NAMES.WEB,
   IS_IOS: Platform.OS === PLATFORM_NAMES.IOS,
   IS_ANDROID: Platform.OS === PLATFORM_NAMES.ANDROID,
+  IS_NATIVE_MOBILE: Platform.OS === PLATFORM_NAMES.ANDROID || Platform.OS === PLATFORM_NAMES.IOS,
   IS_EXPO_GO: Constants.appOwnership === "expo",
   PLATFORM_NAME: Platform.OS,
 };

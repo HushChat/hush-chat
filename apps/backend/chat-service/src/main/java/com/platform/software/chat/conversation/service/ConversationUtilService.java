@@ -318,6 +318,22 @@ public class ConversationUtilService {
     }
 
     /**
+     * Deletes a conversation.
+     *
+     * @param conversation the Conversation entity to be deleted
+     * @return the deleted Conversation entity
+     */
+    public Conversation deleteConversation(Conversation conversation) {
+        conversation.setDeleted(true);
+        try {
+            return conversationRepository.save(conversation);
+        } catch (Exception exception) {
+            logger.error("failed to delete conversation id: {}", conversation.getId(), exception);
+            throw new CustomBadRequestException("Failed to delete conversation");
+        }
+    }
+
+    /**
      * Enriches message attachments with signed URLs for file access.
      *
      * @param attachments the list of message attachments to process, may be null or empty
