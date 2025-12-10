@@ -62,6 +62,7 @@ interface MessageItemProps {
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  onMarkMessageAsUnread: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -87,6 +88,7 @@ export const ConversationMessageItem = ({
   onViewReactions,
   showSenderAvatar,
   onNavigateToMessage,
+  onMarkMessageAsUnread,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -196,6 +198,14 @@ export const ConversationMessageItem = ({
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
+      });
+    }
+    if (!isCurrentUser && !message.isUnsend) {
+      options.push({
+        id: 5,
+        name: "Mark as Unread",
+        iconName: "mail-unread-outline" as keyof typeof Ionicons.glyphMap,
+        action: () => onMarkMessageAsUnread(message),
       });
     }
     return options;

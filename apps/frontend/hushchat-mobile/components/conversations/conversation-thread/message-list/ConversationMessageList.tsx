@@ -28,6 +28,7 @@ interface IMessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  setSelectedConversation: (conversationId: number | null) => void;
   onLoadNewer: () => void;
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
@@ -43,6 +44,7 @@ const ConversationMessageList = ({
   onMessageSelect,
   conversationAPIResponse,
   selectedConversationId,
+  setSelectedConversation,
   onLoadNewer,
   hasMoreNewer,
   isFetchingNewer,
@@ -56,7 +58,11 @@ const ConversationMessageList = ({
   const sectionListRef = useRef<SectionList>(null);
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
-  const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
+  const { togglePin, unSendMessage, markMessageAsUnread } = useMessageActions(
+    conversationAPIResponse,
+    currentUserId,
+    setSelectedConversation
+  );
 
   const {
     selectedActionMessage,
@@ -158,6 +164,7 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        markMessageAsUnread,
       }),
     [
       currentUserId,
@@ -175,6 +182,7 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      markMessageAsUnread,
     ]
   );
 
