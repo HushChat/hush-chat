@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import RefreshButton from "@/components/RefreshButton";
 import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
-import { PLATFORM } from "@/constants/platformConstants";
 import { handleConversationNavigation } from "@/utils/commonUtils";
 import { ConversationInfo } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
@@ -28,7 +27,6 @@ const ChatHeader = ({
   webPressSearch,
 }: ChatHeaderProps) => {
   const isMobileLayout = useIsMobileLayout();
-  const shouldUseMobileUI = !PLATFORM.IS_WEB || isMobileLayout;
 
   const handleProfileNavigate = useCallback(() => {
     handleConversationNavigation(onShowProfile, conversationInfo.conversationId, isMobileLayout);
@@ -38,7 +36,7 @@ const ChatHeader = ({
     <View className="bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1">
-          {shouldUseMobileUI && (
+          {isMobileLayout && (
             <TouchableOpacity onPress={onBackPress} hitSlop={DEFAULT_HIT_SLOP}>
               <Ionicons
                 name="arrow-back-outline"
@@ -69,7 +67,7 @@ const ChatHeader = ({
           </TouchableOpacity>
         </View>
 
-        {!shouldUseMobileUI && (
+        {!isMobileLayout && (
           <View className="flex-row items-center gap-1">
             <TouchableOpacity
               className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
