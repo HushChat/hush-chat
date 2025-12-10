@@ -254,7 +254,7 @@ public class ConversationService {
         conversationEventService.createMessageWithConversationEvent(
                 conversationId,
                 actorUserId,
-                null, 
+                Collections.emptyList(),
                 ConversationEventType.GROUP_CREATED
         );
         // Event 2: Users Added
