@@ -20,7 +20,7 @@ public class Constants {
     public static final String MAIN_SERVICE_E2E_PROFILE_NAME = "e2e";
     public static final String MAIN_SERVICE_STAGING_PROFILE_NAME = "staging";
     public static final String MAIN_SERVICE_PENTEST_PROFILE_NAME = "pentest";
-    public static final String API_REQUEST_ID = "x-uuid";
+    public static final String API_REQUEST_ID = "x-Uuid";
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$";
     public static final String JWT_CLAIM_EMAIL = "email";
     public static final String MENTION_ALL = "@all";
