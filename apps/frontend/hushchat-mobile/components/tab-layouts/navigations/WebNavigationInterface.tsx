@@ -1,10 +1,11 @@
 import React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
 import { INavigationItem } from "@/types/navigation/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import classNames from "classnames";
+import { AppText } from "@/components/AppText";
 
 interface WebNavigationInterfaceProps {
   navigationItems: INavigationItem[];
@@ -48,7 +49,7 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
                       !isFocused,
                   })}
                 >
-                  <Text
+                  <AppText
                     className={`${
                       isFocused
                         ? "text-text-primary-dark"
@@ -63,14 +64,14 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
                       }
                       size={24}
                     />
-                  </Text>
+                  </AppText>
                 </View>
 
                 <View className="absolute left-16 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none z-20">
                   <View className="bg-gray-800 dark:bg-black px-3 py-2 rounded-lg">
-                    <Text className="text-text-primary-dark text-sm font-medium whitespace-nowrap">
+                    <AppText className="text-text-primary-dark text-sm font-medium whitespace-nowrap">
                       {item.title}
-                    </Text>
+                    </AppText>
 
                     <View className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1">
                       <View className="w-0 h-0 border-t-4 border-b-4 border-r-8 border-t-transparent border-b-transparent border-r-gray-800 dark:border-r-black" />

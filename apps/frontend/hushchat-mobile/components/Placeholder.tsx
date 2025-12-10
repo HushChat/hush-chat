@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ImageSourcePropType } from "react-native";
+import { View, ImageSourcePropType } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { MotionView } from "@/motion/MotionView";
 import { AppText } from "@/components/AppText";
@@ -88,9 +88,9 @@ export default function Placeholder({
       </MotionView>
 
       {!!bottomNote && (
-        <Text className="absolute bottom-6 text-xs text-gray-400 dark:text-gray-500">
+        <AppText className="absolute bottom-6 text-xs text-gray-400 dark:text-gray-500">
           {bottomNote}
-        </Text>
+        </AppText>
       )}
     </View>
   );

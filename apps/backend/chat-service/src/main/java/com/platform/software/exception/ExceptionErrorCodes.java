@@ -10,7 +10,4 @@ public class ExceptionErrorCodes {
     public static final String BAD_GATEWAY = "ERR_BAD_GATEWAY";
     public static final String NOT_FOUND = "NOT_FOUND";
     public static final String TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS";
-
-
-    
 }

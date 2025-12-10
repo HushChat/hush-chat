@@ -1,10 +1,12 @@
-import { StyleSheet, View } from "react-native";
 import React from "react";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { getInitials } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 import { chatUserStatus } from "@/types/chat/types";
 import UserStatusIndicator from "@/components/UserStatusIndicator";
+import UploadIndicator from "@/components/UploadIndicator";
 
 export const AvatarSize = {
   extraSmall: "esm",
@@ -15,12 +17,17 @@ export const AvatarSize = {
 
 type AvatarSizeType = (typeof AvatarSize)[keyof typeof AvatarSize];
 
-interface InitialsAvatarProps {
+interface IInitialsAvatarProps {
   name: string;
   size?: AvatarSizeType;
   imageUrl?: string | null;
   userStatus?: chatUserStatus;
   showOnlineStatus?: boolean;
+  imageError?: boolean;
+  onImageError?: () => void;
+  showCameraIcon?: boolean;
+  isUploading?: boolean;
+  onPress?: () => void;
 }
 
 const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> = {
@@ -46,6 +53,16 @@ const styles = StyleSheet.create({
   initialsText: {
     color: COLORS.INITIALS_TEXT,
   },
+  cameraBadge: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    backgroundColor: "#6B4EFF",
+    padding: 8,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: "#090F1D",
+  },
 });
 
 const InitialsAvatar = ({
@@ -54,30 +71,51 @@ const InitialsAvatar = ({
   imageUrl,
   userStatus = chatUserStatus.OFFLINE,
   showOnlineStatus = false,
-}: InitialsAvatarProps) => {
+  imageError = false,
+  onImageError,
+  showCameraIcon = false,
+  isUploading = false,
+  onPress,
+}: IInitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
 
-  return (
-    <View style={styles.container}>
-      <View
-        className={`${container} rounded-full bg-primary-light dark:bg-primary-dark items-center justify-center`}
-      >
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.avatarImage}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-          />
-        ) : (
-          <AppText className={`font-medium text-center ${text}`} style={styles.initialsText}>
-            {getInitials(name)}
-          </AppText>
-        )}
-      </View>
+  const shouldShowImage = imageUrl && !imageError;
 
-      {showOnlineStatus && <UserStatusIndicator userStatus={userStatus} />}
-    </View>
+  const Wrapper = onPress ? TouchableOpacity : View;
+  const wrapperProps = onPress ? { onPress, disabled: isUploading } : {};
+
+  return (
+    <Wrapper {...wrapperProps}>
+      <View style={styles.container}>
+        <View
+          className={`${container} rounded-full bg-primary-light dark:bg-primary-dark items-center justify-center`}
+        >
+          {shouldShowImage ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.avatarImage}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              onError={onImageError}
+            />
+          ) : (
+            <AppText className={`font-medium text-center ${text}`} style={styles.initialsText}>
+              {getInitials(name)}
+            </AppText>
+          )}
+        </View>
+
+        {isUploading && <UploadIndicator isUploading={true} />}
+
+        {showCameraIcon && (
+          <View style={styles.cameraBadge}>
+            <Ionicons name="camera" size={15} color="#fafafa" />
+          </View>
+        )}
+
+        {showOnlineStatus && <UserStatusIndicator userStatus={userStatus} />}
+      </View>
+    </Wrapper>
   );
 };
 

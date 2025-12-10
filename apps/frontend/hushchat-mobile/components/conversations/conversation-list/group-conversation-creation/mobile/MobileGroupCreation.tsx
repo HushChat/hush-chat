@@ -1,10 +1,11 @@
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import BackButton from "@/components/BackButton";
 import { CHAT_VIEW_PATH } from "@/constants/routes";
 import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
+import { AppText } from "@/components/AppText";
 
 const MobileGroupCreation = ({ participantUserIds }: { participantUserIds: number[] }) => {
   const insets = useSafeAreaInsets();
@@ -16,9 +17,9 @@ const MobileGroupCreation = ({ participantUserIds }: { participantUserIds: numbe
         className="px-4 py-3 flex-row items-center border-b border-gray-200 dark:border-gray-800"
       >
         <BackButton onPress={() => router.back()} />
-        <Text className="ml-3 text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
+        <AppText className="ml-3 text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
           New Group
-        </Text>
+        </AppText>
       </View>
 
       <GroupConfigurationForm

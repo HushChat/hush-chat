@@ -5,7 +5,6 @@ import {
   FlatList,
   Modal,
   Pressable,
-  Text,
   View,
   StyleSheet,
 } from "react-native";
@@ -17,6 +16,7 @@ import { useMessageReactionsQuery } from "@/query/useMessageReactionsQuery";
 import { getAdjustedPosition } from "@/utils/commonUtils";
 import { MotionView } from "@/motion/MotionView";
 import { MotionConfig } from "@/motion/config";
+import { AppText } from "@/components/AppText";
 
 interface MessageReactionsModalProps {
   visible: boolean;
@@ -90,8 +90,8 @@ const MessageReactionsModalWeb = ({
         isDark ? "border-[#2C3650]/40" : "border-[#E5E7EB]/50"
       )}
     >
-      <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
-      <Text
+      <AppText className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</AppText>
+      <AppText
         className={classNames(
           "text-[15px] font-medium flex-1",
           isDark ? "text-text-primary-dark" : "text-text-primary-light"
@@ -99,7 +99,7 @@ const MessageReactionsModalWeb = ({
         numberOfLines={1}
       >
         {item.name}
-      </Text>
+      </AppText>
     </View>
   );
 
@@ -124,14 +124,14 @@ const MessageReactionsModalWeb = ({
     return (
       <View className="py-12 items-center justify-center">
         <Ionicons name="heart-outline" size={48} color={isDark ? "#4B5563" : "#D1D5DB"} />
-        <Text
+        <AppText
           className={classNames(
             "mt-3 text-[15px]",
             isDark ? "text-text-secondary-dark" : "text-text-secondary-light"
           )}
         >
           No reactions yet
-        </Text>
+        </AppText>
       </View>
     );
   };
@@ -165,14 +165,14 @@ const MessageReactionsModalWeb = ({
               isDark ? "border-[#2C3650]/60" : "border-[#E5E7EB]/70"
             )}
           >
-            <Text
+            <AppText
               className={classNames(
                 "text-[16px] font-semibold",
                 isDark ? "text-text-primary-dark" : "text-text-primary-light"
               )}
             >
               Reactions
-            </Text>
+            </AppText>
           </View>
 
           <FlatList
