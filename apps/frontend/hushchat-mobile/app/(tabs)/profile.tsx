@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   TouchableOpacity,
@@ -23,6 +23,8 @@ import { AppText, AppTextInput } from "@/components/AppText";
 import { passwordRules } from "@/utils/passwordRules";
 import { useProfileForm } from "@/hooks/useProfileForm";
 import UploadIndicator from "@/components/UploadIndicator";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
 
 const COLORS = {
   CAMERA_BG: "#3b82f6",
@@ -118,9 +120,17 @@ export default function Profile() {
     syncUserData,
     hasPasswordData,
     isProfileChanged,
+    handleDroppedFiles,
   } = useProfileForm();
 
-  // Sync form with user data when user changes
+  const avatarDropRef = useRef<View>(null);
+
+  const { isDragging } = useDragAndDrop(avatarDropRef, {
+    onDropFiles: (files) => {
+      handleDroppedFiles(files);
+    },
+  });
+
   useEffect(() => {
     syncUserData();
   }, [user?.id, syncUserData]);
@@ -179,7 +189,12 @@ export default function Profile() {
             disabled={uploading}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
-            <View style={styles.avatarContainer}>
+            <View
+              ref={avatarDropRef}
+              style={[styles.avatarContainer, { overflow: "hidden", borderRadius: 80 }]}
+            >
+              <DragAndDropOverlay visible={isDragging} variant="avatar" />
+
               {imagePickerResult?.assets?.[0]?.uri ? (
                 <Image
                   source={{ uri: imagePickerResult.assets[0].uri }}
@@ -199,10 +214,9 @@ export default function Profile() {
               )}
 
               <UploadIndicator isUploading={uploading} />
-
-              <View style={styles.cameraIconContainer}>
-                <Ionicons name="camera" size={18} color="#fff" />
-              </View>
+            </View>
+            <View style={styles.cameraIconContainer}>
+              <Ionicons name="camera" size={18} color="#fff" />
             </View>
           </TouchableOpacity>
         </View>
