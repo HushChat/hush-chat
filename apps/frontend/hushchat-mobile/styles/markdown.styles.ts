@@ -8,6 +8,7 @@ type BaseSpecs = {
   color: string;
 };
 
+// read `https://github.com/iamacup/react-native-markdown-display/blob/master/src/lib/styles.js` for styling
 export const getMarkdownStyles = (specs: BaseSpecs) => {
   return StyleSheet.create({
     body: {
@@ -27,25 +28,28 @@ export const getMarkdownStyles = (specs: BaseSpecs) => {
     heading1: {
       fontWeight: "bold",
       marginBottom: 8,
-      marginTop: 4,
     },
 
     heading2: {
       fontWeight: "bold",
       marginBottom: 8,
-      marginTop: 4,
     },
 
-    list_item: { marginVertical: 2, fontSize: specs.fontSize },
-    bullet_list: { marginBottom: 8 },
+    list_item: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginVertical: 2,
+      fontSize: specs.fontSize,
+    },
+
     ordered_list: { marginBottom: 8 },
 
     bullet_list_icon: {
       fontSize: specs.fontSize,
       fontWeight: "bold",
-      marginLeft: 8,
       marginRight: 8,
     },
+
     ordered_list_icon: {
       fontSize: specs.fontSize,
       fontWeight: "bold",
@@ -72,5 +76,8 @@ export const getMarkdownStyles = (specs: BaseSpecs) => {
     strong: { fontWeight: "bold" },
     em: { fontStyle: "italic" },
     del: { textDecorationLine: "line-through" },
+    s: {
+      textDecorationLine: "line-through",
+    },
   });
 };

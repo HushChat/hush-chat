@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Linking, TextStyle, StyleSheet, View } from "react-native";
+import { Linking, TextStyle, StyleSheet } from "react-native";
 import Markdown, { MarkdownIt } from "react-native-markdown-display";
 import { TUser } from "@/types/user/types";
 import { HASHTAG_REGEX, MENTION_REGEX, PHONE_REGEX } from "@/constants/regex";
@@ -103,12 +103,31 @@ const FormattedText = ({
     [onLinkPress, onMentionPress, onHashtagPress, onEmailPress, onPhonePress]
   );
 
+  // read `https://github.com/iamacup/react-native-markdown-display/blob/master/src/lib/renderRules.js` for rules
   const rules = useMemo(
     () => ({
+      paragraph: (node: any, children: any, styles: any) => (
+        <AppText key={node.key} style={styles.paragraph}>
+          {children}
+        </AppText>
+      ),
+
       image: (node: any) => {
         const { src, alt } = node.attributes;
         return <MarkdownImage key={node.key} src={src} alt={alt} />;
       },
+
+      bullet_list: (node: any, children: any, styles: any) => (
+        <AppText key={node.key} style={styles.bullet_list}>
+          {children}
+        </AppText>
+      ),
+
+      ordered_list: (node: any, children: any, styles: any) => (
+        <AppText key={node.key} style={styles.ordered_list}>
+          {children}
+        </AppText>
+      ),
 
       link: (node: any, children: any, styles: any) => {
         const url = node.attributes.href;
@@ -171,11 +190,9 @@ const FormattedText = ({
 
   return (
     <>
-      <View style={{ flexShrink: 1 }}>
-        <Markdown style={markdownStyles as any} rules={rules} markdownit={markdownItInstance}>
-          {processedText}
-        </Markdown>
-      </View>
+      <Markdown style={markdownStyles as any} rules={rules} markdownit={markdownItInstance}>
+        {processedText}
+      </Markdown>
 
       {PLATFORM.IS_WEB && (
         <WebContextMenu
