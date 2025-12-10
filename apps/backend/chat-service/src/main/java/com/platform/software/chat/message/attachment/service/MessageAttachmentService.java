@@ -93,7 +93,14 @@ public class MessageAttachmentService {
 
     public Page<MessageAttachmentDTO> getAttachments(Long conversationId, AttachmentFilterCriteria attachmentFilterCriteria, Pageable pageable) {
         attachmentFilterCriteria.setConversationId(conversationId);
-        Page<MessageAttachmentDTO> attachmentDTOPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria, pageable);
+        Page<MessageAttachment> attachmentPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria, pageable);
+        Page<MessageAttachmentDTO> attachmentDTOPage = attachmentPage.map(attachment -> {
+            MessageAttachmentDTO attachmentDTO = new MessageAttachmentDTO(attachment);
+            String fileViewSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
+            attachmentDTO.setFileUrl(fileViewSignedURL);
+            return attachmentDTO;
+        });
         return attachmentDTOPage;
     }
 }
