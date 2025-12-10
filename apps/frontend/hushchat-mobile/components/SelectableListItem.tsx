@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import classNames from "classnames";
 import { PLATFORM } from "@/constants/platformConstants";
 import InitialsAvatar from "@/components/InitialsAvatar";
+import { AppText } from "@/components/AppText";
 
 interface SelectableListItemProps {
   title: string;
@@ -31,13 +32,16 @@ export const SelectableListItem = ({
     <InitialsAvatar name={title} imageUrl={imageUrl} />
     <View className="flex-1 flex-row justify-between items-center mr-3">
       <View className="flex-col items-start mb-1 gap-0.5">
-        <Text className="text-text-primary-light dark:text-text-primary-dark font-medium text-base">
+        <AppText className="text-text-primary-light dark:text-text-primary-dark font-medium text-base">
           {title}
-        </Text>
+        </AppText>
         {!!subtitle && (
-          <Text className="text-gray-600 dark:text-text-secondary-dark text-sm" numberOfLines={1}>
+          <AppText
+            className="text-gray-600 dark:text-text-secondary-dark text-sm"
+            numberOfLines={1}
+          >
             {subtitle}
-          </Text>
+          </AppText>
         )}
       </View>
       {isSelected && <Ionicons name="checkmark-circle" size={20} color="#60A5FA" />}

@@ -1,12 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import { View, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { IConversation, IGroupConversation } from "@/types/chat/types";
@@ -28,6 +21,7 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
+import { AppText, AppTextInput } from "@/components/AppText";
 
 const COLORS = {
   primaryBlue: "#3b82f6",
@@ -156,13 +150,13 @@ const GroupConfigurationForm = ({
         </TouchableOpacity>
       </View>
 
-      <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
+      <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
         Group name
-      </Text>
+      </AppText>
 
       <View className="flex-row items-center rounded-lg px-3 h-12">
         <Ionicons name="people" size={18} color="#9CA3AF" />
-        <TextInput
+        <AppTextInput
           value={groupName}
           onChangeText={setGroupName}
           placeholder="e.g. Weekend Plans"
@@ -172,16 +166,16 @@ const GroupConfigurationForm = ({
         />
       </View>
 
-      <Text className="mt-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+      <AppText className="mt-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">
         Participants selected: {participantUserIds.length}
-      </Text>
+      </AppText>
 
-      <Text className="mt-4 text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
+      <AppText className="mt-4 text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
         Group description
-      </Text>
+      </AppText>
 
       <View className="rounded-lg px-3 py-2 min-h-20 border border-gray-300 dark:border-gray-600">
-        <TextInput
+        <AppTextInput
           value={groupDescription}
           onChangeText={setGroupDescription}
           placeholder="e.g. Trip planning, group work, etc."
@@ -206,7 +200,7 @@ const GroupConfigurationForm = ({
         {submitting ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
-          <Text className="text-white font-medium cursor-pointer">{submitLabel}</Text>
+          <AppText className="text-white font-medium cursor-pointer">{submitLabel}</AppText>
         )}
       </TouchableOpacity>
     </View>

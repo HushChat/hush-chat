@@ -1,8 +1,9 @@
 import { IMessage } from "@/types/chat/types";
-import { Text, useColorScheme, View, StyleSheet } from "react-native";
+import { useColorScheme, View, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { useUserStore } from "@/store/user/useUserStore";
+import { AppText } from "@/components/AppText";
 
 interface UnsendMessagePreviewProps {
   unsendMessage?: IMessage;
@@ -33,13 +34,13 @@ export default function UnsendMessagePreview({ unsendMessage }: UnsendMessagePre
       <View style={styles.iconWrapper} className="bg-background-light dark:bg-background-dark">
         <MaterialIcons name="block" size={14} color={isDark ? "#9ca3af" : "#111827"} />
       </View>
-      <Text
+      <AppText
         className="text-text-primary-light dark:text-text-secondary-dark pb-1"
         style={styles.unsendText}
       >
         {unsendMessage?.senderId !== Number(user.id) ? unsendMessage?.senderFirstName : "You"}{" "}
         unsent this message
-      </Text>
+      </AppText>
     </View>
   );
 }

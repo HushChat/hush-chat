@@ -1,7 +1,8 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import { AppText } from "./AppText";
 
 type AlertType = "error" | "success" | "info" | "warning";
 
@@ -71,7 +72,7 @@ const Alert = ({ message, type, size = 20 }: AlertProps) => {
           <Ionicons name={config.icon.name} size={size} color={iconColor} />
 
           <View className="flex-1">
-            <Text className={`text-sm leading-5 ${config.text}`}>{message}</Text>
+            <AppText className={`text-sm leading-5 ${config.text}`}>{message}</AppText>
           </View>
         </View>
       </View>
