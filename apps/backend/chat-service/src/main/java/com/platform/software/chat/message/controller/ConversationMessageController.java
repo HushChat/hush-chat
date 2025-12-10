@@ -6,6 +6,7 @@ import com.platform.software.chat.conversation.readstatus.service.ConversationRe
 import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.dto.MessageWindowPage;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
@@ -186,14 +187,14 @@ public class ConversationMessageController {
         return ResponseEntity.noContent().build();
     }
 
-    @ApiOperation(value = "Get a page of messages around a specific message ID", response = MessageViewDTO.class)
+    @ApiOperation(value = "Get a page of messages around a specific message ID", response = MessageWindowPage.class)
     @GetMapping("/{messageId}")
-    public ResponseEntity<Page<MessageViewDTO>> getMessagesAroundId(
+    public ResponseEntity<MessageWindowPage<MessageViewDTO>> getMessagesAroundId(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails,
             @PathVariable Long messageId
     ) {
-        Page<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
+        MessageWindowPage<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 }
