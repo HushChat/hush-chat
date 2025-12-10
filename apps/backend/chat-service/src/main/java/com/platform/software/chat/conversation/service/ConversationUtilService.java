@@ -186,17 +186,22 @@ public class ConversationUtilService {
     @Cacheable(value = CacheNames.GET_CONVERSATION_META_DATA, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     public ConversationMetaDataDTO getConversationMetaDataDTO(Long conversationId, Long userId) {
         ConversationParticipant conversationParticipant = getConversationParticipantOrThrow(conversationId, userId);
-        if(conversationParticipant.getIsDeleted()){
-            throw new CustomBadRequestException("Can,t find conversation with ID %s".formatted(conversationId));
-        }
         Conversation conversation = getConversationOrThrow(conversationId);
         ConversationMetaDataDTO conversationMetaDataDTO = conversationRepository.findConversationMetaData(conversationId, userId);
 
         Message pinnedMessage = conversation.getPinnedMessage();
         if (pinnedMessage != null) {
+        boolean showPin = true;
+        if(conversationParticipant.getLastDeletedTime() != null && 
+           pinnedMessage.getCreatedAt().before(Date.from(conversationParticipant.getLastDeletedTime().toInstant()))) {
+            showPin = true;
+        }
+        
+        if(showPin) {
             BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
             conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
         }
+    }
         return conversationMetaDataDTO;
     }
 
