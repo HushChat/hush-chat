@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dimensions, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Dimensions, TouchableOpacity, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { UserMultiSelectList } from "@/components/UserMultiSelect";
 import { TUser } from "@/types/user/types";
@@ -8,6 +8,7 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { MotionView } from "@/motion/MotionView";
+import { AppText } from "@/components/AppText";
 
 interface AddParticipantsProps {
   conversationId: number;
@@ -55,9 +56,9 @@ export default function AddMoreGroupParticipants({
           <TouchableOpacity onPress={onClose} className="mr-3">
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
-          <Text className="text-xl font-semibold text-gray-900 dark:text-white">
+          <AppText className="text-xl font-semibold text-gray-900 dark:text-white">
             Add Participants
-          </Text>
+          </AppText>
         </View>
 
         <TouchableOpacity
@@ -70,13 +71,13 @@ export default function AddMoreGroupParticipants({
           }`}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
-          <Text
+          <AppText
             className={`text-xs font-medium leading-none ${
               selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-300"
             }`}
           >
             Add
-          </Text>
+          </AppText>
         </TouchableOpacity>
       </View>
 

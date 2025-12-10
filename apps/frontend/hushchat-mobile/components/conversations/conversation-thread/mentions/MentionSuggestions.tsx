@@ -3,7 +3,6 @@ import {
   FlatList,
   ListRenderItemInfo,
   Pressable,
-  Text,
   View,
   ActivityIndicator,
   StyleSheet,
@@ -17,6 +16,7 @@ import useDebounce from "@/hooks/useDebounce";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useUserStore } from "@/store/user/useUserStore";
+import { AppText } from "@/components/AppText";
 
 const COLORS = {
   lightBg: "#fafafa",
@@ -105,9 +105,9 @@ const MentionSuggestions = ({
         <View className="mr-3">
           {isAllOption ? (
             <View className="h-7 w-12 bg-gray-200 dark:bg-gray-700 rounded-md items-center justify-center border border-dashed border-gray-400 dark:border-gray-500">
-              <Text className="text-sm font-semibold text-text-primary-light dark:text-text-primary-dark">
+              <AppText className="text-sm font-semibold text-text-primary-light dark:text-text-primary-dark">
                 @all
-              </Text>
+              </AppText>
             </View>
           ) : (
             <InitialsAvatar
@@ -120,17 +120,17 @@ const MentionSuggestions = ({
 
         <View className="flex-1">
           {isAllOption ? (
-            <Text className="text-sm text-gray-500 dark:text-gray-400">
+            <AppText className="text-sm text-gray-500 dark:text-gray-400">
               notifies all participants
-            </Text>
+            </AppText>
           ) : (
             <>
-              <Text className="text-sm text-text-primary-light dark:text-text-primary-dark">
+              <AppText className="text-sm text-text-primary-light dark:text-text-primary-dark">
                 {fullName}
-              </Text>
-              <Text className="text-xs text-gray-500 dark:text-gray-400">
+              </AppText>
+              <AppText className="text-xs text-gray-500 dark:text-gray-400">
                 @{item.user.username}
-              </Text>
+              </AppText>
             </>
           )}
         </View>

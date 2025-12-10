@@ -1,10 +1,11 @@
 import { PLATFORM } from "@/constants/platformConstants";
 import { TUser } from "@/types/user/types";
 import classNames from "classnames";
-import { Pressable, TouchableOpacity, View, Text } from "react-native";
+import { Pressable, TouchableOpacity, View } from "react-native";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { Ionicons } from "@expo/vector-icons";
+import { AppText } from "@/components/AppText";
 
 interface UserListItemProps {
   user: TUser;
@@ -33,15 +34,15 @@ const UserListItem = ({ user, isSelected, onToggle }: UserListItemProps) => {
 
       <View className="flex-1 flex-row justify-between items-center mr-3">
         <View className="flex-col items-start mb-1 gap-0.5">
-          <Text className="text-text-primary-light dark:text-text-primary-dark font-medium text-base text-start">
+          <AppText className="text-text-primary-light dark:text-text-primary-dark font-medium text-base text-start">
             {fullName || "Unknown User"}
-          </Text>
-          <Text
+          </AppText>
+          <AppText
             className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
             numberOfLines={1}
           >
             {user.email}
-          </Text>
+          </AppText>
         </View>
         {isSelected && (
           <Ionicons

@@ -5,7 +5,7 @@ import {
   ISectionedSearchResult,
 } from "@/types/chat/types";
 import { useCallback, useMemo } from "react";
-import { Text, View, ActivityIndicator, ListRenderItemInfo } from "react-native";
+import { View, ActivityIndicator, ListRenderItemInfo } from "react-native";
 import Alert from "@/components/Alert";
 import ConversationListItem from "@/components/conversations/conversation-list/ConversationListItem";
 import { SearchedItem } from "@/components/conversations/conversation-thread/message-list/SearchedMessageItem";
@@ -18,6 +18,7 @@ import { useCreateOneToOneConversationMutation } from "@/query/post/queries";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
+import { AppText } from "@/components/AppText";
 
 interface SearchedConversationListProps {
   searchedConversationsResult: ISearchResults;
@@ -36,9 +37,9 @@ const EMPTY_ARRAY: ISectionedSearchResult[] = [];
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }: { title: string }) => (
   <View className="bg-gray-100 dark:bg-gray-900 px-4 py-1.5 rounded-md">
-    <Text className="text-text-secondary-light dark:text-text-secondary-dark font-medium text-base capitalize">
+    <AppText className="text-text-secondary-light dark:text-text-secondary-dark font-medium text-base capitalize">
       {title}
-    </Text>
+    </AppText>
   </View>
 );
 
@@ -208,7 +209,7 @@ export default function SearchedConversationList({
       return (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" />
-          <Text className="mt-2 text-gray-500">Searching...</Text>
+          <AppText className="mt-2 text-gray-500">Searching...</AppText>
         </View>
       );
     }
@@ -219,10 +220,10 @@ export default function SearchedConversationList({
 
     return (
       <View className="flex-1 justify-center items-center px-8">
-        <Text className="text-center text-gray-500">
+        <AppText className="text-center text-gray-500">
           No conversations, messages or users found for &quot;{searchQuery}
           &quot;
-        </Text>
+        </AppText>
       </View>
     );
   }, [isSearchingConversations, errorWhileSearchingConversation, searchQuery]);

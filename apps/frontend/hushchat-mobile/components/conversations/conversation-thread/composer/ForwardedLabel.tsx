@@ -1,7 +1,8 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
+import { AppText } from "@/components/AppText";
 
 export const ForwardedLabel = ({
   isForwardedMessage,
@@ -25,14 +26,14 @@ export const ForwardedLabel = ({
         className={classNames(isCurrentUser ? "text-primary-light" : "text-gray-500")}
       />
 
-      <Text
+      <AppText
         className={classNames(
           "text-xs italic",
           isCurrentUser ? "text-primary-light" : "text-gray-500 dark:text-gray-400"
         )}
       >
         Forwarded
-      </Text>
+      </AppText>
     </View>
   );
 };
