@@ -1,5 +1,4 @@
 import { getUserInfo } from "@/apis/user";
-import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
 import { IUser } from "@/types/user/types";
 import { logInfo } from "@/utils/logger";
 import { StateCreator } from "zustand";
@@ -22,7 +21,7 @@ const initialUserState: IUser = {
   lastName: "",
   signedImageUrl: "",
   active: false,
-  workspaceRole: WorkspaceUserRole.MEMBER,
+  workspaceRole: "",
 };
 
 export const createUserSlice: StateCreator<UserState> = (set) => ({

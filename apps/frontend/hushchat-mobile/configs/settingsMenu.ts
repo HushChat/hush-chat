@@ -19,7 +19,6 @@ type MenuBuilderContext = {
 const baseMenuItems: TMenuItem[] = [
   { key: "contact", label: "Contact", icon: "contacts", adminOnly: false },
   { key: "invite", label: "Invite", icon: "person-add", adminOnly: false },
-  { key: "users", label: "Manage Users", icon: "person-add", adminOnly: true },
 ];
 
 const changeWorkspaceItem: TMenuItem = {
