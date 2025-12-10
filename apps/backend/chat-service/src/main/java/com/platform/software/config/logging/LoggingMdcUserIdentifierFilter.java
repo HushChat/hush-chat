@@ -36,9 +36,6 @@ public class LoggingMdcUserIdentifierFilter extends OncePerRequestFilter {
             if (requestUuid != null && !requestUuid.isEmpty()) {
                 MDC.put(Constants.API_REQUEST_ID, requestUuid); // Store UUID in MDC for logging
             }
-            else {
-                System.out.println("No uuid found");
-            }
 
             filterChain.doFilter(request, response);
         } finally {
