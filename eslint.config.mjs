@@ -92,4 +92,12 @@ export default [
           },
         },
     },
+    {
+        files: [
+            '**/components/AppText.tsx', 
+        ],
+        rules: {
+            'no-restricted-syntax': 'off', 
+        }
+    }
 ];
