@@ -5,6 +5,7 @@ import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import org.slf4j.Logger;
@@ -65,6 +66,10 @@ public class WorkspaceSeeder {
                 workspaceUser.setWorkspace(workspaces.stream().findFirst().get());
                 workspaceUser.setEmail(wu.getEmail());
                 workspaceUser.setStatus(WorkspaceUserStatus.ACCEPTED);
+
+                if ("jane@chat.com".equalsIgnoreCase(wu.getEmail())) {
+                    workspaceUser.setRole(WorkspaceUserRole.ADMIN);
+                }
 
                 return workspaceUser;
             }).toList();

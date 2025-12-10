@@ -1,4 +1,5 @@
 import { getUserInfo } from "@/apis/user";
+import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
 import { IUser } from "@/types/user/types";
 import { logInfo } from "@/utils/logger";
 import { StateCreator } from "zustand";
@@ -21,6 +22,7 @@ const initialUserState: IUser = {
   lastName: "",
   signedImageUrl: "",
   active: false,
+  workspaceRole: WorkspaceUserRole.MEMBER,
 };
 
 export const createUserSlice: StateCreator<UserState> = (set) => ({
@@ -61,8 +63,13 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
         return;
       }
 
+      const user: IUser = {
+        ...response.data,
+        workspaceRole: response.data.workspaceRole,
+      };
+
       set({
-        user: response.data,
+        user: user,
         loading: false,
         isAuthenticatedAndDataFetched: true,
       });

@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -105,5 +104,13 @@ public class WorkspaceUserService {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    public WorkspaceUser getWorkspaceUserByEmailAndWorkspaceIdentifier(String email, String workspaceIdentifier) {
+        return WorkspaceUtils.runInGlobalSchema(() -> {
+            WorkspaceUser existingUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
+                    email, workspaceIdentifier).orElse(null);
+            return existingUser;
+        });
     }
 }

@@ -28,7 +28,7 @@ public interface UserService {
 
     UserDTO getUserByIdWithProfileImage(Long id);
 
-    UserViewDTO findUserById(Long id);
+    UserViewDTO findUserById(Long id, String workspaceIdentifier);
 
     void signOut(String accessToken);
 

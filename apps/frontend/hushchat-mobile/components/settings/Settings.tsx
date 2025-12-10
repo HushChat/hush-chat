@@ -6,8 +6,12 @@ import { AppText } from "@/components/AppText";
 import SidebarMenu, { SidebarMenuItem } from "@/components/SidebarMenu";
 import { getSettingsMenuItems, settingsPanels } from "@/configs/settingsMenu";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
+import { useUserStore } from "@/store/user/useUserStore";
 
 export default function Settings() {
+  const {
+    user: { workspaceRole },
+  } = useUserStore();
   const [selected, setSelected] = useState("contact");
   const [menuItems, setMenuItems] = useState<SidebarMenuItem[]>([]);
 
@@ -16,7 +20,8 @@ export default function Settings() {
   useEffect(() => {
     const loadMenuItems = () => {
       const workspaceCount = workspaces ? workspaces.length : 0;
-      const items = getSettingsMenuItems({ workspaceCount });
+      const items = getSettingsMenuItems({ workspaceCount }, workspaceRole);
+
       setMenuItems(items);
 
       if (items.length > 0 && !items.find((i) => i.key === selected)) {

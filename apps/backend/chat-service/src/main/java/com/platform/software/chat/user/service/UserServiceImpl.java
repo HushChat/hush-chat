@@ -22,6 +22,7 @@ import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.platform.workspace.entity.Workspace;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
 import com.platform.software.chat.user.repository.UserBlockRepository;
@@ -181,7 +182,7 @@ public class UserServiceImpl implements UserService {
 
     @Cacheable(value = CacheNames.FIND_USER_BY_ID, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     @Override
-    public UserViewDTO findUserById(Long id) {
+    public UserViewDTO findUserById(Long id, String workspaceIdentifier) {
         ChatUser user = userRepository.findById(id)
         .orElseThrow(() -> {
             logger.warn("invalid user id {} provided", id);
@@ -190,6 +191,8 @@ public class UserServiceImpl implements UserService {
         
         UserViewDTO userViewDTO = new UserViewDTO(user);
         userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(user.getEmail(), workspaceIdentifier);
+        userViewDTO.setWorkspaceRole(workspaceUser.getRole());
         return userViewDTO;
     }
 
