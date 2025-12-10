@@ -115,70 +115,70 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                WorkspaceUser workspaceUser = null;
+        WorkspaceUser workspaceUser = null;
 
-                // Allow through for public routes
-                if (isPublicEndpoint(request)) {
-                    filterChain.doFilter(request, response); 
-                    return;
-                }
+        // Allow through for public routes
+        if (isPublicEndpoint(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-                // Extract Token
-                String token = AuthUtils.extractTokenFromHeader(request);
-                if (token == null) {
-                    ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.JWT_TOKEN_MISSING_RESPONSE);
-                    return;
-                }
+        // Extract Token
+        String token = AuthUtils.extractTokenFromHeader(request);
+        if (token == null) {
+            ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.JWT_TOKEN_MISSING_RESPONSE);
+            return;
+        }
 
+        try {
+            DecodedJWT decodedJwt = JWT.decode(token);
+            Map<String, Claim> claims = decodedJwt.getClaims();
+            String email = claims.get(Constants.EMAIL_ATTR).asString().replace("\"", "");
+            String userType = claims.get(Constants.COGNITO_CUSTOM_USER_TYPE_KEY).asString();
+
+            //skip setting workspace for platform only endpoints
+            if(!isPlatformOnlyEndpoint(request)){
                 try {
-                    DecodedJWT decodedJwt = JWT.decode(token);
-                    Map<String, Claim> claims = decodedJwt.getClaims();
-                    String email = claims.get(Constants.EMAIL_ATTR).asString().replace("\"", "");
-                    String userType = claims.get(Constants.COGNITO_CUSTOM_USER_TYPE_KEY).asString();
-
-                    //skip setting workspace for platform only endpoints
-                    if(!isPlatformOnlyEndpoint(request)){
-                        try {
-                            workspaceUser = setCurrentWorkspace(request, email);
-                        } catch (CustomWorkspaceMissingException e){
-                            ErrorResponseHandler.sendErrorResponse(response, CustomHttpStatus.WORKSPACE_ID_MISSING, ErrorResponses.WORKSPACE_ID_MISSING_RESPONSE);
-                            return;
-                        }
-                    }
-
-                    if (userType == null) {
-                        ErrorResponseHandler.sendErrorResponse(response, HttpStatus.FORBIDDEN, ErrorResponses.USER_TYPE_IS_NULL_RESPONSE);
-                        return;
-                    }
-
-                    handleTokenVerificationForUsers(
-                        decodedJwt,
-                        token
-                    );
-
-                    UserDetails userDetails;
-                    try {
-                        ChatUser user = userService.getUserByEmail(email);
-                        userDetails = new UserDetails(
-                            user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace(),
-                            workspaceUser != null ? workspaceUser.getRole() : null
-                        );
-                    } catch (Exception e) {
-                        userDetails = new UserDetails();
-                        userDetails.setEmail(email);
-                    }
-
-                    //handle permissions later
-                    Set<GrantedAuthority> authorities = new HashSet<>();
-
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, userType, authorities);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    filterChain.doFilter(request, response);
-                } catch (JWTVerificationException | JwkException e) {
-                    ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INVALID_TOKEN_PROVIDED_RESPONSE);
+                    workspaceUser = setCurrentWorkspace(request, email);
+                } catch (CustomWorkspaceMissingException e){
+                    ErrorResponseHandler.sendErrorResponse(response, CustomHttpStatus.WORKSPACE_ID_MISSING, ErrorResponses.WORKSPACE_ID_MISSING_RESPONSE);
+                    return;
                 }
+            }
+
+            if (userType == null) {
+                ErrorResponseHandler.sendErrorResponse(response, HttpStatus.FORBIDDEN, ErrorResponses.USER_TYPE_IS_NULL_RESPONSE);
+                return;
+            }
+
+            handleTokenVerificationForUsers(
+                decodedJwt,
+                token
+            );
+
+            UserDetails userDetails;
+            try {
+                ChatUser user = userService.getUserByEmail(email);
+                userDetails = new UserDetails(
+                    user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace(),
+                    workspaceUser != null ? workspaceUser.getRole() : null
+                );
+            } catch (Exception e) {
+                userDetails = new UserDetails();
+                userDetails.setEmail(email);
+            }
+
+            //handle permissions later
+            Set<GrantedAuthority> authorities = new HashSet<>();
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userDetails, userType, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            filterChain.doFilter(request, response);
+        } catch (JWTVerificationException | JwkException e) {
+            ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INVALID_TOKEN_PROVIDED_RESPONSE);
+        }
     }
 
 }
