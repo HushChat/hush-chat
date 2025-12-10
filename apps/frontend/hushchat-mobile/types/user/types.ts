@@ -9,6 +9,7 @@ export const UserSchema = yup.object({
   email: yup.string().required(),
   active: yup.boolean().required(),
   signedImageUrl: yup.string().nullable().notRequired(),
+  workspaceName: yup.string().nullable().notRequired(),
 });
 
 export const RegisterUser = yup.object({
@@ -183,6 +184,7 @@ export type TUser = {
   active?: boolean;
   conversationId?: number;
   signedImageUrl: string;
+  workspaceName?: string;
 };
 
 export type DeviceToken = {

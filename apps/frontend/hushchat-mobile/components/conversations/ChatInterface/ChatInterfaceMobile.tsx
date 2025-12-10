@@ -21,6 +21,7 @@ import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { AppText } from "@/components/AppText";
+import { useUserStore } from "@/store/user/useUserStore";
 
 export default function ChatInterfaceMobile({
   chatItemList,
@@ -34,6 +35,8 @@ export default function ChatInterfaceMobile({
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
   const { selectedConversationType, setSelectedConversationType } = useConversationStore();
   const { workspaces } = useUserWorkspacesQuery();
+
+  const user = useUserStore((state) => state.user);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -112,7 +115,9 @@ export default function ChatInterfaceMobile({
                 "text-3xl font-bold": selectedConversationType !== ConversationType.ARCHIVED,
               })}
             >
-              {selectedConversationType === ConversationType.ARCHIVED ? "Archived" : "Chats"}
+              {selectedConversationType === ConversationType.ARCHIVED
+                ? "Archived"
+                : user?.workspaceName || "Chats"}
             </AppText>
           </View>
 

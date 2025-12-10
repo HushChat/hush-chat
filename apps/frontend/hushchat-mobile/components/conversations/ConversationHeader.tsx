@@ -8,6 +8,7 @@ import { ConversationType, IOption } from "@/types/chat/types";
 import BackButton from "@/components/BackButton";
 import { AppText } from "@/components/AppText";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
+import { useUserStore } from "@/store/user/useUserStore";
 
 type TChatHeaderMenuProps = {
   onRefresh: () => void;
@@ -25,6 +26,8 @@ export const ConversationHeader = ({
   setSelectedConversationType,
 }: TChatHeaderMenuProps) => {
   const { visible, position, openAtEvent, close } = useContextMenu();
+
+  const user = useUserStore((state) => state.user);
 
   const options: IOption[] = [
     {
@@ -50,7 +53,9 @@ export const ConversationHeader = ({
           <BackButton onPress={() => setSelectedConversationType(ConversationType.ALL)} />
         )}
         <AppText className="text-2xl font-bold text-gray-900 dark:text-white">
-          {selectedConversationType === ConversationType.ARCHIVED ? "Archived" : "Chats"}
+          {selectedConversationType === ConversationType.ARCHIVED
+            ? "Archived"
+            : user?.workspaceName || "Workspace"}
         </AppText>
       </View>
       <View className="flex-row items-center gap-3">
