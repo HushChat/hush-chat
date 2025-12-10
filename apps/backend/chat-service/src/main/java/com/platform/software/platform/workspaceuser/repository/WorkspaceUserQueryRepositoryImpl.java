@@ -9,9 +9,15 @@ import com.platform.software.platform.workspaceuser.entity.QWorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepository {
     Logger logger = LoggerFactory.getLogger(WorkspaceUserQueryRepositoryImpl.class);
@@ -73,5 +79,21 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
                                 .and(qWorkspaceUser.status.ne(WorkspaceUserStatus.SUSPENDED))
                 )
                 .fetchFirst();
+    }
+
+    public Page<WorkspaceUser> fetchWorkspaceUsersPage(Pageable pageable) {
+
+        JPAQuery<WorkspaceUser> query = jpaQueryFactory
+                .select(qWorkspaceUser)
+                .from(qWorkspaceUser);
+
+        long total = query.fetchCount();
+
+        List<WorkspaceUser> results = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
     }
 }

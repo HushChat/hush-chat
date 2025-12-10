@@ -51,6 +51,6 @@ public interface UserService {
 
     void unblockUser(Long userId, Long blockId);
 
-    Page<WorkspaceUserViewDTO> getAllWorkspaceUsersByEmail(String email, Pageable pageable);
+    Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable);
 }
 

@@ -16,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -80,31 +82,14 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     }
 
     @Override
-    public Page<WorkspaceUserViewDTO> findAllWorkspaceUsers(Pageable pageable) {
+    public List<ChatUser> fetchChatUsersByEmails(List<String> emails) {
 
-        QWorkspaceUser workspaceUser = QWorkspaceUser.workspaceUser;
+        if (emails.isEmpty()) return Collections.emptyList();
 
-        JPAQuery<WorkspaceUserViewDTO> baseQuery = queryFactory
-                .select(Projections.constructor(
-                        WorkspaceUserViewDTO.class,
-                        workspaceUser.id,
-                        chatUser.firstName,
-                        chatUser.lastName,
-                        chatUser.username,
-                        workspaceUser.email,
-                        chatUser.imageIndexedName,
-                        workspaceUser.status
-                ))
-                .from(workspaceUser)
-                .leftJoin(chatUser).on(chatUser.email.eq(workspaceUser.email));
-
-        long total = baseQuery.fetchCount();
-
-        List<WorkspaceUserViewDTO> results = baseQuery
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+        return queryFactory
+                .select(chatUser)
+                .from(chatUser)
+                .where(chatUser.email.in(emails))
                 .fetch();
-
-        return new PageImpl<>(results, pageable, total);
     }
 }
