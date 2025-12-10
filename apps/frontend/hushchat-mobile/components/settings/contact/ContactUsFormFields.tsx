@@ -16,7 +16,7 @@ export function ContactUsFormFields() {
 
   return (
     <View
-      className="flex-1 bg-background-light dark:bg-background-dark px-4"
+      className="flex-1 bg-background-light dark:bg-background-dark"
       style={{ paddingTop: insets.top + 12 }}
     >
       <View className="flex-row items-center mb-2">

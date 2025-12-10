@@ -15,6 +15,7 @@ export interface ConversationForwardPanelBaseProps {
   isPending: boolean;
   handleSend: () => void;
   resetSelection: () => void;
+  sourceConversationId: number;
 }
 
 const ConversationForwardPanelBase = ({
@@ -27,6 +28,7 @@ const ConversationForwardPanelBase = ({
   isPending,
   handleSend,
   resetSelection,
+  sourceConversationId,
 }: ConversationForwardPanelBaseProps) => {
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
@@ -49,6 +51,7 @@ const ConversationForwardPanelBase = ({
           selectedConversations={selectedConversations}
           onChange={setSelectedConversations}
           searchPlaceholder="Search conversations to forward…"
+          sourceConversationId={sourceConversationId}
         />
       </View>
 

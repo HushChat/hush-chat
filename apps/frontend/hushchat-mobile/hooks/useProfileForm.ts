@@ -61,7 +61,7 @@ export function useProfileForm() {
       }
 
       fetchUserData();
-      ToastUtils.success("Profile updated successfully");
+      ToastUtils.success("ProfileForm updated successfully");
     }
   );
 
