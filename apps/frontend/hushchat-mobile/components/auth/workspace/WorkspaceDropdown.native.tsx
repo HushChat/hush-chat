@@ -56,6 +56,8 @@ const WorkspaceDropdown = ({
 
   const insets = useSafeAreaInsets();
 
+  const workspacesList = Array.isArray(workspaces) ? workspaces : [];
+
   const effectiveSize: SizeKey = useMemo(() => {
     if (size) return size;
     if (!platformAwareDefault) return "md";
@@ -158,7 +160,7 @@ const WorkspaceDropdown = ({
                 </View>
 
                 <View className="px-4 pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
-                  {workspaces.length === 0 || loading ? (
+                  {workspacesList.length === 0 || loading ? (
                     <View className="p-8 items-center">
                       <AppText className="text-gray-500 dark:text-gray-400 text-center">
                         No workspaces available
@@ -169,7 +171,7 @@ const WorkspaceDropdown = ({
                       showsVerticalScrollIndicator={true}
                       style={{ maxHeight: SCREEN_HEIGHT * 0.6 }}
                     >
-                      {workspaces.map((item, index) => (
+                      {workspacesList.map((item, index) => (
                         <MotionView
                           key={item.id.toString()}
                           visible={true}

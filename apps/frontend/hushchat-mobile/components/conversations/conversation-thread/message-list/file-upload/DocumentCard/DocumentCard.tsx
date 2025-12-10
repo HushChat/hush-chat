@@ -12,13 +12,16 @@ import {
   staticStyles,
   dynamicStyles,
 } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/documentCard.styles";
+import { ToastUtils } from "@/utils/toastUtils";
+import { PLATFORM } from "@/constants/platformConstants";
 
 type TDocumentCardProps = {
   attachment: IMessageAttachment;
   isCurrentUser: boolean;
+  onLongPress?: (attachment: IMessageAttachment) => void;
 };
 
-export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) => {
+export const DocumentCard = ({ attachment, isCurrentUser, onLongPress }: TDocumentCardProps) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -37,13 +40,37 @@ export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) 
   const textPrimary = isDark ? "#ffffff" : "#111827";
   const textSecondary = isDark ? "#9ca3af" : "#6B7280";
 
-  const handlePress = () => {
-    if (attachment.fileUrl) Linking.openURL(attachment.fileUrl);
+  const downloadDocument = async () => {
+    const fileUrl = attachment.fileUrl;
+    const fileName = attachment.originalFileName || attachment.indexedFileName;
+
+    if (!fileUrl) {
+      ToastUtils.error("File URL not available");
+      return;
+    }
+
+    if (PLATFORM.IS_WEB) {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+      return;
+    }
+
+    Linking.openURL(attachment.fileUrl);
   };
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPress={downloadDocument}
+      onLongPress={() => onLongPress?.(attachment)}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
       style={dynamicStyles.documentCard(isCurrentUser, bgColor, borderColor)}
     >
@@ -61,7 +88,7 @@ export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) 
         </View>
 
         <View style={staticStyles.documentDownloadContainer}>
-          <Ionicons name="download-outline" size={16} color={color} />
+            <Ionicons name="download-outline" size={16} color={color} />
         </View>
       </View>
     </TouchableOpacity>
