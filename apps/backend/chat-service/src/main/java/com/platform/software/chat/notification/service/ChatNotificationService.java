@@ -35,13 +35,20 @@ public class ChatNotificationService {
     }
 
     /**
-     * Send notifications to tokens
+     * Build and send notifications to tokens
      *
      * @param tokens list of device tokens
-     * @param title  notification title
+     * @param message  target message
      * @param body   notification body
      */
-    private void sendNotificationToTokens(List<String> tokens, String title, String body, Map<String, String> data) {
+    private void buildAndDispatchNotification(List<String> tokens, Message message, String body) {
+        String title = chatNotificationUtilService.getNotificationTitle(message);
+
+        Map<String, String> data = buildNotificationData(
+            message.getConversation().getId(), 
+            message.getId()
+        );
+
         NotificationRequestDTO notificationsRequest = new NotificationRequestDTO(tokens, title, body, data);
         notificationServiceFactory.sendNotification(notificationsRequest);
     }
@@ -86,37 +93,30 @@ public class ChatNotificationService {
      * @param loggedInUserId logged in user id
      * @param message message
      */
-    public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message ){
+    public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message) {
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false);
 
-        if(!tokens.isEmpty()){
-            boolean isGroup = message.getConversation().getIsGroup();
-            String title = chatNotificationUtilService.getNotificationTitle(message);
-            String body = isGroup ? message.getSender().getFirstName() + ": " + message.getMessageText() : message.getMessageText();
-
-            Map<String, String> data = buildNotificationData(
-                conversationId, 
-                message.getId()
-            );
-
-            sendNotificationToTokens(tokens, title, body, data);
+        if (tokens.isEmpty()) {
+            return;
         }
+
+        String body = message.getConversation().getIsGroup() 
+            ? message.getSender().getFirstName() + ": " + message.getMessageText() 
+            : message.getMessageText();
+
+        buildAndDispatchNotification(tokens, message, body);
     }
 
-    public void sendMessageReactionNotifications(com.platform.software.chat.message.entity.Message  message, ChatUser loggedInUser){
+    public void sendMessageReactionNotifications(Message message, ChatUser loggedInUser) {
         List<String> tokens = chatNotificationRepository.findNonMutedTokensByUserId(message.getSender().getId());
 
-        if(!tokens.isEmpty()){
-            String title = chatNotificationUtilService.getNotificationTitle(message);
-            String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
-
-            Map<String, String> data = buildNotificationData(
-                message.getConversation().getId(), 
-                message.getId()
-            );
-
-            sendNotificationToTokens(tokens, title, body, data);
+        if (tokens.isEmpty()) {
+            return;
         }
+
+        String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
+
+        buildAndDispatchNotification(tokens, message, body);
     }
 
     private Map<String, String> buildNotificationData(Long conversationId, Long messageId) {

@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, Messaging, onMessage } from "firebase/messaging";
 import { INotificationService } from "./INotificationService";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
-import { logError } from "@/utils/logger";
+import { logError, logWarn } from "@/utils/logger";
 
 let messaging: Messaging | null = null;
 
@@ -36,13 +36,11 @@ export const FcmWebNotificationService: INotificationService = {
 
   onMessage(callback) {
     if (!messaging) {
-      console.warn("[FCM] Messaging not initialized; skipping onMessage listener.");
+      logWarn("[FCM] Messaging not initialized; skipping onMessage listener.");
       return;
     }
 
     onMessage(messaging, (payload) => {
-      console.log("[FCM] Foreground message received:", payload);
-
       const title = payload.data?.title || "New Message";
       const body = payload.data?.body || "";
       const conversationId = payload.data?.conversationId;
