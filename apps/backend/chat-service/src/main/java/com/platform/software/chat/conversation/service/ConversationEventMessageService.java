@@ -42,6 +42,8 @@ public class ConversationEventMessageService {
                 String.format("%s promoted %s to admin %s", actorName, targetName, timeDescription);
             case USER_REMOVED_FROM_ADMIN ->
                 String.format("%s removed %s from admin %s", actorName, targetName, timeDescription);
+            case MESSAGE_PINNED -> 
+                String.format("%s pinned a message %s", actorName, timeDescription);
             default -> "Unknown event";
         };
     }

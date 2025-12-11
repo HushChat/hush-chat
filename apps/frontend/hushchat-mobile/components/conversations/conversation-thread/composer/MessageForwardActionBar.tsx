@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
+import { AppText } from "@/components/AppText";
 
 export interface SelectionActionBarProps {
   visible: boolean;
@@ -51,10 +51,10 @@ const MessageForwardActionBar = ({
             className="flex-row items-center px-4 py-2 rounded-full bg-primary-light dark:bg-primary-dark"
           >
             <Ionicons name="arrow-forward" size={16} color="white" style={styles.iconMarginRight} />
-            <Text className="text-white text-sm font-medium">Forward</Text>
+            <AppText className="text-white text-sm font-medium">Forward</AppText>
           </Pressable>
 
-          <Pressable onPress={onCancel} className="p-2" testID="selectionCancel">
+          <Pressable onPress={onCancel} className="p-2 active:opacity-60" testID="selectionCancel">
             <Ionicons name="close" size={20} color={isDark ? "#9CA3AF" : "#6B7280"} />
           </Pressable>
         </View>

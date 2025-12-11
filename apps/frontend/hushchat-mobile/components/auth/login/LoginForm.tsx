@@ -6,11 +6,12 @@ import {
   FormContainer,
 } from "@/components/FormComponents";
 import { memo } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 import { AUTH_FORGOT_PASSWORD_PATH, AUTH_REGISTER_PATH } from "@/constants/routes";
 import { TLoginFormProps } from "@/types/login/types";
 import TextField from "@/components/forms/TextField";
+import { AppText } from "@/components/AppText";
 
 export const LoginForm = memo(
   ({
@@ -58,9 +59,9 @@ export const LoginForm = memo(
           className="self-end pt-2 mb-5"
           onPress={() => router.push(AUTH_FORGOT_PASSWORD_PATH)}
         >
-          <Text className="text-[15px] font-bold" style={{ color: colors.primary }}>
+          <AppText className="text-[15px] font-bold" style={{ color: colors.primary }}>
             Forgot Password?
-          </Text>
+          </AppText>
         </TouchableOpacity>
 
         <FormButton title="Log In" onPress={onSubmit} colors={colors} />

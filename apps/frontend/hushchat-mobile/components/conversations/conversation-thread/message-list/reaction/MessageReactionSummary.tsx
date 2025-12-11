@@ -1,9 +1,10 @@
 import React, { memo, useMemo, useRef } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import classNames from "classnames";
 import { ReactionSummary, ReactionType } from "@/types/chat/types";
 import { REACTION_META } from "@/constants/reactions";
 import { PLATFORM } from "@/constants/platformConstants";
+import { AppText } from "@/components/AppText";
 
 const ORDER: ReactionType[] = [
   ReactionType.THUMBS_UP,
@@ -89,12 +90,12 @@ const MessageReactionsSummary = memo(
         <View className="flex-row items-center gap-2">
           <View className="flex-row items-center">
             {topEmojis.map((emoji, index) => (
-              <Text key={`${emoji}-${index}`} className="text-base">
+              <AppText key={`${emoji}-${index}`} className="text-base">
                 {emoji}
-              </Text>
+              </AppText>
             ))}
           </View>
-          <Text className="text-sm text-gray-700 dark:text-gray-200">{totalReactions}</Text>
+          <AppText className="text-sm text-gray-700 dark:text-gray-200">{totalReactions}</AppText>
         </View>
       </Pressable>
     );

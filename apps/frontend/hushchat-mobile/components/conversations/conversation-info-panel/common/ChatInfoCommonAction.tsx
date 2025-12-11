@@ -25,7 +25,7 @@ type TChatInfoActionProps = {
   isPinned: boolean;
   isMuted: boolean;
   onBack: () => void;
-  setSelectedConversation: (conversation: null) => void;
+  setSelectedConversation?: (conversation: null) => void;
 };
 
 export default function ChatInfoCommonAction({
@@ -34,7 +34,7 @@ export default function ChatInfoCommonAction({
   isPinned: initialPinned,
   isMuted,
   onBack,
-  setSelectedConversation,
+  setSelectedConversation = () => {},
 }: TChatInfoActionProps) {
   const { openModal, closeModal } = useModalContext();
   const { selectedConversationType } = useConversationStore();

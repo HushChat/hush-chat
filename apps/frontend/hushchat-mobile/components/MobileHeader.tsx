@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BackButton from "./BackButton";
+import { AppText } from "@/components/AppText";
 
 type RightAction = {
   label: string;
@@ -26,7 +27,9 @@ export default function MobileHeader({ title, onBack, rightAction }: MobileHeade
         {/* Left side */}
         <View className="flex-row items-center">
           <BackButton onPress={onBack} />
-          <Text className="ml-3 text-xl font-bold text-gray-900 dark:text-white">{title}</Text>
+          <AppText className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
+            {title}
+          </AppText>
         </View>
 
         {/* Right side (optional) */}
@@ -41,13 +44,13 @@ export default function MobileHeader({ title, onBack, rightAction }: MobileHeade
                   : "bg-primary-light dark:bg-primary-dark"
               }`}
             >
-              <Text
+              <AppText
                 className={`font-medium ${
                   rightAction.disabled ? "text-gray-500 dark:text-gray-400" : "text-white"
                 }`}
               >
                 {rightAction.label}
-              </Text>
+              </AppText>
             </TouchableOpacity>
           </View>
         )}
