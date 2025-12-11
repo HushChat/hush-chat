@@ -158,6 +158,7 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        targetMessageId,
       }),
     [
       currentUserId,
@@ -175,6 +176,7 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      targetMessageId,
     ]
   );
 
