@@ -7,9 +7,8 @@ import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
-import com.platform.software.common.model.CustomPageImpl;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -228,5 +227,28 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
 
         return new PageImpl<>(messages, pageable, messages.size());
+    }
+
+    @Override
+    public Optional<Message> findPreviousMessage(Long conversationId, Long messageId, ConversationParticipant participant) {
+        QMessage message = QMessage.message;
+        
+        Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
+                .map(zdt -> Date.from(zdt.toInstant()))
+                .orElse(new Date(0));
+        
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(message.conversation.id.eq(conversationId))
+            .and(message.id.lt(messageId))
+            .and(message.isUnsend.eq(false))
+            .and(message.createdAt.after(deletedAt));
+        
+        return Optional.ofNullable(
+            queryFactory.selectFrom(message)
+                .where(builder)
+                .orderBy(message.id.desc())
+                .limit(1)
+                .fetchOne()
+        );
     }
 }

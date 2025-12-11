@@ -67,6 +67,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
   GET_LAST_SEEN_MESSAGE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
+  MARK_MESSAGE_AS_UNREAD: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
 };
 
 export const USER_API_ENDPOINTS = {
