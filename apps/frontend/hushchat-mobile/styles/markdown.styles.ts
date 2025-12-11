@@ -1,28 +1,26 @@
+/**
+ * Generates custom styles for markdown rendering.
+ * * The style object structure matches the default styles used in `react-native-markdown-display`.
+ * For reference on available style keys and defaults, see:
+ * https://github.com/iamacup/react-native-markdown-display/blob/master/src/lib/styles.js
+ */
 import { PLATFORM } from "@/constants/platformConstants";
-import { StyleSheet } from "react-native";
+import { StyleSheet, TextStyle } from "react-native";
 
-type BaseSpecs = {
-  fontFamily: string;
-  fontSize: number;
-  lineHeight: number;
-  color: string;
-};
-
-// read `https://github.com/iamacup/react-native-markdown-display/blob/master/src/lib/styles.js` for styling
-export const getMarkdownStyles = (specs: BaseSpecs) => {
+export const getMarkdownStyles = (messageTextStyles: TextStyle, textColor: string) => {
   return StyleSheet.create({
     body: {
       padding: 0,
       margin: 0,
-      color: specs.color,
-      fontFamily: specs.fontFamily,
+      color: textColor,
+      fontFamily: messageTextStyles.fontFamily,
     },
 
     paragraph: {
       marginTop: 0,
       marginBottom: 8,
-      fontSize: specs.fontSize,
-      lineHeight: specs.lineHeight,
+      fontSize: messageTextStyles.fontSize,
+      lineHeight: messageTextStyles.lineHeight,
     },
 
     heading1: {
@@ -39,19 +37,19 @@ export const getMarkdownStyles = (specs: BaseSpecs) => {
       flexDirection: "row",
       alignItems: "flex-start",
       marginVertical: 2,
-      fontSize: specs.fontSize,
+      fontSize: messageTextStyles.fontSize,
     },
 
     ordered_list: { marginBottom: 8 },
 
     bullet_list_icon: {
-      fontSize: specs.fontSize,
+      fontSize: messageTextStyles.fontSize,
       fontWeight: "bold",
       marginRight: 8,
     },
 
     ordered_list_icon: {
-      fontSize: specs.fontSize,
+      fontSize: messageTextStyles.fontSize,
       fontWeight: "bold",
       marginLeft: 8,
       marginRight: 8,
@@ -64,7 +62,26 @@ export const getMarkdownStyles = (specs: BaseSpecs) => {
       padding: 10,
       marginTop: 8,
       marginBottom: 8,
-      fontSize: specs.fontSize * 0.85,
+      fontSize: (messageTextStyles.fontSize ?? 16) * 0.85,
+    },
+
+    code_inline: {
+      borderColor: "transparent",
+      backgroundColor: "transparent",
+      padding: 2,
+      borderRadius: 4,
+      fontSize: messageTextStyles.fontSize,
+      fontFamily: messageTextStyles.fontFamily,
+    },
+
+    code_block: {
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      padding: 10,
+      marginTop: 8,
+      marginBottom: 8,
+      fontSize: messageTextStyles.fontSize,
+      fontFamily: messageTextStyles.fontFamily,
     },
 
     link: {

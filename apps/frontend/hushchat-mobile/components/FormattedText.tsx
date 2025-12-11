@@ -12,7 +12,6 @@ import { TUser } from "@/types/user/types";
 
 export interface FormattedTextProps {
   text: string;
-  style?: TextStyle | TextStyle[];
   mentions?: TUser[];
   onLinkPress?: (url: string) => void;
   onEmailPress?: (email: string) => void;
@@ -23,20 +22,16 @@ export interface FormattedTextProps {
 }
 
 const FormattedText = (props: FormattedTextProps) => {
-  const { text, style, mentions = [], isCurrentUser } = props;
+  const { text, mentions = [], isCurrentUser } = props;
 
-  // 1. Process Text
   const processedText = useProcessedText(text, mentions);
 
-  // 2. Handle Styling
-  const { markdownStyles, baseSpecs } = useMarkdownStyles(style, isCurrentUser);
+  const { markdownStyles } = useMarkdownStyles(messageTextStyles, isCurrentUser);
 
-  // 3. Handle Interactions
   const handleLinkPress = useLinkHandler(props);
   const { menuVisible, menuPos, openMenu, closeMenu, copyLink } = useWebContextMenu();
 
-  // 4. Configure Markdown
-  const rules = useMarkdownRules(handleLinkPress, baseSpecs, isCurrentUser, openMenu);
+  const rules = useMarkdownRules(handleLinkPress, messageTextStyles, isCurrentUser, openMenu);
   const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
 
   return (
@@ -67,3 +62,9 @@ const FormattedText = (props: FormattedTextProps) => {
 };
 
 export default FormattedText;
+
+const messageTextStyles: TextStyle = {
+  fontSize: 16,
+  lineHeight: 20,
+  fontFamily: "Poppins-Regular",
+};

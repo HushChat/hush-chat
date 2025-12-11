@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { AppText } from "@/components/AppText";
 import { MarkdownImage } from "@/components/MarkdownImage";
 import { PLATFORM } from "@/constants/platformConstants";
+import { TextStyle } from "react-native";
 
 interface ASTNode {
   key: string;
@@ -13,7 +14,7 @@ interface ASTNode {
 
 export const useMarkdownRules = (
   handleLinkPress: (url: string) => void,
-  baseSpecs: any,
+  messageTextStyles: TextStyle,
   isCurrentUser: boolean,
   onWebContextMenu: (e: any, url: string) => void
 ) => {
@@ -24,9 +25,7 @@ export const useMarkdownRules = (
           {children}
         </AppText>
       ),
-      image: (node: ASTNode) => (
-        <MarkdownImage key={node.key} src={node.attributes.src} alt={node.attributes.alt} />
-      ),
+      image: (node: ASTNode) => <MarkdownImage key={node.key} src={node.attributes.src} />,
       bullet_list: (node: ASTNode, children: React.ReactNode, styles: Record<string, any>) => (
         <AppText key={node.key} style={styles.bullet_list}>
           {children}
@@ -49,8 +48,8 @@ export const useMarkdownRules = (
             fontWeight: "700",
             borderRadius: 4,
             textDecorationLine: "none",
-            fontFamily: baseSpecs.fontFamily,
-            fontSize: baseSpecs.fontSize,
+            fontFamily: messageTextStyles.fontFamily,
+            fontSize: messageTextStyles.fontSize,
           };
         } else if (url.startsWith("hashtag:")) {
           isSpecial = true;
@@ -58,8 +57,8 @@ export const useMarkdownRules = (
             color: "#ddd6fe",
             fontWeight: "500",
             textDecorationLine: "none",
-            fontFamily: baseSpecs.fontFamily,
-            fontSize: baseSpecs.fontSize,
+            fontFamily: messageTextStyles.fontFamily,
+            fontSize: messageTextStyles.fontSize,
           };
         }
 
@@ -79,6 +78,6 @@ export const useMarkdownRules = (
         );
       },
     }),
-    [handleLinkPress, isCurrentUser, baseSpecs, onWebContextMenu]
+    [handleLinkPress, isCurrentUser, messageTextStyles, onWebContextMenu]
   );
 };
