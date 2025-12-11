@@ -3,7 +3,7 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, SectionList, View } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
@@ -34,6 +34,7 @@ interface IMessagesListProps {
   onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
   onTargetMessageScrolled?: () => void;
+  setEditMessage: (message: IMessage) => void;
 }
 
 const ConversationMessageList = ({
@@ -49,6 +50,7 @@ const ConversationMessageList = ({
   onNavigateToMessage,
   targetMessageId,
   onTargetMessageScrolled,
+  setEditMessage,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -158,6 +160,7 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        setEditMessage,
       }),
     [
       currentUserId,

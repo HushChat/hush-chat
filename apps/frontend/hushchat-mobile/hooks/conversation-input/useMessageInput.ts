@@ -3,11 +3,13 @@ import { debounce } from "lodash";
 import { StorageFactory } from "@/utils/storage/storageFactory";
 import { getDraftKey } from "@/constants/constants";
 import { logInfo } from "@/utils/logger";
+import { IMessage } from "@/types/chat/types";
 
 interface UseMessageInputOptions {
   conversationId: number;
   maxChars?: number;
   onDraftLoaded?: (loadedDraftText: string) => void;
+  editMessage: IMessage | null;
 }
 
 interface UseMessageInputReturn {
@@ -26,10 +28,17 @@ export function useMessageInput({
   conversationId,
   maxChars,
   onDraftLoaded,
+  editMessage,
 }: UseMessageInputOptions): UseMessageInputReturn {
   const persistentDraftStorageInstance = useMemo(() => StorageFactory.createStorage(), []);
 
   const [currentTypedMessage, setCurrentTypedMessage] = useState<string>("");
+
+  useEffect(() => {
+    if (editMessage) {
+      setCurrentTypedMessage(editMessage?.messageText);
+    }
+  }, [editMessage]);
 
   const activeConversationIdRef = useRef(conversationId);
   activeConversationIdRef.current = conversationId;
@@ -131,7 +140,11 @@ export function useMessageInput({
     [currentTypedMessage, flushPendingDraftWritesImmediately, clearMessageAndDeleteDraft]
   );
 
-  const isMessageNonEmptyAndSendable = currentTypedMessage.trim().length > 0;
+  const isMessageNonEmptyAndSendable = Boolean(
+    currentTypedMessage.trim().length > 0 &&
+      editMessage &&
+      editMessage.messageText !== currentTypedMessage
+  );
 
   return {
     currentTypedMessage,

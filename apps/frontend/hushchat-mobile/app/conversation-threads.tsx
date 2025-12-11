@@ -84,6 +84,8 @@ const ConversationThreadScreen = ({
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
   const currentConversationId = conversationId || Number(params.conversationId);
 
+  const [editMessage, setEditMessage] = useState<IMessage | null>(null);
+
   useEffect(() => {
     const publishUserActivity = async () => {
       const { workspace } = await getAllTokens();
@@ -309,6 +311,10 @@ const ConversationThreadScreen = ({
     setSelectedMessage(null);
   }, []);
 
+  const handleCancelEdit = useCallback(() => {
+    setEditMessage(null);
+  }, []);
+
   const onForwardPress = useCallback(() => {
     if (PLATFORM.IS_WEB) {
       webForwardPress?.(selectedMessageIds);
@@ -378,6 +384,7 @@ const ConversationThreadScreen = ({
         onNavigateToMessage={handleNavigateToMessage}
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
+        setEditMessage={setEditMessage}
       />
     );
   }, [
@@ -433,6 +440,8 @@ const ConversationThreadScreen = ({
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        editMessage={editMessage}
+        onCancelEdit={handleCancelEdit}
       />
     );
   }, [
