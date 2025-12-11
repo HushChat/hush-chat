@@ -1,15 +1,8 @@
 import React, { ReactElement, useCallback, useMemo } from "react";
-import {
-  View,
-  TextInput,
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  ListRenderItem,
-} from "react-native";
+import { View, ActivityIndicator, TouchableOpacity, FlatList, ListRenderItem } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
+import { AppText, AppTextInput } from "@/components/AppText";
 
 export interface MultiSelectListProps<T, TPages = unknown> {
   selected: T[];
@@ -72,13 +65,13 @@ export function MultiSelectList<T>({
       {selected.length > 0 && (
         <View className="px-4 pt-3">
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <AppText className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Selected ({selected.length})
-            </Text>
+            </AppText>
             <TouchableOpacity onPress={clearAll}>
-              <Text className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+              <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
                 Deselect all
-              </Text>
+              </AppText>
             </TouchableOpacity>
           </View>
           <FlatList
@@ -94,7 +87,7 @@ export function MultiSelectList<T>({
       <View className="px-4 py-3">
         <View className="flex-row items-center rounded-lg px-3 py-2.5">
           <Ionicons name="search" size={18} color="#9CA3AF" />
-          <TextInput
+          <AppTextInput
             value={searchText}
             onChangeText={setSearchText}
             placeholder={searchPlaceholder}
@@ -118,14 +111,14 @@ export function MultiSelectList<T>({
         }}
         onEndReachedThreshold={0.2}
         ListEmptyComponent={() => {
-          if (isLoading) return <Text className="text-center mt-4">Loading...</Text>;
+          if (isLoading) return <AppText className="text-center mt-4">Loading...</AppText>;
           if (error)
             return (
-              <Text className="text-center mt-4" onPress={refetch}>
+              <AppText className="text-center mt-4" onPress={refetch}>
                 Error loading data (tap to retry)
-              </Text>
+              </AppText>
             );
-          return <Text className="text-center mt-4">No results</Text>;
+          return <AppText className="text-center mt-4">No results</AppText>;
         }}
         ListFooterComponent={
           isFetchingNextPage ? <ActivityIndicator size="small" color="#3B82F6" /> : null

@@ -1,13 +1,13 @@
 import React, { ReactNode } from "react";
 import {
   View,
-  Text,
   Image,
   useWindowDimensions,
   ImageSourcePropType,
   StyleSheet,
   ScrollView,
 } from "react-native";
+import { AppText } from "../AppText";
 
 type TAuthWebLayoutProps = {
   colors: {
@@ -37,11 +37,11 @@ export default function AuthWebLayout({
       <View style={[s.container, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={s.mobileHeader}>
-            <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
+            <AppText style={[s.title, { color: colors.primary }]} numberOfLines={2}>
               {title}
-            </Text>
+            </AppText>
             {subtitle ? (
-              <Text style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+              <AppText style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</AppText>
             ) : null}
           </View>
           <View>{children}</View>
@@ -59,11 +59,11 @@ export default function AuthWebLayout({
         <View style={s.left}>
           <View style={s.leftInner}>
             <View style={s.headerBlock}>
-              <Text style={[s.title, { color: colors.primary }]} numberOfLines={2}>
+              <AppText style={[s.title, { color: colors.primary }]} numberOfLines={2}>
                 {title}
-              </Text>
+              </AppText>
               {subtitle ? (
-                <Text style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+                <AppText style={[s.subtitle, { color: colors.textSecondary }]}>{subtitle}</AppText>
               ) : null}
             </View>
             <View style={s.imageWrap}>

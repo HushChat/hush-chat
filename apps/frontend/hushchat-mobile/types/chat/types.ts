@@ -275,6 +275,11 @@ export enum chatUserStatus {
   BUSY = "BUSY",
 }
 
+export interface IUserStatus {
+  conversationId: number;
+  status: chatUserStatus;
+}
+
 export interface IActionConfig {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;

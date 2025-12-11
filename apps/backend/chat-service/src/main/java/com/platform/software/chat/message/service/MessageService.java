@@ -277,7 +277,9 @@ public class MessageService {
 
             try {
                 for(Message message: forwardingMessages){
-                    messageRepository.saveMessageWthSearchVector(message);
+                    Message savedMessage = messageRepository.saveMessageWthSearchVector(message);
+
+                    setLastSeenMessageForMessageSentUser(targetConversation.getModel(), savedMessage, loggedInUser);
 
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message);
 
@@ -349,7 +351,7 @@ public class MessageService {
      * @return the Message entity
      */
     public Message getMessageOrThrow(Long messageId) {
-        return messageRepository.findById(messageId)
+        return messageRepository.findByIdWithSenderAndConversation(messageId)
             .orElseThrow(() -> {
                 logger.error("message with id {} not found when creating favorite message", messageId);
                 return new CustomResourceNotFoundException("Message not found!");
