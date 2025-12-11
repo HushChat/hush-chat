@@ -58,7 +58,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   const handleMentionPress = (username: string) => {
     if (!onMentionClick || !message.mentions) return;
 
-    // Find the full user object from the mentions array based on the username string
     const mentionedUser = message.mentions.find((user) => user.username === username);
 
     if (mentionedUser) {
