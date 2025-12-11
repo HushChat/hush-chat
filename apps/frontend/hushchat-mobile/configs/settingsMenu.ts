@@ -3,13 +3,13 @@ import Contact from "@/app/settings/contact";
 import { FC } from "react";
 import ChangeWorkspace from "@/app/settings/change-workspace";
 import Invite from "@/app/settings/invite";
-import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
+import { ALL_ROLES, WorkspaceUserRole } from "@/app/guards/RoleGuard";
 
 type TMenuItem = {
   key: string;
   label: string;
   icon: keyof typeof MaterialIcons.glyphMap;
-  allowedRoles: WorkspaceUserRole[];
+  allowedRoles: WorkspaceUserRole[] | typeof ALL_ROLES;
 };
 
 type MenuBuilderContext = {
@@ -21,13 +21,13 @@ const baseMenuItems: TMenuItem[] = [
     key: "contact",
     label: "Contact",
     icon: "contacts",
-    allowedRoles: [WorkspaceUserRole.MEMBER, WorkspaceUserRole.ADMIN],
+    allowedRoles: ALL_ROLES,
   },
   {
     key: "invite",
     label: "Invite",
     icon: "person-add",
-    allowedRoles: [WorkspaceUserRole.MEMBER, WorkspaceUserRole.ADMIN],
+    allowedRoles: ALL_ROLES,
   },
 ];
 
@@ -35,7 +35,7 @@ const changeWorkspaceItem: TMenuItem = {
   key: "changeWorkspace",
   label: "Change Workspace",
   icon: "track-changes",
-  allowedRoles: [WorkspaceUserRole.MEMBER, WorkspaceUserRole.ADMIN],
+  allowedRoles: ALL_ROLES,
 };
 
 export const getSettingsMenuItems = (
@@ -49,7 +49,10 @@ export const getSettingsMenuItems = (
   }
 
   if (role) {
-    items = items.filter((item) => item.allowedRoles.includes(role));
+    items = items.filter((item) => {
+      if (item.allowedRoles === ALL_ROLES) return true;
+      return item.allowedRoles.includes(role);
+    });
   }
 
   return items;

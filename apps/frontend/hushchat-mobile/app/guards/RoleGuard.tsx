@@ -7,6 +7,8 @@ export enum WorkspaceUserRole {
   ADMIN = "ADMIN",
 }
 
+export const ALL_ROLES = "ALL" as const;
+
 type RoleGuardProps = {
   allowedRoles: WorkspaceUserRole[];
   children: React.ReactNode;

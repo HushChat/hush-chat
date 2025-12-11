@@ -21,12 +21,15 @@ import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
+import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
 import com.platform.software.chat.user.repository.UserBlockRepository;
 
+import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -68,6 +71,7 @@ public class UserServiceImpl implements UserService {
     private final UserUtilService userUtilService;
     private final AWSconfig awSconfig;
     private final ChatNotificationRepository chatNotificationRepository;
+    private final WorkspaceUserRepository workspaceUserRepository;
 
 
     public UserServiceImpl(
@@ -81,7 +85,7 @@ public class UserServiceImpl implements UserService {
             ConversationRepository conversationRepository,
             UserUtilService userUtilService,
             AWSconfig awSconfig,
-            ChatNotificationRepository chatNotificationRepository
+            ChatNotificationRepository chatNotificationRepository, WorkspaceUserRepository workspaceUserRepository
     ) {
         this.userRepository = userRepository;
         this.cognitoService = cognitoService;
@@ -94,6 +98,7 @@ public class UserServiceImpl implements UserService {
         this.userUtilService = userUtilService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.awSconfig = awSconfig;
+        this.workspaceUserRepository = workspaceUserRepository;
     }
 
     @Override
@@ -398,5 +403,40 @@ public class UserServiceImpl implements UserService {
         userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
 
         return userDTO;
+    }
+
+    @Override
+    public Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable) {
+
+        Page<WorkspaceUser> workspaceUserPage = WorkspaceUtils.runInGlobalSchema(
+                () -> workspaceUserRepository.fetchWorkspaceUsersPage(pageable)
+        );
+
+        List<WorkspaceUser> workspaceUsers = workspaceUserPage.getContent();
+        List<String> emails = workspaceUsers.stream()
+                .map(WorkspaceUser::getEmail)
+                .collect(Collectors.toList());
+
+        List<ChatUser> chatUsers = userQueryRepository.fetchChatUsersByEmails(emails);
+
+        Map<String, ChatUser> chatUserMap = chatUsers.stream()
+                .collect(Collectors.toMap(ChatUser::getEmail, cu -> cu));
+
+        List<WorkspaceUserViewDTO> result = workspaceUsers.stream()
+                .map(wu -> {
+                    ChatUser cu = chatUserMap.get(wu.getEmail());
+                    return new WorkspaceUserViewDTO(
+                            wu.getId(),
+                            cu != null ? cu.getFirstName() : null,
+                            cu != null ? cu.getLastName() : null,
+                            cu != null ? cu.getUsername() : null,
+                            cu != null ? cu.getEmail() : wu.getEmail(),
+                            cu != null ? cu.getImageIndexedName() : null,
+                            wu.getStatus()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(result, pageable, workspaceUserPage.getTotalElements());
     }
 }

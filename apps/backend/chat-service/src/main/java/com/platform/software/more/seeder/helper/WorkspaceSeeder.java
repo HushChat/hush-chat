@@ -61,7 +61,7 @@ public class WorkspaceSeeder {
                 objectMapper.getTypeFactory().constructCollectionType(List.class, WorkspaceUser.class));
             List<WorkspaceUser> workspaceUsers = users.stream().map(wu -> {
                 wu.setWorkspace(workspaces.stream().findFirst().get());
-                wu.setStatus(WorkspaceUserStatus.ACCEPTED);
+                wu.setStatus(WorkspaceUserStatus.ACTIVE);
                 return wu;
             }).toList();
             workspaceUserRepository.saveAll(workspaceUsers);
