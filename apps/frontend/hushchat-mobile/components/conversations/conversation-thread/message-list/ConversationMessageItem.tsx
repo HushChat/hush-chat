@@ -5,7 +5,7 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, View, StyleSheet, Text } from "react-native";
+import { GestureResponderEvent, View, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import {
   ConversationAPIResponse,
@@ -38,6 +38,7 @@ import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
 import { router } from "expo-router";
 import { createOneToOneConversation } from "@/apis/conversation";
+import { AppText } from "@/components/AppText";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -385,9 +386,9 @@ export const ConversationMessageItem = ({
     return (
       <View className="flex-row justify-center items-center py-2 px-4">
         <View className="dark:bg-secondary-dark bg-secondary-light rounded-lg py-1.5 px-3 max-w-[80%]">
-          <Text className="dark:!text-gray-300 text-gray-700 text-xs text-center">
+          <AppText className="dark:!text-gray-300 text-gray-700 text-xs text-center">
             {messageContent}
-          </Text>
+          </AppText>
         </View>
       </View>
     );

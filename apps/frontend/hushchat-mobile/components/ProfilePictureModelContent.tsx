@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, useColorScheme, Pressable } from "react-native";
+import { View, useColorScheme, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import InitialsAvatar from "@/components/InitialsAvatar";
+import { AppText } from "@/components/AppText";
 
 export interface IProfileDisplayData {
   name: string;
@@ -47,26 +48,26 @@ const ProfilePictureModalContent: React.FC<ProfilePictureModalContentProps> = ({
       )}
 
       <View className="items-center mb-6 px-4">
-        <Text
+        <AppText
           className="text-xl font-bold text-center text-text-primary-light dark:text-text-primary-dark mb-1"
           numberOfLines={1}
         >
           {profileData.name}
-        </Text>
+        </AppText>
 
         {profileData.secondaryText && (
-          <Text
+          <AppText
             className="text-gray-500 dark:text-gray-400 text-base text-center mb-2"
             numberOfLines={1}
           >
             {profileData.secondaryText}
-          </Text>
+          </AppText>
         )}
 
         {profileData.isGroup && (
           <View className="flex-row items-center gap-1 mt-1">
             <Ionicons name="people" size={16} color={iconColor} />
-            <Text className="text-gray-500 dark:text-gray-400 text-sm">Group Chat</Text>
+            <AppText className="text-gray-500 dark:text-gray-400 text-sm">Group Chat</AppText>
           </View>
         )}
       </View>
@@ -84,9 +85,9 @@ const ProfilePictureModalContent: React.FC<ProfilePictureModalContentProps> = ({
               color={buttonText}
               style={{ marginRight: 8 }}
             />
-            <Text className="font-semibold text-sm" style={{ color: buttonText }}>
+            <AppText className="font-semibold text-sm" style={{ color: buttonText }}>
               Message
-            </Text>
+            </AppText>
           </Pressable>
 
           <Pressable

@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import BackButton from "@/components/BackButton";
 import { TUser } from "@/types/user/types";
 import { UserMultiSelectList } from "@/components/UserMultiSelect";
+import { AppText } from "@/components/AppText";
 
 export default function MobileParticipantSelection() {
   const insets = useSafeAreaInsets();
@@ -27,9 +28,9 @@ export default function MobileParticipantSelection() {
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
             <BackButton onPress={() => router.back()} />
-            <Text className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
+            <AppText className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
               Select Participants
-            </Text>
+            </AppText>
           </View>
           <View className="flex-row gap-x-2">
             <TouchableOpacity
@@ -41,13 +42,13 @@ export default function MobileParticipantSelection() {
               }`}
               disabled={selectedUsers.length === 0}
             >
-              <Text
+              <AppText
                 className={`font-medium ${
                   selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 Continue
-              </Text>
+              </AppText>
             </TouchableOpacity>
           </View>
         </View>

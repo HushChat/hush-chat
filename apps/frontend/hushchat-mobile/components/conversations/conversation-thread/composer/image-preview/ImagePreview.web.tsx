@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Modal, View, Text, Pressable, ScrollView, StyleSheet, ViewStyle } from "react-native";
+import { Modal, View, Pressable, ScrollView, StyleSheet, ViewStyle } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { TImagePreviewProps } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
 
 export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -65,12 +66,15 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
       <View className="flex-1 bg-background-light dark:bg-background-dark">
         <View className="bg-background-light dark:bg-background-dark px-6 py-4 flex-row justify-between items-center">
           <View className="flex-1">
-            <Text className="text-gray-900 dark:text-white text-base font-normal" numberOfLines={1}>
+            <AppText
+              className="text-gray-900 dark:text-white text-base font-normal"
+              numberOfLines={1}
+            >
               {currentImage?.originalFileName || "Image"}
-            </Text>
-            <Text className="text-gray-500 dark:text-[#8696A0] text-sm mt-0.5">
+            </AppText>
+            <AppText className="text-gray-500 dark:text-[#8696A0] text-sm mt-0.5">
               {currentIndex + 1} of {images.length}
-            </Text>
+            </AppText>
           </View>
           <Pressable onPress={onClose} className="p-2 active:opacity-60 cursor-pointer ml-4">
             <Ionicons name="close" size={24} color="#8696A0" />

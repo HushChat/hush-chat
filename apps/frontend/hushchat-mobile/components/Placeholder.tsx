@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
-import { View, Text, ImageSourcePropType } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, ImageSourcePropType } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
-import { useAnimatedEntrance } from "@/hooks/useAnimatedEntrance";
+import { MotionView } from "@/motion/MotionView";
 import { AppText } from "@/components/AppText";
+import { MotionConfig } from "@/motion/config";
 
 type PlaceholderProps = {
   title: string;
@@ -35,24 +36,18 @@ export default function Placeholder({
   slideFromY = DEFAULT_SLIDE_FROM_Y,
   showBackground = true,
 }: PlaceholderProps) {
-  const { opacity, translateY, show } = useAnimatedEntrance({ slideFromY });
+  const [visible, setVisible] = useState(false);
 
   const imgOpacity = useSharedValue(0);
 
   useEffect(() => {
-    const timeout = setTimeout(show, showDelayMs);
+    const timeout = setTimeout(() => setVisible(true), showDelayMs);
     return () => clearTimeout(timeout);
-  }, [show, showDelayMs]);
+  }, [showDelayMs]);
 
   const handleImageLoad = () => {
     imgOpacity.value = withTiming(1, { duration: imageFadeMs });
   };
-
-  const containerStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
-    alignItems: "center",
-  }));
 
   const imageStyle = useAnimatedStyle(() => ({
     width: imageWidth,
@@ -62,7 +57,14 @@ export default function Placeholder({
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark items-center justify-center">
-      <Animated.View style={containerStyle}>
+      <MotionView
+        visible={visible}
+        from={{ opacity: 0, translateY: slideFromY }}
+        to={{ opacity: 1, translateY: 0 }}
+        duration={MotionConfig.duration.md}
+        easing="emphasized"
+        className="items-center"
+      >
         {showBackground && (
           <View className="absolute w-72 h-72 bg-primary-light/5 dark:bg-primary-dark/15 rounded-full" />
         )}
@@ -83,12 +85,12 @@ export default function Placeholder({
             {subtitle}
           </AppText>
         )}
-      </Animated.View>
+      </MotionView>
 
       {!!bottomNote && (
-        <Text className="absolute bottom-6 text-xs text-gray-400 dark:text-gray-500">
+        <AppText className="absolute bottom-6 text-xs text-gray-400 dark:text-gray-500">
           {bottomNote}
-        </Text>
+        </AppText>
       )}
     </View>
   );

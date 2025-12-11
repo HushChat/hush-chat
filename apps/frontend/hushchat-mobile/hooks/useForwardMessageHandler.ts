@@ -6,6 +6,8 @@ import { TConversation } from "@/components/ConversationsMultiSelect";
 import { EMPTY_SET } from "@/constants/constants";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getCriteria } from "@/utils/conversationUtils";
+import { router } from "expo-router";
+import { CONVERSATION } from "@/constants/routes";
 
 export const useForwardMessageHandler = (onSuccess?: () => void) => {
   const { selectedMessageIds, setSelectionMode, setSelectedMessageIds, selectedConversationType } =
@@ -32,6 +34,10 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
     () => {
       resetSelection();
       onSuccess?.();
+      if (selectedConversations.length > 0) {
+        const lastConversation = selectedConversations[selectedConversations.length - 1];
+        router.replace(CONVERSATION(lastConversation.id));
+      }
     },
     () => {
       ToastUtils.error(`Failed to forward message${selectedCount > 1 ? "s" : ""}`);
