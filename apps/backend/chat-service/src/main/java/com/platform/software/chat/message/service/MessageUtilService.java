@@ -114,6 +114,10 @@ public class MessageUtilService {
         Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
 
+        if (message.getGifUrl() != null && !message.getGifUrl().isEmpty()) {
+            newMessage.setGifUrl(message.getGifUrl());
+        }
+
         try {
             return messageRepository.saveMessageWthSearchVector(newMessage);
         } catch (Exception e) {

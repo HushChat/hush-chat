@@ -64,6 +64,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  gifUrl?: string;
 }
 
 export interface IMessageView extends IMessage {
@@ -296,7 +297,12 @@ export interface IActionConfig {
 
 export interface ConversationInputProps {
   conversationId: number;
-  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onSendMessage: (
+    message: string,
+    parentMessage?: IMessage,
+    files?: File[],
+    gifUrl?: string
+  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   onOpenDocumentPickerNative?: () => void;

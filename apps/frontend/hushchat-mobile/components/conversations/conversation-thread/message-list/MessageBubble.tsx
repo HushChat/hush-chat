@@ -42,6 +42,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   style,
 }) => {
   const messageContent = message.messageText;
+  const hasGif = !!message.gifUrl;
 
   const forwardedBorderStyle = isForwardedMessage
     ? isCurrentUser
@@ -52,7 +53,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
 
   return (
-    <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
+    <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments && !hasGif}>
       {selectionMode && (
         <View
           className={classNames("absolute -top-1.5 z-10", {
@@ -77,20 +78,33 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         <View
           className={classNames("rounded-lg border-2", {
             "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasImages) && isCurrentUser,
+              (hasText || hasImages || hasGif) && isCurrentUser,
             "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasImages) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasImages),
+              (hasText || hasImages || hasGif) && !isCurrentUser,
+            "bg-transparent": !(hasText || hasImages || hasGif),
 
             "border-sky-500 dark:border-sky-400": selected && selectionMode,
             "border-transparent": !(selected && selectionMode),
 
             "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasImages && !messageContent),
+            "px-3 py-2": !(hasImages && !messageContent) && !hasGif,
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
+          {hasGif && (
+            <View className={messageContent ? "mb-2" : ""}>
+              <img
+                src={message.gifUrl}
+                alt="gif"
+                style={{
+                  maxWidth: 250,
+                  maxHeight: 250,
+                  borderRadius: 8,
+                }}
+              />
+            </View>
+          )}
           {hasAttachments && (
             <View className={messageContent ? "mb-2" : ""}>
               {renderFileGrid(attachments, isCurrentUser)}

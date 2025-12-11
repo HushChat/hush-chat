@@ -36,11 +36,11 @@ export const useSendMessageHandler = ({
     useConversationMessagesQuery(currentConversationId);
 
   const handleSendMessage = useCallback(
-    async (message: string, parentMessage?: IMessage, files?: File[]) => {
+    async (message: string, parentMessage?: IMessage, files?: File[], gifUrl?: string) => {
       const trimmed = message?.trim() ?? "";
       const filesToSend = files || [];
 
-      if (!trimmed && filesToSend.length === 0) return;
+      if (!trimmed && filesToSend.length === 0 && !gifUrl) return;
 
       try {
         const validFiles = filesToSend.filter((f) => f instanceof File);
@@ -90,11 +90,32 @@ export const useSendMessageHandler = ({
           return;
         }
 
+        if (gifUrl) {
+          const tempGifMessage: IMessage = {
+            senderId: Number(currentUserId),
+            senderFirstName: "",
+            senderLastName: "",
+            messageText: trimmed,
+            createdAt: new Date().toISOString(),
+            conversationId: currentConversationId,
+            gifUrl: gifUrl,
+            messageAttachments: [],
+            hasAttachment: false,
+            id: 0,
+            isForwarded: false,
+          };
+
+          // Optimistic updates for GIF
+          updateConversationMessagesCache(tempGifMessage);
+          updateConversationsListCache(tempGifMessage);
+        }
+
         // Send normal text message
         sendMessage({
           conversationId: currentConversationId,
           message: trimmed,
           parentMessageId: parentMessage?.id,
+          gifUrl: gifUrl,
         });
 
         setSelectedMessage(null);

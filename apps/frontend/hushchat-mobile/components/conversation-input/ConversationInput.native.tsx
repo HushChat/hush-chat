@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
@@ -12,6 +12,9 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
+import { EmojiPickerComponent } from "./EmojiPicker";
+import { GifPickerComponent } from "./GifPicker.native";
+import { AppText } from "@/components/AppText";
 
 const ConversationInput = ({
   conversationId,
@@ -32,6 +35,8 @@ const ConversationInput = ({
   isGroupChat,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+  const [showGifPicker, setShowGifPicker] = useState<boolean>(false);
 
   const input = useConversationInput({
     conversationId,
@@ -104,6 +109,21 @@ const ConversationInput = ({
           toggled={mobileMenuVisible}
           onPress={handleAddButtonPress}
         />
+        <TouchableOpacity
+          onPress={() => setShowEmojiPicker(true)}
+          style={{ padding: 8 }}
+          disabled={disabled}
+        >
+          <AppText style={{ fontSize: 24 }}>😊</AppText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setShowGifPicker(true)}
+          style={{ padding: 8, marginLeft: 4 }}
+          disabled={disabled}
+        >
+          <AppText style={{ fontSize: 20 }}>GIF</AppText>
+        </TouchableOpacity>
 
         <View className="flex-1 mx-3">
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
@@ -157,6 +177,21 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
+      <EmojiPickerComponent
+        visible={showEmojiPicker}
+        onClose={() => setShowEmojiPicker(false)}
+        onEmojiSelect={(emoji) => {
+          input.handleChangeText(input.message + emoji);
+        }}
+      />
+
+      <GifPickerComponent
+        visible={showGifPicker}
+        onClose={() => setShowGifPicker(false)}
+        onGifSelect={(gifUrl) => {
+          onSendMessage?.(gifUrl);
+        }}
+      />
     </View>
   );
 };
