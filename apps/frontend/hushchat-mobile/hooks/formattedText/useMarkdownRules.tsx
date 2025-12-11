@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { AppText } from "@/components/AppText";
 import { MarkdownImage } from "@/components/MarkdownImage";
 import { PLATFORM } from "@/constants/platformConstants";
-import { TextStyle } from "react-native";
 
 interface ASTNode {
   key: string;
@@ -14,7 +13,6 @@ interface ASTNode {
 
 export const useMarkdownRules = (
   handleLinkPress: (url: string) => void,
-  messageTextStyles: TextStyle,
   isCurrentUser: boolean,
   onWebContextMenu: (e: any, url: string) => void
 ) => {
@@ -48,8 +46,7 @@ export const useMarkdownRules = (
             fontWeight: "700",
             borderRadius: 4,
             textDecorationLine: "none",
-            fontFamily: messageTextStyles.fontFamily,
-            fontSize: messageTextStyles.fontSize,
+            fontSize: 16,
           };
         } else if (url.startsWith("hashtag:")) {
           isSpecial = true;
@@ -57,8 +54,7 @@ export const useMarkdownRules = (
             color: "#ddd6fe",
             fontWeight: "500",
             textDecorationLine: "none",
-            fontFamily: messageTextStyles.fontFamily,
-            fontSize: messageTextStyles.fontSize,
+            fontSize: 16,
           };
         } else if (url.startsWith("tel:")) {
           activeStyle = {
@@ -83,6 +79,6 @@ export const useMarkdownRules = (
         );
       },
     }),
-    [handleLinkPress, isCurrentUser, messageTextStyles, onWebContextMenu]
+    [handleLinkPress, isCurrentUser, onWebContextMenu]
   );
 };

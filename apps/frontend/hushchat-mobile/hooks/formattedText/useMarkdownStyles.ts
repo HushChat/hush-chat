@@ -1,9 +1,8 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { TextStyle } from "react-native";
 import { useMemo } from "react";
 import { getMarkdownStyles } from "@/styles/markdown.styles";
 
-export const useMarkdownStyles = (messageTextStyles: TextStyle, isCurrentUser: boolean) => {
+export const useMarkdownStyles = (isCurrentUser: boolean) => {
   const { isDark } = useAppTheme();
 
   const textColor = useMemo(() => {
@@ -11,7 +10,7 @@ export const useMarkdownStyles = (messageTextStyles: TextStyle, isCurrentUser: b
     return isDark ? "#EDEDED" : "#333333";
   }, [isCurrentUser, isDark]);
 
-  const markdownStyles = getMarkdownStyles(messageTextStyles, textColor);
+  const markdownStyles = getMarkdownStyles(textColor);
 
-  return { markdownStyles, messageTextStyles };
+  return { markdownStyles };
 };

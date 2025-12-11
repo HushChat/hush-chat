@@ -7,7 +7,13 @@
 import { PLATFORM } from "@/constants/platformConstants";
 import { StyleSheet, TextStyle } from "react-native";
 
-export const getMarkdownStyles = (messageTextStyles: TextStyle, textColor: string) => {
+const messageTextStyles: TextStyle = {
+  fontSize: 16,
+  lineHeight: 20,
+  fontFamily: "Poppins-Regular",
+};
+
+export const getMarkdownStyles = (textColor: string) => {
   return StyleSheet.create({
     body: {
       padding: 0,

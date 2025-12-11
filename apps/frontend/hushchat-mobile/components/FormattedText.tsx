@@ -7,7 +7,6 @@ import { useLinkHandler } from "@/hooks/formattedText/useLinkHandler";
 import { useWebContextMenu } from "@/hooks/formattedText/useWebContextMenu";
 import { useMarkdownStyles } from "@/hooks/formattedText/useMarkdownStyles";
 import { useProcessedText } from "@/hooks/formattedText/useProcessedText";
-import { TextStyle } from "react-native";
 import { TUser } from "@/types/user/types";
 
 export interface FormattedTextProps {
@@ -26,12 +25,12 @@ const FormattedText = (props: FormattedTextProps) => {
 
   const processedText = useProcessedText(text, mentions);
 
-  const { markdownStyles } = useMarkdownStyles(messageTextStyles, isCurrentUser);
+  const { markdownStyles } = useMarkdownStyles(isCurrentUser);
 
   const handleLinkPress = useLinkHandler(props);
   const { menuVisible, menuPos, openMenu, closeMenu, copyLink } = useWebContextMenu();
 
-  const rules = useMarkdownRules(handleLinkPress, messageTextStyles, isCurrentUser, openMenu);
+  const rules = useMarkdownRules(handleLinkPress, isCurrentUser, openMenu);
   const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
 
   return (
@@ -62,9 +61,3 @@ const FormattedText = (props: FormattedTextProps) => {
 };
 
 export default FormattedText;
-
-const messageTextStyles: TextStyle = {
-  fontSize: 16,
-  lineHeight: 20,
-  fontFamily: "Poppins-Regular",
-};
