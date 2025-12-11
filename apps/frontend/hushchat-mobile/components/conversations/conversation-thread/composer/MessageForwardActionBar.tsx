@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useMemo } from "react";
-import { Animated, Pressable, Text, View, StyleSheet } from "react-native";
+import React, { useMemo } from "react";
+import { Pressable, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
+import { MotionView } from "@/motion/MotionView";
 
 export interface SelectionActionBarProps {
   visible: boolean;
@@ -23,38 +24,16 @@ const MessageForwardActionBar = ({
   onCancel,
   onForward,
 }: SelectionActionBarProps) => {
-  const opacity = useRef(new Animated.Value(visible ? 1 : 0)).current;
-  const translateY = useRef(new Animated.Value(visible ? 0 : 16)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: visible ? 1 : 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: visible ? 0 : 16,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [visible, opacity, translateY]);
-
   const selectedLabel = useMemo(() => `${count} selected`, [count]);
 
-  if (!visible) return null;
-
   return (
-    <Animated.View
-      pointerEvents="auto"
-      style={[
-        styles.container,
-        {
-          opacity,
-          transform: [{ translateY }],
-        },
-      ]}
+    <MotionView
+      visible={visible}
+      initial={{ opacity: 0, translateY: 16 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      duration={200}
+      pointerEvents={visible ? "auto" : "none"}
+      style={styles.container}
       testID="selectionActionBar"
     >
       <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark rounded-lg shadow-lg">
@@ -80,7 +59,7 @@ const MessageForwardActionBar = ({
           </Pressable>
         </View>
       </View>
-    </Animated.View>
+    </MotionView>
   );
 };
 
