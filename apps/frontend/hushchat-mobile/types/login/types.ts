@@ -30,12 +30,13 @@ export interface Workspace {
   description: string;
   workspaceIdentifier: string;
   imageUrl: string | null;
-  status: "PENDING" | "ACCEPTED";
+  status: WorkspaceStatus;
 }
 
 export enum WorkspaceStatus {
   PENDING = "PENDING",
   ACCEPTED = "ACCEPTED",
+  SUSPENDED = "SUSPENDED",
 }
 
 export type TWorkspaceFormProps = {
@@ -122,3 +123,21 @@ export interface WorkspaceDropdownProps {
   platformAwareDefault?: boolean;
   loading: boolean;
 }
+
+export const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  PENDING: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    text: "text-yellow-700 dark:text-yellow-400",
+    label: "Invitation Pending",
+  },
+  ACTIVE: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-700 dark:text-green-400",
+    label: "Active",
+  },
+  SUSPENDED: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    text: "text-red-700 dark:text-red-400",
+    label: "Suspended",
+  },
+};
