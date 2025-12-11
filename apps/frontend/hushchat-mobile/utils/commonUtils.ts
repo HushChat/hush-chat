@@ -109,7 +109,7 @@ const handleConversationNavigation = (
 // }
 
 const handleChatPress = (setSelectedConversation: (conversation: IConversation | null) => void) => {
-  const handleChatPress = (item: IConversation) => {
+  return (item: IConversation) => {
     if (!PLATFORM.IS_WEB) {
       router.push({
         pathname: CHAT_VIEW_PATH,
@@ -122,8 +122,6 @@ const handleChatPress = (setSelectedConversation: (conversation: IConversation |
       setSelectedConversation(item);
     }
   };
-
-  return handleChatPress;
 };
 
 const formatRelativeTime = (iso?: string): string => {
