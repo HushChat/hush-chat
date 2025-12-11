@@ -60,6 +60,11 @@ export const useMarkdownRules = (
             fontFamily: messageTextStyles.fontFamily,
             fontSize: messageTextStyles.fontSize,
           };
+        } else if (url.startsWith("tel:")) {
+          activeStyle = {
+            ...activeStyle,
+            textDecorationLine: "none",
+          };
         }
 
         const content = isSpecial ? node.children.map((child) => child.content).join("") : children;
