@@ -8,7 +8,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import classNames from "classnames";
 import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
 import { MaterialIcons } from "@expo/vector-icons";
-import { ProfileCardModal } from "@/components/ProfileCardModal"; // Import correctly
+import { ProfileCardModal } from "@/components/ProfileCardModal";
 import { AppText } from "@/components/AppText";
 import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
 
