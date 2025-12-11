@@ -1163,6 +1163,7 @@ public class ConversationService {
         dto.setBlocked(meta.isBlocked());
         dto.setPinned(me.getIsPinned());
         dto.setFavorite(me.getIsFavorite());
+        dto.setMutedUntil(me.getMutedUntil()); 
         return dto;
     }
 
