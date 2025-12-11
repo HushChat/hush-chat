@@ -4,30 +4,46 @@ import { HASHTAG_REGEX, MENTION_REGEX, PHONE_REGEX } from "@/constants/regex";
 
 export const useProcessedText = (text: string, mentions: TUser[]) => {
   return useMemo(() => {
-    let newText = text;
+    const splitRegex = /(`{3}[\s\S]*?`{3}|`[^`]+`)/g;
+    const parts = text.split(splitRegex);
 
-    const globalMentionRegex = new RegExp(MENTION_REGEX.source, "g");
+    return parts
+      .map((part) => {
+        if (part.startsWith("`")) return part;
 
-    newText = newText.replace(globalMentionRegex, (match) => {
-      const username = match.replace(/^@/, "");
+        let newPart = part;
 
-      return mentions?.some((m) => m.username === username)
-        ? `[${match}](mention:${username})`
-        : match;
-    });
+        const globalMentionRegex = new RegExp(MENTION_REGEX.source, "g");
 
-    newText = newText.replace(HASHTAG_REGEX, (match, space, hashtag) => {
-      const cleanTag = hashtag.replace("#", "");
-      return `${space || ""}[${hashtag}](hashtag:${cleanTag})`;
-    });
+        newPart = newPart.replace(globalMentionRegex, (match, space, username, punctuation) => {
+          const cleanUsername = username.replace(/\.$/, "");
+          const finalPunctuation = (username.endsWith(".") ? "." : "") + (punctuation || "");
 
-    const globalPhoneRegex = new RegExp(PHONE_REGEX.source, "g");
+          const isValid = mentions?.some(
+            (m) => m.username.toLowerCase() === cleanUsername.toLowerCase()
+          );
 
-    newText = newText.replace(globalPhoneRegex, (match) => {
-      const cleanNumber = match.replace(/[^0-9+]/g, "");
-      return `[${match}](tel:${cleanNumber})`;
-    });
+          return isValid
+            ? `${space}[@${cleanUsername}](mention:${cleanUsername})${finalPunctuation}`
+            : match;
+        });
 
-    return newText;
+        const globalHashtagRegex = new RegExp(HASHTAG_REGEX.source, "gi");
+
+        newPart = newPart.replace(globalHashtagRegex, (match, space, hashtag) => {
+          const cleanTag = hashtag.replace("#", "");
+          return `${space || ""}[${hashtag}](hashtag:${cleanTag})`;
+        });
+
+        const strictPhoneRegex = new RegExp(`(^|\\s)(${PHONE_REGEX.source})`, "g");
+
+        newPart = newPart.replace(strictPhoneRegex, (match, space, number) => {
+          const cleanNumber = number.replace(/[^0-9+]/g, "");
+          return `${space}[${number}](tel:${cleanNumber})`;
+        });
+
+        return newPart;
+      })
+      .join("");
   }, [text, mentions]);
 };
