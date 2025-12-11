@@ -15,6 +15,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
@@ -218,9 +219,9 @@ public class ConversationUtilService {
         return conversationDTO;
     }
 
-    public String getImageViewSignedUrl(String imageIndexedName) {
+    public String getImageViewSignedUrl(MediaPathEnum path, MediaSizeEnum size, String imageIndexedName) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+            return cloudPhotoHandlingService.getPhotoUploadSignedURL(path, size, imageIndexedName).getUrl();
         }
         return imageIndexedName;
     }
