@@ -25,6 +25,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -148,9 +149,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 ? conversationFilterCriteria.getIsMuted()
                 : false;
 
-        BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
-                .and(qConversation.deleted.eq(false))
-                .and(qConversationParticipant.isDeleted.eq(false));
+        BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId);
 
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
@@ -214,6 +213,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     Conversation conversation = tuple.get(qConversation);
                     Message latestMessage = tuple.get(qMessage);
 
+                    ConversationParticipant participantEntity = tuple.get(qConversationParticipant);
+
                     ConversationDTO dto = new ConversationDTO(conversation);
 
                     if (conversation != null && conversation.getConversationParticipants() != null) {
@@ -259,9 +260,20 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     }
 
                     if (latestMessage != null) {
+                    boolean shouldShowMessage = true;
+                    
+                    if (participantEntity != null && participantEntity.getLastDeletedTime() != null) {
+                        Date deletedAt = Date.from(participantEntity.getLastDeletedTime().toInstant());
+                        if (latestMessage.getCreatedAt().before(deletedAt)) {
+                            shouldShowMessage = false;
+                        }
+                    }
+
+                    if (shouldShowMessage) {
                         MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
                         dto.setMessages(List.of(messageViewDTO));
                     }
+                }
 
                     return dto;
                 })
@@ -307,9 +319,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .from(qConversation)
                 .join(qConversation.conversationParticipants, qConversationParticipant)
                 .where(qConversation.id.eq(conversationId)
-                        .and(qConversation.deleted.isFalse())
-                        .and(qConversationParticipant.user.id.eq(userId))
-                        .and(qConversationParticipant.isDeleted.isFalse()))
+                        .and(qConversationParticipant.user.id.eq(userId)))
                 .fetchFirst();
 
         if(conversation == null) {
@@ -350,7 +360,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                   .join(cpSelf).on(
                           cpSelf.conversation.eq(c)
                                   .and(cpSelf.user.id.eq(userId))
-                                  .and(cpSelf.isDeleted.isFalse())
                   )
                   // get the other active participant
                   //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
