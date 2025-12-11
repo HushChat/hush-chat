@@ -187,7 +187,7 @@ public class UserServiceImpl implements UserService {
 
     @Cacheable(value = CacheNames.FIND_USER_BY_ID, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     @Override
-    public UserViewDTO findUserById(Long id) {
+    public UserViewDTO findUserById(Long id, String workspaceIdentifier) {
         ChatUser user = userRepository.findById(id)
         .orElseThrow(() -> {
             logger.warn("invalid user id {} provided", id);
@@ -196,6 +196,8 @@ public class UserServiceImpl implements UserService {
         
         UserViewDTO userViewDTO = new UserViewDTO(user);
         userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(user.getEmail(), workspaceIdentifier);
+        userViewDTO.setWorkspaceRole(workspaceUser.getRole());
         return userViewDTO;
     }
 
