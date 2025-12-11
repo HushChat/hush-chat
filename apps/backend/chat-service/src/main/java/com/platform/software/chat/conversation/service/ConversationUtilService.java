@@ -210,8 +210,7 @@ public class ConversationUtilService {
      */
     public ConversationDTO addSignedImageUrlToConversationDTO(ConversationDTO conversationDTO,String fileName) {
         String newFileName = (conversationDTO.getId()) + "_" + fileName;
-        String imageIndexName = String.format("chat-service/conversation/%s", newFileName);
-        conversationDTO.setImageIndexedName(imageIndexName);
+        conversationDTO.setImageIndexedName(newFileName);
 
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
         conversationDTO.setSignedImageUrl(imageSignedDTO.getUrl());
