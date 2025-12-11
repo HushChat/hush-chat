@@ -54,4 +54,5 @@ export interface UserActivityWSSubscriptionData {
   email: string;
   visibleConversations: number[]; // list of conversations visible - mobile or web
   openedConversation: number | null; // indicates user's selected conversation, could be null
+  deviceType?: "WEB" | "MOBILE";
 }

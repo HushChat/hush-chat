@@ -16,6 +16,7 @@ import {
 import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
+import { PLATFORM } from "@/constants/platformConstants";
 
 // Define topics to subscribe to
 const TOPICS = [
@@ -38,6 +39,7 @@ export const publishUserActivity = (
     const sendFrameBytes = [
       ...Array.from(new TextEncoder().encode("SEND\n")),
       ...Array.from(new TextEncoder().encode("destination:/app/subscribed-conversations\n")),
+      ...Array.from(new TextEncoder().encode(`device-type:${data.deviceType}\n`)),
       ...Array.from(new TextEncoder().encode(`content-length:${body.length}\n`)),
       ...Array.from(new TextEncoder().encode("content-type:application/json\n")),
       0x0a, // empty line
@@ -47,6 +49,8 @@ export const publishUserActivity = (
 
     const uint8Array = new Uint8Array(sendFrameBytes);
     ws.send(uint8Array.buffer);
+
+    console.log("send", sendFrameBytes);
 
     return true;
   } catch (error) {
@@ -180,6 +184,7 @@ export default function useWebSocketConnection() {
                 .join("\n")
                 .replace(/\0$/, "");
 
+              console.log("ransilu", topic, body);
               // Route message to appropriate handler based on topic
               handleMessageByTopic(topic, body);
             }
@@ -230,6 +235,10 @@ export default function useWebSocketConnection() {
     };
   }, [email, isAuthenticated]);
 
+  const getDeviceType = (): "WEB" | "MOBILE" => {
+    return PLATFORM.IS_WEB ? "WEB" : "MOBILE";
+  };
+
   const publishActivity = (data: UserActivityWSSubscriptionData) => {
     if (connectionStatus !== WebSocketStatus.Connected) {
       logInfo("Cannot publish activity: WebSocket not connected", {
@@ -237,7 +246,12 @@ export default function useWebSocketConnection() {
       });
       return false;
     }
-    return publishUserActivity(wsRef.current, data);
+    const dataWithDevice: UserActivityWSSubscriptionData = {
+      ...data,
+      deviceType: getDeviceType(),
+    };
+
+    return publishUserActivity(wsRef.current, dataWithDevice);
   };
 
   // return the connection status
