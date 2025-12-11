@@ -151,10 +151,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId);
 
-        whereConditions = whereConditions.and(
-                qMessage.isNotNull().or(qConversation.isGroup.eq(true))
-        );
-
         if (isGroup) {
                 whereConditions = whereConditions.and(qConversation.isGroup.eq(isGroup));
         }
