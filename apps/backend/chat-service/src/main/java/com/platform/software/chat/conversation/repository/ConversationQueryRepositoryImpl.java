@@ -360,7 +360,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                   .join(cpSelf).on(
                           cpSelf.conversation.eq(c)
                                   .and(cpSelf.user.id.eq(userId))
-                                  .and(cpSelf.isDeleted.isFalse())
                   )
                   // get the other active participant
                   //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
