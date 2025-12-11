@@ -44,8 +44,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
     user: { email },
   } = useUserStore();
 
-  // const paramConversationId = params.conversationId ? Number(params.conversationId) : null;
-
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
 
   const debouncedSearchQuery = useMemo(

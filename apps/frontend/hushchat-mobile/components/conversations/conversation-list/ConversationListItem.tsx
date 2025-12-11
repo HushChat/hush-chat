@@ -1,11 +1,4 @@
-import {
-  View,
-  TouchableOpacity,
-  Pressable,
-  GestureResponderEvent,
-  Modal,
-  StyleSheet,
-} from "react-native";
+import { View, TouchableOpacity, Pressable, GestureResponderEvent, StyleSheet } from "react-native";
 import React, { useCallback, useState, useRef } from "react";
 import { IConversation } from "@/types/chat/types";
 import { getLastMessageTime } from "@/utils/commonUtils";
@@ -15,13 +8,9 @@ import { PLATFORM } from "@/constants/platformConstants";
 import classNames from "classnames";
 import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
 import { MaterialIcons } from "@expo/vector-icons";
-import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
+import { ProfileCardModal } from "@/components/ProfileCardModal"; // Import correctly
 import { AppText } from "@/components/AppText";
 import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
-
-const BG = {
-  modalBackdrop: "rgba(9, 15, 29, 0.8)",
-};
 
 const ConversationListItem = ({
   conversation,
@@ -58,6 +47,10 @@ const ConversationListItem = ({
   const handleOptionsClose = useCallback(() => {
     setShowOptions(false);
   }, []);
+
+  const secondaryText = conversation.isGroup
+    ? "Group Chat"
+    : (conversation as any).otherUser?.username || "Private Chat";
 
   return (
     <>
@@ -129,28 +122,16 @@ const ConversationListItem = ({
         conversationsRefetch={conversationsRefetch}
       />
 
-      <Modal
+      <ProfileCardModal
         visible={showProfileModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowProfileModal(false)}
-      >
-        <Pressable style={styles.modalBackdrop} onPress={() => setShowProfileModal(false)}>
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            className="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-xs w-full"
-          >
-            <ProfilePictureModalContent
-              profileData={{
-                name: conversation.name,
-                signedImageUrl: conversation.signedImageUrl,
-                isGroup: conversation.isGroup,
-                secondaryText: conversation.isGroup ? "Group Chat" : "Private Chat",
-              }}
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => setShowProfileModal(false)}
+        data={{
+          name: conversation.name,
+          imageUrl: conversation.signedImageUrl,
+          isGroup: conversation.isGroup,
+          secondaryText: secondaryText,
+        }}
+      />
     </>
   );
 };
@@ -160,12 +141,5 @@ export default ConversationListItem;
 const styles = StyleSheet.create({
   pinRotate: {
     transform: [{ rotate: "45deg" }],
-  },
-
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: BG.modalBackdrop,
   },
 });
