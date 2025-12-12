@@ -2,17 +2,22 @@ import React, { memo, useCallback } from "react";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
+
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import WebChatContextMenu from "@/components/WebContextMenu";
-import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
+
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
+
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
+import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
+
+import { useConversationStore } from "@/store/conversation/useConversationStore";
 
 const ConversationInput = ({
   conversationId,
@@ -31,6 +36,8 @@ const ConversationInput = ({
   onCancelReply,
   isGroupChat,
 }: ConversationInputProps) => {
+  const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
+
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -85,12 +92,9 @@ const ConversationInput = ({
           onPress={input.handleAddButtonPress}
         />
 
-        <View className="flex-1 mx-4">
+        <View className="flex-1 mx-2">
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
-            <View
-              className="relative flex-row flex-end rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4"
-              style={{ paddingRight: RIGHT_ICON_GUTTER }}
-            >
+            <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4">
               <MessageTextArea
                 ref={input.messageTextInputRef}
                 value={input.message}
@@ -108,12 +112,19 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
+              <View className="flex-row items-center gap-3">
+                <MarkdownToggle
+                  enabled={isMarkdownEnabled}
+                  onToggle={toggleMarkdown}
+                  disabled={disabled}
+                />
 
-              <SendButton
-                showSend={input.isValidMessage}
-                isSending={isSending}
-                onPress={handleSendPress}
-              />
+                <SendButton
+                  showSend={input.isValidMessage}
+                  isSending={isSending}
+                  onPress={handleSendPress}
+                />
+              </View>
             </View>
 
             {typeof maxChars === "number" && (
@@ -123,10 +134,11 @@ const ConversationInput = ({
         </View>
 
         <FileInput ref={input.fileInputRef} onChange={input.handleFileChange} accept="image/*" />
+
         <FileInput
           ref={input.documentInputRef}
           onChange={input.handleDocumentChange}
-          accept={".pdf,.doc,.docx,.xls,.xlsx,.txt"}
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
         />
       </View>
 
