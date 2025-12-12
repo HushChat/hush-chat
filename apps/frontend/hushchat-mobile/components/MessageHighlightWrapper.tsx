@@ -10,6 +10,7 @@ interface IHighlightWrapperProps {
   style?: ViewStyle;
   bounceDistance?: number;
   onHighlightComplete?: () => void;
+  initialDelay?: number;
 }
 
 export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
@@ -19,9 +20,9 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
   style,
   bounceDistance = 12,
   onHighlightComplete,
+  initialDelay = 300,
 }) => {
   const [isBouncing, setIsBouncing] = useState(false);
-
   const hasTriggeredRef = useRef(false);
 
   useEffect(() => {
@@ -32,17 +33,23 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
 
     if (id === targetId && !hasTriggeredRef.current) {
       hasTriggeredRef.current = true;
-      setIsBouncing(true);
-      const timer = setTimeout(() => {
-        setIsBouncing(false);
-        if (onHighlightComplete) {
-          onHighlightComplete();
-        }
-      }, MotionConfig.duration.md);
 
-      return () => clearTimeout(timer);
+      const delayTimer = setTimeout(() => {
+        setIsBouncing(true);
+
+        const bounceTimer = setTimeout(() => {
+          setIsBouncing(false);
+          if (onHighlightComplete) {
+            onHighlightComplete();
+          }
+        }, MotionConfig.duration.md);
+
+        return () => clearTimeout(bounceTimer);
+      }, initialDelay);
+
+      return () => clearTimeout(delayTimer);
     }
-  }, [id, targetId, onHighlightComplete]);
+  }, [id, targetId, onHighlightComplete, initialDelay]);
 
   return (
     <MotionView
