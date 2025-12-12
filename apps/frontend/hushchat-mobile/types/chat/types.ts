@@ -302,16 +302,16 @@ export interface ConversationInputProps {
   onOpenDocumentPickerNative?: () => void;
   disabled?: boolean;
   isSending?: boolean;
-  placeholder?: string;
-  minLines?: number;
-  maxLines?: number;
-  lineHeight?: number;
-  verticalPadding?: number;
-  maxChars?: number;
-  autoFocus?: boolean;
   replyToMessage?: IMessage | null;
   onCancelReply?: () => void;
   isGroupChat?: boolean;
+  // placeholder?: string;
+  // minLines?: number;
+  // maxLines?: number;
+  // lineHeight?: number;
+  // verticalPadding?: number;
+  // maxChars?: number;
+  // autoFocus?: boolean;
 }
 
 export interface ConversationInputConfig {
