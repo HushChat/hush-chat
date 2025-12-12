@@ -46,6 +46,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   );
   const { selectedConversationType } = useConversationStore();
   const [userStatus, setUserStatus] = useState<IUserStatus | null>(null);
+
+  // NEW: separate state for new conversation events (prevents unread logic running)
+  const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
+
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
@@ -57,6 +61,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     criteria
   );
 
+  /**
+   * 1) Message-received -> update unread and move to top
+   */
   useEffect(() => {
     if (!notificationConversation) return;
 
@@ -100,7 +107,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         isPinned: (conversation) => conversation.pinnedByLoggedInUser,
       }
     );
-  }, [notificationConversation, queryClient, loggedInUserId, criteria]);
+  }, [notificationConversation, queryClient, conversationsQueryKey]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
     updatePaginatedItemInCache<IConversation>(
@@ -112,6 +119,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     );
   };
 
+  /**
+   * 2) WS message event listener
+   */
   useEffect(() => {
     const handleIncomingWebSocketConversation = (conversation: IConversation) => {
       const shouldUpdate = conversation?.id && !conversation.archivedByLoggedInUser;
@@ -132,10 +142,83 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, []);
 
+  /**
+   * NEW: Conversation created listener (group added / new group)
+   */
+  useEffect(() => {
+    const handleConversationCreated = (conversation: IConversation) => {
+      if (!conversation?.id) return;
+
+      // If backend sends archived=true per-participant, skip it (same rule as messages)
+      if (conversation.archivedByLoggedInUser) return;
+
+      setCreatedConversation(conversation);
+    };
+
+    eventBus.on("conversation:created", handleConversationCreated);
+
+    return () => {
+      eventBus.off("conversation:created", handleConversationCreated);
+    };
+  }, []);
+
+  /**
+   *  Apply conversation-created into cache (append + move to top)
+   */
+  useEffect(() => {
+    if (!createdConversation) return;
+
+    const existingCache =
+      queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(conversationsQueryKey);
+
+    const existsAlready =
+      existingCache?.pages?.some((p) => p.content?.some((c) => c.id === createdConversation.id)) ??
+      false;
+
+    if (!existsAlready) {
+      appendToOffsetPaginatedCache<IConversation>(
+        queryClient,
+        conversationsQueryKey,
+        {
+          ...createdConversation,
+          unreadCount: createdConversation.unreadCount ?? 0,
+        },
+        {
+          getId: (item) => item?.id,
+          pageSize: PAGE_SIZE,
+          getPageItems: (page) => page?.content,
+          setPageItems: (page, items) => ({ ...page, content: items }),
+          moveUpdatedToTop: true,
+          isPinned: (conversation) => conversation.pinnedByLoggedInUser,
+        }
+      );
+    } else {
+      // If it already exists, still update it + move to top (optional but nice UX)
+      appendToOffsetPaginatedCache<IConversation>(
+        queryClient,
+        conversationsQueryKey,
+        createdConversation,
+        {
+          getId: (item) => item?.id,
+          pageSize: PAGE_SIZE,
+          getPageItems: (page) => page?.content,
+          setPageItems: (page, items) => ({ ...page, content: items }),
+          moveUpdatedToTop: true,
+          isPinned: (conversation) => conversation.pinnedByLoggedInUser,
+        }
+      );
+    }
+
+    setCreatedConversation(null);
+  }, [createdConversation, queryClient, conversationsQueryKey]);
+
   const clearNotificationConversation = useCallback(() => {
     setNotificationConversation(null);
   }, []);
 
+  /**
+   * 5) Presence listener
+   */
   useEffect(() => {
     const handleIncomingUserStatusUpdates = (userStatus: IUserStatus) => {
       if (userStatus) {
@@ -150,6 +233,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, []);
 
+  /**
+   * 6) Apply presence changes into cache
+   */
   useEffect(() => {
     if (!userStatus) return;
 
@@ -170,9 +256,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     }
 
-    if (conversation == null) {
-      return;
-    }
+    if (conversation == null) return;
 
     const mergedConversation = {
       ...conversation,
@@ -190,7 +274,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         setPageItems: (page, items) => ({ ...page, content: items }),
       }
     );
-  }, [userStatus, queryClient, loggedInUserId, criteria]);
+  }, [userStatus, queryClient, conversationsQueryKey]);
 
   return (
     <ConversationNotificationsContext.Provider
