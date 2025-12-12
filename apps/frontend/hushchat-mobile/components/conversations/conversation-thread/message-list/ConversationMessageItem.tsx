@@ -5,7 +5,7 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, View, StyleSheet, Text } from "react-native";
+import { GestureResponderEvent, View, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import {
   ConversationAPIResponse,
@@ -34,6 +34,7 @@ import { MessageHeader } from "@/components/conversations/conversation-thread/me
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
+import { AppText } from "@/components/AppText";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -354,9 +355,9 @@ export const ConversationMessageItem = ({
     return (
       <View className="flex-row justify-center items-center py-2 px-4">
         <View className="dark:bg-secondary-dark bg-secondary-light rounded-lg py-1.5 px-3 max-w-[80%]">
-          <Text className="dark:!text-gray-300 text-gray-700 text-xs text-center">
+          <AppText className="dark:!text-gray-300 text-gray-700 text-xs text-center">
             {messageContent}
-          </Text>
+          </AppText>
         </View>
       </View>
     );
@@ -366,7 +367,7 @@ export const ConversationMessageItem = ({
     <View style={styles.contentBlockWrapper}>
       <View className="group mb-3">
         <View className="flex-row mx-2">
-          {showSenderAvatar && (
+          {showSenderAvatar ? (
             <View className="mr-2 pt-1 w-10 h-10">
               <InitialsAvatar
                 name={senderName}
@@ -374,7 +375,9 @@ export const ConversationMessageItem = ({
                 imageUrl={message.senderSignedImageUrl}
               />
             </View>
-          )}
+          ) : isGroupChat ? (
+            <View className="mr-2 pt-1 w-10 h-10" />
+          ) : null}
           <View className="flex-1">
             <MessageHeader
               isCurrentUser={isCurrentUser}

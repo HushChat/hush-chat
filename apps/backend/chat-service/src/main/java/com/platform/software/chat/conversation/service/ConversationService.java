@@ -226,10 +226,10 @@ public class ConversationService {
         conversation.setName(groupConversationDTO.getName().trim());
         conversation.setDescription(groupConversationDTO.getDescription().trim());
 
-        ConversationDTO conversationDTO = saveConversationAndBuildDTO(conversation);
+        ConversationDTO savedConversationDTO = saveConversationAndBuildDTO(conversation);
 
         if (groupConversationDTO.getImageFileName() != null) {
-            conversation.setId(conversationDTO.getId());
+            conversation.setId(savedConversationDTO.getId());
 
             ConversationDTO updatedConversationDTO = new ConversationDTO(conversation);
 
@@ -237,12 +237,39 @@ public class ConversationService {
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
 
-            return saveConversationAndBuildDTO(conversation);
+            savedConversationDTO = saveConversationAndBuildDTO(conversation);
         }
 
-        conversationEventService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
+        triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
 
-        return conversationDTO;
+        return savedConversationDTO;
+    }
+
+    /**
+     * Helper method to handle the specific event sequence for new groups.
+     * Segregating this keeps the main method clean.
+     */
+    private void triggerGroupCreationEvents(Long conversationId, Long actorUserId, List<Long> initialParticipantIds) {
+        // Event 1: Group Created
+        conversationEventService.createMessageWithConversationEvent(
+                conversationId,
+                actorUserId,
+                Collections.emptyList(),
+                ConversationEventType.GROUP_CREATED
+        );
+        // Event 2: Users Added
+        List<Long> targetsForAddEvent = initialParticipantIds.stream()
+                .filter(id -> !id.equals(actorUserId))
+                .toList();
+
+        if (!targetsForAddEvent.isEmpty()) {
+            conversationEventService.createMessageWithConversationEvent(
+                    conversationId,
+                    actorUserId,
+                    targetsForAddEvent, 
+                    ConversationEventType.USER_ADDED
+            );
+        }
     }
 
     /**
@@ -600,26 +627,21 @@ public class ConversationService {
                     return dto;
                 }
 
-                List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                if (matchedMessage.getParentMessage() != null) {
+                    List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage().getAttachments();
 
-                if (attachments == null || attachments.isEmpty()) {
-                    return dto;
-                }
+                    if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
+                        MessageAttachment parentMessageAttachment = parentMessageAttachments.getFirst();
 
-                for (MessageAttachment attachment : attachments) {
-                    try {
-                        String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
-
-                        MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO(attachment);
-                        messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                        attachmentDTOs.add(messageAttachmentDTO);
-                    } catch (Exception e) {
-                        logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
-                        throw new CustomInternalServerErrorException("Failed to get conversation!");
+                        List<MessageAttachmentDTO> enrichedParentMessageAttachmentDTO = conversationUtilService.getEnrichedMessageAttachmentsDTO(List.of(parentMessageAttachment));
+                        dto.getParentMessage().setMessageAttachments(enrichedParentMessageAttachmentDTO);
                     }
                 }
-                dto.setMessageAttachments(attachmentDTOs);
+
+                List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService.getEnrichedMessageAttachmentsDTO(attachments);
+                dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
+
                 return dto;
             })
             .collect(Collectors.toList());
@@ -676,7 +698,7 @@ public class ConversationService {
     }
 
     /**
-     * Deletes a conversation by its ID for a specific user.
+     * Deletes a conversation by its ID. The requesting user must be a group admin.
      *
      * @param id     the ID of the conversation to delete
      * @param userId the ID of the user deleting the conversation
@@ -685,16 +707,24 @@ public class ConversationService {
     public Conversation deleteConversationById(Long id, Long userId) {
         Conversation conversation = conversationRepository.findByIdAndCreatedById(id, userId).orElseThrow(() -> {
             logger.warn("invalid conversation id {} provided or the user {} doesn't have permission to delete it", id, userId);
-            throw new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
+            return new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
         });
 
-        conversation.setDeleted(true);
-        try {
-            return conversationRepository.save(conversation);
-        } catch (Exception exception) {
-            logger.error("failed to delete conversation id: {}", id, exception);
-            throw new CustomBadRequestException("Failed to delete conversation");
-        }
+        return conversationUtilService.deleteConversation(conversation);
+    }
+
+    /**
+     * Deletes a conversation by its ID. This method is intended for admin use.
+     *
+     * @param id the ID of the conversation to delete
+     */
+    public void deleteConversationById(Long id) {
+        Conversation conversation = conversationRepository.findById(id).orElseThrow(() -> {
+            logger.warn("invalid conversation id {} provided", id);
+            return new CustomBadRequestException("Conversation does not exist!");
+        });
+
+        conversationUtilService.deleteConversation(conversation);
     }
 
     /**
@@ -1011,15 +1041,27 @@ public class ConversationService {
         Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
-        boolean alreadyPinned = Optional.ofNullable(conversation.getPinnedMessage())
+        boolean currentlyPinned = Optional.ofNullable(conversation.getPinnedMessage())
                 .map(Message::getId)
                 .filter(id -> id.equals(messageId))
                 .isPresent();
 
-        conversation.setPinnedMessage(alreadyPinned ? null : message);
+        boolean isPinningAction = !currentlyPinned;
+
+        conversation.setPinnedMessage(isPinningAction ? message : null);
 
         try {
             conversationRepository.save(conversation);
+
+            if (isPinningAction) {
+                conversationEventService.createMessageWithConversationEvent(
+                        conversationId,
+                        userId,
+                        null,
+                        ConversationEventType.MESSAGE_PINNED
+                );
+            }
+
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
         } catch (Exception exception) {
             logger.error("Failed to pin messageId: {} in conversationId: {}", messageId, conversationId, exception);
@@ -1121,6 +1163,7 @@ public class ConversationService {
         dto.setBlocked(meta.isBlocked());
         dto.setPinned(me.getIsPinned());
         dto.setFavorite(me.getIsFavorite());
+        dto.setMutedUntil(me.getMutedUntil()); 
         return dto;
     }
 
@@ -1285,10 +1328,13 @@ public class ConversationService {
             throw new CustomBadRequestException("You cannot remove yourself. Use leave conversation instead.");
         }
 
+        long chatUserIdToRemove = conversationParticipantRepository
+                .chatUserIdByConversationParticipantId(participantIdToRemove);
+
         try {
             conversationParticipantRepository.updateIsActiveById(participantIdToRemove, false);
 
-            conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(participantIdToRemove), ConversationEventType.USER_REMOVED);
+            conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(chatUserIdToRemove), ConversationEventType.USER_REMOVED);
         } catch (Exception e) {
             logger.error("Cant remove user: %s due to an error".formatted(participantIdToRemove), e);
             throw new CustomInternalServerErrorException("Failed to remove user from conversation");
@@ -1347,6 +1393,16 @@ public class ConversationService {
         ConversationReadInfo conversationReadInfo = conversationReadStatusRepository
             .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
         return conversationReadInfo;
+    }
+
+    /**
+     * Retrieves all group conversations for admin view with pagination.
+     *
+     * @param pageable the pagination information
+     * @return a Page of ConversationAdminViewDTOs containing group conversation details
+     */
+    public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
+        return conversationRepository.findAllGroupConversationsAdminView(pageable);
     }
 }
 

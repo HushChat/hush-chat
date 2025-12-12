@@ -4,10 +4,11 @@
  * A reusable button component revealed by swipe gestures on list items.
  */
 import React from "react";
-import { View, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { AppText } from "@/components/AppText";
 
 export interface SwipeActionProps {
   onPress: () => void;
@@ -51,7 +52,7 @@ export default function SwipeActionItem({
           <Ionicons name={iconName} size={24} color="white" />
         </View>
 
-        <Text className="text-white text-xs font-semibold">{text}</Text>
+        <AppText className="text-white text-xs font-semibold">{text}</AppText>
       </View>
     </TouchableOpacity>
   );

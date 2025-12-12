@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, TextInput, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
 import { DOC_EXTENSIONS, SIZES, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
+import { AppText, AppTextInput } from "@/components/AppText";
 
 const VideoPlayer = ({ uri, style }: { uri: string; style: any }) => {
   return (
@@ -66,18 +67,18 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
         ) : (
           <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
             <Ionicons name="document-text-outline" size={64} color={iconColor} />
-            <Text className="mt-4 text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
+            <AppText className="mt-4 text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
               {file.name}
-            </Text>
-            <Text className="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+            </AppText>
+            <AppText className="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">
               {prettySize}
-            </Text>
+            </AppText>
           </View>
         )}
       </View>
 
       <View className="px-6 pb-4">
-        <TextInput
+        <AppTextInput
           className="w-full outline-none rounded-xl bg-secondary-light/60 dark:bg-secondary-dark/70 border border-gray-200 dark:border-gray-700 px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
           placeholder={`Write a caption for your ${fileType === "document" ? "document" : fileType === "video" ? "video" : "image"}...`}
           placeholderTextColor="#9ca3af"

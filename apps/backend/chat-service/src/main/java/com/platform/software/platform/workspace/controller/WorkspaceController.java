@@ -5,13 +5,14 @@ import com.platform.software.chat.user.dto.WorkSpaceUserUpsertDTO;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
-import com.platform.software.platform.workspace.dto.WorkspaceDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
+import com.platform.software.config.workspace.WorkspaceContext;
+import com.platform.software.platform.workspace.dto.*;
 import com.platform.software.platform.workspace.service.WorkspaceService;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import io.swagger.annotations.ApiOperation;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,14 +33,14 @@ public class WorkspaceController {
         this.workspaceService = workspaceService;
     }
 
-    @ApiOperation(value = "Create new workspace")
+    @ApiOperation(value = "Submit new workspace creation request")
     @PostMapping
-    public ResponseEntity<Void> createWorkspace(
+    public ResponseEntity<Void> submitCreateWorkspaceRequest(
             @Valid @RequestBody WorkspaceUpsertDTO workspaceUpsertDTO,
             @AuthenticatedUser UserDetails userDetails
     ){
-        workspaceService.createWorkspace(workspaceUpsertDTO, userDetails.getEmail());
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        workspaceService.requestCreateWorkspace(workspaceUpsertDTO, userDetails.getEmail());
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @ApiOperation(value = "invite to workspaces")

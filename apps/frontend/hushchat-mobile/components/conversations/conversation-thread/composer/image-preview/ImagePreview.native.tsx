@@ -22,6 +22,7 @@ import { usePanGesture } from "@/gestures/base/usePanGesture";
 import { useDoubleTapGesture } from "@/gestures/base/useDoubleTapGesture";
 import { ToastUtils } from "@/utils/toastUtils";
 import { AppText } from "@/components/AppText";
+import { MotionView } from "@/motion/MotionView";
 import { getFileType } from "@/utils/files/getFileType";
 import { useVideoThumbnails } from "@/hooks/useVideoThumbnails";
 
@@ -233,7 +234,10 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     >
       <SafeAreaView style={styles.flex1} edges={["bottom"]}>
         <View className="flex-1 bg-white dark:bg-black">
-          <View
+          <MotionView
+            visible={true}
+            preset="fadeIn"
+            delay={100}
             className="absolute left-0 right-0 flex-row justify-between items-center px-5 pb-4 z-10 bg-white/90 dark:bg-black/90 backdrop-blur-sm"
             style={{ paddingTop: insets.top + 10 }}
           >
@@ -256,7 +260,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                 <Ionicons name="close" size={28} color="#6B7280" />
               </Pressable>
             </View>
-          </View>
+          </MotionView>
 
           <GestureHandlerRootView style={styles.flex1}>
             <View
@@ -295,7 +299,12 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
           </GestureHandlerRootView>
 
           {images.length > 1 && (
-            <View className="absolute bottom-0 left-0 right-0 p-5 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-[#202C33]">
+            <MotionView
+              visible={true}
+              preset="slideUp"
+              delay={200}
+              className="absolute bottom-0 left-0 right-0 p-5 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-[#202C33]"
+            >
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -336,20 +345,31 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                   );
                 })}
               </ScrollView>
-            </View>
+            </MotionView>
           )}
 
           <Modal
             visible={showConfirmDialog}
             transparent={true}
-            animationType="fade"
+            animationType="none"
             onRequestClose={() => {
               setShowConfirmDialog(false);
               setExistingFileUri(null);
             }}
           >
-            <View className="flex-1 justify-center items-center bg-black/50">
-              <View className="w-[85%] bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 shadow-xl">
+            <MotionView
+              visible={showConfirmDialog}
+              preset="fadeIn"
+              duration={200}
+              className="flex-1 justify-center items-center bg-black/50"
+            >
+              <MotionView
+                visible={showConfirmDialog}
+                preset="scaleIn"
+                easing="springy"
+                duration={300}
+                className="w-[85%] bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 shadow-xl"
+              >
                 <AppText className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   File Already Saved
                 </AppText>
@@ -377,8 +397,8 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
                     <AppText className="text-base font-bold text-white ">Save Again</AppText>
                   </Pressable>
                 </View>
-              </View>
-            </View>
+              </MotionView>
+            </MotionView>
           </Modal>
         </View>
       </SafeAreaView>
