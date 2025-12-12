@@ -37,59 +37,60 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
     }
 
     @Query(value = """
-        WITH RECURSIVE parent_chain AS (
-            -- anchor
-            SELECT m.id, m.message_text, m.created_at, m.parent_message_id, m.sender_id,
-                   cu.first_name, cu.last_name, 0 AS level
-            FROM message m
-            LEFT JOIN chat_user cu ON m.sender_id = cu.id
-            WHERE m.id = :messageId
-            
-            UNION ALL
-            
-            -- recursive
-            SELECT m.id, m.message_text, m.created_at, m.parent_message_id, m.sender_id,
-                   cu.first_name, cu.last_name, pc.level + 1
-            FROM message m
-            LEFT JOIN chat_user cu ON m.sender_id = cu.id
-            INNER JOIN parent_chain pc ON m.id = pc.parent_message_id
-        )
-        SEARCH DEPTH FIRST BY id SET ordercol
-        CYCLE id SET is_cycle TO true DEFAULT false USING cycle_path
-        SELECT id, message_text AS messageText, created_at AS createdAt,
-               parent_message_id AS parentMessageId, sender_id AS senderId,
-               first_name AS senderFirstName, last_name AS senderLastName, level
-        FROM parent_chain
-        WHERE NOT is_cycle
-        ORDER BY level ASC
-        """, nativeQuery = true)
+            WITH RECURSIVE parent_chain AS (
+                -- anchor
+                SELECT m.id, m.message_text, m.created_at, m.parent_message_id, m.sender_id,
+                       cu.first_name, cu.last_name, 0 AS level
+                FROM message m
+                LEFT JOIN chat_user cu ON m.sender_id = cu.id
+                WHERE m.id = :messageId
+
+                UNION ALL
+
+                -- recursive
+                SELECT m.id, m.message_text, m.created_at, m.parent_message_id, m.sender_id,
+                       cu.first_name, cu.last_name, pc.level + 1
+                FROM message m
+                LEFT JOIN chat_user cu ON m.sender_id = cu.id
+                INNER JOIN parent_chain pc ON m.id = pc.parent_message_id
+            )
+            SEARCH DEPTH FIRST BY id SET ordercol
+            CYCLE id SET is_cycle TO true DEFAULT false USING cycle_path
+            SELECT id, message_text AS messageText, created_at AS createdAt,
+                   parent_message_id AS parentMessageId, sender_id AS senderId,
+                   first_name AS senderFirstName, last_name AS senderLastName, level
+            FROM parent_chain
+            WHERE NOT is_cycle
+            ORDER BY level ASC
+            """, nativeQuery = true)
     List<MessageThreadProjection> getMessageWithParentChain(@Param("messageId") Long messageId);
 
     @Query(value = """
-    SELECT m1_0.* 
-    FROM message m1_0
-    WHERE m1_0.conversation_id = :conversationId
-    AND (m1_0.created_at > :deletedAt)
-    AND m1_0.search_vector @@ plainto_tsquery(:searchTerm)
-    """, nativeQuery = true)
-    List<Message> findBySearchTermAndConversationNative(@Param("searchTerm") String searchTerm, @Param("conversationId") Long conversationId, @Param("deletedAt") Date deletedAt);
+            SELECT m1_0.*
+            FROM message m1_0
+            WHERE m1_0.conversation_id = :conversationId
+            AND (m1_0.created_at > :deletedAt)
+            AND m1_0.message_text ILIKE ('%' || :searchTerm || '%')
+            """, nativeQuery = true)
+    List<Message> findBySearchTermAndConversationNative(@Param("searchTerm") String searchTerm,
+            @Param("conversationId") Long conversationId, @Param("deletedAt") Date deletedAt);
 
     @Query(value = """
-    SELECT
-        m1_0.*,
-        c1_0.id as conversation_db_id
-    FROM message m1_0
-    JOIN conversation c1_0 ON m1_0.conversation_id = c1_0.id
-    JOIN conversation_participant cp1_0 ON c1_0.id = cp1_0.conversation_id
-    WHERE m1_0.conversation_id IN :conversationIds
-      AND cp1_0.user_id = :userId
-      AND (cp1_0.last_deleted_time IS NULL OR m1_0.created_at > cp1_0.last_deleted_time)
-      AND m1_0.search_vector @@ plainto_tsquery(:searchTerm)
-    """, nativeQuery = true)
+            SELECT
+                m1_0.*,
+                c1_0.id as conversation_db_id
+            FROM message m1_0
+            JOIN conversation c1_0 ON m1_0.conversation_id = c1_0.id
+            JOIN conversation_participant cp1_0 ON c1_0.id = cp1_0.conversation_id
+            WHERE m1_0.conversation_id IN :conversationIds
+              AND cp1_0.user_id = :userId
+              AND (cp1_0.last_deleted_time IS NULL OR m1_0.created_at > cp1_0.last_deleted_time)
+              AND m1_0.message_text ILIKE ('%' || :searchTerm || '%')
+            """, nativeQuery = true)
     Page<Message> findBySearchTermInConversations(
-        @Param("searchTerm") String searchTerm,
-        @Param("conversationIds") Collection<Long> conversationIds,
-        @Param("userId") Long userId,
-        Pageable pageable
-    );
+            @Param("searchTerm") String searchTerm,
+            @Param("conversationIds") Collection<Long> conversationIds,
+            @Param("userId") Long userId,
+            Pageable pageable
+        );
 }

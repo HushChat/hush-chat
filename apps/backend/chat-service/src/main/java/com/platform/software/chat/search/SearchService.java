@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 public class SearchService {
     private final int MAX_SEARCH_RESULT_SIZE = 25;
-    private final int MIN_SEARCH_KEYWORD_SIZE = 2;
+    private final int MIN_SEARCH_KEYWORD_SIZE = 0;
 
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final MessageRepository messageRepository;
