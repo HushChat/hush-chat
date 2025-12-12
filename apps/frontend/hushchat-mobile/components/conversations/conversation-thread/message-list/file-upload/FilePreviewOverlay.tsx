@@ -12,7 +12,7 @@ type TFilePreviewOverlayProps = {
   conversationId: string;
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: (message: string) => void;
+  onSendFiles: () => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
   isGroupChat?: boolean;
@@ -38,13 +38,6 @@ const FilePreviewOverlay = ({
   useEffect(() => {
     if (selectedIndex >= files.length) setSelectedIndex(Math.max(0, files.length - 1));
   }, [files.length, selectedIndex]);
-
-  const handleSendMessage = useCallback(
-    (message: string) => {
-      onSendFiles(message);
-    },
-    [onSendFiles]
-  );
 
   const onHiddenPickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +74,7 @@ const FilePreviewOverlay = ({
         <FilePreviewPane
           file={files[selectedIndex]}
           conversationId={conversationId}
-          onSendMessage={handleSendMessage}
+          onSendMessage={onSendFiles}
           isSending={isSending}
           isGroupChat={isGroupChat}
           replyToMessage={replyToMessage}
@@ -95,7 +88,7 @@ const FilePreviewOverlay = ({
         hasFiles={files.length > 0}
         onAddMore={handleAddMore}
         onClose={onClose}
-        onSend={() => onSendFiles("")}
+        onSend={onSendFiles}
       />
       <input
         ref={fileInputRef}
