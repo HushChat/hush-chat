@@ -196,7 +196,7 @@ public class UserServiceImpl implements UserService {
         });
         
         UserViewDTO userViewDTO = new UserViewDTO(user);
-        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.SMALL));
+        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.MEDIUM));
         WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(user.getEmail(), workspaceIdentifier);
         userViewDTO.setWorkspaceRole(workspaceUser.getRole());
         return userViewDTO;

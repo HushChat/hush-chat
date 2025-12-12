@@ -454,7 +454,8 @@ public class ConversationService {
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
             if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                String signedImageUrl =
+                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
                 user.setSignedImageUrl(signedImageUrl);
             }
 
