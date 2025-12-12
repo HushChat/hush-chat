@@ -85,6 +85,7 @@ const ConversationListItem = ({
             imageUrl={conversation.signedImageUrl}
             userStatus={conversation.chatUserStatus}
             showOnlineStatus={!conversation.isGroup}
+            deviceType={conversation.chatUserDeviceType}
           />
         </TouchableOpacity>
 
