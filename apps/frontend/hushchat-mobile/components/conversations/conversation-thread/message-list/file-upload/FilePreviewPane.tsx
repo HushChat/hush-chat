@@ -4,16 +4,28 @@ import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
 import { DOC_EXTENSIONS, SIZES } from "@/constants/mediaConstants";
-import { AppText, AppTextInput } from "@/components/AppText";
+import { AppText } from "@/components/AppText";
+import ConversationInput from "@/components/conversation-input/ConversationInput";
 
 type TFilePreviewPaneProps = {
   file: File;
-  message: string;
-  onMessageChange: (text: string) => void;
+  conversationId: string;
+  onSendMessage: (message: string) => void;
   isSending: boolean;
+  isGroupChat?: boolean;
+  replyToMessage?: any;
+  onCancelReply?: () => void;
 };
 
-const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePreviewPaneProps) => {
+const FilePreviewPane = ({
+  file,
+  conversationId,
+  onSendMessage,
+  isSending,
+  isGroupChat = false,
+  replyToMessage,
+  onCancelReply,
+}: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
   const [fileType, setFileType] = useState<"image" | "document">("image");
 
@@ -63,17 +75,18 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
         )}
       </View>
 
-      <View className="px-6 pb-4">
-        <AppTextInput
-          className="w-full outline-none rounded-xl bg-secondary-light/60 dark:bg-secondary-dark/70 border border-gray-200 dark:border-gray-700 px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
-          placeholder={`Write a caption for your ${fileType === "document" ? "document" : "image"}...`}
-          placeholderTextColor="#9ca3af"
-          multiline
-          numberOfLines={3}
-          value={message}
-          onChangeText={onMessageChange}
-          editable={!isSending}
-          style={styles.captionInput}
+      <View style={styles.inputContainer}>
+        <ConversationInput
+          conversationId={conversationId}
+          onSendMessage={onSendMessage}
+          disabled={isSending}
+          isSending={isSending}
+          placeholder={`Add a caption for your ${fileType === "document" ? "document" : "image"}...`}
+          minLines={1}
+          maxLines={4}
+          isGroupChat={isGroupChat}
+          replyToMessage={replyToMessage}
+          onCancelReply={onCancelReply}
         />
       </View>
     </View>
@@ -87,9 +100,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 420,
   },
-  captionInput: {
-    minHeight: 84,
-    maxHeight: 140,
-    textAlignVertical: "top",
+  inputContainer: {
+    position: "relative",
+    overflow: "visible",
+    zIndex: 100,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
   },
 });
