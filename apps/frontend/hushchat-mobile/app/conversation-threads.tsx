@@ -216,7 +216,7 @@ const ConversationThreadScreen = ({
     pickAndUploadDocuments,
     isUploading: isUploadingImages,
     error: uploadError,
-  } = useMessageAttachmentUploader(currentConversationId, imageMessage);
+  } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
     try {
@@ -492,13 +492,15 @@ const ConversationThreadScreen = ({
                 {showImagePreview ? (
                   <FilePreviewOverlay
                     files={selectedFiles}
+                    conversationId={currentConversationId}
                     onClose={handleCloseImagePreview}
                     onRemoveFile={handleRemoveFile}
                     onSendFiles={handleSendFiles}
                     onFileSelect={handleAddMoreFiles}
-                    isSending={isSendingMessage}
-                    message={imageMessage}
-                    onMessageChange={setImageMessage}
+                    isSending={isSendingMessage || isUploadingImages}
+                    isGroupChat={isGroupChat}
+                    replyToMessage={selectedMessage}
+                    onCancelReply={handleCancelReply}
                   />
                 ) : (
                   <>

@@ -299,6 +299,9 @@ export interface ConversationInputProps {
   replyToMessage?: IMessage | null;
   onCancelReply?: () => void;
   isGroupChat?: boolean;
+  controlledValue?: string;
+  onControlledValueChange?: (text: string) => void;
+  hideSendButton?: boolean;
 }
 
 export interface ConversationInputConfig {

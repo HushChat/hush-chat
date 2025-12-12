@@ -9,10 +9,10 @@ import PreviewFooter from "@/components/conversations/conversation-thread/messag
 
 type TFilePreviewOverlayProps = {
   files: File[];
-  conversationId: string;
+  conversationId: number;
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: () => void;
+  onSendFiles: (caption: string) => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
   isGroupChat?: boolean;
@@ -33,6 +33,7 @@ const FilePreviewOverlay = ({
   onCancelReply,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [caption, setCaption] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -52,13 +53,23 @@ const FilePreviewOverlay = ({
     [files.length, onFileSelect]
   );
 
-  const handleAddMore = () => {
+  const handleAddMore = useCallback(() => {
     if (files.length >= MAX_FILES) {
       ToastUtils.error(`Maximum ${MAX_FILES} files allowed.`);
       return;
     }
     fileInputRef.current?.click();
-  };
+  }, [files.length]);
+
+  const handleSend = useCallback(() => {
+    onSendFiles(caption);
+    setCaption("");
+  }, [onSendFiles, caption]);
+
+  const handleClose = useCallback(() => {
+    setCaption("");
+    onClose();
+  }, [onClose]);
 
   if (files.length === 0) return null;
 
@@ -74,7 +85,9 @@ const FilePreviewOverlay = ({
         <FilePreviewPane
           file={files[selectedIndex]}
           conversationId={conversationId}
-          onSendMessage={onSendFiles}
+          caption={caption}
+          onCaptionChange={setCaption}
+          onSendFiles={handleSend}
           isSending={isSending}
           isGroupChat={isGroupChat}
           replyToMessage={replyToMessage}
@@ -87,8 +100,8 @@ const FilePreviewOverlay = ({
         isAtLimit={files.length >= MAX_FILES}
         hasFiles={files.length > 0}
         onAddMore={handleAddMore}
-        onClose={onClose}
-        onSend={onSendFiles}
+        onClose={handleClose}
+        onSend={handleSend}
       />
       <input
         ref={fileInputRef}

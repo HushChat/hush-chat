@@ -21,8 +21,13 @@ const ConversationInput = ({
   replyToMessage,
   onCancelReply,
   isGroupChat,
+  controlledValue,
+  onControlledValueChange,
+  hideSendButton = false,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+
+  const isControlledMode = controlledValue !== undefined;
 
   const input = useConversationInput({
     conversationId,
@@ -31,6 +36,8 @@ const ConversationInput = ({
     disabled,
     replyToMessage,
     onCancelReply,
+    controlledValue,
+    onControlledValueChange,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -58,19 +65,25 @@ const ConversationInput = ({
   }, [onOpenDocumentPickerNative]);
 
   const handleSendButtonPress = useCallback(() => {
-    input.handleSend();
-  }, [input.handleSend]);
+    if (!hideSendButton) {
+      input.handleSend();
+    }
+  }, [input.handleSend, hideSendButton]);
 
   const handleSubmitEditing = useCallback(() => {
-    input.handleSend();
-  }, [input.handleSend]);
+    if (!hideSendButton) {
+      input.handleSend();
+    }
+  }, [input.handleSend, hideSendButton]);
 
   const handleKeyPress = useCallback(
     (e: any) => {
       input.specialCharHandler(e);
-      input.enterSubmitHandler(e);
+      if (!hideSendButton) {
+        input.enterSubmitHandler(e);
+      }
     },
-    [input.specialCharHandler, input.enterSubmitHandler]
+    [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
   );
 
   return (
@@ -83,18 +96,20 @@ const ConversationInput = ({
       )}
 
       <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
-        <AttachmentButton
-          ref={input.addButtonRef}
-          disabled={disabled}
-          toggled={mobileMenuVisible}
-          onPress={handleAddButtonPress}
-        />
+        {!isControlledMode && (
+          <AttachmentButton
+            ref={input.addButtonRef}
+            disabled={disabled}
+            toggled={mobileMenuVisible}
+            onPress={handleAddButtonPress}
+          />
+        )}
 
-        <View className="flex-1 mx-3">
+        <View className={isControlledMode ? "flex-1" : "flex-1 mx-3"}>
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
             <View
               className="flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-3"
-              style={styles.inputContainer}
+              style={[styles.inputContainer, hideSendButton && { paddingRight: 16 }]}
             >
               <MessageTextArea
                 ref={input.messageTextInputRef}
@@ -114,22 +129,26 @@ const ConversationInput = ({
                 onSubmitEditing={handleSubmitEditing}
               />
 
-              <SendButton
-                showSend={input.isValidMessage}
-                isSending={isSending}
-                onPress={handleSendButtonPress}
-              />
+              {!hideSendButton && (
+                <SendButton
+                  showSend={input.isValidMessage}
+                  isSending={isSending}
+                  onPress={handleSendButtonPress}
+                />
+              )}
             </View>
           </Animated.View>
         </View>
       </View>
 
-      <MobileAttachmentModal
-        visible={mobileMenuVisible}
-        onClose={handleCloseMobileMenu}
-        onOpenImagePicker={handleImagePickerSelect}
-        onOpenDocumentPicker={handleDocumentPickerSelect}
-      />
+      {!isControlledMode && (
+        <MobileAttachmentModal
+          visible={mobileMenuVisible}
+          onClose={handleCloseMobileMenu}
+          onOpenImagePicker={handleImagePickerSelect}
+          onOpenDocumentPicker={handleDocumentPickerSelect}
+        />
+      )}
 
       {isGroupChat && input.mentionVisible && (
         <MentionSuggestions
