@@ -9,29 +9,16 @@ import { useMentions } from "@/hooks/conversation-input/useMentions";
 import { useReplyHandler } from "@/hooks/conversation-input/useReplyHandler";
 import { useFilePicker } from "@/hooks/conversation-input/useFilePicker";
 
-interface IConversationInputOptions
-  extends Pick<
-    ConversationInputProps,
-    | "conversationId"
-    | "onSendMessage"
-    | "onOpenImagePicker"
-    | "onOpenImagePickerNative"
-    | "disabled"
-    | "replyToMessage"
-    | "onCancelReply"
-    | "maxChars"
-    | "minLines"
-    | "maxLines"
-    | "lineHeight"
-    | "verticalPadding"
-    | "placeholder"
-  > {
-  minLines: number;
-  maxLines: number;
-  lineHeight: number;
-  verticalPadding: number;
-  placeholder: string;
-}
+type TConversationInputOptions = Pick<
+  ConversationInputProps,
+  | "conversationId"
+  | "onSendMessage"
+  | "onOpenImagePicker"
+  | "onOpenImagePickerNative"
+  | "disabled"
+  | "replyToMessage"
+  | "onCancelReply"
+>;
 
 export function useConversationInput({
   conversationId,
@@ -41,14 +28,13 @@ export function useConversationInput({
   disabled = false,
   replyToMessage,
   onCancelReply,
-  maxChars,
-  minLines,
-  maxLines,
-  lineHeight,
-  verticalPadding,
-  placeholder,
-}: IConversationInputOptions) {
+}: TConversationInputOptions) {
   const messageTextInputRef = useRef<TextInput>(null);
+  const defaultPlaceholderText = "Type a message...";
+  const minLines = 1;
+  const maxLines = 6;
+  const lineHeight = 22;
+  const verticalPadding = 12;
 
   const inputDisabledStatusRef = useRef(disabled);
   inputDisabledStatusRef.current = disabled;
@@ -65,7 +51,6 @@ export function useConversationInput({
 
   const messageInputController = useMessageInput({
     conversationId,
-    maxChars,
   });
 
   const latestMessageTextRef = useRef(messageInputController.currentTypedMessage);
@@ -168,8 +153,8 @@ export function useConversationInput({
   );
 
   const resolvedPlaceholderText = useMemo(
-    () => replyManager.generateReplyAwarePlaceholder(placeholder),
-    [replyManager.generateReplyAwarePlaceholder, placeholder]
+    () => replyManager.generateReplyAwarePlaceholder(defaultPlaceholderText),
+    [replyManager.generateReplyAwarePlaceholder, defaultPlaceholderText]
   );
 
   const handleSendButtonPress = useCallback(() => {
@@ -217,8 +202,5 @@ export function useConversationInput({
     handleSendButtonPress,
 
     placeholder: resolvedPlaceholderText,
-    lineHeight,
-    verticalPadding,
-    maxChars,
   };
 }

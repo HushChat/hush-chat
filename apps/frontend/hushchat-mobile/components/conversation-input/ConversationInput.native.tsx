@@ -4,14 +4,12 @@ import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
-import { PLATFORM } from "@/constants/platformConstants";
 import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
-import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 
 const ConversationInput = ({
   conversationId,
@@ -20,13 +18,6 @@ const ConversationInput = ({
   onOpenDocumentPickerNative,
   disabled = false,
   isSending = false,
-  placeholder = "Type a message...",
-  minLines = 1,
-  maxLines = 6,
-  lineHeight = 22,
-  verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
-  maxChars,
-  autoFocus = false,
   replyToMessage,
   onCancelReply,
   isGroupChat,
@@ -40,12 +31,6 @@ const ConversationInput = ({
     disabled,
     replyToMessage,
     onCancelReply,
-    maxChars,
-    minLines,
-    maxLines,
-    lineHeight,
-    verticalPadding,
-    placeholder,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -116,12 +101,12 @@ const ConversationInput = ({
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}
-                autoFocus={autoFocus}
+                autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
                 inputHeight={input.inputHeight}
-                lineHeight={lineHeight}
-                verticalPadding={verticalPadding}
+                lineHeight={22}
+                verticalPadding={12}
                 onChangeText={input.handleChangeText}
                 onContentSizeChange={input.handleContentSizeChange}
                 onSelectionChange={input.handleSelectionChange}
@@ -135,10 +120,6 @@ const ConversationInput = ({
                 onPress={handleSendButtonPress}
               />
             </View>
-
-            {typeof maxChars === "number" && (
-              <CharacterCounter currentLength={input.message.length} maxChars={maxChars} />
-            )}
           </Animated.View>
         </View>
       </View>

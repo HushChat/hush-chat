@@ -11,7 +11,6 @@ import { useConversationInput } from "@/hooks/conversation-input/useConversation
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
-import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
 
 const ConversationInput = ({
@@ -20,13 +19,6 @@ const ConversationInput = ({
   onOpenImagePicker,
   disabled = false,
   isSending = false,
-  placeholder = "Type a message...",
-  minLines = 1,
-  maxLines = 6,
-  lineHeight = 22,
-  verticalPadding = 12,
-  maxChars,
-  autoFocus = false,
   replyToMessage,
   onCancelReply,
   isGroupChat,
@@ -38,12 +30,6 @@ const ConversationInput = ({
     disabled,
     replyToMessage,
     onCancelReply,
-    maxChars,
-    minLines,
-    maxLines,
-    lineHeight,
-    verticalPadding,
-    placeholder,
   });
 
   const handleKeyPress = useCallback(
@@ -96,12 +82,12 @@ const ConversationInput = ({
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}
-                autoFocus={autoFocus}
+                autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
                 inputHeight={input.inputHeight}
-                lineHeight={lineHeight}
-                verticalPadding={verticalPadding}
+                lineHeight={22}
+                verticalPadding={12}
                 onChangeText={input.handleChangeText}
                 onContentSizeChange={input.handleContentSizeChange}
                 onSelectionChange={input.handleSelectionChange}
@@ -115,10 +101,6 @@ const ConversationInput = ({
                 onPress={handleSendPress}
               />
             </View>
-
-            {typeof maxChars === "number" && (
-              <CharacterCounter currentLength={input.message.length} maxChars={maxChars} />
-            )}
           </Animated.View>
         </View>
 
