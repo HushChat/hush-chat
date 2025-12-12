@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
-import { emitNewMessage, emitUserStatus } from "@/services/eventBus";
+import { emitConversationCreated, emitNewMessage, emitUserStatus } from "@/services/eventBus";
 import { IConversation, IUserStatus } from "@/types/chat/types";
 import {
   CONNECTED_RESPONSE,
+  CONVERSATION_CREATED_TOPIC,
   ERROR_RESPONSE,
   MESSAGE_RECEIVED_TOPIC,
   MESSAGE_RESPONSE,
@@ -21,6 +22,7 @@ import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hook
 const TOPICS = [
   { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
   { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
+  { destination: CONVERSATION_CREATED_TOPIC, id: "sub-conversation-created" },
 ];
 
 export const publishUserActivity = (
@@ -59,15 +61,16 @@ export const publishUserActivity = (
 const handleMessageByTopic = (topic: string, body: string) => {
   try {
     if (topic.includes(MESSAGE_RECEIVED_TOPIC)) {
-      // Handle message received
       const wsMessageWithConversation = JSON.parse(body) as IConversation;
       if (wsMessageWithConversation.messages?.length !== 0) {
         emitNewMessage(wsMessageWithConversation);
       }
     } else if (topic.includes(ONLINE_STATUS_TOPIC)) {
-      // Handle online status update
       const onlineStatusData = JSON.parse(body) as IUserStatus;
       emitUserStatus(onlineStatusData);
+    } else if (topic.includes(CONVERSATION_CREATED_TOPIC)) {
+      const newConversation = JSON.parse(body) as IConversation;
+      emitConversationCreated(newConversation);
     } else {
       logDebug("Received message from unknown topic:", topic);
     }

@@ -54,6 +54,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -90,6 +91,7 @@ public class ConversationService {
     private final ConversationEventMessageService conversationEventMessageService;
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -239,6 +241,13 @@ public class ConversationService {
 
             savedConversationDTO = saveConversationAndBuildDTO(conversation);
         }
+
+        eventPublisher.publishEvent(new ConversationCreatedEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            savedConversationDTO.getId(),
+            loggedInUserId,
+            savedConversationDTO
+    ));
 
         triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
 

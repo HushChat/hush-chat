@@ -2,6 +2,7 @@ export const AUTHORIZATION_HEADER = "Authorization";
 export const WORKSPACE_ID_HEADER = "Workspace-Id";
 export const MESSAGE_RECEIVED_TOPIC = "/topic/message-received/";
 export const ONLINE_STATUS_TOPIC = "/topic/online-status/";
+export const CONVERSATION_CREATED_TOPIC = "/topic/conversation-created/";
 
 export const INVALID_ACCESS_TOKEN_ERROR = "Invalid access token format or structure";
 

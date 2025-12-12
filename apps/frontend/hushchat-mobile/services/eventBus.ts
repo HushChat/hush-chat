@@ -26,6 +26,7 @@ export type WebSocketEvents = {
     messageIds: string[];
     userId: string;
   };
+  "conversation:created": IConversation;
 
   // User presence events
   "user:presence": IUserStatus;
@@ -66,6 +67,10 @@ export const emitNewMessage = (messageWithConversation: IConversation) => {
 
 export const emitUserStatus = (userStatus: IUserStatus) => {
   eventBus.emit("user:presence", userStatus);
+};
+
+export const emitConversationCreated = (conversation: any) => {
+  eventBus.emit("conversation:created", conversation);
 };
 
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {
