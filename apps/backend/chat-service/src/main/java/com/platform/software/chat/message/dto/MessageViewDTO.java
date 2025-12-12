@@ -32,6 +32,7 @@ public class MessageViewDTO {
     private Boolean isReadByEveryone;
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
+    private String gifUrl;
 
     public MessageViewDTO(Message message) {
         initializeFromMessage(message);
@@ -71,6 +72,7 @@ public class MessageViewDTO {
         this.messageType = message.getMessageType();
         this.hasAttachment = message.getAttachments() != null 
             && !message.getAttachments().isEmpty();
+        this.gifUrl = message.getGifUrl();
 
         if (message.getIsUnsend()) {
             this.setMessageText("");
