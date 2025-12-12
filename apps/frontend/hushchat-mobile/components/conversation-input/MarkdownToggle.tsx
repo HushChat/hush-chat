@@ -1,7 +1,6 @@
 import React from "react";
 import { Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import classNames from "classnames";
 import { ICON_SIZE } from "@/constants/composerConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -18,11 +17,7 @@ export const MarkdownToggle = ({ enabled, onToggle, disabled = false }: IMarkdow
     <Pressable
       onPress={onToggle}
       disabled={disabled}
-      className={classNames("flex-row items-center justify-center rounded-lg", {
-        "bg-blue-500/20 dark:bg-blue-400/20": enabled,
-        "bg-gray-200/50 dark:bg-gray-700/50": !enabled,
-        "opacity-50": disabled,
-      })}
+      className="flex-row items-center justify-center rounded-lg"
       accessibilityLabel={enabled ? "Disable markdown rendering" : "Enable markdown rendering"}
       accessibilityRole="switch"
       accessibilityState={{ checked: enabled }}
