@@ -12,6 +12,7 @@ import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
+import com.platform.software.utils.SearchUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -105,7 +106,8 @@ public class SearchService {
 
         Set<Long> conversationIds = loggedInUserAllConversations.stream()
                 .map(ConversationDTO::getId).collect(Collectors.toSet());
-        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(searchKeyword, conversationIds, loggedInUserId, pageable);
+        String formattedTerm = SearchUtil.formatSearchQuery(searchKeyword);
+        Page<Message> messagePage = messageRepository.findBySearchTermInConversations(formattedTerm, conversationIds, loggedInUserId, pageable);
 
         List<ConversationDTO> conversationsFromMessages  = messagePage.getContent()
                 .stream()
