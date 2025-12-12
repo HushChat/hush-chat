@@ -293,7 +293,7 @@ public class UserServiceImpl implements UserService {
 
     private String getUserProfileImageUrl(String imageIndexedName, MediaSizeEnum size) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, size, imageIndexedName).getUrl();
+            return cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, size, imageIndexedName);
         }
         return imageIndexedName;
     }
