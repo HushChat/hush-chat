@@ -18,7 +18,9 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
   ({ message, parentMessage, currentUserId, onNavigateToMessage }) => {
     const isCurrentUser = message.senderId === Number(currentUserId);
 
-    const hasAttachment = !!parentMessage.messageAttachments?.[0];
+    const attachment = parentMessage.messageAttachments?.[0];
+    const gifUrl = parentMessage.gifUrl;
+    const showMediaPreview = !!attachment || !!gifUrl;
 
     const getHeaderLabel = () => {
       const isSelfReply =
@@ -67,9 +69,7 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
           <View className="flex-row items-center justify-between gap-x-3">
             <ParentMessageTextPreview message={parentMessage} isCurrentUser={isCurrentUser} />
 
-            {hasAttachment && (
-              <AttachmentPreview attachment={parentMessage.messageAttachments?.[0]} />
-            )}
+            {showMediaPreview && <AttachmentPreview attachment={attachment} gifUrl={gifUrl} />}
           </View>
         </View>
       </TouchableOpacity>

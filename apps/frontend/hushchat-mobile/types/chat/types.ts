@@ -197,6 +197,7 @@ export interface IBasicMessage {
   senderFirstName: string | null;
   senderLastName: string | null;
   messageText: string;
+  gifUrl?: string;
 }
 
 export interface ConversationAPIResponse {

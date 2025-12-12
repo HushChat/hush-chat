@@ -1,3 +1,4 @@
+import { logError } from "@/utils/logger";
 import axios from "axios";
 
 export interface TenorGif {
@@ -34,7 +35,7 @@ export const searchTenorGifs = async (query: string, limit: number = 20): Promis
     });
     return response.data.results;
   } catch (error) {
-    console.error("Error searching Tenor GIFs:", error);
+    logError("error searching Tenor GIFs:", error);
     return [];
   }
 };
@@ -48,7 +49,7 @@ export const getTrendingGifs = async (limit: number = 20): Promise<TenorGif[]> =
     });
     return response.data.results;
   } catch (error) {
-    console.error("Error loading trending GIFs:", error);
+    logError("error loading trending GIFs:", error);
     return [];
   }
 };

@@ -90,26 +90,6 @@ export const useSendMessageHandler = ({
           return;
         }
 
-        if (gifUrl) {
-          const tempGifMessage: IMessage = {
-            senderId: Number(currentUserId),
-            senderFirstName: "",
-            senderLastName: "",
-            messageText: trimmed,
-            createdAt: new Date().toISOString(),
-            conversationId: currentConversationId,
-            gifUrl: gifUrl,
-            messageAttachments: [],
-            hasAttachment: false,
-            id: 0,
-            isForwarded: false,
-          };
-
-          // Optimistic updates for GIF
-          updateConversationMessagesCache(tempGifMessage);
-          updateConversationsListCache(tempGifMessage);
-        }
-
         // Send normal text message
         sendMessage({
           conversationId: currentConversationId,
