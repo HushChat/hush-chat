@@ -2,7 +2,7 @@ import React from "react";
 import { SectionListData } from "react-native";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
 import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
-import { shouldShowSenderAvatar } from "@/utils/messageUtils";
+import { shouldShowSenderAvatar, shouldShowSenderName } from "@/utils/messageUtils";
 
 interface IRenderMessageParams {
   currentUserId: number | null | undefined;
@@ -60,6 +60,12 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       !!isCurrentUser
     );
 
+    const showSenderName = shouldShowSenderName(
+      section.data,
+      index,
+      !!conversationAPIResponse?.isGroup
+    );
+
     return (
       <ConversationMessageItem
         message={item}
@@ -79,6 +85,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         selectedConversationId={selectedConversationId}
         onViewReactions={viewReactions}
         showSenderAvatar={showSenderAvatar}
+        showSenderName={showSenderName}
         onNavigateToMessage={onNavigateToMessage}
       />
     );

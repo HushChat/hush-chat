@@ -58,7 +58,27 @@ export const shouldShowSenderAvatar = (
   isGroupChat: boolean,
   isCurrentUser: boolean
 ): boolean => {
-  if (!isGroupChat || isCurrentUser) return false;
+  if (!isGroupChat) return false;
+
+  if (isCurrentUser) return false;
+
+  const current = allMessages[index];
+  const next = allMessages[index + 1];
+
+  if (!current) return false;
+  if (!next) return true;
+
+  const sameSender = current.senderId === next.senderId;
+
+  return !sameSender;
+};
+
+export const shouldShowSenderName = (
+  allMessages: readonly IMessage[],
+  index: number,
+  isGroupChat: boolean
+): boolean => {
+  if (!isGroupChat) return false;
 
   const current = allMessages[index];
   const next = allMessages[index + 1];

@@ -62,6 +62,7 @@ interface MessageItemProps {
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
+  showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
 }
 
@@ -87,6 +88,7 @@ export const ConversationMessageItem = ({
   onUnsendMessage,
   onViewReactions,
   showSenderAvatar,
+  showSenderName,
   onNavigateToMessage,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
@@ -381,6 +383,7 @@ export const ConversationMessageItem = ({
             <MessageHeader
               isCurrentUser={isCurrentUser}
               isGroupChat={isGroupChat}
+              showSenderName={showSenderName}
               senderName={senderName}
               messageTime={messageTime}
               messageIsUnsend={message.isUnsend}
