@@ -12,6 +12,8 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
+import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
 
 const ConversationInput = ({
   conversationId,
@@ -47,6 +49,8 @@ const ConversationInput = ({
     verticalPadding,
     placeholder,
   });
+
+  const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
 
   const handleAddButtonPress = useCallback(() => {
     setMobileMenuVisible(true);
@@ -128,6 +132,8 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
+
+              <MarkdownToggle enabled={isMarkdownEnabled} onToggle={() => toggleMarkdown} />
 
               <SendButton
                 showSend={input.isValidMessage}
