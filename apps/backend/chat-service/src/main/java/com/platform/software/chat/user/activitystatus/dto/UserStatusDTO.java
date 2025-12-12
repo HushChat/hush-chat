@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class UserStatusDTO {
     private Long conversationId;
     private UserStatusEnum status;
+    private String deviceType;
 }

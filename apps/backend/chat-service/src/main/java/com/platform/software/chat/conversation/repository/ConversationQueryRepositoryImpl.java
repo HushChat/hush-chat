@@ -253,7 +253,13 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail());
 
+                                String deviceType = webSocketSessionManager.getUserDeviceType(
+                                        WorkspaceContext.getCurrentWorkspace(),
+                                        otherParticipant.getUser().getEmail()
+                                );
+
                                 dto.setChatUserStatus(status);
+                                dto.setChatUserDeviceType(deviceType);
                             }
                         }
                     }

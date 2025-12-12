@@ -75,6 +75,9 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         // Get authentication token from headers
         String bearerToken = extractHeaderValue(accessor, GeneralConstants.AUTHORIZATION_HEADER);
         String workspaceId = extractHeaderValue(accessor, GeneralConstants.WORKSPACE_ID_HEADER);
+        String deviceType = extractHeaderValue(accessor, "Device-Type");
+
+        if (deviceType == null) deviceType = "UNKNOWN";
 
         if (bearerToken == null || workspaceId == null) {
             logger.error("web socket cannot authorize: missing required parameters.");
@@ -115,6 +118,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             accessor.getSessionAttributes().put(GeneralConstants.USER_ID_ATTR, sessionKey);
             accessor.getSessionAttributes().put(Constants.JWT_CLAIM_EMAIL, email);
             accessor.getSessionAttributes().put("workspaceId", workspaceId);
+            accessor.getSessionAttributes().put("deviceType", deviceType);
 
             manageSession(sessionKey, accessor, user, workspaceId, email);
 
@@ -140,9 +144,10 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     private void handleDisconnection(StompHeaderAccessor accessor) {
         String sessionKey = (String) accessor.getSessionAttributes().get(GeneralConstants.USER_ID_ATTR);
         String email = (String) accessor.getSessionAttributes().get(Constants.JWT_CLAIM_EMAIL);
+        String deviceType = (String) accessor.getSessionAttributes().get("deviceType");
 
         if (sessionKey != null) {
-            sessionManager.removeWebSocketSessionInfo(sessionKey, email);
+            sessionManager.removeWebSocketSessionInfo(sessionKey, email, deviceType);
             logger.info("removed websocket session for user: {}", email);
         }
     }
@@ -152,15 +157,20 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     }
 
     private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {
-        WebSocketSessionInfoDAO existingSession = sessionManager.getWebSocketSessionInfo(sessionKey);
 
-        if (existingSession == null) {
-            logger.info("workspace-id: {} user {} connected", workspaceId, user.getId());
-            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email);
-        } else {
-            logger.info("workspace-id: {} user {} re-connected", workspaceId, user.getId());
-            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email);
+        // 1. Extract Device Type explicitly here
+        String deviceType = extractHeaderValue(accessor, "Device-Type");
+
+        // 2. Add to attributes just in case
+        if (deviceType != null) {
+            accessor.getSessionAttributes().put("deviceType", deviceType);
         }
+
+        logger.info("Managing session for user: {} on device: {}", user.getId(), deviceType);
+
+        // 3. Call the SINGLE atomic method
+        // We don't care if it's "New" or "Reconnect" - the manager handles that logic safely.
+        sessionManager.registerOrUpdateSession(sessionKey, accessor, workspaceId, email, deviceType);
     }
 
     private String extractHeaderValue(StompHeaderAccessor accessor, String headerName) {

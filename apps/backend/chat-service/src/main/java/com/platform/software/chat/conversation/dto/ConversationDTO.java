@@ -27,6 +27,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private boolean isMutedByLoggedInUser;
     private boolean isFavoriteByLoggedInUser;
     private ChatUserStatus chatUserStatus;
+    private String chatUserDeviceType;
 
     private Long unreadCount;
 
@@ -50,6 +51,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.isMutedByLoggedInUser = other.isMutedByLoggedInUser;
         this.isFavoriteByLoggedInUser = other.isFavoriteByLoggedInUser;
         this.chatUserStatus = other.chatUserStatus;
+        this.chatUserDeviceType = other.chatUserDeviceType;
     }
 
     @Override

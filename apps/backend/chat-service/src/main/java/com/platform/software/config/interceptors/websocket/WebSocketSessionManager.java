@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,19 +37,41 @@ public class WebSocketSessionManager {
     /**
      * Register session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor, String workspaceId, String email) {
-        WebSocketSessionInfoDAO webSocketSessionInfoDAO = WebSocketSessionInfoDAO.builder()
-            .stompSessionId(accessor.getSessionId())
-            .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
-            .connectedTime(ZonedDateTime.now())
-            .createdTime(ZonedDateTime.now())
-            .disconnectedTime(null)
-            .build();
+    public void registerOrUpdateSession(String userId, StompHeaderAccessor accessor, String workspaceId, String email, String deviceType) {
+        webSocketSessionInfos.compute(userId, (key, existingSession) -> {
 
-        webSocketSessionInfos.put(userId, webSocketSessionInfoDAO);
+            WebSocketSessionInfoDAO newSession = WebSocketSessionInfoDAO.builder()
+                    .stompSessionId(accessor.getSessionId()) // The NEW Socket ID
+                    .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
+                    .connectedTime(ZonedDateTime.now())
+                    .createdTime(existingSession != null ? existingSession.getCreatedTime() : ZonedDateTime.now()) // Keep original create time
+                    .updatedTime(ZonedDateTime.now())
+                    .deviceType(deviceType) // <--- CRITICAL: Always use the NEW device type
+                    .disconnectedTime(null)
+                    .build();
 
-        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE);
-        logger.info("registered stomp session for user: {}", userId);
+            if (existingSession != null) {
+                newSession.setVisibleConversations(existingSession.getVisibleConversations());
+                newSession.setOpenedConversation(existingSession.getOpenedConversation());
+                logger.info("Session updated/overwritten for user: {} [Device: {} -> {}]",
+                        userId, existingSession.getDeviceType(), deviceType);
+            } else {
+                logger.info("New session created for user: {} [Device: {}]", userId, deviceType);
+            }
+
+            return newSession;
+        });
+
+        WebSocketSessionInfoDAO storedSession = webSocketSessionInfos.get(userId);
+        if (storedSession != null) {
+            userActivityStatusWSService.invokeUserIsActive(
+                    workspaceId,
+                    email,
+                    webSocketSessionInfos,
+                    UserStatusEnum.ONLINE,
+                    storedSession.getDeviceType()
+            );
+        }
     }
 
     /**
@@ -64,7 +85,7 @@ public class WebSocketSessionManager {
             existingSession.setDisconnectedTime(null);
             webSocketSessionInfos.put(userId, existingSession);
 
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE);
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, session.get().getDeviceType());
             logger.debug("session re connected for user: {}", userId);
         }
     }
@@ -103,12 +124,11 @@ public class WebSocketSessionManager {
         return Optional.empty();
     }
 
-    public void removeWebSocketSessionInfo(String userId, String email) {
+    public void removeWebSocketSessionInfo(String userId, String email, String deviceType) {
         WebSocketSessionInfoDAO removed = webSocketSessionInfos.remove(userId);
-        String workspaceId = userId.split(":", 2)[0];
-        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE);
-
         if (removed != null) {
+            String workspaceId = userId.split(":", 2)[0];
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE, deviceType);
             logger.debug("removed session for user: {}", userId);
         }
     }
@@ -221,5 +241,15 @@ public class WebSocketSessionManager {
         return isUserConnected(workspaceId, email)
             ? ChatUserStatus.ONLINE
             : ChatUserStatus.OFFLINE;
+    }
+
+    public String getUserDeviceType(String workspaceId, String email) {
+        String webSocketStoreKey = getSessionKey(workspaceId, email);
+        WebSocketSessionInfoDAO sessionInfo = webSocketSessionInfos.get(webSocketStoreKey);
+
+        if (sessionInfo != null) {
+            return sessionInfo.getDeviceType();
+        }
+        return null;
     }
 }

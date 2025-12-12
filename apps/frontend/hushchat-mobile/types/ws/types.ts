@@ -33,6 +33,12 @@ export interface WebSocketError {
   type: "connection" | "authentication" | "message" | "unknown";
 }
 
+export enum DeviceType {
+  WEB = "WEB",
+  MOBILE = "MOBILE",
+  UNKNOWN = "UNKNOWN",
+}
+
 export interface NotificationPayload {
   title: string;
   body: string;

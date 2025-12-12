@@ -23,7 +23,7 @@ public class UserActivityStatusWSService {
     private final String ONLINE_STATUS_INVOKE_PATH = "/topic/online-status";
 
     @Async
-    public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status) {
+    public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status, String deviceType) {
         WorkspaceContext.setCurrentWorkspace(workspaceId);
 
         // TODO: cache, must be sure about the cache evict
@@ -56,7 +56,7 @@ public class UserActivityStatusWSService {
             if (!entry.getValue().isEmpty()) {
                 template.convertAndSend(
                     "%s/%s".formatted(ONLINE_STATUS_INVOKE_PATH, workspaceIdAndEmail[1]),
-                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status)
+                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status, deviceType)
                 );
             }
         }
