@@ -10,8 +10,6 @@ import { logError } from "@/utils/logger";
 interface IUseSendMessageHandlerParams {
   currentConversationId: number;
   currentUserId: number | null | undefined;
-  imageMessage: string;
-  setImageMessage: (text: string) => void;
   selectedMessage: IMessage | null;
   setSelectedMessage: (msg: IMessage | null) => void;
   selectedFiles: File[];
@@ -23,7 +21,6 @@ interface IUseSendMessageHandlerParams {
 export const useSendMessageHandler = ({
   currentConversationId,
   currentUserId,
-  setImageMessage,
   selectedMessage,
   setSelectedMessage,
   selectedFiles,
@@ -85,7 +82,6 @@ export const useSendMessageHandler = ({
           await uploadFilesFromWeb(renamedFiles, trimmed);
 
           setSelectedMessage(null);
-          setImageMessage("");
           return;
         }
 
@@ -109,7 +105,6 @@ export const useSendMessageHandler = ({
       updateConversationMessagesCache,
       updateConversationsListCache,
       setSelectedMessage,
-      setImageMessage,
     ]
   );
 
@@ -120,18 +115,10 @@ export const useSendMessageHandler = ({
       void handleSendMessage(caption, selectedMessage ?? undefined, selectedFiles);
 
       handleCloseImagePreview();
-      setImageMessage("");
 
       if (selectedMessage) setSelectedMessage(null);
     },
-    [
-      selectedFiles,
-      selectedMessage,
-      handleSendMessage,
-      handleCloseImagePreview,
-      setImageMessage,
-      setSelectedMessage,
-    ]
+    [selectedFiles, selectedMessage, handleSendMessage, handleCloseImagePreview, setSelectedMessage]
   );
 
   return { handleSendMessage, handleSendFiles } as const;
