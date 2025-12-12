@@ -1,10 +1,9 @@
 package com.platform.software.platform.workspaceuser.service;
 
+import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.exception.CustomAccessDeniedException;
 import com.platform.software.exception.CustomBadRequestException;
-import com.platform.software.platform.workspace.dto.WorkspaceDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
+import com.platform.software.platform.workspace.dto.*;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.entity.WorkspaceStatus;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
@@ -175,5 +174,60 @@ public class WorkspaceUserService {
             );
         }
         return workspaceUser;
+    }
+
+    /**
+     * Updates the role of a user within a workspace by toggling between ADMIN and MEMBER roles.
+     * This operation requires the requesting user to have ADMIN privileges in the workspace.
+     * The method executes within a global schema context and uses transaction management.
+     *
+     * @param userDetails the authenticated user's details who is requesting the role update.
+     *                    Must have ADMIN role in the specified workspace.
+     * @param workspaceIdentifier the unique identifier of the workspace where the role update occurs.
+     *                           Used to locate both the requesting admin and the target user.
+     * @param workspaceUserRoleUpdateDTO the DTO containing the email address of the user whose role
+     *                                   needs to be updated.
+     *
+     * @throws CustomAccessDeniedException if the requesting user does not have ADMIN privileges
+     *                                     in the specified workspace.
+     * @throws CustomBadRequestException if the target user is not found in the workspace or if
+     *                                   the role update operation fails.
+     *
+     * @see WorkspaceUserRole
+     * @see WorkspaceUserRoleUpdateDTO
+     * @see UserDetails
+     */
+    public void toggleUserRole(UserDetails userDetails, String workspaceIdentifier, WorkspaceUserRoleUpdateDTO workspaceUserRoleUpdateDTO) {
+        WorkspaceUtils.runInGlobalSchema(() -> {
+            transactionTemplate.executeWithoutResult(status -> {
+                WorkspaceUser requester = workspaceUserRepository.findByEmailAndRoleAndWorkspace_WorkspaceIdentifier(
+                        userDetails.getEmail(), WorkspaceUserRole.ADMIN, workspaceIdentifier).orElseThrow(() -> new CustomAccessDeniedException("User Has No Admin privilege"));
+
+                if (requester.getEmail().equals(workspaceUserRoleUpdateDTO.getEmail())) {
+                    logger.warn("admin {} attempted to change their own role", requester.getEmail());
+                    throw new CustomBadRequestException("You Cannot Change Your Own Role");
+                }
+
+                WorkspaceUser targetUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
+                                workspaceUserRoleUpdateDTO.getEmail(), workspaceIdentifier)
+                        .orElseThrow(() -> new CustomBadRequestException("User not found in this workspace"));
+
+                try {
+                    targetUser.setRole(
+                            targetUser.getRole() == WorkspaceUserRole.ADMIN ? WorkspaceUserRole.MEMBER : WorkspaceUserRole.ADMIN
+                    );
+
+                    workspaceUserRepository.save(targetUser);
+                    logger.info("user: {} has become a  {} by requester: {} in workspace: {}",
+                            workspaceUserRoleUpdateDTO.getEmail(),
+                            targetUser.getRole().toString(),
+                            userDetails.getEmail(),
+                            workspaceIdentifier);
+                } catch (Exception e) {
+                    logger.info("failed to change role for user: {} by user: {} to workspace: {}. Error: {}", workspaceUserRoleUpdateDTO.getEmail(), userDetails.getEmail(), workspaceIdentifier, e.getMessage());
+                    throw new CustomBadRequestException("Update User Role Failed");
+                }
+            });
+        });
     }
 }

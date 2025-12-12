@@ -1,6 +1,7 @@
 package com.platform.software.platform.workspaceuser.repository;
 
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,6 @@ public interface WorkspaceUserRepository extends JpaRepository<WorkspaceUser, Lo
     Optional<WorkspaceUser> findByEmailAndWorkspace_Name(@NotBlank String email, @NotBlank String workspaceName);
 
     Optional<WorkspaceUser> findByEmailAndWorkspace_WorkspaceIdentifier(String email, String workspaceWorkspaceIdentifier);
+
+    Optional<WorkspaceUser> findByEmailAndRoleAndWorkspace_WorkspaceIdentifier(String email, WorkspaceUserRole role, String workspaceIdentifier);
 }
