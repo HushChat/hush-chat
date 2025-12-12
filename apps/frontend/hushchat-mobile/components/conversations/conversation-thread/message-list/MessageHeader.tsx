@@ -8,6 +8,7 @@ import { MessageActions } from "./MessageActions";
 interface IMessageHeaderProps {
   isCurrentUser: boolean;
   isGroupChat?: boolean;
+  showSenderName: boolean;
   senderName: string;
   messageText?: string;
   messageTime: string;
@@ -22,6 +23,7 @@ interface IMessageHeaderProps {
 export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   isCurrentUser,
   isGroupChat,
+  showSenderName,
   senderName,
   messageText,
   messageTime,
@@ -32,6 +34,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   onOpenPicker,
   onOpenMenu,
 }) => {
+  console.log("MessageHeader:", { isGroupChat, showSenderName, senderName, isCurrentUser });
   return (
     <View
       className={classNames("flex-row items-center gap-2 mb-1", {
@@ -51,7 +54,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
         />
       )}
 
-      {isGroupChat && (
+      {isGroupChat && showSenderName && (
         <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
           {isCurrentUser ? "You" : senderName}
         </AppText>
