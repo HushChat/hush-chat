@@ -69,9 +69,8 @@ public class UserUtilService {
   
     public UserDTO addSignedImageUrlToUser(UserDTO userDTO, String finalName) {
           String newFileName = (userDTO.getId() + "_" + finalName);
-          String imageIndexName = String.format(MediaPathEnum.PROFILE_PICTURE.getName(), newFileName);
 
-          userDTO.setImageIndexedName(imageIndexName);
+          userDTO.setImageIndexedName(newFileName);
 
           SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.PROFILE_PICTURE, newFileName);
           userDTO.setSignedImageUrl(imageSignedDTO.getUrl());
