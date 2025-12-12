@@ -1015,7 +1015,7 @@ public class ConversationService {
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
 
         if (imageSignedDTO != null && CommonUtils.isNotEmptyObj(imageSignedDTO.getIndexedFileName())) {
-            conversation.setImageIndexedName(imageSignedDTO.getIndexedFileName());
+            conversation.setImageIndexedName(newFileName);
             try {
                 conversationRepository.save(conversation);
                 cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
