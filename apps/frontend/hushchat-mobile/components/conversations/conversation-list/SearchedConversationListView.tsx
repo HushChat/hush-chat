@@ -92,8 +92,12 @@ export default function SearchedConversationList({
     // Build sections array first to simplify the flatMap
     const sections: {
       key: ConversationSearchResultKeys;
-      items: any[]; // Changed to array directly
+      items: any[];
     }[] = [];
+
+    if (users?.length > 0) {
+      sections.push({ key: ConversationSearchResultKeys.USERS, items: users });
+    }
 
     if (chats?.length > 0) {
       sections.push({ key: ConversationSearchResultKeys.CHATS, items: chats });
@@ -104,10 +108,6 @@ export default function SearchedConversationList({
         key: ConversationSearchResultKeys.MESSAGES,
         items: messages,
       });
-    }
-
-    if (users?.length > 0) {
-      sections.push({ key: ConversationSearchResultKeys.USERS, items: users });
     }
 
     return sections.flatMap((section) => [
