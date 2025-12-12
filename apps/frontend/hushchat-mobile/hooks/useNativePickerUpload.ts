@@ -114,7 +114,7 @@ async function putToSignedUrl(file: LocalFile, signedUrl: string): Promise<void>
  * You inject how to get signed URLs (per your endpoint), we handle the rest.
  */
 export function useNativePickerUpload(
-  getSignedUrls: (files: LocalFile[]) => Promise<SignedUrl[] | null>
+  getSignedUrls: (files: LocalFile[], messageText?: string) => Promise<SignedUrl[] | null>
 ) {
   const [state, setState] = useState<State>({
     isPicking: false,
@@ -226,7 +226,7 @@ export function useNativePickerUpload(
   );
 
   const upload = useCallback(
-    async (files: LocalFile[]): Promise<UploadResult[]> => {
+    async (files: LocalFile[], messageText: string = ""): Promise<UploadResult[]> => {
       if (!files || files.length === 0) return [];
 
       setState((s) => ({
@@ -237,7 +237,7 @@ export function useNativePickerUpload(
         results: [],
       }));
       try {
-        const signed = await getSignedUrls(files);
+        const signed = await getSignedUrls(files, messageText);
         if (!signed || signed.length === 0) throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];
@@ -290,10 +290,10 @@ export function useNativePickerUpload(
   );
 
   const pickAndUpload = useCallback(
-    async (opts?: Partial<PickAndUploadOptions>) => {
+    async (opts?: Partial<PickAndUploadOptions>, messageText: string = "") => {
       const picked = await pick(opts);
       if (!picked || picked.length === 0) return [];
-      return await upload(picked);
+      return await upload(picked, messageText);
     },
     [pick, upload]
   );
