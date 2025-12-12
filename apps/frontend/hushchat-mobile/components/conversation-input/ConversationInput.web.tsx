@@ -13,9 +13,9 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
-import { EmojiPickerComponent } from "./EmojiPicker";
-import { GifPickerComponent } from "./GifPicker.web";
-import { AppText } from "@/components/AppText";
+import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
+import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 const ConversationInput = ({
   conversationId,
@@ -78,7 +78,7 @@ const ConversationInput = ({
 
       <View
         className={classNames(
-          "flex-row items-end p-4",
+          "flex-row items-end p-4 gap-x-2",
           "bg-background-light dark:bg-background-dark",
           "border-gray-200 dark:border-gray-800"
         )}
@@ -94,7 +94,11 @@ const ConversationInput = ({
           style={{ padding: 8 }}
           disabled={disabled}
         >
-          <AppText style={{ fontSize: 20 }}>😊</AppText>
+          <MaterialIcons
+            name="emoji-emotions"
+            size={24}
+            className="text-gray-500 dark:text-gray-400"
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -102,7 +106,7 @@ const ConversationInput = ({
           style={{ padding: 8, marginLeft: 4 }}
           disabled={disabled}
         >
-          <AppText style={{ fontSize: 20 }}>GIF</AppText>
+          <AntDesign name="gif" size={24} className="text-gray-500 dark:text-gray-400" />
         </TouchableOpacity>
 
         <View className="flex-1 mx-4">
