@@ -36,11 +36,11 @@ export const useSendMessageHandler = ({
     useConversationMessagesQuery(currentConversationId);
 
   const handleSendMessage = useCallback(
-    async (message: string, parentMessage?: IMessage, files?: File[]) => {
+    async (message: string, parentMessage?: IMessage, files?: File[], gifUrl?: string) => {
       const trimmed = message?.trim() ?? "";
       const filesToSend = files || [];
 
-      if (!trimmed && filesToSend.length === 0) return;
+      if (!trimmed && filesToSend.length === 0 && !gifUrl) return;
 
       try {
         const validFiles = filesToSend.filter((f) => f instanceof File);
@@ -95,6 +95,7 @@ export const useSendMessageHandler = ({
           conversationId: currentConversationId,
           message: trimmed,
           parentMessageId: parentMessage?.id,
+          gifUrl: gifUrl,
         });
 
         setSelectedMessage(null);

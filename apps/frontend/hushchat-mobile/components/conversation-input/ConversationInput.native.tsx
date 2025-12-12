@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
@@ -12,6 +12,9 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
+import { EmojiPickerComponent } from "./EmojiPicker";
+import { GifPickerComponent } from "./GifPicker.native";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 const ConversationInput = ({
   conversationId,
@@ -32,6 +35,8 @@ const ConversationInput = ({
   isGroupChat,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+  const [showGifPicker, setShowGifPicker] = useState<boolean>(false);
 
   const input = useConversationInput({
     conversationId,
@@ -97,37 +102,59 @@ const ConversationInput = ({
         />
       )}
 
-      <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
-        <AttachmentButton
-          ref={input.addButtonRef}
-          disabled={disabled}
-          toggled={mobileMenuVisible}
-          onPress={handleAddButtonPress}
-        />
+      <View className="flex-row items-center p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
+        <View className="mr-2">
+          <AttachmentButton
+            ref={input.addButtonRef}
+            disabled={disabled}
+            toggled={mobileMenuVisible}
+            onPress={handleAddButtonPress}
+          />
+        </View>
 
-        <View className="flex-1 mx-3">
+        <View className="flex-1">
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
             <View
-              className="flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-3"
+              className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-2 pr-1"
               style={styles.inputContainer}
             >
-              <MessageTextArea
-                ref={input.messageTextInputRef}
-                value={input.message}
-                placeholder={input.placeholder}
-                disabled={disabled}
-                autoFocus={autoFocus}
-                minHeight={input.minHeight}
-                maxHeight={input.maxHeight}
-                inputHeight={input.inputHeight}
-                lineHeight={lineHeight}
-                verticalPadding={verticalPadding}
-                onChangeText={input.handleChangeText}
-                onContentSizeChange={input.handleContentSizeChange}
-                onSelectionChange={input.handleSelectionChange}
-                onKeyPress={handleKeyPress}
-                onSubmitEditing={handleSubmitEditing}
-              />
+              <View className="flex-row items-center">
+                <TouchableOpacity
+                  onPress={() => setShowEmojiPicker(true)}
+                  style={{ padding: 6 }}
+                  disabled={disabled}
+                >
+                  <MaterialIcons name="emoji-emotions" size={22} color="#9CA3AF" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setShowGifPicker(true)}
+                  style={{ padding: 6 }}
+                  disabled={disabled}
+                >
+                  <AntDesign name="gif" size={22} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+
+              <View className="flex-1 mx-2">
+                <MessageTextArea
+                  ref={input.messageTextInputRef}
+                  value={input.message}
+                  placeholder={input.placeholder}
+                  disabled={disabled}
+                  autoFocus={autoFocus}
+                  minHeight={input.minHeight}
+                  maxHeight={input.maxHeight}
+                  inputHeight={input.inputHeight}
+                  lineHeight={lineHeight}
+                  verticalPadding={verticalPadding}
+                  onChangeText={input.handleChangeText}
+                  onContentSizeChange={input.handleContentSizeChange}
+                  onSelectionChange={input.handleSelectionChange}
+                  onKeyPress={handleKeyPress}
+                  onSubmitEditing={handleSubmitEditing}
+                />
+              </View>
 
               <SendButton
                 showSend={input.isValidMessage}
@@ -157,6 +184,21 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
+      <EmojiPickerComponent
+        visible={showEmojiPicker}
+        onClose={() => setShowEmojiPicker(false)}
+        onEmojiSelect={(emoji) => {
+          input.handleChangeText(input.message + emoji);
+        }}
+      />
+
+      <GifPickerComponent
+        visible={showGifPicker}
+        onClose={() => setShowGifPicker(false)}
+        onGifSelect={(gifUrl) => {
+          onSendMessage?.("", undefined, undefined, gifUrl);
+        }}
+      />
     </View>
   );
 };
@@ -166,7 +208,7 @@ export default ConversationInput;
 const styles = StyleSheet.create({
   inputContainer: {
     position: "relative",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingRight: RIGHT_ICON_GUTTER,
   },
 });

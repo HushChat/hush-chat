@@ -208,6 +208,7 @@ const ConversationMessageList = ({
         <PinnedMessageBar
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
+          isGifUrl={!!pinnedMessage?.gifUrl}
           onUnpin={() => togglePin(pinnedMessage)}
           onPress={handlePinnedMessageClick}
         />

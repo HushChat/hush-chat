@@ -97,10 +97,10 @@ export const usePatchConversationQuery = createMutationHook<
 
 export const useSendMessageMutation = createMutationHook<
   IMessage,
-  { conversationId: number; message: string; parentMessageId?: number }
+  { conversationId: number; message: string; parentMessageId?: number; gifUrl?: string }
 >(
-  ({ conversationId, message, parentMessageId }) =>
-    sendMessageByConversationId(conversationId, message, parentMessageId),
+  ({ conversationId, message, parentMessageId, gifUrl }) =>
+    sendMessageByConversationId(conversationId, message, parentMessageId, gifUrl),
   (keyParams: { userId: number; conversationId: number; criteria: ConversationFilterCriteria }) =>
     () => {
       return [

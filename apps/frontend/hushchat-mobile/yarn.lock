@@ -6403,6 +6403,11 @@ open@^8.0.4:
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
 
+openmoji@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/openmoji/-/openmoji-16.0.0.tgz#20093dd819fda48c5ccfc6f35ec0abd45b0a5e77"
+  integrity sha512-ruaRCfXL23tYzZ8cWzVxNsMEEUnol68RRxP4UueYyegtMz9wg/0p5RIJRdPz/e2KbBWq7ydrYvnN0NN4lhxN1g==
+
 optionator@^0.9.3:
   version "0.9.4"
   resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.9.4.tgz#7ea1c1a5d91d764fb282139c88fe11e182a3a734"
@@ -6836,6 +6841,11 @@ react-native-css-interop@0.1.22:
     debug "^4.3.7"
     lightningcss "^1.27.0"
     semver "^7.6.3"
+
+react-native-fast-image@^8.6.3:
+  version "8.6.3"
+  resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-8.6.3.tgz#6edc3f9190092a909d636d93eecbcc54a8822255"
+  integrity sha512-Sdw4ESidXCXOmQ9EcYguNY2swyoWmx53kym2zRsvi+VeFCHEdkO+WG1DK+6W81juot40bbfLNhkc63QnWtesNg==
 
 react-native-fit-image@^1.5.5:
   version "1.5.5"

@@ -137,12 +137,14 @@ export const archiveConversationById = async (conversationId: number) => {
 export const sendMessageByConversationId = async (
   conversationId: number,
   message: string,
-  parentMessageId?: number
+  parentMessageId?: number,
+  gifUrl?: string
 ): Promise<ApiResponse<IMessage>> => {
   try {
     const response = await axios.post(CONVERSATION_API_ENDPOINTS.MESSAGES(conversationId), {
       messageText: message,
       parentMessageId: parentMessageId ?? null,
+      gifUrl: gifUrl ?? null,
     });
     return { data: response.data };
   } catch (error) {

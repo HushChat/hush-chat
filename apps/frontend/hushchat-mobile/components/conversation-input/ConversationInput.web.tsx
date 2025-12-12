@@ -1,5 +1,5 @@
-import React, { memo, useCallback } from "react";
-import { View } from "react-native";
+import React, { memo, useCallback, useState } from "react";
+import { TouchableOpacity, View } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
@@ -13,6 +13,9 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
+import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
+import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 const ConversationInput = ({
   conversationId,
@@ -31,6 +34,8 @@ const ConversationInput = ({
   onCancelReply,
   isGroupChat,
 }: ConversationInputProps) => {
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+  const [showGifPicker, setShowGifPicker] = useState<boolean>(false);
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -73,7 +78,7 @@ const ConversationInput = ({
 
       <View
         className={classNames(
-          "flex-row items-end p-4",
+          "flex-row items-end p-4 gap-x-2",
           "bg-background-light dark:bg-background-dark",
           "border-gray-200 dark:border-gray-800"
         )}
@@ -84,6 +89,25 @@ const ConversationInput = ({
           toggled={input.menuVisible}
           onPress={input.handleAddButtonPress}
         />
+        <TouchableOpacity
+          onPress={() => setShowEmojiPicker(true)}
+          style={{ padding: 8 }}
+          disabled={disabled}
+        >
+          <MaterialIcons
+            name="emoji-emotions"
+            size={24}
+            className="text-gray-500 dark:text-gray-400"
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setShowGifPicker(true)}
+          style={{ padding: 8, marginLeft: 4 }}
+          disabled={disabled}
+        >
+          <AntDesign name="gif" size={24} className="text-gray-500 dark:text-gray-400" />
+        </TouchableOpacity>
 
         <View className="flex-1 mx-4">
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
@@ -145,6 +169,21 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
+      <EmojiPickerComponent
+        visible={showEmojiPicker}
+        onClose={() => setShowEmojiPicker(false)}
+        onEmojiSelect={(emoji) => {
+          input.handleChangeText(input.message + emoji);
+        }}
+      />
+
+      <GifPickerComponent
+        visible={showGifPicker}
+        onClose={() => setShowGifPicker(false)}
+        onGifSelect={(gifUrl) => {
+          onSendMessage?.("", undefined, undefined, gifUrl);
+        }}
+      />
     </View>
   );
 };

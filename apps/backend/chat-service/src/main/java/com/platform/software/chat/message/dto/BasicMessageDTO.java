@@ -19,6 +19,7 @@ public class BasicMessageDTO {
     private Boolean isUnsend;
     private Boolean hasAttachment;
     private List<MessageAttachmentDTO> messageAttachments;
+    private String gifUrl;
 
     public BasicMessageDTO(Message message) {
         this.id = message.getId();
@@ -29,6 +30,7 @@ public class BasicMessageDTO {
         this.isUnsend = message.getIsUnsend();
         this.hasAttachment = message.getAttachments() != null
                 && !message.getAttachments().isEmpty();
+        this.gifUrl = message.getGifUrl();
 
         if (message.getAttachments() != null && !message.getAttachments().isEmpty()) {
             List<MessageAttachmentDTO> attachmentServices = message.getAttachments()
