@@ -4,6 +4,8 @@ import classNames from "classnames";
 import { IMessage } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { AttachmentPreview } from "@/components/conversations/conversation-thread/message-list/AttachmentPreview";
+import { ParentMessageTextPreview } from "@/components/conversations/conversation-thread/message-list/ParentMessageTextPreview";
 
 interface ParentMessagePreviewProps {
   message: IMessage;
@@ -15,6 +17,21 @@ interface ParentMessagePreviewProps {
 const ParentMessagePreview = memo<ParentMessagePreviewProps>(
   ({ message, parentMessage, currentUserId, onNavigateToMessage }) => {
     const isCurrentUser = message.senderId === Number(currentUserId);
+
+    const hasAttachment = !!parentMessage.messageAttachments?.[0];
+
+    const getHeaderLabel = () => {
+      const isSelfReply =
+        message.senderId === Number(currentUserId) &&
+        parentMessage?.senderId === Number(currentUserId);
+      const isReplyingToMe =
+        message.senderId !== Number(currentUserId) &&
+        parentMessage?.senderId === Number(currentUserId);
+
+      if (isSelfReply) return "Replying to myself";
+      if (isReplyingToMe) return "Replying to me";
+      return `Replying to ${parentMessage?.senderFirstName}`;
+    };
 
     const handlePress = () => {
       if (onNavigateToMessage && parentMessage?.id) {
@@ -44,26 +61,16 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
                 : "text-primary-dark dark:text-primary-light text-left"
             )}
           >
-            {message.senderId === Number(currentUserId) &&
-            parentMessage?.senderId === Number(currentUserId)
-              ? "Replying to myself"
-              : message.senderId !== Number(currentUserId) &&
-                  parentMessage?.senderId === Number(currentUserId)
-                ? "Replying to me"
-                : `Replying to ${parentMessage?.senderFirstName}`}
+            {getHeaderLabel()}
           </AppText>
-          <AppText
-            className={classNames(
-              "text-sm",
-              isCurrentUser
-                ? "text-text-primary-light dark:text-text-primary-dark text-right"
-                : "text-text-primary-light dark:text-text-primary-dark text-left"
+
+          <View className="flex-row items-center justify-between gap-x-3">
+            <ParentMessageTextPreview message={parentMessage} isCurrentUser={isCurrentUser} />
+
+            {hasAttachment && (
+              <AttachmentPreview attachment={parentMessage.messageAttachments?.[0]} />
             )}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {parentMessage.messageText}
-          </AppText>
+          </View>
         </View>
       </TouchableOpacity>
     );
