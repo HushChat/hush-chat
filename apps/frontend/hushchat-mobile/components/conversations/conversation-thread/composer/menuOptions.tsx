@@ -12,7 +12,7 @@ export const getConversationMenuOptions = (
 ): IOption[] => [
   {
     id: 1,
-    name: "Upload Images",
+    name: "Upload Images & Videos",
     iconComponent: (props: { size: number }) => (
       <MaterialIcons name="photo-library" size={props.size} color="#3B82F6" />
     ),

@@ -6,7 +6,7 @@ import { Image } from "expo-image";
 
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { colorScheme } from "nativewind";
-import { DOC_EXTENSIONS, SIZES } from "@/constants/mediaConstants";
+import { DOC_EXTENSIONS, SIZES, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
 import { AppText } from "@/components/AppText";
 
 interface TFilePreviewItemProps {
@@ -37,6 +37,23 @@ const ImagePreview = ({ uri, isSelected }: { uri: string; isSelected: boolean })
   </View>
 );
 
+const VideoPreview = ({ uri, isSelected }: { uri: string; isSelected: boolean }) => (
+  <View className="relative mr-3">
+    <View className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+      <Image
+        source={{ uri }}
+        style={styles.imagePreview}
+        className="rounded-lg"
+        cachePolicy="memory-disk"
+      />
+      <View className="absolute inset-0 items-center justify-center bg-black/30">
+        <Ionicons name="play-circle" size={20} color="#fff" />
+      </View>
+    </View>
+    {isSelected && <SelectedBadge />}
+  </View>
+);
+
 const DocumentPreview = ({
   extension,
   iconColor,
@@ -63,14 +80,16 @@ export const FilePreviewItem = ({
   onRemove,
 }: TFilePreviewItemProps) => {
   const [imageUrl, setImageUrl] = useState<string>("");
-  const [fileType, setFileType] = useState<"image" | "document">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video">("image");
 
   useEffect(() => {
     if (!file) return;
 
     const ext = file.name.split(".").pop()?.toLowerCase();
     const isDocument = DOC_EXTENSIONS.includes(ext || "");
-    setFileType(isDocument ? "document" : "image");
+    const isVideo = VIDEO_EXTENSIONS.includes(ext || "");
+
+    setFileType(isDocument ? "document" : isVideo ? "video" : "image");
 
     if (!isDocument) {
       const url = URL.createObjectURL(file);
@@ -108,6 +127,8 @@ export const FilePreviewItem = ({
       <View className="flex-row items-center">
         {fileType === "image" ? (
           <ImagePreview uri={imageUrl} isSelected={isSelected} />
+        ) : fileType === "video" ? (
+          <VideoPreview uri={imageUrl} isSelected={isSelected} />
         ) : (
           <DocumentPreview
             extension={fileExtension}
