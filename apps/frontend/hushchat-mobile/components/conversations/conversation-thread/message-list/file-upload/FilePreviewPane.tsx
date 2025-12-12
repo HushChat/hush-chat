@@ -9,8 +9,10 @@ import ConversationInput from "@/components/conversation-input/ConversationInput
 
 type TFilePreviewPaneProps = {
   file: File;
-  conversationId: string;
-  onSendMessage: (message: string) => void;
+  conversationId: number;
+  caption: string;
+  onCaptionChange: (text: string) => void;
+  onSendFiles: () => void;
   isSending: boolean;
   isGroupChat?: boolean;
   replyToMessage?: any;
@@ -20,7 +22,9 @@ type TFilePreviewPaneProps = {
 const FilePreviewPane = ({
   file,
   conversationId,
-  onSendMessage,
+  caption,
+  onCaptionChange,
+  onSendFiles,
   isSending,
   isGroupChat = false,
   replyToMessage,
@@ -78,15 +82,15 @@ const FilePreviewPane = ({
       <View style={styles.inputContainer}>
         <ConversationInput
           conversationId={conversationId}
-          onSendMessage={onSendMessage}
+          onSendMessage={onSendFiles}
           disabled={isSending}
           isSending={isSending}
-          placeholder={`Add a caption for your ${fileType === "document" ? "document" : "image"}...`}
-          minLines={1}
-          maxLines={4}
           isGroupChat={isGroupChat}
           replyToMessage={replyToMessage}
           onCancelReply={onCancelReply}
+          controlledValue={caption}
+          onControlledValueChange={onCaptionChange}
+          hideSendButton
         />
       </View>
     </View>
