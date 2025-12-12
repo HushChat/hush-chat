@@ -35,6 +35,7 @@ import { MessageBubble } from "@/components/conversations/conversation-thread/me
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment } from "@/utils/messageHelpers";
 import { AppText } from "@/components/AppText";
+import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -63,6 +64,7 @@ interface MessageItemProps {
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  targetMessageId?: number | null;
 }
 
 const REMOVE_ONE = 1;
@@ -88,6 +90,7 @@ export const ConversationMessageItem = ({
   onViewReactions,
   showSenderAvatar,
   onNavigateToMessage,
+  targetMessageId,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -394,18 +397,20 @@ export const ConversationMessageItem = ({
 
             {renderParentMessage()}
 
-            <MessageBubble
-              message={message}
-              isCurrentUser={isCurrentUser}
-              hasText={hasText}
-              hasAttachments={hasAttachments}
-              hasImages={hasImages()}
-              selected={selected}
-              selectionMode={selectionMode}
-              isForwardedMessage={isForwardedMessage}
-              attachments={attachments}
-              onBubblePress={handleBubblePress}
-            />
+            <MessageHighlightWrapper id={message.id} targetId={targetMessageId}>
+              <MessageBubble
+                message={message}
+                isCurrentUser={isCurrentUser}
+                hasText={hasText}
+                hasAttachments={hasAttachments}
+                hasImages={hasImages()}
+                selected={selected}
+                selectionMode={selectionMode}
+                isForwardedMessage={isForwardedMessage}
+                attachments={attachments}
+                onBubblePress={handleBubblePress}
+              />
+            </MessageHighlightWrapper>
 
             <MessageReactions
               message={message}
