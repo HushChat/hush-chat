@@ -24,6 +24,7 @@ import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomResourceNotFoundException;
+import com.platform.software.utils.SearchUtil;
 import com.platform.software.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -459,7 +460,10 @@ public class MessageService {
                 .map(zdt -> Date.from(zdt.toInstant()))
                 .orElse(new Date(0));
 
-        return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId, deletedAt)
+        String rawKeyword = messageSearchRequestDTO.getSearchKeyword();
+        String formattedTerm = SearchUtil.formatSearchQuery(rawKeyword);
+
+        return messageRepository.findBySearchTermAndConversationNative(formattedTerm, conversationId, deletedAt)
             .stream().map(MessageViewDTO::new).toList();
     }
 
