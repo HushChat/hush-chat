@@ -5,7 +5,6 @@ import ReplyPreview from "@/components/conversations/conversation-thread/message
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
 import { PLATFORM } from "@/constants/platformConstants";
-import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
@@ -92,6 +91,10 @@ const ConversationInput = ({
     [input.specialCharHandler, input.enterSubmitHandler]
   );
 
+  const handleToggleMarkdown = useCallback(() => {
+    toggleMarkdown();
+  }, [toggleMarkdown]);
+
   return (
     <View>
       {input.replyToMessage && (
@@ -133,13 +136,19 @@ const ConversationInput = ({
                 onSubmitEditing={handleSubmitEditing}
               />
 
-              <MarkdownToggle enabled={isMarkdownEnabled} onToggle={() => toggleMarkdown} />
+              <View className="flex-row items-center mb-4 gap-3">
+                <MarkdownToggle
+                  enabled={isMarkdownEnabled}
+                  onToggle={handleToggleMarkdown}
+                  disabled={disabled}
+                />
 
-              <SendButton
-                showSend={input.isValidMessage}
-                isSending={isSending}
-                onPress={handleSendButtonPress}
-              />
+                <SendButton
+                  showSend={input.isValidMessage}
+                  isSending={isSending}
+                  onPress={handleSendButtonPress}
+                />
+              </View>
             </View>
 
             {typeof maxChars === "number" && (
@@ -173,6 +182,5 @@ const styles = StyleSheet.create({
   inputContainer: {
     position: "relative",
     alignItems: "flex-end",
-    paddingRight: RIGHT_ICON_GUTTER,
   },
 });
