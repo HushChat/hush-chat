@@ -5,6 +5,8 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -24,4 +26,15 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
     boolean existsByConversationIdAndUserId(Long conversationId, Long userId);
 
     Page<ConversationParticipant> findByConversationId(Long conversationId, Pageable pageable);
+
+    @Query("""
+  select p.user.email
+  from ConversationParticipant p
+  where p.conversation.id = :conversationId
+    and p.conversation.deleted = false
+    and p.isDeleted = false
+    and p.user.active = true
+    and p.user.deleted = false
+""")
+List<String> findActiveParticipantEmails(@Param("conversationId") Long conversationId);
 }
