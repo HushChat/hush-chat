@@ -4,13 +4,14 @@ import {
   View,
   FlatList,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
+  Dimensions,
+  Image,
 } from "react-native";
-import FastImage from "react-native-fast-image";
 import { searchTenorGifs, getTrendingGifs } from "@/services/gifService";
-import { logError } from "@/utils/logger";
+import { logError, logWarn } from "@/utils/logger";
 import { AppText, AppTextInput } from "@/components/AppText";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Props {
   visible: boolean;
@@ -22,12 +23,33 @@ export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSel
   const [gifs, setGifs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [numColumns, setNumColumns] = useState(2);
 
   useEffect(() => {
     if (visible) {
       loadTrendingGifs();
     }
   }, [visible]);
+
+  useEffect(() => {
+    const updateColumns = () => {
+      const { width } = Dimensions.get("window");
+      if (width >= 768) {
+        setNumColumns(3);
+      } else if (width >= 600) {
+        setNumColumns(3);
+      } else {
+        setNumColumns(2);
+      }
+    };
+
+    updateColumns();
+    const subscription = Dimensions.addEventListener("change", updateColumns);
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   const loadTrendingGifs = async () => {
     setLoading(true);
@@ -53,26 +75,58 @@ export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSel
       const results = await searchTenorGifs(query);
       setGifs(results);
     } catch (error) {
-      logError("error searching GIFs:", error);
+      logError("Error searching GIFs:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const renderGifItem = ({ item }: { item: any }) => {
+    const gifUrl = item.media_formats?.gif?.url || item.media?.[0]?.gif?.url;
+    const tinygifUrl = item.media_formats?.tinygif?.url || item.media?.[0]?.tinygif?.url;
+
+    if (!gifUrl || !tinygifUrl) {
+      logWarn("Invalid GIF data:", item);
+      return null;
+    }
+
+    return (
+      <TouchableOpacity
+        className="flex-1 m-1 aspect-square"
+        onPress={() => {
+          onGifSelect(gifUrl);
+          onClose();
+        }}
+      >
+        <Image
+          source={{ uri: tinygifUrl }}
+          style={{ width: "100%", height: "100%", borderRadius: 8 }}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmptyComponent = () => (
+    <View className="flex-1 justify-center items-center p-10">
+      <AppText className="text-sm text-[#666666]">No GIFs found</AppText>
+    </View>
+  );
+
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <AppText style={styles.title}>Select GIF</AppText>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <AppText style={styles.closeText}>✕</AppText>
+      <View className="flex-1 bg-black/50 justify-end">
+        <View className="bg-white rounded-tl-[20px] rounded-tr-[20px] h-[80%]">
+          <View className="flex-row justify-between items-center p-4 border-b border-[#e0e0e0]">
+            <AppText className="text-lg font-semibold">Select GIF</AppText>
+            <TouchableOpacity onPress={onClose} className="p-2 rounded-full">
+              <Ionicons name="close" size={24} color="#666666" />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.searchContainer}>
+          <View className="p-3">
             <AppTextInput
-              style={styles.searchInput}
+              className="bg-[#f0f0f0] rounded-[20px] p-3 text-base"
               placeholder="Search GIFs..."
               value={searchQuery}
               onChangeText={handleSearch}
@@ -81,108 +135,26 @@ export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSel
           </View>
 
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+            <View className="flex-1 justify-center items-center p-10">
+              <ActivityIndicator size="large" color="#666666" />
             </View>
           ) : (
             <FlatList
               data={gifs}
-              numColumns={2}
+              numColumns={numColumns}
+              key={numColumns} // Force re-render when columns change
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.gifItem}
-                  onPress={() => {
-                    onGifSelect(item.media[0].gif.url);
-                    onClose();
-                  }}
-                >
-                  <FastImage
-                    source={{ uri: item.media[0].tinygif.url }}
-                    style={styles.gif}
-                    resizeMode={FastImage.resizeMode.cover}
-                  />
-                </TouchableOpacity>
-              )}
-              contentContainerStyle={styles.gifList}
+              renderItem={renderGifItem}
+              contentContainerStyle={{ padding: 8, flexGrow: 1 }}
+              ListEmptyComponent={renderEmptyComponent}
             />
           )}
 
-          <View style={styles.footer}>
-            <AppText style={styles.poweredBy}>Powered by Tenor</AppText>
+          <View className="p-3 items-center border-t border-[#e0e0e0]">
+            <AppText className="text-xs text-[#666666]">Powered by Tenor</AppText>
           </View>
         </View>
       </View>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    height: "80%",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  closeButton: {
-    padding: 8,
-  },
-  closeText: {
-    fontSize: 24,
-    color: "#666",
-  },
-  searchContainer: {
-    padding: 12,
-  },
-  searchInput: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 20,
-    padding: 12,
-    fontSize: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  gifList: {
-    padding: 8,
-  },
-  gifItem: {
-    flex: 1,
-    margin: 4,
-    aspectRatio: 1,
-  },
-  gif: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
-  },
-  footer: {
-    padding: 12,
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-  },
-  poweredBy: {
-    fontSize: 12,
-    color: "#666",
-  },
-});

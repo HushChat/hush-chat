@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, View, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import React, { useState } from "react";
+import { Pressable, View, StyleSheet, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
@@ -7,6 +7,8 @@ import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
+import { PLATFORM } from "@/constants/platformConstants";
+import { logError } from "@/utils/logger";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
@@ -43,6 +45,28 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 }) => {
   const messageContent = message.messageText;
   const hasGif = !!message.gifUrl;
+  const [gifDimensions, setGifDimensions] = useState({ width: 250, height: 250 });
+
+  React.useEffect(() => {
+    if (hasGif && message.gifUrl && !PLATFORM.IS_WEB) {
+      Image.getSize(
+        message.gifUrl,
+        (width, height) => {
+          const maxSize = 250;
+          const aspectRatio = width / height;
+
+          if (width > height) {
+            setGifDimensions({ width: maxSize, height: maxSize / aspectRatio });
+          } else {
+            setGifDimensions({ width: maxSize * aspectRatio, height: maxSize });
+          }
+        },
+        (error) => {
+          logError("Error getting image size:", error);
+        }
+      );
+    }
+  }, [hasGif, message.gifUrl]);
 
   const forwardedBorderStyle = isForwardedMessage
     ? isCurrentUser
@@ -92,17 +116,25 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
-          {hasGif && (
+          {hasGif && !message.isUnsend && (
             <View className={messageContent ? "mb-2" : ""}>
-              <img
-                src={message.gifUrl}
-                alt="gif"
-                style={{
-                  maxWidth: 250,
-                  maxHeight: 250,
-                  borderRadius: 8,
-                }}
-              />
+              {PLATFORM.IS_WEB ? (
+                <img
+                  src={message.gifUrl}
+                  alt="gif"
+                  className="max-w-[250px] max-h-[250px] rounded-lg"
+                />
+              ) : (
+                <Image
+                  source={{ uri: message.gifUrl }}
+                  style={{
+                    width: gifDimensions.width,
+                    height: gifDimensions.height,
+                    borderRadius: 8,
+                  }}
+                  resizeMode="contain"
+                />
+              )}
             </View>
           )}
           {hasAttachments && (
