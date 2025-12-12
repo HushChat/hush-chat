@@ -69,11 +69,5 @@ public class ConversationReadStatusService {
             loggedInUserId
         );
     }
-
-    public Message getLastSeenMessageOrNull(Long conversationId, Long loggedInUserId) {
-        return conversationReadStatusRepository.findLastSeenMessageIdByConversationIdAndUserId(conversationId, loggedInUserId)
-                .map(lastSeenMessageId -> messageUtilService.getMessageOrThrow(conversationId, lastSeenMessageId))
-                .orElse(null);
-    }
 }
 

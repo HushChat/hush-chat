@@ -3,6 +3,7 @@ package com.platform.software.chat.message.dto;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.dto.UserViewDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class MessageViewDTO {
     private Long id;
     private Long senderId;
@@ -40,12 +42,6 @@ public class MessageViewDTO {
         if (parent != null && !message.getIsUnsend()) {
             this.parentMessage = new BasicMessageDTO(parent);
         }
-    }
-
-    public MessageViewDTO(Message message, Long lastSeenMessageId) {
-        this(message);
-
-        this.isSeen = lastSeenMessageId != null && message.getId() <= lastSeenMessageId;
     }
 
     public MessageViewDTO(Message message, boolean includeParent) {

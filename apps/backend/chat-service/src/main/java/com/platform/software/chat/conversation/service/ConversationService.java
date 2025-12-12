@@ -311,9 +311,9 @@ public class ConversationService {
      * @param messages the paginated collection of {@link Message} entities
      * @return a list of message IDs from the page content
      */
-    private static List<Long> extractMessageIds(Page<Message> messages) {
+    private static List<Long> extractMessageIds(Page<MessageViewDTO> messages) {
         return messages.getContent().stream()
-                .map(Message::getId)
+                .map(MessageViewDTO::getId)
                 .toList();
     }
 
@@ -323,34 +323,28 @@ public class ConversationService {
      * - `reactionSummary` containing both counts and user reaction types
      *
      * @param messages           the Page of Message entities
-     * @param lastSeenMessage    the last message seen by the user (can be null)
      * @param reactionSummaryMap map of message ID to MessageReactionSummaryDTO, may be empty
      * @return a List of MessageViewDTOs with the message data, isSeen status, and reaction summary
      */
     private static List<MessageViewDTO> getMessageViewDTOS(
-            Page<Message> messages,
-            Message lastSeenMessage,
+            Page<MessageViewDTO> messages,
             Map<Long, MessageReactionSummaryDTO> reactionSummaryMap,
             CloudPhotoHandlingService cloudPhotoHandlingService
     ) {
-        Long lastSeenMessageId = (lastSeenMessage != null) ? lastSeenMessage.getId() : null;
         boolean hasReactions = reactionSummaryMap != null;
 
         return messages.getContent().stream()
-                .map(message -> {
-                    MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
-
-                    String imageIndexedName = messageViewDTO.getImageIndexedName();
+                .peek(message -> {
+                    String imageIndexedName = message.getImageIndexedName();
                     if (imageIndexedName != null) {
                         String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
-                        messageViewDTO.setSenderSignedImageUrl(signedUrl);
+                        message.setSenderSignedImageUrl(signedUrl);
                     }
 
-                    if (hasReactions && !messageViewDTO.getIsUnsend()) {
+                    if (hasReactions && !message.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
-                        messageViewDTO.setReactionSummary(summary != null ? summary : new MessageReactionSummaryDTO());
+                        message.setReactionSummary(summary != null ? summary : new MessageReactionSummaryDTO());
                     }
-                    return messageViewDTO;
                 })
                 .toList();
     }
@@ -560,7 +554,7 @@ public class ConversationService {
         ConversationParticipant loggedInParticipant =
                 conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
+        Page<MessageViewDTO> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
 
         return getMessageViewDTOs(messages, conversationId, loggedInUserId);
     }
@@ -580,7 +574,7 @@ public class ConversationService {
 
         Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        return getMessageViewDTOs(null, conversationId, loggedInUserId);
     }
 
     /**
@@ -591,9 +585,7 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId) {
-
-        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
+    private Page<MessageViewDTO> getMessageViewDTOs(Page<MessageViewDTO> messages, Long conversationId, Long loggedInUserId) {
 
         Long lastReadMessageId = getLastReadMessageIdByParticipants(conversationId, loggedInUserId);
 
@@ -602,18 +594,17 @@ public class ConversationService {
         Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
                 messageReactionRepository.findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
 
-        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap, cloudPhotoHandlingService);
+        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, reactionSummaryMap, cloudPhotoHandlingService);
         messageMentionService.appendMessageMentions(messageViewDTOS);
 
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messageViewDTOS);
         
-        Map<Long, Message> messageMap = messages.getContent().stream()
-        .collect(Collectors.toMap(Message::getId, Function.identity()));
+        Map<Long, MessageViewDTO> messageMap = messages.getContent().stream()
+        .collect(Collectors.toMap(MessageViewDTO::getId, Function.identity()));
     
          List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
             .map(dto -> {
-                Message matchedMessage = messageMap.get(dto.getId());
-                List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+                MessageViewDTO matchedMessage = messageMap.get(dto.getId());
 
                 if (conversationEventMap.containsKey(dto.getId())) {
                     ConversationEvent event = conversationEventMap.get(dto.getId());
@@ -627,20 +618,9 @@ public class ConversationService {
                     return dto;
                 }
 
-                if (matchedMessage.getParentMessage() != null) {
-                    List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage().getAttachments();
-
-                    if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
-                        MessageAttachment parentMessageAttachment = parentMessageAttachments.getFirst();
-
-                        List<MessageAttachmentDTO> enrichedParentMessageAttachmentDTO = conversationUtilService.getEnrichedMessageAttachmentsDTO(List.of(parentMessageAttachment));
-                        dto.getParentMessage().setMessageAttachments(enrichedParentMessageAttachmentDTO);
-                    }
-                }
-
-                List<MessageAttachment> attachments = matchedMessage.getAttachments();
-                List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService.getEnrichedMessageAttachmentsDTO(attachments);
-                dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
+                //List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                //List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService.getEnrichedMessageAttachmentsDTO(attachments);
+                //dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
 
                 return dto;
             })

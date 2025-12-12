@@ -3,12 +3,21 @@ package com.platform.software.chat.message.repository;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
+import com.platform.software.chat.message.dto.BasicMessageDTO;
+import com.platform.software.chat.message.dto.MessageReactionSummaryDTO;
+import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.controller.external.IdBasedPageRequest;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -24,6 +33,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import static com.platform.software.chat.conversation.readstatus.entity.QConversationReadStatus.conversationReadStatus;
+import static java.util.Collections.list;
 
 public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     Logger logger = LoggerFactory.getLogger(MessageQueryRepositoryImpl.class);
@@ -112,7 +124,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         return tsvectorString;
     }
 
-    public Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant) {
+    public Page<MessageViewDTO> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
@@ -127,6 +139,16 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
+        BooleanExpression isSeen = message.id.loe(
+                JPAExpressions
+                        .select(conversationReadStatus.message.id)
+                        .from(conversationReadStatus)
+                        .where(
+                                conversationReadStatus.conversation.id.eq(message.conversation.id)
+                                        .and(conversationReadStatus.user.id.eq(participant.getUser().getId()))
+                        )
+        ).coalesce(false);
+
         Long total = queryFactory
             .select(message.id.countDistinct())
             .from(message)
@@ -135,12 +157,36 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             .where(conditions)
             .fetchOne();
 
-        JPAQuery<Message> query = queryFactory
-            .selectDistinct(message)
+        JPAQuery<MessageViewDTO> query = queryFactory
+            .selectDistinct(Projections.constructor(
+                    MessageViewDTO.class,
+                    message.id,
+                    message.sender.id,
+                    message.sender.firstName,
+                    message.sender.lastName,
+                    message.messageText,
+                    message.createdAt,
+                    Expressions.constant(new ArrayList<UserViewDTO>()),
+                    message.conversation.id,
+                    isSeen,
+                    Expressions.constant(new ArrayList<MessageAttachmentDTO>()),
+                    Expressions.nullExpression(MessageReactionSummaryDTO.class),
+                    Projections.constructor(
+                            BasicMessageDTO.class,
+                            message.parentMessage
+                    ),
+                    message.forwardedMessage.isNotNull(),
+                    message.isUnsend,
+                    message.sender.imageIndexedName,
+                    message.sender.imageIndexedName,
+                    Expressions.constant(false),
+                    message.messageType,
+                    message.attachments.isNotEmpty()
+            ))
             .from(message)
-            .leftJoin(message.attachments, messageAttachment).fetchJoin()
-            .innerJoin(message.conversation, conversation).fetchJoin()
-            .innerJoin(message.sender, sender).fetchJoin()
+            .leftJoin(message.attachments, messageAttachment)
+            .innerJoin(message.conversation, conversation)
+            .innerJoin(message.sender, sender)
             .limit(idBasedPageRequest.getSize());
 
         // Add cursor-based pagination conditions
@@ -155,7 +201,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         }
 
         query.where(conditions);
-        List<Message> messages = query.fetch();
+        List<MessageViewDTO> messages = query.fetch();
         if (idBasedPageRequest.getAfterId() != null) {
             messages = messages.reversed(); // if the query fetches with after id, it will fetch asc order, so for the frontend display, it has to be revered
         }

@@ -1,6 +1,7 @@
 package com.platform.software.chat.message.repository;
 
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import org.springframework.data.domain.Page;
 import com.platform.software.chat.message.entity.Message;
@@ -12,7 +13,7 @@ public interface MessageQueryRepository {
 
     Optional<Message> findDeletableMessage(Long messageId, Long loggedInUserId);
 
-    Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant);
+    Page<MessageViewDTO> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant);
 
     Page<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long MessageId, ConversationParticipant participant);
 
