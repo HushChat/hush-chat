@@ -158,8 +158,6 @@ export default function useWebSocketConnection() {
         ws.onmessage = (event) => {
           logDebug("Received message:", event.data.substring(0, 100));
 
-          console.log("Received message:", event.data.substring(100));
-
           if (event.data.startsWith(CONNECTED_RESPONSE)) {
             logDebug("STOMP Connected successfully");
             setConnectionStatus(WebSocketStatus.Connected);

@@ -9,6 +9,7 @@ import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.workspace.WorkspaceContext;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -56,6 +57,11 @@ public class MessagePublisherService {
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId, String workspaceId) {
         ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
 
+        ConversationParticipantViewDTO senderParticipant = conversationDTO.getParticipants().stream()
+                .filter(p -> p.getUser().getId().equals(senderId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));;
+
         // when sending ws message, conversation name need to be named of the message sender for non group conversations
         UserUtilService.setConversationNameForNonGroup(senderId, conversationDTO, true);
 
@@ -77,6 +83,12 @@ public class MessagePublisherService {
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
         conversationDTO.setMessages(List.of(messageViewDTO));
+
+        String deviceType = webSocketSessionManager.getUserDeviceType(
+                WorkspaceContext.getCurrentWorkspace(),
+                senderParticipant.getUser().getEmail()
+        );
+        conversationDTO.setDeviceType(deviceType);
 
         conversationDTO.getParticipants().stream()
             .filter(p -> !p.getUser().getId().equals(senderId))

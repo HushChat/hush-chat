@@ -157,19 +157,14 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     }
 
     private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {
-
-        // 1. Extract Device Type explicitly here
         String deviceType = extractHeaderValue(accessor, "Device-Type");
 
-        // 2. Add to attributes just in case
         if (deviceType != null) {
             accessor.getSessionAttributes().put("deviceType", deviceType);
         }
 
         logger.info("Managing session for user: {} on device: {}", user.getId(), deviceType);
 
-        // 3. Call the SINGLE atomic method
-        // We don't care if it's "New" or "Reconnect" - the manager handles that logic safely.
         sessionManager.registerOrUpdateSession(sessionKey, accessor, workspaceId, email, deviceType);
     }
 

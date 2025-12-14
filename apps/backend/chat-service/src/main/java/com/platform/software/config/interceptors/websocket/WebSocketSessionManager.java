@@ -41,7 +41,7 @@ public class WebSocketSessionManager {
         webSocketSessionInfos.compute(userId, (key, existingSession) -> {
 
             WebSocketSessionInfoDAO newSession = WebSocketSessionInfoDAO.builder()
-                    .stompSessionId(accessor.getSessionId()) // The NEW Socket ID
+                    .stompSessionId(accessor.getSessionId())
                     .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
                     .connectedTime(ZonedDateTime.now())
                     .createdTime(existingSession != null ? existingSession.getCreatedTime() : ZonedDateTime.now())
