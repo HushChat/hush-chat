@@ -259,7 +259,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 );
 
                                 dto.setChatUserStatus(status);
-                                dto.setChatUserDeviceType(deviceType);
+                                dto.setDeviceType(deviceType);
                             }
                         }
                     }

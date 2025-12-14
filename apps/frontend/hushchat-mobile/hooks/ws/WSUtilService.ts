@@ -1,6 +1,7 @@
 import { logDebug, logInfo } from "@/utils/logger";
 import { decodeJWTToken } from "@/utils/authUtils";
 import { INVALID_ACCESS_TOKEN_ERROR } from "@/constants/wsConstants";
+import { PLATFORM } from "@/constants/platformConstants";
 
 interface DecodedJWTPayload {
   sub: string;
@@ -13,6 +14,11 @@ interface DecodedJWTPayload {
   [key: string]: any;
 }
 
+const getDeviceType = () => {
+  if (PLATFORM.IS_WEB) return "WEB";
+  return "MOBILE";
+};
+
 export const subscribeToTopic = (
   ws: WebSocket,
   destination: string,
@@ -21,10 +27,13 @@ export const subscribeToTopic = (
 ) => {
   const fullDestination = `${destination}${encodeURIComponent(email)}`;
 
+  const deviceType = getDeviceType();
+
   const subscribeFrameBytes = [
     ...Array.from(new TextEncoder().encode("SUBSCRIBE\n")),
     ...Array.from(new TextEncoder().encode(`destination:${fullDestination}\n`)),
     ...Array.from(new TextEncoder().encode(`id:${subscriptionId}\n`)),
+    ...Array.from(new TextEncoder().encode(`Device-Type:${deviceType}\n`)),
     0x0a, // empty line
     0x00, // null terminator
   ];

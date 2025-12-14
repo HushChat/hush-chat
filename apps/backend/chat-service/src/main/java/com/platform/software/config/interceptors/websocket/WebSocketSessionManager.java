@@ -44,9 +44,9 @@ public class WebSocketSessionManager {
                     .stompSessionId(accessor.getSessionId()) // The NEW Socket ID
                     .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
                     .connectedTime(ZonedDateTime.now())
-                    .createdTime(existingSession != null ? existingSession.getCreatedTime() : ZonedDateTime.now()) // Keep original create time
+                    .createdTime(existingSession != null ? existingSession.getCreatedTime() : ZonedDateTime.now())
                     .updatedTime(ZonedDateTime.now())
-                    .deviceType(deviceType) // <--- CRITICAL: Always use the NEW device type
+                    .deviceType(deviceType)
                     .disconnectedTime(null)
                     .build();
 
@@ -102,6 +102,7 @@ public class WebSocketSessionManager {
 
             existingSession.setOpenedConversation(subscriptionData.getOpenedConversation());
             existingSession.setDisconnectedTime(null);
+            existingSession.setDeviceType(subscriptionData.getDeviceType());
             webSocketSessionInfos.put(userId, existingSession);
         }
     }

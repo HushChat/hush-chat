@@ -75,7 +75,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         // Get authentication token from headers
         String bearerToken = extractHeaderValue(accessor, GeneralConstants.AUTHORIZATION_HEADER);
         String workspaceId = extractHeaderValue(accessor, GeneralConstants.WORKSPACE_ID_HEADER);
-        String deviceType = extractHeaderValue(accessor, "Device-Type");
+        String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
 
         if (deviceType == null) deviceType = "UNKNOWN";
 

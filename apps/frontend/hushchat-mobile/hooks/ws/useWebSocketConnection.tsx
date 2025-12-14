@@ -14,67 +14,49 @@ import {
   RETRY_TIME_MS,
 } from "@/constants/wsConstants";
 import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
-import { logInfo } from "@/utils/logger";
+import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
-import { Platform, AppState, AppStateStatus } from "react-native";
+import { PLATFORM } from "@/constants/platformConstants";
 
+// Define topics to subscribe to
 const TOPICS = [
   { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
   { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
 ];
 
 const getDeviceType = () => {
-  if (Platform.OS === "web") return "WEB";
+  if (PLATFORM.IS_WEB) return "WEB";
   return "MOBILE";
-};
-
-/**
- * Request permission for Web Browser Notifications
- */
-const requestWebNotificationPermission = () => {
-  if (Platform.OS === "web" && "Notification" in window) {
-    if (Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-  }
-};
-
-/**
- * Show a browser notification
- */
-const showWebNotification = (title: string, body: string) => {
-  if (Platform.OS === "web" && "Notification" in window && Notification.permission === "granted") {
-    // Only show if the tab is hidden/backgrounded
-    if (document.hidden) {
-      new Notification(title, { body, icon: "/icon.png" });
-    }
-  }
 };
 
 export const publishUserActivity = (
   ws: WebSocket | null,
   data: UserActivityWSSubscriptionData
 ): boolean => {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return false;
-
-  const currentDeviceType = getDeviceType();
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    logInfo("WebSocket not connected, cannot publish user activity");
+    return false;
+  }
 
   try {
-    const body = JSON.stringify({ ...data, deviceType: currentDeviceType });
+    const body = JSON.stringify(data);
+
+    const currentDeviceType = getDeviceType();
 
     const sendFrameBytes = [
       ...Array.from(new TextEncoder().encode("SEND\n")),
       ...Array.from(new TextEncoder().encode("destination:/app/subscribed-conversations\n")),
-      ...Array.from(new TextEncoder().encode(`device-type:${currentDeviceType}\n`)),
+      ...Array.from(new TextEncoder().encode(`Device-Type:${currentDeviceType}\n`)),
       ...Array.from(new TextEncoder().encode(`content-length:${body.length}\n`)),
       ...Array.from(new TextEncoder().encode("content-type:application/json\n")),
-      0x0a,
+      0x0a, // empty line
       ...Array.from(new TextEncoder().encode(body)),
-      0x00,
+      0x00, // null terminator
     ];
 
     const uint8Array = new Uint8Array(sendFrameBytes);
     ws.send(uint8Array.buffer);
+
     return true;
   } catch (error) {
     logInfo("Error publishing user activity:", error);
@@ -86,21 +68,17 @@ export const publishUserActivity = (
 const handleMessageByTopic = (topic: string, body: string) => {
   try {
     if (topic.includes(MESSAGE_RECEIVED_TOPIC)) {
+      // Handle message received
       const wsMessageWithConversation = JSON.parse(body) as IConversation;
-
       if (wsMessageWithConversation.messages?.length !== 0) {
         emitNewMessage(wsMessageWithConversation);
-
-        const latestMessageObj = wsMessageWithConversation.messages?.[0];
-
-        if (latestMessageObj) {
-          const messageContent = (latestMessageObj as any).content || "New message";
-          showWebNotification("New Message", messageContent);
-        }
       }
     } else if (topic.includes(ONLINE_STATUS_TOPIC)) {
+      // Handle online status update
       const onlineStatusData = JSON.parse(body) as IUserStatus;
       emitUserStatus(onlineStatusData);
+    } else {
+      logDebug("Received message from unknown topic:", topic);
     }
   } catch (error) {
     logInfo("Error parsing message from topic:", topic, error);
@@ -114,16 +92,10 @@ export default function useWebSocketConnection() {
   } = useUserStore();
   const wsRef = useRef<WebSocket | null>(null);
   const shouldStopRetrying = useRef(false);
-  const isAppBackgrounded = useRef(false);
 
   const [connectionStatus, setConnectionStatus] = useState<WebSocketStatus>(
     WebSocketStatus.Disconnected
   );
-
-  // Request notification permission on mount
-  useEffect(() => {
-    requestWebNotificationPermission();
-  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -133,21 +105,29 @@ export default function useWebSocketConnection() {
 
     let isCancelled = false;
     shouldStopRetrying.current = false;
-    isAppBackgrounded.current = false;
 
     const mainServiceWsBaseUrl = getWSBaseURL();
 
     const fetchAndSubscribe = async () => {
-      // Don't connect if app is backgrounded (MOBILE ONLY)
-      if (shouldStopRetrying.current || isCancelled || isAppBackgrounded.current) {
+      if (shouldStopRetrying.current || isCancelled) {
+        logInfo("Stopping WebSocket connection attempts due to authentication failure");
+        setConnectionStatus(WebSocketStatus.Disconnected);
         return;
       }
 
       try {
         setConnectionStatus(WebSocketStatus.Connecting);
-        const { idToken, workspace } = await getAllTokens();
 
-        if (!idToken || !validateToken(idToken)) {
+        const { idToken, workspace } = await getAllTokens();
+        if (idToken === null) {
+          logInfo("aborting web socket connection due to missing token");
+          shouldStopRetrying.current = true;
+          setConnectionStatus(WebSocketStatus.Error);
+          return;
+        }
+
+        if (!validateToken(idToken)) {
+          logInfo("aborting web socket connection due to invalid or expired token");
           shouldStopRetrying.current = true;
           setConnectionStatus(WebSocketStatus.Error);
           return;
@@ -159,7 +139,6 @@ export default function useWebSocketConnection() {
 
         ws.onopen = () => {
           const deviceType = getDeviceType();
-
           // Send CONNECT frame
           const connectFrameBytes = [
             ...Array.from(new TextEncoder().encode("CONNECT\n")),
@@ -167,18 +146,43 @@ export default function useWebSocketConnection() {
             ...Array.from(new TextEncoder().encode(`Workspace-Id:${workspace}\n`)),
             ...Array.from(new TextEncoder().encode(`Device-Type:${deviceType}\n`)),
             ...Array.from(new TextEncoder().encode("accept-version:1.2\n")),
-            ...Array.from(new TextEncoder().encode("heart-beat:10000,10000\n")),
-            0x0a,
-            0x00,
+            ...Array.from(new TextEncoder().encode("heart-beat:0,0\n")),
+            0x0a, // empty line
+            0x00, // null terminator
           ];
-          ws.send(new Uint8Array(connectFrameBytes).buffer);
+
+          const uint8Array = new Uint8Array(connectFrameBytes);
+          ws.send(uint8Array.buffer);
         };
 
         ws.onmessage = (event) => {
+          logDebug("Received message:", event.data.substring(0, 100));
+
+          console.log("Received message:", event.data.substring(100));
+
           if (event.data.startsWith(CONNECTED_RESPONSE)) {
+            logDebug("STOMP Connected successfully");
             setConnectionStatus(WebSocketStatus.Connected);
-            TOPICS.forEach((topic) => subscribeToTopic(ws, topic.destination, email, topic.id));
+
+            // Subscribe to all topics
+            TOPICS.forEach((topic) => {
+              subscribeToTopic(ws, topic.destination, email, topic.id);
+            });
+          } else if (event.data.startsWith(ERROR_RESPONSE)) {
+            logInfo("STOMP error:", event.data);
+            setConnectionStatus(WebSocketStatus.Error);
+            const errorMessage = event.data.toLowerCase();
+            if (
+              errorMessage.includes("unauthorized") ||
+              errorMessage.includes("token") ||
+              errorMessage.includes("expired") ||
+              errorMessage.includes("auth")
+            ) {
+              logInfo("Authentication error detected, stopping reconnection attempts");
+              shouldStopRetrying.current = true;
+            }
           } else if (event.data.startsWith(MESSAGE_RESPONSE)) {
+            // Parse message body (everything after empty line)
             const lines = event.data.split("\n");
             const emptyLineIndex = lines.findIndex((line: string) => line === "");
             const topic = extractTopicFromMessage(event.data);
@@ -188,64 +192,49 @@ export default function useWebSocketConnection() {
                 .slice(emptyLineIndex + 1)
                 .join("\n")
                 .replace(/\0$/, "");
+
+              // Route message to appropriate handler based on topic
               handleMessageByTopic(topic, body);
-            }
-          } else if (event.data.startsWith(ERROR_RESPONSE)) {
-            const errorMessage = event.data.toLowerCase();
-            if (errorMessage.includes("unauthorized") || errorMessage.includes("token")) {
-              shouldStopRetrying.current = true;
             }
           }
         };
 
+        ws.onerror = (error) => {
+          logInfo("WebSocket error:", error);
+          setConnectionStatus(WebSocketStatus.Error);
+        };
+
         ws.onclose = (event) => {
+          logDebug("WebSocket closed:", event.code, event.reason);
           setConnectionStatus(WebSocketStatus.Disconnected);
+
+          // Check if it's an auth failure and stop retrying
           if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
+            logInfo("Connection closed due to authentication failure");
             shouldStopRetrying.current = true;
-            return;
+            return; // Exit early - no retry on auth failures
           }
+
           // Reconnect on all other disconnections (including after errors)
-          if (!isCancelled && !shouldStopRetrying.current && !isAppBackgrounded.current) {
+          if (!isCancelled && !shouldStopRetrying.current) {
+            logInfo("WebSocket disconnected, attempting reconnection in 10 seconds...");
             setTimeout(fetchAndSubscribe, RETRY_TIME_MS);
           }
         };
       } catch (error) {
         logInfo("Connection setup error:", error);
         setConnectionStatus(WebSocketStatus.Error);
-        if (!isCancelled && !shouldStopRetrying.current && !isAppBackgrounded.current) {
+        if (!isCancelled && !shouldStopRetrying.current) {
           setTimeout(fetchAndSubscribe, RETRY_TIME_MS);
         }
       }
     };
-
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      // ONLY APPLY BACKGROUND DISCONNECT LOGIC ON MOBILE
-      if (Platform.OS !== "web") {
-        if (nextAppState.match(/inactive|background/)) {
-          logInfo("Mobile App backgrounded - closing socket");
-          isAppBackgrounded.current = true;
-          if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-          }
-        } else if (nextAppState === "active") {
-          logInfo("Mobile App active - reconnecting socket");
-          isAppBackgrounded.current = false;
-          if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
-            fetchAndSubscribe();
-          }
-        }
-      }
-    };
-
-    const subscription = AppState.addEventListener("change", handleAppStateChange);
 
     void fetchAndSubscribe();
 
     return () => {
       isCancelled = true;
       shouldStopRetrying.current = false;
-      subscription.remove();
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
@@ -255,9 +244,18 @@ export default function useWebSocketConnection() {
   }, [email, isAuthenticated]);
 
   const publishActivity = (data: UserActivityWSSubscriptionData) => {
-    if (connectionStatus !== WebSocketStatus.Connected) return false;
-    return publishUserActivity(wsRef.current, data);
+    if (connectionStatus !== WebSocketStatus.Connected) {
+      logInfo("Cannot publish activity: WebSocket not connected", {
+        status: connectionStatus,
+      });
+      return false;
+    }
+
+    const deviceType = getDeviceType();
+
+    return publishUserActivity(wsRef.current, { ...data, deviceType });
   };
 
+  // return the connection status
   return { connectionStatus, publishActivity };
 }

@@ -18,7 +18,7 @@ export interface IConversation {
   archivedByLoggedInUser: boolean;
   unreadCount: number;
   chatUserStatus: chatUserStatus;
-  chatUserDeviceType?: DeviceType;
+  deviceType?: DeviceType;
 }
 
 export interface ReactionSummary {
