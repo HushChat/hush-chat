@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import { PLATFORM } from "@/constants/platformConstants";
-import { Workspace, WorkspaceDropdownProps } from "@/types/login/types";
+import { STATUS_STYLES, Workspace, WorkspaceDropdownProps } from "@/types/login/types";
 import { SIZE_PRESETS } from "@/components/forms/TextField";
 import { MotionView } from "@/motion/MotionView";
 import { AppText } from "@/components/AppText";
@@ -56,6 +56,8 @@ const WorkspaceDropdown = ({
 
   const insets = useSafeAreaInsets();
 
+  const workspaceList = Array.isArray(workspaces) ? workspaces : [];
+
   const effectiveSize: SizeKey = useMemo(() => {
     if (size) return size;
     if (!platformAwareDefault) return "md";
@@ -80,18 +82,11 @@ const WorkspaceDropdown = ({
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "PENDING") {
-      return (
-        <View className="bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">
-          <AppText className="text-yellow-700 dark:text-yellow-400 text-xs font-medium">
-            Invitation Pending
-          </AppText>
-        </View>
-      );
-    }
+    const style = STATUS_STYLES[status];
+
     return (
-      <View className="bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">
-        <AppText className="text-green-700 dark:text-green-400 text-xs font-medium">Active</AppText>
+      <View className={`${style.bg} px-2 py-0.5 rounded`}>
+        <AppText className={`${style.text} text-xs font-medium`}>{style.label}</AppText>
       </View>
     );
   };
@@ -176,7 +171,7 @@ const WorkspaceDropdown = ({
                       showsVerticalScrollIndicator={true}
                       style={{ maxHeight: SCREEN_HEIGHT * 0.6 }}
                     >
-                      {workspaces.map((item, index) => (
+                      {workspaceList.map((item, index) => (
                         <MotionView
                           key={item.id.toString()}
                           visible={true}
