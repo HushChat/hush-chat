@@ -85,6 +85,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       ...notificationConversation,
       chatUserStatus: matchedNotification?.chatUserStatus,
       unreadCount: updatedUnreadCount,
+      deviceType: matchedNotification?.deviceType,
     };
 
     appendToOffsetPaginatedCache<IConversation>(
@@ -177,6 +178,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     const mergedConversation = {
       ...conversation,
       chatUserStatus: userStatus.status,
+      deviceType: userStatus.deviceType,
     };
 
     appendToOffsetPaginatedCache<IConversation>(
