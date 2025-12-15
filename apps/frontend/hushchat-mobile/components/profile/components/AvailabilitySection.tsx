@@ -1,0 +1,44 @@
+import { Switch, View } from "react-native";
+import React, { useCallback } from "react";
+import { chatUserStatus } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
+import { useUpdateAvailabilityStatusMutation } from "@/query/post/queries";
+import { useUserStore } from "@/store/user/useUserStore";
+
+export default function AvailabilitySection({ status }: { status?: chatUserStatus }) {
+  const { fetchUserData } = useUserStore();
+  const isAvailable = status === chatUserStatus.AVAILABLE;
+
+  const { mutate } = useUpdateAvailabilityStatusMutation({}, () => {
+    fetchUserData();
+  });
+
+  const toggleAvailability = useCallback(() => {
+    mutate(undefined);
+  }, [mutate]);
+
+  return (
+    <View className="dark:border-gray-700 flex-row items-center justify-between">
+      <View>
+        <AppText className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          Availability
+        </AppText>
+        <AppText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Appearing as{" "}
+          <AppText
+            className={isAvailable ? "text-green-600 font-medium" : "text-red-500 font-medium"}
+          >
+            {isAvailable ? "Available" : "Busy"}
+          </AppText>
+        </AppText>
+      </View>
+
+      <Switch
+        value={isAvailable}
+        onValueChange={toggleAvailability}
+        trackColor={{ false: "#767577", true: "#6B4EFF" }}
+        thumbColor={isAvailable ? "#ffffff" : "#6B4EFF"}
+      />
+    </View>
+  );
+}

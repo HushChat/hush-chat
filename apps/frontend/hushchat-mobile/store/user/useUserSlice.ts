@@ -2,6 +2,7 @@ import { getUserInfo } from "@/apis/user";
 import { IUser } from "@/types/user/types";
 import { logInfo } from "@/utils/logger";
 import { StateCreator } from "zustand";
+import { chatUserStatus } from "@/types/chat/types";
 
 export interface UserState {
   user: IUser;
@@ -22,6 +23,7 @@ const initialUserState: IUser = {
   signedImageUrl: "",
   active: false,
   workspaceRole: "",
+  status: chatUserStatus.OFFLINE,
 };
 
 export const createUserSlice: StateCreator<UserState> = (set) => ({

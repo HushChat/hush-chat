@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserQueryRepository;
@@ -17,6 +18,7 @@ import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.config.aws.AWSconfig;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
+import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
@@ -438,5 +440,38 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(result, pageable, workspaceUserPage.getTotalElements());
+    }
+
+    /**
+     * Toggles the availability status of the authenticated user between AVAILABLE and BUSY.
+     * <p>
+     * This method retrieves the user, switches their availability status, persists the change,
+     * and evicts relevant cache entries to ensure data consistency.
+     * </p>
+     *
+     * @param authenticatedUser the authenticated user details containing the user ID
+     * @return the updated {@link UserStatusEnum} after toggling
+     * @throws CustomInternalServerErrorException if the user status update fails during persistence
+     * @throws IllegalArgumentException if the user cannot be validated or found
+     */
+    public UserStatusEnum updateUserAvailability(UserDetails authenticatedUser) {
+        ChatUser user = validateAndGetUser(authenticatedUser.getId());
+
+        if (user.getAvailabilityStatus().equals(UserStatusEnum.AVAILABLE)) {
+            user.setAvailabilityStatus(UserStatusEnum.BUSY);
+        } else if (user.getAvailabilityStatus().equals(UserStatusEnum.BUSY)) {
+            user.setAvailabilityStatus(UserStatusEnum.AVAILABLE);
+        }
+
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            logger.error("failed to update user {} availability status", user.getId(), e);
+            throw new CustomInternalServerErrorException("Failed to Update Status");
+        }
+
+        cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
+
+        return user.getAvailabilityStatus();
     }
 }

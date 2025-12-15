@@ -9,6 +9,8 @@ import { usePasswordVisibility } from "@/hooks/usePasswordVisibility";
 import { useLogout } from "@/hooks/useLogout";
 import { useProfileForm } from "@/hooks/useProfileForm";
 import LoadingState from "@/components/LoadingState";
+import AvailabilitySection from "@/components/profile/components/AvailabilitySection";
+import { chatUserStatus } from "@/types/chat/types";
 
 const SCROLL_CONTENT_PADDING_BOTTOM = 40;
 
@@ -61,7 +63,6 @@ export const ProfileForm = () => {
   };
 
   const userName = `${user.firstName} ${user.lastName}`;
-
   const avatarUrl = !avatarProps.imageError ? (avatarProps.imageUri ?? user.signedImageUrl) : null;
 
   return (
@@ -107,6 +108,8 @@ export const ProfileForm = () => {
           />
 
           <ProfileField label="Email" value={user.email} />
+
+          <AvailabilitySection status={user.status ?? chatUserStatus.OFFLINE} />
 
           <PasswordSection
             formValues={formValues}

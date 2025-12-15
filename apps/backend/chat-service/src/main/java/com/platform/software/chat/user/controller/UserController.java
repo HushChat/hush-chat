@@ -1,5 +1,6 @@
 package com.platform.software.chat.user.controller;
 
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.dto.UserResetPasswordDTO;
 
@@ -7,14 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.platform.software.chat.call.dto.CallLogViewDTO;
 import com.platform.software.chat.call.service.CallLogService;
@@ -202,5 +196,12 @@ public class UserController {
             userResetPasswordDTO.getNewPassword()
         );
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Change user availability status", response = UserStatusEnum.class)
+    @PatchMapping("change-availability-status")
+    public ResponseEntity<UserStatusEnum> updateUserAvailability(@AuthenticatedUser UserDetails authenticatedUser) {
+        UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser);
+        return new ResponseEntity<>(userStatusEnum, HttpStatus.OK);
     }
 }
