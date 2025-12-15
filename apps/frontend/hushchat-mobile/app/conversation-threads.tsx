@@ -216,11 +216,11 @@ const ConversationThreadScreen = ({
     pickAndUploadDocuments,
     isUploading: isUploadingImages,
     error: uploadError,
-  } = useMessageAttachmentUploader(currentConversationId, imageMessage);
+  } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadDocuments();
+      const results = await pickAndUploadDocuments(imageMessage, selectedMessage?.id);
 
       if (results?.some((r) => r.success)) {
         refetchConversationMessages();
@@ -234,6 +234,8 @@ const ConversationThreadScreen = ({
     }
   }, [
     pickAndUploadDocuments,
+    imageMessage,
+    selectedMessage?.id,
     refetchConversationMessages,
     setSelectedMessage,
     setImageMessage,
@@ -242,7 +244,8 @@ const ConversationThreadScreen = ({
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadImages();
+      const results = await pickAndUploadImages(imageMessage, selectedMessage?.id);
+
       if (results?.some((r) => r.success)) {
         await refetchConversationMessages();
         setSelectedMessage(null);
@@ -253,7 +256,14 @@ const ConversationThreadScreen = ({
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickAndUploadImages, setSelectedMessage, setImageMessage, uploadError]);
+  }, [
+    pickAndUploadImages,
+    imageMessage,
+    selectedMessage?.id,
+    setSelectedMessage,
+    setImageMessage,
+    uploadError,
+  ]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
