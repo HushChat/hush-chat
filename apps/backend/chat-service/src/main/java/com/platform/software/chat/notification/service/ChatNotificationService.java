@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -33,14 +35,21 @@ public class ChatNotificationService {
     }
 
     /**
-     * Send notifications to tokens
+     * Build and send notifications to tokens
      *
      * @param tokens list of device tokens
-     * @param title  notification title
+     * @param message  target message
      * @param body   notification body
      */
-    private void sendNotificationToTokens(List<String> tokens, String title, String body) {
-        NotificationRequestDTO notificationsRequest = new NotificationRequestDTO(tokens, title, body);
+    private void buildAndDispatchNotification(List<String> tokens, Message message, String body) {
+        String title = chatNotificationUtilService.getNotificationTitle(message);
+
+        Map<String, String> data = buildNotificationData(
+            message.getConversation().getId(), 
+            message.getId()
+        );
+
+        NotificationRequestDTO notificationsRequest = new NotificationRequestDTO(tokens, title, body, data);
         notificationServiceFactory.sendNotification(notificationsRequest);
     }
 
@@ -84,26 +93,36 @@ public class ChatNotificationService {
      * @param loggedInUserId logged in user id
      * @param message message
      */
-    public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message ){
+    public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message) {
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false);
 
-        if(!tokens.isEmpty()){
-            boolean isGroup = message.getConversation().getIsGroup();
-            String title = chatNotificationUtilService.getNotificationTitle(message);
-            String body = isGroup ? message.getSender().getFirstName() + ": " + message.getMessageText() : message.getMessageText();
-
-            sendNotificationToTokens(tokens, title, body);
+        if (tokens.isEmpty()) {
+            return;
         }
+
+        String body = message.getConversation().getIsGroup() 
+            ? message.getSender().getFirstName() + ": " + message.getMessageText() 
+            : message.getMessageText();
+
+        buildAndDispatchNotification(tokens, message, body);
     }
 
-    public void sendMessageReactionNotifications(com.platform.software.chat.message.entity.Message  message, ChatUser loggedInUser){
+    public void sendMessageReactionNotifications(Message message, ChatUser loggedInUser) {
         List<String> tokens = chatNotificationRepository.findNonMutedTokensByUserId(message.getSender().getId());
 
-        if(!tokens.isEmpty()){
-            String title = chatNotificationUtilService.getNotificationTitle(message);
-            String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
-
-            sendNotificationToTokens(tokens, title, body);
+        if (tokens.isEmpty()) {
+            return;
         }
+
+        String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
+
+        buildAndDispatchNotification(tokens, message, body);
+    }
+
+    private Map<String, String> buildNotificationData(Long conversationId, Long messageId) {
+        Map<String, String> data = new HashMap<>();
+        data.put("conversationId", String.valueOf(conversationId));
+        data.put("messageId", String.valueOf(messageId));
+        return data;
     }
 }

@@ -7,6 +7,8 @@ import com.platform.software.chat.conversation.repository.ConversationRepository
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.message.dto.MessageForwardRequestDTO;
 import com.platform.software.chat.message.entity.Message;
@@ -307,7 +309,7 @@ public class ConversationUtilService {
      * only the other participants in the conversation.
      * </p>
      *
-     * @param conversationId  the ID of the conversation 
+     * @param conversationId  the ID of the conversation
      * @param senderId        the ID of the user to be excluded from the result
      * @return a list of ChatUser objects representing all participants
      *         in the conversation except the sender
@@ -319,7 +321,7 @@ public class ConversationUtilService {
         return participants.stream().map(participant -> participant.getUser())
                     .filter(user -> !user.getId().equals(sernderId)).toList();
     }
-  
+
     /**
      * Deletes a conversation.
      *
@@ -334,5 +336,39 @@ public class ConversationUtilService {
             logger.error("failed to delete conversation id: {}", conversation.getId(), exception);
             throw new CustomBadRequestException("Failed to delete conversation");
         }
+    }
+
+    /**
+     * Enriches message attachments with signed URLs for file access.
+     *
+     * @param attachments the list of message attachments to process, may be null or empty
+     * @return a list of enriched attachment DTOs with signed URLs, or an empty list if input is null/empty
+     */
+    public List<MessageAttachmentDTO> getEnrichedMessageAttachmentsDTO(List<MessageAttachment> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+        for (MessageAttachment attachment : attachments) {
+            MessageAttachmentDTO dto = new MessageAttachmentDTO();
+            try {
+                String fileViewSignedURL = cloudPhotoHandlingService
+                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
+
+                dto.setId(attachment.getId());
+                dto.setFileUrl(fileViewSignedURL);
+                dto.setIndexedFileName(attachment.getIndexedFileName());
+                dto.setOriginalFileName(attachment.getOriginalFileName());
+                dto.setType(attachment.getType());
+
+                attachmentDTOs.add(dto);
+            } catch (Exception e) {
+                logger.error("Failed to process attachment {}: {}", attachment.getOriginalFileName(), e.getMessage());
+                dto.setFileUrl(null);
+            }
+        }
+
+        return attachmentDTOs;
     }
 }
