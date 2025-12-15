@@ -37,47 +37,25 @@ public class WebSocketSessionManager {
     /**
      * Register session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void registerOrUpdateSession(String userId, StompHeaderAccessor accessor, String workspaceId, String email, String deviceType) {
-        webSocketSessionInfos.compute(userId, (key, existingSession) -> {
+    public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor, String workspaceId, String email, String deviceType) {
+        WebSocketSessionInfoDAO webSocketSessionInfoDAO = WebSocketSessionInfoDAO.builder()
+                .stompSessionId(accessor.getSessionId())
+                .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
+                .connectedTime(ZonedDateTime.now())
+                .createdTime(ZonedDateTime.now())
+                .disconnectedTime(null)
+                .build();
 
-            WebSocketSessionInfoDAO newSession = WebSocketSessionInfoDAO.builder()
-                    .stompSessionId(accessor.getSessionId())
-                    .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
-                    .connectedTime(ZonedDateTime.now())
-                    .createdTime(existingSession != null ? existingSession.getCreatedTime() : ZonedDateTime.now())
-                    .updatedTime(ZonedDateTime.now())
-                    .deviceType(deviceType)
-                    .disconnectedTime(null)
-                    .build();
+        webSocketSessionInfos.put(userId, webSocketSessionInfoDAO);
 
-            if (existingSession != null) {
-                newSession.setVisibleConversations(existingSession.getVisibleConversations());
-                newSession.setOpenedConversation(existingSession.getOpenedConversation());
-                logger.info("Session updated/overwritten for user: {} [Device: {} -> {}]",
-                        userId, existingSession.getDeviceType(), deviceType);
-            } else {
-                logger.info("New session created for user: {} [Device: {}]", userId, deviceType);
-            }
-
-            return newSession;
-        });
-
-        WebSocketSessionInfoDAO storedSession = webSocketSessionInfos.get(userId);
-        if (storedSession != null) {
-            userActivityStatusWSService.invokeUserIsActive(
-                    workspaceId,
-                    email,
-                    webSocketSessionInfos,
-                    UserStatusEnum.ONLINE,
-                    storedSession.getDeviceType()
-            );
-        }
+        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, deviceType);
+        logger.info("registered stomp session for user: {}", userId);
     }
 
     /**
      * re connecting session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email) {
+    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email, String deviceType) {
         Optional<WebSocketSessionInfoDAO> session = getValidSession(userId);
         if (session.isPresent()) {
             WebSocketSessionInfoDAO existingSession = session.get();
@@ -85,7 +63,7 @@ public class WebSocketSessionManager {
             existingSession.setDisconnectedTime(null);
             webSocketSessionInfos.put(userId, existingSession);
 
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, session.get().getDeviceType());
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, deviceType);
             logger.debug("session re connected for user: {}", userId);
         }
     }

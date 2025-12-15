@@ -157,15 +157,17 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     }
 
     private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {
+        WebSocketSessionInfoDAO existingSession = sessionManager.getWebSocketSessionInfo(sessionKey);
+
         String deviceType = extractHeaderValue(accessor, "Device-Type");
 
-        if (deviceType != null) {
-            accessor.getSessionAttributes().put("deviceType", deviceType);
+        if (existingSession == null) {
+            logger.info("workspace-id: {} user {} connected via {}", workspaceId, user.getId(), deviceType);
+            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType);
+        } else {
+            logger.info("workspace-id: {} user {} re-connected via {}", workspaceId, user.getId(), deviceType);
+            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType);
         }
-
-        logger.info("Managing session for user: {} on device: {}", user.getId(), deviceType);
-
-        sessionManager.registerOrUpdateSession(sessionKey, accessor, workspaceId, email, deviceType);
     }
 
     private String extractHeaderValue(StompHeaderAccessor accessor, String headerName) {
