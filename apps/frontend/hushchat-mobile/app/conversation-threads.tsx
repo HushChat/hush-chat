@@ -32,7 +32,7 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
 import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
-import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
+import { useConversationMessageSender } from "@/hooks/conversation-thread/useConversationMessageSender";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
@@ -275,16 +275,16 @@ const ConversationThreadScreen = ({
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
-  const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
-    currentConversationId,
+  const { sendTextOrAttachmentMessage, sendAttachmentBatch } = useConversationMessageSender({
+    conversationId: currentConversationId,
     currentUserId,
-    imageMessage,
-    setImageMessage,
-    selectedMessage,
-    setSelectedMessage,
-    sendMessage,
-    uploadFilesFromWeb,
-    handleCloseImagePreview,
+    attachmentCaptionDraft: imageMessage,
+    setAttachmentCaptionDraft: setImageMessage,
+    replyingToMessage: selectedMessage,
+    setReplyingToMessage: setSelectedMessage,
+    sendTextMessageMutation: sendMessage,
+    uploadAttachments: uploadFilesFromWeb,
+    closeAttachmentPreview: handleCloseImagePreview,
   });
 
   useEffect(() => {
@@ -433,7 +433,7 @@ const ConversationThreadScreen = ({
     return (
       <ConversationInput
         conversationId={currentConversationId}
-        onSendMessage={handleSendMessage}
+        onSendMessage={sendTextOrAttachmentMessage}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
         onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
@@ -449,7 +449,7 @@ const ConversationThreadScreen = ({
     conversationAPIResponse?.isActive,
     selectionMode,
     currentConversationId,
-    handleSendMessage,
+    sendTextOrAttachmentMessage,
     handleOpenImagePicker,
     handleOpenImagePickerNative,
     handleOpenDocumentPickerNative,
@@ -503,7 +503,7 @@ const ConversationThreadScreen = ({
                     files={selectedFiles}
                     onClose={handleCloseImagePreview}
                     onRemoveFile={handleRemoveFile}
-                    onSendFiles={handleSendFiles}
+                    onSendFiles={sendAttachmentBatch}
                     onFileSelect={handleAddMoreFiles}
                     isSending={isSendingMessage || isUploadingImages}
                   />

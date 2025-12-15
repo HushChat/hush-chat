@@ -6,17 +6,13 @@ import FileList from "./FileList";
 import FilePreviewPane from "./FilePreviewPane";
 import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
-
-type TFileWithCaption = {
-  file: File;
-  messageText: string;
-};
+import { TAttachmentWithCaption } from "@/hooks/conversation-thread/useConversationMessageSender";
 
 type TFilePreviewOverlayProps = {
   files: File[];
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: (filesWithCaptions: TFileWithCaption[]) => void;
+  onSendFiles: (filesWithCaptions: TAttachmentWithCaption[]) => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
 };
@@ -95,9 +91,9 @@ const FilePreviewOverlay = ({
   };
 
   const handleSend = useCallback(() => {
-    const filesWithCaptions: TFileWithCaption[] = files.map((file, index) => ({
+    const filesWithCaptions: TAttachmentWithCaption[] = files.map((file, index) => ({
       file,
-      messageText: captions[index] ?? "",
+      captionText: captions[index] ?? "",
     }));
     onSendFiles(filesWithCaptions);
   }, [files, captions, onSendFiles]);
