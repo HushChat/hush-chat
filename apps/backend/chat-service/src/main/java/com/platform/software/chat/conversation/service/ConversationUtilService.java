@@ -20,6 +20,8 @@ import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.utils.CommonUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -187,16 +189,20 @@ public class ConversationUtilService {
     @Cacheable(value = CacheNames.GET_CONVERSATION_META_DATA, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     public ConversationMetaDataDTO getConversationMetaDataDTO(Long conversationId, Long userId) {
         ConversationParticipant conversationParticipant = getConversationParticipantOrThrow(conversationId, userId);
-        if(conversationParticipant.getIsDeleted()){
-            throw new CustomBadRequestException("Can,t find conversation with ID %s".formatted(conversationId));
-        }
         Conversation conversation = getConversationOrThrow(conversationId);
         ConversationMetaDataDTO conversationMetaDataDTO = conversationRepository.findConversationMetaData(conversationId, userId);
 
         Message pinnedMessage = conversation.getPinnedMessage();
         if (pinnedMessage != null) {
-            BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
-            conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            boolean isVisible = CommonUtils.isMessageVisible(
+                pinnedMessage.getCreatedAt(), 
+                conversationParticipant.getLastDeletedTime()
+            );
+            
+            if(isVisible) {
+                BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
+                conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            }
         }
         return conversationMetaDataDTO;
     }
