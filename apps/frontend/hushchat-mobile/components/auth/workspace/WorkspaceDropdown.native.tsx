@@ -56,6 +56,8 @@ const WorkspaceDropdown = ({
 
   const insets = useSafeAreaInsets();
 
+  const workspaceList = Array.isArray(workspaces) ? workspaces : [];
+
   const effectiveSize: SizeKey = useMemo(() => {
     if (size) return size;
     if (!platformAwareDefault) return "md";
@@ -169,7 +171,7 @@ const WorkspaceDropdown = ({
                       showsVerticalScrollIndicator={true}
                       style={{ maxHeight: SCREEN_HEIGHT * 0.6 }}
                     >
-                      {workspaces.map((item, index) => (
+                      {workspaceList.map((item, index) => (
                         <MotionView
                           key={item.id.toString()}
                           visible={true}
