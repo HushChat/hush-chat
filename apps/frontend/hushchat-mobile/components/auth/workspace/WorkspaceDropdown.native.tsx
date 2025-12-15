@@ -56,7 +56,7 @@ const WorkspaceDropdown = ({
 
   const insets = useSafeAreaInsets();
 
-  const workspaceList = Array.isArray(workspaces)? workspaces : [];
+  const workspaceList = Array.isArray(workspaces) ? workspaces : [];
 
   const effectiveSize: SizeKey = useMemo(() => {
     if (size) return size;
