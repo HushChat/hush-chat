@@ -61,14 +61,17 @@ export const publishUserActivity = (
 const handleMessageByTopic = (topic: string, body: string) => {
   try {
     if (topic.includes(MESSAGE_RECEIVED_TOPIC)) {
+      // Handle message received
       const wsMessageWithConversation = JSON.parse(body) as IConversation;
       if (wsMessageWithConversation.messages?.length !== 0) {
         emitNewMessage(wsMessageWithConversation);
       }
     } else if (topic.includes(ONLINE_STATUS_TOPIC)) {
+      // Handle online status update
       const onlineStatusData = JSON.parse(body) as IUserStatus;
       emitUserStatus(onlineStatusData);
     } else if (topic.includes(CONVERSATION_CREATED_TOPIC)) {
+      // Handle group conversation creation
       const newConversation = JSON.parse(body) as IConversation;
       emitConversationCreated(newConversation);
     } else {
