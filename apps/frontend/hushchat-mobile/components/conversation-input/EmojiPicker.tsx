@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { Modal, View, TouchableOpacity, StyleSheet, FlatList, Platform } from "react-native";
+import { Modal, View, TouchableOpacity, FlatList } from "react-native";
 import emojiData from "openmoji/data/openmoji.json";
 import { PLATFORM } from "@/constants/platformConstants";
 import { AppText, AppTextInput } from "@/components/AppText";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 interface Props {
   visible: boolean;
@@ -11,7 +13,8 @@ interface Props {
 }
 
 export const EmojiPickerComponent: React.FC<Props> = ({ visible, onClose, onEmojiSelect }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const { isDark } = useAuthThemeColors();
 
   const filteredEmojis = useMemo(() => {
     if (searchQuery === "") return emojiData;
@@ -25,31 +28,47 @@ export const EmojiPickerComponent: React.FC<Props> = ({ visible, onClose, onEmoj
 
   const renderEmojiItem = ({ item }: { item: any }) => (
     <TouchableOpacity
-      style={styles.emojiItem}
+      className="flex-1 aspect-square justify-center items-center p-2 m-0.5 rounded-lg active:bg-gray-100 dark:active:bg-gray-800"
       onPress={() => {
         onEmojiSelect(item.emoji);
         onClose();
       }}
     >
-      <AppText style={styles.emoji}>{item.emoji}</AppText>
+      <AppText className="text-3xl">{item.emoji}</AppText>
     </TouchableOpacity>
   );
 
+  const containerStyle = PLATFORM.IS_WEB
+    ? "h-[500px] w-full max-w-[450px] self-center rounded-xl mb-5"
+    : "h-[70%] w-full rounded-t-[20px]";
+
+  const overlayStyle = PLATFORM.IS_WEB ? "justify-center items-center" : "justify-end";
+
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.header}>
-            <AppText style={styles.title}>Select Emoji</AppText>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <AppText style={styles.closeText}>✕</AppText>
+      <View className={`flex-1 bg-black/50 ${overlayStyle}`}>
+        <View className={`bg-white dark:bg-gray-900 overflow-hidden shadow-xl ${containerStyle}`}>
+          <View className="flex-row justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
+            <AppText className="text-lg font-semibold dark:text-white">Select Emoji</AppText>
+            <TouchableOpacity
+              onPress={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700"
+            >
+              <Ionicons
+                name="close"
+                size={24}
+                className="text-gray-500 dark:text-gray-400"
+                color={isDark ? "#FAFAF9" : "#050506"}
+              />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.searchContainer}>
+          <View className="p-3">
             <AppTextInput
-              style={styles.searchInput}
+              className="bg-gray-100 dark:bg-gray-800 rounded-[20px] p-3 text-base dark:text-white"
+              style={PLATFORM.IS_WEB ? { outlineWidth: 0 } : undefined}
               placeholder="Search emojis..."
+              placeholderTextColor="#9CA3AF"
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoCapitalize="none"
@@ -62,83 +81,15 @@ export const EmojiPickerComponent: React.FC<Props> = ({ visible, onClose, onEmoj
             numColumns={PLATFORM.IS_WEB ? 8 : 6}
             keyExtractor={(item: any) => item.hexcode}
             renderItem={renderEmojiItem}
-            contentContainerStyle={styles.emojiList}
+            contentContainerStyle={{ padding: 8 }}
             initialNumToRender={50}
             maxToRenderPerBatch={50}
             windowSize={5}
+            indicatorStyle="default"
+            className="custom-scrollbar"
           />
         </View>
       </View>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    height: PLATFORM.IS_WEB ? 500 : "70%",
-    ...Platform.select({
-      web: {
-        maxWidth: 450,
-        alignSelf: "center",
-        width: "100%",
-        borderRadius: 12,
-        marginBottom: 20,
-      },
-    }),
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  closeButton: {
-    padding: 8,
-  },
-  closeText: {
-    fontSize: 24,
-    color: "#666",
-  },
-  searchContainer: {
-    padding: 12,
-  },
-  searchInput: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 20,
-    padding: 12,
-    fontSize: 16,
-    ...Platform.select({
-      web: {
-        outlineWidth: 0,
-      },
-    }),
-  },
-  emojiList: {
-    padding: 8,
-  },
-  emojiItem: {
-    flex: 1,
-    aspectRatio: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 8,
-    margin: 2,
-  },
-  emoji: {
-    fontSize: 32,
-  },
-});

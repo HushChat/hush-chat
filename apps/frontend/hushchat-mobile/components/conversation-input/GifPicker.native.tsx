@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import useGetTrendingGifsQuery from "@/query/useGetTrendingGifsQuery";
 import useSearchGifsQuery from "@/query/useSearchGifsQuery";
 import useDebounce from "@/hooks/useDebounce";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 interface Props {
   visible: boolean;
@@ -25,6 +26,7 @@ const SEARCH_DEBOUNCE_MS = 500;
 export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSelect }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [numColumns, setNumColumns] = useState(2);
+  const { isDark } = useAuthThemeColors();
 
   const debouncedSearch = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
 
@@ -119,7 +121,12 @@ export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSel
               onPress={handleClose}
               className="p-2 rounded-full active:bg-gray-200 dark:active:bg-gray-800"
             >
-              <Ionicons name="close" size={24} className="text-gray-500 dark:text-gray-400" />
+              <Ionicons
+                name="close"
+                size={24}
+                className="text-gray-500 dark:text-gray-400"
+                color={isDark ? "#FAFAF9" : "#050506"}
+              />
             </TouchableOpacity>
           </View>
 
