@@ -1,14 +1,22 @@
 databaseChangeLog:
   - changeSet:
-      id: add_composite_unique_email_workspace
-      author: moditha
-      tag: release-2.1
-      comment: "drop old unique constraint on email and add composite unique constraint (email, workspace_id)"
+      id: attach-existing-sequence-to-workspace-user-id
+      author: pavithra
+      tag: release-3.1
       changes:
-        - dropUniqueConstraint:
+        - addDefaultValue:
             tableName: workspace_user
-            constraintName: workspace_user_email_key
-        - addUniqueConstraint:
-            tableName: workspace_user
-            columnNames: email, workspace_id
-            constraintName: workspace_user_email_workspace_key
+            columnName: id
+            defaultValueSequenceNext: workspace_user_generator
+
+  - changeSet:
+      id: sync-existing-workspace-user-generator-sequence
+      author: pavithra
+      tag: release-3.2
+      changes:
+        - sql:
+            sql: |
+              SELECT setval(
+                'platform.workspace_user_generator',
+                (SELECT COALESCE(MAX(id), 1) FROM platform.workspace_user)
+              );
