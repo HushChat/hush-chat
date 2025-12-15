@@ -112,12 +112,12 @@ export const updateConversationById = async (
   return { data: response.data };
 };
 
-export const updateOnlyAdminsCanSendMessages = async (
+export const updateMessageRestrictions = async (
   conversationId: number,
   onlyAdminsCanSendMessages: boolean
 ) => {
   const response = await axios.patch(
-    `${CONVERSATION_API_ENDPOINTS.UPDATE_ONLY_ADMIN_CAN_SEND_MESSAGE(conversationId)}`,
+    `${CONVERSATION_API_ENDPOINTS.UPDATE_MESSAGE_RESTRICTIONS(conversationId)}`,
     { onlyAdminsCanSendMessages }
   );
   return { data: response.data };

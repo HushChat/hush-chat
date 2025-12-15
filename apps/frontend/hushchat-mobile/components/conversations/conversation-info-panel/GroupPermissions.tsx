@@ -5,7 +5,7 @@ import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
 import { MotionView } from "@/motion/MotionView";
 import { IConversation } from "@/types/chat/types";
-import { useUpdateOnlyAdminsCanSendMessagesMutation } from "@/query/patch/queries";
+import { useUpdateMessageRestrictionsMutation } from "@/query/patch/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 
 interface IGroupPermissionsProps {
@@ -29,7 +29,7 @@ export default function GroupPermissions({
   const [membersCanEditGroupInfo, setMembersCanEditGroupInfo] = useState(true);
   const [membersCanAddParticipants, setMembersCanAddParticipants] = useState(true);
 
-  const updateOnlyAdminCanSendMessage = useUpdateOnlyAdminsCanSendMessagesMutation(
+  const updateOnlyAdminCanSendMessage = useUpdateMessageRestrictionsMutation(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
     () => {}
   );

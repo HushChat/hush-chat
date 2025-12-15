@@ -531,14 +531,14 @@ public class ConversationController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @ApiOperation(value = "update only-admins-can-send setting for group", response = ConversationDTO.class)
-    @PatchMapping("{conversationId}/only-admins-can-send")
-    public ResponseEntity<ConversationDTO> updateOnlyAdminsCanSendMessages(
+    @ApiOperation(value = "Update message sending restrictions for group", response = ConversationDTO.class)
+    @PatchMapping("{conversationId}/message-restrictions")
+    public ResponseEntity<ConversationDTO> updateMessageRestrictions(
             @PathVariable Long conversationId,
             @Valid @RequestBody conversationParticipantPermissionUpdateDTO conversationPermissionUpdateDTO,
             @AuthenticatedUser UserDetails userDetails
     ) {
-        ConversationDTO updated = conversationService.updateOnlyAdminsCanSendMessages(
+        ConversationDTO updated = conversationService.updateMessageRestrictions(
                 userDetails.getId(),
                 conversationId,
                 conversationPermissionUpdateDTO

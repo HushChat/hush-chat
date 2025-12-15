@@ -1009,7 +1009,7 @@ public class ConversationService {
      * @param onlyAdmins flag to set
      * @return updated ConversationDTO
      */
-    public ConversationDTO updateOnlyAdminsCanSendMessages(Long adminUserId, Long conversationId, conversationParticipantPermissionUpdateDTO conversationPermissionUpdateDTO) {
+    public ConversationDTO updateMessageRestrictions(Long adminUserId, Long conversationId, conversationParticipantPermissionUpdateDTO conversationPermissionUpdateDTO) {
         ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
         Conversation conversation = adminParticipant.getConversation();
 

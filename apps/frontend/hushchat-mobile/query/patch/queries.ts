@@ -3,7 +3,7 @@ import {
   ConversationFilterCriteria,
   setLastSeenMessageByConversationId,
   toggleConversationFavorite,
-  updateOnlyAdminsCanSendMessages,
+  updateMessageRestrictions,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { updateUser } from "@/apis/user";
@@ -55,12 +55,12 @@ export const useSetLastSeenMessageMutation = createMutationHook<
   { messageId: number; conversationId: number }
 >(({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId));
 
-export const useUpdateOnlyAdminsCanSendMessagesMutation = createMutationHook<
+export const useUpdateMessageRestrictionsMutation = createMutationHook<
   IConversation,
   { conversationId: number; onlyAdminsCanSendMessages: boolean }
 >(
   ({ conversationId, onlyAdminsCanSendMessages }) =>
-    updateOnlyAdminsCanSendMessages(conversationId, onlyAdminsCanSendMessages),
+    updateMessageRestrictions(conversationId, onlyAdminsCanSendMessages),
   (keyParams: { userId: number; conversationId: number }) => () =>
     [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
 );
