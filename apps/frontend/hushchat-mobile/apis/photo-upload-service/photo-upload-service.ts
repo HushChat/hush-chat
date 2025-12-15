@@ -227,7 +227,6 @@ export function useMessageAttachmentUploader(conversationId: number) {
 
   const pickerHook = useNativePickerUpload(async () => null);
 
-  // Pass messageText and parentMessageId at call time
   const pickAndUploadImages = async (messageText: string = "", parentMessageId?: number) => {
     const files = await pickerHook.pick({
       source: "media",
@@ -267,12 +266,12 @@ export function useMessageAttachmentUploader(conversationId: number) {
 
   const uploadFilesFromWeb = async (
     files: File[],
-    messageText: string = "",
+    captions: string[],
     parentMessageId?: number
   ): Promise<UploadResult[]> => {
-    const validFiles = validateFiles(files);
+    const validationResult = validateFiles(files);
 
-    const localFiles: LocalFile[] = validFiles.validFiles.map((f) => ({
+    const localFiles: LocalFile[] = validationResult.validFiles.map((f) => ({
       uri: URL.createObjectURL(f),
       name: f.name,
       type: f.type || "application/octet-stream",
@@ -281,7 +280,7 @@ export function useMessageAttachmentUploader(conversationId: number) {
 
     const filesWithMessages: FileWithMessage[] = localFiles.map((file, index) => ({
       file,
-      messageText: index === 0 ? messageText : "",
+      messageText: captions[index] ?? "",
       parentMessageId,
     }));
 

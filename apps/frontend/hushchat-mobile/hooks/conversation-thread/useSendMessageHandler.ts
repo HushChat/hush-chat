@@ -2,10 +2,15 @@ import { useCallback } from "react";
 import { format } from "date-fns";
 import { UseMutateFunction } from "@tanstack/react-query";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
-import type { IMessage } from "@/types/chat/types";
+import { IMessage, MessageAttachmentTypeEnum } from "@/types/chat/types";
 import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
+
+export type FileWithCaption = {
+  file: File;
+  messageText: string;
+};
 
 interface IUseSendMessageHandlerParams {
   currentConversationId: number;
@@ -14,9 +19,12 @@ interface IUseSendMessageHandlerParams {
   setImageMessage: (text: string) => void;
   selectedMessage: IMessage | null;
   setSelectedMessage: (msg: IMessage | null) => void;
-  selectedFiles: File[];
   sendMessage: UseMutateFunction<ApiResponse<unknown>, unknown, unknown, unknown>;
-  uploadFilesFromWeb: (files: File[]) => Promise<UploadResult[]>;
+  uploadFilesFromWeb: (
+    files: File[],
+    captions: string[],
+    parentMessageId?: number
+  ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
 }
 
@@ -27,7 +35,6 @@ export const useSendMessageHandler = ({
   setImageMessage,
   selectedMessage,
   setSelectedMessage,
-  selectedFiles,
   sendMessage,
   uploadFilesFromWeb,
   handleCloseImagePreview,
@@ -78,19 +85,17 @@ export const useSendMessageHandler = ({
             hasAttachment: true,
           };
 
-          // Optimistic updates
           updateConversationMessagesCache(tempMessage);
           updateConversationsListCache(tempMessage);
 
-          // Upload files
-          await uploadFilesFromWeb(renamedFiles);
+          const captions = renamedFiles.map((_, index) => (index === 0 ? imageMessage : ""));
+          await uploadFilesFromWeb(renamedFiles, captions, parentMessage?.id);
 
           setSelectedMessage(null);
           setImageMessage("");
           return;
         }
 
-        // Send normal text message
         sendMessage({
           conversationId: currentConversationId,
           message: trimmed,
@@ -115,24 +120,78 @@ export const useSendMessageHandler = ({
     ]
   );
 
-  const handleSendFiles = useCallback(() => {
-    if (!selectedFiles.length) return;
+  const handleSendFiles = useCallback(
+    async (filesWithCaptions: FileWithCaption[]) => {
+      if (!filesWithCaptions || filesWithCaptions.length === 0) return;
 
-    void handleSendMessage(imageMessage, selectedMessage ?? undefined, selectedFiles);
+      try {
+        const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg"];
 
-    handleCloseImagePreview();
-    setImageMessage("");
+        const renamedFilesWithCaptions = filesWithCaptions.map(({ file, messageText }, index) => {
+          const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
+          const ext = file.name.split(".").pop() || "";
+          const isImage = IMAGE_EXTENSIONS.includes(ext.toLowerCase());
 
-    if (selectedMessage) setSelectedMessage(null);
-  }, [
-    selectedFiles,
-    imageMessage,
-    selectedMessage,
-    handleSendMessage,
-    handleCloseImagePreview,
-    setImageMessage,
-    setSelectedMessage,
-  ]);
+          const newName = isImage
+            ? `ChatApp Image ${currentConversationId}${index} ${timestamp}.${ext}`
+            : file.name;
+
+          const renamedFile = new File([file], newName, {
+            type: file.type,
+            lastModified: file.lastModified,
+          });
+
+          return { file: renamedFile, messageText };
+        });
+
+        renamedFilesWithCaptions.forEach(({ file, messageText }) => {
+          const tempMessage: IMessage = {
+            senderId: Number(currentUserId),
+            senderFirstName: "",
+            senderLastName: "",
+            messageText: messageText,
+            createdAt: new Date().toISOString(),
+            conversationId: currentConversationId,
+            messageAttachments: [
+              {
+                fileUrl: URL.createObjectURL(file),
+                originalFileName: file.name,
+                indexedFileName: "",
+                mimeType: file.type,
+                type: MessageAttachmentTypeEnum.IMAGE,
+              },
+            ],
+            hasAttachment: true,
+          };
+
+          updateConversationMessagesCache(tempMessage);
+          updateConversationsListCache(tempMessage);
+        });
+
+        const files = renamedFilesWithCaptions.map(({ file }) => file);
+        const captions = renamedFilesWithCaptions.map(({ messageText }) => messageText);
+
+        await uploadFilesFromWeb(files, captions, selectedMessage?.id);
+
+        handleCloseImagePreview();
+        setImageMessage("");
+        setSelectedMessage(null);
+      } catch (error) {
+        logError("Failed to send files:", error);
+      }
+    },
+    [
+      currentConversationId,
+      currentUserId,
+      selectedMessage,
+      uploadFilesFromWeb,
+      updateConversationMessagesCache,
+      updateConversationsListCache,
+      handleCloseImagePreview,
+      setImageMessage,
+      setSelectedMessage,
+    ]
+  );
 
   return { handleSendMessage, handleSendFiles } as const;
 };

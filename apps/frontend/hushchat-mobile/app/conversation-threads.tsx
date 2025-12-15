@@ -282,7 +282,6 @@ const ConversationThreadScreen = ({
     setImageMessage,
     selectedMessage,
     setSelectedMessage,
-    selectedFiles,
     sendMessage,
     uploadFilesFromWeb,
     handleCloseImagePreview,
@@ -506,9 +505,7 @@ const ConversationThreadScreen = ({
                     onRemoveFile={handleRemoveFile}
                     onSendFiles={handleSendFiles}
                     onFileSelect={handleAddMoreFiles}
-                    isSending={isSendingMessage}
-                    message={imageMessage}
-                    onMessageChange={setImageMessage}
+                    isSending={isSendingMessage || isUploadingImages}
                   />
                 ) : (
                   <>

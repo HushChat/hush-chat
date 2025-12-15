@@ -7,15 +7,18 @@ import FilePreviewPane from "./FilePreviewPane";
 import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
 
+type TFileWithCaption = {
+  file: File;
+  messageText: string;
+};
+
 type TFilePreviewOverlayProps = {
   files: File[];
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: () => void;
+  onSendFiles: (filesWithCaptions: TFileWithCaption[]) => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
-  message?: string;
-  onMessageChange?: (message: string) => void;
 };
 
 const FilePreviewOverlay = ({
@@ -25,31 +28,58 @@ const FilePreviewOverlay = ({
   onSendFiles,
   onFileSelect,
   isSending = false,
-  message = "",
-  onMessageChange,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [internalMsg, setInternalMsg] = useState(message);
+  const [captions, setCaptions] = useState<Record<number, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setInternalMsg(message), [message]);
-
   useEffect(() => {
-    if (selectedIndex >= files.length) setSelectedIndex(Math.max(0, files.length - 1));
+    if (selectedIndex >= files.length) {
+      setSelectedIndex(Math.max(0, files.length - 1));
+    }
   }, [files.length, selectedIndex]);
 
-  const handleMessageChange = (t: string) => {
-    setInternalMsg(t);
-    onMessageChange?.(t);
-  };
+  const handleCaptionChange = useCallback(
+    (text: string) => {
+      setCaptions((prev) => ({
+        ...prev,
+        [selectedIndex]: text,
+      }));
+    },
+    [selectedIndex]
+  );
+
+  const currentCaption = captions[selectedIndex] ?? "";
+
+  const handleRemoveFileWithCaptionCleanup = useCallback(
+    (index: number) => {
+      onRemoveFile(index);
+
+      setCaptions((prev) => {
+        const newCaptions: Record<number, string> = {};
+        Object.entries(prev).forEach(([key, value]) => {
+          const keyNum = parseInt(key, 10);
+          if (keyNum < index) {
+            newCaptions[keyNum] = value;
+          } else if (keyNum > index) {
+            newCaptions[keyNum - 1] = value;
+          }
+        });
+        return newCaptions;
+      });
+    },
+    [onRemoveFile]
+  );
 
   const onHiddenPickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { files: choose } = e.target;
-      if (choose && choose.length > 0) {
-        const { errors, validFiles } = validateFiles(choose, files.length);
+      const { files: chosen } = e.target;
+      if (chosen && chosen.length > 0) {
+        const { errors, validFiles } = validateFiles(chosen, files.length);
         errors.forEach((err) => ToastUtils.error(err));
-        if (validFiles.length > 0) onFileSelect(validFiles);
+        if (validFiles.length > 0) {
+          onFileSelect(validFiles);
+        }
       }
       e.target.value = "";
     },
@@ -64,6 +94,14 @@ const FilePreviewOverlay = ({
     fileInputRef.current?.click();
   };
 
+  const handleSend = useCallback(() => {
+    const filesWithCaptions: TFileWithCaption[] = files.map((file, index) => ({
+      file,
+      messageText: captions[index] ?? "",
+    }));
+    onSendFiles(filesWithCaptions);
+  }, [files, captions, onSendFiles]);
+
   if (files.length === 0) return null;
 
   return (
@@ -73,12 +111,12 @@ const FilePreviewOverlay = ({
           files={files}
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
-          onRemoveFile={onRemoveFile}
+          onRemoveFile={handleRemoveFileWithCaptionCleanup}
         />
         <FilePreviewPane
           file={files[selectedIndex]}
-          message={internalMsg}
-          onMessageChange={handleMessageChange}
+          message={currentCaption}
+          onMessageChange={handleCaptionChange}
           isSending={isSending}
         />
       </View>
@@ -89,7 +127,7 @@ const FilePreviewOverlay = ({
         hasFiles={files.length > 0}
         onAddMore={handleAddMore}
         onClose={onClose}
-        onSend={onSendFiles}
+        onSend={handleSend}
       />
       <input
         ref={fileInputRef}
