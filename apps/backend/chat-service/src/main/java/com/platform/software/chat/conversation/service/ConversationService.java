@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.service;
 
-
 import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
@@ -119,7 +118,7 @@ public class ConversationService {
      *
      * @param loggedInUserId the ID of the user creating the conversation
      * @param participantIds the IDs of the participants in the conversation
-     * @param isGroup whether the conversation is a group conversation
+     * @param isGroup        whether the conversation is a group conversation
      * @return a new Conversation entity
      */
     public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
@@ -171,8 +170,10 @@ public class ConversationService {
      * @return a ConversationDTO with the created conversation data
      */
     @Transactional
-    public ConversationDTO createOneToOneConversation(ConversationUpsertDTO conversationUpsertDTO, Long loggedInUserId) {
-        Optional<ConversationDTO> existingConversation = sendIfConversationAlreadyExists(conversationUpsertDTO, loggedInUserId);
+    public ConversationDTO createOneToOneConversation(ConversationUpsertDTO conversationUpsertDTO,
+            Long loggedInUserId) {
+        Optional<ConversationDTO> existingConversation = sendIfConversationAlreadyExists(conversationUpsertDTO,
+                loggedInUserId);
         if (existingConversation.isPresent()) {
             return existingConversation.get();
         }
@@ -182,7 +183,8 @@ public class ConversationService {
             throw new CustomBadRequestException("Cannot start a conversation with this user!");
         }
 
-        Conversation conversation = createConversation(loggedInUserId, List.of(conversationUpsertDTO.getTargetUserId(), loggedInUserId), false);
+        Conversation conversation = createConversation(loggedInUserId,
+                List.of(conversationUpsertDTO.getTargetUserId(), loggedInUserId), false);
 
         return saveConversationAndBuildDTO(conversation);
     }
@@ -204,14 +206,14 @@ public class ConversationService {
      * Creates a group conversation with the specified participants.
      *
      * @param groupConversationDTO the DTO containing group conversation details
-     * @param loggedInUserId       the ID of the user creating the group conversation
+     * @param loggedInUserId       the ID of the user creating the group
+     *                             conversation
      * @return a ConversationDTO with the created group conversation data
      */
     @Transactional
     public ConversationDTO createGroupConversation(
             GroupConversationUpsertDTO groupConversationDTO,
-            Long loggedInUserId
-    ) {
+            Long loggedInUserId) {
         if (groupConversationDTO.getParticipantUserIds() == null
                 || groupConversationDTO.getParticipantUserIds().isEmpty()) {
             throw new CustomBadRequestException("At least one participant is required for group conversation");
@@ -235,7 +237,8 @@ public class ConversationService {
 
             ConversationDTO updatedConversationDTO = new ConversationDTO(conversation);
 
-            ConversationDTO conversationDTOWithSignedUrl = conversationUtilService.addSignedImageUrlToConversationDTO(updatedConversationDTO, groupConversationDTO.getImageFileName());
+            ConversationDTO conversationDTOWithSignedUrl = conversationUtilService.addSignedImageUrlToConversationDTO(
+                    updatedConversationDTO, groupConversationDTO.getImageFileName());
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
 
@@ -243,12 +246,11 @@ public class ConversationService {
         }
 
         eventPublisher.publishEvent(new ConversationCreatedEvent(
-            WorkspaceContext.getCurrentWorkspace(),
-            savedConversationDTO.getId(),
-            loggedInUserId,
-            savedConversationDTO
-    ));
-
+                WorkspaceContext.getCurrentWorkspace(),
+                savedConversationDTO.getId(),
+                loggedInUserId,
+                savedConversationDTO));
+                
         triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
 
         return savedConversationDTO;
@@ -264,8 +266,7 @@ public class ConversationService {
                 conversationId,
                 actorUserId,
                 Collections.emptyList(),
-                ConversationEventType.GROUP_CREATED
-        );
+                ConversationEventType.GROUP_CREATED);
         // Event 2: Users Added
         List<Long> targetsForAddEvent = initialParticipantIds.stream()
                 .filter(id -> !id.equals(actorUserId))
@@ -275,20 +276,22 @@ public class ConversationService {
             conversationEventService.createMessageWithConversationEvent(
                     conversationId,
                     actorUserId,
-                    targetsForAddEvent, 
-                    ConversationEventType.USER_ADDED
-            );
+                    targetsForAddEvent,
+                    ConversationEventType.USER_ADDED);
         }
     }
 
     /**
-     * Checks if a direct conversation already exists between the logged-in user and the target user.
+     * Checks if a direct conversation already exists between the logged-in user and
+     * the target user.
      *
      * @param conversationUpsertDTO the DTO containing conversation details
      * @param loggedInUserId        the ID of the logged-in user
-     * @return an Optional containing the ConversationDTO if it exists, otherwise empty
+     * @return an Optional containing the ConversationDTO if it exists, otherwise
+     *         empty
      */
-    private Optional<ConversationDTO> sendIfConversationAlreadyExists(ConversationUpsertDTO conversationUpsertDTO, Long loggedInUserId) {
+    private Optional<ConversationDTO> sendIfConversationAlreadyExists(ConversationUpsertDTO conversationUpsertDTO,
+            Long loggedInUserId) {
         Optional<Conversation> optionalConversation = conversationRepository
                 .findDirectConversationBetweenUsers(loggedInUserId, conversationUpsertDTO.getTargetUserId());
         if (optionalConversation.isPresent()) {
@@ -333,15 +336,16 @@ public class ConversationService {
      *
      * @param messages           the Page of Message entities
      * @param lastSeenMessage    the last message seen by the user (can be null)
-     * @param reactionSummaryMap map of message ID to MessageReactionSummaryDTO, may be empty
-     * @return a List of MessageViewDTOs with the message data, isSeen status, and reaction summary
+     * @param reactionSummaryMap map of message ID to MessageReactionSummaryDTO, may
+     *                           be empty
+     * @return a List of MessageViewDTOs with the message data, isSeen status, and
+     *         reaction summary
      */
     private static List<MessageViewDTO> getMessageViewDTOS(
             Page<Message> messages,
             Message lastSeenMessage,
             Map<Long, MessageReactionSummaryDTO> reactionSummaryMap,
-            CloudPhotoHandlingService cloudPhotoHandlingService
-    ) {
+            CloudPhotoHandlingService cloudPhotoHandlingService) {
         Long lastSeenMessageId = (lastSeenMessage != null) ? lastSeenMessage.getId() : null;
         boolean hasReactions = reactionSummaryMap != null;
 
@@ -383,21 +387,24 @@ public class ConversationService {
      * @param pageable       the pagination information
      * @return a Page of ConversationDTOs containing conversation details
      */
-    public Page<ConversationDTO> getAllConversations(Long loggedInUserId, ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable) {
+    public Page<ConversationDTO> getAllConversations(Long loggedInUserId,
+            ConversationFilterCriteriaDTO conversationFilterCriteria, Pageable pageable) {
 
-        Page<ConversationDTO> conversations = conversationRepository.findAllConversationsByUserIdWithLatestMessages(loggedInUserId, conversationFilterCriteria, pageable);
+        Page<ConversationDTO> conversations = conversationRepository
+                .findAllConversationsByUserIdWithLatestMessages(loggedInUserId, conversationFilterCriteria, pageable);
 
-        Map<Long, Long> conversationUnreadCounts = conversationReadStatusRepository.findUnreadMessageCountsByConversationIdsAndUserId(
-            conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet()),
-            loggedInUserId
-        );
+        Map<Long, Long> conversationUnreadCounts = conversationReadStatusRepository
+                .findUnreadMessageCountsByConversationIdsAndUserId(
+                        conversations.getContent().stream().map(ConversationDTO::getId).collect(Collectors.toSet()),
+                        loggedInUserId);
 
         List<MessageViewDTO> messages = getMessageViewDTOSList(conversations);
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messages);
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
                 .peek(dto -> {
-                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
+                    String imageViewSignedUrl = conversationUtilService
+                            .getImageViewSignedUrl(dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
 
@@ -408,7 +415,8 @@ public class ConversationService {
                 })
                 .collect(Collectors.toList());
 
-        Page<ConversationDTO> updatedConversationPageDTO = new PageImpl<>(updatedContent, pageable, conversations.getTotalElements());
+        Page<ConversationDTO> updatedConversationPageDTO = new PageImpl<>(updatedContent, pageable,
+                conversations.getTotalElements());
 
         return updatedConversationPageDTO;
     }
@@ -416,18 +424,19 @@ public class ConversationService {
     @NotNull
     private static List<MessageViewDTO> getMessageViewDTOSList(Page<ConversationDTO> conversations) {
         List<MessageViewDTO> messages = conversations.getContent().stream()
-            .filter(conversationDTO -> conversationDTO.getMessages() != null)
-            .map(conversationDTO -> {
-                Optional<MessageViewDTO> opMessageViewDTO = conversationDTO.getMessages().stream().findFirst();
-                return opMessageViewDTO.orElse(null);
-            })
-            .filter(Objects::nonNull)
-            .toList();
+                .filter(conversationDTO -> conversationDTO.getMessages() != null)
+                .map(conversationDTO -> {
+                    Optional<MessageViewDTO> opMessageViewDTO = conversationDTO.getMessages().stream().findFirst();
+                    return opMessageViewDTO.orElse(null);
+                })
+                .filter(Objects::nonNull)
+                .toList();
         return messages;
     }
 
-    private void setEventMessageIfExists(Long loggedInUserId, ConversationDTO dto, Map<Long, ConversationEvent> conversationEventMap) {
-        if(dto.getMessages() != null) {
+    private void setEventMessageIfExists(Long loggedInUserId, ConversationDTO dto,
+            Map<Long, ConversationEvent> conversationEventMap) {
+        if (dto.getMessages() != null) {
             MessageViewDTO msg = dto.getMessages().getFirst();
 
             if (conversationEventMap.containsKey(msg.getId())) {
@@ -443,7 +452,8 @@ public class ConversationService {
      * @param pageable       the pagination information
      * @param conversationId the ID of the conversation
      * @param loggedInUserId the ID of the logged-in user
-     * @return a Page of ConversationParticipantViewDTOs containing participant details
+     * @return a Page of ConversationParticipantViewDTOs containing participant
+     *         details
      */
     public Page<ConversationParticipantViewDTO> getConversationParticipants(
             Pageable pageable,
@@ -514,7 +524,7 @@ public class ConversationService {
      *
      * @param conversationId the ID of the conversation
      * @param userId         the ID of the user
-     * @param durationKey     the datetime until which the conversation should be
+     * @param durationKey    the datetime until which the conversation should be
      *                       muted; null to unmute
      * @return true if the mute status was updated, false if no change was needed
      */
@@ -556,44 +566,51 @@ public class ConversationService {
 
         return true;
     }
+
     /**
      * Retrieves messages from a specific conversation with pagination.
-     * Each message includes seen status and reaction summary with current user's reaction types.
+     * Each message includes seen status and reaction summary with current user's
+     * reaction types.
      *
-     * @param idBasedPageRequest       the pagination information
-     * @param conversationId the ID of the conversation
-     * @param loggedInUserId the ID of the logged-in user
+     * @param idBasedPageRequest the pagination information
+     * @param conversationId     the ID of the conversation
+     * @param loggedInUserId     the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId){
-        ConversationParticipant loggedInParticipant =
-                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId,
+            Long loggedInUserId) {
+        ConversationParticipant loggedInParticipant = conversationUtilService
+                .getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
+        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId,
+                loggedInParticipant);
 
         return getMessageViewDTOs(messages, conversationId, loggedInUserId);
     }
 
     /**
      * Retrieves message page by message id.
-     * Each message includes seen status and reaction summary with current user's reaction types.
+     * Each message includes seen status and reaction summary with current user's
+     * reaction types.
      *
-     * @param messageId       message id
+     * @param messageId      message id
      * @param conversationId the ID of the conversation
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId){
-        ConversationParticipant loggedInParticipant =
-                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId) {
+        ConversationParticipant loggedInParticipant = conversationUtilService
+                .getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
+        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId,
+                loggedInParticipant);
 
         return getMessageViewDTOs(messages, conversationId, loggedInUserId);
     }
 
     /**
-     * Converts a page of {@link Message} entities into a page of {@link MessageViewDTO} objects.
+     * Converts a page of {@link Message} entities into a page of
+     * {@link MessageViewDTO} objects.
      *
      * @param messages       list of messages
      * @param conversationId the ID of the conversation
@@ -602,84 +619,97 @@ public class ConversationService {
      */
     private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId) {
 
-        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
+        Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId,
+                loggedInUserId);
 
         Long lastReadMessageId = getLastReadMessageIdByParticipants(conversationId, loggedInUserId);
 
         List<Long> messageIds = extractMessageIds(messages);
 
-        Map<Long, MessageReactionSummaryDTO> reactionSummaryMap =
-                messageReactionRepository.findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
+        Map<Long, MessageReactionSummaryDTO> reactionSummaryMap = messageReactionRepository
+                .findReactionSummaryWithUserReactions(messageIds, loggedInUserId);
 
-        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap, cloudPhotoHandlingService);
+        List<MessageViewDTO> messageViewDTOS = getMessageViewDTOS(messages, lastSeenMessage, reactionSummaryMap,
+                cloudPhotoHandlingService);
         messageMentionService.appendMessageMentions(messageViewDTOS);
 
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messageViewDTOS);
-        
+
         Map<Long, Message> messageMap = messages.getContent().stream()
-        .collect(Collectors.toMap(Message::getId, Function.identity()));
-    
-         List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
-            .map(dto -> {
-                Message matchedMessage = messageMap.get(dto.getId());
-                List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+                .collect(Collectors.toMap(Message::getId, Function.identity()));
 
-                if (conversationEventMap.containsKey(dto.getId())) {
-                    ConversationEvent event = conversationEventMap.get(dto.getId());
-                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId);
-                }
+        List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
+                .map(dto -> {
+                    Message matchedMessage = messageMap.get(dto.getId());
+                    List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
 
-                boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
-                dto.setIsReadByEveryone(isReadByEveryone);
-
-                if (matchedMessage == null || matchedMessage.getIsUnsend() ) {
-                    return dto;
-                }
-
-                if (matchedMessage.getParentMessage() != null) {
-                    List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage().getAttachments();
-
-                    if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
-                        MessageAttachment parentMessageAttachment = parentMessageAttachments.getFirst();
-
-                        List<MessageAttachmentDTO> enrichedParentMessageAttachmentDTO = conversationUtilService.getEnrichedMessageAttachmentsDTO(List.of(parentMessageAttachment));
-                        dto.getParentMessage().setMessageAttachments(enrichedParentMessageAttachmentDTO);
+                    if (conversationEventMap.containsKey(dto.getId())) {
+                        ConversationEvent event = conversationEventMap.get(dto.getId());
+                        conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId);
                     }
-                }
 
-                List<MessageAttachment> attachments = matchedMessage.getAttachments();
-                List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService.getEnrichedMessageAttachmentsDTO(attachments);
-                dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
+                    boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
+                    dto.setIsReadByEveryone(isReadByEveryone);
 
-                return dto;
-            })
-            .collect(Collectors.toList());
+                    if (matchedMessage == null || matchedMessage.getIsUnsend()) {
+                        return dto;
+                    }
+
+                    if (matchedMessage.getParentMessage() != null) {
+                        List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage()
+                                .getAttachments();
+
+                        if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
+                            MessageAttachment parentMessageAttachment = parentMessageAttachments.getFirst();
+
+                            List<MessageAttachmentDTO> enrichedParentMessageAttachmentDTO = conversationUtilService
+                                    .getEnrichedMessageAttachmentsDTO(List.of(parentMessageAttachment));
+                            dto.getParentMessage().setMessageAttachments(enrichedParentMessageAttachmentDTO);
+                        }
+                    }
+
+                    List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                    List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService
+                            .getEnrichedMessageAttachmentsDTO(attachments);
+                    dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
         return new PageImpl<>(enrichedDTOs, messages.getPageable(), messages.getTotalElements());
     }
 
     private Map<Long, ConversationEvent> getMessageConversationEventMap(Collection<MessageViewDTO> messages) {
         Set<Long> systemEventIds = messages.stream()
-            .filter(message -> message.getMessageType() != null && message.getMessageType() == MessageTypeEnum.SYSTEM_EVENT)
-            .map(MessageViewDTO::getId)
-            .collect(Collectors.toSet());
+                .filter(message -> message.getMessageType() != null
+                        && message.getMessageType() == MessageTypeEnum.SYSTEM_EVENT)
+                .map(MessageViewDTO::getId)
+                .collect(Collectors.toSet());
 
-        Map<Long, ConversationEvent> conversationEventMap = conversationEventRepository.findByMessageIdsAsMap(systemEventIds);
+        Map<Long, ConversationEvent> conversationEventMap = conversationEventRepository
+                .findByMessageIdsAsMap(systemEventIds);
         return conversationEventMap;
     }
 
     /**
-     * Returns the lowest last-read message ID among all participants in the conversation,
+     * Returns the lowest last-read message ID among all participants in the
+     * conversation,
      * excluding the logged-in user.
      *
-     * @param conversationId the ID of the conversation whose read statuses are being checked
-     * @param loggedInUserId the ID of the user making the request, whose own read status is excluded
-     * @return the smallest last-read message ID among other participants, or {@code null}
-     *         if no other participants have read statuses recorded or if any participant has null
+     * @param conversationId the ID of the conversation whose read statuses are
+     *                       being checked
+     * @param loggedInUserId the ID of the user making the request, whose own read
+     *                       status is excluded
+     * @return the smallest last-read message ID among other participants, or
+     *         {@code null}
+     *         if no other participants have read statuses recorded or if any
+     *         participant has null
      */
     private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
-        // read statuses of every participant, with their user id and last read message id
-        Map<Long, Long> userReadStatuses =
-            new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
+        // read statuses of every participant, with their user id and last read message
+        // id
+        Map<Long, Long> userReadStatuses = new HashMap<>(
+                conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
         userReadStatuses.remove(loggedInUserId);
 
         // If any participant has null last-read message ID, return null
@@ -688,9 +718,9 @@ public class ConversationService {
         }
 
         return userReadStatuses.values()
-            .stream()
-            .min(Long::compare)
-            .orElse(null);
+                .stream()
+                .min(Long::compare)
+                .orElse(null);
     }
 
     /**
@@ -703,7 +733,8 @@ public class ConversationService {
     @Transactional
     public void archiveConversationById(Long conversationId, long loggedInUserId) {
         long updatedCount = participantCommandRepository.toggleArchived(conversationId, loggedInUserId);
-        if (updatedCount == 0) throw new CustomBadRequestException("Not a participant");
+        if (updatedCount == 0)
+            throw new CustomBadRequestException("Not a participant");
     }
 
     /**
@@ -715,8 +746,10 @@ public class ConversationService {
      */
     public Conversation deleteConversationById(Long id, Long userId) {
         Conversation conversation = conversationRepository.findByIdAndCreatedById(id, userId).orElseThrow(() -> {
-            logger.warn("invalid conversation id {} provided or the user {} doesn't have permission to delete it", id, userId);
-            return new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
+            logger.warn("invalid conversation id {} provided or the user {} doesn't have permission to delete it", id,
+                    userId);
+            return new CustomBadRequestException(
+                    "Conversation does not exist or you don't have permission to delete it!");
         });
 
         return conversationUtilService.deleteConversation(conversation);
@@ -741,15 +774,18 @@ public class ConversationService {
      *
      * @param loggedInUserId         the ID of the logged-in user
      * @param conversationId         the ID of the conversation
-     * @param groupRoleManageRequest the request DTO containing user ID and admin status
+     * @param groupRoleManageRequest the request DTO containing user ID and admin
+     *                               status
      */
     @Transactional
-    public void manageAdminPrivileges(Long loggedInUserId, Long conversationId, GroupRoleManageRequestDTO groupRoleManageRequest) {
+    public void manageAdminPrivileges(Long loggedInUserId, Long conversationId,
+            GroupRoleManageRequestDTO groupRoleManageRequest) {
         ValidationUtils.validate(groupRoleManageRequest);
         Long targetUserId = groupRoleManageRequest.getUserId();
 
         conversationUtilService.getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
-        ConversationParticipant targetParticipant = conversationUtilService.getConversationParticipantOrThrow(conversationId, targetUserId);
+        ConversationParticipant targetParticipant = conversationUtilService
+                .getConversationParticipantOrThrow(conversationId, targetUserId);
 
         ConversationParticipantRoleEnum newRole = groupRoleManageRequest.getMakeAdmin()
                 ? ConversationParticipantRoleEnum.ADMIN
@@ -759,7 +795,8 @@ public class ConversationService {
             throw new CustomBadRequestException("This user is already %s".formatted(newRole));
         }
 
-        // if participant is getting stripped from admin role, need to verify that user isn't the last admin
+        // if participant is getting stripped from admin role, need to verify that user
+        // isn't the last admin
         if (newRole.equals(ConversationParticipantRoleEnum.MEMBER)) {
             getParticipantIfAllowedToRemoveAdminRole(groupRoleManageRequest.getUserId(), conversationId);
         }
@@ -770,11 +807,10 @@ public class ConversationService {
             conversationParticipantRepository.save(targetParticipant);
 
             conversationEventService.createMessageWithConversationEvent(
-                conversationId, loggedInUserId, List.of(targetUserId),
-                groupRoleManageRequest.getMakeAdmin()
-                    ? ConversationEventType.USER_PROMOTED_TO_ADMIN
-                    : ConversationEventType.USER_REMOVED_FROM_ADMIN
-            );
+                    conversationId, loggedInUserId, List.of(targetUserId),
+                    groupRoleManageRequest.getMakeAdmin()
+                            ? ConversationEventType.USER_PROMOTED_TO_ADMIN
+                            : ConversationEventType.USER_REMOVED_FROM_ADMIN);
         } catch (Exception e) {
             logger.error("Failed to update participant role for userId: {} in conversationId: {}",
                     targetUserId, conversationId, e);
@@ -783,19 +819,22 @@ public class ConversationService {
     }
 
     /**
-     * Allows a user to leave a conversation, provided they are not the last admin in a group conversation.
+     * Allows a user to leave a conversation, provided they are not the last admin
+     * in a group conversation.
      *
      * @param userId         the ID of the user leaving the conversation
      * @param conversationId the ID of the conversation to leave
      */
     @Transactional
     public void leaveConversation(Long userId, Long conversationId) {
-        ConversationParticipantViewDTO leavingParticipant = getParticipantIfAllowedToRemoveAdminRole(userId, conversationId);
+        ConversationParticipantViewDTO leavingParticipant = getParticipantIfAllowedToRemoveAdminRole(userId,
+                conversationId);
 
         try {
             conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
 
-            conversationEventService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
+            conversationEventService.createMessageWithConversationEvent(conversationId, userId, List.of(userId),
+                    ConversationEventType.USER_LEFT);
         } catch (Exception e) {
             logger.error("user: %s cannot leave the conversation due to an error".formatted(userId), e);
             throw new CustomInternalServerErrorException("Failed to leave the conversation");
@@ -815,25 +854,28 @@ public class ConversationService {
     }
 
     /**
-     * Adds new participants to a conversation, ensuring no duplicates and that the user exists.
+     * Adds new participants to a conversation, ensuring no duplicates and that the
+     * user exists.
      *
-     * @param initiatorUserId        the ID of the initiator user
-     * @param conversationId         the ID of the conversation to add participants to
-     * @param joinRequest the request DTO containing user IDs to add
+     * @param initiatorUserId the ID of the initiator user
+     * @param conversationId  the ID of the conversation to add participants to
+     * @param joinRequest     the request DTO containing user IDs to add
      */
     @Transactional
-    public void addParticipantsToConversation(Long initiatorUserId, Long conversationId, JoinParticipantRequestDTO joinRequest) {
-        // TODO: Currently, if a participant is rejoined, their entire conversation history becomes visible again.
-        //       Fix this later by introducing a new table to store participant lifecycle details
+    public void addParticipantsToConversation(Long initiatorUserId, Long conversationId,
+            JoinParticipantRequestDTO joinRequest) {
+        // TODO: Currently, if a participant is rejoined, their entire conversation
+        // history becomes visible again.
+        // Fix this later by introducing a new table to store participant lifecycle
+        // details
 
         ValidationUtils.validate(joinRequest);
 
-        ConversationParticipant adminParticipant =
-                conversationUtilService.getLoggedInUserIfAdminAndValidConversation(initiatorUserId, conversationId);
+        ConversationParticipant adminParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(initiatorUserId, conversationId);
         Conversation conversation = adminParticipant.getConversation();
 
-        List<ConversationParticipant> existingParticipants =
-                findDuplicateParticipants(conversationId, joinRequest);
+        List<ConversationParticipant> existingParticipants = findDuplicateParticipants(conversationId, joinRequest);
 
         ParticipantProcessingResult participantProcessingResult = processExistingParticipants(existingParticipants);
 
@@ -851,9 +893,11 @@ public class ConversationService {
         try {
             conversationParticipantRepository.saveAll(participantsToSave);
 
-            conversationEventService.createMessageWithConversationEvent(conversationId, initiatorUserId, joinRequest.getUserIds(), ConversationEventType.USER_ADDED);
+            conversationEventService.createMessageWithConversationEvent(conversationId, initiatorUserId,
+                    joinRequest.getUserIds(), ConversationEventType.USER_ADDED);
         } catch (Exception e) {
-            logger.error("Failed to add participants. conversationId={}, initiator={}", conversationId, initiatorUserId, e);
+            logger.error("Failed to add participants. conversationId={}, initiator={}", conversationId, initiatorUserId,
+                    e);
             throw new CustomBadRequestException("Some users are already participants.");
         }
     }
@@ -863,14 +907,19 @@ public class ConversationService {
      *
      * This method does the following:
      * - Collects all user IDs from the given participants.
-     * - Reactivates participants that are inactive by setting them active and clearing their inactiveFrom field.
+     * - Reactivates participants that are inactive by setting them active and
+     * clearing their inactiveFrom field.
      * - Throws a CustomBadRequestException if any active participants are found.
      *
-     * @param existingParticipants the participants already found in the conversation that match the join request
-     * @return a ParticipantProcessingResult containing the set of existing user IDs and the list of reactivated participants
-     * @throws CustomBadRequestException if active participants are detected in the given list
+     * @param existingParticipants the participants already found in the
+     *                             conversation that match the join request
+     * @return a ParticipantProcessingResult containing the set of existing user IDs
+     *         and the list of reactivated participants
+     * @throws CustomBadRequestException if active participants are detected in the
+     *                                   given list
      */
-    private ParticipantProcessingResult processExistingParticipants(List<ConversationParticipant> existingParticipants) {
+    private ParticipantProcessingResult processExistingParticipants(
+            List<ConversationParticipant> existingParticipants) {
         List<ConversationParticipant> activeParticipants = new ArrayList<>();
         List<ConversationParticipant> reactivated = new ArrayList<>();
         Set<Long> existingUserIds = new HashSet<>();
@@ -896,8 +945,6 @@ public class ConversationService {
         return new ParticipantProcessingResult(existingUserIds, reactivated);
     }
 
-
-
     /**
      * Creates a ConversationParticipant entity for a user in a conversation.
      *
@@ -919,18 +966,21 @@ public class ConversationService {
      * @param conversationId         the ID of the conversation
      * @param joinParticipantRequest the request DTO containing user IDs to add
      */
-    private List<ConversationParticipant> findDuplicateParticipants(Long conversationId, JoinParticipantRequestDTO joinParticipantRequest) {
+    private List<ConversationParticipant> findDuplicateParticipants(Long conversationId,
+            JoinParticipantRequestDTO joinParticipantRequest) {
         Map<Long, ConversationParticipant> participantMap = conversationUtilService
                 .getConversationParticipantMap(conversationId, joinParticipantRequest.getUserIds());
 
-       return new ArrayList<>(participantMap.values());
+        return new ArrayList<>(participantMap.values());
     }
 
     /**
-     * this will check if a group has at-least 1 more admin, if the leaving user is an admin
+     * this will check if a group has at-least 1 more admin, if the leaving user is
+     * an admin
      * because a group must have an at-least 1 admin
      */
-    private ConversationParticipantViewDTO validateParticipantAdminRoleRemoval(Long leavingUserId, Long conversationId, ConversationDTO conversationDTO) {
+    private ConversationParticipantViewDTO validateParticipantAdminRoleRemoval(Long leavingUserId, Long conversationId,
+            ConversationDTO conversationDTO) {
         boolean isLeavingParticipantAdmin = false;
         ConversationParticipantViewDTO leavingParticipant = null;
         int adminCount = 0;
@@ -949,7 +999,8 @@ public class ConversationService {
         }
 
         if (isLeavingParticipantAdmin && adminCount <= 1) {
-            logger.error("user: {} is leaving participant and only admin for conversation {}", leavingUserId, conversationId);
+            logger.error("user: {} is leaving participant and only admin for conversation {}", leavingUserId,
+                    conversationId);
             throw new CustomBadRequestException("Conversation must have at least one admin");
         }
         return leavingParticipant;
@@ -963,16 +1014,19 @@ public class ConversationService {
      * @param groupConversationDTO the DTO containing new group information
      * @return a ConversationDTO with updated group information
      */
-    public ConversationDTO updateGroupInfo(Long adminUserId, Long conversationId, GroupConversationUpsertDTO groupConversationDTO) {
+    public ConversationDTO updateGroupInfo(Long adminUserId, Long conversationId,
+            GroupConversationUpsertDTO groupConversationDTO) {
         if (StringUtils.isEmpty(groupConversationDTO.getName())) {
             throw new CustomBadRequestException("Group name cannot be empty!");
         }
-        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
+        ConversationParticipant adminParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
         Conversation conversation = adminParticipant.getConversation();
 
         String newName = groupConversationDTO.getName().trim();
         boolean isGroupNameChanged = !newName.equals(conversation.getName());
-        boolean isGroupDescriptionChanged = !groupConversationDTO.getDescription().equals(conversation.getDescription());
+        boolean isGroupDescriptionChanged = !groupConversationDTO.getDescription()
+                .equals(conversation.getDescription());
 
         conversation.setName(newName);
         conversation.setDescription(groupConversationDTO.getDescription());
@@ -980,7 +1034,8 @@ public class ConversationService {
             conversationRepository.save(conversation);
             setGroupUpdateChangeEvents(adminUserId, isGroupNameChanged, conversation, isGroupDescriptionChanged);
 
-            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+            cacheService.evictByLastPartsForCurrentWorkspace(
+                    List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
 
             return buildConversationDTO(conversation);
         } catch (Exception e) {
@@ -990,43 +1045,46 @@ public class ConversationService {
         }
     }
 
-    private void setGroupUpdateChangeEvents(Long adminUserId, boolean isGroupNameChanged, Conversation conversation, boolean isGroupDescriptionChanged) {
+    private void setGroupUpdateChangeEvents(Long adminUserId, boolean isGroupNameChanged, Conversation conversation,
+            boolean isGroupDescriptionChanged) {
         Long conversationId = conversation.getId();
 
         if (isGroupNameChanged) {
             conversationEventService.createMessageWithConversationEvent(
-                conversationId, adminUserId, null, ConversationEventType.GROUP_RENAMED
-            );
+                    conversationId, adminUserId, null, ConversationEventType.GROUP_RENAMED);
         }
 
         if (isGroupNameChanged || isGroupDescriptionChanged) {
             conversationEventService.createMessageWithConversationEvent(
-                conversationId, adminUserId, null, ConversationEventType.GROUP_DESCRIPTION_CHANGED
-            );
+                    conversationId, adminUserId, null, ConversationEventType.GROUP_DESCRIPTION_CHANGED);
         }
     }
 
     /**
      * generate signed image url for uploading the image s3 bucket.
      *
-     * @param loggedInUserId       the ID of the user updating the group info
-     * @param conversationId       the ID of the conversation to update
+     * @param loggedInUserId      the ID of the user updating the group info
+     * @param conversationId      the ID of the conversation to update
      * @param docUploadRequestDTO the DTO containing image details
      * @return a SignedURLDTO with signed url and new index
      */
-    public SignedURLDTO generateSignedURLForGroupIconUpload(Long loggedInUserId, Long conversationId, DocUploadRequestDTO docUploadRequestDTO) {
-        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
+    public SignedURLDTO generateSignedURLForGroupIconUpload(Long loggedInUserId, Long conversationId,
+            DocUploadRequestDTO docUploadRequestDTO) {
+        ConversationParticipant adminParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
         Conversation conversation = adminParticipant.getConversation();
 
         String newFileName = (conversationId) + "_" + docUploadRequestDTO.getFileNames().getFirst();
 
-        SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
+        SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE,
+                newFileName);
 
         if (imageSignedDTO != null && CommonUtils.isNotEmptyObj(imageSignedDTO.getIndexedFileName())) {
             conversation.setImageIndexedName(imageSignedDTO.getIndexedFileName());
             try {
                 conversationRepository.save(conversation);
-                cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+                cacheService.evictByLastPartsForCurrentWorkspace(
+                        List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
             } catch (Exception exception) {
                 logger.error("failed to update group icon for conversationId: {} by user id: {}",
                         conversationId, loggedInUserId, exception);
@@ -1067,8 +1125,7 @@ public class ConversationService {
                         conversationId,
                         userId,
                         null,
-                        ConversationEventType.MESSAGE_PINNED
-                );
+                        ConversationEventType.MESSAGE_PINNED);
             }
 
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
@@ -1132,7 +1189,8 @@ public class ConversationService {
     @Transactional
     public boolean toggleFavoriteConversation(Long conversationId, Long userId) {
         long updated = participantCommandRepository.toggleFavorite(conversationId, userId);
-        if (updated == 0) throw new CustomBadRequestException("Not a participant");
+        if (updated == 0)
+            throw new CustomBadRequestException("Not a participant");
         return true;
     }
 
@@ -1153,11 +1211,15 @@ public class ConversationService {
      *
      * @param conversationId   the ID of the conversation
      * @param requestingUserId the ID of the logged-in user
-     * @return a ConversationOneToOneProfileDTO containing the other user's profile information
+     * @return a ConversationOneToOneProfileDTO containing the other user's profile
+     *         information
      */
-    public ConversationOneToOneProfileDTO getOtherUserProfileInOneToOneConversation(Long conversationId, Long requestingUserId) {
-        ConversationParticipant me = conversationUtilService.getConversationParticipantOrThrow(conversationId, requestingUserId);
-        if (me.getIsDeleted()) throw new CustomBadRequestException("Can't access deleted conversation");
+    public ConversationOneToOneProfileDTO getOtherUserProfileInOneToOneConversation(Long conversationId,
+            Long requestingUserId) {
+        ConversationParticipant me = conversationUtilService.getConversationParticipantOrThrow(conversationId,
+                requestingUserId);
+        if (me.getIsDeleted())
+            throw new CustomBadRequestException("Can't access deleted conversation");
 
         DirectOtherMetaDTO meta = conversationRepository
                 .findDirectOtherMeta(conversationId, requestingUserId)
@@ -1168,19 +1230,20 @@ public class ConversationService {
         meta.setImageIndexedName(null);
 
         ConversationOneToOneProfileDTO dto = new ConversationOneToOneProfileDTO(/* construct from meta’s user fields */);
-        dto.setUserView(new UserViewDTO(meta.getOtherUserId(), meta.getFirstName(), meta.getLastName(), meta.getSignedImageUrl()));
+        dto.setUserView(new UserViewDTO(meta.getOtherUserId(), meta.getFirstName(), meta.getLastName(),
+                meta.getSignedImageUrl()));
         dto.setBlocked(meta.isBlocked());
         dto.setPinned(me.getIsPinned());
         dto.setFavorite(me.getIsFavorite());
-        dto.setMutedUntil(me.getMutedUntil()); 
+        dto.setMutedUntil(me.getMutedUntil());
         return dto;
     }
-
 
     @Transactional
     public boolean togglePinConversation(Long conversationId, Long loggedInUserId) {
         long updatedCount = participantCommandRepository.togglePinned(conversationId, loggedInUserId);
-        if (updatedCount == 0) throw new CustomBadRequestException("Not a participant");
+        if (updatedCount == 0)
+            throw new CustomBadRequestException("Not a participant");
         return true;
     }
 
@@ -1198,7 +1261,8 @@ public class ConversationService {
      * @param pageable                the pageable
      * @return the page
      */
-    public Page<ConversationDTO> searchConversations(Long userId, MessageSearchRequestDTO messageSearchRequestDTO, Pageable pageable) {
+    public Page<ConversationDTO> searchConversations(Long userId, MessageSearchRequestDTO messageSearchRequestDTO,
+            Pageable pageable) {
         Page<ConversationDTO> conversationDTOS = conversationParticipantRepository
                 .findConversationsByMatchingKeyword(messageSearchRequestDTO.getSearchKeyword(), userId, pageable);
         return conversationDTOS;
@@ -1228,7 +1292,8 @@ public class ConversationService {
         }
 
         Page<ConversationParticipant> participants = conversationParticipantRepository
-                .findByConversationId(conversationId, PageRequest.of(0, GeneralConstants.DEFAULT_PARTICIPANT_LIST_SIZE));
+                .findByConversationId(conversationId,
+                        PageRequest.of(0, GeneralConstants.DEFAULT_PARTICIPANT_LIST_SIZE));
 
         Page<ConversationParticipantViewDTO> conversationParticipants = participants.map(participant -> {
             ConversationParticipantViewDTO participantViewDTO = new ConversationParticipantViewDTO(participant);
@@ -1244,7 +1309,6 @@ public class ConversationService {
         return conversationRepository.getChatSummaryForUser(userId);
     }
 
-
     /**
      * Deletes a conversation participant.
      *
@@ -1254,7 +1318,8 @@ public class ConversationService {
     @Transactional
     public void deleteConversationForCurrentUser(Long userId, Long conversationId) {
 
-        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId,
+                userId);
 
         if (Boolean.TRUE.equals(participant.getIsDeleted())) {
             return;
@@ -1264,23 +1329,28 @@ public class ConversationService {
             participant.setIsDeleted(true);
             participant.setLastDeletedTime(ZonedDateTime.now());
             conversationParticipantRepository.save(participant);
-            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA+":" + conversationId));
+            cacheService.evictByLastPartsForCurrentWorkspace(
+                    List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversationId));
         } catch (Exception e) {
-            logger.error("Failed to delete conversation participant for userId: {} in conversationId: {}", userId, conversationId, e);
+            logger.error("Failed to delete conversation participant for userId: {} in conversationId: {}", userId,
+                    conversationId, e);
             throw new CustomBadRequestException("Failed to delete conversation participant");
         }
     }
 
     /**
-     * Retrieves metadata for a conversation, including its ID, name, group status, and image.
+     * Retrieves metadata for a conversation, including its ID, name, group status,
+     * and image.
      *
      * @param conversationId the ID of the conversation
      * @param userId         the ID of the user requesting the metadata
      * @return a ConversationMetaDataDTO containing conversation metadata
      */
     public ConversationMetaDataDTO getConversationMetaData(Long conversationId, Long userId) {
-        ConversationMetaDataDTO conversationMetaDataDTO = conversationUtilService.getConversationMetaDataDTO(conversationId, userId);
-        conversationMetaDataDTO.setIsActive(conversationRepository.getIsActiveByConversationIdAndUserId(conversationId, userId));
+        ConversationMetaDataDTO conversationMetaDataDTO = conversationUtilService
+                .getConversationMetaDataDTO(conversationId, userId);
+        conversationMetaDataDTO
+                .setIsActive(conversationRepository.getIsActiveByConversationIdAndUserId(conversationId, userId));
 
         if (!conversationMetaDataDTO.getIsGroup()) {
             conversationMetaDataDTO.setImageIndexedName(null);
@@ -1288,8 +1358,7 @@ public class ConversationService {
             DirectOtherMetaDTO directOtherMeta = conversationRepository
                     .findDirectOtherMeta(conversationId, userId)
                     .orElseThrow(() -> new CustomBadRequestException(
-                            "No other user found in this one-to-one conversation or conversation is a group."
-                    ));
+                            "No other user found in this one-to-one conversation or conversation is a group."));
 
             String imageIndexedName = directOtherMeta.getImageIndexedName();
             String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
@@ -1304,8 +1373,7 @@ public class ConversationService {
 
             ChatUserStatus status = webSocketSessionManager.getUserChatStatus(
                     WorkspaceContext.getCurrentWorkspace(),
-                    directOtherMeta.getEmail()
-            );
+                    directOtherMeta.getEmail());
             conversationMetaDataDTO.setChatUserStatus(status);
 
         } else {
@@ -1318,14 +1386,16 @@ public class ConversationService {
     }
 
     /**
-     * Removes a participant from a conversation. Only admins can remove participants.
+     * Removes a participant from a conversation. Only admins can remove
+     * participants.
      *
      * @param requestingUserId      the ID of the user making the request
      * @param conversationId        the ID of the conversation
      * @param participantIdToRemove the ID of the participant to remove
      */
     @Transactional
-    public void removeParticipantFromConversation(Long requestingUserId, Long conversationId, Long participantIdToRemove) {
+    public void removeParticipantFromConversation(Long requestingUserId, Long conversationId,
+            Long participantIdToRemove) {
         ConversationParticipant requestedParticipant = conversationUtilService
                 .getConversationParticipantOrThrow(conversationId, requestingUserId);
 
@@ -1333,7 +1403,7 @@ public class ConversationService {
             throw new CustomForbiddenException("Only admins can remove participants");
         }
 
-        if(Objects.equals(requestedParticipant.getId(), participantIdToRemove)){
+        if (Objects.equals(requestedParticipant.getId(), participantIdToRemove)) {
             throw new CustomBadRequestException("You cannot remove yourself. Use leave conversation instead.");
         }
 
@@ -1343,7 +1413,8 @@ public class ConversationService {
         try {
             conversationParticipantRepository.updateIsActiveById(participantIdToRemove, false);
 
-            conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(chatUserIdToRemove), ConversationEventType.USER_REMOVED);
+            conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId,
+                    List.of(chatUserIdToRemove), ConversationEventType.USER_REMOVED);
         } catch (Exception e) {
             logger.error("Cant remove user: %s due to an error".formatted(participantIdToRemove), e);
             throw new CustomInternalServerErrorException("Failed to remove user from conversation");
@@ -1353,12 +1424,14 @@ public class ConversationService {
     /**
      * Holds the result of processing existing participants in a conversation.
      * <p>
-     * - {@code existingUserIds}: all user IDs already present in the conversation (active or inactive).<br>
-     * - {@code reactivated}: list of participants that were previously inactive and have now been reactivated.
+     * - {@code existingUserIds}: all user IDs already present in the conversation
+     * (active or inactive).<br>
+     * - {@code reactivated}: list of participants that were previously inactive and
+     * have now been reactivated.
      * </p>
      */
     private record ParticipantProcessingResult(Set<Long> existingUserIds,
-                                               List<ConversationParticipant> reactivated) {
+            List<ConversationParticipant> reactivated) {
     }
 
     /**
@@ -1392,7 +1465,8 @@ public class ConversationService {
     }
 
     /**
-     * Gets conversation read info. - last read count and last seen message id for a conversation
+     * Gets conversation read info. - last read count and last seen message id for a
+     * conversation
      *
      * @param conversationId the conversation id
      * @param userId         the user id
@@ -1400,7 +1474,7 @@ public class ConversationService {
      */
     public ConversationReadInfo getConversationReadInfo(Long conversationId, Long userId) {
         ConversationReadInfo conversationReadInfo = conversationReadStatusRepository
-            .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
+                .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
         return conversationReadInfo;
     }
 
@@ -1408,11 +1482,10 @@ public class ConversationService {
      * Retrieves all group conversations for admin view with pagination.
      *
      * @param pageable the pagination information
-     * @return a Page of ConversationAdminViewDTOs containing group conversation details
+     * @return a Page of ConversationAdminViewDTOs containing group conversation
+     *         details
      */
     public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
         return conversationRepository.findAllGroupConversationsAdminView(pageable);
     }
 }
-
-
