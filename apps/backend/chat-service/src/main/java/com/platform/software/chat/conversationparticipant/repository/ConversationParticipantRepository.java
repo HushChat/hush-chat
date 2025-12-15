@@ -24,5 +24,4 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
     boolean existsByConversationIdAndUserId(Long conversationId, Long userId);
 
     Page<ConversationParticipant> findByConversationId(Long conversationId, Pageable pageable);
-
 }
