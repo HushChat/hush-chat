@@ -2,6 +2,7 @@ import { logDebug, logInfo } from "@/utils/logger";
 import { decodeJWTToken } from "@/utils/authUtils";
 import { INVALID_ACCESS_TOKEN_ERROR } from "@/constants/wsConstants";
 import { PLATFORM } from "@/constants/platformConstants";
+import { DeviceType } from "@/types/chat/types";
 
 interface DecodedJWTPayload {
   sub: string;
@@ -14,7 +15,7 @@ interface DecodedJWTPayload {
   [key: string]: any;
 }
 
-const getDeviceType = () => {
+const getDeviceType = (): DeviceType => {
   if (PLATFORM.IS_WEB) return "WEB";
   return "MOBILE";
 };
