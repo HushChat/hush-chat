@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import { View, ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
 import FilterButton from "@/components/FilterButton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -12,15 +12,17 @@ import {
 } from "@/constants/routes";
 import classNames from "classnames";
 import BackButton from "@/components/BackButton";
-import BottomSheet from "@/components/BottomSheet";
+import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import SearchBar from "@/components/SearchBar";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
+import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
+import { AppText } from "@/components/AppText";
 
-export default function ChatInterface({
+export default function ChatInterfaceMobile({
   chatItemList,
   filters,
   selectedConversation,
@@ -31,6 +33,7 @@ export default function ChatInterface({
   const insets = useSafeAreaInsets();
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
   const { selectedConversationType, setSelectedConversationType } = useConversationStore();
+  const { workspaces } = useUserWorkspacesQuery();
 
   useEffect(() => {
     if (selectedConversation) {
@@ -45,44 +48,51 @@ export default function ChatInterface({
     }
   }, [selectedConversation, setSelectedConversation]);
 
-  const sheetOptions = [
-    {
-      id: "create-group",
-      title: "New group",
-      icon: "people-outline" as const,
-      onPress: () => {
-        setSheetVisible(false);
-        router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
+  const sheetOptions = useMemo(() => {
+    const options: BottomSheetOption[] = [
+      {
+        id: "create-group",
+        title: "New group",
+        icon: "people-outline",
+        onPress: () => {
+          setSheetVisible(false);
+          router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
+        },
       },
-    },
-    {
-      id: "contact",
-      title: "Contacts",
-      icon: "chatbubble-outline" as const,
-      onPress: () => {
-        setSheetVisible(false);
-        router.push(SETTINGS_CONTACT);
+      {
+        id: "contact",
+        title: "Contacts",
+        icon: "chatbubble-outline",
+        onPress: () => {
+          setSheetVisible(false);
+          router.push(SETTINGS_CONTACT);
+        },
       },
-    },
-    {
-      id: "invite",
-      title: "Invite",
-      icon: "person-add" as const,
-      onPress: () => {
-        setSheetVisible(false);
-        router.push(SETTINGS_INVITE);
+      {
+        id: "invite",
+        title: "Invite",
+        icon: "person-add",
+        onPress: () => {
+          setSheetVisible(false);
+          router.push(SETTINGS_INVITE);
+        },
       },
-    },
-    {
-      id: "change-workspace",
-      title: "Change workspace",
-      icon: "aperture-outline" as const,
-      onPress: () => {
-        setSheetVisible(false);
-        router.push(SETTINGS_WORKSPACE);
-      },
-    },
-  ];
+    ];
+
+    if (workspaces && workspaces.length > 1) {
+      options.push({
+        id: "change-workspace",
+        title: "Change workspace",
+        icon: "aperture-outline",
+        onPress: () => {
+          setSheetVisible(false);
+          router.push(SETTINGS_WORKSPACE);
+        },
+      });
+    }
+
+    return options;
+  }, [workspaces]);
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
@@ -96,14 +106,14 @@ export default function ChatInterface({
           )}
 
           <View className="flex-1">
-            <Text
+            <AppText
               className={classNames("text-text-primary-light dark:text-text-primary-dark", {
                 "text-xl font-medium": selectedConversationType === ConversationType.ARCHIVED,
                 "text-3xl font-bold": selectedConversationType !== ConversationType.ARCHIVED,
               })}
             >
               {selectedConversationType === ConversationType.ARCHIVED ? "Archived" : "Chats"}
-            </Text>
+            </AppText>
           </View>
 
           <WebSocketStatusIndicator />

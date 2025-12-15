@@ -5,10 +5,11 @@
  */
 
 import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterButton from "@/components/FilterButton";
 import { CallLogComponentProps } from "@/types/call/types";
+import { AppText } from "@/components/AppText";
 
 const CallInterface = ({ callItemList, filters }: CallLogComponentProps) => {
   const insets = useSafeAreaInsets();
@@ -20,9 +21,9 @@ const CallInterface = ({ callItemList, filters }: CallLogComponentProps) => {
         style={{ paddingTop: insets.top + 12 }}
       >
         <View className="flex-row items-center justify-between">
-          <Text className="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark">
+          <AppText className="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark">
             Calls
-          </Text>
+          </AppText>
         </View>
       </View>
 

@@ -1,10 +1,6 @@
 package com.platform.software.chat.conversation.repository;
 
-import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
-import com.platform.software.chat.conversation.dto.ConversationDTO;
-import com.platform.software.chat.conversation.dto.ConversationFilterCriteriaDTO;
-import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
-import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
+import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 
 import java.util.List;
@@ -34,5 +30,7 @@ public interface ConversationQueryRepository {
     Optional<DirectOtherMetaDTO> findDirectOtherMeta(Long conversationId, Long userId);
 
     Map<Long, Long> findDirectConversationsBatch(Long loggedInUserId, List<Long> targetUserIds);
+
+    Page<ConversationAdminViewDTO> findAllGroupConversationsAdminView(Pageable pageable);
 
 }

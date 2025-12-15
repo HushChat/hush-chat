@@ -2,9 +2,13 @@ package com.platform.software.config.interceptors;
 
 import com.platform.software.common.constants.Constants;
 import com.platform.software.common.service.ErrorResponseHandler;
+import com.platform.software.common.service.security.CustomHttpStatus;
 import com.platform.software.common.utils.AuthUtils;
 import com.platform.software.config.aws.AWSCognitoConfig;
+import com.platform.software.exception.CustomWorkspaceMissingException;
 import com.platform.software.exception.ErrorResponses;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,20 +49,28 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private static final List<String> PUBLIC_PATTERNS = List.of(
-        "/health-check/**", "/public/user/**", "/public/workspaces/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
+        "/health-check/**", "/public/user/**", "/protected/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
         "/swagger-ui.html/**", "/swagger-resources/**", "/webjars/**", "/ws-message-subscription/**"
+    );
+
+    private static final List<String> PLATFORM_PATTERNS = List.of(
+            "/workspaces/my-workspaces"
     );
 
     private final UserService userService;
     private final AWSCognitoConfig awsCognitoConfig;
+    private final WorkspaceUserService workspaceUserService;
+
     private final Map<String, RSAPublicKey> cachedPublicKeys = new ConcurrentHashMap<>();
 
     public JwtAuthorizationFilter(
         UserService userService,
-        AWSCognitoConfig awsCognitoConfig
+        AWSCognitoConfig awsCognitoConfig,
+        WorkspaceUserService workspaceUserService
     ) {
         this.userService = userService;
         this.awsCognitoConfig = awsCognitoConfig;
+        this.workspaceUserService = workspaceUserService;
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
@@ -66,14 +78,31 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         return PUBLIC_PATTERNS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private void setCurrentWorkspace(HttpServletRequest request) {
-        String tenantId = request.getHeader(Constants.X_TENANT_HEADER);
-        if (tenantId != null) {
-            WorkspaceContext.setCurrentWorkspace(tenantId);
-        } else {
-            log.warn("Missing tenant header");
-        }
+    private boolean isPlatformOnlyEndpoint(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return PLATFORM_PATTERNS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
+
+    private WorkspaceUser setCurrentWorkspace(HttpServletRequest request, String email) {
+        String tenantId = request.getHeader(Constants.X_TENANT_HEADER);
+
+        // Validate header
+        if (tenantId == null) {
+            log.warn("Workspace validation failed: missing header. email={}", email);
+            throw new CustomWorkspaceMissingException("Workspace header is missing or invalid.");
+        }
+
+        WorkspaceUser workspaceUser = workspaceUserService.validateWorkspaceAccess(tenantId, email);
+
+        if (workspaceUser == null) {
+            log.warn("Unauthorized workspace access. tenantId={}, email={}", tenantId, email);
+            throw new CustomWorkspaceMissingException("You don't have access to this workspace.");
+        }
+
+        WorkspaceContext.setCurrentWorkspace(tenantId);
+        return workspaceUser;
+    }
+
 
     private void handleTokenVerificationForUsers(
         DecodedJWT decodedJwt,
@@ -86,57 +115,70 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-                setCurrentWorkspace(request);
+        WorkspaceUser workspaceUser = null;
 
-                // Allow through for public routes
-                if (isPublicEndpoint(request)) {
-                    filterChain.doFilter(request, response); 
-                    return;
-                }
+        // Allow through for public routes
+        if (isPublicEndpoint(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-                String token = AuthUtils.extractTokenFromHeader(request);
-                if (token == null) {
-                    ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.JWT_TOKEN_MISSING_RESPONSE);
-                    return;
-                }
+        // Extract Token
+        String token = AuthUtils.extractTokenFromHeader(request);
+        if (token == null) {
+            ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.JWT_TOKEN_MISSING_RESPONSE);
+            return;
+        }
 
+        try {
+            DecodedJWT decodedJwt = JWT.decode(token);
+            Map<String, Claim> claims = decodedJwt.getClaims();
+            String email = claims.get(Constants.EMAIL_ATTR).asString().replace("\"", "");
+            String userType = claims.get(Constants.COGNITO_CUSTOM_USER_TYPE_KEY).asString();
+
+            //skip setting workspace for platform only endpoints
+            if(!isPlatformOnlyEndpoint(request)){
                 try {
-                    DecodedJWT decodedJwt = JWT.decode(token);
-                    Map<String, Claim> claims = decodedJwt.getClaims();
-                    String email = claims.get(Constants.EMAIL_ATTR).asString().replace("\"", "");
-                    String userType = claims.get(Constants.COGNITO_CUSTOM_USER_TYPE_KEY).asString();
-
-                    if (userType == null) {
-                        ErrorResponseHandler.sendErrorResponse(response, HttpStatus.FORBIDDEN, ErrorResponses.USER_TYPE_IS_NULL_RESPONSE);
-                        return;
-                    }
-
-                    handleTokenVerificationForUsers(
-                        decodedJwt,
-                        token
-                    );
-
-                    UserDetails userDetails;
-                    try {
-                        ChatUser user = userService.getUserByEmail(email);
-                        userDetails = new UserDetails(user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace());
-                    } catch (Exception e) {
-                        userDetails = new UserDetails();
-                        userDetails.setEmail(email);
-                        userDetails.setWorkspaceId(WorkspaceContext.getCurrentWorkspace());
-                    }
-
-                    //handle permissions later
-                    Set<GrantedAuthority> authorities = new HashSet<>();
-
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, userType, authorities);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    filterChain.doFilter(request, response);
-                } catch (JWTVerificationException | JwkException e) {
-                    ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INVALID_TOKEN_PROVIDED_RESPONSE);
+                    workspaceUser = setCurrentWorkspace(request, email);
+                } catch (CustomWorkspaceMissingException e){
+                    ErrorResponseHandler.sendErrorResponse(response, CustomHttpStatus.WORKSPACE_ID_MISSING, ErrorResponses.WORKSPACE_ID_MISSING_RESPONSE);
+                    return;
                 }
+            }
+
+            if (userType == null) {
+                ErrorResponseHandler.sendErrorResponse(response, HttpStatus.FORBIDDEN, ErrorResponses.USER_TYPE_IS_NULL_RESPONSE);
+                return;
+            }
+
+            handleTokenVerificationForUsers(
+                decodedJwt,
+                token
+            );
+
+            UserDetails userDetails;
+            try {
+                ChatUser user = userService.getUserByEmail(email);
+                userDetails = new UserDetails(
+                    user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace(),
+                    workspaceUser != null ? workspaceUser.getRole() : null
+                );
+            } catch (Exception e) {
+                userDetails = new UserDetails();
+                userDetails.setEmail(email);
+            }
+
+            //handle permissions later
+            Set<GrantedAuthority> authorities = new HashSet<>();
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userDetails, userType, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            filterChain.doFilter(request, response);
+        } catch (JWTVerificationException | JwkException e) {
+            ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INVALID_TOKEN_PROVIDED_RESPONSE);
+        }
     }
 
 }

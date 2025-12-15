@@ -21,9 +21,9 @@ import { useImagePreview } from "@/hooks/useImagePreview";
 
 import { Images } from "@/assets/images";
 import { PLATFORM } from "@/constants/platformConstants";
-import { FORWARD_PATH } from "@/constants/routes";
+import { CHATS_PATH, FORWARD_PATH } from "@/constants/routes";
 import { EMPTY_SET } from "@/constants/constants";
-import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { getAPIErrorMsg, navigateBackOrFallback } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 
 import type {
@@ -44,6 +44,9 @@ import { useConversationParticipantQuery } from "@/query/useConversationParticip
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
+import { getAllTokens } from "@/utils/authUtils";
+import { UserActivityWSSubscriptionData } from "@/types/ws/types";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 import { UserType } from "@/types/user/types";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
@@ -56,6 +59,7 @@ interface ConversationThreadScreenProps {
   webForwardPress?: (messageIds: Set<number>) => void;
   messageToJump?: number | null;
   onMessageJumped?: () => void;
+  onConversationDeleted?: () => void;
 }
 
 const ConversationThreadScreen = ({
@@ -70,9 +74,11 @@ const ConversationThreadScreen = ({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
   const {
-    user: { id: currentUserId },
+    user: { id: currentUserId, email },
   } = useUserStore();
   const queryClient = useQueryClient();
+  const { publishActivity } = useWebSocket();
+
   const dropZoneRef = useRef<View>(null);
 
   const {
@@ -81,16 +87,25 @@ const ConversationThreadScreen = ({
     selectedMessageIds,
     setSelectedMessageIds,
     setSelectedConversationId,
-    selectedConversationId,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
   const currentConversationId = conversationId || Number(params.conversationId);
 
   useEffect(() => {
+    const publishUserActivity = async () => {
+      const { workspace } = await getAllTokens();
+      publishActivity({
+        workspaceId: workspace as string,
+        email,
+        openedConversation: currentConversationId,
+      } as UserActivityWSSubscriptionData);
+    };
+
     if (currentConversationId) {
       setSelectedConversationId(currentConversationId);
+      publishUserActivity();
     }
-  }, [selectedConversationId]);
+  }, [currentConversationId]);
 
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
     useConversationByIdQuery(currentConversationId);
@@ -119,6 +134,8 @@ const ConversationThreadScreen = ({
     invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
+    targetMessageId,
+    clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId);
 
   const { updateConversation } = useConversationNotificationsContext();
@@ -191,6 +208,10 @@ const ConversationThreadScreen = ({
       handleNavigateToMessage(searchedMessageId);
     }
   }, [searchedMessageId, handleNavigateToMessage]);
+
+  const handleTargetMessageScrolled = useCallback(() => {
+    clearTargetMessage();
+  }, [clearTargetMessage]);
 
   const {
     selectedFiles,
@@ -278,7 +299,6 @@ const ConversationThreadScreen = ({
     selectedFiles,
     sendMessage,
     uploadFilesFromWeb,
-    updateConversationMessagesCache,
     handleCloseImagePreview,
   });
 
@@ -290,7 +310,7 @@ const ConversationThreadScreen = ({
   }, [currentConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
 
   const handleBackPress = useCallback(() => {
-    router.back();
+    navigateBackOrFallback(CHATS_PATH);
   }, []);
 
   const handleLoadOlder = useCallback(async () => {
@@ -317,7 +337,10 @@ const ConversationThreadScreen = ({
     if (PLATFORM.IS_WEB) {
       webForwardPress?.(selectedMessageIds);
     } else {
-      router.push({ pathname: FORWARD_PATH, params: {} });
+      router.push({
+        pathname: FORWARD_PATH,
+        params: { currentConversationId: currentConversationId },
+      });
     }
   }, [selectedMessageIds, webForwardPress]);
 
@@ -377,6 +400,8 @@ const ConversationThreadScreen = ({
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
         onNavigateToMessage={handleNavigateToMessage}
+        targetMessageId={targetMessageId}
+        onTargetMessageScrolled={handleTargetMessageScrolled}
       />
     );
   }, [
@@ -396,6 +421,8 @@ const ConversationThreadScreen = ({
     currentConversationId,
     searchedMessageId,
     handleNavigateToMessage,
+    targetMessageId,
+    handleTargetMessageScrolled,
   ]);
 
   const renderTextInput = useCallback(() => {
@@ -478,7 +505,11 @@ const ConversationThreadScreen = ({
           webPressSearch={webSearchPress}
         />
 
-        <KeyboardAvoidingView className="flex-1" behavior="padding">
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={PLATFORM.IS_IOS ? "padding" : undefined}
+          keyboardVerticalOffset={PLATFORM.IS_IOS ? 90 : 0}
+        >
           <ImageBackground
             source={Images.chatBackground}
             className="flex-1"

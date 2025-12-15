@@ -5,6 +5,7 @@ import java.util.List;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.common.dto.LoginDTO;
+import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.platform.software.config.aws.DocUploadRequestDTO;
@@ -28,7 +29,7 @@ public interface UserService {
 
     UserDTO getUserByIdWithProfileImage(Long id);
 
-    UserViewDTO findUserById(Long id);
+    UserViewDTO findUserById(Long id, String workspaceIdentifier);
 
     void signOut(String accessToken);
 
@@ -50,5 +51,6 @@ public interface UserService {
 
     void unblockUser(Long userId, Long blockId);
 
+    Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable);
 }
 

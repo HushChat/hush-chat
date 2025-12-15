@@ -1,10 +1,11 @@
 import { ToastConfigParams } from "react-native-toast-message";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useToastAnimation, TOAST_POSITION, ToastPosition } from "@/hooks/useToastAnimation";
+import { AppText } from "@/components/AppText";
 
 const TOAST_ICONS = {
   success: { name: "checkmark-circle" as const, color: "#22c55e" },
@@ -40,21 +41,21 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
         <View className="flex-row items-center">
           <Ionicons name={name} size={26} color={color} style={styles.rightMargin} />
           <View style={styles.shrink}>
-            <Text
+            <AppText
               className={`font-semibold text-base ${
                 isDark ? "text-text-primary-light" : "text-text-primary-dark"
               }`}
             >
               {title}
-            </Text>
+            </AppText>
             {message && (
-              <Text
+              <AppText
                 className={`text-sm mt-1 ${
                   isDark ? "text-text-secondary-light" : "text-text-secondary-dark"
                 }`}
               >
                 {message}
-              </Text>
+              </AppText>
             )}
           </View>
         </View>

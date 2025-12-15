@@ -4,6 +4,7 @@ services:
     container_name: chat_service_backend
     ports:
       - "3092:3092"
+    restart: always
     environment:
       ACTIVE_SPRING_PROFILES: ${ACTIVE_SPRING_PROFILES}
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
@@ -33,6 +34,7 @@ services:
       AWS_SES_REGION: ${AWS_SES_REGION}
       AWS_SES_FROM_MAIL: ${AWS_SES_FROM_MAIL}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+      PUBLIC_API_KEY: ${PUBLIC_API_KEY}
     volumes:
       - ./infra/db-migrations/workspaces:/app/db-migrations
     networks:
@@ -43,6 +45,7 @@ services:
     container_name: chat_service_frontend
     ports:
       - "8081:80"
+    restart: always
     networks:
       - infra_network
 

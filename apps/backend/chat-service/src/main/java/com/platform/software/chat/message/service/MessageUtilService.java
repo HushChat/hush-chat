@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
@@ -11,6 +12,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomForbiddenException;
 import com.platform.software.exception.CustomInternalServerErrorException;
@@ -19,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,6 +33,7 @@ public class MessageUtilService {
     private final UserService userService;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     /**
      * Retrieves the recipient ID for a one-to-one conversation.
@@ -123,5 +127,35 @@ public class MessageUtilService {
             logger.error("conversation message save failed.", e);
             throw new CustomInternalServerErrorException("Failed to send message");
         }
+    }
+
+    /**
+     * Enriches parent message attachment DTOs with signed URLs for secure file access.
+     *
+     * @param messageAttachmentDTOs the list of message attachment DTOs to enrich with signed URLs
+     * @return a list of message attachment DTOs with signed URLs populated, or {@code null} if
+     *         the input list is null or empty
+     */
+    public List<MessageAttachmentDTO> enrichParentMessageAttachmentsWithSignedUrl(List<MessageAttachmentDTO> messageAttachmentDTOs) {
+        if (messageAttachmentDTOs == null || messageAttachmentDTOs.isEmpty()) {
+            return null;
+        }
+
+        List<MessageAttachmentDTO> attachmentDTOsWithSignedUrl = new ArrayList<>();
+
+        for (MessageAttachmentDTO messageAttachmentDTO : messageAttachmentDTOs) {
+            try {
+                String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageAttachmentDTO.getIndexedFileName());
+                messageAttachmentDTO.setFileUrl(signedUrl);
+
+                attachmentDTOsWithSignedUrl.add(messageAttachmentDTO);
+            } catch (Exception e) {
+                logger.error("failed to sign parent attachment url for parent message {}",
+                        messageAttachmentDTO.getId(), e);
+                messageAttachmentDTO.setFileUrl(null);
+            }
+        }
+
+        return  attachmentDTOsWithSignedUrl;
     }
 }
