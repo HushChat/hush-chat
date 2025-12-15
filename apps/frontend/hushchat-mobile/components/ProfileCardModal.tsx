@@ -1,47 +1,42 @@
 import React from "react";
-import { Modal, Pressable, StyleSheet, View, useColorScheme } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { AppText } from "@/components/AppText";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 const COLORS = {
   modalBackdrop: "rgba(9, 15, 29, 0.8)",
   shadow: "#000000",
 };
 
-export interface ProfileCardData {
+type TProfileCardData = {
   name: string;
   imageUrl: string | null;
   secondaryText: string;
   isGroup?: boolean;
-}
+};
 
-interface ProfileCardModalProps {
+interface IProfileCardModalProps {
   visible: boolean;
   onClose: () => void;
-  data: ProfileCardData;
+  data: TProfileCardData;
   onMessagePress?: () => void;
   onCallPress?: () => void;
-  showCallButton?: boolean;
 }
 
-export const ProfileCardModal: React.FC<ProfileCardModalProps> = ({
+export const ProfileCardModal: React.FC<IProfileCardModalProps> = ({
   visible,
   onClose,
   data,
   onMessagePress,
   onCallPress,
-  showCallButton = false,
 }) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const isDark = useAppTheme();
 
   const buttonBg = isDark ? "#374151" : "#E5E7EB";
   const buttonText = isDark ? "#F9FAFB" : "#374151";
-
-  const shouldRenderCallButton = onCallPress || showCallButton;
-  const isCallDisabled = !onCallPress;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -84,7 +79,7 @@ export const ProfileCardModal: React.FC<ProfileCardModalProps> = ({
             </AppText>
           </View>
 
-          {(onMessagePress || shouldRenderCallButton) && (
+          {onMessagePress && (
             <View className="flex-row items-center w-full justify-center gap-2 px-4">
               {onMessagePress && (
                 <Pressable
@@ -107,19 +102,15 @@ export const ProfileCardModal: React.FC<ProfileCardModalProps> = ({
                 </Pressable>
               )}
 
-              {shouldRenderCallButton && (
+              {onCallPress && (
                 <Pressable
                   onPress={() => {
-                    if (!isCallDisabled) {
-                      onClose();
-                      onCallPress?.();
-                    }
+                    onClose();
+                    onCallPress();
                   }}
-                  disabled={isCallDisabled}
                   className="w-12 h-12 items-center justify-center rounded-full"
                   style={{
                     backgroundColor: buttonBg,
-                    opacity: isCallDisabled ? 0.5 : 1,
                   }}
                 >
                   <Ionicons name="call-outline" size={20} color={buttonText} />

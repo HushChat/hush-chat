@@ -48,9 +48,7 @@ const ConversationListItem = ({
     setShowOptions(false);
   }, []);
 
-  const secondaryText = conversation.isGroup
-    ? "Group Chat"
-    : (conversation as any).otherUser?.username || "Private Chat";
+  const secondaryText = conversation.isGroup ? "Group Chat" : "Private Chat";
 
   return (
     <>
