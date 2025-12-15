@@ -47,37 +47,53 @@ const FilePreviewOverlay = ({
 
   const currentCaption = captions[selectedIndex] ?? "";
 
-  const handleRemoveFileWithCaptionCleanup = useCallback(
-    (index: number) => {
-      onRemoveFile(index);
+  /** Removes a file and realigns captions to keep them in sync with file order. */
+  const removeFileAndReindexCaptions = useCallback(
+    (removedFileIndex: number) => {
+      onRemoveFile(removedFileIndex);
 
-      setCaptions((prev) => {
-        const newCaptions: Record<number, string> = {};
-        Object.entries(prev).forEach(([key, value]) => {
-          const keyNum = parseInt(key, 10);
-          if (keyNum < index) {
-            newCaptions[keyNum] = value;
-          } else if (keyNum > index) {
-            newCaptions[keyNum - 1] = value;
+      setCaptions((previousCaptions) => {
+        const reindexedCaptions: Record<number, string> = {};
+
+        Object.keys(previousCaptions).forEach((key) => {
+          const currentIndex = Number(key);
+          const captionText = previousCaptions[currentIndex];
+
+          // Captions before the removed file stay the same
+          if (currentIndex < removedFileIndex) {
+            reindexedCaptions[currentIndex] = captionText;
+          }
+
+          // Captions after the removed file shift left by one index
+          if (currentIndex > removedFileIndex) {
+            reindexedCaptions[currentIndex - 1] = captionText;
           }
         });
-        return newCaptions;
+
+        return reindexedCaptions;
       });
     },
     [onRemoveFile]
   );
 
-  const onHiddenPickerChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { files: chosen } = e.target;
-      if (chosen && chosen.length > 0) {
-        const { errors, validFiles } = validateFiles(chosen, files.length);
-        errors.forEach((err) => ToastUtils.error(err));
-        if (validFiles.length > 0) {
-          onFileSelect(validFiles);
-        }
+  /** Validates files selected via the hidden file input and forwards valid ones. */
+  const handleHiddenFileInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = event.target.files;
+
+      if (!selectedFiles || selectedFiles.length === 0) {
+        return;
       }
-      e.target.value = "";
+
+      const { errors, validFiles } = validateFiles(selectedFiles, files.length);
+
+      errors.forEach((errorMessage) => ToastUtils.error(errorMessage));
+
+      if (validFiles.length > 0) {
+        onFileSelect(validFiles);
+      }
+
+      event.target.value = "";
     },
     [files.length, onFileSelect]
   );
@@ -107,7 +123,7 @@ const FilePreviewOverlay = ({
           files={files}
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
-          onRemoveFile={handleRemoveFileWithCaptionCleanup}
+          onRemoveFile={removeFileAndReindexCaptions}
         />
         <FilePreviewPane
           file={files[selectedIndex]}
@@ -131,7 +147,7 @@ const FilePreviewOverlay = ({
         accept={ACCEPT_FILE_TYPES}
         multiple
         style={styles.hiddenInput}
-        onChange={onHiddenPickerChange}
+        onChange={handleHiddenFileInputChange}
       />
     </View>
   );
