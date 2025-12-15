@@ -4,9 +4,39 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
+type TVariantType = "default" | "avatar";
+
+type TVariantConfig = {
+  containerClasses: string;
+  innerBoxClasses: string;
+  iconSize: number;
+  showText: boolean;
+  getIconColor: (isDark: boolean) => string;
+};
+
+const VARIANT_CONFIG: Record<TVariantType, TVariantConfig> = {
+  default: {
+    containerClasses:
+      "absolute inset-0 z-[9999] items-center justify-center bg-black/30 dark:bg-black/50",
+    innerBoxClasses:
+      "items-center justify-center border-2 border-dashed border-primary-light dark:border-primary-dark rounded-3xl p-10 bg-background-light/90 dark:bg-background-dark/90",
+    iconSize: 80,
+    showText: true,
+    getIconColor: (isDark) => (isDark ? "#ffffff" : "#6B4EFF"),
+  },
+  avatar: {
+    containerClasses:
+      "absolute inset-0 z-[9999] items-center justify-center bg-black/60 rounded-full",
+    innerBoxClasses: "items-center justify-center",
+    iconSize: 40,
+    showText: false,
+    getIconColor: () => "#ffffff",
+  },
+};
+
 type TDragDropOverlayProps = {
   visible: boolean;
-  variant?: "default" | "avatar";
+  variant?: TVariantType;
 };
 
 export default function DragAndDropOverlay({
@@ -17,26 +47,15 @@ export default function DragAndDropOverlay({
 
   if (!visible) return null;
 
-  const isAvatar = variant === "avatar";
-
-  const containerClasses = isAvatar
-    ? "absolute inset-0 z-[9999] items-center justify-center bg-black/60 rounded-full"
-    : "absolute inset-0 z-[9999] items-center justify-center bg-black/30 dark:bg-black/50";
-
-  const innerBoxClasses = isAvatar
-    ? "items-center justify-center"
-    : "items-center justify-center border-2 border-dashed border-primary-light dark:border-primary-dark rounded-3xl p-10 bg-background-light/90 dark:bg-background-dark/90";
+  const config = VARIANT_CONFIG[variant];
+  const iconColor = config.getIconColor(isDark);
 
   return (
-    <View pointerEvents="none" className={containerClasses}>
-      <View className={innerBoxClasses}>
-        <Ionicons
-          name="cloud-upload-outline"
-          size={isAvatar ? 40 : 80}
-          color={isDark || isAvatar ? "#ffffff" : "#6B4EFF"}
-        />
+    <View pointerEvents="none" className={config.containerClasses}>
+      <View className={config.innerBoxClasses}>
+        <Ionicons name="cloud-upload-outline" size={config.iconSize} color={iconColor} />
 
-        {!isAvatar && (
+        {config.showText && (
           <AppText className="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark mt-4">
             Drop files here
           </AppText>
