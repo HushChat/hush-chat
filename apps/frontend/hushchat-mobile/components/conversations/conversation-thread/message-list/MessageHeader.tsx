@@ -34,7 +34,6 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   onOpenPicker,
   onOpenMenu,
 }) => {
-  console.log("MessageHeader:", { isGroupChat, showSenderName, senderName, isCurrentUser });
   return (
     <View
       className={classNames("flex-row items-center gap-2 mb-1", {
