@@ -89,4 +89,5 @@ export const MESSAGE_API_ENDPOINTS = {
 
 export const SETTINGS_API_ENDPOINTS = {
   CONTACT_US: `${SETTINGS_API_BASE}/contact-us`,
+  CONTACT_US_SIGNED_URLS: `${SETTINGS_API_BASE}/contact-us/signed-urls`,
 };

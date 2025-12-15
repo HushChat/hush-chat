@@ -6,6 +6,11 @@ import { contactUsSchema } from "@/schema/contact-us";
 import { sendContactUsMessage } from "@/apis/conversation";
 import { useForm } from "@/hooks/useForm";
 
+interface IAttachmentPayload {
+  originalFileName: string;
+  indexedFileName: string;
+}
+
 export function useContactUsForm() {
   const { user } = useUserStore();
 
@@ -32,19 +37,23 @@ export function useContactUsForm() {
     },
   });
 
-  const submitContactForm = useCallback(async () => {
-    const validatedContactData = await contactForm.validateAll();
-    if (!validatedContactData) return;
+  const submitContactForm = useCallback(
+    async (attachments: IAttachmentPayload[] = []) => {
+      const validatedContactData = await contactForm.validateAll();
+      if (!validatedContactData) return;
 
-    const contactMessagePayload = {
-      name: validatedContactData.name.trim(),
-      email: validatedContactData.email.trim(),
-      subject: validatedContactData.subject.trim(),
-      message: validatedContactData.message.trim(),
-    };
+      const contactMessagePayload = {
+        name: validatedContactData.name.trim(),
+        email: validatedContactData.email.trim(),
+        subject: validatedContactData.subject.trim(),
+        message: validatedContactData.message.trim(),
+        attachments,
+      };
 
-    contactMessageMutation.mutate(contactMessagePayload);
-  }, [contactForm, contactMessageMutation]);
+      contactMessageMutation.mutate(contactMessagePayload);
+    },
+    [contactForm, contactMessageMutation]
+  );
 
   const isSubmitButtonDisabled =
     !contactForm.values.name ||
