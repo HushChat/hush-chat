@@ -37,7 +37,7 @@ interface IConversationScreenProps {
 
 export default function ConversationScreen({ initialConversationId }: IConversationScreenProps) {
   const { selectedConversationType } = useConversationStore();
-  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const {
@@ -97,15 +97,12 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   useLinkConversation({
     initialConversationId,
     conversations,
-    onConversationFound: (c: IConversation) => setSelectedConversationId(c.id),
+    onConversationFound: setSelectedConversation,
   });
 
-  const selectedConversation = useMemo(
-    () => conversations.find((c) => c.id === selectedConversationId) ?? null,
-    [conversations, selectedConversationId]
-  );
-
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
+    setSelectedConversation(conversation);
+
     if (PLATFORM.IS_WEB) {
       if (conversation) {
         router.replace(CONVERSATION(conversation.id));
