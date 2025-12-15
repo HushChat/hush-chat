@@ -470,8 +470,17 @@ public class UserServiceImpl implements UserService {
             throw new CustomInternalServerErrorException("Failed to Update Status");
         }
 
+
+        cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL+":" + user.getEmail()));
         cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
 
         return user.getAvailabilityStatus();
+    }
+
+    // todo - change configuration to work with enum type too.
+    @Cacheable(value = CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
+    public String getUserAvailabilityStatus(String email) {
+        ChatUser user = getUserByEmail(email);
+        return user.getAvailabilityStatus().getName();
     }
 }

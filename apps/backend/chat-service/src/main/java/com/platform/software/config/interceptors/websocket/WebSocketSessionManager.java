@@ -4,10 +4,10 @@ import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.UserActivityStatusWSService;
 import com.platform.software.chat.user.activitystatus.dto.UserActivityWSSubscriptionData;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
-import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.constants.GeneralConstants;
+import com.platform.software.config.workspace.WorkspaceContext;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +89,9 @@ public class WebSocketSessionManager {
         if (session.isPresent()) {
             WebSocketSessionInfoDAO existingSession = session.get();
 
-            ChatUser user = userService.getUserByEmail(subscriptionData.getEmail());
+            WorkspaceContext.setCurrentWorkspace(subscriptionData.getWorkspaceId());
+            String userStatusString = userService.getUserAvailabilityStatus(subscriptionData.getEmail());
+            UserStatusEnum userStatusEnum = UserStatusEnum.fromString(userStatusString);
 
             if (subscriptionData.getVisibleConversations() != null) {
                 existingSession.setVisibleConversations(subscriptionData.getVisibleConversations());
@@ -101,8 +103,8 @@ public class WebSocketSessionManager {
             existingSession.setDisconnectedTime(null);
             existingSession.setDeviceType(device);
 
-            if (user.getAvailabilityStatus().equals(UserStatusEnum.BUSY)) {
-                existingSession.setAvailabilityStatus(user.getAvailabilityStatus());
+            if (userStatusEnum.equals(UserStatusEnum.BUSY)) {
+                existingSession.setAvailabilityStatus(userStatusEnum);
             } else {
                 existingSession.setAvailabilityStatus(UserStatusEnum.ONLINE);
             }
