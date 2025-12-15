@@ -19,7 +19,7 @@ import java.util.Date;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(
-        value = {"createdAt", "updatedAt", "created_by", "updated_by"},
+        value = {"createdAt", "updatedAt", "created_user_id", "updated_user_id"},
         allowGetters = true
 )
 public class AuditModel implements Serializable {
@@ -33,13 +33,11 @@ public class AuditModel implements Serializable {
     @LastModifiedDate
     private Date updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id")
+    @Column(name = "created_user_id")
     @CreatedBy
-    private ChatUser createdBy;
+    private Long createdUserId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by_id")
+    @Column(name = "updated_user_id")
     @LastModifiedBy
-    private ChatUser updatedBy;
+    private Long updatedUserId;
 }
