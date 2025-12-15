@@ -126,6 +126,7 @@ export function useConversationInput({
 
       autoHeightController.animateHeightResetToMinimum();
       mentionsController.clearActiveMentionQuery();
+      mentionsController.clearValidMentions();
 
       if (replyManagerRef.current.isReplyModeActive) {
         replyManagerRef.current.cancelReplyMode();
@@ -137,6 +138,7 @@ export function useConversationInput({
       messageInputController.finalizeAndReturnMessageForSending,
       autoHeightController.animateHeightResetToMinimum,
       mentionsController.clearActiveMentionQuery,
+      mentionsController.clearValidMentions,
     ]
   );
 
@@ -188,6 +190,7 @@ export function useConversationInput({
 
     mentionQuery: mentionsController.activeMentionQueryText,
     mentionVisible: mentionsController.isMentionSuggestionsVisible,
+    validMentionUsernames: mentionsController.validMentions,
     handleSelectMention: handleUserSelectedMention,
 
     isReplying: replyManager.isReplyModeActive,
@@ -195,12 +198,14 @@ export function useConversationInput({
     handleCancelReply: replyManager.cancelReplyMode,
 
     fileInputRef: fileAttachmentPicker.fileInputElementRef,
+    documentInputRef: fileAttachmentPicker.documentInputElementRef,
     addButtonRef: fileAttachmentPicker.fileActionButtonRef,
     menuVisible: fileAttachmentPicker.isMenuOpen,
     menuPosition: fileAttachmentPicker.menuScreenCoordinates,
     menuOptions: fileAttachmentPicker.menuActionOptions,
     handleAddButtonPress: fileAttachmentPicker.handleFileActionButtonPress,
     handleFileChange: fileAttachmentPicker.handleFileInputChange,
+    handleDocumentChange: fileAttachmentPicker.handleDocumentInputChange,
     closeMenu: fileAttachmentPicker.closeFileActionMenu,
     handleMenuOptionSelect: fileAttachmentPicker.executeMenuOption,
 
