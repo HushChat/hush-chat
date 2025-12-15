@@ -38,7 +38,10 @@ export function useMessageActions(
    * Pin/Unpin Messages
    */
   const { mutate: togglePinMessage } = usePinMessageMutation(
-    undefined,
+    {
+      userId: Number(currentUserId),
+      conversationId: Number(conversation?.id),
+    },
     () => {
       const newPinnedState =
         conversation?.pinnedMessage?.id === selectedPinnedMessage?.id

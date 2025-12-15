@@ -40,7 +40,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   attachments,
   onBubblePress,
   style,
-  messageTextStyle,
 }) => {
   const messageContent = message.messageText;
 
@@ -101,7 +100,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           {!message.isUnsend && messageContent ? (
             <FormattedText
               text={message.messageText}
-              style={messageTextStyle || styles.messageText}
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
             />
@@ -115,11 +113,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 };
 
 const styles = StyleSheet.create({
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontFamily: "Poppins-Regular",
-  },
   maxWidthAttachments: {
     maxWidth: 305,
   },

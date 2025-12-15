@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { WebSocketStatus } from "@/types/ws/types";
+import { AppText } from "@/components/AppText";
 
 const statusConfig: Record<
   WebSocketStatus,
@@ -43,7 +44,7 @@ export default function WebSocketStatusIndicator() {
           className={`w-2 h-2 rounded-full ${config.bgClass} shadow-lg ${config.shadowClass}`}
         />
       </View>
-      <Text className="text-xs text-gray-600 dark:text-gray-400">{config.text}</Text>
+      <AppText className="text-xs text-gray-600 dark:text-gray-400">{config.text}</AppText>
     </View>
   );
 }

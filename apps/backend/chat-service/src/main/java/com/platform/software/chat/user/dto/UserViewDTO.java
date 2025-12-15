@@ -1,6 +1,7 @@
 package com.platform.software.chat.user.dto;
 
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ public class UserViewDTO {
     private String username;
     private String email;
     private String signedImageUrl;
+    private WorkspaceUserRole workspaceRole;
 
     public UserViewDTO(ChatUser user) {
         this.setId(user.getId());

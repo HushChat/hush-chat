@@ -24,5 +24,9 @@ export default function ConversationIdRoute() {
     }
   }, [id, router]);
 
-  return <ConversationInfoPanel conversationId={+id} />;
+  const handleClose = () => {
+    router.replace(CHATS_PATH);
+  };
+
+  return <ConversationInfoPanel conversationId={+id} onClose={handleClose} />;
 }

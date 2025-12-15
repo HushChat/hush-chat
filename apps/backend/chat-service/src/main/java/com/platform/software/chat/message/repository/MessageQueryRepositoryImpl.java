@@ -230,6 +230,22 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     }
 
     @Override
+    public Optional<Message> findByIdWithSenderAndConversation(Long messageId) {
+        QMessage m = QMessage.message;
+        QChatUser sender = QChatUser.chatUser;
+        QConversation c = QConversation.conversation;
+
+        Message result = queryFactory
+                .selectFrom(m)
+                .innerJoin(m.sender, sender).fetchJoin()
+                .innerJoin(m.conversation, c).fetchJoin()
+                .where(m.id.eq(messageId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
     public Optional<Message> findPreviousMessage(Long conversationId, Long messageId, ConversationParticipant participant) {
         QMessage message = QMessage.message;
         

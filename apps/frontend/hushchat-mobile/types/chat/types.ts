@@ -25,12 +25,18 @@ export interface ReactionSummary {
   currentUserReaction: string;
 }
 
+export enum MessageAttachmentTypeEnum {
+  IMAGE = "IMAGE",
+  DOCUMENT = "DOCUMENT",
+}
+
 export interface IMessageAttachment {
   mimeType: string;
   id?: number;
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;
+  type: MessageAttachmentTypeEnum;
 }
 
 export enum MessageTypeEnum {
@@ -273,6 +279,11 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
+}
+
+export interface IUserStatus {
+  conversationId: number;
+  status: chatUserStatus;
 }
 
 export interface IActionConfig {

@@ -15,14 +15,41 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  logDebug("[firebase-messaging-sw.js] Received background message ", payload);
-  const notificationTitle = payload.notification.title;
+  console.debug("[firebase-messaging-sw.js] Received background message ", payload);
+  const { title, body, conversationId, messageId } = payload.data;
   const notificationOptions = {
-    body: payload.notification.body,
+    body: body,
     icon: "/favicon.png",
-    badge: "/favicon.png",
-    vibrate: [100, 50, 100],
-    //data: { url: data.url } open URL when clicked
+    data: {
+      conversationId: conversationId,
+      messageId: messageId,
+      url: conversationId ? `/conversations/${conversationId}` : "/",
+    },
   };
-  self.registration.showNotification(notificationTitle, notificationOptions);
+
+  self.registration.showNotification(title, notificationOptions);
+});
+
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data.url;
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      const absoluteUrlToOpen = new URL(urlToOpen, self.location.origin).href;
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url == absoluteUrlToOpen && "focus" in client) {
+          if ("navigate" in client) {
+            client.navigate(urlToOpen);
+          }
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });

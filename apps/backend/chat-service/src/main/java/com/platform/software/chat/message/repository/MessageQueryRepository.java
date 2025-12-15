@@ -16,5 +16,7 @@ public interface MessageQueryRepository {
 
     Page<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long MessageId, ConversationParticipant participant);
 
+    Optional<Message> findByIdWithSenderAndConversation(Long messageId);
+
     Optional<Message> findPreviousMessage(Long conversationId, Long messageId, ConversationParticipant participant);
 }

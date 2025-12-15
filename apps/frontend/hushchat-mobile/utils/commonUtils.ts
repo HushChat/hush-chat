@@ -3,7 +3,7 @@ import { CHAT_VIEW_PATH, CONVERSATION_DETAIL } from "@/constants/routes";
 import { IConversation } from "@/types/chat/types";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { isSameDay } from "date-fns";
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
 import { KeyboardEvent, useCallback } from "react";
 import { ColorSchemeName, TextInputKeyPressEvent } from "react-native";
 
@@ -68,8 +68,33 @@ const getInitials = (name: string): string => {
     .join("");
 };
 
-const handleConversationNavigation = (isWebAction: () => void, conversationId: number) => {
-  if (PLATFORM.IS_WEB) {
+/**
+ * Navigates back if a valid history entry exists.
+ * Otherwise, performs a fallback navigation to a safe screen.
+ */
+const navigateBackOrFallback = (fallbackPath: Href) => {
+  const hasHistory = typeof window !== "undefined";
+
+  if (hasHistory) {
+    router.back();
+  } else {
+    router.replace(fallbackPath);
+  }
+};
+
+/**
+ * Determines if the UI should behave as mobile (native or web-mobile)
+ */
+const shouldUseMobileUI = (isMobileLayout: boolean) => {
+  return !PLATFORM.IS_WEB || isMobileLayout;
+};
+
+const handleConversationNavigation = (
+  isWebAction: () => void,
+  conversationId: number,
+  isMobileLayout: boolean
+) => {
+  if (!shouldUseMobileUI(isMobileLayout)) {
     isWebAction();
   } else {
     router.push({
@@ -84,7 +109,7 @@ const handleConversationNavigation = (isWebAction: () => void, conversationId: n
 // }
 
 const handleChatPress = (setSelectedConversation: (conversation: IConversation | null) => void) => {
-  const handleChatPress = (item: IConversation) => {
+  return (item: IConversation) => {
     if (!PLATFORM.IS_WEB) {
       router.push({
         pathname: CHAT_VIEW_PATH,
@@ -97,8 +122,6 @@ const handleChatPress = (setSelectedConversation: (conversation: IConversation |
       setSelectedConversation(item);
     }
   };
-
-  return handleChatPress;
 };
 
 const formatRelativeTime = (iso?: string): string => {
@@ -182,4 +205,6 @@ export {
   getAPIErrorMsg,
   getAdjustedPosition,
   getPaginationConfig,
+  shouldUseMobileUI,
+  navigateBackOrFallback,
 };

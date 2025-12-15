@@ -5,7 +5,7 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, View, StyleSheet, Text } from "react-native";
+import { GestureResponderEvent, View, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import {
   ConversationAPIResponse,
@@ -34,6 +34,7 @@ import { MessageHeader } from "@/components/conversations/conversation-thread/me
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment } from "@/utils/messageHelpers";
+import { AppText } from "@/components/AppText";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -61,6 +62,7 @@ interface MessageItemProps {
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
+  showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
 }
@@ -87,6 +89,7 @@ export const ConversationMessageItem = ({
   onUnsendMessage,
   onViewReactions,
   showSenderAvatar,
+  showSenderName,
   onNavigateToMessage,
   onMarkMessageAsUnread,
 }: MessageItemProps) => {
@@ -363,9 +366,9 @@ export const ConversationMessageItem = ({
     return (
       <View className="flex-row justify-center items-center py-2 px-4">
         <View className="dark:bg-secondary-dark bg-secondary-light rounded-lg py-1.5 px-3 max-w-[80%]">
-          <Text className="dark:!text-gray-300 text-gray-700 text-xs text-center">
+          <AppText className="dark:!text-gray-300 text-gray-700 text-xs text-center">
             {messageContent}
-          </Text>
+          </AppText>
         </View>
       </View>
     );
@@ -390,6 +393,7 @@ export const ConversationMessageItem = ({
             <MessageHeader
               isCurrentUser={isCurrentUser}
               isGroupChat={isGroupChat}
+              showSenderName={showSenderName}
               senderName={senderName}
               messageTime={messageTime}
               messageIsUnsend={message.isUnsend}
