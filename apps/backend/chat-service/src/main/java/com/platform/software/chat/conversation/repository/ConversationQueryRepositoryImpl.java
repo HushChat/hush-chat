@@ -15,6 +15,7 @@ import com.platform.software.chat.user.entity.QUserBlock;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.utils.CommonUtils;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -25,7 +26,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -260,20 +260,16 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     }
 
                     if (latestMessage != null) {
-                    boolean shouldShowMessage = true;
-                    
-                    if (participantEntity != null && participantEntity.getLastDeletedTime() != null) {
-                        Date deletedAt = Date.from(participantEntity.getLastDeletedTime().toInstant());
-                        if (latestMessage.getCreatedAt().before(deletedAt)) {
-                            shouldShowMessage = false;
+                        boolean isVisible = CommonUtils.isMessageVisible(
+                                latestMessage.getCreatedAt(), 
+                                participantEntity != null ? participantEntity.getLastDeletedTime() : null
+                        );
+
+                        if (isVisible) {
+                                MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
+                                dto.setMessages(List.of(messageViewDTO));
                         }
                     }
-
-                    if (shouldShowMessage) {
-                        MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
-                        dto.setMessages(List.of(messageViewDTO));
-                    }
-                }
 
                     return dto;
                 })

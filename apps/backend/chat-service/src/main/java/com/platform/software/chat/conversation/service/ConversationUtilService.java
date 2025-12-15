@@ -19,6 +19,8 @@ import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.utils.CommonUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -191,17 +193,16 @@ public class ConversationUtilService {
 
         Message pinnedMessage = conversation.getPinnedMessage();
         if (pinnedMessage != null) {
-        boolean showPin = true;
-        if(conversationParticipant.getLastDeletedTime() != null && 
-           pinnedMessage.getCreatedAt().before(Date.from(conversationParticipant.getLastDeletedTime().toInstant()))) {
-            showPin = true;
+            boolean isVisible = CommonUtils.isMessageVisible(
+                pinnedMessage.getCreatedAt(), 
+                conversationParticipant.getLastDeletedTime()
+            );
+            
+            if(isVisible) {
+                BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
+                conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            }
         }
-        
-        if(showPin) {
-            BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
-            conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
-        }
-    }
         return conversationMetaDataDTO;
     }
 
