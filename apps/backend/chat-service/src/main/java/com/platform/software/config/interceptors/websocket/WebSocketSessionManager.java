@@ -41,6 +41,7 @@ public class WebSocketSessionManager {
         WebSocketSessionInfoDAO webSocketSessionInfoDAO = WebSocketSessionInfoDAO.builder()
                 .stompSessionId(accessor.getSessionId())
                 .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
+                .deviceType(deviceType)
                 .connectedTime(ZonedDateTime.now())
                 .createdTime(ZonedDateTime.now())
                 .disconnectedTime(null)
