@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, View, StyleSheet, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
@@ -47,7 +47,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   const hasGif = !!message.gifUrl;
   const [gifDimensions, setGifDimensions] = useState({ width: 250, height: 250 });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (hasGif && message.gifUrl && !PLATFORM.IS_WEB) {
       Image.getSize(
         message.gifUrl,

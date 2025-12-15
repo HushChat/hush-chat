@@ -19,9 +19,11 @@ public class TenorController {
     @GetMapping("/search")
     public ResponseEntity<?> searchGifs(
             @RequestParam String q,
-            @RequestParam(defaultValue = "20") int limit) {
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) String pos
+    ) {
         try {
-            Object result = tenorService.searchGifs(q, limit);
+            Object result = tenorService.searchGifs(q, limit, pos);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching GIFs: " + e.getMessage());
@@ -30,9 +32,11 @@ public class TenorController {
 
     @GetMapping("/featured")
     public ResponseEntity<?> getFeaturedGifs(
-            @RequestParam(defaultValue = "20") int limit) {
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) String pos
+    ) {
         try {
-            Object result = tenorService.getFeaturedGifs(limit);
+            Object result = tenorService.getFeaturedGifs(limit, pos);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching GIFs: " + e.getMessage());

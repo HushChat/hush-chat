@@ -1,4 +1,3 @@
-import { logError } from "@/utils/logger";
 import axios from "axios";
 
 export interface TenorGif {
@@ -25,31 +24,35 @@ export interface TenorGif {
   created: number;
 }
 
-export const searchTenorGifs = async (query: string, limit: number = 20): Promise<TenorGif[]> => {
-  try {
-    const response = await axios.get(`tenor/search`, {
-      params: {
-        q: query,
-        limit,
-      },
-    });
-    return response.data.results;
-  } catch (error) {
-    logError("error searching Tenor GIFs:", error);
-    return [];
-  }
+export interface TenorApiResponse {
+  results: TenorGif[];
+  next?: string;
+}
+
+export const searchTenorGifs = async (
+  query: string,
+  limit: number = 20,
+  pos?: string
+): Promise<TenorApiResponse> => {
+  const response = await axios.get(`tenor/search`, {
+    params: {
+      q: query,
+      limit,
+      pos,
+    },
+  });
+  return response.data;
 };
 
-export const getTrendingGifs = async (limit: number = 20): Promise<TenorGif[]> => {
-  try {
-    const response = await axios.get(`tenor/featured`, {
-      params: {
-        limit,
-      },
-    });
-    return response.data.results;
-  } catch (error) {
-    logError("error loading trending GIFs:", error);
-    return [];
-  }
+export const getTrendingGifs = async (
+  limit: number = 20,
+  pos?: string
+): Promise<TenorApiResponse> => {
+  const response = await axios.get(`tenor/featured`, {
+    params: {
+      limit,
+      pos,
+    },
+  });
+  return response.data;
 };

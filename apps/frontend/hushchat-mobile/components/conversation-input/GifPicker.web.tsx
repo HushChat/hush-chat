@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, Image, ScrollView, ActivityIndicator } from "react-native";
-import { searchTenorGifs, getTrendingGifs } from "@/services/gifService";
-import { logError, logWarn } from "@/utils/logger";
+import React, { useState, useMemo } from "react";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from "react-native";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { Ionicons } from "@expo/vector-icons";
+import useGetTrendingGifsQuery from "@/query/useGetTrendingGifsQuery";
+import useSearchGifsQuery from "@/query/useSearchGifsQuery";
+import useDebounce from "@/hooks/useDebounce";
 
 interface Props {
   visible: boolean;
@@ -11,45 +20,37 @@ interface Props {
   onGifSelect: (gifUrl: string) => void;
 }
 
+const SEARCH_DEBOUNCE_MS = 500;
+
 export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSelect }) => {
-  const [gifs, setGifs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
 
-  useEffect(() => {
-    if (visible) {
-      loadTrendingGifs();
-    }
-  }, [visible]);
+  const trendingQuery = useGetTrendingGifsQuery();
+  const searchQueryObj = useSearchGifsQuery(debouncedSearch);
+  const isSearching = debouncedSearch.trim().length > 0;
+  const activeQuery = isSearching ? searchQueryObj : trendingQuery;
 
-  const loadTrendingGifs = async () => {
-    setLoading(true);
-    try {
-      const results = await getTrendingGifs();
-      setGifs(results);
-    } catch (error) {
-      logError("error loading GIFs:", error);
-    } finally {
-      setLoading(false);
+  const flatGifs = useMemo(() => {
+    if (!activeQuery.data || !activeQuery.data.pages) return [];
+    return activeQuery.data.pages.flatMap((page: any) => page.results || []);
+  }, [activeQuery.data]);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToBottom = 20;
+
+    const isCloseToBottom =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+
+    if (isCloseToBottom && activeQuery.hasNextPage && !activeQuery.isFetchingNextPage) {
+      activeQuery.fetchNextPage();
     }
   };
 
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    if (query.trim() === "") {
-      loadTrendingGifs();
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const results = await searchTenorGifs(query);
-      setGifs(results);
-    } catch (error) {
-      logError("Error searching GIFs:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleClose = () => {
+    setSearchQuery("");
+    onClose();
   };
 
   if (!visible) return null;
@@ -59,55 +60,62 @@ export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSel
       <TouchableOpacity
         activeOpacity={1}
         className="fixed inset-0 z-[999] bg-black/50"
-        onPress={onClose}
+        onPress={handleClose}
       />
 
-      <View className="fixed top-1/2 left-1/2 z-[1000] w-[600px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-lg">
-        <View className="flex-row items-center justify-between border-b border-[#e0e0e0] p-4">
-          <AppText className="text-lg font-semibold">Select GIF</AppText>
+      <View className="fixed top-1/2 left-1/2 z-[1000] w-[600px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white dark:bg-gray-900 shadow-lg">
+        <View className="flex-row items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4">
+          <AppText className="text-lg font-semibold dark:text-white">Select GIF</AppText>
           <TouchableOpacity
-            onPress={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200"
+            onPress={handleClose}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700"
           >
-            <Ionicons name="close" size={24} color="#666666" />
+            <Ionicons name="close" size={24} className="text-gray-500 dark:text-gray-400" />
           </TouchableOpacity>
         </View>
 
         <View className="p-3">
           <AppTextInput
-            className="rounded-[20px] bg-[#f0f0f0] p-3 text-base"
+            className="rounded-[20px] bg-gray-100 dark:bg-gray-800 p-3 text-base dark:text-white"
             placeholder="Search GIFs..."
+            placeholderTextColor="#9CA3AF"
             value={searchQuery}
-            onChangeText={handleSearch}
+            onChangeText={setSearchQuery}
           />
         </View>
 
-        <ScrollView className="max-h-[calc(80vh-180px)]" contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView
+          className="max-h-[calc(80vh-180px)]"
+          contentContainerStyle={{ flexGrow: 1 }}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
           <View className="flex-row flex-wrap p-3">
-            {loading ? (
+            {activeQuery.isLoading ? (
               <View className="w-full p-10 items-center">
-                <ActivityIndicator size="large" color="#666666" />
+                <ActivityIndicator size="large" color="#9CA3AF" />
               </View>
-            ) : gifs.length === 0 ? (
+            ) : flatGifs.length === 0 ? (
               <View className="w-full p-10 items-center">
-                <AppText>No GIFs found</AppText>
+                <AppText className="dark:text-gray-400">No GIFs found</AppText>
               </View>
             ) : (
-              gifs.map((gif) => {
+              flatGifs.map((gif: any, index: number) => {
                 const gifUrl = gif.media_formats?.gif?.url || gif.media?.[0]?.gif?.url;
                 const tinygifUrl = gif.media_formats?.tinygif?.url || gif.media?.[0]?.tinygif?.url;
 
+                const key = `${gif.id}-${index}`;
+
                 if (!gifUrl || !tinygifUrl) {
-                  logWarn("Invalid GIF data:", gif);
                   return null;
                 }
 
                 return (
                   <TouchableOpacity
-                    key={gif.id}
+                    key={key}
                     onPress={() => {
                       onGifSelect(gifUrl);
-                      onClose();
+                      handleClose();
                     }}
                     className="w-1/3 aspect-square p-1"
                   >
@@ -120,11 +128,17 @@ export const GifPickerComponent: React.FC<Props> = ({ visible, onClose, onGifSel
                 );
               })
             )}
+
+            {activeQuery.isFetchingNextPage && (
+              <View className="w-full p-4 items-center">
+                <ActivityIndicator size="small" color="#9CA3AF" />
+              </View>
+            )}
           </View>
         </ScrollView>
 
-        <View className="items-center border-t border-[#e0e0e0] p-3">
-          <AppText className="text-xs text-[#666666]">Powered by Tenor</AppText>
+        <View className="items-center border-t border-gray-200 dark:border-gray-800 p-3">
+          <AppText className="text-xs text-gray-500 dark:text-gray-400">Powered by Tenor</AppText>
         </View>
       </View>
     </>

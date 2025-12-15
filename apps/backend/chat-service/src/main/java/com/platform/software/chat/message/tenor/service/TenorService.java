@@ -16,28 +16,36 @@ public class TenorService {
 
     private final RestTemplate restTemplate;
 
+    private static final String MEDIA_FILTER = "gif,tinygif";
+
     public TenorService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public Object searchGifs(String query, int limit) {
-        String url = UriComponentsBuilder.fromHttpUrl(tenorBaseUrl + "/search")
+    public Object searchGifs(String query, int limit, String pos) {
+         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(tenorBaseUrl + "/search")
                 .queryParam("q", query)
                 .queryParam("key", tenorApiKey)
                 .queryParam("limit", limit)
-                .queryParam("media_filter", "gif,tinygif")
-                .toUriString();
+                .queryParam("media_filter", MEDIA_FILTER);
 
-        return restTemplate.getForObject(url, Object.class);
+        if (pos != null && !pos.isEmpty()) {
+            builder.queryParam("pos", pos);
+        }
+
+        return restTemplate.getForObject(builder.toUriString(), Object.class);
     }
 
-    public Object getFeaturedGifs(int limit) {
-        String url = UriComponentsBuilder.fromHttpUrl(tenorBaseUrl + "/featured")
+    public Object getFeaturedGifs(int limit, String pos) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(tenorBaseUrl + "/featured")
                 .queryParam("key", tenorApiKey)
                 .queryParam("limit", limit)
-                .queryParam("media_filter", "gif,tinygif")
-                .toUriString();
+                .queryParam("media_filter", MEDIA_FILTER);
 
-        return restTemplate.getForObject(url, Object.class);
+        if (pos != null && !pos.isEmpty()) {
+            builder.queryParam("pos", pos);
+        }
+
+        return restTemplate.getForObject(builder.toUriString(), Object.class);
     }
 }
