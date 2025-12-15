@@ -1,7 +1,6 @@
 package com.platform.software.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.platform.software.chat.user.entity.ChatUser;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedBy;
