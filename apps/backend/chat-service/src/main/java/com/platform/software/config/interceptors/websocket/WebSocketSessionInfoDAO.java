@@ -1,5 +1,6 @@
 package com.platform.software.config.interceptors.websocket;
 
+import com.platform.software.chat.notification.entity.DeviceType;
 import lombok.*;
 
 import java.time.ZonedDateTime;
@@ -26,5 +27,5 @@ public class WebSocketSessionInfoDAO {
 
     private Set<Long> visibleConversations; // list of conversations visible - mobile or web
     private Long openedConversation; // indicates user's selected conversation, could be null
-    private String deviceType;
+    private DeviceType deviceType;
 }

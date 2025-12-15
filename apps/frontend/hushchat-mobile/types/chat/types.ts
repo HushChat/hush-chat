@@ -281,12 +281,12 @@ export enum chatUserStatus {
   AWAY = "AWAY",
   BUSY = "BUSY",
 }
-export type DeviceType = "WEB" | "MOBILE" | null;
+export type DeviceType = "WEB" | "MOBILE" | "UNKNOWN" | null;
 
 export interface IUserStatus {
   conversationId: number;
   status: chatUserStatus;
-  deviceType?: "WEB" | "MOBILE";
+  deviceType?: DeviceType;
 }
 
 export interface IActionConfig {

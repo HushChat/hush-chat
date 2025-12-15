@@ -9,6 +9,7 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
@@ -253,7 +254,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail());
 
-                                String deviceType = webSocketSessionManager.getUserDeviceType(
+                                DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
                                         WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail()
                                 );

@@ -1,5 +1,6 @@
 package com.platform.software.config.interceptors.websocket;
 
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.UserActivityStatusWSService;
 import com.platform.software.chat.user.activitystatus.dto.UserActivityWSSubscriptionData;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
@@ -38,10 +39,12 @@ public class WebSocketSessionManager {
      * Register session using STOMP header accessor (new method for ChannelInterceptor)
      */
     public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor, String workspaceId, String email, String deviceType) {
+        DeviceType device = DeviceType.fromString(deviceType);
+
         WebSocketSessionInfoDAO webSocketSessionInfoDAO = WebSocketSessionInfoDAO.builder()
                 .stompSessionId(accessor.getSessionId())
                 .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
-                .deviceType(deviceType)
+                .deviceType(device)
                 .connectedTime(ZonedDateTime.now())
                 .createdTime(ZonedDateTime.now())
                 .disconnectedTime(null)
@@ -79,9 +82,11 @@ public class WebSocketSessionManager {
                 existingSession.setVisibleConversations(subscriptionData.getVisibleConversations());
             }
 
+            DeviceType device = DeviceType.fromString(subscriptionData.getDeviceType());
+
             existingSession.setOpenedConversation(subscriptionData.getOpenedConversation());
             existingSession.setDisconnectedTime(null);
-            existingSession.setDeviceType(subscriptionData.getDeviceType());
+            existingSession.setDeviceType(device);
             webSocketSessionInfos.put(userId, existingSession);
         }
     }
@@ -223,7 +228,7 @@ public class WebSocketSessionManager {
             : ChatUserStatus.OFFLINE;
     }
 
-    public String getUserDeviceType(String workspaceId, String email) {
+    public DeviceType getUserDeviceType(String workspaceId, String email) {
         String webSocketStoreKey = getSessionKey(workspaceId, email);
         WebSocketSessionInfoDAO sessionInfo = webSocketSessionInfos.get(webSocketStoreKey);
 

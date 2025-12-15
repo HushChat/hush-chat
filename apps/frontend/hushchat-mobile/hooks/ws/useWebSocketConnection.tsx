@@ -4,7 +4,7 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
 import { emitNewMessage, emitUserStatus } from "@/services/eventBus";
-import { IConversation, IUserStatus } from "@/types/chat/types";
+import { DeviceType, IConversation, IUserStatus } from "@/types/chat/types";
 import {
   CONNECTED_RESPONSE,
   ERROR_RESPONSE,
@@ -24,7 +24,7 @@ const TOPICS = [
   { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
 ];
 
-const getDeviceType = () => {
+const getDeviceType = (): DeviceType => {
   if (PLATFORM.IS_WEB) return "WEB";
   return "MOBILE";
 };

@@ -1,3 +1,5 @@
+import { DeviceType } from "@/types/chat/types";
+
 export interface WebSocketMessage {
   id: string;
   conversationId: number;
@@ -33,12 +35,6 @@ export interface WebSocketError {
   type: "connection" | "authentication" | "message" | "unknown";
 }
 
-export enum DeviceType {
-  WEB = "WEB",
-  MOBILE = "MOBILE",
-  UNKNOWN = "UNKNOWN",
-}
-
 export interface NotificationPayload {
   title: string;
   body: string;
@@ -60,5 +56,5 @@ export interface UserActivityWSSubscriptionData {
   email: string;
   visibleConversations: number[]; // list of conversations visible - mobile or web
   openedConversation: number | null; // indicates user's selected conversation, could be null
-  deviceType?: "WEB" | "MOBILE";
+  deviceType?: DeviceType;
 }

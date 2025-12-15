@@ -6,6 +6,7 @@ import com.platform.software.chat.conversationparticipant.dto.ConversationPartic
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
@@ -84,7 +85,7 @@ public class MessagePublisherService {
 
         conversationDTO.setMessages(List.of(messageViewDTO));
 
-        String deviceType = webSocketSessionManager.getUserDeviceType(
+        DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
                 WorkspaceContext.getCurrentWorkspace(),
                 senderParticipant.getUser().getEmail()
         );

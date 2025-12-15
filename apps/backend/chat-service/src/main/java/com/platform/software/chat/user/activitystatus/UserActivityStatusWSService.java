@@ -1,6 +1,7 @@
 package com.platform.software.chat.user.activitystatus;
 
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusDTO;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionInfoDAO;
@@ -50,13 +51,15 @@ public class UserActivityStatusWSService {
             .filter(Objects::nonNull)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        DeviceType device = DeviceType.valueOf(deviceType);
+
         for (Map.Entry<String, Set<Long>> entry : matchingSessionKeysWithConversations.entrySet()) {
             String[] workspaceIdAndEmail = entry.getKey().split(":");
 
             if (!entry.getValue().isEmpty()) {
                 template.convertAndSend(
                     "%s/%s".formatted(ONLINE_STATUS_INVOKE_PATH, workspaceIdAndEmail[1]),
-                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status, deviceType)
+                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status, device)
                 );
             }
         }
