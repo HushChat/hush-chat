@@ -18,7 +18,7 @@ export enum UploadType {
   GROUP = "group",
 }
 
-const MAX_IMAGE_KB = 1024 * 5; // 5 MB
+export const MAX_IMAGE_KB = 1024 * 5; // 5 MB
 const MAX_DOCUMENT_KB = 1024 * 10; // 10 MB
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
