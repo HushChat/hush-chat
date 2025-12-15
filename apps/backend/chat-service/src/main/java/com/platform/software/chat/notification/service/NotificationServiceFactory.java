@@ -36,7 +36,8 @@ public class NotificationServiceFactory {
                 NotificationRequestDTO serviceRequest = new NotificationRequestDTO(
                         tokens,
                         request.title(),
-                        request.body()
+                        request.body(),
+                        request.data()
                 );
 
                 try {

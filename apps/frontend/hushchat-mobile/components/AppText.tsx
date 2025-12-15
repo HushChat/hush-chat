@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import {
   Text,
   StyleSheet,
@@ -21,18 +21,21 @@ const COLORS = {
  * This ensures consistent typography and color across the app
  * while adapting automatically to light/dark mode.
  */
-export const AppTextInput = ({ style, ...otherProps }: TextInputProps) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+export const AppTextInput = forwardRef<TextInput, TextInputProps>(
+  ({ style, ...otherProps }, ref) => {
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
 
-  return (
-    <TextInput
-      style={[styles.defaultText, isDark ? styles.darkText : styles.lightText, style]}
-      placeholderTextColor={isDark ? "#AAAAAA" : "#777777"}
-      {...otherProps}
-    />
-  );
-};
+    return (
+      <TextInput
+        ref={ref}
+        style={[styles.defaultText, isDark ? styles.darkText : styles.lightText, style]}
+        placeholderTextColor={isDark ? "#AAAAAA" : "#777777"}
+        {...otherProps}
+      />
+    );
+  }
+);
 
 /**
  * Custom themed text component for the app.

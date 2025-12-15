@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useMemo } from "react";
-import { View, TouchableOpacity, Pressable, Modal, Dimensions, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { TouchableOpacity, Pressable, Modal, Dimensions, StyleSheet } from "react-native";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { IOption } from "@/types/chat/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,8 @@ import classNames from "classnames";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppText } from "./AppText";
 import { getAdjustedPosition } from "@/utils/commonUtils";
+import { MotionView } from "@/motion/MotionView";
+import { MotionConfig } from "@/motion/config";
 
 interface WebChatContextMenuProps {
   visible: boolean;
@@ -33,9 +35,9 @@ const WebContextMenu = ({
   onOptionSelect,
   iconSize = 22,
 }: WebChatContextMenuProps) => {
-  const modalRef = useRef<View>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+
   const screenHeight = Dimensions.get("window").height;
   const screenWidth = Dimensions.get("window").width;
   const { isDark } = useAppTheme();
@@ -53,49 +55,51 @@ const WebContextMenu = ({
 
   useEffect(() => {
     if (visible) {
-      setShouldRender(true);
-      setIsAnimating(true);
+      setShowModal(true);
+      requestAnimationFrame(() => setShowContent(true));
     } else {
-      setIsAnimating(false);
-      const timer = setTimeout(() => setShouldRender(false), 160);
-      return () => clearTimeout(timer);
+      handleCloseInternal();
     }
   }, [visible]);
 
-  const handleClose = () => {
-    setIsAnimating(false);
-    setTimeout(onClose, 120);
+  const handleCloseInternal = () => {
+    setShowContent(false);
+    setTimeout(() => {
+      setShowModal(false);
+    }, MotionConfig.duration.xs);
   };
 
-  const animatedMenuStyle = useMemo(
-    () => ({
-      left: adjustedPosition.x,
-      top: adjustedPosition.y,
-      opacity: isAnimating ? 1 : 0,
-      transform: [{ scale: isAnimating ? 1 : 0.95 }, { translateY: isAnimating ? 0 : 6 }],
-      boxShadow: isDark ? COLORS.SHADOW_DARK : COLORS.SHADOW_LIGHT,
-    }),
-    [adjustedPosition.x, adjustedPosition.y, isAnimating, isDark]
-  );
+  const handleBackdropPress = () => {
+    handleCloseInternal();
+    setTimeout(onClose, MotionConfig.duration.xs);
+  };
 
   return (
-    <Modal transparent visible={shouldRender} onRequestClose={handleClose}>
-      <Pressable className="flex-1" onPress={handleClose} style={styles.pressable}>
-        <View
-          ref={modalRef}
+    <Modal transparent visible={showModal} onRequestClose={handleBackdropPress}>
+      <Pressable className="flex-1" onPress={handleBackdropPress} style={styles.pressable}>
+        <MotionView
+          visible={showContent}
+          from={{ opacity: 0, scale: 0.95, translateY: 6 }}
+          to={{ opacity: 1, scale: 1, translateY: 0 }}
+          duration={MotionConfig.duration.xs}
+          easing="standard"
           pointerEvents="box-none"
           className={classNames(
-            "absolute rounded-xl overflow-hidden border backdrop-blur-md transition-all duration-200 ease-out",
+            "absolute rounded-xl overflow-hidden border backdrop-blur-md",
             isDark ? "bg-secondary-dark/95 border-[#2C3650]/60" : "bg-white/90 border-[#E5E7EB]/70"
           )}
-          style={[styles.menuContainer, animatedMenuStyle]}
+          style={{
+            left: adjustedPosition.x,
+            top: adjustedPosition.y,
+            boxShadow: isDark ? COLORS.SHADOW_DARK : COLORS.SHADOW_LIGHT,
+          }}
         >
           {options.map((option) => (
             <TouchableOpacity
               key={option.id}
               onPress={async () => {
                 await onOptionSelect(option.action);
-                handleClose();
+                handleBackdropPress();
               }}
               activeOpacity={DEFAULT_ACTIVE_OPACITY}
               className={classNames(
@@ -135,7 +139,7 @@ const WebContextMenu = ({
               </AppText>
             </TouchableOpacity>
           ))}
-        </View>
+        </MotionView>
       </Pressable>
     </Modal>
   );
@@ -146,8 +150,5 @@ export default WebContextMenu;
 const styles = StyleSheet.create({
   pressable: {
     cursor: "auto",
-  },
-  menuContainer: {
-    position: "absolute",
   },
 });

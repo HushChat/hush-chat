@@ -20,14 +20,29 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { IConversation, IFilter, ConversationType } from "@/types/chat/types";
 import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
-import { useEffect, useMemo, useState } from "react";
-import ChatInterface from "@/components/conversations/ChatInterface";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import ChatInterface from "@/components/conversations/ChatInterface/ChatInterface";
+import { router } from "expo-router";
+import { PLATFORM } from "@/constants/platformConstants";
+import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
+import { useLinkConversation } from "@/hooks/useLinkConversation";
+import { getAllTokens } from "@/utils/authUtils";
+import { UserActivityWSSubscriptionData } from "@/types/ws/types";
+import { useUserStore } from "@/store/user/useUserStore";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
-export default function ConversationScreen() {
+interface IConversationScreenProps {
+  initialConversationId?: number;
+}
+
+export default function ConversationScreen({ initialConversationId }: IConversationScreenProps) {
   const { selectedConversationType } = useConversationStore();
   const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const {
+    user: { email },
+  } = useUserStore();
 
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
 
@@ -55,10 +70,47 @@ export default function ConversationScreen() {
     refetch,
   } = useConversationsQuery(criteria);
 
+  const { publishActivity } = useWebSocket();
+
+  useEffect(() => {
+    const publishUserActivity = async () => {
+      const { workspace } = await getAllTokens();
+      const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+      const conversationIds = conversations?.flatMap((page) => page.id) ?? [];
+      publishActivity({
+        workspaceId: workspace as string,
+        email,
+        visibleConversations: conversationIds,
+      } as UserActivityWSSubscriptionData);
+    };
+
+    if (conversationsPages) {
+      publishUserActivity();
+    }
+  }, [conversationsPages]);
+
   const { searchResults, isSearching, searchError, refetchSearch } =
     useGlobalSearchQuery(searchQuery);
 
   const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+
+  useLinkConversation({
+    initialConversationId,
+    conversations,
+    onConversationFound: setSelectedConversation,
+  });
+
+  const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
+    setSelectedConversation(conversation);
+
+    if (PLATFORM.IS_WEB) {
+      if (conversation) {
+        router.replace(CONVERSATION(conversation.id));
+      } else {
+        router.replace(CHATS_PATH);
+      }
+    }
+  }, []);
 
   const filters: IFilter[] = [
     {
@@ -76,6 +128,16 @@ export default function ConversationScreen() {
       label: "Favorites",
       isActive: selectedConversationType === ConversationType.FAVORITES,
     },
+    {
+      key: ConversationType.GROUPS,
+      label: "Groups",
+      isActive: selectedConversationType === ConversationType.GROUPS,
+    },
+    {
+      key: ConversationType.MUTED,
+      label: "Muted",
+      isActive: selectedConversationType === ConversationType.MUTED,
+    },
   ];
 
   const chatItemList = (
@@ -87,7 +149,7 @@ export default function ConversationScreen() {
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
       conversationsRefetch={refetch}
-      setSelectedConversation={setSelectedConversation}
+      setSelectedConversation={handleSetSelectedConversation}
       selectedConversation={selectedConversation}
       searchedConversationsResult={searchResults}
       isSearchingConversations={isSearching}
@@ -98,20 +160,18 @@ export default function ConversationScreen() {
   );
 
   return (
-    <>
-      <ChatInterface
-        chatItemList={chatItemList}
-        conversationsLoading={isLoadingConversations}
-        conversationsRefetch={refetch}
-        filters={filters}
-        selectedConversation={selectedConversation}
-        setSelectedConversation={setSelectedConversation}
-        onSearchQueryInserting={(searchQuery: string) => {
-          setSearchInput(searchQuery);
-          debouncedSearchQuery(searchQuery);
-        }}
-        searchQuery={searchInput}
-      />
-    </>
+    <ChatInterface
+      chatItemList={chatItemList}
+      conversationsLoading={isLoadingConversations}
+      conversationsRefetch={refetch}
+      filters={filters}
+      selectedConversation={selectedConversation}
+      setSelectedConversation={handleSetSelectedConversation}
+      onSearchQueryInserting={(searchQuery: string) => {
+        setSearchInput(searchQuery);
+        debouncedSearchQuery(searchQuery);
+      }}
+      searchQuery={searchInput}
+    />
   );
 }

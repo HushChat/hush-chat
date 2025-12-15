@@ -17,12 +17,14 @@ type TFilePickerOptions = {
 
 interface IFilePickerReturn {
   fileInputElementRef: React.RefObject<HTMLInputElement | null>;
+  documentInputElementRef: React.RefObject<HTMLInputElement | null>;
   fileActionButtonRef: React.RefObject<View | null>;
   isMenuOpen: boolean;
   menuScreenCoordinates: TMenuCoordinates;
   menuActionOptions: ReturnType<typeof getConversationMenuOptions>;
   handleFileActionButtonPress: () => void;
   handleFileInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleDocumentInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   closeFileActionMenu: () => void;
   executeMenuOption: (callback: () => Promise<void> | void) => Promise<void>;
 }
@@ -32,6 +34,7 @@ export function useFilePicker({
   onOpenNativePicker,
 }: TFilePickerOptions): IFilePickerReturn {
   const fileInputElementRef = useRef<HTMLInputElement>(null);
+  const documentInputElementRef = useRef<HTMLInputElement>(null);
   const fileActionButtonRef = useRef<View>(null);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -41,8 +44,8 @@ export function useFilePicker({
   });
 
   const menuActionOptions = useMemo(
-    () => getConversationMenuOptions(fileInputElementRef),
-    [fileInputElementRef]
+    () => getConversationMenuOptions(fileInputElementRef, documentInputElementRef),
+    [fileInputElementRef, documentInputElementRef]
   );
 
   const handleFileActionButtonPress = useCallback(() => {
@@ -91,6 +94,25 @@ export function useFilePicker({
     [onFilesSelected]
   );
 
+  const handleDocumentInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = event.target.files;
+
+      if (selectedFiles && selectedFiles.length > 0) {
+        const { errors, validFiles } = validateFiles(selectedFiles);
+
+        errors.forEach((errorMessage) => ToastUtils.error(errorMessage));
+
+        if (validFiles.length > 0) {
+          onFilesSelected?.(validFiles);
+        }
+      }
+
+      event.target.value = "";
+    },
+    [onFilesSelected]
+  );
+
   const closeFileActionMenu = useCallback(() => {
     setIsMenuOpen(false);
   }, []);
@@ -107,12 +129,14 @@ export function useFilePicker({
 
   return {
     fileInputElementRef,
+    documentInputElementRef,
     fileActionButtonRef,
     isMenuOpen,
     menuScreenCoordinates,
     menuActionOptions,
     handleFileActionButtonPress,
     handleFileInputChange,
+    handleDocumentInputChange,
     closeFileActionMenu,
     executeMenuOption,
   };
