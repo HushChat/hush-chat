@@ -47,7 +47,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const { selectedConversationType } = useConversationStore();
   const [userStatus, setUserStatus] = useState<IUserStatus | null>(null);
 
-  // NEW: separate state for new conversation events (prevents unread logic running)
+  // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
 
   const queryClient = useQueryClient();
@@ -62,7 +62,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   );
 
   /**
-   * 1) Message-received -> update unread and move to top
+   * Message-received -> update unread and move to top
    */
   useEffect(() => {
     if (!notificationConversation) return;
@@ -120,7 +120,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   };
 
   /**
-   * 2) WS message event listener
+   * WS message event listener
    */
   useEffect(() => {
     const handleIncomingWebSocketConversation = (conversation: IConversation) => {
@@ -143,7 +143,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   }, []);
 
   /**
-   * NEW: Conversation created listener (group added / new group)
+   * Conversation created listener (group added / new group)
    */
   useEffect(() => {
     const handleConversationCreated = (conversation: IConversation) => {
@@ -217,7 +217,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   }, []);
 
   /**
-   * 5) Presence listener
+   * Presence listener
    */
   useEffect(() => {
     const handleIncomingUserStatusUpdates = (userStatus: IUserStatus) => {
@@ -234,7 +234,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   }, []);
 
   /**
-   * 6) Apply presence changes into cache
+   * Apply presence changes into cache
    */
   useEffect(() => {
     if (!userStatus) return;

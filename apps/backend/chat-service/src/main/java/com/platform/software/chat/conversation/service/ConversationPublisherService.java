@@ -2,12 +2,10 @@ package com.platform.software.chat.conversation.service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
@@ -36,17 +34,14 @@ public class ConversationPublisherService {
         Long conversationId,
         Long actorUserId,
         String workspaceId,
-        ConversationDTO providedDTO // can be null
+        ConversationDTO providedDTO
     ) {
         // Build DTO (actor view as base)
         ConversationDTO baseDTO = providedDTO != null
             ? providedDTO
             : conversationUtilService.getConversationDTOOrThrow(actorUserId, conversationId);
 
-        // We need participants ONLY for routing. So grab them now.
         if (baseDTO.getParticipants() == null || baseDTO.getParticipants().isEmpty()) {
-            // If this can happen in your codebase, then you DO need a repo/util fallback.
-            // But for now, just bail safely.
             return;
         }
 
