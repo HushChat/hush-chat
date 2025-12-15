@@ -27,11 +27,6 @@ public class Conversation extends AuditModel{
 
     private boolean deleted = false;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id")
-    private ChatUser createdBy;
-
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "conversation_id")
     private List<ConversationParticipant> conversationParticipants;

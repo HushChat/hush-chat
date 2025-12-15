@@ -22,7 +22,7 @@ import java.util.TimeZone;
 
 @EnableConfigurationProperties
 @SpringBootApplication
-@EnableJpaAuditing
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 @EnableAsync
 @EnableScheduling
 @EnableCaching
