@@ -400,20 +400,30 @@ export const ConversationMessageItem = ({
 
             {renderParentMessage()}
 
-            <MessageHighlightWrapper id={message.id} targetId={targetMessageId}>
-              <MessageBubble
-                message={message}
-                isCurrentUser={isCurrentUser}
-                hasText={hasText}
-                hasAttachments={hasAttachments}
-                hasImages={hasImages()}
-                selected={selected}
-                selectionMode={selectionMode}
-                isForwardedMessage={isForwardedMessage}
-                attachments={attachments}
-                onBubblePress={handleBubblePress}
-              />
-            </MessageHighlightWrapper>
+            <View
+              style={{
+                alignSelf: isCurrentUser ? "flex-end" : "flex-start",
+              }}
+            >
+              <MessageHighlightWrapper
+                id={message.id}
+                targetId={targetMessageId}
+                glowColor={isCurrentUser ? "#3B82F6" : "#22C55E"}
+              >
+                <MessageBubble
+                  message={message}
+                  isCurrentUser={isCurrentUser}
+                  hasText={hasText}
+                  hasAttachments={hasAttachments}
+                  hasImages={hasImages()}
+                  selected={selected}
+                  selectionMode={selectionMode}
+                  isForwardedMessage={isForwardedMessage}
+                  attachments={attachments}
+                  onBubblePress={handleBubblePress}
+                />
+              </MessageHighlightWrapper>
+            </View>
 
             <MessageReactions
               message={message}

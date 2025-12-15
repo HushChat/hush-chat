@@ -1,16 +1,27 @@
-import React, { useEffect, useState, useRef } from "react";
+import { PLATFORM } from "@/constants/platformConstants";
+import React, { useEffect } from "react";
 import { ViewStyle } from "react-native";
-import { MotionView } from "@/motion/MotionView";
-import { MotionConfig } from "@/motion/config";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+  interpolate,
+  Easing,
+  cancelAnimation,
+} from "react-native-reanimated";
 
 interface IHighlightWrapperProps {
   id: number | string;
   targetId?: number | string | null;
   children: React.ReactNode;
   style?: ViewStyle;
-  bounceDistance?: number;
   onHighlightComplete?: () => void;
   initialDelay?: number;
+  glowColor?: string;
+  pulseCount?: number;
 }
 
 export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
@@ -18,48 +29,67 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
   targetId,
   children,
   style,
-  bounceDistance = 12,
   onHighlightComplete,
   initialDelay = 300,
+  glowColor = "#3B82F6",
+  pulseCount = 2,
 }) => {
-  const [isBouncing, setIsBouncing] = useState(false);
-  const hasTriggeredRef = useRef(false);
+  const progress = useSharedValue(0);
+  const scale = useSharedValue(1);
 
   useEffect(() => {
     if (id !== targetId) {
-      hasTriggeredRef.current = false;
+      cancelAnimation(progress);
+      cancelAnimation(scale);
+      progress.value = 0;
+      scale.value = 1;
       return;
     }
 
-    if (id === targetId && !hasTriggeredRef.current) {
-      hasTriggeredRef.current = true;
+    if (id === targetId) {
+      progress.value = withDelay(
+        initialDelay,
+        withRepeat(
+          withSequence(
+            withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) }),
+            withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
+          ),
+          pulseCount,
+          false
+        )
+      );
 
-      const delayTimer = setTimeout(() => {
-        setIsBouncing(true);
-
-        const bounceTimer = setTimeout(() => {
-          setIsBouncing(false);
-          if (onHighlightComplete) {
-            onHighlightComplete();
-          }
-        }, MotionConfig.duration.md);
-
-        return () => clearTimeout(bounceTimer);
-      }, initialDelay);
-
-      return () => clearTimeout(delayTimer);
+      scale.value = withDelay(
+        initialDelay,
+        withSequence(
+          withTiming(1.05, { duration: 200, easing: Easing.out(Easing.quad) }),
+          withTiming(1, { duration: 200, easing: Easing.out(Easing.quad) })
+        )
+      );
     }
-  }, [id, targetId, onHighlightComplete, initialDelay]);
+  }, [id, targetId, initialDelay, pulseCount, onHighlightComplete]);
 
-  return (
-    <MotionView
-      visible={true}
-      style={style}
-      animate={{ translateY: isBouncing ? bounceDistance : 0 }}
-      duration={MotionConfig.duration.md}
-      easing="emphasized"
-    >
-      {children}
-    </MotionView>
-  );
+  const animatedStyle = useAnimatedStyle(() => {
+    const shadowOpacity = interpolate(progress.value, [0, 1], [0, 0.8]);
+    const shadowRadius = interpolate(progress.value, [0, 1], [0, 15]);
+    const elevation = interpolate(progress.value, [0, 1], [0, 10]);
+
+    const webBoxShadow = PLATFORM.IS_WEB
+      ? `0px 0px ${interpolate(progress.value, [0, 1], [0, 20])}px ${glowColor}`
+      : undefined;
+
+    return {
+      transform: [{ scale: scale.value }],
+      shadowColor: glowColor,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity,
+      shadowRadius,
+      elevation,
+      ...(PLATFORM.IS_WEB && {
+        boxShadow: webBoxShadow,
+      }),
+    };
+  });
+
+  return <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>;
 };
