@@ -6,12 +6,12 @@ import { useUpdateAvailabilityStatusMutation } from "@/query/post/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { PLATFORM } from "@/constants/platformConstants";
 
-export default function AvailabilitySection({ status }: { status?: chatUserStatus }) {
-  const { fetchUserData } = useUserStore();
+export default function AvailabilitySection({ status }: { status: chatUserStatus }) {
+  const { setUserStatus } = useUserStore();
   const isAvailable = status === chatUserStatus.AVAILABLE;
 
-  const { mutate } = useUpdateAvailabilityStatusMutation({}, () => {
-    fetchUserData();
+  const { mutate } = useUpdateAvailabilityStatusMutation({}, (data: chatUserStatus) => {
+    setUserStatus(data);
   });
 
   const toggleAvailability = useCallback(() => {
@@ -21,17 +21,11 @@ export default function AvailabilitySection({ status }: { status?: chatUserStatu
   return (
     <View className="flex-row items-center justify-between">
       <View>
-        <AppText className="text-base font-semibold">Availability</AppText>
-        <AppText className="text-sm">
-          Appearing as{" "}
-          <AppText className={isAvailable ? "text-green-600" : "text-red-500"}>
-            {isAvailable ? "Available" : "Busy"}
-          </AppText>
-        </AppText>
+        <AppText className="text-lg font-semibold">BUSY</AppText>
       </View>
 
       <Switch
-        value={isAvailable}
+        value={!isAvailable}
         onValueChange={toggleAvailability}
         trackColor={{ false: "#767577", true: "#6B4EFF" }}
         thumbColor="#000000"

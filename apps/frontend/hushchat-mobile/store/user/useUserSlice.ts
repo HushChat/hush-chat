@@ -13,6 +13,7 @@ export interface UserState {
   setIsAuthenticatedAndDataFetched: (value: boolean) => void;
   fetchUserData: () => Promise<void>;
   resetState: () => void;
+  setUserStatus: (status: chatUserStatus) => void;
 }
 
 const initialUserState: IUser = {
@@ -38,6 +39,15 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
 
   setIsAuthenticatedAndDataFetched: (value: boolean) => {
     set({ isAuthenticatedAndDataFetched: value });
+  },
+
+  setUserStatus: (status: chatUserStatus) => {
+    set((state) => ({
+      user: {
+        ...state.user,
+        status: status,
+      },
+    }));
   },
 
   fetchUserData: async () => {

@@ -16,7 +16,11 @@ export const UserSchema = yup.object({
     .oneOf(Object.values(WorkspaceUserRole))
     .nullable()
     .notRequired(),
-  status: yup.mixed<chatUserStatus>().oneOf(Object.values(chatUserStatus)).nullable().notRequired(),
+  status: yup
+    .mixed<chatUserStatus>()
+    .oneOf(Object.values(chatUserStatus))
+    .default(chatUserStatus.OFFLINE)
+    .required(),
 });
 
 export const RegisterUser = yup.object({
