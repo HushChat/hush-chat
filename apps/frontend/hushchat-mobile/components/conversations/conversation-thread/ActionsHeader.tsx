@@ -30,6 +30,7 @@ const ActionsHeader = ({
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
+  const currentUserIsSender = user?.id === message?.senderId;
 
   return (
     <View className="absolute bottom-full !z-50 w-full bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
@@ -74,12 +75,16 @@ const ActionsHeader = ({
             color={isPinned ? "#6B4EFF" : "#6B7280"}
           />
 
-          {!message.isUnsend && message.messageText && conversation && onSelectMessageInfo && (
-            <HeaderAction
-              iconName="information-circle-outline"
-              onPress={() => onSelectMessageInfo(conversation, message)}
-            />
-          )}
+          {currentUserIsSender &&
+            !message.isUnsend &&
+            message.messageText &&
+            conversation &&
+            onSelectMessageInfo && (
+              <HeaderAction
+                iconName="information-circle-outline"
+                onPress={() => onSelectMessageInfo(conversation, message)}
+              />
+            )}
 
           <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
         </View>
