@@ -1,16 +1,6 @@
 import { useMemo } from "react";
 import { IMessage, MessageAttachmentTypeEnum, MessageTypeEnum } from "@/types/chat/types";
 
-export type MessageGroup = {
-  id: string;
-  type: "single" | "image-group";
-  messages: IMessage[];
-  senderId: number;
-  isCurrentUser: boolean;
-  firstMessage: IMessage;
-  lastMessage: IMessage;
-};
-
 export type GroupedMessage = IMessage & {
   __groupType?: "single" | "image-group";
   __groupMessages?: IMessage[];
@@ -59,10 +49,16 @@ const getMessageTime = (message: IMessage): number => {
   return new Date(message.createdAt).getTime();
 };
 
+const hasCaption = (message: IMessage): boolean => {
+  return !!(message.messageText && message.messageText.trim().length > 0);
+};
+
 const canGroupMessages = (prev: IMessage, curr: IMessage, maxTimeGapMs: number): boolean => {
   if (prev.senderId !== curr.senderId) return false;
 
   if (!isImageAttachment(prev) || !isImageAttachment(curr)) return false;
+
+  if (hasCaption(prev) || hasCaption(curr)) return false;
 
   const timeDiff = Math.abs(getMessageTime(curr) - getMessageTime(prev));
   if (timeDiff > maxTimeGapMs) return false;
@@ -73,9 +69,7 @@ const canGroupMessages = (prev: IMessage, curr: IMessage, maxTimeGapMs: number):
 
   if (prev.isUnsend || curr.isUnsend) return false;
 
-  if (prev.isForwarded || curr.isForwarded) return false;
-
-  return true;
+  return !(prev.isForwarded || curr.isForwarded);
 };
 
 export const normalizeMessageAttachments = (message: IMessage): IMessage => {

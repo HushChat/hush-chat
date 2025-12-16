@@ -7,6 +7,7 @@ import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
+import { ImageGroupBubble } from "@/components/ImageGroupBubble";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
@@ -26,6 +27,8 @@ interface IMessageBubbleProps {
   onBubblePress: () => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
+  isImageGroup?: boolean;
+  groupedMessages?: IMessage[];
 }
 
 export const MessageBubble: React.FC<IMessageBubbleProps> = ({
@@ -40,8 +43,22 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   attachments,
   onBubblePress,
   style,
+  isImageGroup = false,
+  groupedMessages,
 }) => {
   const messageContent = message.messageText;
+
+  if (isImageGroup && groupedMessages && groupedMessages.length > 1) {
+    return (
+      <ImageGroupBubble
+        messages={groupedMessages}
+        isCurrentUser={isCurrentUser}
+        selected={selected}
+        selectionMode={selectionMode}
+        onBubblePress={onBubblePress}
+      />
+    );
+  }
 
   const forwardedBorderStyle = isForwardedMessage
     ? isCurrentUser

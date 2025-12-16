@@ -53,7 +53,6 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
 
-    // For image groups, check if ANY message in the group is selected
     const groupMessages = getGroupMessages(item);
     const isSelected = groupMessages.some((msg) => selectedMessageIds.has(Number(msg.id)));
 
@@ -70,10 +69,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       !!conversationAPIResponse?.isGroup
     );
 
-    // Handle selection toggle for image groups
     const handleToggleSelection = (messageId: number) => {
       if (isImageGroup(item)) {
-        // Toggle all messages in the group
         groupMessages.forEach((msg) => {
           if (msg.id) toggleSelection(Number(msg.id));
         });
@@ -82,10 +79,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       }
     };
 
-    // Handle start selection for image groups
     const handleStartSelectionWith = (messageId: number) => {
       if (isImageGroup(item)) {
-        // Start selection with all messages in the group
         groupMessages.forEach((msg) => {
           if (msg.id) startSelectionWith(Number(msg.id));
         });
@@ -115,7 +110,6 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         showSenderAvatar={showSenderAvatar}
         showSenderName={showSenderName}
         onNavigateToMessage={onNavigateToMessage}
-        // Pass grouped messages info
         isImageGroup={isImageGroup(item)}
         groupedMessages={isImageGroup(item) ? groupMessages : undefined}
       />

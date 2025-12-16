@@ -1,8 +1,3 @@
-/**
- * ConversationMessageList
- *
- * Renders the message thread for a single conversation using an inverted FlatList.
- */
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, SectionList, View } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
@@ -12,13 +7,15 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDateWithImageGroups } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
 import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
 import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
 import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
+import { GroupedMessage } from "@/hooks/useGroupedMessages";
+import { logWarn } from "@/utils/logger";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -72,14 +69,14 @@ const ConversationMessageList = ({
     useMessageSelection(conversationAPIResponse?.id);
 
   const groupedSections = useMemo(() => {
-    return groupMessagesByDate(messages);
-  }, [messages]);
+    return groupMessagesByDateWithImageGroups(messages, Number(currentUserId));
+  }, [messages, currentUserId]);
 
   const handlePinnedMessageClick = useCallback(() => {
     if (onNavigateToMessage && pinnedMessage) {
       onNavigateToMessage(pinnedMessage.id);
     }
-  }, [onNavigateToMessage]);
+  }, [onNavigateToMessage, pinnedMessage]);
 
   useEffect(() => {
     if (!targetMessageId || !sectionListRef.current || groupedSections.length === 0) {
@@ -91,7 +88,13 @@ const ConversationMessageList = ({
 
     for (let i = 0; i < groupedSections.length; i++) {
       const section = groupedSections[i];
-      const foundIndex = section.data.findIndex((msg) => msg.id === targetMessageId);
+      const foundIndex = section.data.findIndex((msg) => {
+        if (msg.id === targetMessageId) return true;
+        if (msg.__groupMessages) {
+          return msg.__groupMessages.some((gm) => gm.id === targetMessageId);
+        }
+        return false;
+      });
 
       if (foundIndex !== -1) {
         sectionIndex = i;
@@ -117,7 +120,7 @@ const ConversationMessageList = ({
             }, 500);
           }
         } catch (error) {
-          console.warn("failed to scroll to target message:", error);
+          logWarn("failed to scroll to target message:", error);
           if (retryCount < 3) {
             setTimeout(() => scrollWithErrorHandling(retryCount + 1), 200);
           } else if (onTargetMessageScrolled) {
@@ -187,6 +190,14 @@ const ConversationMessageList = ({
     );
   }, [isFetchingNextPage]);
 
+  const keyExtractor = useCallback((item: GroupedMessage, index: number) => {
+    if (item.__groupId) {
+      return item.__groupId;
+    }
+    const fallbackKey = `temp-${item.conversationId}-${index}`;
+    return (item.id ?? fallbackKey).toString();
+  }, []);
+
   return (
     <>
       {selectedActionMessage && !PLATFORM.IS_WEB && (
@@ -216,10 +227,7 @@ const ConversationMessageList = ({
       <SectionList
         ref={sectionListRef}
         sections={groupedSections}
-        keyExtractor={(item, index) => {
-          const fallbackKey = `temp-${item.conversationId}-${index}`;
-          return (item.id ?? fallbackKey).toString();
-        }}
+        keyExtractor={keyExtractor}
         renderItem={renderMessage}
         renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
@@ -255,4 +263,5 @@ const ConversationMessageList = ({
     </>
   );
 };
+
 export default ConversationMessageList;

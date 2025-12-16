@@ -1,8 +1,3 @@
-/**
- * ConversationMessageItem
- * Renders a single message bubble within a conversation thread.
- */
-
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureResponderEvent, View, StyleSheet } from "react-native";
@@ -64,6 +59,8 @@ interface MessageItemProps {
   showSenderAvatar: boolean;
   showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  isImageGroup?: boolean;
+  groupedMessages?: IMessage[];
 }
 
 const REMOVE_ONE = 1;
@@ -90,13 +87,15 @@ export const ConversationMessageItem = ({
   showSenderAvatar,
   showSenderName,
   onNavigateToMessage,
+  isImageGroup = false,
+  groupedMessages,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
-  const hasAttachments = attachments.length > 0;
+  const hasAttachments = attachments.length > 0 || isImageGroup;
 
   const queryClient = useQueryClient();
 
-  const hasImages = () => attachments.some(isImageAttachment);
+  const hasImages = () => attachments.some(isImageAttachment) || isImageGroup;
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
   const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
@@ -121,9 +120,12 @@ export const ConversationMessageItem = ({
   const isGroupChat = conversationAPIResponse?.isGroup;
   const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
 
+  const displayMessage =
+    isImageGroup && groupedMessages?.length ? groupedMessages[groupedMessages.length - 1] : message;
+
   const messageTime = useMemo(
-    () => format(new Date(message.createdAt), "h:mm a"),
-    [message.createdAt]
+    () => format(new Date(displayMessage.createdAt), "h:mm a"),
+    [displayMessage.createdAt]
   );
 
   useEffect(() => {
@@ -392,7 +394,7 @@ export const ConversationMessageItem = ({
               onOpenPicker={handleOpenPicker}
               onOpenMenu={openWebMenuAtEvent}
               messageText={message.messageText}
-              isRead={message.isReadByEveryone}
+              isRead={displayMessage.isReadByEveryone}
             />
 
             {renderParentMessage()}
@@ -408,6 +410,8 @@ export const ConversationMessageItem = ({
               isForwardedMessage={isForwardedMessage}
               attachments={attachments}
               onBubblePress={handleBubblePress}
+              isImageGroup={isImageGroup}
+              groupedMessages={groupedMessages}
             />
 
             <MessageReactions

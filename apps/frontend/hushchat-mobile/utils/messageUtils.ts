@@ -2,49 +2,15 @@ import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { IMessage } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
-import { groupConsecutiveImageMessages, GroupedMessage } from "@/hooks/useGroupedMessages";
+import {
+  groupConsecutiveImageMessages,
+  GroupedMessage,
+  normalizeMessageAttachments,
+} from "@/hooks/useGroupedMessages";
 
-interface IGroupedMessages {
+type TDateSection = {
   title: string;
-  data: IMessage[];
-}
-
-export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMessages[] => {
-  if (!messages || messages.length === 0) return [];
-
-  const groupedByDate: Record<string, IMessage[]> = {};
-
-  for (const message of messages) {
-    const messageDate = parseISO(message.createdAt);
-    const dateKey = format(messageDate, "yyyy-MM-dd");
-
-    if (!groupedByDate[dateKey]) {
-      groupedByDate[dateKey] = [];
-    }
-
-    groupedByDate[dateKey].push(message);
-  }
-
-  const sortedDateKeys = Object.keys(groupedByDate).sort((firstDateKey, secondDateKey) => {
-    const firstDate = new Date(firstDateKey).getTime();
-    const secondDate = new Date(secondDateKey).getTime();
-    return secondDate - firstDate;
-  });
-
-  return sortedDateKeys.map((dateKey) => {
-    const dateObject = parseISO(dateKey);
-    const dateTitle = getDateTitle(dateObject);
-
-    const sortedMessages = [...groupedByDate[dateKey]].sort(
-      (firstMessage, secondMessage) =>
-        new Date(secondMessage.createdAt).getTime() - new Date(firstMessage.createdAt).getTime()
-    );
-
-    return {
-      title: dateTitle,
-      data: sortedMessages,
-    };
-  });
+  data: GroupedMessage[];
 };
 
 function getDateTitle(date: Date): string {
@@ -119,58 +85,46 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
   }
 };
 
-type DateSection = {
-  title: string;
-  data: GroupedMessage[];
-};
-
-/**
- * Groups messages by date AND groups consecutive images within each day
- * @param messages - Raw messages from API
- * @param currentUserId - Current user ID for determining message ownership
- * @returns Sections for SectionList with image groups
- */
 export const groupMessagesByDateWithImageGroups = (
   messages: IMessage[],
   currentUserId: number
-): DateSection[] => {
+): TDateSection[] => {
   if (!messages || messages.length === 0) return [];
 
-  // First, group by date
-  const dateGroups = new Map<string, IMessage[]>();
+  const normalizedMessages = messages.map(normalizeMessageAttachments);
 
-  messages.forEach((message) => {
+  const groupedByDate: Record<string, IMessage[]> = {};
+
+  for (const message of normalizedMessages) {
     const messageDate = parseISO(message.createdAt);
-    let dateKey: string;
+    const dateKey = format(messageDate, "yyyy-MM-dd");
 
-    if (isToday(messageDate)) {
-      dateKey = "Today";
-    } else if (isYesterday(messageDate)) {
-      dateKey = "Yesterday";
-    } else {
-      dateKey = format(messageDate, "MMMM d, yyyy");
+    if (!groupedByDate[dateKey]) {
+      groupedByDate[dateKey] = [];
     }
+    groupedByDate[dateKey].push(message);
+  }
 
-    if (!dateGroups.has(dateKey)) {
-      dateGroups.set(dateKey, []);
-    }
-    dateGroups.get(dateKey)!.push(message);
+  const sortedDateKeys = Object.keys(groupedByDate).sort((a, b) => {
+    return new Date(b).getTime() - new Date(a).getTime();
   });
 
-  // Then, within each date group, group consecutive images
-  const sections: DateSection[] = [];
+  return sortedDateKeys.map((dateKey) => {
+    const dateObject = parseISO(dateKey);
+    const dateTitle = getDateTitle(dateObject);
 
-  dateGroups.forEach((messagesInDay, dateTitle) => {
-    const groupedMessages = groupConsecutiveImageMessages(messagesInDay, {
+    const sortedMessages = [...groupedByDate[dateKey]].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    const groupedMessages = groupConsecutiveImageMessages(sortedMessages, {
       currentUserId,
-      maxTimeGapMs: 60000, // 60 seconds
+      maxTimeGapMs: 60000,
     });
 
-    sections.push({
+    return {
       title: dateTitle,
       data: groupedMessages,
-    });
+    };
   });
-
-  return sections;
 };
