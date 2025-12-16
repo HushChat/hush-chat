@@ -15,9 +15,6 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
-import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
-
-import { useConversationStore } from "@/store/conversation/useConversationStore";
 
 const ConversationInput = ({
   conversationId,
@@ -36,8 +33,6 @@ const ConversationInput = ({
   onCancelReply,
   isGroupChat,
 }: ConversationInputProps) => {
-  const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
-
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -112,19 +107,11 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
-              <View className="flex-row items-center gap-3">
-                <MarkdownToggle
-                  enabled={isMarkdownEnabled}
-                  onToggle={toggleMarkdown}
-                  disabled={disabled}
-                />
-
-                <SendButton
-                  showSend={input.isValidMessage}
-                  isSending={isSending}
-                  onPress={handleSendPress}
-                />
-              </View>
+              <SendButton
+                showSend={input.isValidMessage}
+                isSending={isSending}
+                onPress={handleSendPress}
+              />
             </View>
 
             {typeof maxChars === "number" && (

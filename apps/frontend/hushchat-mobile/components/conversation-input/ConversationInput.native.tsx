@@ -11,8 +11,6 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
-import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
 
 const ConversationInput = ({
   conversationId,
@@ -48,8 +46,6 @@ const ConversationInput = ({
     verticalPadding,
     placeholder,
   });
-
-  const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
 
   const handleAddButtonPress = useCallback(() => {
     setMobileMenuVisible(true);
@@ -90,10 +86,6 @@ const ConversationInput = ({
     },
     [input.specialCharHandler, input.enterSubmitHandler]
   );
-
-  const handleToggleMarkdown = useCallback(() => {
-    toggleMarkdown();
-  }, [toggleMarkdown]);
 
   return (
     <View>
@@ -136,13 +128,7 @@ const ConversationInput = ({
                 onSubmitEditing={handleSubmitEditing}
               />
 
-              <View className="flex-row items-center mb-4 gap-3">
-                <MarkdownToggle
-                  enabled={isMarkdownEnabled}
-                  onToggle={handleToggleMarkdown}
-                  disabled={disabled}
-                />
-
+              <View className="mb-4">
                 <SendButton
                   showSend={input.isValidMessage}
                   isSending={isSending}
