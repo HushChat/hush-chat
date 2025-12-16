@@ -4,16 +4,14 @@ import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
-import { PLATFORM } from "@/constants/platformConstants";
 import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
-import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
-import { EmojiPickerComponent } from "./EmojiPicker";
-import { GifPickerComponent } from "./GifPicker.native";
+import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
+import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 const ConversationInput = ({
@@ -23,18 +21,16 @@ const ConversationInput = ({
   onOpenDocumentPickerNative,
   disabled = false,
   isSending = false,
-  placeholder = "Type a message...",
-  minLines = 1,
-  maxLines = 6,
-  lineHeight = 22,
-  verticalPadding = PLATFORM.IS_ANDROID ? 20 : 12,
-  maxChars,
-  autoFocus = false,
   replyToMessage,
   onCancelReply,
   isGroupChat,
+  controlledValue,
+  onControlledValueChange,
+  hideSendButton = false,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+
+  const isControlledMode = controlledValue !== undefined;
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const [showGifPicker, setShowGifPicker] = useState<boolean>(false);
 
@@ -45,12 +41,8 @@ const ConversationInput = ({
     disabled,
     replyToMessage,
     onCancelReply,
-    maxChars,
-    minLines,
-    maxLines,
-    lineHeight,
-    verticalPadding,
-    placeholder,
+    controlledValue,
+    onControlledValueChange,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -78,19 +70,25 @@ const ConversationInput = ({
   }, [onOpenDocumentPickerNative]);
 
   const handleSendButtonPress = useCallback(() => {
-    input.handleSend();
-  }, [input.handleSend]);
+    if (!hideSendButton) {
+      input.handleSend();
+    }
+  }, [input.handleSend, hideSendButton]);
 
   const handleSubmitEditing = useCallback(() => {
-    input.handleSend();
-  }, [input.handleSend]);
+    if (!hideSendButton) {
+      input.handleSend();
+    }
+  }, [input.handleSend, hideSendButton]);
 
   const handleKeyPress = useCallback(
     (e: any) => {
       input.specialCharHandler(e);
-      input.enterSubmitHandler(e);
+      if (!hideSendButton) {
+        input.enterSubmitHandler(e);
+      }
     },
-    [input.specialCharHandler, input.enterSubmitHandler]
+    [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
   );
 
   return (
@@ -102,21 +100,21 @@ const ConversationInput = ({
         />
       )}
 
-      <View className="flex-row items-center p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
-        <View className="mr-2">
+      <View className="flex-row items-center mr-2 p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
+        {!isControlledMode && (
           <AttachmentButton
             ref={input.addButtonRef}
             disabled={disabled}
             toggled={mobileMenuVisible}
             onPress={handleAddButtonPress}
           />
-        </View>
+        )}
 
-        <View className="flex-1">
+        <View className={isControlledMode ? "flex-1" : "flex-1 mx-3"}>
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
             <View
-              className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-2 pr-1"
-              style={styles.inputContainer}
+              className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-3"
+              style={[styles.inputContainer, hideSendButton && { paddingRight: 16 }]}
             >
               <View className="flex-row items-center">
                 <TouchableOpacity
@@ -142,12 +140,12 @@ const ConversationInput = ({
                   value={input.message}
                   placeholder={input.placeholder}
                   disabled={disabled}
-                  autoFocus={autoFocus}
+                  autoFocus
                   minHeight={input.minHeight}
                   maxHeight={input.maxHeight}
                   inputHeight={input.inputHeight}
-                  lineHeight={lineHeight}
-                  verticalPadding={verticalPadding}
+                  lineHeight={22}
+                  verticalPadding={12}
                   onChangeText={input.handleChangeText}
                   onContentSizeChange={input.handleContentSizeChange}
                   onSelectionChange={input.handleSelectionChange}
@@ -156,26 +154,26 @@ const ConversationInput = ({
                 />
               </View>
 
-              <SendButton
-                showSend={input.isValidMessage}
-                isSending={isSending}
-                onPress={handleSendButtonPress}
-              />
+              {!hideSendButton && (
+                <SendButton
+                  showSend={input.isValidMessage}
+                  isSending={isSending}
+                  onPress={handleSendButtonPress}
+                />
+              )}
             </View>
-
-            {typeof maxChars === "number" && (
-              <CharacterCounter currentLength={input.message.length} maxChars={maxChars} />
-            )}
           </Animated.View>
         </View>
       </View>
 
-      <MobileAttachmentModal
-        visible={mobileMenuVisible}
-        onClose={handleCloseMobileMenu}
-        onOpenImagePicker={handleImagePickerSelect}
-        onOpenDocumentPicker={handleDocumentPickerSelect}
-      />
+      {!isControlledMode && (
+        <MobileAttachmentModal
+          visible={mobileMenuVisible}
+          onClose={handleCloseMobileMenu}
+          onOpenImagePicker={handleImagePickerSelect}
+          onOpenDocumentPicker={handleDocumentPickerSelect}
+        />
+      )}
 
       {isGroupChat && input.mentionVisible && (
         <MentionSuggestions

@@ -3,7 +3,8 @@ import { View } from "react-native";
 import { ConversationsMultiSelect, TConversation } from "@/components/ConversationsMultiSelect";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ForwardPanelFooter } from "@/components/conversations/conversation-info-panel/forward-panel/ForwardPanelFooter";
-import { AppText, AppTextInput } from "@/components/AppText";
+import { AppText } from "@/components/AppText";
+import ConversationInput from "@/components/conversation-input/ConversationInput";
 
 export interface ConversationForwardPanelBaseProps {
   onClose: () => void;
@@ -36,14 +37,19 @@ const ConversationForwardPanelBase = ({
         <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
           Add a note (optional)
         </AppText>
-        <AppTextInput
-          value={customText}
-          onChangeText={setCustomText}
-          placeholder="Type a note to send with the forwarded messages…"
-          placeholderTextColor="#9CA3AF"
-          multiline
-          className="min-h-[64px] rounded-lg px-3 py-2 text-gray-900 dark:text-white bg-gray-100 dark:bg-secondary-dark"
-        />
+        <View className="rounded-lg overflow-hidden">
+          <View className="-m-4">
+            <ConversationInput
+              conversationId={sourceConversationId}
+              onSendMessage={handleSend}
+              disabled={isPending}
+              isSending={isPending}
+              controlledValue={customText}
+              onControlledValueChange={setCustomText}
+              hideSendButton
+            />
+          </View>
+        </View>
       </View>
 
       <View className="flex-1 min-h-0 mt-3">
