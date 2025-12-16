@@ -14,12 +14,10 @@ export const ALLOWED_IMAGE_TYPES = [
 
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
-
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
   "text/plain",
 ];
 
@@ -43,7 +41,6 @@ const getFileCategory = (file: File): "image" | "document" | "invalid" => {
       return "document";
     }
   }
-
   return "invalid";
 };
 
@@ -65,9 +62,7 @@ export const validateFiles = (
     const category = getFileCategory(file);
 
     if (category === "invalid") {
-      fileErrors.push(
-        `File ${file.name} has an unsupported type. Supported: Images (JPG, PNG, GIF, WebP), Documents (PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV), Archives (ZIP, RAR, 7Z, GZ, TAR)`
-      );
+      fileErrors.push(`File ${file.name} has an unsupported type.`);
     } else {
       const maxSize = category === "image" ? MAX_IMAGE_SIZE : MAX_DOCUMENT_SIZE;
 
