@@ -1,6 +1,6 @@
 import { Dimensions, TouchableOpacity, View, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
 import { MotionView } from "@/motion/MotionView";
@@ -21,7 +21,6 @@ export default function GroupPermissions({
 }: IGroupPermissionsProps) {
   const screenWidth = Dimensions.get("window").width;
   const { user } = useUserStore();
-  const didMountRef = useRef(false);
 
   const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState<boolean>(
     conversation.onlyAdminsCanSendMessages
@@ -34,24 +33,23 @@ export default function GroupPermissions({
     () => {}
   );
 
-  useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
+  const handleToggleOnlyAdmins = (newValue: boolean) => {
+    if (!conversation?.id) return;
+
+    setOnlyAdminsCanSendMessages(newValue);
 
     updateOnlyAdminCanSendMessage.mutate(
       {
         conversationId: Number(conversation?.id),
-        onlyAdminsCanSendMessages,
+        onlyAdminsCanSendMessages: newValue,
       },
       {
         onError: () => {
-          setOnlyAdminsCanSendMessages((prev) => !prev);
+          setOnlyAdminsCanSendMessages(!newValue);
         },
       }
     );
-  }, [onlyAdminsCanSendMessages, conversation?.id]);
+  };
 
   return (
     <MotionView
@@ -81,7 +79,7 @@ export default function GroupPermissions({
             title="Only admins can send messages"
             description="When enabled, only group admins will be able to send messages. Members can only read."
             value={onlyAdminsCanSendMessages}
-            onValueChange={setOnlyAdminsCanSendMessages}
+            onValueChange={handleToggleOnlyAdmins}
           />
         </View>
 

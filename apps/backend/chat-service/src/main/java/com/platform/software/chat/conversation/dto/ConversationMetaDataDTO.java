@@ -22,6 +22,7 @@ public class ConversationMetaDataDTO {
     private BasicMessageDTO pinnedMessage;
     private ChatUserStatus chatUserStatus;
     private Boolean onlyAdminsCanSendMessages;
+    private Boolean isCurrentUserAdmin;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();

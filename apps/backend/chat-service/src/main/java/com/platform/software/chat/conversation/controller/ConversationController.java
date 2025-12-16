@@ -535,10 +535,10 @@ public class ConversationController {
     @PatchMapping("{conversationId}/message-restrictions")
     public ResponseEntity<ConversationDTO> updateMessageRestrictions(
             @PathVariable Long conversationId,
-            @Valid @RequestBody conversationParticipantPermissionUpdateDTO conversationPermissionUpdateDTO,
+            @Valid @RequestBody ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO,
             @AuthenticatedUser UserDetails userDetails
     ) {
-        ConversationDTO updated = conversationService.updateMessageRestrictions(
+        ConversationDTO updated = conversationService.updateOnlyAdminsCanSendMessages(
                 userDetails.getId(),
                 conversationId,
                 conversationPermissionUpdateDTO

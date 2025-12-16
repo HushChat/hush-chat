@@ -1003,15 +1003,23 @@ public class ConversationService {
     }
 
     /**
-     * Update onlyAdminsCanSendMessages flag for a conversation. Only admins can update group setting.
+     * Updates the onlyAdminsCanSendMessages permission setting for a group conversation.
+     * This setting restricts message sending to admin participants only when enabled.
+     * Only admin participants are authorized to modify this setting.
      * @param adminUserId id of requesting user (must be admin)
      * @param conversationId id of conversation
-     * @param onlyAdmins flag to set
-     * @return updated ConversationDTO
+     * @param conversationPermissionUpdateDTO the DTO containing the new permission setting
+     * @return ConversationDTO the updated conversation data
      */
-    public ConversationDTO updateMessageRestrictions(Long adminUserId, Long conversationId, conversationParticipantPermissionUpdateDTO conversationPermissionUpdateDTO) {
+    @Transactional
+    public ConversationDTO updateOnlyAdminsCanSendMessages(Long adminUserId, Long conversationId, ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO) {
         ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
         Conversation conversation = adminParticipant.getConversation();
+
+        if (conversation.getOnlyAdminsCanSendMessages() != null && 
+            conversation.getOnlyAdminsCanSendMessages().equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages())) {
+            return buildConversationDTO(conversation);
+        }
 
         conversation.setOnlyAdminsCanSendMessages(Boolean.TRUE.equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages()));
 
@@ -1332,6 +1340,11 @@ public class ConversationService {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
             String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
+            ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+
+            if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
+                conversationMetaDataDTO.setIsCurrentUserAdmin(true);
+            }
         }
 
         return conversationMetaDataDTO;

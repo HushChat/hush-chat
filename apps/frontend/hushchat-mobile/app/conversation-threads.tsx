@@ -26,12 +26,7 @@ import { EMPTY_SET } from "@/constants/constants";
 import { getAPIErrorMsg, navigateBackOrFallback } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 
-import type {
-  ConversationInfo,
-  ConversationParticipant,
-  IMessage,
-  TPickerState,
-} from "@/types/chat/types";
+import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
@@ -40,14 +35,12 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
-import { useConversationParticipantQuery } from "@/query/useConversationParticipantQuery";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
-import { UserType } from "@/types/user/types";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -109,17 +102,6 @@ const ConversationThreadScreen = ({
 
   const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
     useConversationByIdQuery(currentConversationId);
-
-  const { pages: participantPages, isLoading: isLoadingParticipants } =
-    useConversationParticipantQuery(currentConversationId);
-
-  const allParticipants = useMemo(
-    () =>
-      participantPages?.pages?.flatMap(
-        (page) => (page.content as ConversationParticipant[]) || []
-      ) || [],
-    [participantPages]
-  );
 
   const {
     pages: conversationMessagesPages,
@@ -189,9 +171,7 @@ const ConversationThreadScreen = ({
   const isOnlyAdminsCanSendMessages =
     conversationAPIResponse?.isGroup && conversationAPIResponse?.onlyAdminsCanSendMessages;
 
-  const isCurrentUserAdmin = allParticipants.some(
-    (p: ConversationParticipant) => p?.user?.id === currentUserId && p?.role === UserType.ADMIN
-  );
+  const isCurrentUserAdmin = conversationAPIResponse?.isCurrentUserAdmin;
 
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
@@ -368,7 +348,7 @@ const ConversationThreadScreen = ({
   );
 
   const renderContent = useCallback(() => {
-    if (conversationAPILoading || isLoadingConversationMessages || isLoadingParticipants) {
+    if (conversationAPILoading || isLoadingConversationMessages) {
       return <LoadingState />;
     }
 
@@ -425,26 +405,36 @@ const ConversationThreadScreen = ({
     handleTargetMessageScrolled,
   ]);
 
-  const renderTextInput = useCallback(() => {
+  const getDisabledMessageReason = useCallback(() => {
     const isBlocked = conversationAPIResponse?.isBlocked === true;
     const isInactive = conversationAPIResponse?.isActive === false;
-
     const isMessageRestricted = Boolean(isOnlyAdminsCanSendMessages) && !isCurrentUserAdmin;
 
-    if (isBlocked || isInactive || isMessageRestricted) {
-      return (
-        <DisabledMessageInput
-          customMessage={
-            isInactive
-              ? "You can't send messages to this group because you are no longer a member."
-              : isBlocked
-                ? "You can't send messages because this conversation is blocked."
-                : isMessageRestricted
-                  ? "Only admins are allowed to send messages in this group."
-                  : undefined
-          }
-        />
-      );
+    if (isInactive) {
+      return "You can't send messages to this group because you are no longer a member.";
+    }
+
+    if (isBlocked) {
+      return "You can't send messages because this conversation is blocked.";
+    }
+
+    if (isMessageRestricted) {
+      return "Only admins are allowed to send messages in this group.";
+    }
+
+    return null;
+  }, [
+    conversationAPIResponse?.isBlocked,
+    conversationAPIResponse?.isActive,
+    isOnlyAdminsCanSendMessages,
+    isCurrentUserAdmin,
+  ]);
+
+  const renderTextInput = useCallback(() => {
+    const disabledReason = getDisabledMessageReason();
+
+    if (disabledReason) {
+      return <DisabledMessageInput customMessage={disabledReason} />;
     }
 
     if (selectionMode) return null;

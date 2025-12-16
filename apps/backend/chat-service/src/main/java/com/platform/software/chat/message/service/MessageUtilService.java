@@ -2,6 +2,7 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
+import com.platform.software.chat.conversation.service.ConversationPermissionGuard;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
@@ -34,6 +35,7 @@ public class MessageUtilService {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
+    private final ConversationPermissionGuard conversationPermissionGuard;
 
     /**
      * Retrieves the recipient ID for a one-to-one conversation.
@@ -110,11 +112,7 @@ public class MessageUtilService {
         ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
-        if (conversation.getOnlyAdminsCanSendMessages()) {
-            if (participant.getRole() != ConversationParticipantRoleEnum.ADMIN) {
-                throw new CustomForbiddenException("Only admins can send messages in this conversation");
-            }
-        }
+        conversationPermissionGuard.validateMessageSendingAccess(conversation, participant);
 
         validateInteractionAllowed(conversation, senderUserId);
 

@@ -5,7 +5,7 @@ import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 
 @Data
-public class conversationParticipantPermissionUpdateDTO {
+public class ConversationPermissionsUpdateDTO {
     @NotNull
     private Boolean onlyAdminsCanSendMessages;
 }
