@@ -22,12 +22,7 @@ public class TenorController {
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false) String pos
     ) {
-        try {
-            Object result = tenorService.searchGifs(q, limit, pos);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error fetching GIFs: " + e.getMessage());
-        }
+        return ResponseEntity.ok(tenorService.searchGifs(q, limit, pos));
     }
 
     @GetMapping("/featured")
@@ -35,11 +30,6 @@ public class TenorController {
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false) String pos
     ) {
-        try {
-            Object result = tenorService.getFeaturedGifs(limit, pos);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error fetching GIFs: " + e.getMessage());
-        }
+        return ResponseEntity.ok(tenorService.getFeaturedGifs(limit, pos));
     }
 }
