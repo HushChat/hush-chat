@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Repository
-public interface MessageMentionRepository extends JpaRepository<MessageMention, String> {
+public interface MessageMentionRepository extends JpaRepository<MessageMention, String>, MessageMentionQueryRepository{
     List<MessageMention> findByMessageIdIn(Collection<Long> messageIds);
     Page<MessageMention> findByMentionedUser_Id(Long userId, Pageable pageable);
 }

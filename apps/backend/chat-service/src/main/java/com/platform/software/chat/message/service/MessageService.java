@@ -501,8 +501,8 @@ public class MessageService {
      * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
      */
     public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
-        Page<MessageMention> messageMentionPage = messageMentionRepository.findByMentionedUser_Id(userDetails.getId(), pageable);
+        Page<MessageMentionDTO> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
 
-        return messageMentionPage.map(MessageMentionDTO::new);
+        return messageMentionPage;
     }
 }
