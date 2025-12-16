@@ -19,16 +19,12 @@ export default function AvailabilitySection({ status }: { status?: chatUserStatu
   }, [mutate]);
 
   return (
-    <View className="dark:border-gray-700 flex-row items-center justify-between">
+    <View className="flex-row items-center justify-between">
       <View>
-        <AppText className="text-base font-semibold text-gray-900 dark:text-gray-100">
-          Availability
-        </AppText>
-        <AppText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <AppText className="text-base font-semibold">Availability</AppText>
+        <AppText className="text-sm">
           Appearing as{" "}
-          <AppText
-            className={isAvailable ? "text-green-600 font-medium" : "text-red-500 font-medium"}
-          >
+          <AppText className={isAvailable ? "text-green-600" : "text-red-500"}>
             {isAvailable ? "Available" : "Busy"}
           </AppText>
         </AppText>
