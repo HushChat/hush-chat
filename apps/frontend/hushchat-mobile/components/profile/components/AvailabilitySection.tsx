@@ -4,6 +4,7 @@ import { chatUserStatus } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
 import { useUpdateAvailabilityStatusMutation } from "@/query/post/queries";
 import { useUserStore } from "@/store/user/useUserStore";
+import { PLATFORM } from "@/constants/platformConstants";
 
 export default function AvailabilitySection({ status }: { status?: chatUserStatus }) {
   const { fetchUserData } = useUserStore();
@@ -37,7 +38,10 @@ export default function AvailabilitySection({ status }: { status?: chatUserStatu
         value={isAvailable}
         onValueChange={toggleAvailability}
         trackColor={{ false: "#767577", true: "#6B4EFF" }}
-        thumbColor={isAvailable ? "#ffffff" : "#6B4EFF"}
+        thumbColor="#000000"
+        {...(PLATFORM.IS_WEB && {
+          activeThumbColor: "#000000",
+        })}
       />
     </View>
   );

@@ -166,7 +166,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType, user.getAvailabilityStatus());
         } else {
             logger.info("workspace-id: {} user {} re-connected via {}", workspaceId, user.getId(), deviceType);
-            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType);
+            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType, user.getAvailabilityStatus());
         }
     }
 

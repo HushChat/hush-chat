@@ -29,5 +29,5 @@ public class WebSocketSessionInfoDAO {
     private Set<Long> visibleConversations; // list of conversations visible - mobile or web
     private Long openedConversation; // indicates user's selected conversation, could be null
     private DeviceType deviceType;
-    private UserStatusEnum availabilityStatus;
+    private UserStatusEnum chatUserStatus;
 }

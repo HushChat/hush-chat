@@ -49,7 +49,7 @@ public class WebSocketSessionManager {
                 .stompSessionId(accessor.getSessionId())
                 .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
                 .deviceType(device)
-                .availabilityStatus(userStatus)
+                .chatUserStatus(userStatus)
                 .connectedTime(ZonedDateTime.now())
                 .createdTime(ZonedDateTime.now())
                 .disconnectedTime(null)
@@ -70,15 +70,28 @@ public class WebSocketSessionManager {
     /**
      * re connecting session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email, String deviceType) {
+    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email, String deviceType, UserStatusEnum userStatus) {
         Optional<WebSocketSessionInfoDAO> session = getValidSession(userId);
         if (session.isPresent()) {
             WebSocketSessionInfoDAO existingSession = session.get();
 
+            String device = existingSession.getDeviceType().getName();
+            if (deviceType != null) {
+                device = deviceType;
+            }
+
+            existingSession.setDeviceType(DeviceType.fromString(device));
             existingSession.setDisconnectedTime(null);
             webSocketSessionInfos.put(userId, existingSession);
 
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, existingSession.getAvailabilityStatus(), deviceType);
+
+
+            if (UserStatusEnum.BUSY.equals(userStatus)) {
+                userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, userStatus, device);
+            } else {
+                userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, device);
+            }
+
             logger.debug("session re connected for user: {}", userId);
         }
     }
@@ -97,16 +110,19 @@ public class WebSocketSessionManager {
                 existingSession.setVisibleConversations(subscriptionData.getVisibleConversations());
             }
 
-            DeviceType device = DeviceType.fromString(subscriptionData.getDeviceType());
+            DeviceType device = existingSession.getDeviceType();
+            if (subscriptionData.getDeviceType() != null) {
+                device = DeviceType.fromString(subscriptionData.getDeviceType());
+            }
 
             existingSession.setOpenedConversation(subscriptionData.getOpenedConversation());
             existingSession.setDisconnectedTime(null);
             existingSession.setDeviceType(device);
 
             if (userStatusEnum.equals(UserStatusEnum.BUSY)) {
-                existingSession.setAvailabilityStatus(userStatusEnum);
+                existingSession.setChatUserStatus(userStatusEnum);
             } else {
-                existingSession.setAvailabilityStatus(UserStatusEnum.ONLINE);
+                existingSession.setChatUserStatus(UserStatusEnum.ONLINE);
             }
 
             webSocketSessionInfos.put(userId, existingSession);
@@ -252,7 +268,7 @@ public class WebSocketSessionManager {
             return ChatUserStatus.OFFLINE;
         }
 
-        if (UserStatusEnum.BUSY.equals(sessionInfo.getAvailabilityStatus())) {
+        if (UserStatusEnum.BUSY.equals(sessionInfo.getChatUserStatus())) {
             return ChatUserStatus.BUSY;
         }
 
