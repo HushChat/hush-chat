@@ -506,10 +506,10 @@ public class MessageService {
         Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
             MessageMentionDTO dto = new MessageMentionDTO(messageMention);
 
-            String imageIndexedName = messageMention.getMessage().getConversation().getImageIndexedName();
+            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
             if (imageIndexedName != null) {
                 String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
-                dto.getConversation().setSignedImageUrl(signedImageUrl);
+                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
             }
 
             return dto;

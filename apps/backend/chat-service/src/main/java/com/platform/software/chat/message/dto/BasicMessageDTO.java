@@ -21,6 +21,7 @@ public class BasicMessageDTO {
     private Boolean isUnsend;
     private Boolean hasAttachment;
     private List<MessageAttachmentDTO> messageAttachments;
+    private String senderSignedImageUrl;
 
     public BasicMessageDTO(Message message) {
         this.id = message.getId();

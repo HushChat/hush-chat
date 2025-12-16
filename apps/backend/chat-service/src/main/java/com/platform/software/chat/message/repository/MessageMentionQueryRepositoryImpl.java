@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.message.entity.MessageMention;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.message.entity.QMessageMention;
+import com.platform.software.chat.user.entity.QChatUser;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
@@ -19,19 +20,22 @@ public class MessageMentionQueryRepositoryImpl implements MessageMentionQueryRep
     private static final QMessageMention qMessageMention = QMessageMention.messageMention;
     private static final QMessage qMessage = QMessage.message;
     private static final QConversation qConversation = QConversation.conversation;
+    private static final QChatUser qChatUser = QChatUser.chatUser;
 
     public MessageMentionQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
     public Page<MessageMention> findAllUserMentionsByOthers(Long mentionedUserId, Pageable pageable) {
-        BooleanExpression whereConditions = qMessageMention.mentionedUser.id.eq(mentionedUserId);
+        BooleanExpression whereConditions = qMessageMention.mentionedUser.id.eq(mentionedUserId)
+                .and(qMessage.isUnsend.isFalse());
 
         List<MessageMention> result = jpaQueryFactory
                 .select(qMessageMention)
                 .from(qMessageMention)
                 .leftJoin(qMessageMention.message, qMessage).fetchJoin()
                 .leftJoin(qMessage.conversation, qConversation).fetchJoin()
+                .leftJoin(qMessage.sender, qChatUser).fetchJoin()
                 .where(whereConditions)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
