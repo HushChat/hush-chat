@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.service;
 
-
 import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
@@ -59,6 +58,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
 import java.time.ZonedDateTime;
@@ -90,6 +90,7 @@ public class ConversationService {
     private final ConversationEventMessageService conversationEventMessageService;
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -239,6 +240,13 @@ public class ConversationService {
 
             savedConversationDTO = saveConversationAndBuildDTO(conversation);
         }
+
+        eventPublisher.publishEvent(new ConversationCreatedEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            savedConversationDTO.getId(),
+            loggedInUserId,
+            savedConversationDTO
+        ));
 
         triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
 
