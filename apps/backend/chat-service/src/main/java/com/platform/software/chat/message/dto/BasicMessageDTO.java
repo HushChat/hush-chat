@@ -5,6 +5,7 @@ import com.platform.software.chat.message.entity.Message;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class BasicMessageDTO {
     private Long id;
+    private Date createdAt;
     private Long senderId;
     private String senderFirstName;
     private String senderLastName;
@@ -22,6 +24,7 @@ public class BasicMessageDTO {
 
     public BasicMessageDTO(Message message) {
         this.id = message.getId();
+        this.createdAt = message.getCreatedAt();
         this.senderId = message.getSender().getId();
         this.senderFirstName = message.getSender().getFirstName();
         this.senderLastName = message.getSender().getLastName();
