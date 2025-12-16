@@ -5,7 +5,7 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, View, StyleSheet, Text } from "react-native";
+import { GestureResponderEvent, View, StyleSheet } from "react-native";
 import { format } from "date-fns";
 import {
   ConversationAPIResponse,
@@ -26,7 +26,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
@@ -34,6 +34,12 @@ import { MessageHeader } from "@/components/conversations/conversation-thread/me
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment } from "@/utils/messageHelpers";
+import { TUser } from "@/types/user/types";
+import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import { router } from "expo-router";
+import { createOneToOneConversation } from "@/apis/conversation";
+import { AppText } from "@/components/AppText";
+import { CONVERSATION } from "@/constants/routes";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -61,6 +67,7 @@ interface MessageItemProps {
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
+  showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
 }
 
@@ -86,6 +93,7 @@ export const ConversationMessageItem = ({
   onUnsendMessage,
   onViewReactions,
   showSenderAvatar,
+  showSenderName,
   onNavigateToMessage,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
@@ -100,6 +108,8 @@ export const ConversationMessageItem = ({
     x: 0,
     y: 0,
   });
+  const [showMentionProfileModal, setShowMentionProfileModal] = useState(false);
+  const [selectedMentionUser, setSelectedMentionUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
@@ -239,6 +249,24 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        router.push(CONVERSATION(result.data.id));
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessageMentionedUser = useCallback(
+    (user: TUser) => {
+      setShowMentionProfileModal(false);
+      createConversation(user.id);
+    },
+    [createConversation]
+  );
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
     () => {
@@ -329,6 +357,11 @@ export const ConversationMessageItem = ({
     ]
   );
 
+  const handleMentionClick = useCallback((user: TUser) => {
+    setSelectedMentionUser(user);
+    setShowMentionProfileModal(true);
+  }, []);
+
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
     return (
@@ -353,9 +386,9 @@ export const ConversationMessageItem = ({
     return (
       <View className="flex-row justify-center items-center py-2 px-4">
         <View className="dark:bg-secondary-dark bg-secondary-light rounded-lg py-1.5 px-3 max-w-[80%]">
-          <Text className="dark:!text-gray-300 text-gray-700 text-xs text-center">
+          <AppText className="dark:!text-gray-300 text-gray-700 text-xs text-center">
             {messageContent}
-          </Text>
+          </AppText>
         </View>
       </View>
     );
@@ -380,6 +413,7 @@ export const ConversationMessageItem = ({
             <MessageHeader
               isCurrentUser={isCurrentUser}
               isGroupChat={isGroupChat}
+              showSenderName={showSenderName}
               senderName={senderName}
               messageTime={messageTime}
               messageIsUnsend={message.isUnsend}
@@ -404,6 +438,7 @@ export const ConversationMessageItem = ({
               isForwardedMessage={isForwardedMessage}
               attachments={attachments}
               onBubblePress={handleBubblePress}
+              onMentionClick={handleMentionClick}
             />
 
             <MessageReactions
@@ -418,6 +453,13 @@ export const ConversationMessageItem = ({
               onSelectReaction={handleSelectReaction}
               onCloseAllOverlays={onCloseAllOverlays}
               onViewReactions={handleViewReactions}
+            />
+
+            <MentionProfileModal
+              visible={showMentionProfileModal}
+              user={selectedMentionUser}
+              onClose={() => setShowMentionProfileModal(false)}
+              onMessagePress={handleMessageMentionedUser}
             />
           </View>
         </View>

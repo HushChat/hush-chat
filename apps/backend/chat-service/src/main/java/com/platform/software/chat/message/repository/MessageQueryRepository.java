@@ -4,7 +4,6 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.message.dto.MessageWindowPage;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import com.platform.software.chat.message.entity.Message;
 
 import java.util.Optional;
@@ -17,4 +16,6 @@ public interface MessageQueryRepository {
     Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant);
 
     MessageWindowPage<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long MessageId, ConversationParticipant participant);
+
+    Optional<Message> findByIdWithSenderAndConversation(Long messageId);
 }

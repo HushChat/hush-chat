@@ -2,18 +2,17 @@ import { PLATFORM_NAMES } from "@/constants/platformConstants";
 import WebTabLayout from "@/components/tab-layouts/WebTabLayout";
 import MobileTabLayout from "@/components/tab-layouts/MobileTabLayout";
 import { TabLayoutProps } from "@/types/navigation/types";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 type PlatformValue = (typeof PLATFORM_NAMES)[keyof typeof PLATFORM_NAMES];
 
-const tabLayoutsFactory: Partial<Record<PlatformValue, (props: TabLayoutProps) => JSX.Element>> & {
-  default: (props: TabLayoutProps) => JSX.Element;
-} = {
-  [PLATFORM_NAMES.WEB]: (props: TabLayoutProps) => <WebTabLayout {...props} />,
-  default: (props: TabLayoutProps) => <MobileTabLayout {...props} />,
-};
+export default function getTabLayoutByPlatform(platform: PlatformValue) {
+  return function TabLayoutWrapper(props: TabLayoutProps) {
+    const isMobileLayout = useIsMobileLayout();
 
-const getTabLayoutByPlatform = (platform: PlatformValue) => {
-  return tabLayoutsFactory[platform] || tabLayoutsFactory.default;
-};
+    const shouldRenderMobileUI = platform !== PLATFORM_NAMES.WEB || isMobileLayout;
 
-export default getTabLayoutByPlatform;
+    const LayoutComponent = shouldRenderMobileUI ? MobileTabLayout : WebTabLayout;
+    return <LayoutComponent {...props} />;
+  };
+}
