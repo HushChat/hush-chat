@@ -1,8 +1,5 @@
 package com.platform.software.chat.conversation.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,61 +9,50 @@ import com.platform.software.config.interceptors.websocket.WebSocketSessionManag
 
 @Service
 public class ConversationPublisherService {
-    private static final String CONVERSATION_INVOKE_PATH = "/topic/conversation-created";
+    private static final String CONVERSATION_INVOKE_PATH = "/topic/conversation-created/";
 
     private final ConversationUtilService conversationUtilService;
     private final WebSocketSessionManager webSocketSessionManager;
-    private final SimpMessagingTemplate template;
 
     public ConversationPublisherService(
-        ConversationUtilService conversationUtilService,
-        WebSocketSessionManager webSocketSessionManager,
-        SimpMessagingTemplate template
+            ConversationUtilService conversationUtilService,
+            WebSocketSessionManager webSocketSessionManager  
     ) {
         this.conversationUtilService = conversationUtilService;
         this.webSocketSessionManager = webSocketSessionManager;
-        this.template = template;
     }
 
     @Async
     @Transactional(readOnly = true)
     public void invokeNewConversationToParticipants(
-        Long conversationId,
-        Long actorUserId,
-        String workspaceId,
-        ConversationDTO providedDTO
-    ) {
-        // Build DTO (actor view as base)
+            Long conversationId,
+            Long actorUserId,
+            String workspaceId,
+            ConversationDTO providedDTO) {
         ConversationDTO baseDTO = providedDTO != null
-            ? providedDTO
-            : conversationUtilService.getConversationDTOOrThrow(actorUserId, conversationId);
+                ? providedDTO
+                : conversationUtilService.getConversationDTOOrThrow(actorUserId, conversationId);
 
         if (baseDTO.getParticipants() == null || baseDTO.getParticipants().isEmpty()) {
             return;
         }
 
-        // Prepare payload for chat list (minimize WS payload)
         ConversationDTO payloadDTO = new ConversationDTO(baseDTO);
         payloadDTO.setParticipants(null);
 
         for (ConversationParticipantViewDTO participant : baseDTO.getParticipants()) {
-            if (participant.getUser() == null || participant.getUser().getEmail() == null) continue;
-
-            // Usually don't send the "conversation-created" event back to creator
-            if (participant.getUser().getId() != null && participant.getUser().getId().equals(actorUserId)) {
+            if (participant.getUser() == null || participant.getUser().getEmail() == null)
                 continue;
-            }
 
-            String email = participant.getUser().getEmail();
-            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-            String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
+            Long participantUserId = participant.getUser().getId();
+            if (participantUserId != null && participantUserId.equals(actorUserId))
+                continue;
 
-            webSocketSessionManager.getValidSession(sessionKey).ifPresent(session -> {
-                template.convertAndSend(
-                    "%s/%s".formatted(CONVERSATION_INVOKE_PATH, encodedEmail),
-                    payloadDTO
-                );
-            });
+            webSocketSessionManager.sendMessageToUser(
+                    workspaceId,
+                    participant.getUser().getEmail(),
+                    CONVERSATION_INVOKE_PATH,
+                    payloadDTO);
         }
     }
 }
