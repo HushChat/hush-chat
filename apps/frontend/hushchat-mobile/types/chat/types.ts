@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { JSX, ReactNode } from "react";
-import { TUser } from "@/types/user/types";
+import { IUser, TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
 export interface IConversation {
@@ -96,6 +96,7 @@ export enum ConversationType {
   UNREAD = "UNREAD",
   GROUPS = "GROUPS",
   MUTED = "MUTED",
+  MENTIONED = "MENTIONED",
 }
 
 export interface oneToOneChatInfo {
@@ -331,3 +332,10 @@ export const DEFAULT_CONFIG: ConversationInputConfig = {
   placeholder: "Type a message...",
   autoFocus: false,
 };
+
+export interface IMentionedMessage {
+  id: number;
+  message: IMessage;
+  mentionedUser: IUser;
+  conversation: IConversation;
+}

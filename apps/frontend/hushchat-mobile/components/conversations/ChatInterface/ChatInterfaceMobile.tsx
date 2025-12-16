@@ -60,6 +60,15 @@ export default function ChatInterfaceMobile({
         },
       },
       {
+        id: "mentioned-messages",
+        title: "Mentioned messages",
+        icon: "at-outline",
+        onPress: () => {
+          setSheetVisible(false);
+          router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
+        },
+      },
+      {
         id: "contact",
         title: "Contacts",
         icon: "chatbubble-outline",
@@ -152,6 +161,10 @@ export default function ChatInterfaceMobile({
             </View>
           </ScrollView>
         </View>
+      )}
+
+      {selectedConversationType !== ConversationType.MENTIONED && (
+        <View className="px-4 h-12"></View>
       )}
 
       {chatItemList}

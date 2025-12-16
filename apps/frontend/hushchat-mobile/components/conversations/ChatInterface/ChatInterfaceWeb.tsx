@@ -17,6 +17,7 @@ import { AllParticipants } from "@/components/conversations/AllParticipants";
 import ConversationForwardPanelWeb from "@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel";
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
+import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
 
 export default function ChatInterfaceWeb({
   chatItemList,
@@ -37,6 +38,7 @@ export default function ChatInterfaceWeb({
 
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showMentionedMessages, setShowMentionedMessages] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
 
@@ -138,6 +140,7 @@ export default function ChatInterfaceWeb({
             onRefresh={conversationsRefetch}
             isLoading={conversationsLoading}
             onCreateGroup={() => setShowCreateGroup(true)}
+            onOpenMentionedMessages={() => setShowMentionedMessages(true)}
           />
 
           {selectedConversationType === ConversationType.ALL && (
@@ -181,6 +184,14 @@ export default function ChatInterfaceWeb({
                 setShowCreateGroup(false);
               }}
               setSelectedConversation={setSelectedConversation}
+            />
+          )}
+
+          {showMentionedMessages && (
+            <MentionedMessageListView
+              visible={showMentionedMessages}
+              width={leftPaneWidth}
+              onClose={() => setShowMentionedMessages(false)}
             />
           )}
         </View>
