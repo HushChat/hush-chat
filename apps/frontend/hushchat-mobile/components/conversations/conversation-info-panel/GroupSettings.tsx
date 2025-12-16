@@ -17,6 +17,7 @@ import { PanelType } from "@/types/web-panel/types";
 import GroupPermissions from "./GroupPermissions";
 import ActionItem from "./common/ActionItem";
 import { MotionView } from "@/motion/MotionView";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
 
 interface IGroupSettingsProps {
   conversation: IConversation;
@@ -45,6 +46,8 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
     conversation?.id
   );
 
+  const { refetch: refetchConversationList } = useConversationsQuery();
+
   const updateConversation = usePatchConversationQuery(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
     () => {
@@ -61,6 +64,9 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
       setUploading,
       UploadType.GROUP
     );
+
+    refetchConversationList();
+
     if (imageResponse) {
       setImagePickerResult(imageResponse?.pickerResult);
       setSignedImageUrl(imageResponse?.uploadedImageUrl);

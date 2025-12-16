@@ -10,13 +10,11 @@ import { logError } from "@/utils/logger";
 interface IUseSendMessageHandlerParams {
   currentConversationId: number;
   currentUserId: number | null | undefined;
-  imageMessage: string;
-  setImageMessage: (text: string) => void;
   selectedMessage: IMessage | null;
   setSelectedMessage: (msg: IMessage | null) => void;
   selectedFiles: File[];
   sendMessage: UseMutateFunction<ApiResponse<unknown>, unknown, unknown, unknown>;
-  uploadFilesFromWeb: (files: File[]) => Promise<UploadResult[]>;
+  uploadFilesFromWeb: (files: File[], caption?: string) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
   updateConversationMessagesCache: (message: IMessage) => void;
 }
@@ -24,8 +22,6 @@ interface IUseSendMessageHandlerParams {
 export const useSendMessageHandler = ({
   currentConversationId,
   currentUserId,
-  imageMessage,
-  setImageMessage,
   selectedMessage,
   setSelectedMessage,
   selectedFiles,
@@ -67,7 +63,7 @@ export const useSendMessageHandler = ({
             senderId: Number(currentUserId),
             senderFirstName: "",
             senderLastName: "",
-            messageText: imageMessage || "",
+            messageText: trimmed,
             createdAt: new Date().toISOString(),
             conversationId: currentConversationId,
             messageAttachments: renamedFiles.map((file) => ({
@@ -84,10 +80,9 @@ export const useSendMessageHandler = ({
           updateConversationsListCache(tempMessage);
 
           // Upload files
-          await uploadFilesFromWeb(renamedFiles);
+          await uploadFilesFromWeb(renamedFiles, trimmed);
 
           setSelectedMessage(null);
-          setImageMessage("");
           return;
         }
 
@@ -104,7 +99,6 @@ export const useSendMessageHandler = ({
       }
     },
     [
-      imageMessage,
       currentConversationId,
       currentUserId,
       sendMessage,
@@ -112,28 +106,21 @@ export const useSendMessageHandler = ({
       updateConversationMessagesCache,
       updateConversationsListCache,
       setSelectedMessage,
-      setImageMessage,
     ]
   );
 
-  const handleSendFiles = useCallback(() => {
-    if (!selectedFiles.length) return;
+  const handleSendFiles = useCallback(
+    (caption: string = "") => {
+      if (!selectedFiles.length) return;
 
-    void handleSendMessage(imageMessage, selectedMessage ?? undefined, selectedFiles);
+      void handleSendMessage(caption, selectedMessage ?? undefined, selectedFiles);
 
-    handleCloseImagePreview();
-    setImageMessage("");
+      handleCloseImagePreview();
 
-    if (selectedMessage) setSelectedMessage(null);
-  }, [
-    selectedFiles,
-    imageMessage,
-    selectedMessage,
-    handleSendMessage,
-    handleCloseImagePreview,
-    setImageMessage,
-    setSelectedMessage,
-  ]);
+      if (selectedMessage) setSelectedMessage(null);
+    },
+    [selectedFiles, selectedMessage, handleSendMessage, handleCloseImagePreview, setSelectedMessage]
+  );
 
   return { handleSendMessage, handleSendFiles } as const;
 };
