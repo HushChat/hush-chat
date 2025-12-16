@@ -1,7 +1,6 @@
 package com.platform.software.chat.message.repository;
 
 import com.platform.software.chat.conversation.entity.QConversation;
-import com.platform.software.chat.message.dto.MessageMentionDTO;
 import com.platform.software.chat.message.entity.MessageMention;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.message.entity.QMessageMention;
@@ -25,7 +24,7 @@ public class MessageMentionQueryRepositoryImpl implements MessageMentionQueryRep
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
-    public Page<MessageMentionDTO> findAllUserMentionsByOthers(Long mentionedUserId, Pageable pageable) {
+    public Page<MessageMention> findAllUserMentionsByOthers(Long mentionedUserId, Pageable pageable) {
         BooleanExpression whereConditions = qMessageMention.mentionedUser.id.eq(mentionedUserId);
 
         List<MessageMention> result = jpaQueryFactory
@@ -46,10 +45,6 @@ public class MessageMentionQueryRepositoryImpl implements MessageMentionQueryRep
 
         long totalCount = Objects.requireNonNullElse(total, 0L);
 
-        List<MessageMentionDTO> messageMentionDTOs = result.stream()
-                .map(MessageMentionDTO::new)
-                .toList();
-
-        return new PageImpl<>(messageMentionDTOs, pageable, totalCount);
+        return new PageImpl<>(result, pageable, totalCount);
     }
 }
