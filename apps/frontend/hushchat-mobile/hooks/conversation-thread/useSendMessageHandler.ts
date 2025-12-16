@@ -32,7 +32,7 @@ export const useSendMessageHandler = ({
   uploadFilesFromWeb,
   handleCloseImagePreview,
 }: IUseSendMessageHandlerParams) => {
-  const { updateConversationMessagesCache, updateConversationsListCache } =
+  const { updateConversationMessagesCache, updateConversationsListCache, invalidateQuery } =
     useConversationMessagesQuery(currentConversationId);
 
   const handleSendMessage = useCallback(
@@ -76,21 +76,23 @@ export const useSendMessageHandler = ({
               mimeType: file.type,
             })),
             hasAttachment: true,
+            parentMessageId: parentMessage?.id,
           };
 
-          // Optimistic updates
           updateConversationMessagesCache(tempMessage);
           updateConversationsListCache(tempMessage);
 
-          // Upload files
-          await uploadFilesFromWeb(renamedFiles);
+          const uploadResults = await uploadFilesFromWeb(renamedFiles);
+
+          if (uploadResults && uploadResults.some((r) => r.success)) {
+            await invalidateQuery();
+          }
 
           setSelectedMessage(null);
           setImageMessage("");
           return;
         }
 
-        // Send normal text message
         sendMessage({
           conversationId: currentConversationId,
           message: trimmed,
@@ -110,6 +112,7 @@ export const useSendMessageHandler = ({
       uploadFilesFromWeb,
       updateConversationMessagesCache,
       updateConversationsListCache,
+      invalidateQuery,
       setSelectedMessage,
       setImageMessage,
     ]
