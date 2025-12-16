@@ -5,12 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
+import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 
 @Service
 public class ConversationPublisherService {
-    private static final String CONVERSATION_INVOKE_PATH = "/topic/conversation-created/";
-
     private final ConversationUtilService conversationUtilService;
     private final WebSocketSessionManager webSocketSessionManager;
 
@@ -58,7 +57,7 @@ public class ConversationPublisherService {
             webSocketSessionManager.sendMessageToUser(
                     workspaceId,
                     participant.getUser().getEmail(),
-                    CONVERSATION_INVOKE_PATH,
+                    WebSocketTopicConstants.CONVERSATION_CREATED,
                     payloadDTO);
         }
     }

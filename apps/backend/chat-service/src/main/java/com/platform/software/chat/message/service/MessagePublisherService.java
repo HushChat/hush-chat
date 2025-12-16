@@ -7,6 +7,7 @@ import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.user.service.UserUtilService;
+import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import org.springframework.scheduling.annotation.Async;
@@ -19,7 +20,6 @@ import java.util.List;
 
 @Service
 public class MessagePublisherService {
-    private final String MESSAGE_INVOKE_PATH = "/topic/message-received/";
 
     private final ConversationUtilService conversationUtilService;
     private final WebSocketSessionManager webSocketSessionManager;
@@ -89,7 +89,7 @@ public class MessagePublisherService {
                 webSocketSessionManager.sendMessageToUser(
                     workspaceId,
                     email,
-                    MESSAGE_INVOKE_PATH,
+                    WebSocketTopicConstants.MESSAGE_RECEIVED,
                     payload
                 );
             });
