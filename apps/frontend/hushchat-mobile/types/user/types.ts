@@ -1,6 +1,7 @@
 import * as yup from "yup";
 import type { Asserts } from "yup";
 import { passwordRules } from "@/utils/passwordRules";
+import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
 
 export const UserSchema = yup.object({
   id: yup.number().nullable().notRequired(),
@@ -10,6 +11,11 @@ export const UserSchema = yup.object({
   active: yup.boolean().required(),
   signedImageUrl: yup.string().nullable().notRequired(),
   workspaceName: yup.string().nullable().notRequired(),
+  workspaceRole: yup
+    .mixed<WorkspaceUserRole>()
+    .oneOf(Object.values(WorkspaceUserRole))
+    .nullable()
+    .notRequired(),
 });
 
 export const RegisterUser = yup.object({

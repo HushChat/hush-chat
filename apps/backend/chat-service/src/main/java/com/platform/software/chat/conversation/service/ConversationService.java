@@ -627,29 +627,21 @@ public class ConversationService {
                     return dto;
                 }
 
-                List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                if (matchedMessage.getParentMessage() != null) {
+                    List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage().getAttachments();
 
-                if (attachments == null || attachments.isEmpty()) {
-                    return dto;
-                }
+                    if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
+                        MessageAttachment parentMessageAttachment = parentMessageAttachments.getFirst();
 
-                for (MessageAttachment attachment : attachments) {
-                    try {
-                        String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
-
-                        MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
-                        messageAttachmentDTO.setId(attachment.getId());
-                        messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                        messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
-                        messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
-                        attachmentDTOs.add(messageAttachmentDTO);
-                    } catch (Exception e) {
-                        logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
-                        throw new CustomInternalServerErrorException("Failed to get conversation!");
+                        List<MessageAttachmentDTO> enrichedParentMessageAttachmentDTO = conversationUtilService.getEnrichedMessageAttachmentsDTO(List.of(parentMessageAttachment));
+                        dto.getParentMessage().setMessageAttachments(enrichedParentMessageAttachmentDTO);
                     }
                 }
-                dto.setMessageAttachments(attachmentDTOs);
+
+                List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService.getEnrichedMessageAttachmentsDTO(attachments);
+                dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
+
                 return dto;
             })
             .collect(Collectors.toList());
@@ -1171,6 +1163,7 @@ public class ConversationService {
         dto.setBlocked(meta.isBlocked());
         dto.setPinned(me.getIsPinned());
         dto.setFavorite(me.getIsFavorite());
+        dto.setMutedUntil(me.getMutedUntil()); 
         return dto;
     }
 

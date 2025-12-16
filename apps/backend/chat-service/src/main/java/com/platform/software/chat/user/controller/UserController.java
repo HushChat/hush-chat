@@ -87,7 +87,7 @@ public class UserController {
     @ApiOperation(value = "Get logged in user", response = UserViewDTO.class)
     @GetMapping("whoami")
     public ResponseEntity<UserViewDTO> getLoggedInUser(@AuthenticatedUser UserDetails authenticatedUser) {
-        UserViewDTO user = userService.findUserById(authenticatedUser.getId());
+        UserViewDTO user = userService.findUserById(authenticatedUser.getId(), authenticatedUser.getWorkspaceId());
         return ResponseEntity.ok(user);
     }
 
