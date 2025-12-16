@@ -1,5 +1,6 @@
 import { createAudioPlayer, type AudioPlayer } from "expo-audio";
 import { logError } from "@/utils/logger";
+import { useConversationStore } from "@/store/conversation/useConversationStore"; // Import the store
 
 let messageSound: AudioPlayer | null = null;
 
@@ -12,9 +13,13 @@ export const loadMessageSound = async () => {
 
 export const playMessageSound = async () => {
   try {
+    const { isSoundEnabled } = useConversationStore.getState();
+
+    if (!isSoundEnabled) {
+      return;
+    }
     if (!messageSound) await loadMessageSound();
     if (messageSound) {
-      // Reset to beginning and play (equivalent to replayAsync)
       messageSound.seekTo(0);
       messageSound.play();
     }

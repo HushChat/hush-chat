@@ -32,7 +32,14 @@ export default function ChatInterfaceMobile({
 }: ChatComponentProps) {
   const insets = useSafeAreaInsets();
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
-  const { selectedConversationType, setSelectedConversationType } = useConversationStore();
+
+  const {
+    selectedConversationType,
+    setSelectedConversationType,
+    isSoundEnabled,
+    toggleSoundEnabled,
+  } = useConversationStore();
+
   const { workspaces } = useUserWorkspacesQuery();
 
   useEffect(() => {
@@ -117,6 +124,18 @@ export default function ChatInterfaceMobile({
           </View>
 
           <WebSocketStatusIndicator />
+
+          <TouchableOpacity
+            onPress={toggleSoundEnabled}
+            activeOpacity={DEFAULT_ACTIVE_OPACITY}
+            className="ml-2 h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <Ionicons
+              name={isSoundEnabled ? "volume-high-outline" : "volume-mute-outline"}
+              size={24}
+              color="#6B7280"
+            />
+          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setSheetVisible(true)}

@@ -11,6 +11,8 @@ export interface ConversationState {
   selectedMessageIds: Set<number>;
   setSelectedMessageIds: (ids: Set<number>) => void;
   resetState: () => void;
+  isSoundEnabled: boolean;
+  toggleSoundEnabled: () => void;
 }
 
 export const createConversationSlice: StateCreator<ConversationState> = (
@@ -30,6 +32,8 @@ export const createConversationSlice: StateCreator<ConversationState> = (
       selectionMode: false,
       selectedMessageIds: new Set<number>(),
     }),
+  isSoundEnabled: true,
+  toggleSoundEnabled: () => set((state) => ({ isSoundEnabled: !state.isSoundEnabled })),
 });
 
 export const selectedConversationType = (state: ConversationState) =>
