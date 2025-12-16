@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { TUser } from "@/types/user/types";
 import ProfileCardModal from "@/components/ProfileCardModal";
 
@@ -17,6 +17,18 @@ export const MentionProfileModal: React.FC<IMentionProfileModalProps> = ({
   onMessagePress,
   onCallPress,
 }) => {
+  const handleMessagePress = useCallback(() => {
+    if (user) {
+      onMessagePress(user);
+    }
+  }, [onMessagePress, user]);
+
+  const handleCallPress = useCallback(() => {
+    if (user && onCallPress) {
+      onCallPress(user);
+    }
+  }, [onCallPress, user]);
+
   if (!user) return null;
 
   return (
@@ -26,11 +38,11 @@ export const MentionProfileModal: React.FC<IMentionProfileModalProps> = ({
       data={{
         name: `${user.firstName} ${user.lastName}`.trim(),
         imageUrl: user.signedImageUrl,
-        secondaryText: user.username,
+        username: user.username,
         isGroup: false,
       }}
-      onMessagePress={onMessagePress ? () => onMessagePress(user) : undefined}
-      onCallPress={onCallPress ? () => onCallPress(user) : undefined}
+      onMessagePress={handleMessagePress}
+      onCallPress={onCallPress ? handleCallPress : undefined}
     />
   );
 };

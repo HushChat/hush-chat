@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Pressable, GestureResponderEvent, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Pressable, GestureResponderEvent } from "react-native";
 import React, { useCallback, useState, useRef } from "react";
 import { IConversation } from "@/types/chat/types";
 import { getLastMessageTime } from "@/utils/commonUtils";
@@ -86,7 +86,7 @@ const ConversationListItem = ({
             </AppText>
             <View className="flex-row items-center gap-1">
               {conversation.pinnedByLoggedInUser && (
-                <View style={styles.pinRotate}>
+                <View className="rotate-45">
                   <MaterialIcons name="push-pin" size={14} color="#3B82F6" />
                 </View>
               )}
@@ -127,7 +127,7 @@ const ConversationListItem = ({
           name: conversation.name,
           imageUrl: conversation.signedImageUrl,
           isGroup: conversation.isGroup,
-          secondaryText: secondaryText,
+          username: secondaryText,
         }}
       />
     </>
@@ -135,9 +135,3 @@ const ConversationListItem = ({
 };
 
 export default ConversationListItem;
-
-const styles = StyleSheet.create({
-  pinRotate: {
-    transform: [{ rotate: "45deg" }],
-  },
-});

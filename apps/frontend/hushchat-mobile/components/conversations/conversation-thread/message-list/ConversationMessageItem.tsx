@@ -39,6 +39,7 @@ import { MentionProfileModal } from "@/components/conversations/conversation-thr
 import { router } from "expo-router";
 import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
+import { CONVERSATION } from "@/constants/routes";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -250,10 +251,7 @@ export const ConversationMessageItem = ({
     mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
     onSuccess: (result) => {
       if (result.data) {
-        router.push({
-          pathname: "/conversations/[id]",
-          params: { id: String(result.data.id) },
-        });
+        router.push(CONVERSATION(result.data.id));
       } else if (result.error) {
         ToastUtils.error(result.error);
       }
