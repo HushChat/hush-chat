@@ -34,10 +34,9 @@ const getFileCategory = (file: File): "image" | "document" | "invalid" => {
 
   const extension = file.name.split(".").pop()?.toLowerCase();
   if (extension) {
-    const archiveExtensions = ["zip", "rar", "7z", "gz", "tar"];
-    const docExtensions = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv"];
+    const docExtensions = ["pdf", "doc", "docx", "xls", "xlsx", "txt"];
 
-    if (archiveExtensions.includes(extension) || docExtensions.includes(extension)) {
+    if (docExtensions.includes(extension)) {
       return "document";
     }
   }
