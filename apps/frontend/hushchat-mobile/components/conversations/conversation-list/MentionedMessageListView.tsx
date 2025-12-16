@@ -8,6 +8,9 @@ import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import FormattedText from "@/components/FormattedText";
+import { formatDateTime } from "@/utils/commonUtils";
 
 type TMentionedMessagesOverlay = {
   visible: boolean;
@@ -47,9 +50,39 @@ export default function MentionedMessageListView({
   }
 
   const render = ({ item }: { item: IMentionedMessage }) => {
+    const senderName = item.message.senderFirstName + " " + item.message.senderLastName;
+
     return (
-      <View className="flex-row ml-3">
-        <AppText>{item.id}</AppText>
+      <View className="flex-col ml-3 justify-center mb-4 p-1">
+        <View className="flex-row items-center gap-x-2">
+          <AppText className="font-bold">{item.conversation.name}</AppText>
+          <AppText>{formatDateTime(item.message.createdAt)}</AppText>
+        </View>
+        <AppText>
+          <AppText className="font-bold">{senderName}</AppText>
+          {" mentioned you"}
+        </AppText>
+        <View className="flex-row items-center">
+          {item.message.senderSignedImageUrl ? (
+            <View className="mr-2 pt-1 w-10 h-10">
+              <InitialsAvatar
+                name={senderName}
+                size={AvatarSize.extraSmall}
+                imageUrl={item.message.senderSignedImageUrl}
+              />
+            </View>
+          ) : (
+            <InitialsAvatar name={senderName} size={AvatarSize.extraSmall} />
+          )}
+          <View className="flex-1 pr-2">
+            <FormattedText
+              text={item.message.messageText}
+              mentions={[item.mentionedUser]}
+              isCurrentUser={false}
+            />
+          </View>
+        </View>
+        <View className="h-[1px] bg-gray-200 dark:bg-gray-700 w-[90%] self-center mt-3" />
       </View>
     );
   };

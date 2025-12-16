@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { JSX, ReactNode } from "react";
-import { IUser, TUser } from "@/types/user/types";
+import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
 export interface IConversation {
@@ -336,6 +336,6 @@ export const DEFAULT_CONFIG: ConversationInputConfig = {
 export interface IMentionedMessage {
   id: number;
   message: IMessage;
-  mentionedUser: IUser;
+  mentionedUser: TUser;
   conversation: IConversation;
 }
