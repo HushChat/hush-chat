@@ -3,6 +3,7 @@ import { SectionListData } from "react-native";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
 import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
 import { shouldShowSenderAvatar, shouldShowSenderName } from "@/utils/messageUtils";
+import { getGroupMessages, GroupedMessage, isImageGroup } from "@/hooks/useGroupedMessages";
 
 interface IRenderMessageParams {
   currentUserId: number | null | undefined;
@@ -28,9 +29,9 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
     index,
     section,
   }: {
-    item: IMessage;
+    item: GroupedMessage;
     index: number;
-    section: SectionListData<IMessage>;
+    section: SectionListData<GroupedMessage>;
   }) => {
     const {
       currentUserId,
@@ -51,7 +52,10 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
-    const isSelected = selectedMessageIds.has(Number(item.id));
+
+    // For image groups, check if ANY message in the group is selected
+    const groupMessages = getGroupMessages(item);
+    const isSelected = groupMessages.some((msg) => selectedMessageIds.has(Number(msg.id)));
 
     const showSenderAvatar = shouldShowSenderAvatar(
       section.data,
@@ -66,6 +70,30 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       !!conversationAPIResponse?.isGroup
     );
 
+    // Handle selection toggle for image groups
+    const handleToggleSelection = (messageId: number) => {
+      if (isImageGroup(item)) {
+        // Toggle all messages in the group
+        groupMessages.forEach((msg) => {
+          if (msg.id) toggleSelection(Number(msg.id));
+        });
+      } else {
+        toggleSelection(messageId);
+      }
+    };
+
+    // Handle start selection for image groups
+    const handleStartSelectionWith = (messageId: number) => {
+      if (isImageGroup(item)) {
+        // Start selection with all messages in the group
+        groupMessages.forEach((msg) => {
+          if (msg.id) startSelectionWith(Number(msg.id));
+        });
+      } else {
+        startSelectionWith(messageId);
+      }
+    };
+
     return (
       <ConversationMessageItem
         message={item}
@@ -76,8 +104,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         onMessageSelect={selectMessage}
         conversationAPIResponse={conversationAPIResponse}
         selected={isSelected}
-        onStartSelectionWith={startSelectionWith}
-        onToggleSelection={toggleSelection}
+        onStartSelectionWith={handleStartSelectionWith}
+        onToggleSelection={handleToggleSelection}
         onMessageLongPress={openActions}
         onCloseAllOverlays={closeAll}
         onMessagePin={togglePin}
@@ -87,6 +115,9 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         showSenderAvatar={showSenderAvatar}
         showSenderName={showSenderName}
         onNavigateToMessage={onNavigateToMessage}
+        // Pass grouped messages info
+        isImageGroup={isImageGroup(item)}
+        groupedMessages={isImageGroup(item) ? groupMessages : undefined}
       />
     );
   };

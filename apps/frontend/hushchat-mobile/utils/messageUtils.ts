@@ -2,6 +2,7 @@ import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { IMessage } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
+import { groupConsecutiveImageMessages, GroupedMessage } from "@/hooks/useGroupedMessages";
 
 interface IGroupedMessages {
   title: string;
@@ -116,4 +117,60 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
     console.warn("Invalid URL encountered:", fullUrl);
     return null;
   }
+};
+
+type DateSection = {
+  title: string;
+  data: GroupedMessage[];
+};
+
+/**
+ * Groups messages by date AND groups consecutive images within each day
+ * @param messages - Raw messages from API
+ * @param currentUserId - Current user ID for determining message ownership
+ * @returns Sections for SectionList with image groups
+ */
+export const groupMessagesByDateWithImageGroups = (
+  messages: IMessage[],
+  currentUserId: number
+): DateSection[] => {
+  if (!messages || messages.length === 0) return [];
+
+  // First, group by date
+  const dateGroups = new Map<string, IMessage[]>();
+
+  messages.forEach((message) => {
+    const messageDate = parseISO(message.createdAt);
+    let dateKey: string;
+
+    if (isToday(messageDate)) {
+      dateKey = "Today";
+    } else if (isYesterday(messageDate)) {
+      dateKey = "Yesterday";
+    } else {
+      dateKey = format(messageDate, "MMMM d, yyyy");
+    }
+
+    if (!dateGroups.has(dateKey)) {
+      dateGroups.set(dateKey, []);
+    }
+    dateGroups.get(dateKey)!.push(message);
+  });
+
+  // Then, within each date group, group consecutive images
+  const sections: DateSection[] = [];
+
+  dateGroups.forEach((messagesInDay, dateTitle) => {
+    const groupedMessages = groupConsecutiveImageMessages(messagesInDay, {
+      currentUserId,
+      maxTimeGapMs: 60000, // 60 seconds
+    });
+
+    sections.push({
+      title: dateTitle,
+      data: groupedMessages,
+    });
+  });
+
+  return sections;
 };
