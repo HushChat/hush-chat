@@ -31,8 +31,8 @@ public class MessageMentionQueryRepositoryImpl implements MessageMentionQueryRep
         List<MessageMention> result = jpaQueryFactory
                 .select(qMessageMention)
                 .from(qMessageMention)
-                .leftJoin(qMessageMention.message, qMessage)
-                .leftJoin(qMessage.conversation, qConversation)
+                .leftJoin(qMessageMention.message, qMessage).fetchJoin()
+                .leftJoin(qMessage.conversation, qConversation).fetchJoin()
                 .where(whereConditions)
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
