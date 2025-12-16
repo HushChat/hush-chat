@@ -111,12 +111,8 @@ public class MessageUtilService {
 
         validateInteractionAllowed(conversation, senderUserId);
 
-        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
+        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType, message.getGifUrl());
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
-
-        if (message.getGifUrl() != null && !message.getGifUrl().isEmpty()) {
-            newMessage.setGifUrl(message.getGifUrl());
-        }
 
         try {
             return messageRepository.saveMessageWthSearchVector(newMessage);

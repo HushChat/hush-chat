@@ -55,7 +55,6 @@ public class MessageService {
     private final MessageHistoryRepository messageHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
-    private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -65,12 +64,13 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
-    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType) {
+    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType, String gifUrl) {
         Message newMessage = new Message();
         newMessage.setMessageText(messageText);
         newMessage.setConversation(conversation);
         newMessage.setSender(loggedInUser);
         newMessage.setMessageType(messageType);
+        newMessage.setGifUrl(gifUrl);
         return newMessage;
     }
 
@@ -268,7 +268,7 @@ public class MessageService {
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
             messages.forEach(message -> {
-                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType());
+                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType(), message.getGifUrl());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
                 forwardingMessages.add(newMessage);
@@ -280,7 +280,8 @@ public class MessageService {
                         messageForwardRequestDTO.getCustomText(),
                         targetConversation.getModel(),
                         loggedInUser,
-                        MessageTypeEnum.TEXT
+                        MessageTypeEnum.TEXT,
+                        null
                 );
                 forwardingMessages.add(customMessage);
             }

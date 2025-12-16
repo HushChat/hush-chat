@@ -338,3 +338,9 @@ export const DEFAULT_CONFIG: ConversationInputConfig = {
   placeholder: "Type a message...",
   autoFocus: false,
 };
+
+export interface GifPickerProps {
+  visible: boolean;
+  onClose: () => void;
+  onGifSelect: (gifUrl: string) => void;
+}
