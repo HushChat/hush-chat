@@ -7,6 +7,9 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { PaginatedResponse } from "@/types/common/types";
 import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants/queryKeys";
 import type { IBasicMessage, IMessage, ConversationAPIResponse } from "@/types/chat/types";
+import { PLATFORM } from "@/constants/platformConstants";
+import * as Clipboard from "expo-clipboard";
+import { logError } from "@/utils/logger";
 
 export function useMessageActions(
   conversation: ConversationAPIResponse | undefined,
@@ -98,9 +101,35 @@ export function useMessageActions(
     [unsend]
   );
 
+  const copyMessageUrl = useCallback(
+    async (message: IBasicMessage) => {
+      const conversationId = conversation?.id;
+      if (!conversationId) return;
+
+      let url: string;
+      if (PLATFORM.IS_WEB) {
+        const baseUrl = window.location.origin;
+        url = `${baseUrl}/conversations/${conversationId}?messageId=${message.id}`;
+      } else {
+        // TODO: Handle mobile url creation
+        url = `yourapp://conversation-threads?conversationId=${conversationId}&messageId=${message.id}`;
+      }
+
+      try {
+        await Clipboard.setStringAsync(url);
+        ToastUtils.success("Message link copied to clipboard");
+      } catch (error) {
+        ToastUtils.error("Failed to copy link");
+        logError("Failed to copy link", error);
+      }
+    },
+    [conversation?.id]
+  );
+
   return {
     togglePin,
     unSendMessage,
     selectedPinnedMessage,
+    copyMessageUrl,
   };
 }

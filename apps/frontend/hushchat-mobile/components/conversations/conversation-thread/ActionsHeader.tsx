@@ -15,6 +15,7 @@ interface ActionsHeaderProps {
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
+  onCopyUrl: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -25,6 +26,7 @@ const ActionsHeader = ({
   onForward,
   onUnsend,
   onCopy,
+  onCopyUrl,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
@@ -64,6 +66,10 @@ const ActionsHeader = ({
 
           {message.senderId === Number(user.id) && !message.isUnsend && (
             <HeaderAction iconName="trash-outline" onPress={() => onUnsend(message)} />
+          )}
+
+          {!message.isUnsend && (
+            <HeaderAction iconName="link-outline" onPress={() => onCopyUrl(message)} />
           )}
 
           <HeaderAction

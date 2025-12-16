@@ -56,7 +56,10 @@ const ConversationMessageList = ({
   const sectionListRef = useRef<SectionList>(null);
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
-  const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
+  const { togglePin, unSendMessage, copyMessageUrl } = useMessageActions(
+    conversationAPIResponse,
+    currentUserId
+  );
 
   const {
     selectedActionMessage,
@@ -158,6 +161,7 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        copyMessageUrl,
       }),
     [
       currentUserId,
@@ -175,6 +179,7 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      copyMessageUrl,
     ]
   );
 
@@ -201,6 +206,10 @@ const ConversationMessageList = ({
           }}
           onUnsend={(messages) => unSendMessage(messages)}
           onCopy={(message) => copyToClipboard(message.messageText)}
+          onCopyUrl={(message) => {
+            copyMessageUrl(message);
+            closeActions();
+          }}
         />
       )}
 

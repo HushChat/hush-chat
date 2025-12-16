@@ -69,6 +69,7 @@ interface MessageItemProps {
   showSenderAvatar: boolean;
   showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  onCopyMessageUrl: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -95,6 +96,7 @@ export const ConversationMessageItem = ({
   showSenderAvatar,
   showSenderName,
   onNavigateToMessage,
+  onCopyMessageUrl,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -206,6 +208,14 @@ export const ConversationMessageItem = ({
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
+      });
+    }
+    if (!message.isUnsend) {
+      options.push({
+        id: 5,
+        name: "Copy Link",
+        iconName: "link-outline" as keyof typeof Ionicons.glyphMap,
+        action: () => onCopyMessageUrl(message),
       });
     }
     return options;

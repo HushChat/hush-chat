@@ -66,6 +66,8 @@ const ConversationThreadScreen = ({
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
+  const { messageId } = useLocalSearchParams<{ messageId?: string }>();
+  const targetMessageIdFromUrl = messageId ? Number(messageId) : undefined;
   const {
     user: { id: currentUserId, email },
   } = useUserStore();
@@ -168,6 +170,12 @@ const ConversationThreadScreen = ({
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
+
+  useEffect(() => {
+    if (targetMessageIdFromUrl) {
+      handleNavigateToMessage(targetMessageIdFromUrl);
+    }
+  }, [targetMessageIdFromUrl]);
 
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
