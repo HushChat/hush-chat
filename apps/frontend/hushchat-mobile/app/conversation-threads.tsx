@@ -192,8 +192,6 @@ const ConversationThreadScreen = ({
   const {
     selectedFiles,
     showImagePreview,
-    imageMessage,
-    setImageMessage,
     open: handleOpenImagePicker,
     close: handleCloseImagePreview,
     removeAt: handleRemoveFile,
@@ -225,7 +223,6 @@ const ConversationThreadScreen = ({
       if (results?.some((r) => r.success)) {
         refetchConversationMessages();
         setSelectedMessage(null);
-        setImageMessage("");
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
@@ -238,9 +235,7 @@ const ConversationThreadScreen = ({
     selectedMessage?.id,
     refetchConversationMessages,
     setSelectedMessage,
-    setImageMessage,
-    uploadError,
-  ]);
+     uploadError]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
@@ -249,7 +244,6 @@ const ConversationThreadScreen = ({
       if (results?.some((r) => r.success)) {
         await refetchConversationMessages();
         setSelectedMessage(null);
-        setImageMessage("");
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
@@ -501,11 +495,15 @@ const ConversationThreadScreen = ({
                 {showImagePreview ? (
                   <FilePreviewOverlay
                     files={selectedFiles}
+                    conversationId={currentConversationId}
                     onClose={handleCloseImagePreview}
                     onRemoveFile={handleRemoveFile}
                     onSendFiles={sendAttachmentBatch}
                     onFileSelect={handleAddMoreFiles}
                     isSending={isSendingMessage || isUploadingImages}
+                    isGroupChat={isGroupChat}
+                    replyToMessage={selectedMessage}
+                    onCancelReply={handleCancelReply}
                   />
                 ) : (
                   <>
