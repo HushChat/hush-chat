@@ -18,6 +18,11 @@ import { getCriteria } from "@/utils/conversationUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useUserStore } from "@/store/user/useUserStore";
 import { appendToOffsetPaginatedCache } from "@/query/config/appendToOffsetPaginatedCache";
+import {
+  CONVERSATION_EVENTS,
+  USER_EVENTS,
+  WEBSOCKET_EVENTS,
+} from "@/constants/ws/webSocketEventKeys";
 
 const PAGE_SIZE = 20;
 
@@ -135,10 +140,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     };
 
-    eventBus.on("websocket:message", handleIncomingWebSocketConversation);
+    eventBus.on(WEBSOCKET_EVENTS.MESSAGE, handleIncomingWebSocketConversation);
 
     return () => {
-      eventBus.off("websocket:message", handleIncomingWebSocketConversation);
+      eventBus.off(WEBSOCKET_EVENTS.MESSAGE, handleIncomingWebSocketConversation);
     };
   }, []);
 
@@ -155,10 +160,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       setCreatedConversation(conversation);
     };
 
-    eventBus.on("conversation:created", handleConversationCreated);
+    eventBus.on(CONVERSATION_EVENTS.CREATED, handleConversationCreated);
 
     return () => {
-      eventBus.off("conversation:created", handleConversationCreated);
+      eventBus.off(CONVERSATION_EVENTS.CREATED, handleConversationCreated);
     };
   }, []);
 
@@ -226,10 +231,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     };
 
-    eventBus.on("user:presence", handleIncomingUserStatusUpdates);
+    eventBus.on(USER_EVENTS.PRESENCE, handleIncomingUserStatusUpdates);
 
     return () => {
-      eventBus.off("user:presence", handleIncomingUserStatusUpdates);
+      eventBus.off(USER_EVENTS.PRESENCE, handleIncomingUserStatusUpdates);
     };
   }, []);
 
