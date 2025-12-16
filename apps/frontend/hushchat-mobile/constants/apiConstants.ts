@@ -16,12 +16,13 @@ export const USER_API_BASE = "/users";
 export const MESSAGE_API_BASE = "/messages";
 export const SEARCH_API_BASE = "/search";
 export const WORKSPACES_API_BASE = "/workspaces";
+export const WORKSPACE_ADMIN_API_BASE = "/admin/workspace";
 
 export const WORKSPACE_ENDPOINTS = {
   GET: `${WORKSPACES_API_BASE}/my-workspaces`,
   REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
-  INVITE_TO_WORKSPACE: `${WORKSPACES_API_BASE}/invite`,
+  INVITE_TO_WORKSPACE: `${WORKSPACE_ADMIN_API_BASE}/invite`,
 };
 
 export const SETTINGS_API_BASE = "/settings";
