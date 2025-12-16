@@ -5,7 +5,10 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.QChatUser;
+import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
+import com.platform.software.platform.workspaceuser.entity.QWorkspaceUser;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -74,5 +79,17 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
         Long total = countQuery.fetchOne();
 
         return new PageImpl<>(users, pageable, total != null ? total : 0L);
+    }
+
+    @Override
+    public List<ChatUser> fetchChatUsersByEmails(List<String> emails) {
+
+        if (emails.isEmpty()) return Collections.emptyList();
+
+        return queryFactory
+                .select(chatUser)
+                .from(chatUser)
+                .where(chatUser.email.in(emails))
+                .fetch();
     }
 }

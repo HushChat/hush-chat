@@ -6,6 +6,8 @@ import { TConversation } from "@/components/ConversationsMultiSelect";
 import { EMPTY_SET } from "@/constants/constants";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getCriteria } from "@/utils/conversationUtils";
+import { router } from "expo-router";
+import { CONVERSATION } from "@/constants/routes";
 
 export const useForwardMessageHandler = (onSuccess?: () => void) => {
   const { selectedMessageIds, setSelectionMode, setSelectedMessageIds, selectedConversationType } =
@@ -32,6 +34,10 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
     () => {
       resetSelection();
       onSuccess?.();
+      if (selectedConversations.length > 0) {
+        const lastConversation = selectedConversations[selectedConversations.length - 1];
+        router.replace(CONVERSATION(lastConversation.id));
+      }
     },
     () => {
       ToastUtils.error(`Failed to forward message${selectedCount > 1 ? "s" : ""}`);
@@ -39,9 +45,20 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
   );
 
   const handleSend = () => {
+    const conversationIds: number[] = [];
+    const userIds: number[] = [];
+
+    selectedConversations.forEach((item) => {
+      if ("username" in item) {
+        userIds.push(Number(item.id));
+      } else {
+        conversationIds.push(Number(item.id));
+      }
+    });
     forwardMessage({
       forwardedMessageIds: Array.from(selectedMessageIds),
-      conversationIds: selectedConversations.map((conversation) => Number(conversation.id)),
+      conversationIds: conversationIds.length > 0 ? conversationIds : undefined,
+      userIds: userIds.length > 0 ? userIds : undefined,
       customText: customText,
     });
   };

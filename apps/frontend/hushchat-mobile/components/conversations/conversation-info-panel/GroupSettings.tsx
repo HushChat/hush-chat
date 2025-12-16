@@ -1,11 +1,4 @@
 import { Image, TouchableOpacity, View, Dimensions, StyleSheet } from "react-native";
-import Animated, {
-  useSharedValue,
-  withTiming,
-  withDelay,
-  useAnimatedStyle,
-  Easing,
-} from "react-native-reanimated";
 import ChatInfoNameBar from "@/components/conversations/conversation-info-panel/common/ChatInfoNameBar";
 import React, { useEffect, useRef, useState } from "react";
 import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
@@ -19,19 +12,23 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { usePatchConversationQuery } from "@/query/post/queries";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
 import { AppText, AppTextInput } from "@/components/AppText";
+import useWebPanelManager from "@/hooks/useWebPanelManager";
+import { PanelType } from "@/types/web-panel/types";
+import GroupPermissions from "./GroupPermissions";
+import ActionItem from "./common/ActionItem";
+import { MotionView } from "@/motion/MotionView";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
 
-interface GroupSettingsProps {
+interface IGroupSettingsProps {
   conversation: IConversation;
   onClose: () => void;
   visible: boolean;
 }
 
-export default function GroupSettings({ conversation, onClose, visible }: GroupSettingsProps) {
+export default function GroupSettings({ conversation, onClose, visible }: IGroupSettingsProps) {
   const { user } = useUserStore();
 
   const screenWidth = Dimensions.get("window").width;
-  const translateX = useSharedValue(screenWidth);
-  const opacity = useSharedValue(0);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [newTitle, setNewTitle] = useState<string>(conversation.name ?? "");
@@ -42,10 +39,14 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
   const [signedImageUrl, setSignedImageUrl] = useState<string | null>(conversation.signedImageUrl);
   const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | undefined>();
   const isInitialMount = useRef(true);
+  const { activePanel, isPanelContentReady, openPanel, closePanel } =
+    useWebPanelManager(screenWidth);
 
   const { refetchConversation, conversationAPILoading } = useConversationByIdQuery(
     conversation?.id
   );
+
+  const { refetch: refetchConversationList } = useConversationsQuery();
 
   const updateConversation = usePatchConversationQuery(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
@@ -63,6 +64,9 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
       setUploading,
       UploadType.GROUP
     );
+
+    refetchConversationList();
+
     if (imageResponse) {
       setImagePickerResult(imageResponse?.pickerResult);
       setSignedImageUrl(imageResponse?.uploadedImageUrl);
@@ -87,37 +91,20 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
     });
   };
 
-  useEffect(() => {
-    if (visible) {
-      translateX.value = withTiming(0, {
-        duration: 240,
-        easing: Easing.out(Easing.cubic),
-      });
-      opacity.value = withDelay(
-        40,
-        withTiming(1, { duration: 160, easing: Easing.out(Easing.quad) })
-      );
-    } else {
-      translateX.value = withTiming(screenWidth, {
-        duration: 200,
-        easing: Easing.in(Easing.cubic),
-      });
-      opacity.value = withTiming(0, {
-        duration: 120,
-        easing: Easing.in(Easing.quad),
-      });
-    }
-  }, [visible, screenWidth, translateX, opacity]);
-
-  const containerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: opacity.value,
-  }));
+  const handleGroupPermissions = () => {
+    openPanel(PanelType.GROUP_PERMISSIONS);
+  };
 
   return (
-    <Animated.View
+    <MotionView
+      visible={visible}
+      from={{ opacity: 0, translateX: screenWidth }}
+      to={{ opacity: 1, translateX: 0 }}
+      duration={{ enter: 240, exit: 200 }}
+      easing={{ enter: "decelerate", exit: "accelerate" }}
+      delay={40}
       pointerEvents={visible ? "auto" : "none"}
-      style={[styles.absoluteFill, containerStyle]}
+      style={styles.absoluteFill}
       className="bg-background-light dark:bg-background-dark"
     >
       <View className="flex-row justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark">
@@ -225,7 +212,25 @@ export default function GroupSettings({ conversation, onClose, visible }: GroupS
           </TouchableOpacity>
         )}
       </View>
-    </Animated.View>
+
+      <View className="mt-12 px-4">
+        <ActionItem
+          icon="shield-checkmark-outline"
+          label="Group Permissions"
+          onPress={handleGroupPermissions}
+        />
+      </View>
+
+      {isPanelContentReady && activePanel === PanelType.GROUP_PERMISSIONS && (
+        <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
+          <GroupPermissions
+            conversationId={conversation.id}
+            onClose={closePanel}
+            visible={activePanel === PanelType.GROUP_PERMISSIONS}
+          />
+        </View>
+      )}
+    </MotionView>
   );
 }
 

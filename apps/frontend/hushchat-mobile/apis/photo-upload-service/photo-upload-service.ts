@@ -18,15 +18,17 @@ export enum UploadType {
   GROUP = "group",
 }
 
-const MAX_IMAGE_KB = 1024 * 5; // 5 MB
+export const MAX_IMAGE_KB = 1024 * 5; // 5 MB
 const MAX_DOCUMENT_KB = 1024 * 10; // 10 MB
-
-const ALLOWED_DOCUMENT_TYPES = [
+export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain",
+  "application/octet-stream",
+  "*/*",
 ];
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
@@ -76,12 +78,7 @@ export const pickAndUploadImage = async (
 
     fetchData();
 
-    return {
-      uploadedImageUrl,
-      indexedFileName,
-      originalFileName,
-      pickerResult,
-    };
+    return { uploadedImageUrl, indexedFileName, originalFileName, pickerResult };
   } catch {
     return;
   } finally {
@@ -155,14 +152,13 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
   return { fileUri, fileName, fileType };
 };
 
-export function useMessageAttachmentUploader(conversationId: number, messageToSend: string) {
-  const getSignedUrls = async (files: LocalFile[]): Promise<SignedUrl[] | null> => {
+export function useMessageAttachmentUploader(conversationId: number) {
+  const getSignedUrls = async (
+    files: LocalFile[],
+    messageText: string = ""
+  ): Promise<SignedUrl[] | null> => {
     const fileNames = files.map((file) => file.name);
-    const response = await sendMessageByConversationIdFiles(
-      conversationId,
-      messageToSend,
-      fileNames
-    );
+    const response = await sendMessageByConversationIdFiles(conversationId, messageText, fileNames);
     const signed = response?.signedURLs || [];
     return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
       originalFileName: s.originalFileName,
@@ -173,17 +169,34 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
 
   const hook = useNativePickerUpload(getSignedUrls);
 
-  const pickAndUploadImages = async () =>
-    hook.pickAndUpload({
-      source: "media",
-      mediaKind: "image",
-      multiple: true,
-      maxSizeKB: MAX_IMAGE_KB,
-      allowedMimeTypes: ["image/*"],
-      allowsEditing: false,
-    });
+  const pickAndUploadImages = async (messageText: string = "") =>
+    hook.pickAndUpload(
+      {
+        source: "media",
+        mediaKind: "image",
+        multiple: true,
+        maxSizeKB: MAX_IMAGE_KB,
+        allowedMimeTypes: ["image/*"],
+        allowsEditing: false,
+      },
+      messageText
+    );
 
-  const uploadFilesFromWeb = async (files: File[]): Promise<UploadResult[]> => {
+  const pickAndUploadDocuments = async (messageText: string = "") =>
+    hook.pickAndUpload(
+      {
+        source: "document",
+        multiple: true,
+        maxSizeKB: MAX_DOCUMENT_KB,
+        allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+      },
+      messageText
+    );
+
+  const uploadFilesFromWeb = async (
+    files: File[],
+    messageText: string = ""
+  ): Promise<UploadResult[]> => {
     if (!files || files.length === 0) return [];
 
     const toLocal = (f: File): LocalFile & { _blobUrl: string } => ({
@@ -230,7 +243,7 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
     }
 
     try {
-      const results = await hook.upload(locals);
+      const results = await hook.upload(locals, messageText);
       return [...results, ...skipped];
     } finally {
       locals.forEach((lf) => {
@@ -243,5 +256,5 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
     }
   };
 
-  return { ...hook, pickAndUploadImages, uploadFilesFromWeb };
+  return { ...hook, pickAndUploadImages, pickAndUploadDocuments, uploadFilesFromWeb };
 }

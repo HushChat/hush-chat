@@ -25,12 +25,24 @@ export interface ReactionSummary {
   currentUserReaction: string;
 }
 
+export enum MessageAttachmentTypeEnum {
+  IMAGE = "IMAGE",
+  DOCUMENT = "DOCUMENT",
+}
+
 export interface IMessageAttachment {
   mimeType: string;
   id?: number;
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;
+  type: MessageAttachmentTypeEnum;
+}
+
+export enum MessageTypeEnum {
+  TEXT = "TEXT",
+  ATTACHMENT = "ATTACHMENT",
+  SYSTEM_EVENT = "SYSTEM_EVENT",
 }
 
 export interface IMessage {
@@ -50,6 +62,8 @@ export interface IMessage {
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
+  messageType?: MessageTypeEnum;
+  hasAttachment?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -80,6 +94,8 @@ export enum ConversationType {
   ARCHIVED = "ARCHIVED",
   FAVORITES = "FAVORITES",
   UNREAD = "UNREAD",
+  GROUPS = "GROUPS",
+  MUTED = "MUTED",
 }
 
 export interface oneToOneChatInfo {
@@ -221,6 +237,7 @@ export interface ISectionedSearchResult extends ISearchResults {
 export interface TMessageForward {
   forwardedMessageIds: number[];
   conversationIds: number[];
+  userIds?: number[];
   customText: string;
 }
 
@@ -264,6 +281,11 @@ export enum chatUserStatus {
   BUSY = "BUSY",
 }
 
+export interface IUserStatus {
+  conversationId: number;
+  status: chatUserStatus;
+}
+
 export interface IActionConfig {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
@@ -271,3 +293,37 @@ export interface IActionConfig {
   color?: string;
   critical?: boolean;
 }
+
+export interface ConversationInputProps {
+  conversationId: number;
+  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onOpenImagePicker?: (files: File[]) => void;
+  onOpenImagePickerNative?: () => void;
+  onOpenDocumentPickerNative?: () => void;
+  disabled?: boolean;
+  isSending?: boolean;
+  replyToMessage?: IMessage | null;
+  onCancelReply?: () => void;
+  isGroupChat?: boolean;
+  controlledValue?: string;
+  onControlledValueChange?: (text: string) => void;
+  hideSendButton?: boolean;
+}
+
+export interface ConversationInputConfig {
+  minLines: number;
+  maxLines: number;
+  lineHeight: number;
+  verticalPadding: number;
+  placeholder: string;
+  autoFocus: boolean;
+}
+
+export const DEFAULT_CONFIG: ConversationInputConfig = {
+  minLines: 1,
+  maxLines: 6,
+  lineHeight: 22,
+  verticalPadding: 12,
+  placeholder: "Type a message...",
+  autoFocus: false,
+};

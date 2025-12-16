@@ -10,6 +10,7 @@ export const staticStyles = StyleSheet.create({
   documentCardRow: {
     flexDirection: "row",
     alignItems: "center",
+    // Do NOT add width: "100%" here, let the content define the width
   },
   documentIconContainer: {
     width: 40,
@@ -25,8 +26,8 @@ export const staticStyles = StyleSheet.create({
     marginTop: 2,
   },
   documentTextContainer: {
-    flex: 1,
-    minWidth: 0,
+    flexShrink: 1,
+    justifyContent: "center",
   },
   documentTitle: {
     fontSize: 12,
@@ -38,6 +39,7 @@ export const staticStyles = StyleSheet.create({
   },
   documentDownloadContainer: {
     marginLeft: 8,
+    flexShrink: 0,
   },
 });
 

@@ -8,7 +8,6 @@ import {
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
-import { ToastUtils } from "@/utils/toastUtils";
 import { logWarn, logError } from "@/utils/logger";
 
 const storage = StorageFactory.createStorage();
@@ -113,7 +112,6 @@ export async function isTokenExpiringSoon(): Promise<boolean> {
 export async function refreshIdToken(): Promise<string | null> {
   const { refreshToken } = await getAllTokens();
   if (!refreshToken) {
-    ToastUtils.error("No refresh token available. Please log in again.");
     return null;
   }
 

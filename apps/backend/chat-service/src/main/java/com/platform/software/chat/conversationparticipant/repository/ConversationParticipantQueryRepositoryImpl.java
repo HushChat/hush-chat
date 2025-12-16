@@ -386,4 +386,54 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
                         .and(qConversationParticipant.isDeleted.eq(true)))
                 .execute();
     }
+
+    @Override
+    public Map<Long, Long> findConversationIdsByUserIds(Set<Long> userIds, Long loggedInUserId) {
+        QConversationParticipant cpTarget = new QConversationParticipant("cpTarget");
+
+        List<Tuple> rows = queryFactory
+                .select(cpTarget.user.id, qConversation.id)
+                .from(qConversation)
+                .join(qConversationParticipant).on(qConversationParticipant.conversation.id.eq(qConversation.id))
+                .join(cpTarget).on(cpTarget.conversation.id.eq(qConversation.id))
+                .where(
+                        qConversation.isGroup.eq(false),
+                        qConversationParticipant.user.id.eq(loggedInUserId),
+                        cpTarget.user.id.in(userIds)
+                )
+                .fetch();
+
+        return rows.stream()
+                .collect(Collectors.toMap(
+                        row -> row.get(cpTarget.user.id),
+                        row -> row.get(qConversation.id)
+                ));
+    }
+
+    public long chatUserIdByConversationParticipantId(Long conversationParticipantId){
+        Long userId = queryFactory
+                .select(qConversationParticipant.user.id)
+                .from(qConversationParticipant)
+                .where(qConversationParticipant.id.eq(conversationParticipantId))
+                .fetchOne();
+        return userId != null ? userId : 0L;
+    }
+
+    @Override
+    public List<Long> findOneToOneConversationIdsByUserEmail(String email) {
+        return queryFactory
+            .select(qConversationParticipant.conversation.id)
+            .from(qConversationParticipant)
+            .join(qConversationParticipant.user, qUser)
+            .join(qConversationParticipant.conversation, qConversation)
+            .where(
+                qUser.email.eq(email)
+                    .and(qConversation.isGroup.isFalse())
+                    .and(qConversation.deleted.isFalse())
+                    .and(qConversationParticipant.isActive.isTrue())
+                    .and(qConversationParticipant.isDeleted.isFalse())
+            )
+            .distinct()
+            .fetch();
+    }
 }

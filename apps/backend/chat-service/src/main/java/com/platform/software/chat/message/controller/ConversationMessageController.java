@@ -12,7 +12,6 @@ import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.platform.software.controller.external.OffsetBasedPageRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +30,11 @@ public class ConversationMessageController {
     private final ConversationService conversationService;
     private final ConversationReadStatusService conversationReadStatusService;
 
-    public ConversationMessageController(MessageService messageService, ConversationService conversationService, ConversationReadStatusService conversationReadStatusService) {
+    public ConversationMessageController(
+        MessageService messageService, 
+        ConversationService conversationService, 
+        ConversationReadStatusService conversationReadStatusService
+    ) {
         this.messageService = messageService;
         this.conversationService = conversationService;
         this.conversationReadStatusService = conversationReadStatusService;
