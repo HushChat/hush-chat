@@ -1418,7 +1418,7 @@ public class ConversationService {
     public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
         // todo - write a single function to do both at once
         conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
-        messageService.getMessageOrThrow(conversationId, messageId);
+        messageService.getMessageOrThrow(messageId);
 
         Page<ChatUser> users = conversationReadStatusRepository
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
