@@ -22,6 +22,13 @@ public class ConversationPublisherService {
         this.webSocketSessionManager = webSocketSessionManager;
     }
 
+    /**
+     * @param conversationId the ID of the conversation being created
+     * @param actorUserId    the ID of the user who initiated the conversation
+     * @param workspaceId    the workspace (tenant) identifier
+     * @param providedDTO    an optional pre-built conversation DTO to reuse;
+     *                       if {@code null}, the DTO will be fetched from persistence
+    */
     @Async
     @Transactional(readOnly = true)
     public void invokeNewConversationToParticipants(
