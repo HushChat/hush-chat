@@ -18,7 +18,7 @@ export enum UploadType {
   GROUP = "group",
 }
 
-const MAX_IMAGE_KB = 1024 * 5; // 5 MB
+export const MAX_IMAGE_KB = 1024 * 5; // 5 MB
 const MAX_DOCUMENT_KB = 1024 * 10; // 10 MB
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
@@ -152,14 +152,13 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
   return { fileUri, fileName, fileType };
 };
 
-export function useMessageAttachmentUploader(conversationId: number, messageToSend: string) {
-  const getSignedUrls = async (files: LocalFile[]): Promise<SignedUrl[] | null> => {
+export function useMessageAttachmentUploader(conversationId: number) {
+  const getSignedUrls = async (
+    files: LocalFile[],
+    messageText: string = ""
+  ): Promise<SignedUrl[] | null> => {
     const fileNames = files.map((file) => file.name);
-    const response = await sendMessageByConversationIdFiles(
-      conversationId,
-      messageToSend,
-      fileNames
-    );
+    const response = await sendMessageByConversationIdFiles(conversationId, messageText, fileNames);
     const signed = response?.signedURLs || [];
     return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
       originalFileName: s.originalFileName,
@@ -170,25 +169,34 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
 
   const hook = useNativePickerUpload(getSignedUrls);
 
-  const pickAndUploadImages = async () =>
-    hook.pickAndUpload({
-      source: "media",
-      mediaKind: "image",
-      multiple: true,
-      maxSizeKB: MAX_IMAGE_KB,
-      allowedMimeTypes: ["image/*"],
-      allowsEditing: false,
-    });
+  const pickAndUploadImages = async (messageText: string = "") =>
+    hook.pickAndUpload(
+      {
+        source: "media",
+        mediaKind: "image",
+        multiple: true,
+        maxSizeKB: MAX_IMAGE_KB,
+        allowedMimeTypes: ["image/*"],
+        allowsEditing: false,
+      },
+      messageText
+    );
 
-  const pickAndUploadDocuments = async () =>
-    hook.pickAndUpload({
-      source: "document",
-      multiple: true,
-      maxSizeKB: MAX_DOCUMENT_KB,
-      allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
-    });
+  const pickAndUploadDocuments = async (messageText: string = "") =>
+    hook.pickAndUpload(
+      {
+        source: "document",
+        multiple: true,
+        maxSizeKB: MAX_DOCUMENT_KB,
+        allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+      },
+      messageText
+    );
 
-  const uploadFilesFromWeb = async (files: File[]): Promise<UploadResult[]> => {
+  const uploadFilesFromWeb = async (
+    files: File[],
+    messageText: string = ""
+  ): Promise<UploadResult[]> => {
     if (!files || files.length === 0) return [];
 
     const toLocal = (f: File): LocalFile & { _blobUrl: string } => ({
@@ -235,7 +243,7 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
     }
 
     try {
-      const results = await hook.upload(locals);
+      const results = await hook.upload(locals, messageText);
       return [...results, ...skipped];
     } finally {
       locals.forEach((lf) => {
