@@ -448,7 +448,7 @@ public class UserServiceImpl implements UserService {
 
         UserPublicProfile userPublicProfile = userInfoRepository.getPublicProfile(id);
 
-        if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty() ){
+        if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty()){
             userPublicProfile.setSignedImageUrl(
                     cloudPhotoHandlingService.getPhotoViewSignedURL(
                             userPublicProfile.getSignedImageUrl()
