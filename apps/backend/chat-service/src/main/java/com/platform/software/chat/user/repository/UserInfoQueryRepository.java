@@ -1,7 +1,7 @@
 package com.platform.software.chat.user.repository;
 
-import com.platform.software.chat.user.dto.UserPublicProfile;
+import com.platform.software.chat.user.dto.UserPublicProfileDTO;
 
 public interface UserInfoQueryRepository {
-    UserPublicProfile getPublicProfile(Long id);
+    UserPublicProfileDTO getPublicProfile(Long id);
 }

@@ -1,6 +1,6 @@
 package com.platform.software.chat.user.repository;
 
-import com.platform.software.chat.user.dto.UserPublicProfile;
+import com.platform.software.chat.user.dto.UserPublicProfileDTO;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QChatUserInfo;
 import com.platform.software.exception.CustomBadRequestException;
@@ -19,10 +19,10 @@ public class UserInfoQueryRepositoryImpl implements UserInfoQueryRepository {
     }
 
     @Override
-    public UserPublicProfile getPublicProfile(Long id) {
-        UserPublicProfile userPublicProfile = jpaQueryFactory
+    public UserPublicProfileDTO getPublicProfile(Long id) {
+        UserPublicProfileDTO userPublicProfile = jpaQueryFactory
                 .select(Projections.constructor(
-                        UserPublicProfile.class,
+                        UserPublicProfileDTO.class,
                         chatUser.id,
                         chatUser.firstName,
                         chatUser.lastName,
