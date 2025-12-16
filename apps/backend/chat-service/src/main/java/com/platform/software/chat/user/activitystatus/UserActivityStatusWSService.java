@@ -54,9 +54,9 @@ public class UserActivityStatusWSService {
 
             if (!entry.getValue().isEmpty()) {
                 template.convertAndSend(
-                        "%s/%s".formatted(WebSocketTopicConstants.ONLINE_STATUS, workspaceIdAndEmail[1]),
-                        new UserStatusDTO(entry.getValue().stream().findFirst().get(), status)
-                    );
+                    WebSocketTopicConstants.ONLINE_STATUS + workspaceIdAndEmail[1],
+                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status)
+                );
             }
         }
     }
