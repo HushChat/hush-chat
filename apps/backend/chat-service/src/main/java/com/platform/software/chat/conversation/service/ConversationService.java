@@ -1,10 +1,7 @@
 package com.platform.software.chat.conversation.service;
 
 import com.platform.software.chat.conversation.dto.*;
-import com.platform.software.chat.conversation.entity.Conversation;
-import com.platform.software.chat.conversation.entity.ConversationEvent;
-import com.platform.software.chat.conversation.entity.ConversationReport;
-import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
+import com.platform.software.chat.conversation.entity.*;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
@@ -1042,9 +1039,10 @@ public class ConversationService {
      * @param userId         the ID of the user pinning the message
      * @param conversationId the ID of the conversation
      * @param messageId      the ID of the message to pin
+     * @param durationKey    duration key for a specific time
      */
     @Transactional
-    public void togglePinMessage(Long userId, Long conversationId, Long messageId) {
+    public void togglePinMessage(Long userId, Long conversationId, Long messageId, String durationKey) {
         conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
 
         Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
@@ -1057,7 +1055,18 @@ public class ConversationService {
 
         boolean isPinningAction = !currentlyPinned;
 
+        ZonedDateTime mutedUntil = null;
+
+        if (durationKey != null && isPinningAction) {
+            PinnedDurationEnum pinnedDuration = PinnedDurationEnum.fromKey(durationKey);
+            if (pinnedDuration == null) {
+                throw new CustomBadRequestException("Invalid pinned duration: " + durationKey);
+            }
+            mutedUntil = ZonedDateTime.now().plus(pinnedDuration.getAmount(), pinnedDuration.getUnit());
+        }
+
         conversation.setPinnedMessage(isPinningAction ? message : null);
+        conversation.setPinnedMessageUntil(mutedUntil);
 
         try {
             conversationRepository.save(conversation);
