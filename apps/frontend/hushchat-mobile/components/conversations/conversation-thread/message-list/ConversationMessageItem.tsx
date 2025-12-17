@@ -26,7 +26,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
@@ -34,7 +34,12 @@ import { MessageHeader } from "@/components/conversations/conversation-thread/me
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment } from "@/utils/messageHelpers";
+import { TUser } from "@/types/user/types";
+import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import { router } from "expo-router";
+import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
+import { CONVERSATION } from "@/constants/routes";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -64,6 +69,7 @@ interface MessageItemProps {
   showSenderAvatar: boolean;
   showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -90,6 +96,7 @@ export const ConversationMessageItem = ({
   showSenderAvatar,
   showSenderName,
   onNavigateToMessage,
+  webMessageInfoPress,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -103,6 +110,8 @@ export const ConversationMessageItem = ({
     x: 0,
     y: 0,
   });
+  const [showMentionProfileModal, setShowMentionProfileModal] = useState(false);
+  const [selectedMentionUser, setSelectedMentionUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
@@ -200,6 +209,15 @@ export const ConversationMessageItem = ({
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
+
+      if (isCurrentUser && !message.isUnsend) {
+        options.push({
+          id: 4,
+          name: "Message Info",
+          iconName: "information-circle-outline",
+          action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+        });
+      }
     }
     return options;
   }, [
@@ -242,6 +260,24 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        router.push(CONVERSATION(result.data.id));
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessageMentionedUser = useCallback(
+    (user: TUser) => {
+      setShowMentionProfileModal(false);
+      createConversation(user.id);
+    },
+    [createConversation]
+  );
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
     () => {
@@ -332,6 +368,11 @@ export const ConversationMessageItem = ({
     ]
   );
 
+  const handleMentionClick = useCallback((user: TUser) => {
+    setSelectedMentionUser(user);
+    setShowMentionProfileModal(true);
+  }, []);
+
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
     return (
@@ -408,6 +449,7 @@ export const ConversationMessageItem = ({
               isForwardedMessage={isForwardedMessage}
               attachments={attachments}
               onBubblePress={handleBubblePress}
+              onMentionClick={handleMentionClick}
             />
 
             <MessageReactions
@@ -422,6 +464,13 @@ export const ConversationMessageItem = ({
               onSelectReaction={handleSelectReaction}
               onCloseAllOverlays={onCloseAllOverlays}
               onViewReactions={handleViewReactions}
+            />
+
+            <MentionProfileModal
+              visible={showMentionProfileModal}
+              user={selectedMentionUser}
+              onClose={() => setShowMentionProfileModal(false)}
+              onMessagePress={handleMessageMentionedUser}
             />
           </View>
         </View>

@@ -13,7 +13,6 @@ import { useConversationInput } from "@/hooks/conversation-input/useConversation
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
-import { CharacterCounter } from "@/components/conversation-input/CharacterCounter";
 import { FileInput } from "@/components/conversation-input/FileInput";
 
 const ConversationInput = ({
@@ -22,16 +21,12 @@ const ConversationInput = ({
   onOpenImagePicker,
   disabled = false,
   isSending = false,
-  placeholder = "Type a message...",
-  minLines = 1,
-  maxLines = 6,
-  lineHeight = 22,
-  verticalPadding = 12,
-  maxChars,
-  autoFocus = false,
   replyToMessage,
   onCancelReply,
   isGroupChat,
+  controlledValue,
+  onControlledValueChange,
+  hideSendButton = false,
 }: ConversationInputProps) => {
   const input = useConversationInput({
     conversationId,
@@ -40,29 +35,31 @@ const ConversationInput = ({
     disabled,
     replyToMessage,
     onCancelReply,
-    maxChars,
-    minLines,
-    maxLines,
-    lineHeight,
-    verticalPadding,
-    placeholder,
+    controlledValue,
+    onControlledValueChange,
   });
 
   const handleKeyPress = useCallback(
     (event: any) => {
       input.specialCharHandler(event);
-      input.enterSubmitHandler(event);
+      if (!hideSendButton) {
+        input.enterSubmitHandler(event);
+      }
     },
-    [input.specialCharHandler, input.enterSubmitHandler]
+    [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
   );
 
   const handleSubmitEditing = useCallback(() => {
-    input.handleSend(input.message);
-  }, [input.handleSend, input.message]);
+    if (!hideSendButton) {
+      input.handleSend(input.message);
+    }
+  }, [input.handleSend, input.message, hideSendButton]);
 
   const handleSendPress = useCallback(() => {
     input.handleSend(input.message);
   }, [input.handleSend, input.message]);
+
+  const isControlledMode = controlledValue !== undefined;
 
   return (
     <View>
@@ -80,14 +77,16 @@ const ConversationInput = ({
           "border-gray-200 dark:border-gray-800"
         )}
       >
-        <AttachmentButton
-          ref={input.addButtonRef}
-          disabled={disabled}
-          toggled={input.menuVisible}
-          onPress={input.handleAddButtonPress}
-        />
+        {!isControlledMode && (
+          <AttachmentButton
+            ref={input.addButtonRef}
+            disabled={disabled}
+            toggled={input.menuVisible}
+            onPress={input.handleAddButtonPress}
+          />
+        )}
 
-        <View className="flex-1 mx-2">
+        <View className={classNames("flex-1", !isControlledMode && "mx-2")}>
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
             <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4">
               <MessageTextArea
@@ -95,47 +94,54 @@ const ConversationInput = ({
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}
-                autoFocus={autoFocus}
+                autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
                 inputHeight={input.inputHeight}
-                lineHeight={lineHeight}
-                verticalPadding={verticalPadding}
+                lineHeight={22}
+                verticalPadding={12}
                 onChangeText={input.handleChangeText}
                 onContentSizeChange={input.handleContentSizeChange}
                 onSelectionChange={input.handleSelectionChange}
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
-              <SendButton
-                showSend={input.isValidMessage}
-                isSending={isSending}
-                onPress={handleSendPress}
-              />
+              {!hideSendButton && (
+                <SendButton
+                  showSend={input.isValidMessage}
+                  isSending={isSending}
+                  onPress={handleSendPress}
+                />
+              )}
             </View>
-
-            {typeof maxChars === "number" && (
-              <CharacterCounter currentLength={input.message.length} maxChars={maxChars} />
-            )}
           </Animated.View>
         </View>
 
-        <FileInput ref={input.fileInputRef} onChange={input.handleFileChange} accept="image/*" />
-
-        <FileInput
-          ref={input.documentInputRef}
-          onChange={input.handleDocumentChange}
-          accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
-        />
+        {!isControlledMode && (
+          <>
+            <FileInput
+              ref={input.fileInputRef}
+              onChange={input.handleFileChange}
+              accept="image/*"
+            />
+            <FileInput
+              ref={input.documentInputRef}
+              onChange={input.handleDocumentChange}
+              accept={".pdf,.doc,.docx,.xls,.xlsx,.txt"}
+            />
+          </>
+        )}
       </View>
 
-      <WebChatContextMenu
-        visible={input.menuVisible}
-        position={input.menuPosition}
-        onClose={input.closeMenu}
-        options={input.menuOptions}
-        onOptionSelect={input.handleMenuOptionSelect}
-      />
+      {!isControlledMode && (
+        <WebChatContextMenu
+          visible={input.menuVisible}
+          position={input.menuPosition}
+          onClose={input.closeMenu}
+          options={input.menuOptions}
+          onOptionSelect={input.handleMenuOptionSelect}
+        />
+      )}
 
       {isGroupChat && input.mentionVisible && (
         <MentionSuggestions

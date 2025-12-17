@@ -4,44 +4,41 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { MAX_FILES, validateFiles } from "@/utils/fileValidation";
 import FileList from "./FileList";
 import FilePreviewPane from "./FilePreviewPane";
-import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
+import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 
 type TFilePreviewOverlayProps = {
   files: File[];
+  conversationId: number;
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: () => void;
+  onSendFiles: (caption: string) => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
-  message?: string;
-  onMessageChange?: (message: string) => void;
+  isGroupChat?: boolean;
+  replyToMessage?: any;
+  onCancelReply?: () => void;
 };
 
 const FilePreviewOverlay = ({
   files,
+  conversationId,
   onClose,
   onRemoveFile,
   onSendFiles,
   onFileSelect,
   isSending = false,
-  message = "",
-  onMessageChange,
+  isGroupChat = false,
+  replyToMessage,
+  onCancelReply,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [internalMsg, setInternalMsg] = useState(message);
+  const [caption, setCaption] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => setInternalMsg(message), [message]);
 
   useEffect(() => {
     if (selectedIndex >= files.length) setSelectedIndex(Math.max(0, files.length - 1));
   }, [files.length, selectedIndex]);
-
-  const handleMessageChange = (t: string) => {
-    setInternalMsg(t);
-    onMessageChange?.(t);
-  };
 
   const onHiddenPickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,19 +53,29 @@ const FilePreviewOverlay = ({
     [files.length, onFileSelect]
   );
 
-  const handleAddMore = () => {
+  const handleAddMore = useCallback(() => {
     if (files.length >= MAX_FILES) {
       ToastUtils.error(`Maximum ${MAX_FILES} files allowed.`);
       return;
     }
     fileInputRef.current?.click();
-  };
+  }, [files.length]);
+
+  const handleSend = useCallback(() => {
+    onSendFiles(caption);
+    setCaption("");
+  }, [onSendFiles, caption]);
+
+  const handleClose = useCallback(() => {
+    setCaption("");
+    onClose();
+  }, [onClose]);
 
   if (files.length === 0) return null;
 
   return (
-    <View className="flex-1 bg-background-light dark:bg-background-dark">
-      <View className="flex-1 flex-row">
+    <View style={styles.container} className="bg-background-light dark:bg-background-dark">
+      <View style={styles.contentRow}>
         <FileList
           files={files}
           selectedIndex={selectedIndex}
@@ -77,9 +84,14 @@ const FilePreviewOverlay = ({
         />
         <FilePreviewPane
           file={files[selectedIndex]}
-          message={internalMsg}
-          onMessageChange={handleMessageChange}
+          conversationId={conversationId}
+          caption={caption}
+          onCaptionChange={setCaption}
+          onSendFiles={handleSend}
           isSending={isSending}
+          isGroupChat={isGroupChat}
+          replyToMessage={replyToMessage}
+          onCancelReply={onCancelReply}
         />
       </View>
 
@@ -88,8 +100,8 @@ const FilePreviewOverlay = ({
         isAtLimit={files.length >= MAX_FILES}
         hasFiles={files.length > 0}
         onAddMore={handleAddMore}
-        onClose={onClose}
-        onSend={onSendFiles}
+        onClose={handleClose}
+        onSend={handleSend}
       />
       <input
         ref={fileInputRef}
@@ -106,6 +118,15 @@ const FilePreviewOverlay = ({
 export default FilePreviewOverlay;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    overflow: "visible",
+  },
+  contentRow: {
+    flex: 1,
+    flexDirection: "row",
+    overflow: "visible",
+  },
   hiddenInput: {
     display: "none",
   },
