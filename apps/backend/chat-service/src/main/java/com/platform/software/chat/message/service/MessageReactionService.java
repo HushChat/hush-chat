@@ -74,7 +74,7 @@ public class MessageReactionService {
 
         if (existingReaction.isPresent()) {
             MessageReaction existing = existingReaction.get();
-            previousReactionType = existing.getReactionType().toString(); // ✅ capture old
+            previousReactionType = existing.getReactionType().toString();
 
             ReactionAction result = handleExistingReaction(messageReaction, messageId, existing);
 
@@ -137,7 +137,7 @@ public class MessageReactionService {
     ) {
         boolean isSame = reaction.getReactionType().equals(messageReaction.getReactionType());
         if (isSame) {
-            removeReaction(reaction, messageId); // ✅ fix (was userId)
+            removeReaction(reaction, messageId);
             return ReactionAction.REMOVED;
         }
 
