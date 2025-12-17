@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { eventBus } from "@/services/eventBus";
 // import { TypingIndicator, UserPresence, WebSocketError } from '@/types/ws/types';
 import { IConversation, IMessage } from "@/types/chat/types";
+import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
 
 // Hook for listening to messages for a specific conversation
 export const useConversationMessages = (conversationId: number) => {
@@ -20,10 +21,10 @@ export const useConversationMessages = (conversationId: number) => {
       }
     };
 
-    eventBus.on("conversation:newMessage", handleNewMessage);
+    eventBus.on(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
 
     return () => {
-      eventBus.off("conversation:newMessage", handleNewMessage);
+      eventBus.off(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
     };
   }, [conversationId]);
 
