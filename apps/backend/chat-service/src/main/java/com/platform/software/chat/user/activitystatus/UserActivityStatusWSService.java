@@ -50,11 +50,12 @@ public class UserActivityStatusWSService {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         for (Map.Entry<String, Set<Long>> entry : matchingSessionKeysWithConversations.entrySet()) {
-            String[] workspaceIdAndEmail = entry.getKey().split(":");
+            String workspaceIdAndEmail = entry.getKey();
 
             if (!entry.getValue().isEmpty()) {
-                template.convertAndSend(
-                    WebSocketTopicConstants.ONLINE_STATUS + workspaceIdAndEmail[1],
+                template.convertAndSendToUser(
+                    workspaceIdAndEmail,
+                    WebSocketTopicConstants.ONLINE_STATUS,
                     new UserStatusDTO(entry.getValue().stream().findFirst().get(), status)
                 );
             }

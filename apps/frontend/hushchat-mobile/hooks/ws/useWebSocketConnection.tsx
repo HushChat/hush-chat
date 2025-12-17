@@ -159,7 +159,7 @@ export default function useWebSocketConnection() {
 
             // Subscribe to all topics
             TOPICS.forEach((topic) => {
-              subscribeToTopic(ws, topic.destination, email, topic.id);
+              subscribeToTopic(ws, topic.destination, topic.id);
             });
           } else if (event.data.startsWith(ERROR_RESPONSE)) {
             logInfo("STOMP error:", event.data);
