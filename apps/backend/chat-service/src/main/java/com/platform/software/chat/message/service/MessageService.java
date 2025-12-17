@@ -299,7 +299,8 @@ public class MessageService {
                             message.getConversation().getId(),
                             messageViewDTO,
                             loggedInUserId,
-                            message
+                            message,
+                            null
                     ));
                 }
 
