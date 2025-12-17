@@ -5,6 +5,7 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
+import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageUnsentWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.user.service.UserUtilService;
@@ -133,5 +134,40 @@ public class MessagePublisherService {
                     payload
                 );
             });
+    }
+
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageReactionToParticipants(
+            Long conversationId,
+            Long messageId,
+            Long actorUserId,
+            String reactionType,
+            String previousReactionType,
+            String action,
+            String workspaceId
+    ) {
+        MessageReactionWSResponseDTO payload =
+                new MessageReactionWSResponseDTO(
+                        conversationId,
+                        messageId,
+                        actorUserId,
+                        reactionType,
+                        previousReactionType,
+                        action
+                );
+
+        ConversationDTO conversationDTO =
+                conversationUtilService.getConversationDTOOrThrow(actorUserId, conversationId);
+
+        conversationDTO.getParticipants().stream()
+                .map(p -> p.getUser() != null ? p.getUser().getEmail() : null)
+                .filter(email -> email != null && !email.isBlank())
+                .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                        workspaceId,
+                        email,
+                        WebSocketTopicConstants.MESSAGE_REACTION,
+                        payload
+                ));
     }
 }

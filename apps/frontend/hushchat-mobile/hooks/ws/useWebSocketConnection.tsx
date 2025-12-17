@@ -5,6 +5,7 @@ import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
 import {
   emitConversationCreated,
+  emitMessageReaction,
   emitMessageUnsent,
   emitNewMessage,
   emitUserStatus,
@@ -14,6 +15,7 @@ import {
   CONNECTED_RESPONSE,
   CONVERSATION_CREATED_TOPIC,
   ERROR_RESPONSE,
+  MESSAGE_REACTION_TOPIC,
   MESSAGE_RECEIVED_TOPIC,
   MESSAGE_RESPONSE,
   MESSAGE_UNSENT_TOPIC,
@@ -21,6 +23,7 @@ import {
   RETRY_TIME_MS,
 } from "@/constants/wsConstants";
 import {
+  MessageReactionPayload,
   MessageUnsentPayload,
   UserActivityWSSubscriptionData,
   WebSocketStatus,
@@ -34,6 +37,7 @@ const TOPICS = [
   { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
   { destination: CONVERSATION_CREATED_TOPIC, id: "sub-conversation-created" },
   { destination: MESSAGE_UNSENT_TOPIC, id: "sub-message-unsent" },
+  { destination: MESSAGE_REACTION_TOPIC, id: "sub-message-reaction" },
 ];
 
 export const publishUserActivity = (
@@ -89,6 +93,10 @@ const handleMessageByTopic = (topic: string, body: string) => {
       // Handle message unsent
       const data = JSON.parse(body) as MessageUnsentPayload;
       emitMessageUnsent(data);
+    } else if (topic.includes(MESSAGE_REACTION_TOPIC)) {
+      // Handle message reaction
+      const data = JSON.parse(body) as MessageReactionPayload;
+      emitMessageReaction(data);
     } else {
       logDebug("Received message from unknown topic:", topic);
     }

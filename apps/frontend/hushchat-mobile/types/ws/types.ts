@@ -61,3 +61,12 @@ export interface MessageUnsentPayload {
   messageId: number;
   actorUserId: number;
 }
+
+export interface MessageReactionPayload {
+  conversationId: number;
+  messageId: number;
+  actorUserId: number;
+  reactionType: string | null;
+  previousReactionType?: string | null;
+  action: "ADDED" | "UPDATED" | "REMOVED";
+}

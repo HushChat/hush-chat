@@ -8,6 +8,14 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class MessageReactionEvent {
+    private final String workspaceId;
+    private final Long conversationId;
+    private final Long messageId;
+    private final Long actorUserId;
+    private final String reactionType;
+    private final String previousReactionType;
+    private final String action;
+
     private final Message message;
     private final ChatUser user;
 }

@@ -39,6 +39,16 @@ public class ChatEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onMessageReaction(MessageReactionEvent event) {
+        messagePublisherService.invokeMessageReactionToParticipants(
+            event.getConversationId(),
+            event.getMessageId(),
+            event.getActorUserId(),
+            event.getReactionType(),
+            event.getPreviousReactionType(),
+            event.getAction(),
+            event.getWorkspaceId()
+        );
+
         chatNotificationService.sendMessageReactionNotifications(
                 event.getMessage(),
                 event.getUser()

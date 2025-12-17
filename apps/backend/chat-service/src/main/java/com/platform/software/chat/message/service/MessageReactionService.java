@@ -13,6 +13,7 @@ import com.platform.software.exception.CustomInternalServerErrorException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.utils.ValidationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -64,17 +65,42 @@ public class MessageReactionService {
 
         messageUtilService.validateInteractionAllowed(conversation, userId);
 
-        Optional<MessageReaction> existingReaction = messageReactionRepository.findByMessageIdAndUserId(messageId, userId);
+        Optional<MessageReaction> existingReaction =
+                messageReactionRepository.findByMessageIdAndUserId(messageId, userId);
+
+        String action;
+        String reactionType = messageReaction.getReactionType().toString();
+        String previousReactionType = null;
 
         if (existingReaction.isPresent()) {
-            handleExistingReaction(messageReaction, userId, messageId, existingReaction.get());
+            MessageReaction existing = existingReaction.get();
+            previousReactionType = existing.getReactionType().toString(); // ✅ capture old
+
+            ReactionAction result = handleExistingReaction(messageReaction, messageId, existing);
+
+            if (result == ReactionAction.REMOVED) {
+                action = "REMOVED";
+                reactionType = null;
+            } else {
+                action = "UPDATED";
+            }
         } else {
-            // Create new reaction
             MessageReaction newReaction = createNewReaction(messageReaction, message, user);
             saveReaction(newReaction, messageId);
+            action = "ADDED";
         }
 
-        eventPublisher.publishEvent(new MessageReactionEvent(message, user));
+        eventPublisher.publishEvent(new MessageReactionEvent(
+                WorkspaceContext.getCurrentWorkspace(),
+                conversation.getId(),
+                message.getId(),
+                userId,
+                reactionType,
+                previousReactionType,
+                action,
+                message,
+                user
+        ));
     }
 
     /**
@@ -94,6 +120,8 @@ public class MessageReactionService {
         return newReaction;
     }
 
+    private enum ReactionAction { UPDATED, REMOVED }
+
     /**
      * Handles an existing reaction by either updating it or removing it based on the new reaction type.
      *
@@ -102,17 +130,20 @@ public class MessageReactionService {
      * @param messageId the ID of the message being reacted to
      * @param reaction the existing reaction, if present
      */
-    private void handleExistingReaction(MessageReactionUpsertDTO messageReaction, Long userId, Long messageId, MessageReaction reaction) {
-        // If same reaction type, remove it (toggle off)
-        boolean isReactionAddedBefore = reaction.getReactionType().equals(messageReaction.getReactionType());
-        if (isReactionAddedBefore) {
-            removeReaction(reaction, userId);
-            return;
+    private ReactionAction handleExistingReaction(
+        MessageReactionUpsertDTO messageReaction,
+        Long messageId,
+        MessageReaction reaction
+    ) {
+        boolean isSame = reaction.getReactionType().equals(messageReaction.getReactionType());
+        if (isSame) {
+            removeReaction(reaction, messageId); // ✅ fix (was userId)
+            return ReactionAction.REMOVED;
         }
 
-        // Different reaction type, update it
         reaction.setReactionType(messageReaction.getReactionType());
         saveReaction(reaction, messageId);
+        return ReactionAction.UPDATED;
     }
 
     /** saves the reaction to the database.
@@ -135,13 +166,29 @@ public class MessageReactionService {
      * @param userId the ID of the user removing the reaction
      * @param messageId the ID of the message from which the reaction is being removed
      */
+    @Transactional
     public void removeReaction(Long userId, Long messageId) {
-        messageService.getMessageIfUserParticipant(userId, messageId);
+        ChatUser user = userService.getUserOrThrow(userId);
+        Message message = messageService.getMessageIfUserParticipant(userId, messageId);
 
         MessageReaction reaction = messageReactionRepository.findByMessageIdAndUserId(messageId, userId)
-            .orElseThrow(() -> new CustomBadRequestException("Cannot find reaction"));
+                .orElseThrow(() -> new CustomBadRequestException("Cannot find reaction"));
 
-        removeReaction(reaction, userId);
+        String previousReactionType = reaction.getReactionType().toString();
+
+        removeReaction(reaction, messageId);
+
+        eventPublisher.publishEvent(new MessageReactionEvent(
+                WorkspaceContext.getCurrentWorkspace(),
+                message.getConversation().getId(),
+                message.getId(),
+                userId,
+                null,
+                previousReactionType,
+                "REMOVED",
+                message,
+                user
+        ));
     }
 
     /**
