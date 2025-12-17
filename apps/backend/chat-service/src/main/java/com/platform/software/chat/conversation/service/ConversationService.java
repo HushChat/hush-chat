@@ -6,6 +6,7 @@ import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.entity.ConversationReport;
 import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
+import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
@@ -976,6 +977,11 @@ public class ConversationService {
 
         conversation.setName(newName);
         conversation.setDescription(groupConversationDTO.getDescription());
+        
+        if (groupConversationDTO.getOnlyAdminsCanSendMessages() != null) {
+            conversation.setOnlyAdminsCanSendMessages(groupConversationDTO.getOnlyAdminsCanSendMessages());
+        }
+
         try {
             conversationRepository.save(conversation);
             setGroupUpdateChangeEvents(adminUserId, isGroupNameChanged, conversation, isGroupDescriptionChanged);
@@ -1003,6 +1009,38 @@ public class ConversationService {
             conversationEventService.createMessageWithConversationEvent(
                 conversationId, adminUserId, null, ConversationEventType.GROUP_DESCRIPTION_CHANGED
             );
+        }
+    }
+
+    /**
+     * Updates the onlyAdminsCanSendMessages permission setting for a group conversation.
+     * This setting restricts message sending to admin participants only when enabled.
+     * Only admin participants are authorized to modify this setting.
+     * @param adminUserId id of requesting user (must be admin)
+     * @param conversationId id of conversation
+     * @param conversationPermissionUpdateDTO the DTO containing the new permission setting
+     * @return ConversationDTO the updated conversation data
+     */
+    @Transactional
+    public ConversationDTO updateOnlyAdminsCanSendMessages(Long adminUserId, Long conversationId, ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO) {
+        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
+        Conversation conversation = adminParticipant.getConversation();
+
+        if (conversation.getOnlyAdminsCanSendMessages() != null && 
+            conversation.getOnlyAdminsCanSendMessages().equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages())) {
+            return buildConversationDTO(conversation);
+        }
+
+        conversation.setOnlyAdminsCanSendMessages(Boolean.TRUE.equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages()));
+
+        try {
+            conversationRepository.save(conversation);
+            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+            return buildConversationDTO(conversation);
+        } catch (Exception e) {
+            logger.error("failed to update onlyAdminsCanSendMessages for conversationId: {} by user id: {}",
+                    conversationId, adminUserId, e);
+            throw new CustomInternalServerErrorException("Failed to update conversation permission setting");
         }
     }
 
@@ -1260,10 +1298,22 @@ public class ConversationService {
             return;
         }
 
+        ConversationReadStatus updatingStatus = conversationReadStatusRepository
+            .findByConversationIdAndUserId(conversationId, userId)
+            .orElseGet(() -> {
+                ConversationReadStatus newStatus = new ConversationReadStatus();
+                newStatus.setUser(participant.getUser());
+                newStatus.setConversation(participant.getConversation());
+                return newStatus;
+            });
+
+            updatingStatus.setMessage(null);
+
         try {
             participant.setIsDeleted(true);
             participant.setLastDeletedTime(ZonedDateTime.now());
             conversationParticipantRepository.save(participant);
+            conversationReadStatusRepository.save(updatingStatus);
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA+":" + conversationId));
         } catch (Exception e) {
             logger.error("Failed to delete conversation participant for userId: {} in conversationId: {}", userId, conversationId, e);
@@ -1312,6 +1362,11 @@ public class ConversationService {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
             String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
+            ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+
+            if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
+                conversationMetaDataDTO.setIsCurrentUserAdmin(true);
+            }
         }
 
         return conversationMetaDataDTO;

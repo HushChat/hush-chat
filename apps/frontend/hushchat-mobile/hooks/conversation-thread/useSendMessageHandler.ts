@@ -16,6 +16,7 @@ interface IUseSendMessageHandlerParams {
   sendMessage: UseMutateFunction<ApiResponse<unknown>, unknown, unknown, unknown>;
   uploadFilesFromWeb: (files: File[], caption?: string) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
+  updateConversationMessagesCache: (message: IMessage) => void;
 }
 
 export const useSendMessageHandler = ({

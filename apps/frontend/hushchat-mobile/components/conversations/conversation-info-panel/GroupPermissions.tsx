@@ -1,34 +1,54 @@
 import { Dimensions, TouchableOpacity, View, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
 import { MotionView } from "@/motion/MotionView";
-import { logInfo } from "@/utils/logger";
+import { IConversation } from "@/types/chat/types";
+import { useUpdateMessageRestrictionsMutation } from "@/query/patch/queries";
+import { useUserStore } from "@/store/user/useUserStore";
 
 interface IGroupPermissionsProps {
-  conversationId: number;
+  conversation: IConversation;
   onClose: () => void;
   visible: boolean;
 }
 
 export default function GroupPermissions({
-  conversationId,
+  conversation,
   onClose,
   visible,
 }: IGroupPermissionsProps) {
   const screenWidth = Dimensions.get("window").width;
+  const { user } = useUserStore();
 
-  const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState(false);
+  const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState<boolean>(
+    conversation.onlyAdminsCanSendMessages
+  );
   const [membersCanEditGroupInfo, setMembersCanEditGroupInfo] = useState(true);
   const [membersCanAddParticipants, setMembersCanAddParticipants] = useState(true);
 
-  // TODO: Fetch current permissions from API on mount
-  // TODO: Implement save functionality
-  const handleSave = async () => {
-    logInfo(conversationId);
-    onClose();
+  const updateOnlyAdminCanSendMessage = useUpdateMessageRestrictionsMutation(
+    { userId: Number(user.id), conversationId: Number(conversation?.id) },
+    () => {}
+  );
+
+  const handleToggleOnlyAdmins = (newValue: boolean) => {
+    if (!conversation?.id) return;
+
+    setOnlyAdminsCanSendMessages(newValue);
+
+    updateOnlyAdminCanSendMessage.mutate(
+      {
+        conversationId: Number(conversation?.id),
+        onlyAdminsCanSendMessages: newValue,
+      },
+      {
+        onError: () => {
+          setOnlyAdminsCanSendMessages(!newValue);
+        },
+      }
+    );
   };
 
   return (
@@ -47,14 +67,6 @@ export default function GroupPermissions({
             Group Permissions
           </AppText>
         </View>
-
-        <TouchableOpacity
-          onPress={handleSave}
-          className="px-3 py-2 rounded-lg bg-primary-light dark:bg-primary-dark"
-          activeOpacity={DEFAULT_ACTIVE_OPACITY}
-        >
-          <AppText className="text-xs font-medium leading-none text-white">Save</AppText>
-        </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={true}>
@@ -67,7 +79,7 @@ export default function GroupPermissions({
             title="Only admins can send messages"
             description="When enabled, only group admins will be able to send messages. Members can only read."
             value={onlyAdminsCanSendMessages}
-            onValueChange={setOnlyAdminsCanSendMessages}
+            onValueChange={handleToggleOnlyAdmins}
           />
         </View>
 
