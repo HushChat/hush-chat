@@ -3,6 +3,7 @@ package com.platform.software.chat.settings.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class ContactUsRequestDTO {
@@ -18,4 +19,12 @@ public class ContactUsRequestDTO {
 
     @NotBlank(message = "Message is required")
     private String message;
+    
+    private List<AttachmentItem> attachments;
+
+    @Data
+    public static class AttachmentItem {
+        private String originalFileName;
+        private String indexedFileName;
+    }
 }

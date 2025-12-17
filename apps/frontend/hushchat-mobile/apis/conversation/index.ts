@@ -434,12 +434,24 @@ export const sendContactUsMessage = async (data: {
   email: string;
   subject: string;
   message: string;
+  attachments?: { originalFileName: string; indexedFileName: string }[];
 }) => {
   try {
     const response = await axios.post(SETTINGS_API_ENDPOINTS.CONTACT_US, data);
     return { data: response.data };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const getContactUsSignedUrls = async (fileNames: string[]) => {
+  try {
+    const response = await axios.post(SETTINGS_API_ENDPOINTS.CONTACT_US_SIGNED_URLS, {
+      fileNames,
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || error.message);
   }
 };
 
