@@ -1424,9 +1424,12 @@ public class ConversationService {
      * @return a {@link Page} of {@link UserBasicViewDTO} containing users who have seen the message
      */
     public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
-        // todo - write a single function to do both at once
-        conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
-        messageService.getMessageOrThrow(messageId);
+        try {
+            messageService.getMessageBySender(userId, conversationId, messageId);
+        } catch (Exception error) {
+            logger.error("message id is incorrect, not part of this conversation, or you are not the sender of message", error);
+            throw new CustomBadRequestException("Failed to Get Message View Participant");
+        }
 
         Page<ChatUser> users = conversationReadStatusRepository
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);

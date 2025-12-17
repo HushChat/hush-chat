@@ -146,12 +146,13 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
                 .from(qConversationReadStatus)
                 .innerJoin(qConversationReadStatus.user, qChatUser)
                 .where(where)
+                .distinct()
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         Long total = queryFactory
-                .select(qConversationReadStatus.count())
+                .select(qConversationReadStatus.user.id.count())
                 .from(qConversationReadStatus)
                 .where(where)
                 .fetchOne();
