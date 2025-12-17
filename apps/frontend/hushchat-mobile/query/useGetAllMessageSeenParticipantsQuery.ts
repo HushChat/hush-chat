@@ -1,10 +1,25 @@
 import { usePaginatedQuery } from "@/query/usePaginatedQuery";
 import { TUser } from "@/types/user/types";
 import { getMessageSeenParticipants } from "@/apis/message";
+import { useMemo } from "react";
 
-export function useGetAllMessageSeenParticipantsQuery(conversationId: number, messageId: number) {
+type UseGetAllMessageSeenParticipantsResult = Readonly<{
+  messageSeenParticipants: readonly TUser[];
+  isLoadingMessageSeenParticipants: boolean;
+  messageSeenParticipantsError: unknown;
+  fetchNextPage: () => Promise<unknown>;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  invalidateQuery: (() => void) | undefined;
+  refetch: () => Promise<unknown>;
+}>;
+
+export function useGetAllMessageSeenParticipantsQuery(
+  conversationId: number,
+  messageId: number
+): UseGetAllMessageSeenParticipantsResult {
   const {
-    pages,
+    pages: pageData,
     isLoading,
     error,
     fetchNextPage,
@@ -19,10 +34,14 @@ export function useGetAllMessageSeenParticipantsQuery(conversationId: number, me
     initialPageParam: 0,
   });
 
+  const participants = useMemo(() => {
+    return pageData?.pages.flatMap((page) => page.content ?? []) ?? [];
+  }, [pageData]);
+
   return {
-    messageSeenParticipantPages: pages,
-    isLoadingUsers: isLoading,
-    usersError: error,
+    messageSeenParticipants: participants,
+    isLoadingMessageSeenParticipants: isLoading,
+    messageSeenParticipantsError: error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,

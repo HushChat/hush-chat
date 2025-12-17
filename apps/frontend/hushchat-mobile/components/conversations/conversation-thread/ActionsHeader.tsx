@@ -77,7 +77,7 @@ const ActionsHeader = ({
 
           {currentUserIsSender &&
             !message.isUnsend &&
-            message.messageText &&
+            (message.messageText || message.hasAttachment) &&
             conversation &&
             onSelectMessageInfo && (
               <HeaderAction

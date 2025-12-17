@@ -1,28 +1,31 @@
 import { useGetAllMessageSeenParticipantsQuery } from "@/query/useGetAllMessageSeenParticipantsQuery";
-import { PaginatedResponse } from "@/types/common/types";
 import { TUser } from "@/types/user/types";
-import { FlatList, Image, View } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { AppText } from "@/components/AppText";
 import BackButton from "@/components/BackButton";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 
 interface MessageInfoProps {
   conversationId: number;
   messageId: number;
 }
 
+const SIZE = 40;
+
 export default function MessageInfoPanel({ conversationId, messageId }: MessageInfoProps) {
   const router = useRouter();
 
-  const { messageSeenParticipantPages, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useGetAllMessageSeenParticipantsQuery(conversationId, messageId);
-
-  const pages =
-    (messageSeenParticipantPages as { pages?: PaginatedResponse<TUser>[] })?.pages ?? [];
-  const messageSeenParticipants = pages.flatMap((page) => page?.content ?? []);
+  const {
+    messageSeenParticipants,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    isLoadingMessageSeenParticipants,
+  } = useGetAllMessageSeenParticipantsQuery(conversationId, messageId);
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -30,12 +33,32 @@ export default function MessageInfoPanel({ conversationId, messageId }: MessageI
     }
   };
 
+  const renderEmptyComponent = () => {
+    if (isLoadingMessageSeenParticipants) {
+      return (
+        <View className="py-12 items-center justify-center">
+          <ActivityIndicator size="large" color="#6B7280" />
+        </View>
+      );
+    }
+
+    return (
+      <View className="flex-1 items-center justify-center pt-10">
+        <AppText>No one has seen this message yet.</AppText>
+      </View>
+    );
+  };
+
   const renderParticipant = ({ item }: { item: TUser }) => (
     <View className="flex-row items-center px-4 py-3">
-      {item.signedImageUrl ? (
+      {!item.signedImageUrl ? (
         <Image
           source={{ uri: item.signedImageUrl }}
-          className="w-10 h-10 rounded-full bg-gray-200"
+          style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2 }}
+          className="bg-gray-200"
+          contentFit="cover"
+          transition={200}
+          cachePolicy="memory-disk"
         />
       ) : (
         <InitialsAvatar name={`${item.firstName ?? ""} ${item.lastName}`} size="md" />
@@ -67,13 +90,7 @@ export default function MessageInfoPanel({ conversationId, messageId }: MessageI
         renderItem={renderParticipant}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 20 }}
-        ListEmptyComponent={
-          !isFetchingNextPage ? (
-            <View className="flex-1 items-center justify-center pt-10">
-              <AppText>No one has seen this message yet.</AppText>
-            </View>
-          ) : null
-        }
+        ListEmptyComponent={renderEmptyComponent}
         onEndReached={handleLoadMore}
       />
     </SafeAreaView>

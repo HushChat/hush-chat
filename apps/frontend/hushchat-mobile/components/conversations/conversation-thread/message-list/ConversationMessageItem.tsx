@@ -214,7 +214,7 @@ export const ConversationMessageItem = ({
         options.push({
           id: 4,
           name: "Message Info",
-          iconName: "information-circle-outline" as keyof typeof Ionicons.glyphMap,
+          iconName: "information-circle-outline",
           action: () => webMessageInfoPress && webMessageInfoPress(message.id),
         });
       }
