@@ -14,6 +14,7 @@ type TChatHeaderMenuProps = {
   onRefresh: () => void;
   isLoading: boolean;
   onCreateGroup?: () => void | Promise<void>;
+  onOpenMentionedMessages: () => void | Promise<void>;
   selectedConversationType: ConversationType;
   setSelectedConversationType: (newConversationType: ConversationType) => void;
 };
@@ -22,6 +23,7 @@ export const ConversationHeader = ({
   onRefresh,
   isLoading,
   onCreateGroup,
+  onOpenMentionedMessages,
   selectedConversationType,
   setSelectedConversationType,
 }: TChatHeaderMenuProps) => {
@@ -34,6 +36,14 @@ export const ConversationHeader = ({
       iconName: "people-outline",
       action: () => {
         if (onCreateGroup) return onCreateGroup();
+      },
+    },
+    {
+      id: 2,
+      name: "Mentioned messages",
+      iconName: "at-outline",
+      action: () => {
+        if (onOpenMentionedMessages) return onOpenMentionedMessages();
       },
     },
   ];
