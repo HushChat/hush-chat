@@ -7,9 +7,9 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { PaginatedResponse } from "@/types/common/types";
 import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants/queryKeys";
 import type { IBasicMessage, IMessage, ConversationAPIResponse } from "@/types/chat/types";
-import { PLATFORM } from "@/constants/platformConstants";
 import * as Clipboard from "expo-clipboard";
 import { logError } from "@/utils/logger";
+import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 
 export function useMessageActions(
   conversation: ConversationAPIResponse | undefined,
@@ -21,6 +21,7 @@ export function useMessageActions(
   const [unsendMessageState, setUnsendMessageState] = useState<IBasicMessage | null>(null);
 
   const { refetch: refetchConversationList } = useConversationsQuery();
+  const baseURL = getBuildConstant(BuildConstantKeys.WEB_DOMAIN);
 
   /**
    * Pin/Unpin Messages
@@ -106,14 +107,7 @@ export function useMessageActions(
       const conversationId = conversation?.id;
       if (!conversationId) return;
 
-      let url: string;
-      if (PLATFORM.IS_WEB) {
-        const baseUrl = window.location.origin;
-        url = `${baseUrl}/conversations/${conversationId}?messageId=${message.id}`;
-      } else {
-        // TODO: Handle mobile url creation
-        url = `yourapp://conversation-threads?conversationId=${conversationId}&messageId=${message.id}`;
-      }
+      const url = `${baseURL}/conversations/${conversationId}?messageId=${message.id}`;
 
       try {
         await Clipboard.setStringAsync(url);

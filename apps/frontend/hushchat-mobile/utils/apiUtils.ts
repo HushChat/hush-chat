@@ -6,7 +6,7 @@ import { logError } from "@/utils/logger";
 import { X_TENANT, X_UUID_HEADER } from "@/constants/constants";
 import * as Crypto from "expo-crypto";
 
-const getAPIBaseURL = () => {
+export const getAPIBaseURL = () => {
   const host = getBuildConstant(BuildConstantKeys.API_HOST);
   const port = getBuildConstant(BuildConstantKeys.API_PORT);
   const protocol = getBuildConstant(BuildConstantKeys.API_PROTOCOL);

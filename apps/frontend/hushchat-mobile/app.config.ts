@@ -14,6 +14,8 @@ export default () => ({
     owner: process.env.EAS_PROJECT_OWNER,
     ios: {
       supportsTablet: true,
+      bundleIdentifier: "com.hush.chat",
+      associatedDomains: [`applinks:${process.env.EXPO_PUBLIC_WEB_DOMAIN}`],
     },
     android: {
       adaptiveIcon: {
@@ -21,6 +23,20 @@ export default () => ({
         backgroundColor: "#ffffff",
       },
       package: "com.hush.chat",
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: process.env.EXPO_PUBLIC_WEB_DOMAIN,
+              pathPrefix: "/conversations",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
       // versionCode: 2,
       // useNextNotificationsApi: true,
       // googleServicesFile: path.resolve(__dirname, 'google-services.json'),
