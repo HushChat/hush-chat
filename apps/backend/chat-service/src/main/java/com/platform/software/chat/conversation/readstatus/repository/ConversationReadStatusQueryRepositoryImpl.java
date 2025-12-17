@@ -81,7 +81,7 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
             .select(Projections.constructor(
                 ConversationUnreadCount.class,
                 qConversation.id,
-                qMessage.id.count()
+                qMessage.id.countDistinct()
             ))
             .from(qConversation)
             .leftJoin(qConversationReadStatus)
