@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Setter
@@ -45,7 +46,4 @@ public class Conversation extends AuditModel{
     private Message pinnedMessage;
 
     private String description;
-
-    @Column(name = "only_admins_can_send_messages")
-    private Boolean onlyAdminsCanSendMessages = false;
 }
