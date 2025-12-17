@@ -42,40 +42,20 @@ export default function LinkPreviewCard({
             })}
           >
             {messageUrlMetadata.title && (
-              <FormattedText
-                text={messageUrlMetadata.title}
-                style={{ fontFamily: "Poppins-Regular" }}
-                isCurrentUser={isCurrentUser}
-                className={"text-md font-medium"}
-              />
+              <FormattedText text={messageUrlMetadata.title} isCurrentUser={isCurrentUser} />
             )}
             {messageUrlMetadata.description && (
-              <FormattedText
-                text={messageUrlMetadata.description}
-                style={{ fontFamily: "Poppins-Regular" }}
-                isCurrentUser={isCurrentUser}
-                className={"text-sm"}
-              />
+              <FormattedText text={messageUrlMetadata.description} isCurrentUser={isCurrentUser} />
             )}
 
             {messageUrlMetadata.domain && (
-              <FormattedText
-                text={messageUrlMetadata.domain}
-                style={{ fontFamily: "Poppins-Regular" }}
-                isCurrentUser={isCurrentUser}
-                className={"text-xs"}
-              />
+              <FormattedText text={messageUrlMetadata.domain} isCurrentUser={isCurrentUser} />
             )}
           </View>
         </>
       )}
 
-      <FormattedText
-        text={messageText}
-        isCurrentUser={isCurrentUser}
-        style={{ fontFamily: "Poppins-Regular" }}
-        className={"p-2"}
-      />
+      <FormattedText text={messageText} isCurrentUser={isCurrentUser} />
     </TouchableOpacity>
   );
 }
