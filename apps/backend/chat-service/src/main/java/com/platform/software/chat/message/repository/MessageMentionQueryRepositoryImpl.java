@@ -37,6 +37,7 @@ public class MessageMentionQueryRepositoryImpl implements MessageMentionQueryRep
                 .leftJoin(qMessage.conversation, qConversation).fetchJoin()
                 .leftJoin(qMessage.sender, qChatUser).fetchJoin()
                 .where(whereConditions)
+                .orderBy(qMessageMention.id.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetch();
