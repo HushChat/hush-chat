@@ -3,6 +3,7 @@ package com.platform.software.chat.user.activitystatus;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusDTO;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
+import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionInfoDAO;
 import com.platform.software.config.workspace.WorkspaceContext;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,6 @@ public class UserActivityStatusWSService {
 
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final SimpMessagingTemplate template;
-
-    private final String ONLINE_STATUS_INVOKE_PATH = "/topic/online-status";
 
     @Async
     public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status) {
@@ -51,11 +50,12 @@ public class UserActivityStatusWSService {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         for (Map.Entry<String, Set<Long>> entry : matchingSessionKeysWithConversations.entrySet()) {
-            String[] workspaceIdAndEmail = entry.getKey().split(":");
+            String workspaceIdAndEmail = entry.getKey();
 
             if (!entry.getValue().isEmpty()) {
-                template.convertAndSend(
-                    "%s/%s".formatted(ONLINE_STATUS_INVOKE_PATH, workspaceIdAndEmail[1]),
+                template.convertAndSendToUser(
+                    workspaceIdAndEmail,
+                    WebSocketTopicConstants.ONLINE_STATUS,
                     new UserStatusDTO(entry.getValue().stream().findFirst().get(), status)
                 );
             }
