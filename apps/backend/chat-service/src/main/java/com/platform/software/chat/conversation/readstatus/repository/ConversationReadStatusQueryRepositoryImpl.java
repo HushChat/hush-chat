@@ -152,7 +152,7 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
                 .fetch();
 
         Long total = queryFactory
-                .select(qConversationReadStatus.user.id.count())
+                .select(qConversationReadStatus.user.id.countDistinct())
                 .from(qConversationReadStatus)
                 .where(where)
                 .fetchOne();
