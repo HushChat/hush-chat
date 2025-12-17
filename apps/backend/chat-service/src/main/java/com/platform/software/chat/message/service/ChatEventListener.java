@@ -2,7 +2,6 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.message.dto.MessageReactionEvent;
 import com.platform.software.chat.message.dto.MessageCreatedEvent;
-import com.platform.software.chat.message.dto.UserMentionEvent;
 import com.platform.software.chat.notification.service.ChatNotificationService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -29,6 +28,13 @@ public class ChatEventListener {
                 event.getWorkspaceId()
         );
 
+        if(event.getMentionedUsers() != null && !event.getMentionedUsers().isEmpty()){
+            chatNotificationService.sendMessageMentionNotifications(
+                    event.getMessage(),
+                    event.getMentionedUsers()
+            );
+        }
+
         chatNotificationService.sendMessageNotificationsToParticipants(
                 event.getConversationId(),
                 event.getUserId(),
@@ -42,15 +48,6 @@ public class ChatEventListener {
         chatNotificationService.sendMessageReactionNotifications(
                 event.getMessage(),
                 event.getUser()
-        );
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onUserMention(UserMentionEvent event) {
-        chatNotificationService.sendMessageMentionNotifications(
-                event.getMessage(),
-                event.getMentionedUsers()
         );
     }
 }

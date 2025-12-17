@@ -106,7 +106,7 @@ public class MessageService {
         Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
-        messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
+        List<ChatUser> mentionedUsers = messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
 
 
         if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
@@ -124,7 +124,8 @@ public class MessageService {
                 conversationId,
                 messageViewDTO,
                 loggedInUserId,
-                savedMessage
+                savedMessage,
+                mentionedUsers
         ));
 
         return messageViewDTO;
