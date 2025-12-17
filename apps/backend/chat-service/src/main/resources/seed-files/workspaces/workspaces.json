@@ -5,5 +5,12 @@
     "description": "localhost workspace",
     "workspaceIdentifier": "localhost",
     "status": "ACTIVE"
+  },
+  {
+    "id": 2,
+    "name": "hushChat",
+    "description": "hush-chat workspace",
+    "workspaceIdentifier": "hushchat",
+    "status": "ACTIVE"
   }
 ]

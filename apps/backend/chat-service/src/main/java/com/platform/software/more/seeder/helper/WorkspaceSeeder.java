@@ -49,10 +49,9 @@ public class WorkspaceSeeder {
 
     public void seedWorkspaceUsers() {
         logger.info("started seeding chat users");
-        List<Workspace> workspaces = workspaceRepository.findAll();
 
         try {
-            InputStream inputStream = getClass().getResourceAsStream("/seed-files/users/users.json");
+            InputStream inputStream = getClass().getResourceAsStream("/seed-files/users/workspace-users.json");
             if (inputStream == null) {
                 logger.error("users.json file not found");
                 return;
@@ -60,7 +59,6 @@ public class WorkspaceSeeder {
             List<WorkspaceUser> users = objectMapper.readValue(inputStream,
                 objectMapper.getTypeFactory().constructCollectionType(List.class, WorkspaceUser.class));
             List<WorkspaceUser> workspaceUsers = users.stream().map(wu -> {
-                wu.setWorkspace(workspaces.stream().findFirst().get());
                 wu.setStatus(WorkspaceUserStatus.ACTIVE);
                 return wu;
             }).toList();
