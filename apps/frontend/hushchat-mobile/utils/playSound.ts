@@ -1,8 +1,8 @@
 import { createAudioPlayer, type AudioPlayer } from "expo-audio";
 import { logError } from "@/utils/logger";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SOUND_ENABLED_KEY } from "@/constants/constants";
 
-const SOUND_KEY = "sound_enabled";
 let messageSound: AudioPlayer | null = null;
 
 export const loadMessageSound = async () => {
@@ -14,7 +14,7 @@ export const loadMessageSound = async () => {
 
 export const playMessageSound = async (isConversationMuted = false) => {
   try {
-    const soundEnabled = await AsyncStorage.getItem(SOUND_KEY);
+    const soundEnabled = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
     if (soundEnabled === "false" || isConversationMuted) {
       return;
     }

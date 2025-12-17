@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const SOUND_KEY = "sound_enabled";
+import { SOUND_ENABLED_KEY } from "@/constants/constants";
 
 export const SoundToggleButton = () => {
   const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem(SOUND_KEY).then((value) => {
+    AsyncStorage.getItem(SOUND_ENABLED_KEY).then((value) => {
       if (value) setEnabled(value === "true");
     });
   }, []);
@@ -17,7 +16,7 @@ export const SoundToggleButton = () => {
   const toggle = async () => {
     const newValue = !enabled;
     setEnabled(newValue);
-    await AsyncStorage.setItem(SOUND_KEY, String(newValue));
+    await AsyncStorage.setItem(SOUND_ENABLED_KEY, String(newValue));
   };
 
   return (
