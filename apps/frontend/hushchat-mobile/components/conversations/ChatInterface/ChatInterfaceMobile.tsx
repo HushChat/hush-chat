@@ -22,6 +22,7 @@ import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatus
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { AppText } from "@/components/AppText";
 import { useUserStore } from "@/store/user/useUserStore";
+import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 
 export default function ChatInterfaceMobile({
   chatItemList,
@@ -122,6 +123,7 @@ export default function ChatInterfaceMobile({
           </View>
 
           <WebSocketStatusIndicator />
+          <SoundToggleButton />
 
           <TouchableOpacity
             onPress={() => setSheetVisible(true)}

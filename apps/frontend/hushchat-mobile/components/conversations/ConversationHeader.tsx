@@ -9,6 +9,7 @@ import BackButton from "@/components/BackButton";
 import { AppText } from "@/components/AppText";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { useUserStore } from "@/store/user/useUserStore";
+import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 
 type TChatHeaderMenuProps = {
   onRefresh: () => void;
@@ -61,6 +62,7 @@ export const ConversationHeader = ({
       <View className="flex-row items-center gap-3">
         <WebSocketStatusIndicator />
         <RefreshButton onRefresh={onRefresh} isLoading={isLoading} color="#6B7280" />
+        <SoundToggleButton />
         <KebabMenuButton onPress={handleKebabPress} />
         <WebContextMenu
           visible={visible}
