@@ -18,6 +18,7 @@ import ConversationForwardPanelWeb from "@/components/conversations/conversation
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
 import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
+import { MotionEasing } from "@/motion/easing";
 
 export default function ChatInterfaceWeb({
   chatItemList,
@@ -188,11 +189,17 @@ export default function ChatInterfaceWeb({
           )}
 
           {showMentionedMessages && (
-            <MentionedMessageListView
+            <MotionView
               visible={showMentionedMessages}
-              width={leftPaneWidth}
-              onClose={() => setShowMentionedMessages(false)}
-            />
+              className="flex-1 absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondar"
+              delay={40}
+              from={{ opacity: 0, translateX: screenWidth }}
+              to={{ opacity: 1, translateX: 0 }}
+              duration={{ enter: 240, exit: 200 }}
+              easing={MotionEasing.pair}
+            >
+              <MentionedMessageListView onClose={() => setShowMentionedMessages(false)} />
+            </MotionView>
           )}
         </View>
 

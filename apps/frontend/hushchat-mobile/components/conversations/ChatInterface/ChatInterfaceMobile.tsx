@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import {
   CHAT_VIEW_PATH,
   GROUP_CONVERSATION_SELECT_PARTICIPANTS,
+  MENTIONED_MESSAGES,
   SETTINGS_CONTACT,
   SETTINGS_INVITE,
   SETTINGS_WORKSPACE,
@@ -65,7 +66,7 @@ export default function ChatInterfaceMobile({
         icon: "at-outline",
         onPress: () => {
           setSheetVisible(false);
-          router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
+          router.push(MENTIONED_MESSAGES);
         },
       },
       {
@@ -161,10 +162,6 @@ export default function ChatInterfaceMobile({
             </View>
           </ScrollView>
         </View>
-      )}
-
-      {selectedConversationType !== ConversationType.MENTIONED && (
-        <View className="px-4 h-12"></View>
       )}
 
       {chatItemList}
