@@ -7,11 +7,16 @@ import com.platform.software.chat.conversation.readstatus.entity.ConversationRea
 import com.platform.software.chat.conversation.readstatus.entity.QConversationReadStatus;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.entity.QChatUser;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -23,6 +28,7 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
     private static final QConversation qConversation = QConversation.conversation;
     private static final QMessage qMessage = QMessage.message;
     private static final QConversationParticipant qParticipant = QConversationParticipant.conversationParticipant;
+    private static final QChatUser  qChatUser = QChatUser.chatUser;
     private final JPAQueryFactory queryFactory;
 
     public ConversationReadStatusQueryRepositoryImpl(JPAQueryFactory queryFactory) {
@@ -129,5 +135,29 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
             );
         }
         return resultMap;
+    }
+
+    public Page<ChatUser> findMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
+        BooleanExpression where = qConversationReadStatus.conversation.id.eq(conversationId)
+                .and(qConversationReadStatus.message.id.goe(messageId))
+                .and(qConversationReadStatus.user.id.ne(userId));
+
+        List<ChatUser> users = queryFactory
+                .select(qChatUser)
+                .from(qConversationReadStatus)
+                .innerJoin(qConversationReadStatus.user, qChatUser)
+                .where(where)
+                .distinct()
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(qConversationReadStatus.user.id.countDistinct())
+                .from(qConversationReadStatus)
+                .where(where)
+                .fetchOne();
+
+        return new PageImpl<>(users, pageable, total != null ? total : 0L);
     }
 }

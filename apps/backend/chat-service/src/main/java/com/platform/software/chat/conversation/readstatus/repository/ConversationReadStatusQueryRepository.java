@@ -1,6 +1,10 @@
 package com.platform.software.chat.conversation.readstatus.repository;
 
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
+import com.platform.software.chat.user.entity.ChatUser;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -53,4 +57,6 @@ public interface ConversationReadStatusQueryRepository {
      * @return the map
      */
     Map<Long, Long> findLastReadMessageIdsByConversationId(Long conversationId);
+
+    Page<ChatUser> findMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable);
 }

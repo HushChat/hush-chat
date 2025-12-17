@@ -17,6 +17,7 @@ import { AllParticipants } from "@/components/conversations/AllParticipants";
 import ConversationForwardPanelWeb from "@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel";
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
+import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel";
 
 export default function ChatInterfaceWeb({
   chatItemList,
@@ -39,6 +40,7 @@ export default function ChatInterfaceWeb({
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<number>(0);
 
   const { activePanel, isPanelOpen, isPanelContentReady, panelWidth, openPanel, closePanel } =
     usePanelManager(screenWidth);
@@ -74,6 +76,14 @@ export default function ChatInterfaceWeb({
       openPanel(PanelType.FORWARD);
     },
     [openPanel, setSelectedMessageIds]
+  );
+
+  const handleShowMessageInfo = useCallback(
+    (messageId: number) => {
+      openPanel(PanelType.MESSAGE_INFO);
+      setSelectedMessageId(messageId);
+    },
+    [setSelectedMessageId]
   );
 
   useEffect(() => {
@@ -115,6 +125,15 @@ export default function ChatInterfaceWeb({
           <ConversationForwardPanelWeb
             onClose={handleForwardPanelClose}
             currentConversationId={selectedConversation.id}
+          />
+        );
+      case PanelType.MESSAGE_INFO:
+        return (
+          <MessageInfoPanel
+            conversationId={selectedConversation.id}
+            messageId={selectedMessageId}
+            visible={activePanel === PanelType.MESSAGE_INFO}
+            onClose={closePanel}
           />
         );
       default:
@@ -200,6 +219,7 @@ export default function ChatInterfaceWeb({
               onShowProfile={handleShowProfile}
               webSearchPress={handleShowSearch}
               webForwardPress={handleShowForward}
+              webMessageInfoPress={handleShowMessageInfo}
               messageToJump={messageToJump}
               onMessageJumped={() => setMessageToJump(null)}
             />
