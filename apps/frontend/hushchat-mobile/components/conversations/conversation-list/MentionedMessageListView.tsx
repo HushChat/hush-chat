@@ -53,9 +53,11 @@ export default function MentionedMessageListView({ onClose }: TMentionedMessages
       <View className="flex-col ml-3 justify-center mb-4 p-1">
         <View className="flex-row items-center gap-x-2">
           <AppText className="font-bold">{item.conversation.name}</AppText>
-          <AppText>{formatDateTime(item.message.createdAt)}</AppText>
+          <AppText className="text-gray-500 dark:text-gray-400">
+            {formatDateTime(item.message.createdAt)}
+          </AppText>
         </View>
-        <AppText>
+        <AppText className="text-gray-500 dark:text-gray-400">
           <AppText className="font-bold">{senderName}</AppText>
           {" mentioned you"}
         </AppText>
@@ -113,6 +115,7 @@ export default function MentionedMessageListView({ onClose }: TMentionedMessages
           ListEmptyComponent={renderEmptyComponent}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          showsVerticalScrollIndicator={PLATFORM.IS_WEB}
         />
       </View>
     </View>
