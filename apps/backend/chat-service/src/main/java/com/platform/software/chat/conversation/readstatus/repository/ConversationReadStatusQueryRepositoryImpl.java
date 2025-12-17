@@ -3,6 +3,7 @@ package com.platform.software.chat.conversation.readstatus.repository;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationUnreadCount;
+import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.entity.QConversationReadStatus;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.entity.QMessage;
@@ -11,7 +12,6 @@ import com.platform.software.chat.user.entity.QChatUser;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
@@ -87,16 +87,13 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
             .select(Projections.constructor(
                 ConversationUnreadCount.class,
                 qConversation.id,
-                qMessage.id.countDistinct()
+                qMessage.id.count()
             ))
             .from(qConversation)
             .leftJoin(qConversationReadStatus)
-                .on(joinReadStatusForUser(userId))
-            .leftJoin(qParticipant)
-                .on(qParticipant.conversation.id.eq(qConversation.id)
-                    .and(qParticipant.user.id.eq(userId)))
+            .on(joinReadStatusForUser(userId))
             .leftJoin(qMessage)
-                .on(joinUnreadMessages())
+            .on(joinUnreadMessages())
             .groupBy(qConversation.id);
     }
 
@@ -111,12 +108,6 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
             .and(
                 qConversationReadStatus.message.id.isNull()
                     .or(qMessage.id.gt(qConversationReadStatus.message.id))
-            )
-            .and(
-                qParticipant.lastDeletedTime.isNull()
-                .or(qMessage.createdAt.gt(
-                Expressions.dateTimePath(java.util.Date.class, qParticipant.lastDeletedTime.getMetadata())
-            ))
             );
     }
 
