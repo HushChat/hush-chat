@@ -46,4 +46,7 @@ public class Conversation extends AuditModel{
     private Message pinnedMessage;
 
     private String description;
+
+    @Column(name = "notify_on_mentions_only")
+    private Boolean notifyOnMentionsOnly = false;
 }

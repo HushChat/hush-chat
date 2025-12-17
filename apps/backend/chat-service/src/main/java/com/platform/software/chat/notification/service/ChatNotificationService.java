@@ -1,5 +1,6 @@
 package com.platform.software.chat.notification.service;
 
+import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.notification.dto.DeviceTokenUpsertDTO;
 import com.platform.software.chat.notification.dto.NotificationRequestDTO;
@@ -53,6 +54,13 @@ public class ChatNotificationService {
         notificationServiceFactory.sendNotification(notificationsRequest);
     }
 
+    private Map<String, String> buildNotificationData(Long conversationId, Long messageId) {
+        Map<String, String> data = new HashMap<>();
+        data.put("conversationId", String.valueOf(conversationId));
+        data.put("messageId", String.valueOf(messageId));
+        return data;
+    }
+
     /**
      * Save new device token in database
      *
@@ -94,19 +102,32 @@ public class ChatNotificationService {
      * @param message message
      */
     public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message) {
+
+        Conversation conversation = message.getConversation();
+
+        if(conversation.getNotifyOnMentionsOnly()){
+            return;
+        }
+
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false);
 
         if (tokens.isEmpty()) {
             return;
         }
 
-        String body = message.getConversation().getIsGroup() 
+        String body = conversation.getIsGroup()
             ? message.getSender().getFirstName() + ": " + message.getMessageText() 
             : message.getMessageText();
 
         buildAndDispatchNotification(tokens, message, body);
     }
 
+    /**
+     * Send message reaction notifications
+     *
+     * @param message message
+     * @param loggedInUser logged in user
+     */
     public void sendMessageReactionNotifications(Message message, ChatUser loggedInUser) {
         List<String> tokens = chatNotificationRepository.findNonMutedTokensByUserId(message.getSender().getId());
 
@@ -119,10 +140,21 @@ public class ChatNotificationService {
         buildAndDispatchNotification(tokens, message, body);
     }
 
-    private Map<String, String> buildNotificationData(Long conversationId, Long messageId) {
-        Map<String, String> data = new HashMap<>();
-        data.put("conversationId", String.valueOf(conversationId));
-        data.put("messageId", String.valueOf(messageId));
-        return data;
+    /**
+     * Send message reaction notifications
+     *
+     * @param message message
+     * @param mentionedUsers mentioned users
+     */
+    public void sendMessageMentionNotifications(Message message, List<ChatUser> mentionedUsers) {
+        List<String> tokens = chatNotificationRepository.findTokensByChatUsers(mentionedUsers, message.getConversation().getId());
+
+        if (tokens.isEmpty()) {
+            return;
+        }
+
+        String body = message.getSender().getFirstName() + " " + message.getSender().getLastName() + " mentioned you";
+
+        buildAndDispatchNotification(tokens, message, body);
     }
 }

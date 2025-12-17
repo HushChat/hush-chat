@@ -1,7 +1,9 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.service.ConversationUtilService;
+import com.platform.software.chat.message.dto.MessageCreatedEvent;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.dto.UserMentionEvent;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageMention;
 import com.platform.software.chat.message.repository.MessageMentionRepository;
@@ -9,9 +11,11 @@ import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.constants.Constants;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -31,15 +35,18 @@ public class MessageMentionService {
     private final UserRepository userRepository;
     private final MessageMentionRepository messageMentionRepository;
     private final ConversationUtilService conversationUtilService;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     public MessageMentionService(
-        UserRepository userRepository, 
-        MessageMentionRepository messageMentionRepository, 
-        ConversationUtilService conversationUtilService
+            UserRepository userRepository,
+            MessageMentionRepository messageMentionRepository,
+            ConversationUtilService conversationUtilService, ApplicationEventPublisher eventPublisher
     ) {
         this.userRepository = userRepository;
         this.messageMentionRepository = messageMentionRepository;
         this.conversationUtilService = conversationUtilService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -68,8 +75,10 @@ public class MessageMentionService {
         try {
             messageMentionRepository.saveAll(messageMentions);
 
-            List<UserViewDTO> mentionUserDTOs = mentionedUsers.stream().map(UserViewDTO::new).toList();
-            messageViewDTO.setMentions(mentionUserDTOs);
+            eventPublisher.publishEvent(new UserMentionEvent(
+                    savedMessage,
+                    mentionedUsers
+            ));
         } catch (Exception e) {
             logger.error("cannot save message mentions for message: {}", savedMessage, e);
             throw new CustomInternalServerErrorException("Cannot save message mentions");

@@ -2,6 +2,7 @@ package com.platform.software.chat.notification.repository;
 
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.notification.entity.QChatNotification;
+import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.config.cache.CacheNames;
 import com.querydsl.core.BooleanBuilder;
@@ -10,6 +11,8 @@ import org.springframework.cache.annotation.Cacheable;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+
+import static com.platform.software.chat.notification.entity.QChatNotification.chatNotification;
 
 public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQueryRepository {
 
@@ -81,6 +84,29 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
                                         qConversationParticipant.mutedUntil.isNull()
                                                 .or(qConversationParticipant.mutedUntil.lt(ZonedDateTime.now()))
                                 )
+                )
+                .fetch();
+    }
+
+    /**
+     * Retrieves device tokens for the given chat users.
+     *
+     * @param chatUsers list of chat users
+     * @return a list of device tokens associated with the given chat users.
+     *         Returns an empty list if no tokens are found.
+     */
+    @Override
+    public List<String> findTokensByChatUsers(List<ChatUser> chatUsers, Long conversationId) {
+        return jpaQueryFactory
+                .select(qChatNotification.token)
+                .from(qConversationParticipant)
+                .join(qConversationParticipant.user, qChatUser)
+                .join(qChatNotification).on(qChatNotification.chatUser.id.eq(qChatUser.id))
+                .where(qChatUser.in(chatUsers)
+                        .and(qConversationParticipant.conversation.id.eq(conversationId))
+                        .and(qConversationParticipant.isActive.isTrue())
+                        .and(qConversationParticipant.mutedUntil.isNull()
+                                .or(qConversationParticipant.mutedUntil.lt(ZonedDateTime.now())))
                 )
                 .fetch();
     }
