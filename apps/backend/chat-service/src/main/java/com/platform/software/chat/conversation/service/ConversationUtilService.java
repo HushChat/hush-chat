@@ -18,6 +18,7 @@ import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
+import com.platform.software.config.cache.RedisCacheService;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.utils.CommonUtils;
 
@@ -45,19 +46,22 @@ public class ConversationUtilService {
     private final ConversationRepository conversationRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final ConversationService conversationService;
+    private final RedisCacheService cacheService;
 
     public ConversationUtilService(
             ConversationParticipantRepository conversationParticipantRepository,
             UserRepository userRepository,
             ConversationRepository conversationRepository,
             CloudPhotoHandlingService cloudPhotoHandlingService,
-            @Lazy ConversationService conversationService
+            @Lazy ConversationService conversationService,
+            RedisCacheService cacheService
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
         this.conversationService = conversationService;
+        this.cacheService = cacheService;
     }
 
     /**
@@ -191,6 +195,8 @@ public class ConversationUtilService {
         Conversation conversation = getConversationOrThrow(conversationId);
         ConversationMetaDataDTO conversationMetaDataDTO = conversationRepository.findConversationMetaData(conversationId, userId);
 
+        boolean isPinnedMessageExpired = false;
+
         Message pinnedMessage = conversation.getPinnedMessage();
         if (pinnedMessage != null) {
             boolean isVisible = CommonUtils.isMessageVisible(
@@ -202,7 +208,26 @@ public class ConversationUtilService {
                 BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
                 conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
             }
+
+            if (conversation.getPinnedMessageUntil() != null) {
+                isPinnedMessageExpired = conversation.getPinnedMessageUntil().isBefore(ZonedDateTime.now());
+            }
         }
+
+        if (isPinnedMessageExpired) {
+            conversation.setPinnedMessage(null);
+            conversation.setPinnedMessageUntil(null);
+
+            try {
+                conversationRepository.save(conversation);
+            } catch (Exception error) {
+                logger.error("save conversation: {} by user: {} with null pinned message failed", conversation.getId(), userId, error);
+            }
+
+            // todo cache do not clear, seem i do it inside, correct it
+            cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+        }
+
         return conversationMetaDataDTO;
     }
 
