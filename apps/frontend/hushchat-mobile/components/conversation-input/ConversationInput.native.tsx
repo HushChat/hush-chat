@@ -4,7 +4,6 @@ import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
-import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
@@ -130,11 +129,13 @@ const ConversationInput = ({
               />
 
               {!hideSendButton && (
-                <SendButton
-                  showSend={input.isValidMessage}
-                  isSending={isSending}
-                  onPress={handleSendButtonPress}
-                />
+                <View className="mb-4">
+                  <SendButton
+                    showSend={input.isValidMessage}
+                    isSending={isSending}
+                    onPress={handleSendButtonPress}
+                  />
+                </View>
               )}
             </View>
           </Animated.View>
@@ -167,6 +168,5 @@ const styles = StyleSheet.create({
   inputContainer: {
     position: "relative",
     alignItems: "flex-end",
-    paddingRight: RIGHT_ICON_GUTTER,
   },
 });

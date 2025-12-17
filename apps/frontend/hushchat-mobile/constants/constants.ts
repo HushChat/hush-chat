@@ -23,3 +23,5 @@ export const TITLES = {
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";
+
+export const SOUND_ENABLED_KEY = "sound_enabled";
