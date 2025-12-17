@@ -9,18 +9,29 @@ import { useMentions } from "@/hooks/conversation-input/useMentions";
 import { useReplyHandler } from "@/hooks/conversation-input/useReplyHandler";
 import { useFilePicker } from "@/hooks/conversation-input/useFilePicker";
 
-type TConversationInputOptions = Pick<
-  ConversationInputProps,
-  | "conversationId"
-  | "onSendMessage"
-  | "onOpenImagePicker"
-  | "onOpenImagePickerNative"
-  | "disabled"
-  | "replyToMessage"
-  | "onCancelReply"
-  | "controlledValue"
-  | "onControlledValueChange"
->;
+interface IConversationInputOptions
+  extends Pick<
+    ConversationInputProps,
+    | "conversationId"
+    | "onSendMessage"
+    | "onOpenImagePicker"
+    | "onOpenImagePickerNative"
+    | "disabled"
+    | "replyToMessage"
+    | "onCancelReply"
+    | "maxChars"
+    | "minLines"
+    | "maxLines"
+    | "lineHeight"
+    | "verticalPadding"
+    | "placeholder"
+  > {
+  minLines: number;
+  maxLines: number;
+  lineHeight: number;
+  verticalPadding: number;
+  placeholder: string;
+}
 
 export function useConversationInput({
   conversationId,
@@ -30,17 +41,14 @@ export function useConversationInput({
   disabled = false,
   replyToMessage,
   onCancelReply,
-  controlledValue,
-  onControlledValueChange,
-}: TConversationInputOptions) {
+  maxChars,
+  minLines,
+  maxLines,
+  lineHeight,
+  verticalPadding,
+  placeholder,
+}: IConversationInputOptions) {
   const messageTextInputRef = useRef<TextInput>(null);
-  const defaultPlaceholderText = "Type a message...";
-  const minLines = 1;
-  const maxLines = 6;
-  const lineHeight = 22;
-  const verticalPadding = 12;
-
-  const isControlledMode = controlledValue !== undefined;
 
   const inputDisabledStatusRef = useRef(disabled);
   inputDisabledStatusRef.current = disabled;
@@ -57,21 +65,15 @@ export function useConversationInput({
 
   const messageInputController = useMessageInput({
     conversationId,
+    maxChars,
   });
 
-  // Use controlled value if provided, otherwise use internal state
-  const currentMessage = isControlledMode
-    ? controlledValue
-    : messageInputController.currentTypedMessage;
-
-  const latestMessageTextRef = useRef(currentMessage);
-  latestMessageTextRef.current = currentMessage;
+  const latestMessageTextRef = useRef(messageInputController.currentTypedMessage);
+  latestMessageTextRef.current = messageInputController.currentTypedMessage;
 
   const mentionsController = useMentions({
     textInputRef: messageTextInputRef,
-    onMessageUpdate: isControlledMode
-      ? onControlledValueChange!
-      : messageInputController.updateTypedMessageText,
+    onMessageUpdate: messageInputController.updateTypedMessageText,
   });
 
   const cursorLocationRef = useRef(mentionsController.currentCursorIndex);
@@ -92,17 +94,11 @@ export function useConversationInput({
 
   const handleMessageTextChangedByUser = useCallback(
     (newTypedText: string) => {
-      if (isControlledMode) {
-        onControlledValueChange!(newTypedText);
-      } else {
-        messageInputController.onMessageTextChangedByUser(newTypedText);
-      }
+      messageInputController.onMessageTextChangedByUser(newTypedText);
       mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
       autoHeightController.updateHeightForClearedText(newTypedText);
     },
     [
-      isControlledMode,
-      onControlledValueChange,
       messageInputController.onMessageTextChangedByUser,
       mentionsController.evaluateMentionQueryFromInput,
       autoHeightController.updateHeightForClearedText,
@@ -118,23 +114,10 @@ export function useConversationInput({
 
   const handleSendFinalProcessedMessage = useCallback(
     (overrideMessageText?: string) => {
-      const messageToProcess = overrideMessageText ?? currentMessage;
-      const processedMessage = messageToProcess.trim();
+      const processedMessage =
+        messageInputController.finalizeAndReturnMessageForSending(overrideMessageText);
 
-      if (!processedMessage || inputDisabledStatusRef.current) {
-        if (isControlledMode) {
-          sendMessageCallbackRef.current(
-            processedMessage,
-            replyManagerRef.current.activeReplyTargetMessage ?? undefined
-          );
-          return;
-        }
-        return;
-      }
-
-      if (!isControlledMode) {
-        messageInputController.clearMessageAndDeleteDraft();
-      }
+      if (!processedMessage || inputDisabledStatusRef.current) return;
 
       sendMessageCallbackRef.current(
         processedMessage,
@@ -152,9 +135,7 @@ export function useConversationInput({
       requestAnimationFrame(() => messageTextInputRef.current?.focus());
     },
     [
-      currentMessage,
-      isControlledMode,
-      messageInputController.clearMessageAndDeleteDraft,
+      messageInputController.finalizeAndReturnMessageForSending,
       autoHeightController.animateHeightResetToMinimum,
       mentionsController.clearActiveMentionQuery,
       mentionsController.clearValidMentions,
@@ -168,18 +149,9 @@ export function useConversationInput({
         latestMessageTextRef.current
       );
 
-      if (isControlledMode) {
-        onControlledValueChange!(updatedMessage);
-      } else {
-        messageInputController.updateTypedMessageText(updatedMessage);
-      }
+      messageInputController.updateTypedMessageText(updatedMessage);
     },
-    [
-      isControlledMode,
-      onControlledValueChange,
-      mentionsController.handleUserSelectedMention,
-      messageInputController.updateTypedMessageText,
-    ]
+    [mentionsController.handleUserSelectedMention, messageInputController.updateTypedMessageText]
   );
 
   const stableSendHandlerRef = useRef(handleSendFinalProcessedMessage);
@@ -190,27 +162,25 @@ export function useConversationInput({
   });
 
   const specialCharacterInputController = useSpecialCharHandler(
-    currentMessage,
+    messageInputController.currentTypedMessage,
     mentionsController.currentCursorIndex,
     { handlers: { "@": mentionsController.manuallyTriggerMentionPicker } }
   );
 
   const resolvedPlaceholderText = useMemo(
-    () => replyManager.generateReplyAwarePlaceholder(defaultPlaceholderText),
-    [replyManager.generateReplyAwarePlaceholder, defaultPlaceholderText]
+    () => replyManager.generateReplyAwarePlaceholder(placeholder),
+    [replyManager.generateReplyAwarePlaceholder, placeholder]
   );
 
   const handleSendButtonPress = useCallback(() => {
     stableSendHandlerRef.current(latestMessageTextRef.current);
   }, []);
 
-  const isValidMessage = currentMessage.trim().length > 0;
-
   return {
     messageTextInputRef,
 
-    message: currentMessage,
-    isValidMessage,
+    message: messageInputController.currentTypedMessage,
+    isValidMessage: messageInputController.isMessageNonEmptyAndSendable,
 
     inputHeight: autoHeightController.currentInputHeight,
     minHeight: autoHeightController.minimumInputHeight,
@@ -247,5 +217,8 @@ export function useConversationInput({
     handleSendButtonPress,
 
     placeholder: resolvedPlaceholderText,
+    lineHeight,
+    verticalPadding,
+    maxChars,
   };
 }

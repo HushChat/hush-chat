@@ -6,6 +6,7 @@ import { logInfo } from "@/utils/logger";
 
 interface UseMessageInputOptions {
   conversationId: number;
+  maxChars?: number;
   onDraftLoaded?: (loadedDraftText: string) => void;
 }
 
@@ -23,6 +24,7 @@ const AUTOSAVE_DEBOUNCE_INTERVAL_MS = 500;
 
 export function useMessageInput({
   conversationId,
+  maxChars,
   onDraftLoaded,
 }: UseMessageInputOptions): UseMessageInputReturn {
   const persistentDraftStorageInstance = useMemo(() => StorageFactory.createStorage(), []);
@@ -31,6 +33,9 @@ export function useMessageInput({
 
   const activeConversationIdRef = useRef(conversationId);
   activeConversationIdRef.current = conversationId;
+
+  const configuredCharacterLimitRef = useRef(maxChars);
+  configuredCharacterLimitRef.current = maxChars;
 
   const persistDraftToStorage = useCallback(
     (conversationIdentifier: number, messageContentToSave: string) => {
@@ -90,7 +95,12 @@ export function useMessageInput({
 
   const onMessageTextChangedByUser = useCallback(
     (newRawInputText: string) => {
-      const sanitizedTextForInput = newRawInputText;
+      let sanitizedTextForInput = newRawInputText;
+      const characterLimit = configuredCharacterLimitRef.current;
+
+      if (typeof characterLimit === "number" && sanitizedTextForInput.length > characterLimit) {
+        sanitizedTextForInput = sanitizedTextForInput.slice(0, characterLimit);
+      }
 
       setCurrentTypedMessage(sanitizedTextForInput);
       persistDraftToStorageWithDelay(activeConversationIdRef.current, sanitizedTextForInput);

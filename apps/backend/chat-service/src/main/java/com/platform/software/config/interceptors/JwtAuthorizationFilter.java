@@ -54,7 +54,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     );
 
     private static final List<String> PLATFORM_PATTERNS = List.of(
-            "/workspaces/**"
+            "/workspaces/my-workspaces"
     );
 
     private final UserService userService;

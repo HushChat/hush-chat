@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { View, ScrollView } from "react-native";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { ProfileField } from "./ProfileField";
@@ -9,9 +9,6 @@ import { usePasswordVisibility } from "@/hooks/usePasswordVisibility";
 import { useLogout } from "@/hooks/useLogout";
 import { useProfileForm } from "@/hooks/useProfileForm";
 import LoadingState from "@/components/LoadingState";
-import { useDragAndDrop } from "@/hooks/useDragAndDrop";
-import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
-import { Ionicons } from "@expo/vector-icons";
 
 const SCROLL_CONTENT_PADDING_BOTTOM = 40;
 
@@ -36,16 +33,7 @@ export const ProfileForm = () => {
     syncUserData,
     hasPasswordData,
     isProfileChanged,
-    handleDroppedFiles,
   } = useProfileForm();
-
-  const avatarDropRef = useRef<View>(null);
-
-  const { isDragging } = useDragAndDrop(avatarDropRef, {
-    onDropFiles: (files) => {
-      handleDroppedFiles(files);
-    },
-  });
 
   useEffect(() => {
     syncUserData();
@@ -82,24 +70,16 @@ export const ProfileForm = () => {
       className="custom-scrollbar dark:bg-background-dark bg-background-light"
     >
       <View className="mt-8 px-4 items-center">
-        <View className="relative">
-          <View ref={avatarDropRef} className="relative rounded-full overflow-hidden">
-            <DragAndDropOverlay visible={isDragging} variant="avatar" />
-            <InitialsAvatar
-              name={userName}
-              size="lg"
-              imageUrl={avatarUrl}
-              imageError={avatarProps.imageError}
-              onImageError={avatarProps.onImageError}
-              isUploading={avatarProps.uploading}
-              showCameraIcon={false}
-              onPress={avatarProps.onPress}
-            />
-          </View>
-          <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1.5 border-[3px] border-background-light dark:border-background-dark pointer-events-none">
-            <Ionicons name="camera" size={20} color="#fff" />
-          </View>
-        </View>
+        <InitialsAvatar
+          name={userName}
+          size="lg"
+          imageUrl={avatarUrl}
+          imageError={avatarProps.imageError}
+          onImageError={avatarProps.onImageError}
+          isUploading={avatarProps.uploading}
+          showCameraIcon={true}
+          onPress={avatarProps.onPress}
+        />
       </View>
 
       <View className="mt-10 px-4">

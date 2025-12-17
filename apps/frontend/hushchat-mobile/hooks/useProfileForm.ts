@@ -11,7 +11,6 @@ import {
   uploadImage,
   uploadImageToSignedUrl,
   UploadType,
-  MAX_IMAGE_KB,
 } from "@/apis/photo-upload-service/photo-upload-service";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
 
@@ -38,6 +37,7 @@ export function useProfileForm() {
   const changeUserPassword = useChangePasswordQuery(
     () => {
       ToastUtils.success("Password updated successfully");
+      // Reset password fields
       setValues((prev) => ({
         ...prev,
         currentPassword: "",
@@ -84,40 +84,10 @@ export function useProfileForm() {
     setUploading(false);
   };
 
-  const handleDroppedFiles = useCallback((files: File[]) => {
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-
-    if (!file.type.startsWith("image/")) {
-      ToastUtils.error("Please drop an image file.");
-      return;
-    }
-
-    if (file.size / 1024 > MAX_IMAGE_KB) {
-      ToastUtils.error("Image size must be below 5MB");
-      return;
-    }
-
-    const fileUri = URL.createObjectURL(file);
-
-    const mockAsset = {
-      uri: fileUri,
-      fileName: file.name,
-      type: "image",
-    };
-
-    setImagePickerResult({
-      canceled: false,
-      assets: [mockAsset as any],
-    });
-
-    setImageError(false);
-  }, []);
-
   const submit = useCallback(async () => {
     setShowErrors(true);
 
+    // Validate all fields
     const validated = await validateAll();
     if (!validated) {
       ToastUtils.error("Please fix validation errors");
@@ -126,6 +96,7 @@ export function useProfileForm() {
 
     let hasChanges = false;
 
+    // Handle profile updates (name or image changes)
     const hasProfileChanges = isProfileChanged();
 
     if (hasProfileChanges) {
@@ -145,6 +116,7 @@ export function useProfileForm() {
       });
     }
 
+    // Handle password update
     if (hasPasswordData()) {
       hasChanges = true;
 
@@ -166,9 +138,9 @@ export function useProfileForm() {
     user?.id,
     updateUser,
     changeUserPassword,
-    handleDroppedFiles,
   ]);
 
+  // Sync form values when user data changes
   const syncUserData = useCallback(() => {
     setValues((prev) => ({
       ...prev,
@@ -195,6 +167,5 @@ export function useProfileForm() {
     syncUserData,
     hasPasswordData: hasPasswordData(),
     isProfileChanged: isProfileChanged(),
-    handleDroppedFiles,
   };
 }

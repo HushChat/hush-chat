@@ -14,7 +14,7 @@ export enum UploadType {
   GROUP = "group",
 }
 
-export const MAX_IMAGE_KB = 1024 * 5; // 5 MB
+const MAX_IMAGE_KB = 1024 * 5; // 5 MB
 const MAX_DOCUMENT_KB = 1024 * 10; // 10 MB
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
@@ -146,52 +146,123 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
   return { fileUri, fileName, fileType };
 };
 
+export type FileWithMessage = {
+  file: LocalFile;
+  messageText: string;
+  parentMessageId?: number;
+};
+
 export function useMessageAttachmentUploader(conversationId: number) {
-  const getSignedUrls = async (
-    files: LocalFile[],
-    messageText: string = ""
-  ): Promise<SignedUrl[] | null> => {
-    const fileNames = files.map((file) => file.name);
-    const response = await sendMessageByConversationIdFiles(conversationId, messageText, fileNames);
-    const signed = response?.signedURLs || [];
-    return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
-      originalFileName: s.originalFileName,
-      url: s.url,
-      indexedFileName: s.indexedFileName,
-    }));
+  const [state, setState] = useState({
+    isUploading: false,
+    error: null as string | null,
+    progress: 0,
+  });
+
+  const uploadFiles = async (filesWithMessages: FileWithMessage[]): Promise<UploadResult[]> => {
+    if (!filesWithMessages.length) return [];
+
+    setState({ isUploading: true, error: null, progress: 0 });
+
+    try {
+      const attachmentRequests = filesWithMessages.map((item) => ({
+        messageText: item.messageText,
+        fileName: item.file.name,
+        parentMessageId: item.parentMessageId ?? null,
+      }));
+
+      const responses = await createMessagesWithAttachments(conversationId, attachmentRequests);
+
+      const results: UploadResult[] = [];
+
+      for (let i = 0; i < filesWithMessages.length; i++) {
+        const { file } = filesWithMessages[i];
+        const response = responses[i];
+
+        try {
+          const signedUrl = response?.signedUrl?.url;
+          if (!signedUrl) {
+            throw new Error("No signed URL returned");
+          }
+
+          const blob = await (await fetch(file.uri)).blob();
+          await fetch(signedUrl, {
+            method: "PUT",
+            body: blob,
+            headers: { "Content-Type": file.type },
+          });
+
+          results.push({
+            success: true,
+            fileName: file.name,
+            signed: {
+              originalFileName: file.name,
+              url: signedUrl,
+              indexedFileName: response.signedUrl?.indexedFileName,
+            },
+          });
+        } catch (error: any) {
+          results.push({
+            success: false,
+            fileName: file.name,
+            error: error?.message ?? "Upload failed",
+          });
+        }
+
+        setState((s) => ({ ...s, progress: (i + 1) / filesWithMessages.length }));
+      }
+
+      return results;
+    } catch (error: any) {
+      setState((s) => ({ ...s, error: error?.message }));
+      return filesWithMessages.map((item) => ({
+        success: false,
+        fileName: item.file.name,
+        error: error?.message ?? "Upload failed",
+      }));
+    } finally {
+      setState((s) => ({ ...s, isUploading: false }));
+    }
   };
 
-  const hook = useNativePickerUpload(getSignedUrls);
+  const pickerHook = useNativePickerUpload(async () => null);
 
-  const pickAndUploadImages = async (messageText: string = "") =>
-    hook.pickAndUpload(
-      {
-        source: "media",
-        mediaKind: "image",
-        multiple: true,
-        maxSizeKB: MAX_IMAGE_KB,
-        allowedMimeTypes: ["image/*"],
-        allowsEditing: false,
-      },
-      messageText
-    );
+  const pickAndUploadImages = async (messageText: string = "", parentMessageId?: number) => {
+    const files = await pickerHook.pick({
+      source: "media",
+      mediaKind: "image",
+      multiple: true,
+      maxSizeKB: MAX_IMAGE_KB,
+      allowedMimeTypes: ["image/*"],
+    });
+    if (!files) return [];
 
-  const pickAndUploadDocuments = async (messageText: string = "") =>
-    hook.pickAndUpload(
-      {
-        source: "document",
-        multiple: true,
-        maxSizeKB: MAX_DOCUMENT_KB,
-        allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
-      },
-      messageText
-    );
+    const filesWithMessages: FileWithMessage[] = files.map((file, index) => ({
+      file,
+      messageText: index === 0 ? messageText : "",
+      parentMessageId,
+    }));
 
-  const uploadFilesFromWeb = async (
-    files: File[],
-    messageText: string = ""
-  ): Promise<UploadResult[]> => {
-    if (!files || files.length === 0) return [];
+    return uploadFiles(filesWithMessages);
+  };
+
+  const pickAndUploadDocuments = async (messageText: string = "", parentMessageId?: number) => {
+    const files = await pickerHook.pick({
+      source: "document",
+      multiple: true,
+      maxSizeKB: MAX_DOCUMENT_KB,
+      allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+    });
+    if (!files) return [];
+
+    const filesWithMessages: FileWithMessage[] = files.map((file, index) => ({
+      file,
+      messageText: index === 0 ? messageText : "",
+      parentMessageId,
+    }));
+
+    return uploadFiles(filesWithMessages);
+  };
 
   const uploadFilesFromWeb = async (
     files: File[],
@@ -214,8 +285,7 @@ export function useMessageAttachmentUploader(conversationId: number) {
     }));
 
     try {
-      const results = await hook.upload(locals, messageText);
-      return [...results, ...skipped];
+      return await uploadFiles(filesWithMessages);
     } finally {
       localFiles.forEach((f) => URL.revokeObjectURL(f.uri));
     }

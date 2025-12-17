@@ -8,7 +8,6 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { ImageGroupBubble } from "@/components/ImageGroupBubble";
-import { TUser } from "@/types/user/types";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
@@ -26,7 +25,6 @@ interface IMessageBubbleProps {
   isForwardedMessage: boolean;
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
-  onMentionClick?: (user: TUser) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
   isImageGroup?: boolean;
@@ -44,7 +42,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   isForwardedMessage,
   attachments,
   onBubblePress,
-  onMentionClick,
   style,
   isImageGroup = false,
   groupedMessages,
@@ -70,16 +67,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
     : null;
 
   const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
-
-  const handleMentionPress = (username: string) => {
-    if (!onMentionClick || !message.mentions) return;
-
-    const mentionedUser = message.mentions.find((user) => user.username === username);
-
-    if (mentionedUser) {
-      onMentionClick(mentionedUser);
-    }
-  };
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
@@ -132,7 +119,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
               text={message.messageText}
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
-              onMentionPress={handleMentionPress}
             />
           ) : message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
