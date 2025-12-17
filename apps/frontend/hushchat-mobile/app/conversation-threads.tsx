@@ -50,6 +50,7 @@ interface ConversationThreadScreenProps {
   onShowProfile: () => void;
   webSearchPress?: () => void;
   webForwardPress?: (messageIds: Set<number>) => void;
+  webMessageInfoPress?: (messageId: number) => void;
   messageToJump?: number | null;
   onMessageJumped?: () => void;
   onConversationDeleted?: () => void;
@@ -60,6 +61,7 @@ const ConversationThreadScreen = ({
   onShowProfile,
   webSearchPress = () => {},
   webForwardPress,
+  webMessageInfoPress,
   onMessageJumped,
   messageToJump,
 }: ConversationThreadScreenProps) => {
@@ -80,6 +82,7 @@ const ConversationThreadScreen = ({
     selectedMessageIds,
     setSelectedMessageIds,
     setSelectedConversationId,
+    setIsMarkdownEnabled,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
   const currentConversationId = conversationId || Number(params.conversationId);
@@ -271,7 +274,14 @@ const ConversationThreadScreen = ({
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-  }, [currentConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
+    setIsMarkdownEnabled(true);
+  }, [
+    currentConversationId,
+    setSelectionMode,
+    setSelectedMessageIds,
+    handleCloseImagePreview,
+    setIsMarkdownEnabled,
+  ]);
 
   const handleBackPress = useCallback(() => {
     navigateBackOrFallback(CHATS_PATH);
@@ -366,6 +376,7 @@ const ConversationThreadScreen = ({
         onNavigateToMessage={handleNavigateToMessage}
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
+        webMessageInfoPress={webMessageInfoPress}
       />
     );
   }, [
