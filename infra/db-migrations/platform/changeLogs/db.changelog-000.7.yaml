@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: enable_pg_trgm_extension
+      author: wenura
+      tag: release-7.1
+      comment: "Enable PostgreSQL trigram extension for efficient pattern matching"
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS pg_trgm;
+      rollback:
+        - sql:
+            sql: DROP EXTENSION IF EXISTS pg_trgm;
+
+  - changeSet:
+      id: create_trigram_index_on_message_text
+      author: wenura
+      tag: release-7.2
+      comment: "Create GIN trigram index on message_text for faster ILIKE searches"
+      changes:
+        - sql:
+            sql: CREATE INDEX IF NOT EXISTS idx_message_text_trgm ON message USING GIN (message_text gin_trgm_ops);
+      rollback:
+        - sql:
+            sql: DROP INDEX IF EXISTS idx_message_text_trgm;
+
+  - changeSet:
+      id: set_trigram_similarity_threshold
+      author: wenura
+      tag: release-7.3
+      comment: "Set trigram similarity threshold for fuzzy matching"
+      changes:
+        - sql:
+            sql: ALTER DATABASE chat_system SET pg_trgm.similarity_threshold = 0.3;
+      rollback:
+        - sql:
+            sql: ALTER DATABASE chat_system RESET pg_trgm.similarity_threshold;
