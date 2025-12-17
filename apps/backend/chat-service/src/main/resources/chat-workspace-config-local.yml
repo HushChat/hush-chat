@@ -4,3 +4,5 @@
 workspaceIds:
   localhost:
     schema: localhost
+  hushchat:
+    schema: hushchat
