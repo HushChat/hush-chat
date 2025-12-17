@@ -20,13 +20,8 @@ const getDeviceType = (): DeviceType => {
   return "MOBILE";
 };
 
-export const subscribeToTopic = (
-  ws: WebSocket,
-  destination: string,
-  email: string,
-  subscriptionId: string
-) => {
-  const fullDestination = `${destination}${encodeURIComponent(email)}`;
+export const subscribeToTopic = (ws: WebSocket, destination: string, subscriptionId: string) => {
+  const fullDestination = `/user${destination}`;
 
   const deviceType = getDeviceType();
 

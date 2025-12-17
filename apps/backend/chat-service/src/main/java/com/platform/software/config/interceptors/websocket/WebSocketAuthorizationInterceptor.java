@@ -25,6 +25,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.List;
@@ -119,6 +120,10 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             accessor.getSessionAttributes().put(Constants.JWT_CLAIM_EMAIL, email);
             accessor.getSessionAttributes().put("workspaceId", workspaceId);
             accessor.getSessionAttributes().put("deviceType", deviceType);
+
+            // Use sessionKey as the principal identifier
+            Principal principal = () -> sessionKey;
+            accessor.setUser(principal);
 
             manageSession(sessionKey, accessor, user, workspaceId, email);
 
