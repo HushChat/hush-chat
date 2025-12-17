@@ -91,8 +91,9 @@ public class  DBSeeder implements ApplicationListener<ApplicationReadyEvent> {
         workspaceSeeder.seedWorkspaceUsers();
         WorkspaceContext.clear();
 
-        for (String schemas : workspaceConfig.getWorkspaceIds().keySet()) {
-            WorkspaceContext.setCurrentWorkspace(schemas);
+        for (String schema : workspaceConfig.getWorkspaceIds().keySet()) {
+            logger.info("Initializing seeding for workspace '{}'", schema);
+            WorkspaceContext.setCurrentWorkspace(schema);
             seedChatData();
             WorkspaceContext.clear();
         }
