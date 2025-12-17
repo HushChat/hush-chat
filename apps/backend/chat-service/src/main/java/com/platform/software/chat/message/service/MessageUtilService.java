@@ -2,9 +2,11 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
+import com.platform.software.chat.conversation.service.ConversationPermissionGuard;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.entity.Message;
@@ -33,6 +35,7 @@ public class MessageUtilService {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
+    private final ConversationPermissionGuard conversationPermissionGuard;
 
     /**
      * Retrieves the recipient ID for a one-to-one conversation.
@@ -105,9 +108,11 @@ public class MessageUtilService {
      * @return the saved Message entity
      */
     public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
-        conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
         ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+
+        conversationPermissionGuard.validateMessageSendingAccess(conversation, participant);
 
         validateInteractionAllowed(conversation, senderUserId);
 
