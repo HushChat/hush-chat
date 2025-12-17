@@ -2,10 +2,22 @@ import { messageQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQuery } from "@/query/usePaginatedQuery";
 import { IMentionedMessage } from "@/types/chat/types";
 import { getMentionedMessages } from "@/apis/message";
+import { useMemo } from "react";
 
-export function useGetAllMentionedMessages() {
+type UseGetAllMentionedMessagesResult = Readonly<{
+  mentionedMessages: readonly IMentionedMessage[];
+  isLoadingMentionedMessages: boolean;
+  mentionedMessagesError: unknown;
+  fetchNextPage: () => Promise<unknown>;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  invalidateQuery: (() => void) | undefined;
+  refetch: () => Promise<unknown>;
+}>;
+
+export function useGetAllMentionedMessages(): UseGetAllMentionedMessagesResult {
   const {
-    pages,
+    pages: pageData,
     isLoading,
     error,
     fetchNextPage,
@@ -19,10 +31,14 @@ export function useGetAllMentionedMessages() {
     initialPageParam: 0,
   });
 
+  const mentionedMessages = useMemo(() => {
+    return pageData?.pages.flatMap((page) => page.content ?? []) ?? [];
+  }, [pageData]);
+
   return {
-    mentionedMessagePages: pages,
+    mentionedMessages,
     isLoadingMentionedMessages: isLoading,
-    mentionedMessageError: error,
+    mentionedMessagesError: error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,

@@ -1,13 +1,11 @@
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { IMentionedMessage } from "@/types/chat/types";
 import { useGetAllMentionedMessages } from "@/query/useGetAllMentionedMessages";
-import { PaginatedResponse } from "@/types/common/types";
 import { MotionEasing } from "@/motion/easing";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
 import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import FormattedText from "@/components/FormattedText";
 import { formatDateTime } from "@/utils/commonUtils";
@@ -24,16 +22,12 @@ export default function MentionedMessageListView({
   onClose,
 }: TMentionedMessagesOverlay) {
   const {
-    mentionedMessagePages,
+    mentionedMessages,
     isLoadingMentionedMessages,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
   } = useGetAllMentionedMessages();
-
-  const pages =
-    (mentionedMessagePages as { pages?: PaginatedResponse<IMentionedMessage>[] })?.pages ?? [];
-  const favoriteMessages = pages.flatMap((page) => page?.content ?? []);
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -41,13 +35,21 @@ export default function MentionedMessageListView({
     }
   };
 
-  if (isLoadingMentionedMessages) {
+  const renderEmptyComponent = () => {
+    if (isLoadingMentionedMessages) {
+      return (
+        <View className="py-12 items-center justify-center">
+          <ActivityIndicator size="large" color="#6B7280" />
+        </View>
+      );
+    }
+
     return (
-      <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark items-center justify-center">
-        <ActivityIndicator size="large" />
-      </SafeAreaView>
+      <View className="flex-1 items-center justify-center pt-10">
+        <AppText>No one has mentioned you yet!</AppText>
+      </View>
     );
-  }
+  };
 
   const render = ({ item }: { item: IMentionedMessage }) => {
     const senderName = item.message.senderFirstName + " " + item.message.senderLastName;
@@ -62,7 +64,7 @@ export default function MentionedMessageListView({
           <AppText className="font-bold">{senderName}</AppText>
           {" mentioned you"}
         </AppText>
-        <View className="flex-row items-center">
+        <View className="flex-row gap-x-2">
           {item.message.senderSignedImageUrl ? (
             <View className="mr-2 pt-1 w-10 h-10">
               <InitialsAvatar
@@ -113,18 +115,13 @@ export default function MentionedMessageListView({
 
       <View className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 h-full">
         <FlatList
-          data={favoriteMessages}
+          data={mentionedMessages}
           renderItem={render}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          ListEmptyComponent={
-            !isFetchingNextPage ? (
-              <View className="flex-1 items-center justify-center pt-10">
-                <AppText>No mentioned message yet.</AppText>
-              </View>
-            ) : null
-          }
+          contentContainerStyle={{ paddingBottom: 40 }}
+          ListEmptyComponent={renderEmptyComponent}
           onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
         />
       </View>
     </MotionView>
