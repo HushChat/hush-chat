@@ -12,7 +12,7 @@ import { IConversation, IUserStatus } from "@/types/chat/types";
 import { playMessageSound } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
-import { conversationQueryKeys } from "@/constants/queryKeys";
+import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
 import { getPaginationConfig } from "@/utils/commonUtils";
 import { getCriteria } from "@/utils/conversationUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
@@ -23,6 +23,7 @@ import {
   USER_EVENTS,
   WEBSOCKET_EVENTS,
 } from "@/constants/ws/webSocketEventKeys";
+import { MessageUnsentPayload } from "@/types/ws/types";
 
 const PAGE_SIZE = 20;
 
@@ -216,6 +217,76 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     setCreatedConversation(null);
   }, [createdConversation, queryClient, conversationsQueryKey]);
+
+  useEffect(() => {
+    const handleMessageUnsent = (payload: MessageUnsentPayload) => {
+      const { conversationId, messageId } = payload;
+
+      // Update conversation list cache
+      queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
+        conversationsQueryKey,
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              content: page.content.map((conv) => {
+                if (conv.id !== conversationId) return conv;
+
+                return {
+                  ...conv,
+                  messages: (conv.messages ?? []).map((m) =>
+                    m.id === messageId
+                      ? {
+                          ...m,
+                          isUnsend: true,
+                          messageAttachments: [],
+                          isForwarded: false,
+                        }
+                      : m
+                  ),
+                };
+              }),
+            })),
+          };
+        }
+      );
+
+      // Update conversation thread messages cache
+      const threadKey = conversationMessageQueryKeys.messages(
+        Number(loggedInUserId),
+        conversationId
+      );
+
+      queryClient.setQueryData(threadKey, (old: any) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            content: page.content.map((msg: any) =>
+              msg.id === messageId
+                ? {
+                    ...msg,
+                    isUnsend: true,
+                    messageAttachments: [],
+                    isForwarded: false,
+                  }
+                : msg
+            ),
+          })),
+        };
+      });
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.MESSAGE_UNSENT, handleMessageUnsent);
+    return () => {
+      eventBus.off(CONVERSATION_EVENTS.MESSAGE_UNSENT, handleMessageUnsent);
+    };
+  }, [queryClient, conversationsQueryKey, loggedInUserId]);
 
   const clearNotificationConversation = useCallback(() => {
     setNotificationConversation(null);

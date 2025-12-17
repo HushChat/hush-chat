@@ -3,7 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
-import { emitConversationCreated, emitNewMessage, emitUserStatus } from "@/services/eventBus";
+import {
+  emitConversationCreated,
+  emitMessageUnsent,
+  emitNewMessage,
+  emitUserStatus,
+} from "@/services/eventBus";
 import { IConversation, IUserStatus } from "@/types/chat/types";
 import {
   CONNECTED_RESPONSE,
@@ -11,10 +16,15 @@ import {
   ERROR_RESPONSE,
   MESSAGE_RECEIVED_TOPIC,
   MESSAGE_RESPONSE,
+  MESSAGE_UNSENT_TOPIC,
   ONLINE_STATUS_TOPIC,
   RETRY_TIME_MS,
 } from "@/constants/wsConstants";
-import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
+import {
+  MessageUnsentPayload,
+  UserActivityWSSubscriptionData,
+  WebSocketStatus,
+} from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
 
@@ -23,6 +33,7 @@ const TOPICS = [
   { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
   { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
   { destination: CONVERSATION_CREATED_TOPIC, id: "sub-conversation-created" },
+  { destination: MESSAGE_UNSENT_TOPIC, id: "sub-message-unsent" },
 ];
 
 export const publishUserActivity = (
@@ -74,6 +85,10 @@ const handleMessageByTopic = (topic: string, body: string) => {
       // Handle group conversation creation
       const newConversation = JSON.parse(body) as IConversation;
       emitConversationCreated(newConversation);
+    } else if (topic.includes(MESSAGE_UNSENT_TOPIC)) {
+      // Handle message unsent
+      const data = JSON.parse(body) as MessageUnsentPayload;
+      emitMessageUnsent(data);
     } else {
       logDebug("Received message from unknown topic:", topic);
     }

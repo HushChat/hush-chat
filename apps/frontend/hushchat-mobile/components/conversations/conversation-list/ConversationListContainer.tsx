@@ -118,6 +118,8 @@ export default function ConversationListContainer({
 
   const isSearchActive = searchQuery && searchQuery.length > 0;
 
+  console.log(conversations);
+
   // Render search results when search is active
   if (isSearchActive) {
     return (
