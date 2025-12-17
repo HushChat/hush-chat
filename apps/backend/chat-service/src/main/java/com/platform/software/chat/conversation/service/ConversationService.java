@@ -6,6 +6,7 @@ import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.entity.ConversationReport;
 import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
+import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
@@ -1259,10 +1260,22 @@ public class ConversationService {
             return;
         }
 
+        ConversationReadStatus updatingStatus = conversationReadStatusRepository
+            .findByConversationIdAndUserId(conversationId, userId)
+            .orElseGet(() -> {
+                ConversationReadStatus newStatus = new ConversationReadStatus();
+                newStatus.setUser(participant.getUser());
+                newStatus.setConversation(participant.getConversation());
+                return newStatus;
+            });
+
+            updatingStatus.setMessage(null);
+
         try {
             participant.setIsDeleted(true);
             participant.setLastDeletedTime(ZonedDateTime.now());
             conversationParticipantRepository.save(participant);
+            conversationReadStatusRepository.save(updatingStatus);
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA+":" + conversationId));
         } catch (Exception e) {
             logger.error("Failed to delete conversation participant for userId: {} in conversationId: {}", userId, conversationId, e);
