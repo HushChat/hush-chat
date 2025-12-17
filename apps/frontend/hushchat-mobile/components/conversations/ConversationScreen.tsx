@@ -22,9 +22,7 @@ import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface/ChatInterface";
-import { router } from "expo-router";
 import { PLATFORM } from "@/constants/platformConstants";
-import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
@@ -101,11 +99,12 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   });
 
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
+    setSelectedConversation(conversation);
     if (PLATFORM.IS_WEB) {
       if (conversation) {
-        router.replace(CONVERSATION(conversation.id));
+        window.history.pushState({}, "", `/conversations/${conversation.id}`);
       } else {
-        router.replace(CHATS_PATH);
+        window.history.pushState({}, "", "/(tabs)/conversations");
       }
     }
   }, []);
