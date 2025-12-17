@@ -8,7 +8,9 @@ import { MessageActions } from "./MessageActions";
 interface IMessageHeaderProps {
   isCurrentUser: boolean;
   isGroupChat?: boolean;
+  showSenderName: boolean;
   senderName: string;
+  messageText?: string;
   messageTime: string;
   messageIsUnsend?: boolean;
   selectionMode: boolean;
@@ -21,7 +23,9 @@ interface IMessageHeaderProps {
 export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   isCurrentUser,
   isGroupChat,
+  showSenderName,
   senderName,
+  messageText,
   messageTime,
   messageIsUnsend,
   selectionMode,
@@ -39,15 +43,17 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
     >
       {isCurrentUser && (
         <MessageActions
+          messageText={messageText}
           messageIsUnsend={messageIsUnsend}
           selectionMode={selectionMode}
           onOpenPicker={onOpenPicker}
           onOpenMenu={onOpenMenu}
           currentUserId={currentUserId}
+          isCurrentUser={isCurrentUser}
         />
       )}
 
-      {isGroupChat && (
+      {isGroupChat && showSenderName && (
         <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
           {isCurrentUser ? "You" : senderName}
         </AppText>
@@ -65,11 +71,13 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
 
       {!isCurrentUser && (
         <MessageActions
+          messageText={messageText}
           messageIsUnsend={messageIsUnsend}
           selectionMode={selectionMode}
           onOpenPicker={onOpenPicker}
           onOpenMenu={onOpenMenu}
           currentUserId={currentUserId}
+          isCurrentUser={isCurrentUser}
         />
       )}
     </View>

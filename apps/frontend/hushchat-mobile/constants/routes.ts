@@ -1,3 +1,5 @@
+import { Href } from "expo-router";
+
 export const CHATS_PATH = "/(tabs)/conversations";
 export const AUTH_WORKSPACE_FORM_PATH = "/(auth)/select-workspace";
 export const AUTH_LOGIN_PATH = "/(auth)/login";
@@ -17,3 +19,7 @@ export const FORWARD_PATH = "/conversations/forward-panel";
 export const GROUP_CONVERSATION_SELECT_PARTICIPANTS = "/group-conversation/select-participants";
 export const SETTINGS_CONTACT = "/settings/contact";
 export const SETTINGS_INVITE = "/settings/invite";
+export const SETTINGS_WORKSPACE = "/settings/change-workspace";
+export const CONVERSATION = (id: number): Href => `/conversations/${id}` as Href;
+export const MESSAGE_READ_PARTICIPANTS =
+  "/conversations/[conversationId]/messages/[messageId]/read-by";

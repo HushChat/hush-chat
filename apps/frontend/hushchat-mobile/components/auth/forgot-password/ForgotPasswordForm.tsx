@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import {
   FormHeader,
   FormButton,
@@ -9,6 +9,7 @@ import {
 } from "@/components/FormComponents";
 import TextField from "@/components/forms/TextField";
 import { TForgotPasswordFormProps } from "@/types/login/types";
+import { AppText } from "@/components/AppText";
 
 export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
   const {
@@ -35,9 +36,9 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
 
       {!!successMessage && (
         <View className="mb-4 rounded-xl px-3 py-2 bg-green-100 dark:bg-emerald-950">
-          <Text className="text-sm font-semibold text-green-700 dark:text-emerald-300 text-center">
+          <AppText className="text-sm font-semibold text-green-700 dark:text-emerald-300 text-center">
             {successMessage}
-          </Text>
+          </AppText>
         </View>
       )}
 

@@ -2,6 +2,7 @@ import { USER_API_ENDPOINTS, WORKSPACE_ENDPOINTS } from "@/constants/apiConstant
 import axios from "axios";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { DeviceToken } from "@/types/user/types";
+import { getAllTokens } from "@/utils/authUtils";
 
 export const getUserInfo = async () => {
   try {
@@ -74,10 +75,24 @@ export const sendTokenToBackend = async (device: DeviceToken) => {
   }
 };
 
+export const changePassword = async (oldPassword: string, newPassword: string) => {
+  try {
+    const { accessToken } = await getAllTokens();
+    const response = await axios.post(USER_API_ENDPOINTS.CHANGE_PASSWORD, {
+      oldPassword,
+      newPassword,
+      accessToken,
+    });
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
 export const getUserWorkspaces = async () => {
   try {
     const response = await axios.get(WORKSPACE_ENDPOINTS.GET);
-    return { data: response.data };
+    return response.data;
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
   }

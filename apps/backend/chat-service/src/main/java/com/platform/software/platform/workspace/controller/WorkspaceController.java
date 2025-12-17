@@ -5,9 +5,7 @@ import com.platform.software.chat.user.dto.WorkSpaceUserUpsertDTO;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
-import com.platform.software.platform.workspace.dto.WorkspaceDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
+import com.platform.software.platform.workspace.dto.*;
 import com.platform.software.platform.workspace.service.WorkspaceService;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import io.swagger.annotations.ApiOperation;
@@ -32,25 +30,14 @@ public class WorkspaceController {
         this.workspaceService = workspaceService;
     }
 
-    @ApiOperation(value = "Create new workspace")
+    @ApiOperation(value = "Submit new workspace creation request")
     @PostMapping
-    public ResponseEntity<Void> createWorkspace(
+    public ResponseEntity<Void> submitCreateWorkspaceRequest(
             @Valid @RequestBody WorkspaceUpsertDTO workspaceUpsertDTO,
             @AuthenticatedUser UserDetails userDetails
     ){
-        workspaceService.createWorkspace(workspaceUpsertDTO, userDetails.getEmail());
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    @ApiOperation(value = "invite to workspaces")
-    @PostMapping("/invite")
-    public ResponseEntity<Void> inviteToWorkspace(
-            @RequestHeader("X-Tenant") String workspaceIdentifier,
-            @AuthenticatedUser UserDetails userDetails,
-            @Valid @RequestBody WorkspaceUserInviteDTO workspaceUserInviteDTO
-    ) {
-        workspaceUserService.inviteUserToWorkspace(userDetails.getEmail(), workspaceIdentifier, workspaceUserInviteDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        workspaceService.requestCreateWorkspace(workspaceUpsertDTO, userDetails.getEmail());
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @ApiOperation(value = "Create a new workspace user", response = UserDTO.class)

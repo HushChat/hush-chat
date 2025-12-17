@@ -1,14 +1,19 @@
-import React, { useCallback, useMemo } from "react";
-import { Linking, TextStyle } from "react-native";
-import ParsedText, { ParseShape } from "react-native-parsed-text";
-import classNames from "classnames";
+import React, { useMemo } from "react";
+import Markdown, { MarkdownIt } from "react-native-markdown-display";
+import { PLATFORM } from "@/constants/platformConstants";
+import WebContextMenu from "@/components/WebContextMenu";
+import { useMarkdownRules } from "@/hooks/formattedText/useMarkdownRules";
+import { useLinkHandler } from "@/hooks/formattedText/useLinkHandler";
+import { useWebContextMenu } from "@/hooks/formattedText/useWebContextMenu";
+import { useMarkdownStyles } from "@/hooks/formattedText/useMarkdownStyles";
+import { useProcessedText } from "@/hooks/formattedText/useProcessedText";
 import { TUser } from "@/types/user/types";
-import { HASHTAG_REGEX, MENTION_REGEX } from "@/constants/regex";
+import { AppText } from "@/components/AppText";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import classNames from "classnames";
 
-interface FormattedTextProps {
+export interface FormattedTextProps {
   text: string;
-  className?: string;
-  style?: TextStyle | TextStyle[];
   mentions?: TUser[];
   onLinkPress?: (url: string) => void;
   onEmailPress?: (email: string) => void;
@@ -18,107 +23,54 @@ interface FormattedTextProps {
   isCurrentUser: boolean;
 }
 
-const FormattedText = ({
-  text,
-  className,
-  style,
-  mentions = [],
-  onLinkPress,
-  onEmailPress,
-  onPhonePress,
-  onMentionPress,
-  onHashtagPress,
-  isCurrentUser,
-}: FormattedTextProps) => {
-  const handleUrlPress = useCallback(
-    async (url: string) => {
-      const finalUrl = url.startsWith("http") ? url : `https://${url}`;
-      if (onLinkPress) return onLinkPress(finalUrl);
-      if (await Linking.canOpenURL(finalUrl)) await Linking.openURL(finalUrl);
-    },
-    [onLinkPress]
-  );
-  const handleEmailPress = useCallback((email: string) => onEmailPress?.(email), [onEmailPress]);
-  const handlePhonePress = useCallback((phone: string) => onPhonePress?.(phone), [onPhonePress]);
-  const handleHashtagPress = useCallback(
-    (hashtag: string) => onHashtagPress?.(hashtag.replace("#", "")),
-    [onHashtagPress]
-  );
-  const handleMentionPress = useCallback(
-    (mention: string) => {
-      const username = mention.replace(MENTION_REGEX, "");
-      if (mentions.some((m) => m.username === username)) {
-        onMentionPress?.(username);
-      }
-    },
-    [mentions, onMentionPress]
-  );
+const FormattedText = (props: FormattedTextProps) => {
+  const { text, mentions = [], isCurrentUser } = props;
+  const { isMarkdownEnabled } = useConversationStore();
 
-  const parse = useMemo<ParseShape[]>(
-    () => [
-      {
-        type: "url",
-        onPress: handleUrlPress,
-        style: {
-          textDecorationLine: "underline",
-          color: "#7dd3fc",
-          opacity: 0.9,
-        },
-      },
-      {
-        type: "email",
-        onPress: handleEmailPress,
-        style: {
-          textDecorationLine: "underline",
-          color: "#7dd3fc",
-          opacity: 0.9,
-        },
-      },
-      {
-        type: "phone",
-        onPress: handlePhonePress,
-        style: {
-          textDecorationLine: "underline",
-          color: "#7dd3fc",
-          opacity: 0.9,
-        },
-      },
-      {
-        pattern: HASHTAG_REGEX,
-        onPress: handleHashtagPress,
-        style: { color: "#ddd6fe", fontWeight: "500", opacity: 0.9 },
-      },
-      {
-        pattern: MENTION_REGEX,
-        onPress: handleMentionPress,
-        style: isCurrentUser
-          ? { fontWeight: "700", borderRadius: 4, color: "#beb4e8" }
-          : { fontWeight: "700", borderRadius: 4, color: "#6366f1" },
-      },
-    ],
-    [
-      handleEmailPress,
-      handleHashtagPress,
-      handleMentionPress,
-      handlePhonePress,
-      handleUrlPress,
-      isCurrentUser,
-    ]
-  );
+  const processedText = useProcessedText(text, mentions);
+  const { markdownStyles } = useMarkdownStyles(isCurrentUser);
+  const handleLinkPress = useLinkHandler(props);
+  const { menuVisible, menuPos, openMenu, closeMenu, copyLink } = useWebContextMenu();
+  const rules = useMarkdownRules(handleLinkPress, isCurrentUser, openMenu);
+  const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
+
+  if (!isMarkdownEnabled) {
+    return (
+      <AppText
+        className={classNames("text-base leading-6", {
+          "text-white": isCurrentUser,
+          "text-gray-900 dark:text-gray-100": !isCurrentUser,
+        })}
+      >
+        {text}
+      </AppText>
+    );
+  }
 
   return (
-    <ParsedText
-      style={style}
-      className={classNames(
-        "text-base text-text-primary-light dark:text-text-primary-dark",
-        isCurrentUser ? "text-white" : "",
-        className
+    <>
+      <Markdown style={markdownStyles} rules={rules} markdownit={markdownItInstance}>
+        {processedText}
+      </Markdown>
+
+      {PLATFORM.IS_WEB && (
+        <WebContextMenu
+          visible={menuVisible}
+          position={menuPos}
+          onClose={closeMenu}
+          options={[
+            {
+              id: 1,
+              name: "Copy link address",
+              iconName: "copy-outline",
+              action: copyLink,
+            },
+          ]}
+          iconSize={18}
+          onOptionSelect={(action: any) => action()}
+        />
       )}
-      parse={parse}
-      childrenProps={{ allowFontScaling: false }}
-    >
-      {text}
-    </ParsedText>
+    </>
   );
 };
 

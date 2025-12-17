@@ -4,10 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import RefreshButton from "@/components/RefreshButton";
 import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
-import { PLATFORM } from "@/constants/platformConstants";
 import { handleConversationNavigation } from "@/utils/commonUtils";
 import { ConversationInfo } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import classNames from "classnames";
 
 interface ChatHeaderProps {
   conversationInfo: ConversationInfo;
@@ -26,15 +29,18 @@ const ChatHeader = ({
   isLoadingConversationMessages,
   webPressSearch,
 }: ChatHeaderProps) => {
+  const isMobileLayout = useIsMobileLayout();
+  const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
+
   const handleProfileNavigate = useCallback(() => {
-    handleConversationNavigation(onShowProfile, conversationInfo.conversationId);
+    handleConversationNavigation(onShowProfile, conversationInfo.conversationId, isMobileLayout);
   }, [onShowProfile, conversationInfo.conversationId]);
 
   return (
     <View className="bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1">
-          {!PLATFORM.IS_WEB && (
+          {isMobileLayout && (
             <TouchableOpacity onPress={onBackPress} hitSlop={DEFAULT_HIT_SLOP}>
               <Ionicons
                 name="arrow-back-outline"
@@ -63,9 +69,12 @@ const ChatHeader = ({
               {conversationInfo.conversationName}
             </AppText>
           </TouchableOpacity>
+          <View className={classNames(!isMobileLayout && "mr-3")}>
+            <MarkdownToggle enabled={isMarkdownEnabled} onToggle={toggleMarkdown} />
+          </View>
         </View>
 
-        {PLATFORM.IS_WEB && (
+        {!isMobileLayout && (
           <View className="flex-row items-center gap-1">
             <TouchableOpacity
               className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
@@ -73,6 +82,7 @@ const ChatHeader = ({
             >
               <Ionicons name="search" size={20} color={"#6B7280"} />
             </TouchableOpacity>
+
             <RefreshButton
               onRefresh={refetchConversationMessages}
               isLoading={isLoadingConversationMessages}

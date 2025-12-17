@@ -4,10 +4,10 @@ import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
-import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.*;
@@ -16,15 +16,13 @@ import com.platform.software.chat.message.entity.MessageHistory;
 import com.platform.software.chat.message.repository.MessageHistoryRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
-import com.platform.software.chat.notification.service.ChatNotificationService;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
-import com.platform.software.config.workspace.WorkspaceContext;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
-import com.platform.software.exception.CustomForbiddenException;
-import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.CustomResourceNotFoundException;
 import com.platform.software.utils.CommonUtils;
 import com.platform.software.utils.ValidationUtils;
@@ -34,12 +32,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -62,17 +58,11 @@ public class MessageService {
     private final MessagePublisherService messagePublisherService;
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final MessageMentionService messageMentionService;
-    private final ConversationRepository conversationRepository;
-    private final ChatNotificationService chatNotificationService;
     private final ConversationReadStatusRepository conversationReadStatusRepository;
     private final MessageHistoryRepository messageHistoryRepository;
-
-    public Message getMessageOrThrow(Long conversationId, Long messageId) {
-        Message message = messageRepository
-            .findByConversation_IdAndId(conversationId, messageId)
-            .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to this message!"));
-        return message;
-    }
+    private final ApplicationEventPublisher eventPublisher;
+    private final MessageUtilService messageUtilService;
+    private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -120,25 +110,29 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
+        Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
+
+
+        if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
+            MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
+            List<MessageAttachmentDTO> enrichedMessageAttachmentDTOts = messageUtilService.enrichParentMessageAttachmentsWithSignedUrl(List.of(attachmentDTO));
+            messageViewDTO.getParentMessage().setMessageAttachments(enrichedMessageAttachmentDTOts);
+        }
 
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
         setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-            @Override
-            public void afterCommit() {
-                messagePublisherService.invokeNewMessageToParticipants(
-                    conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-                );
-
-                chatNotificationService.sendMessageNotificationsToParticipants(conversationId, loggedInUserId, savedMessage);
-            }
-        });
+        eventPublisher.publishEvent(new MessageCreatedEvent(
+                WorkspaceContext.getCurrentWorkspace(),
+                conversationId,
+                messageViewDTO,
+                loggedInUserId,
+                savedMessage
+        ));
 
         return messageViewDTO;
     }
@@ -187,13 +181,13 @@ public class MessageService {
         return newMessageHistory;
     }
 
-    private Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
+    public Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
         Message message = messageRepository.findByConversation_IdAndIdAndSender_Id(conversationId, messageId, userId)
             .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to edit this message"));
         return message;
     }
 
-    private void setLastSeenMessageForMessageSentUser(Conversation conversation, Message savedMessage, ChatUser user) {
+    public void setLastSeenMessageForMessageSentUser(Conversation conversation, Message savedMessage, ChatUser user) {
         ConversationReadStatus updatingStatus = conversationReadStatusRepository
             .findByConversationIdAndUserId(conversation.getId(), user.getId())
             .orElseGet(() -> {
@@ -218,7 +212,7 @@ public class MessageService {
         Long conversationId,
         Long loggedInUserId
     ) {
-        Message savedMessage = createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
+        Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
@@ -246,87 +240,6 @@ public class MessageService {
         return messageViewDTO;
     }
 
-    public void validateInteractionAllowed(Conversation conversation, Long senderUserId) {
-        if (!conversation.getIsGroup()) {
-            Long recipientId = getRecipientIdForOneToOne(senderUserId, conversation);
-            if (userService.isInteractionBlockedBetween(senderUserId, recipientId)) {
-                logger.warn("User {} attempted to interact with blocked user {} in conversation {}",
-                        senderUserId, recipientId, conversation.getId());
-
-                // TODO: Replace with CustomBusinessRuleException once we standardize business rule violations
-                throw new CustomBadRequestException("Cannot interact with blocked conversations");
-            }
-        } else {
-            boolean isActive = conversationRepository.getIsActiveByConversationIdAndUserId(conversation.getId(), senderUserId);
-            if (!isActive) {
-                logger.warn("User {} attempted to interact in inactive group conversation {}",
-                        senderUserId, conversation.getId());
-                throw new CustomForbiddenException("Cannot interact in inactive group conversation");
-            }
-        }
-    }
-
-    /**
-     * Creates a new text message in the specified conversation.
-     *
-     * @param conversationId the ID of the conversation
-     * @param senderUserId the ID of the user sending the message
-     * @param message the message details
-     * @return the saved Message entity
-     */
-    public Message createTextMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
-        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, senderUserId);
-        ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
-        Conversation conversation = participant.getConversation();
-
-        validateInteractionAllowed(conversation, senderUserId);
-
-        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
-        addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
-
-        try {
-            return messageRepository.saveMessageWthSearchVector(newMessage);
-        } catch (Exception e) {
-            logger.error("conversation message save failed.", e);
-            throw new CustomInternalServerErrorException("Failed to send message");
-        }
-    }
-
-    /** Adds a parent message to the new message if it is a reply.
-     *
-     * @param conversationId the ID of the conversation
-     * @param parentMessageId the ID of the parent message if this is a reply (optional)
-     * @param newMessage the new message to which the parent message will be added
-     */
-    private void addParentMessageIfReply(Long conversationId, Long parentMessageId, Message newMessage) {
-        if (parentMessageId != null) {
-            Message parentMessage = this.getMessageOrThrow(conversationId, parentMessageId);
-            newMessage.setParentMessage(parentMessage);
-        }
-    }
-
-    /**
-     * Retrieves the recipient ID for a one-to-one conversation.
-     *
-     * @param senderId the ID of the sender
-     * @param conversation the conversation object
-     * @return the ID of the recipient
-     */
-    public Long getRecipientIdForOneToOne(Long senderId, Conversation conversation) {
-        List<ConversationParticipant> participants = conversation.getConversationParticipants();
-        if (participants.size() != 2) {
-            logger.error("conversation {} has {} participants, expected 2",
-                    conversation.getId(), participants.size());
-            throw new CustomBadRequestException("Invalid conversation!");
-        }
-        return participants.stream()
-                .map(ConversationParticipant::getUser)
-                .map(ChatUser::getId)
-                .filter(id -> !id.equals(senderId))
-                .findFirst()
-                .orElseThrow(() -> new CustomBadRequestException("Recipient not found!"));
-    }
-
     /**
      * Forwards a message to multiple conversations.
      *
@@ -343,6 +256,15 @@ public class MessageService {
 
         Conversation conversation = messages.stream().findFirst().get().getConversation();
         conversationUtilService.getConversationParticipantOrThrow(conversation.getId(), loggedInUserId);
+
+        if(messageForwardRequestDTO.getUserIds() != null && !messageForwardRequestDTO.getUserIds().isEmpty()){
+            // gathering conversation ids from user ids.
+            Set<Long> conversationIdsByUserIds = conversationUtilService.getOrCreateConversationIds(
+                    messageForwardRequestDTO.getUserIds(), loggedInUserId
+            );
+
+            messageForwardRequestDTO.addConversationIds(conversationIdsByUserIds);
+        }
 
         // validating if the logged-in user is in every conversation involved in this forwarding
         List<ConversationDTO> joinedConversations = conversationUtilService.verifyLoggedInUserHasAccessToEveryConversation(
@@ -378,20 +300,19 @@ public class MessageService {
 
             try {
                 for(Message message: forwardingMessages){
-                    messageRepository.saveMessageWthSearchVector(message);
+                    Message savedMessage = messageRepository.saveMessageWthSearchVector(message);
+
+                    setLastSeenMessageForMessageSentUser(targetConversation.getModel(), savedMessage, loggedInUser);
 
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message);
 
-                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            messagePublisherService.invokeNewMessageToParticipants(
-                                    message.getConversation().getId(), messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-                            );
-
-                            chatNotificationService.sendMessageNotificationsToParticipants(message.getConversation().getId(), loggedInUserId, message);
-                        }
-                    });
+                    eventPublisher.publishEvent(new MessageCreatedEvent(
+                            WorkspaceContext.getCurrentWorkspace(),
+                            message.getConversation().getId(),
+                            messageViewDTO,
+                            loggedInUserId,
+                            message
+                    ));
                 }
 
             } catch (Exception exception) {
@@ -452,8 +373,8 @@ public class MessageService {
      * @param messageId the ID of the message
      * @return the Message entity
      */
-    private Message getMessageOrThrow(Long messageId) {
-        return messageRepository.findById(messageId)
+    public Message getMessageOrThrow(Long messageId) {
+        return messageRepository.findByIdWithSenderAndConversation(messageId)
             .orElseThrow(() -> {
                 logger.error("message with id {} not found when creating favorite message", messageId);
                 return new CustomResourceNotFoundException("Message not found!");
@@ -546,9 +467,12 @@ public class MessageService {
      * @return the list
      */
     public List<MessageViewDTO> searchMessagesFromConversation(Long conversationId, Long loggedInUserId, MessageSearchRequestDTO messageSearchRequestDTO) {
-        conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
+                .map(zdt -> Date.from(zdt.toInstant()))
+                .orElse(new Date(0));
 
-        return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId)
+        return messageRepository.findBySearchTermAndConversationNative(messageSearchRequestDTO.getSearchKeyword(), conversationId, deletedAt)
             .stream().map(MessageViewDTO::new).toList();
     }
 

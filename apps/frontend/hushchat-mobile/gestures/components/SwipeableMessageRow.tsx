@@ -6,7 +6,6 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
 import { useLongPressGesture } from "@/gestures/base/useLongPressGesture";
-import { MotionView } from "@/motion/MotionView";
 
 type TSwipeableMessageRowProps = {
   children: ReactNode;
@@ -64,23 +63,18 @@ export function SwipeableMessageRow({
     transform: [{ translateX: translateX.value }],
   }));
 
+  const affordanceStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ scale: 0.8 + 0.2 * progress.value }],
+  }));
+
   return (
     <GestureDetector gesture={composedGesture}>
       <View className="relative">
         {showAffordance && (
-          <MotionView
-            visible={true}
-            from={{ opacity: 0, scale: 0.8 }}
-            to={{
-              opacity: progress.value,
-              scale: 0.8 + 0.2 * progress.value,
-            }}
-            duration={150}
-            easing="standard"
-            style={styles.affordanceIcon}
-          >
+          <Animated.View style={[styles.affordanceIcon, affordanceStyle]}>
             <Ionicons name="arrow-undo-outline" size={20} color="#9CA3AF" />
-          </MotionView>
+          </Animated.View>
         )}
         <Animated.View style={swipeGroupStyle}>{children}</Animated.View>
       </View>

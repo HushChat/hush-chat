@@ -9,16 +9,13 @@ import {
   getConversationMessagesByCursor,
   getMessagesAroundMessageId,
 } from "@/apis/conversation";
-import type { IMessage } from "@/types/chat/types";
+import type { IMessage, IConversation } from "@/types/chat/types";
+import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 
 const PAGE_SIZE = 20;
 
-/**
- * Hook: useConversationMessagesQuery
- * Handles fetching + caching + live updating of conversation messages
- */
 export function useConversationMessagesQuery(conversationId: number) {
   const {
     user: { id: userId },
@@ -27,6 +24,7 @@ export function useConversationMessagesQuery(conversationId: number) {
   const queryClient = useQueryClient();
   const previousConversationId = useRef<number | null>(null);
   const [inMessageWindowView, setInMessageWindowView] = useState(false);
+  const [targetMessageId, setTargetMessageId] = useState<number | null>(null);
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
@@ -38,6 +36,7 @@ export function useConversationMessagesQuery(conversationId: number) {
       queryClient.removeQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
+      setTargetMessageId(null);
     }
   }, [conversationId, queryKey, queryClient]);
 
@@ -62,39 +61,54 @@ export function useConversationMessagesQuery(conversationId: number) {
   });
 
   const loadMessageWindow = useCallback(
-    async (targetMessageId: number) => {
-      setInMessageWindowView(true);
+    async (targetMessageIdParam: number) => {
+      setTargetMessageId(null);
 
-      try {
-        const messageWindowResponse = await getMessagesAroundMessageId(
-          conversationId,
-          targetMessageId
-        );
+      setTimeout(async () => {
+        setInMessageWindowView(true);
 
-        if (messageWindowResponse.error) {
-          ToastUtils.error(messageWindowResponse.error);
-          return;
+        try {
+          const messageWindowResponse = await getMessagesAroundMessageId(
+            conversationId,
+            targetMessageIdParam
+          );
+
+          if (messageWindowResponse.error) {
+            ToastUtils.error(messageWindowResponse.error);
+            setTargetMessageId(null);
+            return;
+          }
+
+          const paginatedMessageWindow = messageWindowResponse.data;
+          if (!paginatedMessageWindow) {
+            setTargetMessageId(null);
+            return;
+          }
+
+          const newInfiniteQueryCache: InfiniteData<CursorPaginatedResponse<IMessage>> = {
+            pages: [paginatedMessageWindow],
+            pageParams: [null],
+          };
+
+          queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+            queryKey,
+            newInfiniteQueryCache
+          );
+
+          setTargetMessageId(targetMessageIdParam);
+        } catch (error) {
+          logError("jumpToMessage: Failed to load target message window", error);
+          setInMessageWindowView(false);
+          setTargetMessageId(null);
         }
-
-        const paginatedMessageWindow = messageWindowResponse.data;
-        if (!paginatedMessageWindow) return;
-
-        const newInfiniteQueryCache: InfiniteData<CursorPaginatedResponse<IMessage>> = {
-          pages: [paginatedMessageWindow],
-          pageParams: [null],
-        };
-
-        queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
-          queryKey,
-          newInfiniteQueryCache
-        );
-      } catch (error) {
-        logError("jumpToMessage: Failed to load target message window", error);
-        setInMessageWindowView(false);
-      }
+      }, 0);
     },
     [conversationId, queryClient, queryKey]
   );
+
+  const clearTargetMessage = useCallback(() => {
+    setTargetMessageId(null);
+  }, []);
 
   const updateConversationMessagesCache = useCallback(
     (newMessage: IMessage) => {
@@ -107,19 +121,45 @@ export function useConversationMessagesQuery(conversationId: number) {
           const alreadyExists = firstPage.content.some((msg) => msg.id === newMessage.id);
           if (alreadyExists) return oldData;
 
-          const updatedFirstPage = {
-            ...firstPage,
-            content: [newMessage, ...firstPage.content],
-          };
-
-          return {
-            ...oldData,
-            pages: [updatedFirstPage, ...oldData.pages.slice(1)],
-          };
+          const updatedFirstPage = { ...firstPage, content: [newMessage, ...firstPage.content] };
+          return { ...oldData, pages: [updatedFirstPage, ...oldData.pages.slice(1)] };
         }
       );
     },
     [queryClient, queryKey]
+  );
+
+  const updateConversationsListCache = useCallback(
+    (newMessage: IMessage) => {
+      queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
+        { queryKey: ["conversations", userId] },
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => {
+              const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
+
+              if (conversationIndex === -1) return page;
+
+              const updatedConversation: IConversation = {
+                ...page.content[conversationIndex],
+                messages: [newMessage],
+              };
+
+              const newContent = [
+                updatedConversation,
+                ...page.content.filter((c) => c.id !== conversationId),
+              ];
+
+              return { ...page, content: newContent };
+            }),
+          };
+        }
+      );
+    },
+    [queryClient, conversationId, userId]
   );
 
   const { lastMessage } = useConversationMessages(conversationId);
@@ -127,7 +167,8 @@ export function useConversationMessagesQuery(conversationId: number) {
   useEffect(() => {
     if (!lastMessage) return;
     updateConversationMessagesCache(lastMessage);
-  }, [lastMessage, updateConversationMessagesCache]);
+    updateConversationsListCache(lastMessage);
+  }, [lastMessage, updateConversationMessagesCache, updateConversationsListCache]);
 
   return {
     pages,
@@ -142,7 +183,10 @@ export function useConversationMessagesQuery(conversationId: number) {
     refetch,
     invalidateQuery,
     updateConversationMessagesCache,
+    updateConversationsListCache,
     loadMessageWindow,
     inMessageWindowView,
+    targetMessageId,
+    clearTargetMessage,
   } as const;
 }

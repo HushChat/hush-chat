@@ -1,12 +1,8 @@
 package com.platform.software.chat.conversation.repository;
 
-import com.platform.software.chat.conversation.dto.ConversationDTO;
-import com.platform.software.chat.conversation.dto.ConversationFilterCriteriaDTO;
-import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
-import com.platform.software.chat.conversation.dto.DirectOtherMetaDTO;
+import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.QConversation;
-import com.platform.software.chat.conversation.dto.ChatSummaryDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
@@ -19,6 +15,7 @@ import com.platform.software.chat.user.entity.QUserBlock;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.utils.CommonUtils;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -145,14 +142,26 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         boolean isFavorite = conversationFilterCriteria.getIsFavorite() != null
                 ? conversationFilterCriteria.getIsFavorite()
                 : false;
+        boolean isGroup = conversationFilterCriteria.getIsGroup() != null
+                ? conversationFilterCriteria.getIsGroup()
+                : false;
+        boolean isMuted = conversationFilterCriteria.getIsMuted() != null
+                ? conversationFilterCriteria.getIsMuted()
+                : false;
 
-        BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
-                .and(qConversation.deleted.eq(false))
-                .and(qConversationParticipant.isDeleted.eq(false));
+        BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId);
 
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
         );
+
+        if (isGroup) {
+                whereConditions = whereConditions.and(qConversation.isGroup.eq(isGroup));
+        }
+
+        if (isMuted) {
+                whereConditions = whereConditions.and(qConversationParticipant.mutedUntil.isNotNull());
+        }
 
         if (isArchived) {
             whereConditions = whereConditions.and(qConversationParticipant.archived.eq(true));
@@ -204,6 +213,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     Conversation conversation = tuple.get(qConversation);
                     Message latestMessage = tuple.get(qMessage);
 
+                    ConversationParticipant participantEntity = tuple.get(qConversationParticipant);
+
                     ConversationDTO dto = new ConversationDTO(conversation);
 
                     if (conversation != null && conversation.getConversationParticipants() != null) {
@@ -249,8 +260,15 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     }
 
                     if (latestMessage != null) {
-                        MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
-                        dto.setMessages(List.of(messageViewDTO));
+                        boolean isVisible = CommonUtils.isMessageVisible(
+                                latestMessage.getCreatedAt(), 
+                                participantEntity != null ? participantEntity.getLastDeletedTime() : null
+                        );
+
+                        if (isVisible) {
+                                MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
+                                dto.setMessages(List.of(messageViewDTO));
+                        }
                     }
 
                     return dto;
@@ -297,9 +315,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .from(qConversation)
                 .join(qConversation.conversationParticipants, qConversationParticipant)
                 .where(qConversation.id.eq(conversationId)
-                        .and(qConversation.deleted.isFalse())
-                        .and(qConversationParticipant.user.id.eq(userId))
-                        .and(qConversationParticipant.isDeleted.isFalse()))
+                        .and(qConversationParticipant.user.id.eq(userId)))
                 .fetchFirst();
 
         if(conversation == null) {
@@ -340,7 +356,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                   .join(cpSelf).on(
                           cpSelf.conversation.eq(c)
                                   .and(cpSelf.user.id.eq(userId))
-                                  .and(cpSelf.isDeleted.isFalse())
                   )
                   // get the other active participant
                   //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
@@ -408,4 +423,44 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
             ));
     }
 
+    /**
+     * Admin view: Paginated retrieval of all group conversations with participant counts.
+     *
+     * @param pageable Pagination information
+     * @return Page of ConversationAdminViewDTO containing group conversation details
+     */
+    @Override
+    public Page<ConversationAdminViewDTO> findAllGroupConversationsAdminView(Pageable pageable){
+        JPAQuery<ConversationAdminViewDTO> query = jpaQueryFactory
+                .select(Projections.constructor(ConversationAdminViewDTO.class,
+                        qConversation.id,
+                        qConversation.name,
+                        qConversation.createdAt,
+                        qConversation.description,
+                        qConversation.imageIndexedName,
+                        qConversation.deleted,
+                        qConversation.createdBy.id,
+                        qConversation.createdBy.firstName,
+                        qConversation.createdBy.lastName,
+                        qConversation.createdBy.email,
+                        JPAExpressions.select(qConversationParticipant.count())
+                                .from(qConversationParticipant)
+                                .where(qConversationParticipant.conversation.id.eq(qConversation.id))
+                ))
+                .from(qConversation)
+                .where(qConversation.isGroup.eq(true));
+
+        Long totalCount = jpaQueryFactory
+                .select(qConversation.count())
+                .from(qConversation)
+                .where(qConversation.isGroup.eq(true))
+                .fetchOne();
+
+        List<ConversationAdminViewDTO> results = query
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, totalCount);
+    }
 }

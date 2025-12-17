@@ -48,3 +48,10 @@ export enum WebSocketStatus {
   Connected = "connected",
   Error = "error",
 }
+
+export interface UserActivityWSSubscriptionData {
+  workspaceId: string;
+  email: string;
+  visibleConversations: number[]; // list of conversations visible - mobile or web
+  openedConversation: number | null; // indicates user's selected conversation, could be null
+}

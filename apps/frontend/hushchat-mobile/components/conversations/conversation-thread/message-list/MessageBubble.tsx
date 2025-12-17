@@ -7,6 +7,7 @@ import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
+import { TUser } from "@/types/user/types";
 import { useMessageUrlMetadataQuery } from "@/query/useMessageUrlMetadataQuery";
 import { PLATFORM } from "@/constants/platformConstants";
 import LinkPreviewCard from "@/components/conversations/LinkPreviewCard";
@@ -27,6 +28,7 @@ interface IMessageBubbleProps {
   isForwardedMessage: boolean;
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
+  onMentionClick?: (user: TUser) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
 }
@@ -42,8 +44,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   isForwardedMessage,
   attachments,
   onBubblePress,
+  onMentionClick,
   style,
-  messageTextStyle,
 }) => {
   const messageContent = message.messageText;
 
@@ -63,6 +65,16 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
     message.id,
     message.isIncludeUrlMetadata
   );
+
+  const handleMentionPress = (username: string) => {
+    if (!onMentionClick || !message.mentions) return;
+
+    const mentionedUser = message.mentions.find((user) => user.username === username);
+
+    if (mentionedUser) {
+      onMentionClick(mentionedUser);
+    }
+  };
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
@@ -114,9 +126,9 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           {!message.isUnsend && !message.isIncludeUrlMetadata && messageContent ? (
             <FormattedText
               text={message.messageText}
-              style={messageTextStyle || styles.messageText}
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
+              onMentionPress={handleMentionPress}
             />
           ) : !message.isUnsend && message.isIncludeUrlMetadata && messageContent ? (
             <LinkPreviewCard
@@ -135,11 +147,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 };
 
 const styles = StyleSheet.create({
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontFamily: "Poppins-Regular",
-  },
   maxWidthAttachments: {
     maxWidth: 305,
   },

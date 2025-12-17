@@ -71,6 +71,7 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="conversations/conversation-info/[id]/index" />
         <Stack.Screen name="conversations/conversation-info/[id]/group-settings" />
         <Stack.Screen name="conversations/forward-panel" />
+        <Stack.Screen name="conversations/[conversationId]/messages/[id]/read-by" />
         <Stack.Screen name="conversation-threads" />
         <Stack.Screen name="search-view" />
         <Stack.Screen name="(auth)" />
@@ -79,6 +80,7 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="group-conversation/configure" />
         <Stack.Screen name="settings/contact" />
         <Stack.Screen name="settings/invite" />
+        <Stack.Screen name="settings/change-workspace" />
       </Stack>
     </>
   );

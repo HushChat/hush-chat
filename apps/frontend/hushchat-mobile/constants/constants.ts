@@ -8,6 +8,7 @@ export const MENTION_PREFIX = "@";
 export const EMPTY_SET = new Set<number>();
 export const WORKSPACE = "workspace";
 export const X_TENANT = "X-Tenant";
+export const X_UUID_HEADER = "x-Uuid";
 
 export const TITLES = {
   ARCHIVE_CHAT: (conversationType: ConversationType) =>
@@ -17,6 +18,10 @@ export const TITLES = {
   ADD_TO_FAVOURITES: "Add to favourites",
   REMOVE_FROM_FAVOURITES: "Remove from favourites",
   DELETE_CHAT: "Delete chat",
+  PIN_CONVERSATION: "Pin Conversation",
+  UNPIN_CONVERSATION: "Unpin Conversation",
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";
+
+export const SOUND_ENABLED_KEY = "sound_enabled";

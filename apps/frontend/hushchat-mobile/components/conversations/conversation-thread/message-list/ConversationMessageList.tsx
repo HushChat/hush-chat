@@ -3,7 +3,7 @@
  *
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, SectionList, View } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
@@ -12,13 +12,15 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
 import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
 import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
 import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
+import { useRouter } from "expo-router";
+import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -31,7 +33,10 @@ interface IMessagesListProps {
   onLoadNewer: () => void;
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
-  onPinnedMessageNavigate?: (messageId: number) => void;
+  onNavigateToMessage?: (messageId: number) => void;
+  targetMessageId?: number | null;
+  onTargetMessageScrolled?: () => void;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 const ConversationMessageList = ({
@@ -44,11 +49,16 @@ const ConversationMessageList = ({
   onLoadNewer,
   hasMoreNewer,
   isFetchingNewer,
-  onPinnedMessageNavigate,
+  onNavigateToMessage,
+  targetMessageId,
+  onTargetMessageScrolled,
+  webMessageInfoPress,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
+  const router = useRouter();
   const currentUserId = user?.id;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
+  const sectionListRef = useRef<SectionList>(null);
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
   const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
@@ -71,10 +81,76 @@ const ConversationMessageList = ({
   }, [messages]);
 
   const handlePinnedMessageClick = useCallback(() => {
-    if (onPinnedMessageNavigate && pinnedMessage) {
-      onPinnedMessageNavigate(pinnedMessage.id);
+    if (onNavigateToMessage && pinnedMessage) {
+      onNavigateToMessage(pinnedMessage.id);
     }
-  }, [onPinnedMessageNavigate]);
+  }, [onNavigateToMessage]);
+
+  useEffect(() => {
+    if (!targetMessageId || !sectionListRef.current || groupedSections.length === 0) {
+      return;
+    }
+
+    let sectionIndex = -1;
+    let itemIndex = -1;
+
+    for (let i = 0; i < groupedSections.length; i++) {
+      const section = groupedSections[i];
+      const foundIndex = section.data.findIndex((msg) => msg.id === targetMessageId);
+
+      if (foundIndex !== -1) {
+        sectionIndex = i;
+        itemIndex = foundIndex;
+        break;
+      }
+    }
+
+    if (sectionIndex !== -1 && itemIndex !== -1) {
+      const scrollWithErrorHandling = (retryCount = 0) => {
+        try {
+          sectionListRef.current?.scrollToLocation({
+            sectionIndex,
+            itemIndex,
+            animated: true,
+            viewPosition: 0.5,
+            viewOffset: 0,
+          });
+
+          if (onTargetMessageScrolled) {
+            setTimeout(() => {
+              onTargetMessageScrolled();
+            }, 500);
+          }
+        } catch (error) {
+          console.warn("failed to scroll to target message:", error);
+          if (retryCount < 3) {
+            setTimeout(() => scrollWithErrorHandling(retryCount + 1), 200);
+          } else if (onTargetMessageScrolled) {
+            onTargetMessageScrolled();
+          }
+        }
+      };
+
+      const timeoutId = setTimeout(() => {
+        requestAnimationFrame(() => {
+          scrollWithErrorHandling();
+        });
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      if (onTargetMessageScrolled) {
+        onTargetMessageScrolled();
+      }
+    }
+  }, [targetMessageId, groupedSections, onTargetMessageScrolled]);
+
+  const handleMessageInfoClick = useCallback((conversationId: number, messageId: number) => {
+    router.push({
+      pathname: MESSAGE_READ_PARTICIPANTS,
+      params: { conversationId, messageId },
+    });
+  }, []);
 
   const renderMessage = useMemo(
     () =>
@@ -93,6 +169,8 @@ const ConversationMessageList = ({
         unSendMessage,
         selectedConversationId,
         viewReactions,
+        onNavigateToMessage,
+        webMessageInfoPress,
       }),
     [
       currentUserId,
@@ -109,6 +187,8 @@ const ConversationMessageList = ({
       unSendMessage,
       selectedConversationId,
       viewReactions,
+      onNavigateToMessage,
+      webMessageInfoPress,
     ]
   );
 
@@ -134,6 +214,10 @@ const ConversationMessageList = ({
             closeActions();
           }}
           onUnsend={(messages) => unSendMessage(messages)}
+          onCopy={(message) => copyToClipboard(message.messageText)}
+          onSelectMessageInfo={(conversationAPIResponse, message) =>
+            handleMessageInfoClick(conversationAPIResponse.id, message.id)
+          }
         />
       )}
 
@@ -147,6 +231,7 @@ const ConversationMessageList = ({
       )}
 
       <SectionList
+        ref={sectionListRef}
         sections={groupedSections}
         keyExtractor={(item, index) => {
           const fallbackKey = `temp-${item.conversationId}-${index}`;
@@ -173,6 +258,7 @@ const ConversationMessageList = ({
           selectedMessageIdsSize: selectedMessageIds.size,
           hasMoreNewer,
           isFetchingNewer,
+          targetMessageId,
         }}
       />
       {reactionsModal.visible && (

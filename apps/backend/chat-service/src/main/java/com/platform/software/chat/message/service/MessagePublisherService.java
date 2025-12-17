@@ -7,39 +7,32 @@ import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.user.service.UserUtilService;
+import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
 public class MessagePublisherService {
-    private final String MESSAGE_INVOKE_PATH = "/topic/message-received";
-    private final String ONLINE_STATUS_INVOKE_PATH = "/topic/online-status";
 
     private final ConversationUtilService conversationUtilService;
     private final WebSocketSessionManager webSocketSessionManager;
-    private final SimpMessagingTemplate template;
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessagePublisherService(
         ConversationUtilService conversationUtilService,
         WebSocketSessionManager webSocketSessionManager,
-        SimpMessagingTemplate template,
         MessageAttachmentRepository messageAttachmentRepository,
         CloudPhotoHandlingService cloudPhotoHandlingService) {
         this.conversationUtilService = conversationUtilService;
         this.webSocketSessionManager = webSocketSessionManager;
-        this.template = template;
         this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
     }
@@ -80,33 +73,26 @@ public class MessagePublisherService {
         conversationDTO.setMessages(List.of(messageViewDTO));
 
         conversationDTO.getParticipants().stream()
+            .filter(p -> p.getUser() != null && p.getUser().getId() != null)
             .filter(p -> !p.getUser().getId().equals(senderId))
             .forEach(participant -> {
                 String email = participant.getUser().getEmail();
-                String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-                String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
+                if (email == null) return;
 
                 ConversationDTO participantDTO = getConversationDTO(participant, conversationDTO);
+                ConversationDTO payload =
+                conversationUtilService.addSignedImageUrlToConversationDTO(
+                    participantDTO,
+                    participantDTO.getImageIndexedName()
+                );
 
-                webSocketSessionManager.getValidSession(sessionKey)
-                    .ifPresent(session -> template.convertAndSend(
-                        "%s/%s".formatted(MESSAGE_INVOKE_PATH, encodedEmail),
-                        participantDTO
-                    ));
+                webSocketSessionManager.sendMessageToUser(
+                    workspaceId,
+                    email,
+                    WebSocketTopicConstants.MESSAGE_RECEIVED,
+                    payload
+                );
             });
-    }
-
-    public void invokeOnlineStatusChange(List<String> emails, String workspaceId, Boolean isOnline) {
-        emails.forEach(email -> {
-            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-            String sessionKey = "%s:%s".formatted(workspaceId, encodedEmail);
-
-            webSocketSessionManager.getValidSession(sessionKey)
-                    .ifPresent(session -> template.convertAndSend(
-                            "%s/%s".formatted(ONLINE_STATUS_INVOKE_PATH, encodedEmail),
-                            isOnline
-                    ));
-        });
     }
 
     private static ConversationDTO getConversationDTO(ConversationParticipantViewDTO participant, ConversationDTO conversationDTO) {

@@ -1,20 +1,22 @@
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
   Modal,
   Pressable,
-  Text,
   View,
   StyleSheet,
 } from "react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import classNames from "classnames";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { MessageReact, REACTION_EMOJIS } from "@/types/chat/types";
 import { useMessageReactionsQuery } from "@/query/useMessageReactionsQuery";
 import { getAdjustedPosition } from "@/utils/commonUtils";
+import { MotionView } from "@/motion/MotionView";
+import { MotionConfig } from "@/motion/config";
+import { AppText } from "@/components/AppText";
 
 interface MessageReactionsModalProps {
   visible: boolean;
@@ -29,9 +31,8 @@ const MessageReactionsModalWeb = ({
   onClose,
   messageId,
 }: MessageReactionsModalProps) => {
-  const modalRef = useRef<View>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showContent, setShowContent] = useState(false);
   const screenHeight = Dimensions.get("window").height;
   const screenWidth = Dimensions.get("window").width;
   const { isDark } = useAppTheme();
@@ -43,6 +44,27 @@ const MessageReactionsModalWeb = ({
     () => pages?.pages?.flatMap((page) => (page.content as MessageReact[]) || []) || [],
     [pages]
   );
+
+  useEffect(() => {
+    if (visible) {
+      setShowModal(true);
+      requestAnimationFrame(() => setShowContent(true));
+    } else {
+      handleCloseInternal();
+    }
+  }, [visible]);
+
+  const handleCloseInternal = () => {
+    setShowContent(false);
+    setTimeout(() => {
+      setShowModal(false);
+    }, 120);
+  };
+
+  const onBackdropPress = () => {
+    handleCloseInternal();
+    setTimeout(onClose, 120);
+  };
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -61,26 +83,6 @@ const MessageReactionsModalWeb = ({
     modalHeight
   );
 
-  useEffect(() => {
-    if (visible) {
-      setShouldRender(true);
-      setIsAnimating(true);
-    } else {
-      setIsAnimating(false);
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 160);
-      return () => clearTimeout(timer);
-    }
-  }, [visible]);
-
-  const handleClose = () => {
-    setIsAnimating(false);
-    setTimeout(() => {
-      onClose();
-    }, 120);
-  };
-
   const renderReactionItem = ({ item }: { item: MessageReact }) => (
     <View
       className={classNames(
@@ -88,8 +90,8 @@ const MessageReactionsModalWeb = ({
         isDark ? "border-[#2C3650]/40" : "border-[#E5E7EB]/50"
       )}
     >
-      <Text className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</Text>
-      <Text
+      <AppText className="text-2xl mr-3">{REACTION_EMOJIS[item.reactionType]}</AppText>
+      <AppText
         className={classNames(
           "text-[15px] font-medium flex-1",
           isDark ? "text-text-primary-dark" : "text-text-primary-light"
@@ -97,7 +99,7 @@ const MessageReactionsModalWeb = ({
         numberOfLines={1}
       >
         {item.name}
-      </Text>
+      </AppText>
     </View>
   );
 
@@ -122,29 +124,30 @@ const MessageReactionsModalWeb = ({
     return (
       <View className="py-12 items-center justify-center">
         <Ionicons name="heart-outline" size={48} color={isDark ? "#4B5563" : "#D1D5DB"} />
-        <Text
+        <AppText
           className={classNames(
             "mt-3 text-[15px]",
             isDark ? "text-text-secondary-dark" : "text-text-secondary-light"
           )}
         >
           No reactions yet
-        </Text>
+        </AppText>
       </View>
     );
   };
 
   return (
-    <Modal transparent={true} visible={shouldRender} onRequestClose={handleClose}>
-      <Pressable className="flex-1" onPress={handleClose} style={styles.pressableCursor}>
-        <View
-          ref={modalRef}
+    <Modal transparent={true} visible={showModal} onRequestClose={onBackdropPress}>
+      <Pressable className="flex-1" onPress={onBackdropPress} style={styles.pressableCursor}>
+        <MotionView
+          visible={showContent}
+          from={{ opacity: 0, scale: 0.95, translateY: 6 }}
+          to={{ opacity: 1, scale: 1, translateY: 0 }}
+          duration={MotionConfig.duration.xs}
+          easing="standard"
           pointerEvents="box-none"
           className={classNames(
-            "absolute rounded-xl overflow-hidden border backdrop-blur-md transition-all duration-200 ease-out",
-            isAnimating
-              ? "opacity-100 scale-100 translate-y-0"
-              : "opacity-0 scale-95 translate-y-1.5",
+            "absolute rounded-xl overflow-hidden border backdrop-blur-md",
             isDark
               ? "bg-secondary-dark/95 border-[#2C3650]/60 shadow-[0_4px_14px_rgba(0,0,0,0.35)]"
               : "bg-white/90 border-[#E5E7EB]/70 shadow-[0_4px_10px_rgba(0,0,0,0.08)]"
@@ -162,14 +165,14 @@ const MessageReactionsModalWeb = ({
               isDark ? "border-[#2C3650]/60" : "border-[#E5E7EB]/70"
             )}
           >
-            <Text
+            <AppText
               className={classNames(
                 "text-[16px] font-semibold",
                 isDark ? "text-text-primary-dark" : "text-text-primary-light"
               )}
             >
               Reactions
-            </Text>
+            </AppText>
           </View>
 
           <FlatList
@@ -186,7 +189,7 @@ const MessageReactionsModalWeb = ({
               messageReactions.length === 0 ? styles.flexGrow1 : styles.flexGrow0
             }
           />
-        </View>
+        </MotionView>
       </Pressable>
     </Modal>
   );

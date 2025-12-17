@@ -6,5 +6,7 @@ export enum PanelType {
   PARTICIPANTS = "participants",
   ADD_PARTICIPANTS = "add_participants",
   GROUP_SETTINGS = "group_settings",
+  GROUP_PERMISSIONS = "group_permissions",
+  MESSAGE_INFO = "message_info",
   // Add more panel types here as needed
 }
