@@ -31,6 +31,7 @@ import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.message.service.MessageUtilService;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
@@ -275,7 +276,7 @@ public class ConversationService {
             conversationEventService.createMessageWithConversationEvent(
                     conversationId,
                     actorUserId,
-                    targetsForAddEvent, 
+                    targetsForAddEvent,
                     ConversationEventType.USER_ADDED
             );
         }
@@ -615,7 +616,7 @@ public class ConversationService {
         messageMentionService.appendMessageMentions(messageViewDTOS);
 
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messageViewDTOS);
-        
+
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));
     
@@ -1172,7 +1173,7 @@ public class ConversationService {
         dto.setBlocked(meta.isBlocked());
         dto.setPinned(me.getIsPinned());
         dto.setFavorite(me.getIsFavorite());
-        dto.setMutedUntil(me.getMutedUntil()); 
+        dto.setMutedUntil(me.getMutedUntil());
         return dto;
     }
 
@@ -1425,6 +1426,35 @@ public class ConversationService {
     public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
         return conversationRepository.findAllGroupConversationsAdminView(pageable);
     }
+
+    /**
+     * Retrieves a paginated list of group participants who have seen a specific message.
+     *
+     * @param conversationId the ID of the conversation containing the message
+     * @param messageId the ID of the message to check read status for
+     * @param userId the ID of the current user requesting the seen list (excluded from results)
+     * @param pageable pagination information including page number, page size, and optional sorting criteria
+     * @return a {@link Page} of {@link UserBasicViewDTO} containing users who have seen the message
+     */
+    public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
+        try {
+            messageService.getMessageBySender(userId, conversationId, messageId);
+        } catch (Exception error) {
+            logger.error("message id is incorrect, not part of this conversation, or you are not the sender of message", error);
+            throw new CustomBadRequestException("Failed to Get Message View Participant");
+        }
+
+        Page<ChatUser> users = conversationReadStatusRepository
+                .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
+
+        Page<UserBasicViewDTO> userDTOs = users.map(user -> {
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(user.getImageIndexedName());
+
+            UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
+            userBasicViewDTO.setSignedImageUrl(signedUrl);
+            return userBasicViewDTO;
+        });
+
+        return userDTOs;
+    }
 }
-
-
