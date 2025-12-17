@@ -27,7 +27,6 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private boolean isMutedByLoggedInUser;
     private boolean isFavoriteByLoggedInUser;
     private ChatUserStatus chatUserStatus;
-    private boolean onlyAdminsCanSendMessages;
 
     private Long unreadCount;
 
@@ -51,7 +50,6 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.isMutedByLoggedInUser = other.isMutedByLoggedInUser;
         this.isFavoriteByLoggedInUser = other.isFavoriteByLoggedInUser;
         this.chatUserStatus = other.chatUserStatus;
-        this.onlyAdminsCanSendMessages = other.onlyAdminsCanSendMessages;
     }
 
     @Override
@@ -82,6 +80,5 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.imageIndexedName = dao.getImageIndexedName();
         this.description = dao.getDescription();
         this.signedImageUrl = dao.getSignedImageUrl();
-        this.onlyAdminsCanSendMessages = dao.getOnlyAdminsCanSendMessages();
     }
 }
