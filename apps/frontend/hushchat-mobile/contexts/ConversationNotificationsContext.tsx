@@ -218,6 +218,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     setCreatedConversation(null);
   }, [createdConversation, queryClient, conversationsQueryKey]);
 
+  // TODO: Move these handlers into a custom hook, as this file is continuously growing.
   useEffect(() => {
     const handleMessageUnsent = (payload: MessageUnsentPayload) => {
       const { conversationId, messageId } = payload;
