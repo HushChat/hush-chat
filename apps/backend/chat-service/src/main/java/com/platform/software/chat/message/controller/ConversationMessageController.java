@@ -7,12 +7,14 @@ import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -195,5 +197,17 @@ public class ConversationMessageController {
     ) {
         Page<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
         return new ResponseEntity<>(messages, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get a page of participants who read the message", response = UserBasicViewDTO.class)
+    @GetMapping("{messageId}/seen-by")
+    public ResponseEntity<Page<UserBasicViewDTO>> getMessageSeenGroupParticipants(
+            @PathVariable Long conversationId,
+            @PathVariable Long messageId,
+            @AuthenticatedUser UserDetails userDetails,
+            Pageable pageable
+    ) {
+        Page<UserBasicViewDTO> userBasicViewDTOs = conversationService.getMessageSeenGroupParticipants(conversationId, messageId, userDetails.getId(), pageable);
+        return new ResponseEntity<>(userBasicViewDTOs, HttpStatus.OK);
     }
 }

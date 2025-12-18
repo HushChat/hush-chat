@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
-import { emitNewMessage, emitUserStatus } from "@/services/eventBus";
+import { emitConversationCreated, emitNewMessage, emitUserStatus } from "@/services/eventBus";
 import { IConversation, IUserStatus } from "@/types/chat/types";
 import {
   CONNECTED_RESPONSE,
+  CONVERSATION_CREATED_TOPIC,
   ERROR_RESPONSE,
   MESSAGE_RECEIVED_TOPIC,
   MESSAGE_RESPONSE,
@@ -21,6 +22,7 @@ import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hook
 const TOPICS = [
   { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
   { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
+  { destination: CONVERSATION_CREATED_TOPIC, id: "sub-conversation-created" },
 ];
 
 export const publishUserActivity = (
@@ -68,6 +70,10 @@ const handleMessageByTopic = (topic: string, body: string) => {
       // Handle online status update
       const onlineStatusData = JSON.parse(body) as IUserStatus;
       emitUserStatus(onlineStatusData);
+    } else if (topic.includes(CONVERSATION_CREATED_TOPIC)) {
+      // Handle group conversation creation
+      const newConversation = JSON.parse(body) as IConversation;
+      emitConversationCreated(newConversation);
     } else {
       logDebug("Received message from unknown topic:", topic);
     }
@@ -153,7 +159,7 @@ export default function useWebSocketConnection() {
 
             // Subscribe to all topics
             TOPICS.forEach((topic) => {
-              subscribeToTopic(ws, topic.destination, email, topic.id);
+              subscribeToTopic(ws, topic.destination, topic.id);
             });
           } else if (event.data.startsWith(ERROR_RESPONSE)) {
             logInfo("STOMP error:", event.data);

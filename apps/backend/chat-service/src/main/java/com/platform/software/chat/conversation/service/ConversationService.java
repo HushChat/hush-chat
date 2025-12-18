@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.service;
 
-
 import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
@@ -31,6 +30,7 @@ import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.message.service.MessageUtilService;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
@@ -60,6 +60,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
 import java.time.ZonedDateTime;
@@ -91,6 +92,7 @@ public class ConversationService {
     private final ConversationEventMessageService conversationEventMessageService;
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -241,6 +243,13 @@ public class ConversationService {
             savedConversationDTO = saveConversationAndBuildDTO(conversation);
         }
 
+        eventPublisher.publishEvent(new ConversationCreatedEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            savedConversationDTO.getId(),
+            loggedInUserId,
+            savedConversationDTO
+        ));
+
         triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
 
         return savedConversationDTO;
@@ -267,7 +276,7 @@ public class ConversationService {
             conversationEventService.createMessageWithConversationEvent(
                     conversationId,
                     actorUserId,
-                    targetsForAddEvent, 
+                    targetsForAddEvent,
                     ConversationEventType.USER_ADDED
             );
         }
@@ -608,7 +617,7 @@ public class ConversationService {
         messageMentionService.appendMessageMentions(messageViewDTOS);
 
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messageViewDTOS);
-        
+
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));
     
@@ -1166,7 +1175,7 @@ public class ConversationService {
         dto.setBlocked(meta.isBlocked());
         dto.setPinned(me.getIsPinned());
         dto.setFavorite(me.getIsFavorite());
-        dto.setMutedUntil(me.getMutedUntil()); 
+        dto.setMutedUntil(me.getMutedUntil());
         return dto;
     }
 
@@ -1408,6 +1417,35 @@ public class ConversationService {
     public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
         return conversationRepository.findAllGroupConversationsAdminView(pageable);
     }
+
+    /**
+     * Retrieves a paginated list of group participants who have seen a specific message.
+     *
+     * @param conversationId the ID of the conversation containing the message
+     * @param messageId the ID of the message to check read status for
+     * @param userId the ID of the current user requesting the seen list (excluded from results)
+     * @param pageable pagination information including page number, page size, and optional sorting criteria
+     * @return a {@link Page} of {@link UserBasicViewDTO} containing users who have seen the message
+     */
+    public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
+        try {
+            messageService.getMessageBySender(userId, conversationId, messageId);
+        } catch (Exception error) {
+            logger.error("message id is incorrect, not part of this conversation, or you are not the sender of message", error);
+            throw new CustomBadRequestException("Failed to Get Message View Participant");
+        }
+
+        Page<ChatUser> users = conversationReadStatusRepository
+                .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
+
+        Page<UserBasicViewDTO> userDTOs = users.map(user -> {
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(user.getImageIndexedName());
+
+            UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
+            userBasicViewDTO.setSignedImageUrl(signedUrl);
+            return userBasicViewDTO;
+        });
+
+        return userDTOs;
+    }
 }
-
-
