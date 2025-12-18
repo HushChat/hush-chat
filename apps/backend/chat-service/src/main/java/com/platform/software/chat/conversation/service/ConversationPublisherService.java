@@ -3,6 +3,8 @@ package com.platform.software.chat.conversation.service;
 import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +71,13 @@ public class ConversationPublisherService {
     @Transactional(readOnly = true)
     public void invokeConversationMetaUpdateToParticipants(String workspaceId, Long actorUserId, Conversation conversation){
         ConversationMetaDataDTO payloadDTO = new ConversationMetaDataDTO(conversation);
-        payloadDTO.setSignedImageUrl(conversationUtilService.getImageViewSignedUrl(payloadDTO.getImageIndexedName()));
+        payloadDTO.setSignedImageUrl(
+                conversationUtilService.getImageViewSignedUrl(
+                        payloadDTO.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                        MediaSizeEnum.SMALL
+                        ,payloadDTO.getImageIndexedName()
+                )
+        );
 
         for (ConversationParticipant participant : conversation.getConversationParticipants()) {
             if (participant.getUser() == null || participant.getUser().getEmail() == null)
