@@ -12,7 +12,8 @@ import {
 } from "@/hooks/useNativePickerUpload";
 import { createMessagesWithAttachments } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
-import { FileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
+import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
+import { useState } from "react";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -34,13 +35,13 @@ export const ALLOWED_DOCUMENT_TYPES = [
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
 
-export type AttachmentUploadRequest = {
+type TAttachmentUploadRequest = {
   messageText: string;
   fileName: string;
   parentMessageId?: number | null;
 };
 
-interface MessageWithSignedUrl {
+interface IMessageWithSignedUrl {
   id: number;
   signedUrl: {
     originalFileName: string;
@@ -50,7 +51,7 @@ interface MessageWithSignedUrl {
   } | null;
 }
 
-const extractSignedUrls = (response: MessageWithSignedUrl[] | any): SignedUrl[] => {
+const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[] => {
   if (Array.isArray(response)) {
     return response
       .filter((item) => item.signedUrl && item.signedUrl.url)
@@ -182,12 +183,13 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
 };
 
 export function useMessageAttachmentUploader(conversationId: number) {
+  const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const getSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
     parentMessageId?: number | null
   ): Promise<SignedUrl[] | null> => {
-    const attachments: AttachmentUploadRequest[] = files.map((file) => ({
+    const attachments: TAttachmentUploadRequest[] = files.map((file) => ({
       messageText,
       fileName: file.name,
       parentMessageId,
@@ -201,7 +203,7 @@ export function useMessageAttachmentUploader(conversationId: number) {
     filesWithCaptions: { file: LocalFile; caption: string }[],
     parentMessageId?: number | null
   ): Promise<SignedUrl[] | null> => {
-    const attachments: AttachmentUploadRequest[] = filesWithCaptions.map(({ file, caption }) => ({
+    const attachments: TAttachmentUploadRequest[] = filesWithCaptions.map(({ file, caption }) => ({
       messageText: caption,
       fileName: file.name,
       parentMessageId,
@@ -238,10 +240,12 @@ export function useMessageAttachmentUploader(conversationId: number) {
     );
 
   const uploadFilesFromWebWithCaptions = async (
-    filesWithCaptions: FileWithCaption[],
+    filesWithCaptions: TFileWithCaption[],
     parentMessageId?: number | null
   ): Promise<UploadResult[]> => {
     if (!filesWithCaptions || filesWithCaptions.length === 0) return [];
+
+    setIsUploadingWebFiles(true);
 
     const toLocal = (f: File): LocalFile & { _blobUrl: string } => ({
       uri: URL.createObjectURL(f),
@@ -333,6 +337,7 @@ export function useMessageAttachmentUploader(conversationId: number) {
 
       return [...results, ...skipped];
     } finally {
+      setIsUploadingWebFiles(false);
       validFiles.forEach(({ file }) => {
         try {
           URL.revokeObjectURL(file._blobUrl);
@@ -360,5 +365,6 @@ export function useMessageAttachmentUploader(conversationId: number) {
     pickAndUploadDocuments,
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
+    isUploading: isUploadingWebFiles,
   };
 }

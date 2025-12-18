@@ -7,7 +7,7 @@ import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
 
-export type FileWithCaption = {
+export type TFileWithCaption = {
   file: File;
   caption: string;
 };
@@ -19,7 +19,7 @@ interface IUseSendMessageHandlerParams {
   setSelectedMessage: (msg: IMessage | null) => void;
   sendMessage: UseMutateFunction<ApiResponse<unknown>, unknown, unknown, unknown>;
   uploadFilesFromWebWithCaptions: (
-    filesWithCaptions: FileWithCaption[],
+    filesWithCaptions: TFileWithCaption[],
     parentMessageId?: number | null
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
@@ -125,7 +125,7 @@ export const useSendMessageHandler = ({
             })
           );
 
-          const filesWithCaptions: FileWithCaption[] = renamedFiles.map((file) => ({
+          const filesWithCaptions: TFileWithCaption[] = renamedFiles.map((file) => ({
             file,
             caption: trimmed,
           }));
@@ -160,11 +160,11 @@ export const useSendMessageHandler = ({
   );
 
   const handleSendFilesWithCaptions = useCallback(
-    async (filesWithCaptions: FileWithCaption[]) => {
+    async (filesWithCaptions: TFileWithCaption[]) => {
       if (!filesWithCaptions || filesWithCaptions.length === 0) return;
 
       try {
-        const preparedFiles: FileWithCaption[] = filesWithCaptions.map(
+        const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
           ({ file, caption }, index) => ({
             file: renameFile(file, index),
             caption: caption.trim(),
