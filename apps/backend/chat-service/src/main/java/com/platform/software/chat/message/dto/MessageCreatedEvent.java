@@ -4,7 +4,6 @@ import com.platform.software.chat.message.entity.Message;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-
 @Getter
 @AllArgsConstructor
 public class MessageCreatedEvent {

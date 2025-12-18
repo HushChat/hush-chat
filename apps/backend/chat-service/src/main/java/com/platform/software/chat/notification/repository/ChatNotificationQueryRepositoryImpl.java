@@ -9,7 +9,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-
 public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
