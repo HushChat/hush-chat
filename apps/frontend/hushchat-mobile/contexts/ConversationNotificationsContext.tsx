@@ -8,7 +8,7 @@ import {
   useMemo,
 } from "react";
 import { eventBus } from "@/services/eventBus";
-import { IConversation, IMessage, IMessageAttachment, IUserStatus } from "@/types/chat/types";
+import { IConversation, IMessage, IUserStatus } from "@/types/chat/types";
 import { playMessageSound } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
@@ -218,6 +218,13 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     setCreatedConversation(null);
   }, [createdConversation, queryClient, conversationsQueryKey]);
 
+  const markMessageAsUnsent = (message: IMessage): IMessage => ({
+    ...message,
+    isUnsend: true,
+    messageAttachments: [],
+    isForwarded: false,
+  });
+
   // TODO: Move these handlers into a custom hook, as this file is continuously growing.
   useEffect(() => {
     const handleMessageUnsent = (payload: MessageUnsentPayload) => {
@@ -247,13 +254,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
                 if (lastMessage?.id !== messageId) return conv;
 
                 const nextMessages = [...messages];
-                nextMessages[lastIndex] = {
-                  ...lastMessage,
-                  isUnsend: true,
-                  messageAttachments: [],
-                  isForwarded: false,
-                };
-
+                nextMessages[lastIndex] = markMessageAsUnsent(lastMessage);
                 return {
                   ...conv,
                   messages: nextMessages,
@@ -280,14 +281,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
             pages: old.pages.map((page: PaginatedResult<IMessage>) => ({
               ...page,
               content: page.content.map((msg: IMessage) =>
-                msg.id === messageId
-                  ? {
-                      ...msg,
-                      isUnsend: true,
-                      messageAttachments: [] as IMessageAttachment[],
-                      isForwarded: false,
-                    }
-                  : msg
+                msg.id === messageId ? markMessageAsUnsent(msg) : msg
               ),
             })),
           };
