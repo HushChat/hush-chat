@@ -4,15 +4,12 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.notification.entity.QChatNotification;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.QChatUser;
-import com.platform.software.config.cache.CacheNames;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static com.platform.software.chat.notification.entity.QChatNotification.chatNotification;
 
 public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQueryRepository {
 
@@ -43,6 +40,7 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
         BooleanBuilder whereCondition = new BooleanBuilder();
         whereCondition.and(qConversationParticipant.conversation.id.eq(conversationId));
         whereCondition.and(qConversationParticipant.isActive.isTrue());
+        whereCondition.and(qConversationParticipant.notifyOnMentionsOnly.isFalse());
         whereCondition.and(qChatUser.id.ne(loggedInUserId));
 
         if (!includeMutedUsers) {

@@ -103,19 +103,13 @@ public class ChatNotificationService {
      */
     public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message) {
 
-        Conversation conversation = message.getConversation();
-
-        if(conversation.getNotifyOnMentionsOnly()){
-            return;
-        }
-
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false);
 
         if (tokens.isEmpty()) {
             return;
         }
 
-        String body = conversation.getIsGroup()
+        String body = message.getConversation().getIsGroup()
             ? message.getSender().getFirstName() + ": " + message.getMessageText() 
             : message.getMessageText();
 
