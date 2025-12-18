@@ -93,7 +93,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
               (hasText || hasImages) && isCurrentUser,
             "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
               (hasText || hasImages) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasImages),
+            "bg-transparent": !(hasText || hasImages) || message.isUnsend,
 
             "border-sky-500 dark:border-sky-400": selected && selectionMode,
             "border-transparent": !(selected && selectionMode),
