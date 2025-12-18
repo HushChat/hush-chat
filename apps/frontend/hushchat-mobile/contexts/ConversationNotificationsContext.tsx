@@ -23,7 +23,11 @@ import {
   USER_EVENTS,
   WEBSOCKET_EVENTS,
 } from "@/constants/ws/webSocketEventKeys";
-import { MessageReactionPayload, MessageUnsentPayload } from "@/types/ws/types";
+import {
+  MessageReactionActionEnum,
+  MessageReactionPayload,
+  MessageUnsentPayload,
+} from "@/types/ws/types";
 
 const PAGE_SIZE = 20;
 
@@ -321,8 +325,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         const nextType = (payload.reactionType ?? "").trim();
         const loggedInUserIsInitiator = Number(payload.actorUserId) === Number(loggedInUserId);
 
-        const removed =
-          payload.action === "REMOVED" || payload.reactionType == null || nextType === "";
+        const removed = payload.reactionAction === MessageReactionActionEnum.REMOVED;
 
         if (prevType) dec(prevType);
         if (!removed && nextType) inc(nextType);
