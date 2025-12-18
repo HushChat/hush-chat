@@ -16,6 +16,7 @@ public class UserViewDTO {
     private String username;
     private String email;
     private String signedImageUrl;
+    private String workspaceName;
     private WorkspaceUserRole workspaceRole;
 
     public UserViewDTO(ChatUser user) {
@@ -25,6 +26,14 @@ public class UserViewDTO {
         this.setEmail(user.getEmail());
         this.setUsername(user.getUsername());
         this.setSignedImageUrl(user.getSignedImageUrl());
+    }
+
+    public String getWorkspaceName() {
+        return workspaceName;
+    }
+
+    public void setWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
     }
 
     public UserViewDTO(Long id, String firstName, String lastName, String signedImageUrl) {
