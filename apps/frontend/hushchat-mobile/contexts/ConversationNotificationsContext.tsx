@@ -299,7 +299,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     const handleMessageReaction = (payload: MessageReactionPayload) => {
       const { conversationId, messageId } = payload;
 
-      const applyToMessage = (msg: any) => {
+      const applyToMessage = (msg: IMessage) => {
         if (Number(msg?.id) !== Number(messageId)) return msg;
 
         const prevSummary = msg.reactionSummary ?? { counts: {}, currentUserReaction: "" };
@@ -319,7 +319,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
         const prevType = (payload.previousReactionType ?? "").trim();
         const nextType = (payload.reactionType ?? "").trim();
-        const isMe = Number(payload.actorUserId) === Number(loggedInUserId);
+        const loggedInUserIsInitiator = Number(payload.actorUserId) === Number(loggedInUserId);
 
         const removed =
           payload.action === "REMOVED" || payload.reactionType == null || nextType === "";
@@ -331,7 +331,11 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
           ...msg,
           reactionSummary: {
             counts,
-            currentUserReaction: isMe ? (removed ? "" : nextType) : prevSummary.currentUserReaction,
+            currentUserReaction: loggedInUserIsInitiator
+              ? removed
+                ? ""
+                : nextType
+              : prevSummary.currentUserReaction,
           },
         };
       };
@@ -359,7 +363,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
           return {
             ...old,
-            pages: old.pages.map((page: any) => ({
+            pages: old.pages.map((page: PaginatedResult<IMessage>) => ({
               ...page,
               content: (page?.content ?? []).map(applyToMessage),
             })),
