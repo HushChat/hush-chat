@@ -4,41 +4,25 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
 import {
-  emitConversationCreated,
-  emitMessageReaction,
-  emitMessageUnsent,
-  emitNewMessage,
-  emitUserStatus,
-} from "@/services/eventBus";
-import { IConversation, IUserStatus } from "@/types/chat/types";
-import {
   CONNECTED_RESPONSE,
-  CONVERSATION_CREATED_TOPIC,
   ERROR_RESPONSE,
-  MESSAGE_REACTION_TOPIC,
-  MESSAGE_RECEIVED_TOPIC,
   MESSAGE_RESPONSE,
-  MESSAGE_UNSENT_TOPIC,
-  ONLINE_STATUS_TOPIC,
   RETRY_TIME_MS,
 } from "@/constants/wsConstants";
-import {
-  MessageReactionPayload,
-  MessageUnsentPayload,
-  UserActivityWSSubscriptionData,
-  WebSocketStatus,
-} from "@/types/ws/types";
+import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
+import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
+import { WS_TOPICS } from "@/constants/ws/wsTopics";
 
 // Define topics to subscribe to
 const TOPICS = [
-  { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
-  { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
-  { destination: CONVERSATION_CREATED_TOPIC, id: "sub-conversation-created" },
-  { destination: MESSAGE_UNSENT_TOPIC, id: "sub-message-unsent" },
-  { destination: MESSAGE_REACTION_TOPIC, id: "sub-message-reaction" },
-];
+  { destination: WS_TOPICS.message.received, id: "sub-message-received" },
+  { destination: WS_TOPICS.user.onlineStatus, id: "sub-online-status" },
+  { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
+  { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
+  { destination: WS_TOPICS.message.react, id: "sub-message-reaction" },
+] as const;
 
 export const publishUserActivity = (
   ws: WebSocket | null,
@@ -69,39 +53,6 @@ export const publishUserActivity = (
   } catch (error) {
     logInfo("Error publishing user activity:", error);
     return false;
-  }
-};
-
-// Handle different message types based on topic
-const handleMessageByTopic = (topic: string, body: string) => {
-  try {
-    if (topic.includes(MESSAGE_RECEIVED_TOPIC)) {
-      // Handle message received
-      const wsMessageWithConversation = JSON.parse(body) as IConversation;
-      if (wsMessageWithConversation.messages?.length !== 0) {
-        emitNewMessage(wsMessageWithConversation);
-      }
-    } else if (topic.includes(ONLINE_STATUS_TOPIC)) {
-      // Handle online status update
-      const onlineStatusData = JSON.parse(body) as IUserStatus;
-      emitUserStatus(onlineStatusData);
-    } else if (topic.includes(CONVERSATION_CREATED_TOPIC)) {
-      // Handle group conversation creation
-      const newConversation = JSON.parse(body) as IConversation;
-      emitConversationCreated(newConversation);
-    } else if (topic.includes(MESSAGE_UNSENT_TOPIC)) {
-      // Handle message unsent
-      const data = JSON.parse(body) as MessageUnsentPayload;
-      emitMessageUnsent(data);
-    } else if (topic.includes(MESSAGE_REACTION_TOPIC)) {
-      // Handle message reaction
-      const data = JSON.parse(body) as MessageReactionPayload;
-      emitMessageReaction(data);
-    } else {
-      logDebug("Received message from unknown topic:", topic);
-    }
-  } catch (error) {
-    logInfo("Error parsing message from topic:", topic, error);
   }
 };
 

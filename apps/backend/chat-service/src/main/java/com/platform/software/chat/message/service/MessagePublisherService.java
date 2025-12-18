@@ -5,8 +5,8 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
-import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageUnsentWSResponseDTO;
+import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.common.constants.WebSocketTopicConstants;
@@ -109,6 +109,18 @@ public class MessagePublisherService {
         return participantDTO;
     }
 
+    /**
+     * Notify conversation participants in real time when a message is unsent.
+     * <p>
+     * The user who initiated the unsent action (actor) is explicitly excluded
+     * from receiving the WebSocket event, as their UI state is already updated
+     * locally.
+     *
+     * @param conversationId the conversation ID where the message was unsent
+     * @param messageId      the unsent message ID
+     * @param actorUserId    the user ID who initiated the unsent action
+     * @param workspaceId   the workspace (tenant) identifier
+     */
     @Async
     @Transactional(readOnly = true)
     public void invokeMessageUnsentToParticipants(
@@ -124,7 +136,9 @@ public class MessagePublisherService {
             conversationUtilService.getConversationDTOOrThrow(actorUserId, conversationId);
 
         conversationDTO.getParticipants().stream()
-            .map(p -> p.getUser() != null ? p.getUser().getEmail() : null)
+            .filter(p -> p.getUser() != null && p.getUser().getId() != null)
+            .filter(p -> !p.getUser().getId().equals(actorUserId))
+            .map(p -> p.getUser().getEmail())
             .filter(email -> email != null && !email.isBlank())
             .forEach(email -> {
                 webSocketSessionManager.sendMessageToUser(
