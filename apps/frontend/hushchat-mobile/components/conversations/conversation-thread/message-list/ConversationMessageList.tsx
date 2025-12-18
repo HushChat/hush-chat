@@ -170,6 +170,7 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        targetMessageId,
         webMessageInfoPress,
       }),
     [
@@ -188,6 +189,7 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      targetMessageId,
       webMessageInfoPress,
     ]
   );
