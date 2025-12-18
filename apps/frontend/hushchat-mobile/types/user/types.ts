@@ -10,6 +10,7 @@ export const UserSchema = yup.object({
   email: yup.string().required(),
   active: yup.boolean().required(),
   signedImageUrl: yup.string().nullable().notRequired(),
+  workspaceName: yup.string().nullable().notRequired(),
   workspaceRole: yup
     .mixed<WorkspaceUserRole>()
     .oneOf(Object.values(WorkspaceUserRole))
@@ -189,6 +190,7 @@ export type TUser = {
   active?: boolean;
   conversationId?: number;
   signedImageUrl: string;
+  workspaceName?: string;
 };
 
 export type DeviceToken = {

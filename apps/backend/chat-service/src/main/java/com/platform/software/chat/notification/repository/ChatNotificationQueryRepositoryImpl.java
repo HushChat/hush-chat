@@ -3,10 +3,8 @@ package com.platform.software.chat.notification.repository;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.notification.entity.QChatNotification;
 import com.platform.software.chat.user.entity.QChatUser;
-import com.platform.software.config.cache.CacheNames;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -35,13 +33,44 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
      * @return a list of distinct notification tokens of conversation participants
      */
     @Override
-    public List<String> findTokensByConversationId(Long conversationId, Long loggedInUserId, boolean includeMutedUsers) {
+    public List<String> findTokensByConversationId(
+            Long conversationId,
+            Long loggedInUserId,
+            boolean includeMutedUsers,
+            boolean isMentionAll,
+            List<Long> mentionedUserIds
+    ) {
 
         BooleanBuilder whereCondition = new BooleanBuilder();
+
         whereCondition.and(qConversationParticipant.conversation.id.eq(conversationId));
         whereCondition.and(qConversationParticipant.isActive.isTrue());
         whereCondition.and(qChatUser.id.ne(loggedInUserId));
 
+        if (!isMentionAll) {
+
+            BooleanBuilder mentionCondition = new BooleanBuilder();
+
+            if (mentionedUserIds != null && !mentionedUserIds.isEmpty()) {
+
+                // Mentioned users, always include
+                mentionCondition.or(qChatUser.id.in(mentionedUserIds));
+
+                // Non-mentioned users, only if notifyOnMentionsOnly = false
+                mentionCondition.or(
+                        qChatUser.id.notIn(mentionedUserIds)
+                                .and(qConversationParticipant.notifyOnMentionsOnly.isFalse())
+                );
+
+            } else {
+                // No mentions, only users who allow all notifications
+                mentionCondition.and(qConversationParticipant.notifyOnMentionsOnly.isFalse());
+            }
+
+            whereCondition.and(mentionCondition);
+        }
+
+        //muted users
         if (!includeMutedUsers) {
             whereCondition.and(
                     qConversationParticipant.mutedUntil.isNull()
