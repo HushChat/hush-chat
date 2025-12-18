@@ -26,8 +26,6 @@ interface IUseSendMessageHandlerParams {
   handleCloseImagePreview: () => void;
 }
 
-const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg", "gif", "webp"];
-
 let tempMessageIdCounter = -1;
 export const generateTempMessageId = (): number => tempMessageIdCounter--;
 
