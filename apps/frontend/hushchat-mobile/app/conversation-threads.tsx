@@ -459,13 +459,6 @@ const ConversationThreadScreen = ({
     isGroupChat,
   ]);
 
-  const actionBarStyle = useMemo(
-    () => ({
-      paddingBottom: insets.bottom,
-    }),
-    [insets.bottom]
-  );
-
   return (
     <SafeAreaView
       className="flex-1 bg-background-light dark:bg-background-dark"
@@ -514,18 +507,16 @@ const ConversationThreadScreen = ({
                     {renderContent()}
                     <View style={styles.textInputWrapper}>{renderTextInput()}</View>
                     {selectionMode && (
-                      <View style={actionBarStyle}>
-                        <MessageForwardActionBar
-                          visible={selectionMode}
-                          count={selectedMessageIds.size}
-                          isDark={isDark}
-                          onCancel={() => {
-                            setSelectionMode(false);
-                            setSelectedMessageIds(EMPTY_SET);
-                          }}
-                          onForward={onForwardPress}
-                        />
-                      </View>
+                      <MessageForwardActionBar
+                        visible={selectionMode}
+                        count={selectedMessageIds.size}
+                        isDark={isDark}
+                        onCancel={() => {
+                          setSelectionMode(false);
+                          setSelectedMessageIds(EMPTY_SET);
+                        }}
+                        onForward={onForwardPress}
+                      />
                     )}
                   </>
                 )}

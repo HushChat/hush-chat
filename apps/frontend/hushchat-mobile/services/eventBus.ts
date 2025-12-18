@@ -1,5 +1,10 @@
 import mitt from "mitt";
-import { TypingIndicator, WebSocketError, NotificationPayload } from "@/types/ws/types";
+import {
+  TypingIndicator,
+  WebSocketError,
+  NotificationPayload,
+  MessageUnsentPayload,
+} from "@/types/ws/types";
 import { IConversation, IUserStatus } from "@/types/chat/types";
 import {
   CALL_EVENTS,
@@ -35,6 +40,7 @@ export type WebSocketEvents = {
     userId: string;
   };
   [CONVERSATION_EVENTS.CREATED]: IConversation;
+  [CONVERSATION_EVENTS.MESSAGE_UNSENT]: MessageUnsentPayload;
 
   // User presence events
   [USER_EVENTS.PRESENCE]: IUserStatus;
@@ -77,8 +83,12 @@ export const emitUserStatus = (userStatus: IUserStatus) => {
   eventBus.emit(USER_EVENTS.PRESENCE, userStatus);
 };
 
-export const emitConversationCreated = (conversation: any) => {
+export const emitConversationCreated = (conversation: IConversation) => {
   eventBus.emit(CONVERSATION_EVENTS.CREATED, conversation);
+};
+
+export const emitMessageUnsent = (data: MessageUnsentPayload) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_UNSENT, data);
 };
 
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {

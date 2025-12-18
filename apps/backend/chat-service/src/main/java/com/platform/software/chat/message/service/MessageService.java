@@ -513,5 +513,12 @@ public class MessageService {
 
         message.setIsUnsend(true);
         messageRepository.save(message);
+
+        eventPublisher.publishEvent(new MessageUnsentEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            message.getConversation().getId(),
+            message.getId(),
+            loggedInUserId
+        ));
     }
 }
