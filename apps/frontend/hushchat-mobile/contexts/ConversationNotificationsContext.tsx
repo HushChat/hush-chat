@@ -8,7 +8,7 @@ import {
   useMemo,
 } from "react";
 import { eventBus } from "@/services/eventBus";
-import { IConversation, IUserStatus } from "@/types/chat/types";
+import { IConversation, IMessage, IMessageAttachment, IUserStatus } from "@/types/chat/types";
 import { playMessageSound } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
@@ -226,28 +226,37 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       // Update conversation list cache
       queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
         conversationsQueryKey,
-        (old) => {
+        (old: InfiniteData<PaginatedResult<IConversation>> | undefined) => {
           if (!old) return old;
+
+          const { conversationId, messageId } = payload;
 
           return {
             ...old,
-            pages: old.pages.map((page) => ({
+            pages: old.pages.map((page: PaginatedResult<IConversation>) => ({
               ...page,
-              content: page.content.map((conv) => {
+              content: page.content.map((conv: IConversation) => {
                 if (conv.id !== conversationId) return conv;
+
+                const messages: IMessage[] = conv.messages ?? ([] as IMessage[]);
+                if (messages.length === 0) return conv;
+
+                const lastIndex = messages.length - 1;
+                const lastMessage = messages[lastIndex];
+
+                if (lastMessage?.id !== messageId) return conv;
+
+                const nextMessages = [...messages];
+                nextMessages[lastIndex] = {
+                  ...lastMessage,
+                  isUnsend: true,
+                  messageAttachments: [],
+                  isForwarded: false,
+                };
 
                 return {
                   ...conv,
-                  messages: (conv.messages ?? []).map((m) =>
-                    m.id === messageId
-                      ? {
-                          ...m,
-                          isUnsend: true,
-                          messageAttachments: [],
-                          isForwarded: false,
-                        }
-                      : m
-                  ),
+                  messages: nextMessages,
                 };
               }),
             })),
@@ -261,26 +270,29 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         conversationId
       );
 
-      queryClient.setQueryData(threadKey, (old: any) => {
-        if (!old) return old;
+      queryClient.setQueryData(
+        threadKey,
+        (old: InfiniteData<PaginatedResult<IMessage>> | undefined) => {
+          if (!old) return old;
 
-        return {
-          ...old,
-          pages: old.pages.map((page: any) => ({
-            ...page,
-            content: page.content.map((msg: any) =>
-              msg.id === messageId
-                ? {
-                    ...msg,
-                    isUnsend: true,
-                    messageAttachments: [],
-                    isForwarded: false,
-                  }
-                : msg
-            ),
-          })),
-        };
-      });
+          return {
+            ...old,
+            pages: old.pages.map((page: PaginatedResult<IMessage>) => ({
+              ...page,
+              content: page.content.map((msg: IMessage) =>
+                msg.id === messageId
+                  ? {
+                      ...msg,
+                      isUnsend: true,
+                      messageAttachments: [] as IMessageAttachment[],
+                      isForwarded: false,
+                    }
+                  : msg
+              ),
+            })),
+          };
+        }
+      );
     };
 
     eventBus.on(CONVERSATION_EVENTS.MESSAGE_UNSENT, handleMessageUnsent);
