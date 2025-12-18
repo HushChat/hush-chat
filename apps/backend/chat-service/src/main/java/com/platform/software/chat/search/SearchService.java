@@ -11,6 +11,8 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -151,7 +153,12 @@ public class SearchService {
         );
 
         conversationDTOPage.map(dto -> {
-            String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(dto.getImageIndexedName());
+            String signedImageUrl =
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            dto.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.SMALL,
+                            dto.getImageIndexedName()
+                    );
             dto.setSignedImageUrl(signedImageUrl);
 
             return dto;

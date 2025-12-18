@@ -14,6 +14,7 @@ import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserQueryRepository;
 import com.platform.software.common.dto.LoginDTO;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.AWSconfig;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
@@ -111,7 +112,7 @@ public class UserServiceImpl implements UserService {
 
         return users.map(user -> {
             UserDTO userDTO = new UserDTO(user);
-            userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+            userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.SMALL));
             return userDTO;
         });
     }
@@ -199,7 +200,7 @@ public class UserServiceImpl implements UserService {
         });
         
         UserViewDTO userViewDTO = new UserViewDTO(user);
-        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.MEDIUM));
         
         String currentWorkspaceIdentifier = WorkspaceContext.getCurrentWorkspace();
 
@@ -303,9 +304,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.countByIdIn(userIds);
     }
 
-    private String getUserProfileImageUrl(String imageIndexedName) {
+    private String getUserProfileImageUrl(String imageIndexedName, MediaSizeEnum size) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+            return cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, size, imageIndexedName);
         }
         return imageIndexedName;
     }
@@ -413,7 +414,7 @@ public class UserServiceImpl implements UserService {
         userDTO.setDeleted(user.getDeleted());
         userDTO.setImageIndexedName(user.getImageIndexedName());
         userDTO.setConversationId(conversationMap.get(user.getId()));
-        userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.SMALL));
 
         return userDTO;
     }
