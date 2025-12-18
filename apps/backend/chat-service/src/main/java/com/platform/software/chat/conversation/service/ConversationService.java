@@ -1223,7 +1223,7 @@ public class ConversationService {
         }
 
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
-        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.LARGE, conversation.getImageIndexedName());
+        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.LARGE, conversation.getImageIndexedName());
         conversation.setSignedImageUrl(imageViewSignedUrl);
 
         if (!conversation.getIsGroup()) {
