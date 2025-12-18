@@ -216,6 +216,37 @@ public class MessageService {
         return signedURLResponseDTO;
     }
 
+    /**
+     * Create messages with attachments list.
+     *
+     * @param messageDTOs    the message dt os
+     * @param conversationId the conversation id
+     * @param loggedInUserId the logged in user id
+     * @return the list
+     */
+    @Transactional
+    public List<MessageViewDTO> createMessagesWithAttachments(
+        List<MessageWithAttachmentUpsertDTO> messageDTOs,
+        Long conversationId,
+        Long loggedInUserId
+    ) {
+        List<MessageViewDTO> createdMessages = new ArrayList<>();
+        for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
+            Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
+            SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFileName(), savedMessage);
+
+            MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+            messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+            createdMessages.add(messageViewDTO);
+
+            messagePublisherService.invokeNewMessageToParticipants(
+                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+            );
+        }
+
+        return createdMessages;
+    }
+
     /* * Creates a MessageViewDTO from the saved message and sets the sender ID and parent message ID.
      *
      * @param loggedInUserId the ID of the logged-in user
@@ -484,5 +515,12 @@ public class MessageService {
 
         message.setIsUnsend(true);
         messageRepository.save(message);
+
+        eventPublisher.publishEvent(new MessageUnsentEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            message.getConversation().getId(),
+            message.getId(),
+            loggedInUserId
+        ));
     }
 }

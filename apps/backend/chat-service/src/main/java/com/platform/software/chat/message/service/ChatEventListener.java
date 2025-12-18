@@ -1,6 +1,7 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.message.dto.MessageReactionEvent;
+import com.platform.software.chat.message.dto.MessageUnsentEvent;
 import com.platform.software.chat.message.dto.MessageCreatedEvent;
 import com.platform.software.chat.notification.service.ChatNotificationService;
 import org.springframework.scheduling.annotation.Async;
@@ -48,6 +49,17 @@ public class ChatEventListener {
         chatNotificationService.sendMessageReactionNotifications(
                 event.getMessage(),
                 event.getUser()
+        );
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onMessageUnsent(MessageUnsentEvent event) {
+        messagePublisherService.invokeMessageUnsentToParticipants(
+                event.getConversationId(),
+                event.getMessageId(),
+                event.getActorUserId(),
+                event.getWorkspaceId()
         );
     }
 }
