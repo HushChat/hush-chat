@@ -1033,6 +1033,12 @@ public class ConversationService {
             try {
                 conversationRepository.save(conversation);
                 cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+
+                eventPublisher.publishEvent(new ConversationUpdateEvent(
+                        WorkspaceContext.getCurrentWorkspace(),
+                        loggedInUserId,
+                        conversation
+                ));
             } catch (Exception exception) {
                 logger.error("failed to update group icon for conversationId: {} by user id: {}",
                         conversationId, loggedInUserId, exception);
