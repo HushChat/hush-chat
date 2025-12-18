@@ -150,6 +150,21 @@ public class MessagePublisherService {
             });
     }
 
+    /**
+     * Notify conversation participants in real time when a message reaction is added,
+     * updated, or removed.
+     * <p>
+     * The user who initiated the reaction action (actor) is explicitly excluded
+     * from receiving the WebSocket event, as their UI state is already updated locally.
+     *
+     * @param conversationId        the conversation ID where the reaction occurred
+     * @param messageId             the message ID on which the reaction was applied
+     * @param actorUserId           the user ID who performed the reaction action
+     * @param reactionType          the current reaction type (e.g., 👍, ❤️), may be null on removal
+     * @param previousReactionType  the previous reaction type before the action, if any
+     * @param action                the reaction action type (ADD, UPDATE, REMOVE)
+     * @param workspaceId           the workspace (tenant) identifier
+     */
     @Async
     @Transactional(readOnly = true)
     public void invokeMessageReactionToParticipants(
@@ -175,7 +190,9 @@ public class MessagePublisherService {
                 conversationUtilService.getConversationDTOOrThrow(actorUserId, conversationId);
 
         conversationDTO.getParticipants().stream()
-                .map(p -> p.getUser() != null ? p.getUser().getEmail() : null)
+                .filter(p -> p.getUser() != null && p.getUser().getId() != null)
+                .filter(p -> !p.getUser().getId().equals(actorUserId))
+                .map(p -> p.getUser().getEmail())
                 .filter(email -> email != null && !email.isBlank())
                 .forEach(email -> webSocketSessionManager.sendMessageToUser(
                         workspaceId,
