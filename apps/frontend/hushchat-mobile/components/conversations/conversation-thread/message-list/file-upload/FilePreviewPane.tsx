@@ -4,7 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
 import { DOC_EXTENSIONS, SIZES, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
-import { AppText, AppTextInput } from "@/components/AppText";
+import { AppText } from "@/components/AppText";
+import ConversationInput from "@/components/conversation-input/ConversationInput";
 
 const VideoPlayer = ({ uri, style }: { uri: string; style: any }) => {
   return (
@@ -16,12 +17,27 @@ const VideoPlayer = ({ uri, style }: { uri: string; style: any }) => {
 
 type TFilePreviewPaneProps = {
   file: File;
-  message: string;
-  onMessageChange: (text: string) => void;
+  conversationId: number;
+  caption: string;
+  onCaptionChange: (text: string) => void;
+  onSendFiles: () => void;
   isSending: boolean;
+  isGroupChat?: boolean;
+  replyToMessage?: any;
+  onCancelReply?: () => void;
 };
 
-const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePreviewPaneProps) => {
+const FilePreviewPane = ({
+  file,
+  conversationId,
+  caption,
+  onCaptionChange,
+  onSendFiles,
+  isSending,
+  isGroupChat = false,
+  replyToMessage,
+  onCancelReply,
+}: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
   const [fileType, setFileType] = useState<"image" | "document" | "video">("image");
 
@@ -77,17 +93,18 @@ const FilePreviewPane = ({ file, message, onMessageChange, isSending }: TFilePre
         )}
       </View>
 
-      <View className="px-6 pb-4">
-        <AppTextInput
-          className="w-full outline-none rounded-xl bg-secondary-light/60 dark:bg-secondary-dark/70 border border-gray-200 dark:border-gray-700 px-4 py-3 text-text-primary-light dark:text-text-primary-dark"
-          placeholder={`Write a caption for your ${fileType === "document" ? "document" : fileType === "video" ? "video" : "image"}...`}
-          placeholderTextColor="#9ca3af"
-          multiline
-          numberOfLines={3}
-          value={message}
-          onChangeText={onMessageChange}
-          editable={!isSending}
-          style={styles.captionInput}
+      <View style={styles.inputContainer}>
+        <ConversationInput
+          conversationId={conversationId}
+          onSendMessage={onSendFiles}
+          disabled={isSending}
+          isSending={isSending}
+          isGroupChat={isGroupChat}
+          replyToMessage={replyToMessage}
+          onCancelReply={onCancelReply}
+          controlledValue={caption}
+          onControlledValueChange={onCaptionChange}
+          hideSendButton
         />
       </View>
     </View>
@@ -113,9 +130,11 @@ const styles = StyleSheet.create({
     height: "100%",
     objectFit: "contain",
   },
-  captionInput: {
-    minHeight: 84,
-    maxHeight: 140,
-    textAlignVertical: "top",
+  inputContainer: {
+    position: "relative",
+    overflow: "visible",
+    zIndex: 100,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
   },
 });

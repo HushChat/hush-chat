@@ -4,50 +4,86 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { MAX_FILES, validateFiles } from "@/utils/fileValidation";
 import FileList from "./FileList";
 import FilePreviewPane from "./FilePreviewPane";
-import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
+import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
+
+export type FileWithCaption = {
+  file: File;
+  caption: string;
+};
 
 type TFilePreviewOverlayProps = {
   files: File[];
+  conversationId: number;
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: () => void;
+  onSendFiles: (filesWithCaptions: FileWithCaption[]) => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
-  message?: string;
-  onMessageChange?: (message: string) => void;
+  isGroupChat?: boolean;
+  replyToMessage?: any;
+  onCancelReply?: () => void;
 };
 
 const FilePreviewOverlay = ({
   files,
+  conversationId,
   onClose,
   onRemoveFile,
   onSendFiles,
   onFileSelect,
   isSending = false,
-  message = "",
-  onMessageChange,
+  isGroupChat = false,
+  replyToMessage,
+  onCancelReply,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [internalMsg, setInternalMsg] = useState(message);
+  const [captions, setCaptions] = useState<Map<number, string>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setInternalMsg(message), [message]);
+  useEffect(() => {
+    setCaptions((prev) => {
+      const newCaptions = new Map(prev);
+      files.forEach((_, index) => {
+        if (!newCaptions.has(index)) {
+          newCaptions.set(index, "");
+        }
+      });
+      Array.from(newCaptions.keys()).forEach((key) => {
+        if (key >= files.length) {
+          newCaptions.delete(key);
+        }
+      });
+      return newCaptions;
+    });
+  }, [files.length]);
 
   useEffect(() => {
-    if (selectedIndex >= files.length) setSelectedIndex(Math.max(0, files.length - 1));
+    if (selectedIndex >= files.length) {
+      setSelectedIndex(Math.max(0, files.length - 1));
+    }
   }, [files.length, selectedIndex]);
 
-  const handleMessageChange = (t: string) => {
-    setInternalMsg(t);
-    onMessageChange?.(t);
-  };
+  const handleCaptionChange = useCallback(
+    (text: string) => {
+      setCaptions((prev) => {
+        const newCaptions = new Map(prev);
+        newCaptions.set(selectedIndex, text);
+        return newCaptions;
+      });
+    },
+    [selectedIndex]
+  );
+
+  const getCurrentCaption = useCallback(() => {
+    return captions.get(selectedIndex) || "";
+  }, [captions, selectedIndex]);
 
   const onHiddenPickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { files: choose } = e.target;
-      if (choose && choose.length > 0) {
-        const { errors, validFiles } = validateFiles(choose, files.length);
+      const { files: chosen } = e.target;
+      if (chosen && chosen.length > 0) {
+        const { errors, validFiles } = validateFiles(chosen, files.length);
         errors.forEach((err) => ToastUtils.error(err));
         if (validFiles.length > 0) onFileSelect(validFiles);
       }
@@ -56,30 +92,67 @@ const FilePreviewOverlay = ({
     [files.length, onFileSelect]
   );
 
-  const handleAddMore = () => {
+  const handleAddMore = useCallback(() => {
     if (files.length >= MAX_FILES) {
       ToastUtils.error(`Maximum ${MAX_FILES} files allowed.`);
       return;
     }
     fileInputRef.current?.click();
-  };
+  }, [files.length]);
+
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      setCaptions((prev) => {
+        const newCaptions = new Map<number, string>();
+        prev.forEach((caption, key) => {
+          if (key < index) {
+            newCaptions.set(key, caption);
+          } else if (key > index) {
+            newCaptions.set(key - 1, caption);
+          }
+        });
+        return newCaptions;
+      });
+      onRemoveFile(index);
+    },
+    [onRemoveFile]
+  );
+
+  const handleSend = useCallback(() => {
+    const filesWithCaptions: FileWithCaption[] = files.map((file, index) => ({
+      file,
+      caption: captions.get(index) || "",
+    }));
+    onSendFiles(filesWithCaptions);
+    setCaptions(new Map());
+  }, [files, captions, onSendFiles]);
+
+  const handleClose = useCallback(() => {
+    setCaptions(new Map());
+    onClose();
+  }, [onClose]);
 
   if (files.length === 0) return null;
 
   return (
-    <View className="flex-1 bg-background-light dark:bg-background-dark">
-      <View className="flex-1 flex-row">
+    <View style={styles.container} className="bg-background-light dark:bg-background-dark">
+      <View style={styles.contentRow}>
         <FileList
           files={files}
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
-          onRemoveFile={onRemoveFile}
+          onRemoveFile={handleRemoveFile}
         />
         <FilePreviewPane
           file={files[selectedIndex]}
-          message={internalMsg}
-          onMessageChange={handleMessageChange}
+          conversationId={conversationId}
+          caption={getCurrentCaption()}
+          onCaptionChange={handleCaptionChange}
+          onSendFiles={handleSend}
           isSending={isSending}
+          isGroupChat={isGroupChat}
+          replyToMessage={replyToMessage}
+          onCancelReply={onCancelReply}
         />
       </View>
 
@@ -88,8 +161,9 @@ const FilePreviewOverlay = ({
         isAtLimit={files.length >= MAX_FILES}
         hasFiles={files.length > 0}
         onAddMore={handleAddMore}
-        onClose={onClose}
-        onSend={onSendFiles}
+        onClose={handleClose}
+        onSend={handleSend}
+        fileCount={files.length}
       />
       <input
         ref={fileInputRef}
@@ -106,6 +180,15 @@ const FilePreviewOverlay = ({
 export default FilePreviewOverlay;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    overflow: "visible",
+  },
+  contentRow: {
+    flex: 1,
+    flexDirection: "row",
+    overflow: "visible",
+  },
   hiddenInput: {
     display: "none",
   },

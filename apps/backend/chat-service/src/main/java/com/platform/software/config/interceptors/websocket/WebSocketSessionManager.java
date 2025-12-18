@@ -127,10 +127,9 @@ public class WebSocketSessionManager {
     public void sendMessageToEveryConnectedUser(String path, Object payload) {
         for (Map.Entry<String, WebSocketSessionInfoDAO> entry : webSocketSessionInfos.entrySet()) {
             try {
-                String[] workspaceIdEmail = entry.getKey().split(":", 2); // Split into max 2 parts
-                if (workspaceIdEmail.length >= 2) {
-                    String encodedEmail = workspaceIdEmail[1];
-                    template.convertAndSend(path + encodedEmail, payload);
+                String sessionKey = entry.getKey();
+                if (!sessionKey.isEmpty()) {
+                    template.convertAndSendToUser(sessionKey, path, payload);
                 }
             } catch (Exception e) {
                 logger.warn("failed to send message to user with key: {}", entry.getKey(), e);
@@ -141,9 +140,9 @@ public class WebSocketSessionManager {
     /**
      * Send message to a specific user using encoded email
      */
-    public void sendMessageToUser(String encodedEmail, String path, Object payload) {
+    public void sendMessageToUser(String sessionKey, String path, Object payload) {
         try {
-            template.convertAndSend(path + encodedEmail, payload);
+            template.convertAndSendToUser(sessionKey ,path, payload);
         } catch (Exception e) {
             logger.warn("failed to send message to user", e);
         }
@@ -159,7 +158,7 @@ public class WebSocketSessionManager {
         if (webSocketSessionInfoDAO != null) {
             try {
                 String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-                template.convertAndSend(path + encodedEmail, payload);
+                template.convertAndSendToUser(webSocketStoreKey, path, payload);
                 logger.debug("message sent to user: {} at path: {}", email, path + encodedEmail);
             } catch (Exception e) {
                 logger.warn("failed to send message at tenant: {}", workspaceId, e);

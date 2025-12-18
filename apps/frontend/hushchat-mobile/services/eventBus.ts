@@ -1,54 +1,69 @@
 import mitt from "mitt";
-import { TypingIndicator, WebSocketError, NotificationPayload } from "@/types/ws/types";
+import {
+  TypingIndicator,
+  WebSocketError,
+  NotificationPayload,
+  MessageUnsentPayload,
+} from "@/types/ws/types";
 import { IConversation, IUserStatus } from "@/types/chat/types";
+import {
+  CALL_EVENTS,
+  CONVERSATION_EVENTS,
+  NOTIFICATION_EVENTS,
+  SYSTEM_EVENTS,
+  USER_EVENTS,
+  WEBSOCKET_EVENTS,
+} from "@/constants/ws/webSocketEventKeys";
 
 export type WebSocketEvents = {
   // Core WebSocket events
-  "websocket:message": IConversation;
-  "websocket:connected": { timestamp: string };
-  "websocket:disconnected": { reason?: string; timestamp: string };
-  "websocket:error": WebSocketError;
-  "websocket:reconnecting": { attempt: number; maxAttempts: number };
+  [WEBSOCKET_EVENTS.MESSAGE]: IConversation;
+  [WEBSOCKET_EVENTS.CONNECTED]: { timestamp: string };
+  [WEBSOCKET_EVENTS.DISCONNECTED]: { reason?: string; timestamp: string };
+  [WEBSOCKET_EVENTS.ERROR]: WebSocketError;
+  [WEBSOCKET_EVENTS.RECONNECTING]: { attempt: number; maxAttempts: number };
 
   // Conversation-specific events
-  "conversation:newMessage": {
+  [CONVERSATION_EVENTS.NEW_MESSAGE]: {
     conversationId: number;
     messageWithConversation: IConversation;
   };
-  "conversation:typing": TypingIndicator;
-  "conversation:messageRead": {
+  [CONVERSATION_EVENTS.TYPING]: TypingIndicator;
+  [CONVERSATION_EVENTS.MESSAGE_READ]: {
     conversationId: number;
     messageIds: string[];
     userId: string;
   };
-  "conversation:messageDelivered": {
+  [CONVERSATION_EVENTS.MESSAGE_DELIVERED]: {
     conversationId: number;
     messageIds: string[];
     userId: string;
   };
+  [CONVERSATION_EVENTS.CREATED]: IConversation;
+  [CONVERSATION_EVENTS.MESSAGE_UNSENT]: MessageUnsentPayload;
 
   // User presence events
-  "user:presence": IUserStatus;
-  "user:joined": { conversationId: number; user: { id: string; name: string } };
-  "user:left": { conversationId: number; userId: string };
+  [USER_EVENTS.PRESENCE]: IUserStatus;
+  [USER_EVENTS.JOINED]: { conversationId: number; user: { id: string; name: string } };
+  [USER_EVENTS.LEFT]: { conversationId: number; userId: string };
 
   // Notification events
-  "notification:show": NotificationPayload;
-  "notification:clear": { conversationId?: number };
+  [NOTIFICATION_EVENTS.SHOW]: NotificationPayload;
+  [NOTIFICATION_EVENTS.CLEAR]: { conversationId?: number };
 
   // Call events (if you have voice/video calling)
-  "call:incoming": {
+  [CALL_EVENTS.INCOMING]: {
     callId: string;
     from: string;
     conversationId: number;
     type: "voice" | "video";
   };
-  "call:ended": { callId: string; duration?: number };
-  "call:rejected": { callId: string; reason?: string };
+  [CALL_EVENTS.ENDED]: { callId: string; duration?: number };
+  [CALL_EVENTS.REJECTED]: { callId: string; reason?: string };
 
   // System events
-  "system:maintenance": { message: string; scheduledTime?: string };
-  "system:update": { version: string; features: string[] };
+  [SYSTEM_EVENTS.MAINTENANCE]: { message: string; scheduledTime?: string };
+  [SYSTEM_EVENTS.UPDATE]: { version: string; features: string[] };
 };
 
 // Create and export the event bus
@@ -57,15 +72,23 @@ export const eventBus = mitt<WebSocketEvents>();
 // Helper functions for common operations
 export const emitNewMessage = (messageWithConversation: IConversation) => {
   // Emit both general and conversation-specific events
-  eventBus.emit("websocket:message", messageWithConversation);
-  eventBus.emit("conversation:newMessage", {
+  eventBus.emit(WEBSOCKET_EVENTS.MESSAGE, messageWithConversation);
+  eventBus.emit(CONVERSATION_EVENTS.NEW_MESSAGE, {
     conversationId: messageWithConversation.id as number,
     messageWithConversation: messageWithConversation,
   });
 };
 
 export const emitUserStatus = (userStatus: IUserStatus) => {
-  eventBus.emit("user:presence", userStatus);
+  eventBus.emit(USER_EVENTS.PRESENCE, userStatus);
+};
+
+export const emitConversationCreated = (conversation: IConversation) => {
+  eventBus.emit(CONVERSATION_EVENTS.CREATED, conversation);
+};
+
+export const emitMessageUnsent = (data: MessageUnsentPayload) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_UNSENT, data);
 };
 
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {

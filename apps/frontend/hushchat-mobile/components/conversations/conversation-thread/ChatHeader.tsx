@@ -8,6 +8,9 @@ import { handleConversationNavigation } from "@/utils/commonUtils";
 import { ConversationInfo } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import classNames from "classnames";
 
 interface ChatHeaderProps {
   conversationInfo: ConversationInfo;
@@ -27,6 +30,7 @@ const ChatHeader = ({
   webPressSearch,
 }: ChatHeaderProps) => {
   const isMobileLayout = useIsMobileLayout();
+  const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
 
   const handleProfileNavigate = useCallback(() => {
     handleConversationNavigation(onShowProfile, conversationInfo.conversationId, isMobileLayout);
@@ -65,6 +69,9 @@ const ChatHeader = ({
               {conversationInfo.conversationName}
             </AppText>
           </TouchableOpacity>
+          <View className={classNames(!isMobileLayout && "mr-3")}>
+            <MarkdownToggle enabled={isMarkdownEnabled} onToggle={toggleMarkdown} />
+          </View>
         </View>
 
         {!isMobileLayout && (
