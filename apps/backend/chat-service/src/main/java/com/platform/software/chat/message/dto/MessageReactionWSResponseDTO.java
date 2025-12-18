@@ -11,5 +11,5 @@ public class MessageReactionWSResponseDTO {
     private Long actorUserId;
     private String reactionType;  
     private String previousReactionType;
-    private String action;        
+    private String reactionAction;        
 }

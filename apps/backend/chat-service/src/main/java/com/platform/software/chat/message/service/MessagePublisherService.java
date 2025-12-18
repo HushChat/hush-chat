@@ -173,7 +173,7 @@ public class MessagePublisherService {
             Long actorUserId,
             String reactionType,
             String previousReactionType,
-            String action,
+            String reactionAction,
             String workspaceId
     ) {
         MessageReactionWSResponseDTO payload =
@@ -183,7 +183,7 @@ public class MessagePublisherService {
                         actorUserId,
                         reactionType,
                         previousReactionType,
-                        action
+                        reactionAction
                 );
 
         ConversationDTO conversationDTO =
