@@ -15,5 +15,4 @@ public class MessageCreatedEvent {
     private final MessageViewDTO messageViewDTO;
     private final Long userId;
     private final Message message;
-    List<ChatUser> mentionedUsers;
 }

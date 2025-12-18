@@ -2,12 +2,14 @@ package com.platform.software.chat.notification.service;
 
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.entity.Message;
+import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.notification.dto.DeviceTokenUpsertDTO;
 import com.platform.software.chat.notification.dto.NotificationRequestDTO;
 import com.platform.software.chat.notification.entity.ChatNotification;
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.constants.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatNotificationService {
@@ -25,14 +28,16 @@ public class ChatNotificationService {
     private final ChatNotificationRepository chatNotificationRepository;
     private final ChatNotificationUtilService chatNotificationUtilService;
     private final NotificationServiceFactory notificationServiceFactory;
+    private final MessageMentionService messageMentionService;
 
     private static final Logger logger = LoggerFactory.getLogger(ChatNotificationService.class);
 
-    public ChatNotificationService(UserService userService, ChatNotificationRepository chatNotificationRepository, ChatNotificationUtilService chatNotificationUtilService, NotificationServiceFactory notificationServiceFactory) {
+    public ChatNotificationService(UserService userService, ChatNotificationRepository chatNotificationRepository, ChatNotificationUtilService chatNotificationUtilService, NotificationServiceFactory notificationServiceFactory, MessageMentionService messageMentionService) {
         this.userService = userService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.chatNotificationUtilService = chatNotificationUtilService;
         this.notificationServiceFactory = notificationServiceFactory;
+        this.messageMentionService = messageMentionService;
     }
 
     /**
@@ -103,7 +108,15 @@ public class ChatNotificationService {
      */
     public void sendMessageNotificationsToParticipants(Long conversationId, Long loggedInUserId, Message message) {
 
-        List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false);
+        boolean mentionsAll = message.getMessageText().toLowerCase().contains(Constants.MENTION_ALL);
+
+        List<Long> mentionedUsers = mentionsAll
+                ? null
+                : messageMentionService.getMentionedUsersByUsernames(message.getMessageText()).stream()
+                .map(ChatUser::getId)
+                .collect(Collectors.toList());
+
+        List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false, mentionsAll, mentionedUsers);
 
         if (tokens.isEmpty()) {
             return;
@@ -130,24 +143,6 @@ public class ChatNotificationService {
         }
 
         String body = loggedInUser.getFirstName() + " " + loggedInUser.getLastName() + " reacted to your message";
-
-        buildAndDispatchNotification(tokens, message, body);
-    }
-
-    /**
-     * Send message reaction notifications
-     *
-     * @param message message
-     * @param mentionedUsers mentioned users
-     */
-    public void sendMessageMentionNotifications(Message message, List<ChatUser> mentionedUsers) {
-        List<String> tokens = chatNotificationRepository.findTokensByChatUsers(mentionedUsers, message.getConversation().getId());
-
-        if (tokens.isEmpty()) {
-            return;
-        }
-
-        String body = message.getSender().getFirstName() + " " + message.getSender().getLastName() + " mentioned you";
 
         buildAndDispatchNotification(tokens, message, body);
     }

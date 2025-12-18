@@ -29,13 +29,6 @@ public class ChatEventListener {
                 event.getWorkspaceId()
         );
 
-        if(event.getMentionedUsers() != null && !event.getMentionedUsers().isEmpty()){
-            chatNotificationService.sendMessageMentionNotifications(
-                    event.getMessage(),
-                    event.getMentionedUsers()
-            );
-        }
-
         chatNotificationService.sendMessageNotificationsToParticipants(
                 event.getConversationId(),
                 event.getUserId(),

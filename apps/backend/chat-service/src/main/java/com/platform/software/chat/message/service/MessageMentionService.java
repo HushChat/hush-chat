@@ -49,7 +49,7 @@ public class MessageMentionService {
      * @param messageViewDTO - returns with mentioned user details
      */
     @Transactional
-    public List<ChatUser> saveMessageMentions(Message savedMessage, MessageViewDTO messageViewDTO) {
+    public void saveMessageMentions(Message savedMessage, MessageViewDTO messageViewDTO) {
         String messageText = savedMessage.getMessageText();
 
         boolean mentionsAll = constainsMentionAll(messageText);
@@ -61,21 +61,20 @@ public class MessageMentionService {
                 : getMentionedUsersByUsernames(messageText);
 
         if (mentionedUsers == null) {
-            return null;
+            return;
         }
 
         List<MessageMention> messageMentions = buildMessageMentions(savedMessage, mentionedUsers);
 
         try {
             messageMentionRepository.saveAll(messageMentions);
-            return mentionedUsers;
         } catch (Exception e) {
             logger.error("cannot save message mentions for message: {}", savedMessage, e);
             throw new CustomInternalServerErrorException("Cannot save message mentions");
         }
     }
 
-    private List<ChatUser> getMentionedUsersByUsernames(String messageText) {
+    public List<ChatUser> getMentionedUsersByUsernames(String messageText) {
         List<String> usernames = extractUsernames(messageText);
         if (usernames.isEmpty()) {
             return null;

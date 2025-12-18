@@ -2,7 +2,6 @@ package com.platform.software.chat.notification.repository;
 
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.notification.entity.QChatNotification;
-import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -35,14 +34,44 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
      * @return a list of distinct notification tokens of conversation participants
      */
     @Override
-    public List<String> findTokensByConversationId(Long conversationId, Long loggedInUserId, boolean includeMutedUsers) {
+    public List<String> findTokensByConversationId(
+            Long conversationId,
+            Long loggedInUserId,
+            boolean includeMutedUsers,
+            boolean isMentionAll,
+            List<Long> mentionedUserIds
+    ) {
 
         BooleanBuilder whereCondition = new BooleanBuilder();
+
         whereCondition.and(qConversationParticipant.conversation.id.eq(conversationId));
         whereCondition.and(qConversationParticipant.isActive.isTrue());
-        whereCondition.and(qConversationParticipant.notifyOnMentionsOnly.isFalse());
         whereCondition.and(qChatUser.id.ne(loggedInUserId));
 
+        if (!isMentionAll) {
+
+            BooleanBuilder mentionCondition = new BooleanBuilder();
+
+            if (mentionedUserIds != null && !mentionedUserIds.isEmpty()) {
+
+                // Mentioned users, always include
+                mentionCondition.or(qChatUser.id.in(mentionedUserIds));
+
+                // Non-mentioned users, only if notifyOnMentionsOnly = false
+                mentionCondition.or(
+                        qChatUser.id.notIn(mentionedUserIds)
+                                .and(qConversationParticipant.notifyOnMentionsOnly.isFalse())
+                );
+
+            } else {
+                // No mentions, only users who allow all notifications
+                mentionCondition.and(qConversationParticipant.notifyOnMentionsOnly.isFalse());
+            }
+
+            whereCondition.and(mentionCondition);
+        }
+
+        //muted users
         if (!includeMutedUsers) {
             whereCondition.and(
                     qConversationParticipant.mutedUntil.isNull()
@@ -82,29 +111,6 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
                                         qConversationParticipant.mutedUntil.isNull()
                                                 .or(qConversationParticipant.mutedUntil.lt(ZonedDateTime.now()))
                                 )
-                )
-                .fetch();
-    }
-
-    /**
-     * Retrieves device tokens for the given chat users.
-     *
-     * @param chatUsers list of chat users
-     * @return a list of device tokens associated with the given chat users.
-     *         Returns an empty list if no tokens are found.
-     */
-    @Override
-    public List<String> findTokensByChatUsers(List<ChatUser> chatUsers, Long conversationId) {
-        return jpaQueryFactory
-                .select(qChatNotification.token)
-                .from(qConversationParticipant)
-                .join(qConversationParticipant.user, qChatUser)
-                .join(qChatNotification).on(qChatNotification.chatUser.id.eq(qChatUser.id))
-                .where(qChatUser.in(chatUsers)
-                        .and(qConversationParticipant.conversation.id.eq(conversationId))
-                        .and(qConversationParticipant.isActive.isTrue())
-                        .and(qConversationParticipant.mutedUntil.isNull()
-                                .or(qConversationParticipant.mutedUntil.lt(ZonedDateTime.now())))
                 )
                 .fetch();
     }
