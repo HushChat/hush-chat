@@ -3,7 +3,8 @@ import { AUTH_API_ENDPOINTS, TOKEN_TYPE, VERSION_CHECK } from "@/constants/apiCo
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 import { logError } from "@/utils/logger";
-import { X_TENANT } from "@/constants/constants";
+import { X_TENANT, X_UUID_HEADER } from "@/constants/constants";
+import * as Crypto from "expo-crypto";
 
 const getAPIBaseURL = () => {
   const host = getBuildConstant(BuildConstantKeys.API_HOST);
@@ -69,6 +70,8 @@ export const setupAuthorizationHeader = () => {
         if (workspace) {
           config.headers[X_TENANT] = workspace;
         }
+
+        config.headers[X_UUID_HEADER] = Crypto.randomUUID();
       } catch (error) {
         logError("Error while setting up authorization header", error);
       }

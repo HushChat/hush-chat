@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, ScrollView, TouchableOpacity } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import FilterButton from "@/components/FilterButton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,8 +20,10 @@ import SearchBar from "@/components/SearchBar";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
+import { AppText } from "@/components/AppText";
+import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 
-export default function ChatInterface({
+export default function ChatInterfaceMobile({
   chatItemList,
   filters,
   selectedConversation,
@@ -105,17 +107,18 @@ export default function ChatInterface({
           )}
 
           <View className="flex-1">
-            <Text
+            <AppText
               className={classNames("text-text-primary-light dark:text-text-primary-dark", {
                 "text-xl font-medium": selectedConversationType === ConversationType.ARCHIVED,
                 "text-3xl font-bold": selectedConversationType !== ConversationType.ARCHIVED,
               })}
             >
               {selectedConversationType === ConversationType.ARCHIVED ? "Archived" : "Chats"}
-            </Text>
+            </AppText>
           </View>
 
           <WebSocketStatusIndicator />
+          <SoundToggleButton />
 
           <TouchableOpacity
             onPress={() => setSheetVisible(true)}

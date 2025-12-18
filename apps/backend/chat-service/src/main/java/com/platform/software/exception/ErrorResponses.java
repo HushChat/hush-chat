@@ -4,7 +4,7 @@ public class ErrorResponses {
     public static final String TENANT_ID_MISSING_RESPONSE = "tenant id is missing";
     public static final String UNAUTHORIZED_ACCESS_RESPONSE = "unauthorized access";
     public static final String JWT_TOKEN_MISSING_RESPONSE = "jwt token missing";
-    public static final String PLATFORM_ID_MISSING_RESPONSE = "platform id missing";
+    public static final String WORKSPACE_ID_MISSING_RESPONSE = "workspace id missing";
     public static final String INVALID_TENANT_ID_WAS_GIVEN_RESPONSE = "invalid tenant id was given";
     public static final String FAILED_TO_VERIFY_TOKEN_RESPONSE = "failed to verify token";
     public static final String INVALID_TOKEN_PROVIDED_RESPONSE = "invalid token provided";
@@ -17,4 +17,5 @@ public class ErrorResponses {
     public static final String DATABASE_UNAVAILABLE_RESPONSE = "Database is currently unavailable. Please try again later.";
     public static final String FAILED_TO_VALIDATE_TOKEN_RESPONSE = "failed to validate token";
     public static final String INVALID_USER_TYPE_RESPONSE = "invalid user type";
+    public static final String INCORRECT_PUBLIC_KEY_RESPONSE = "incorrect public key";
 }

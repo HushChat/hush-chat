@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useMemo } from "react";
-import { Animated, Pressable, Text, View, StyleSheet } from "react-native";
+import React, { useMemo } from "react";
+import { Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { MotionView } from "@/motion/MotionView";
+import { AppText } from "@/components/AppText";
 
 export interface SelectionActionBarProps {
   visible: boolean;
@@ -22,42 +24,25 @@ const MessageForwardActionBar = ({
   onCancel,
   onForward,
 }: SelectionActionBarProps) => {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(16)).current;
-
-  useEffect(() => {
-    Animated.timing(opacity, {
-      toValue: visible ? 1 : 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-
-    Animated.timing(translateY, {
-      toValue: visible ? 0 : 16,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  }, [visible]);
-
   const selectedLabel = useMemo(() => `${count} selected`, [count]);
 
   return (
-    <Animated.View
+    <MotionView
+      visible={visible}
+      initial={{ opacity: 0, translateY: 16 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      duration={200}
       pointerEvents={visible ? "auto" : "none"}
-      className="absolute left-4 right-4 bottom-4"
-      style={{
-        opacity,
-        transform: [{ translateY }],
-      }}
+      style={styles.container}
       testID="selectionActionBar"
     >
-      <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark">
-        <Text
+      <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark rounded-lg shadow-lg">
+        <AppText
           className="text-sm font-medium ml-2"
           style={isDark ? styles.selectedLabelDark : styles.selectedLabelLight}
         >
           {selectedLabel}
-        </Text>
+        </AppText>
 
         <View className="flex-row items-center space-x-2">
           <Pressable
@@ -66,21 +51,28 @@ const MessageForwardActionBar = ({
             className="flex-row items-center px-4 py-2 rounded-full bg-primary-light dark:bg-primary-dark"
           >
             <Ionicons name="arrow-forward" size={16} color="white" style={styles.iconMarginRight} />
-            <Text className="text-white text-sm font-medium">Forward</Text>
+            <AppText className="text-white text-sm font-medium">Forward</AppText>
           </Pressable>
 
-          <Pressable onPress={onCancel} className="p-2" testID="selectionCancel">
+          <Pressable onPress={onCancel} className="p-2 active:opacity-60" testID="selectionCancel">
             <Ionicons name="close" size={20} color={isDark ? "#9CA3AF" : "#6B7280"} />
           </Pressable>
         </View>
       </View>
-    </Animated.View>
+    </MotionView>
   );
 };
 
 export default React.memo(MessageForwardActionBar);
 
 const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 16,
+    zIndex: 9999,
+  },
   selectedLabelDark: { color: COLOR_TOKENS.labelDark },
   selectedLabelLight: { color: COLOR_TOKENS.labelLight },
   iconMarginRight: { marginRight: 4 },

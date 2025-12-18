@@ -25,6 +25,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.List;
@@ -116,7 +117,11 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             accessor.getSessionAttributes().put(Constants.JWT_CLAIM_EMAIL, email);
             accessor.getSessionAttributes().put("workspaceId", workspaceId);
 
-            manageSession(sessionKey, accessor, user, workspaceId);
+            // Use sessionKey as the principal identifier
+            Principal principal = () -> sessionKey;
+            accessor.setUser(principal);
+
+            manageSession(sessionKey, accessor, user, workspaceId, email);
 
             logger.info("websocket connection authenticated for workspace: {} user: {}", workspaceId, user.getId());
 
@@ -142,7 +147,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         String email = (String) accessor.getSessionAttributes().get(Constants.JWT_CLAIM_EMAIL);
 
         if (sessionKey != null) {
-            sessionManager.removeWebSocketSessionInfo(sessionKey);
+            sessionManager.removeWebSocketSessionInfo(sessionKey, email);
             logger.info("removed websocket session for user: {}", email);
         }
     }
@@ -151,13 +156,15 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 
-    private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId) {
+    private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {
         WebSocketSessionInfoDAO existingSession = sessionManager.getWebSocketSessionInfo(sessionKey);
 
         if (existingSession == null) {
             logger.info("workspace-id: {} user {} connected", workspaceId, user.getId());
-            sessionManager.registerSessionFromStomp(sessionKey, accessor);
-            return;
+            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email);
+        } else {
+            logger.info("workspace-id: {} user {} re-connected", workspaceId, user.getId());
+            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email);
         }
     }
 

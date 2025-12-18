@@ -1,6 +1,7 @@
 import React from "react";
-import { Text, TextProps } from "react-native";
+import { TextProps } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
+import { AppText } from "@/components/AppText";
 
 type Props = TextProps & { size?: number; children: string };
 
@@ -8,7 +9,7 @@ export default function EmojiGlyph({ size = 24, style, children, ...rest }: Prop
   const lineHeight = Math.round(size * 1.2);
 
   return (
-    <Text
+    <AppText
       {...rest}
       allowFontScaling={false}
       style={[
@@ -23,6 +24,6 @@ export default function EmojiGlyph({ size = 24, style, children, ...rest }: Prop
       ]}
     >
       {children}
-    </Text>
+    </AppText>
   );
 }

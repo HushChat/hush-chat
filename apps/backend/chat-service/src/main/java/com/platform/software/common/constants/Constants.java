@@ -6,7 +6,7 @@ public class Constants {
     public static final String X_TENANT_HEADER = "X-Tenant";
     public static final String DEFAULT_TEST_TENANT_ID = "localhost";
     public static final String EMAIL_ATTR = "email";
-    public static final String X_SECRET_KEY = "X-Secret-Key";
+    public static final String X_PUBLIC_KEY = "X-Public-Key";
     public static final String X_PLATFORM_ID_HEADER = "X-Platform-Id";
     public static final String PREFERRED_USERNAME_ATTR = "preferred_username";
     public static final String COGNITO_CUSTOM_USER_TYPE_KEY = "custom:user_type";
@@ -20,7 +20,7 @@ public class Constants {
     public static final String MAIN_SERVICE_E2E_PROFILE_NAME = "e2e";
     public static final String MAIN_SERVICE_STAGING_PROFILE_NAME = "staging";
     public static final String MAIN_SERVICE_PENTEST_PROFILE_NAME = "pentest";
-    public static final String API_REQUEST_ID = "x-uuid";
+    public static final String API_REQUEST_ID = "x-Uuid";
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$";
     public static final String JWT_CLAIM_EMAIL = "email";
     public static final String MENTION_ALL = "@all";
@@ -37,4 +37,6 @@ public class Constants {
     public static final Set<String> DOCUMENT_EXTENSIONS = Set.of(
             "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
             "txt", "csv");
+
+    public static final String API_KEY_USER = "api-key-user";
 }

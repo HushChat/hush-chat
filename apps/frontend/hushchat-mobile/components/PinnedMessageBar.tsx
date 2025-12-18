@@ -1,7 +1,8 @@
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { AppText } from "@/components/AppText";
 
 const COLORS = {
   SHADOW_COLOR: "#000000",
@@ -39,20 +40,20 @@ export const PinnedMessageBar = ({
 
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center mb-0.5">
-          <Text className="text-xs font-medium text-primary-light dark:text-text-primary-dark uppercase tracking-wide">
+          <AppText className="text-xs font-medium text-primary-light dark:text-text-primary-dark uppercase tracking-wide">
             Pinned
-          </Text>
+          </AppText>
           <View className="w-1 h-1 rounded-full bg-primary-light dark:bg-primary-dark mx-2" />
-          <Text className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+          <AppText className="text-xs font-semibold text-gray-700 dark:text-gray-300">
             {senderName}
-          </Text>
+          </AppText>
         </View>
-        <Text
+        <AppText
           className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed"
           numberOfLines={2}
         >
           {messageText}
-        </Text>
+        </AppText>
       </View>
 
       <Pressable
