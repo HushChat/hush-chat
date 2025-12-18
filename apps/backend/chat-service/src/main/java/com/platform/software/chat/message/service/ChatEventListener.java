@@ -41,8 +41,8 @@ public class ChatEventListener {
     public void onMessageReaction(MessageReactionEvent event) {
         messagePublisherService.invokeMessageReactionToParticipants(
             event.getConversationId(),
-            event.getMessageId(),
-            event.getActorUserId(),
+            event.getMessage().getId(),
+            event.getUser().getId(),
             event.getReactionType(),
             event.getPreviousReactionType(),
             event.getReactionAction(),

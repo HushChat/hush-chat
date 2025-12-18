@@ -101,8 +101,6 @@ public class MessageReactionService {
         eventPublisher.publishEvent(new MessageReactionEvent(
                 WorkspaceContext.getCurrentWorkspace(),
                 conversation.getId(),
-                message.getId(),
-                userId,
                 reactionType,
                 previousReactionType,
                 reactionAction,
@@ -187,8 +185,6 @@ public class MessageReactionService {
         eventPublisher.publishEvent(new MessageReactionEvent(
                 WorkspaceContext.getCurrentWorkspace(),
                 message.getConversation().getId(),
-                message.getId(),
-                userId,
                 null,
                 previousReactionType,
                 MessageReactionActionEnum.REMOVED,

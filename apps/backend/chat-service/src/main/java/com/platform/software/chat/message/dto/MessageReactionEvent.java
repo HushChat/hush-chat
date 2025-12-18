@@ -13,8 +13,6 @@ import lombok.Getter;
 public class MessageReactionEvent {
     private final String workspaceId;
     private final Long conversationId;
-    private final Long messageId;
-    private final Long actorUserId;
     private final ReactionTypeEnum reactionType;
     private final ReactionTypeEnum previousReactionType;
     private final MessageReactionActionEnum reactionAction;
