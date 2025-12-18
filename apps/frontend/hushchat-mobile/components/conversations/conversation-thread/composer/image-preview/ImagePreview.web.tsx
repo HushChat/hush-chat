@@ -10,7 +10,7 @@ import { useVideoThumbnails } from "@/hooks/useVideoThumbnails";
 export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const thumbnailScrollRef = useRef<ScrollView>(null);
-  const videoThumbnails = useVideoThumbnails(images);
+  const videoThumbnails = useVideoThumbnails(visible ? images : [], currentIndex, 1);
   const currentImage = images[currentIndex];
   const fileType = getFileType(
     currentImage?.originalFileName || currentImage?.indexedFileName || ""

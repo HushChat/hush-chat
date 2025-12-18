@@ -91,14 +91,14 @@ export const useSendMessageHandler = ({
       let newName: string;
       switch (fileType) {
         case "image":
-          newName = `ChatApp Image ${currentConversationId}${index} ${timestamp}.${ext}`;
+          newName = `HushChat Image ${currentConversationId}${index} ${timestamp}.${ext}`;
           break;
         case "video":
-          newName = `ChatApp Video ${currentConversationId}${index} ${timestamp}.${ext}`;
+          newName = `HushChat Video ${currentConversationId}${index} ${timestamp}.${ext}`;
           break;
         case "document":
         default:
-          newName = file.name; // Keep original name for documents
+          newName = file.name;
           break;
       }
 

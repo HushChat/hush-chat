@@ -23,5 +23,5 @@ export const VIDEO_EXTENSIONS = ["mp4", "mov", "webm", "avi", "mkv"];
 export const SIZES = ["Bytes", "KB", "MB"];
 
 export const MAX_IMAGE_SIZE_KB = 1024 * 5; // 5 MB
-export const MAX_VIDEO_SIZE_KB = 1024 * 100; // 100 MB
+export const MAX_VIDEO_SIZE_KB = 1024 * 50; // 50 MB
 export const MAX_DOCUMENT_SIZE_KB = 1024 * 10; // 10 MB

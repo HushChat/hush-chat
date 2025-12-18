@@ -296,7 +296,13 @@ export function useMessageAttachmentUploader(conversationId: number) {
         continue;
       }
 
-      const maxSize = isImage ? sizeMap.image : isVideo ? sizeMap.video : sizeMap.document;
+      const getMaxSize = () => {
+        if (isImage) return sizeMap.image;
+        if (isVideo) return sizeMap.video;
+        return sizeMap.document;
+      };
+
+      const maxSize = getMaxSize();
       const fileSizeKB = file.size / 1024;
 
       if (fileSizeKB > maxSize) {

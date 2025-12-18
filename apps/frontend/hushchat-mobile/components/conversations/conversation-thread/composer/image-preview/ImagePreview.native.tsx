@@ -43,17 +43,33 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
 
-  const videoThumbnails = useVideoThumbnails(visible ? images : []);
+  const videoThumbnails = useVideoThumbnails(visible ? images : [], currentIndex, 1);
   const currentImage = images[currentIndex];
   const currentFileType = getFileType(
     currentImage?.originalFileName || currentImage?.indexedFileName || ""
   );
   const isCurrentVideo = currentFileType === "video";
 
-  const player = useVideoPlayer(isCurrentVideo ? currentImage?.fileUrl : null, (player) => {
+  const player = useVideoPlayer(null, (player) => {
     player.loop = false;
     player.muted = false;
   });
+
+  useEffect(() => {
+    if (!player) return;
+
+    if (isCurrentVideo && currentImage?.fileUrl) {
+      player.replace(currentImage.fileUrl);
+      player.play();
+    } else {
+      player.pause();
+      player.replace(null);
+    }
+
+    return () => {
+      player.pause();
+    };
+  }, [isCurrentVideo, currentImage?.fileUrl, player]);
 
   const resetTransform = useCallback(() => {
     scale.value = withSpring(1);
@@ -98,7 +114,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
     }
   };
 
-  const downloadImage = async () => {
+  const downloadMedia = async () => {
     const currentImage = images[currentIndex];
     if (!currentImage?.fileUrl) return;
 
@@ -246,7 +262,7 @@ export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImageP
             </AppText>
             <View className="flex-row items-center gap-4">
               <Pressable
-                onPress={downloadImage}
+                onPress={downloadMedia}
                 disabled={isDownloading}
                 className="p-2 active:opacity-60"
               >

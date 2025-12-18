@@ -27,7 +27,7 @@ export const ImageItem = ({
   const fileType = getFileType(attachment.originalFileName || attachment.indexedFileName || "");
   const isVideo = fileType === "video";
 
-  const thumbnails = useVideoThumbnails([attachment]);
+  const thumbnails = useVideoThumbnails(isVideo ? [attachment] : [], 0, 0);
   const thumbnail = thumbnails[0];
 
   const imageSource = isVideo && thumbnail ? thumbnail : attachment.fileUrl;
