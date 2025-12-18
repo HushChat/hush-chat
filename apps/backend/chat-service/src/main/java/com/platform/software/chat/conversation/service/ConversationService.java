@@ -398,7 +398,7 @@ public class ConversationService {
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
                 .peek(dto -> {
-                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL ,dto.getImageIndexedName());
+                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM ,dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
 
