@@ -37,7 +37,7 @@ export default function ChatInterfaceMobile({
   const { selectedConversationType, setSelectedConversationType } = useConversationStore();
   const { workspaces } = useUserWorkspacesQuery();
 
-  const headerTitle = useConversationHeaderTitle(selectedConversationType, "Chats");
+  const headerTitle = useConversationHeaderTitle(selectedConversationType);
 
   useEffect(() => {
     if (selectedConversation) {

@@ -28,7 +28,7 @@ export const ConversationHeader = ({
 }: TChatHeaderMenuProps) => {
   const { visible, position, openAtEvent, close } = useContextMenu();
 
-  const headerTitle = useConversationHeaderTitle(selectedConversationType, "Chats");
+  const headerTitle = useConversationHeaderTitle(selectedConversationType);
 
   const options: IOption[] = [
     {
