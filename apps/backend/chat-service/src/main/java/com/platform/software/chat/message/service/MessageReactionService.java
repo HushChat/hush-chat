@@ -6,6 +6,7 @@ import com.platform.software.chat.message.dto.MessageReactionUpsertDTO;
 import com.platform.software.chat.message.dto.MessageReactionViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageReaction;
+import com.platform.software.chat.message.entity.ReactionTypeEnum;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.exception.CustomBadRequestException;
@@ -13,6 +14,7 @@ import com.platform.software.exception.CustomInternalServerErrorException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.model.MessageReactionActionEnum;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.utils.ValidationUtils;
 import org.jetbrains.annotations.NotNull;
@@ -68,32 +70,32 @@ public class MessageReactionService {
         Optional<MessageReaction> existingReaction =
                 messageReactionRepository.findByMessageIdAndUserId(messageId, userId);
 
-        String action;
-        String reactionType = null;
-        String previousReactionType = null;
+        MessageReactionActionEnum reactionAction;
+        ReactionTypeEnum reactionType = null;
+        ReactionTypeEnum previousReactionType = null;
 
         if (existingReaction.isPresent()) {
             MessageReaction existing = existingReaction.get();
-            previousReactionType = existing.getReactionType().toString();
+            previousReactionType = existing.getReactionType();
 
-            ReactionAction result =
+            MessageReactionActionEnum result =
                     handleExistingReaction(messageReaction, messageId, existing);
 
-            if (result == ReactionAction.REMOVED) {
-                action = "REMOVED";
+            if (result == MessageReactionActionEnum.REMOVED) {
+                reactionAction = MessageReactionActionEnum.REMOVED;
             } else {
-                action = "UPDATED";
-                reactionType = messageReaction.getReactionType().toString();
+                reactionAction = MessageReactionActionEnum.UPDATED;
+                reactionType = messageReaction.getReactionType();
             }
-            
+
         } else {
             MessageReaction newReaction =
                     createNewReaction(messageReaction, message, user);
 
             saveReaction(newReaction, messageId);
 
-            action = "ADDED";
-            reactionType = messageReaction.getReactionType().toString();
+            reactionAction = MessageReactionActionEnum.ADDED;
+            reactionType = messageReaction.getReactionType();
         }
 
         eventPublisher.publishEvent(new MessageReactionEvent(
@@ -103,7 +105,7 @@ public class MessageReactionService {
                 userId,
                 reactionType,
                 previousReactionType,
-                action,
+                reactionAction,
                 message,
                 user
         ));
@@ -126,8 +128,6 @@ public class MessageReactionService {
         return newReaction;
     }
 
-    private enum ReactionAction { UPDATED, REMOVED }
-
     /**
      * Handles an existing reaction by either updating it or removing it based on the new reaction type.
      *
@@ -136,7 +136,7 @@ public class MessageReactionService {
      * @param messageId the ID of the message being reacted to
      * @param reaction the existing reaction, if present
      */
-    private ReactionAction handleExistingReaction(
+    private MessageReactionActionEnum handleExistingReaction(
         MessageReactionUpsertDTO messageReaction,
         Long messageId,
         MessageReaction reaction
@@ -144,12 +144,12 @@ public class MessageReactionService {
         boolean isSame = reaction.getReactionType().equals(messageReaction.getReactionType());
         if (isSame) {
             removeReaction(reaction, messageId);
-            return ReactionAction.REMOVED;
+            return MessageReactionActionEnum.REMOVED;
         }
 
         reaction.setReactionType(messageReaction.getReactionType());
         saveReaction(reaction, messageId);
-        return ReactionAction.UPDATED;
+        return MessageReactionActionEnum.UPDATED;
     }
 
     /** saves the reaction to the database.
@@ -180,7 +180,7 @@ public class MessageReactionService {
         MessageReaction reaction = messageReactionRepository.findByMessageIdAndUserId(messageId, userId)
                 .orElseThrow(() -> new CustomBadRequestException("Cannot find reaction"));
 
-        String previousReactionType = reaction.getReactionType().toString();
+        ReactionTypeEnum previousReactionType = reaction.getReactionType();
 
         removeReaction(reaction, messageId);
 
@@ -191,7 +191,7 @@ public class MessageReactionService {
                 userId,
                 null,
                 previousReactionType,
-                "REMOVED",
+                MessageReactionActionEnum.REMOVED,
                 message,
                 user
         ));

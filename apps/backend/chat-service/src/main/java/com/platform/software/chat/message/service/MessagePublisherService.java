@@ -8,9 +8,11 @@ import com.platform.software.chat.message.attachment.repository.MessageAttachmen
 import com.platform.software.chat.message.dto.MessageUnsentWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.entity.ReactionTypeEnum;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.common.constants.WebSocketTopicConstants;
+import com.platform.software.common.model.MessageReactionActionEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import org.springframework.scheduling.annotation.Async;
@@ -174,9 +176,9 @@ public class MessagePublisherService {
             Long conversationId,
             Long messageId,
             Long actorUserId,
-            String reactionType,
-            String previousReactionType,
-            String reactionAction,
+            ReactionTypeEnum reactionType,
+            ReactionTypeEnum previousReactionType,
+            MessageReactionActionEnum reactionAction,
             String workspaceId) {
         MessageReactionWSResponseDTO payload = new MessageReactionWSResponseDTO(
                 conversationId,
@@ -184,7 +186,8 @@ public class MessagePublisherService {
                 actorUserId,
                 reactionType,
                 previousReactionType,
-                reactionAction);
+                reactionAction
+        );
 
         List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId,
                 actorUserId);

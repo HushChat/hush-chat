@@ -45,7 +45,7 @@ public class ChatEventListener {
             event.getActorUserId(),
             event.getReactionType(),
             event.getPreviousReactionType(),
-            event.getAction(),
+            event.getReactionAction(),
             event.getWorkspaceId()
         );
 
