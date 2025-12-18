@@ -982,6 +982,12 @@ public class ConversationService {
 
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
 
+            eventPublisher.publishEvent(new ConversationUpdateEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    adminUserId,
+                    conversation
+            ));
+
             return buildConversationDTO(conversation);
         } catch (Exception e) {
             logger.error("failed to update group info for conversationId: {} by user id: {}",

@@ -1,5 +1,8 @@
 package com.platform.software.chat.conversation.service;
 
+import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
+import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +61,28 @@ public class ConversationPublisherService {
                     workspaceId,
                     participant.getUser().getEmail(),
                     WebSocketTopicConstants.CONVERSATION_CREATED,
+                    payloadDTO);
+        }
+    }
+
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeConversationMetaUpdateToParticipants(String workspaceId, Long actorUserId, Conversation conversation){
+        ConversationMetaDataDTO payloadDTO = new ConversationMetaDataDTO(conversation);
+        payloadDTO.setSignedImageUrl(conversationUtilService.getImageViewSignedUrl(payloadDTO.getImageIndexedName()));
+
+        for (ConversationParticipant participant : conversation.getConversationParticipants()) {
+            if (participant.getUser() == null || participant.getUser().getEmail() == null)
+                continue;
+
+            Long participantUserId = participant.getUser().getId();
+            if (participantUserId != null && participantUserId.equals(actorUserId))
+                continue;
+
+            webSocketSessionManager.sendMessageToUser(
+                    workspaceId,
+                    participant.getUser().getEmail(),
+                    WebSocketTopicConstants.CONVERSATION_UPDATED,
                     payloadDTO);
         }
     }
