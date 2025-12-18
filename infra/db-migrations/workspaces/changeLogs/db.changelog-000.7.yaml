@@ -3,10 +3,10 @@ databaseChangeLog:
       id: add_notify-on-mentions-only_flag
       author: moditha
       tag: release-7.1
-      comment: "add new notifyOnMentionsOnly flag to conversation table"
+      comment: "add new notifyOnMentionsOnly flag to conversation participant table"
       changes:
         - addColumn:
-            tableName: conversation
+            tableName: conversation_participant
             columns:
               - column:
                   name: notify_on_mentions_only
@@ -15,7 +15,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - update:
-            tableName: conversation
+            tableName: conversation_participant
             columns:
               - column:
                   name: notify_on_mentions_only
