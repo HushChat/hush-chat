@@ -26,4 +26,8 @@ public final class WebSocketTopicConstants {
 
     /** Conversation Metadata Update **/
     public static final String CONVERSATION_UPDATED = "/topic/conversation-updated/";
+  
+    /** Message unsent event */
+    public static final String MESSAGE_UNSENT = "/topic/message-unsent/";
+
 }
