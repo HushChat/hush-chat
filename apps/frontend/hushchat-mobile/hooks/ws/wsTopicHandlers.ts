@@ -33,12 +33,22 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
   },
 };
 
+const normalizeTopic = (topic: string): string => {
+  // Strip "/user" prefix added by STOMP for user-specific queues
+  if (topic.startsWith("/user")) {
+    return topic.replace("/user", "");
+  }
+  return topic;
+};
+
 export const handleMessageByTopic = (topic: string, body: string) => {
   try {
-    const handler = (WS_TOPIC_HANDLERS as Partial<Record<string, TopicHandler>>)[topic];
+    const normalizedTopic = normalizeTopic(topic);
+
+    const handler = WS_TOPIC_HANDLERS[normalizedTopic as keyof typeof WS_TOPIC_HANDLERS];
 
     if (!handler) {
-      logDebug("Received message from unknown topic:", topic);
+      logDebug("Received message from unknown topic:", normalizedTopic);
       return;
     }
 
