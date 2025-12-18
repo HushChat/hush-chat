@@ -6,6 +6,7 @@ import com.platform.software.chat.conversation.readstatus.service.ConversationRe
 import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.dto.MessageWithAttachmentUpsertDTO;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.config.aws.SignedURLResponseDTO;
@@ -18,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/conversations/{conversationId}/messages")
@@ -72,6 +75,27 @@ public class ConversationMessageController {
                 messageDTO, conversationId, userDetails.getId()
         );
         return new ResponseEntity<>(signedURLResponseDTO, HttpStatus.OK);
+    }
+
+    /**
+     * Create messages with attachments response entity.
+     *
+     * @param conversationId the conversation id
+     * @param messageDTO     the message dto
+     * @param userDetails    the user details
+     * @return the response entity
+     */
+    @ApiOperation(value = "Signed urls generate to upload messages attachments", response = MessageViewDTO.class)
+    @PostMapping("/upload-message-signed-url")
+    public ResponseEntity<List<MessageViewDTO>> createMessagesWithAttachments(
+        @PathVariable Long conversationId,
+        @RequestBody List<MessageWithAttachmentUpsertDTO> messageDTO,
+        @AuthenticatedUser UserDetails userDetails
+    ) {
+        List<MessageViewDTO> createdMessages = messageService.createMessagesWithAttachments(
+            messageDTO, conversationId, userDetails.getId()
+        );
+        return new ResponseEntity<>(createdMessages, HttpStatus.OK);
     }
 
     /**

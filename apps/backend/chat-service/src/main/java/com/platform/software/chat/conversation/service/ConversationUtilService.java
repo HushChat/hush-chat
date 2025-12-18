@@ -15,6 +15,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
@@ -215,8 +216,7 @@ public class ConversationUtilService {
      */
     public ConversationDTO addSignedImageUrlToConversationDTO(ConversationDTO conversationDTO,String fileName) {
         String newFileName = (conversationDTO.getId()) + "_" + fileName;
-        String imageIndexName = String.format("chat-service/conversation/%s", newFileName);
-        conversationDTO.setImageIndexedName(imageIndexName);
+        conversationDTO.setImageIndexedName(newFileName);
 
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
         conversationDTO.setSignedImageUrl(imageSignedDTO.getUrl());
@@ -224,9 +224,9 @@ public class ConversationUtilService {
         return conversationDTO;
     }
 
-    public String getImageViewSignedUrl(String imageIndexedName) {
+    public String getImageViewSignedUrl(MediaPathEnum path, MediaSizeEnum size, String imageIndexedName) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+            return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
         }
         return imageIndexedName;
     }
