@@ -69,25 +69,31 @@ public class MessageReactionService {
                 messageReactionRepository.findByMessageIdAndUserId(messageId, userId);
 
         String action;
-        String reactionType = messageReaction.getReactionType().toString();
+        String reactionType = null;
         String previousReactionType = null;
 
         if (existingReaction.isPresent()) {
             MessageReaction existing = existingReaction.get();
             previousReactionType = existing.getReactionType().toString();
 
-            ReactionAction result = handleExistingReaction(messageReaction, messageId, existing);
+            ReactionAction result =
+                    handleExistingReaction(messageReaction, messageId, existing);
 
             if (result == ReactionAction.REMOVED) {
                 action = "REMOVED";
-                reactionType = null;
             } else {
                 action = "UPDATED";
+                reactionType = messageReaction.getReactionType().toString();
             }
+            
         } else {
-            MessageReaction newReaction = createNewReaction(messageReaction, message, user);
+            MessageReaction newReaction =
+                    createNewReaction(messageReaction, message, user);
+
             saveReaction(newReaction, messageId);
+
             action = "ADDED";
+            reactionType = messageReaction.getReactionType().toString();
         }
 
         eventPublisher.publishEvent(new MessageReactionEvent(
