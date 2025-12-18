@@ -29,6 +29,7 @@ import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepo
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
 import com.platform.software.chat.user.repository.UserBlockRepository;
+import com.platform.software.platform.workspace.repository.WorkspaceRepository; 
 
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
@@ -72,6 +73,7 @@ public class UserServiceImpl implements UserService {
     private final UserUtilService userUtilService;
     private final AWSconfig awSconfig;
     private final ChatNotificationRepository chatNotificationRepository;
+    private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
 
 
@@ -86,7 +88,8 @@ public class UserServiceImpl implements UserService {
             ConversationRepository conversationRepository,
             UserUtilService userUtilService,
             AWSconfig awSconfig,
-            ChatNotificationRepository chatNotificationRepository, WorkspaceUserRepository workspaceUserRepository
+            ChatNotificationRepository chatNotificationRepository,
+            WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository
     ) {
         this.userRepository = userRepository;
         this.cognitoService = cognitoService;
@@ -99,6 +102,7 @@ public class UserServiceImpl implements UserService {
         this.userUtilService = userUtilService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.awSconfig = awSconfig;
+        this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
     }
 
@@ -197,6 +201,15 @@ public class UserServiceImpl implements UserService {
         
         UserViewDTO userViewDTO = new UserViewDTO(user);
         userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.MEDIUM));
+        
+        String currentWorkspaceIdentifier = WorkspaceContext.getCurrentWorkspace();
+
+        if (currentWorkspaceIdentifier != null) {
+            workspaceRepository.findByWorkspaceIdentifier(currentWorkspaceIdentifier)
+                .ifPresent(workspace -> {
+                    userViewDTO.setWorkspaceName(workspace.getName());
+                });
+        }
         WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(user.getEmail(), workspaceIdentifier);
         userViewDTO.setWorkspaceRole(workspaceUser.getRole());
         return userViewDTO;
