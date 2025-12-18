@@ -71,6 +71,7 @@ interface MessageItemProps {
   showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -98,6 +99,7 @@ export const ConversationMessageItem = ({
   showSenderName,
   onNavigateToMessage,
   targetMessageId,
+  webMessageInfoPress,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -210,6 +212,15 @@ export const ConversationMessageItem = ({
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
+
+      if (isCurrentUser && !message.isUnsend) {
+        options.push({
+          id: 4,
+          name: "Message Info",
+          iconName: "information-circle-outline",
+          action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+        });
+      }
     }
     return options;
   }, [

@@ -21,6 +21,7 @@ interface IRenderMessageParams {
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -50,6 +51,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       viewReactions,
       onNavigateToMessage,
       targetMessageId,
+      webMessageInfoPress,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -90,6 +92,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         showSenderName={showSenderName}
         onNavigateToMessage={onNavigateToMessage}
         targetMessageId={targetMessageId}
+        webMessageInfoPress={webMessageInfoPress}
       />
     );
   };

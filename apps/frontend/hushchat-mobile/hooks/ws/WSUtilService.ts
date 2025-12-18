@@ -13,13 +13,8 @@ interface DecodedJWTPayload {
   [key: string]: any;
 }
 
-export const subscribeToTopic = (
-  ws: WebSocket,
-  destination: string,
-  email: string,
-  subscriptionId: string
-) => {
-  const fullDestination = `${destination}${encodeURIComponent(email)}`;
+export const subscribeToTopic = (ws: WebSocket, destination: string, subscriptionId: string) => {
+  const fullDestination = `/user${destination}`;
 
   const subscribeFrameBytes = [
     ...Array.from(new TextEncoder().encode("SUBSCRIBE\n")),
