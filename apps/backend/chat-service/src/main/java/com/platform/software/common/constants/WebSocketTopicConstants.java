@@ -24,5 +24,7 @@ public final class WebSocketTopicConstants {
     /** Online status event */
     public static final String ONLINE_STATUS = "/topic/online-status/";
 
-    
+    /** Message unsent event */
+    public static final String MESSAGE_UNSENT = "/topic/message-unsent/";
+
 }
