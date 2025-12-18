@@ -33,12 +33,11 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
-      queryClient.removeQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
     }
-  }, [conversationId, queryKey, queryClient]);
+  }, [conversationId]);
 
   const {
     pages,
