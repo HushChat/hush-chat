@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     maxWidth: 305,
   },
   maxWidthRegular: {
-    maxWidth: "70%",
+    maxWidth: "100%",
   },
   forwardedRight: {
     borderRightWidth: 2,
