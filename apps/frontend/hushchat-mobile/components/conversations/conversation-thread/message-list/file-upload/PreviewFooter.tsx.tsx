@@ -11,6 +11,7 @@ type TPreviewFooterProps = {
   onAddMore: () => void;
   onClose: () => void;
   onSend: () => void;
+  fileCount: number;
 };
 
 const PreviewFooter = ({
@@ -20,6 +21,7 @@ const PreviewFooter = ({
   onAddMore,
   onClose,
   onSend,
+  fileCount,
 }: TPreviewFooterProps) => (
   <View className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-background-light/80 dark:bg-background-dark/80 flex-row items-center justify-between">
     <TouchableOpacity
@@ -77,16 +79,14 @@ const PreviewFooter = ({
       >
         {isSending ? (
           <>
-            <View
-              className="w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full mr-2"
-              style={{ transform: [{ rotate: "45deg" }] }}
-            />
             <AppText className="text-white/90 font-semibold text-sm">Sending…</AppText>
           </>
         ) : (
           <>
             <Ionicons name="send" size={16} color="#fff" />
-            <AppText className="text-white font-semibold text-sm ml-2">Send</AppText>
+            <AppText className="text-white font-semibold text-sm ml-2">
+              Send {fileCount > 1 ? `${fileCount} Messages` : "Message"}
+            </AppText>
           </>
         )}
       </TouchableOpacity>
