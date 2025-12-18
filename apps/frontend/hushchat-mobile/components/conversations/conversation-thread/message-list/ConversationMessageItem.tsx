@@ -441,15 +441,10 @@ export const ConversationMessageItem = ({
 
             {renderParentMessage()}
 
-            <View
-              style={{
-                alignSelf: isCurrentUser ? "flex-end" : "flex-start",
-              }}
-            >
+            <View className={isCurrentUser ? "self-end" : "self-start"}>
               <MessageHighlightWrapper
-                id={message.id}
-                targetId={targetMessageId}
-                glowColor={isCurrentUser ? "#3B82F6" : "#22C55E"}
+                isHighlighted={message.id === targetMessageId}
+                glowColor="#3B82F6"
               >
                 <MessageBubble
                   message={message}
