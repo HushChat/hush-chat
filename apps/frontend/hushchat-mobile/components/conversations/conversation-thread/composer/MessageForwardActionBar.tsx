@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MotionView } from "@/motion/MotionView";
-import { MotionConfig } from "@/motion/config";
+import { AppText } from "@/components/AppText";
 
 export interface SelectionActionBarProps {
   visible: boolean;
@@ -29,19 +29,20 @@ const MessageForwardActionBar = ({
   return (
     <MotionView
       visible={visible}
-      preset="slideUp"
-      duration={MotionConfig.duration.md}
+      initial={{ opacity: 0, translateY: 16 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      duration={200}
       pointerEvents={visible ? "auto" : "none"}
-      className="absolute left-4 right-4 bottom-4"
+      style={styles.container}
       testID="selectionActionBar"
     >
-      <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark">
-        <Text
+      <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark rounded-lg shadow-lg">
+        <AppText
           className="text-sm font-medium ml-2"
           style={isDark ? styles.selectedLabelDark : styles.selectedLabelLight}
         >
           {selectedLabel}
-        </Text>
+        </AppText>
 
         <View className="flex-row items-center space-x-2">
           <Pressable
@@ -50,7 +51,7 @@ const MessageForwardActionBar = ({
             className="flex-row items-center px-4 py-2 rounded-full bg-primary-light dark:bg-primary-dark"
           >
             <Ionicons name="arrow-forward" size={16} color="white" style={styles.iconMarginRight} />
-            <Text className="text-white text-sm font-medium">Forward</Text>
+            <AppText className="text-white text-sm font-medium">Forward</AppText>
           </Pressable>
 
           <Pressable onPress={onCancel} className="p-2 active:opacity-60" testID="selectionCancel">
@@ -65,6 +66,13 @@ const MessageForwardActionBar = ({
 export default React.memo(MessageForwardActionBar);
 
 const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 16,
+    zIndex: 9999,
+  },
   selectedLabelDark: { color: COLOR_TOKENS.labelDark },
   selectedLabelLight: { color: COLOR_TOKENS.labelLight },
   iconMarginRight: { marginRight: 4 },

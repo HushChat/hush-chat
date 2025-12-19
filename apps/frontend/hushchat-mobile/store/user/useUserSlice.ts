@@ -21,6 +21,8 @@ const initialUserState: IUser = {
   lastName: "",
   signedImageUrl: "",
   active: false,
+  workspaceName: "",
+  workspaceRole: "",
 };
 
 export const createUserSlice: StateCreator<UserState> = (set) => ({
@@ -61,8 +63,13 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
         return;
       }
 
+      const user: IUser = {
+        ...response.data,
+        workspaceRole: response.data.workspaceRole,
+      };
+
       set({
-        user: response.data,
+        user: user,
         loading: false,
         isAuthenticatedAndDataFetched: true,
       });

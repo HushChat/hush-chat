@@ -8,13 +8,14 @@
  * while managing pagination, error handling, and empty states.
  */
 import { useCallback } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 import Alert from "@/components/Alert";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PLATFORM } from "@/constants/platformConstants";
 import { CallDirection, CallStatus, ICallLog } from "@/types/call/types";
 import CallLogItem from "@/components/call-history/CallLogItem";
 import { useUserStore } from "@/store/user/useUserStore";
+import { AppText } from "@/components/AppText";
 
 const MAX_TO_RENDER_PER_BATCH = 20;
 const WINDOW_SIZE = 20;
@@ -76,7 +77,9 @@ export default function CallHistoryPanel({
     }
     return (
       <View className="flex-1 items-center justify-center p-4">
-        <Text className="text-gray-500 dark:text-text-secondary-dark">No conversations yet</Text>
+        <AppText className="text-gray-500 dark:text-text-secondary-dark">
+          No conversations yet
+        </AppText>
       </View>
     );
   }, [isCallLogsLoading, callLogsError]);

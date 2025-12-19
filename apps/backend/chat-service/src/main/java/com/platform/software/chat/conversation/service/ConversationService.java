@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.service;
 
-
 import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
@@ -31,11 +30,13 @@ import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.message.service.MessageUtilService;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.common.utils.StringUtils;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.DocUploadRequestDTO;
@@ -59,6 +60,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
 import java.time.ZonedDateTime;
@@ -90,6 +92,7 @@ public class ConversationService {
     private final ConversationEventMessageService conversationEventMessageService;
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -226,10 +229,10 @@ public class ConversationService {
         conversation.setName(groupConversationDTO.getName().trim());
         conversation.setDescription(groupConversationDTO.getDescription().trim());
 
-        ConversationDTO conversationDTO = saveConversationAndBuildDTO(conversation);
+        ConversationDTO savedConversationDTO = saveConversationAndBuildDTO(conversation);
 
         if (groupConversationDTO.getImageFileName() != null) {
-            conversation.setId(conversationDTO.getId());
+            conversation.setId(savedConversationDTO.getId());
 
             ConversationDTO updatedConversationDTO = new ConversationDTO(conversation);
 
@@ -237,12 +240,46 @@ public class ConversationService {
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
 
-            return saveConversationAndBuildDTO(conversation);
+            savedConversationDTO = saveConversationAndBuildDTO(conversation);
         }
 
-        conversationEventService.createMessageWithConversationEvent(conversationDTO.getId(), loggedInUserId, null, ConversationEventType.GROUP_CREATED);
+        eventPublisher.publishEvent(new ConversationCreatedEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            savedConversationDTO.getId(),
+            loggedInUserId,
+            savedConversationDTO
+        ));
 
-        return conversationDTO;
+        triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
+
+        return savedConversationDTO;
+    }
+
+    /**
+     * Helper method to handle the specific event sequence for new groups.
+     * Segregating this keeps the main method clean.
+     */
+    private void triggerGroupCreationEvents(Long conversationId, Long actorUserId, List<Long> initialParticipantIds) {
+        // Event 1: Group Created
+        conversationEventService.createMessageWithConversationEvent(
+                conversationId,
+                actorUserId,
+                Collections.emptyList(),
+                ConversationEventType.GROUP_CREATED
+        );
+        // Event 2: Users Added
+        List<Long> targetsForAddEvent = initialParticipantIds.stream()
+                .filter(id -> !id.equals(actorUserId))
+                .toList();
+
+        if (!targetsForAddEvent.isEmpty()) {
+            conversationEventService.createMessageWithConversationEvent(
+                    conversationId,
+                    actorUserId,
+                    targetsForAddEvent,
+                    ConversationEventType.USER_ADDED
+            );
+        }
     }
 
     /**
@@ -361,7 +398,7 @@ public class ConversationService {
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
                 .peek(dto -> {
-                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
+                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM ,dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
 
@@ -426,7 +463,8 @@ public class ConversationService {
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
             if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                String signedImageUrl =
+                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
                 user.setSignedImageUrl(signedImageUrl);
             }
 
@@ -579,7 +617,7 @@ public class ConversationService {
         messageMentionService.appendMessageMentions(messageViewDTOS);
 
         Map<Long, ConversationEvent> conversationEventMap = getMessageConversationEventMap(messageViewDTOS);
-        
+
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));
     
@@ -600,29 +638,21 @@ public class ConversationService {
                     return dto;
                 }
 
-                List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                if (matchedMessage.getParentMessage() != null) {
+                    List<MessageAttachment> parentMessageAttachments = matchedMessage.getParentMessage().getAttachments();
 
-                if (attachments == null || attachments.isEmpty()) {
-                    return dto;
-                }
+                    if (parentMessageAttachments != null && !parentMessageAttachments.isEmpty()) {
+                        MessageAttachment parentMessageAttachment = parentMessageAttachments.getFirst();
 
-                for (MessageAttachment attachment : attachments) {
-                    try {
-                        String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
-
-                        MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO();
-                        messageAttachmentDTO.setId(attachment.getId());
-                        messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                        messageAttachmentDTO.setIndexedFileName(attachment.getIndexedFileName());
-                        messageAttachmentDTO.setOriginalFileName(attachment.getOriginalFileName());
-                        attachmentDTOs.add(messageAttachmentDTO);
-                    } catch (Exception e) {
-                        logger.error("failed to add file {} to zip: {}", attachment.getOriginalFileName(), e.getMessage());
-                        throw new CustomInternalServerErrorException("Failed to get conversation!");
+                        List<MessageAttachmentDTO> enrichedParentMessageAttachmentDTO = conversationUtilService.getEnrichedMessageAttachmentsDTO(List.of(parentMessageAttachment));
+                        dto.getParentMessage().setMessageAttachments(enrichedParentMessageAttachmentDTO);
                     }
                 }
-                dto.setMessageAttachments(attachmentDTOs);
+
+                List<MessageAttachment> attachments = matchedMessage.getAttachments();
+                List<MessageAttachmentDTO> enrichedMessageAttachmentDTOs = conversationUtilService.getEnrichedMessageAttachmentsDTO(attachments);
+                dto.setMessageAttachments(enrichedMessageAttachmentDTOs);
+
                 return dto;
             })
             .collect(Collectors.toList());
@@ -679,7 +709,7 @@ public class ConversationService {
     }
 
     /**
-     * Deletes a conversation by its ID for a specific user.
+     * Deletes a conversation by its ID. The requesting user must be a group admin.
      *
      * @param id     the ID of the conversation to delete
      * @param userId the ID of the user deleting the conversation
@@ -688,16 +718,24 @@ public class ConversationService {
     public Conversation deleteConversationById(Long id, Long userId) {
         Conversation conversation = conversationRepository.findByIdAndCreatedById(id, userId).orElseThrow(() -> {
             logger.warn("invalid conversation id {} provided or the user {} doesn't have permission to delete it", id, userId);
-            throw new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
+            return new CustomBadRequestException("Conversation does not exist or you don't have permission to delete it!");
         });
 
-        conversation.setDeleted(true);
-        try {
-            return conversationRepository.save(conversation);
-        } catch (Exception exception) {
-            logger.error("failed to delete conversation id: {}", id, exception);
-            throw new CustomBadRequestException("Failed to delete conversation");
-        }
+        return conversationUtilService.deleteConversation(conversation);
+    }
+
+    /**
+     * Deletes a conversation by its ID. This method is intended for admin use.
+     *
+     * @param id the ID of the conversation to delete
+     */
+    public void deleteConversationById(Long id) {
+        Conversation conversation = conversationRepository.findById(id).orElseThrow(() -> {
+            logger.warn("invalid conversation id {} provided", id);
+            return new CustomBadRequestException("Conversation does not exist!");
+        });
+
+        conversationUtilService.deleteConversation(conversation);
     }
 
     /**
@@ -946,6 +984,12 @@ public class ConversationService {
 
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
 
+            eventPublisher.publishEvent(new ConversationUpdateEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    adminUserId,
+                    conversation
+            ));
+
             return buildConversationDTO(conversation);
         } catch (Exception e) {
             logger.error("failed to update group info for conversationId: {} by user id: {}",
@@ -987,10 +1031,16 @@ public class ConversationService {
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
 
         if (imageSignedDTO != null && CommonUtils.isNotEmptyObj(imageSignedDTO.getIndexedFileName())) {
-            conversation.setImageIndexedName(imageSignedDTO.getIndexedFileName());
+            conversation.setImageIndexedName(newFileName);
             try {
                 conversationRepository.save(conversation);
                 cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+
+                eventPublisher.publishEvent(new ConversationUpdateEvent(
+                        WorkspaceContext.getCurrentWorkspace(),
+                        loggedInUserId,
+                        conversation
+                ));
             } catch (Exception exception) {
                 logger.error("failed to update group icon for conversationId: {} by user id: {}",
                         conversationId, loggedInUserId, exception);
@@ -1014,15 +1064,27 @@ public class ConversationService {
         Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
 
-        boolean alreadyPinned = Optional.ofNullable(conversation.getPinnedMessage())
+        boolean currentlyPinned = Optional.ofNullable(conversation.getPinnedMessage())
                 .map(Message::getId)
                 .filter(id -> id.equals(messageId))
                 .isPresent();
 
-        conversation.setPinnedMessage(alreadyPinned ? null : message);
+        boolean isPinningAction = !currentlyPinned;
+
+        conversation.setPinnedMessage(isPinningAction ? message : null);
 
         try {
             conversationRepository.save(conversation);
+
+            if (isPinningAction) {
+                conversationEventService.createMessageWithConversationEvent(
+                        conversationId,
+                        userId,
+                        null,
+                        ConversationEventType.MESSAGE_PINNED
+                );
+            }
+
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
         } catch (Exception exception) {
             logger.error("Failed to pin messageId: {} in conversationId: {}", messageId, conversationId, exception);
@@ -1115,7 +1177,8 @@ public class ConversationService {
                 .findDirectOtherMeta(conversationId, requestingUserId)
                 .orElseThrow(() -> new CustomBadRequestException("No other user found or not a direct conversation"));
 
-        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(meta.getImageIndexedName());
+        String imageViewSignedUrl =
+                conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.LARGE, meta.getImageIndexedName());
         meta.setSignedImageUrl(imageViewSignedUrl);
         meta.setImageIndexedName(null);
 
@@ -1124,6 +1187,7 @@ public class ConversationService {
         dto.setBlocked(meta.isBlocked());
         dto.setPinned(me.getIsPinned());
         dto.setFavorite(me.getIsFavorite());
+        dto.setMutedUntil(me.getMutedUntil());
         return dto;
     }
 
@@ -1171,7 +1235,7 @@ public class ConversationService {
         }
 
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
-        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(conversation.getImageIndexedName());
+        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.LARGE, conversation.getImageIndexedName());
         conversation.setSignedImageUrl(imageViewSignedUrl);
 
         if (!conversation.getIsGroup()) {
@@ -1243,7 +1307,8 @@ public class ConversationService {
                     ));
 
             String imageIndexedName = directOtherMeta.getImageIndexedName();
-            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
+            String signedImageIndexedName =
+                    conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
 
             conversationMetaDataDTO.setName(directOtherMeta.getFullName());
             conversationMetaDataDTO.setIsBlocked(directOtherMeta.isBlocked());
@@ -1261,7 +1326,7 @@ public class ConversationService {
 
         } else {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
-            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
+            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
         }
 
@@ -1354,6 +1419,45 @@ public class ConversationService {
             .findConversationReadInfoByConversationIdAndUserId(conversationId, userId);
         return conversationReadInfo;
     }
+
+    /**
+     * Retrieves all group conversations for admin view with pagination.
+     *
+     * @param pageable the pagination information
+     * @return a Page of ConversationAdminViewDTOs containing group conversation details
+     */
+    public Page<ConversationAdminViewDTO> getAllGroupConversations(Pageable pageable) {
+        return conversationRepository.findAllGroupConversationsAdminView(pageable);
+    }
+
+    /**
+     * Retrieves a paginated list of group participants who have seen a specific message.
+     *
+     * @param conversationId the ID of the conversation containing the message
+     * @param messageId the ID of the message to check read status for
+     * @param userId the ID of the current user requesting the seen list (excluded from results)
+     * @param pageable pagination information including page number, page size, and optional sorting criteria
+     * @return a {@link Page} of {@link UserBasicViewDTO} containing users who have seen the message
+     */
+    public Page<UserBasicViewDTO> getMessageSeenGroupParticipants(Long conversationId, Long messageId, Long userId, Pageable pageable) {
+        try {
+            messageService.getMessageBySender(userId, conversationId, messageId);
+        } catch (Exception error) {
+            logger.error("message id is incorrect, not part of this conversation, or you are not the sender of message", error);
+            throw new CustomBadRequestException("Failed to Get Message View Participant");
+        }
+
+        Page<ChatUser> users = conversationReadStatusRepository
+                .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
+
+        Page<UserBasicViewDTO> userDTOs = users.map(user -> {
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(user.getImageIndexedName());
+
+            UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
+            userBasicViewDTO.setSignedImageUrl(signedUrl);
+            return userBasicViewDTO;
+        });
+
+        return userDTOs;
+    }
 }
-
-

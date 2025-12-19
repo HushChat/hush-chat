@@ -31,7 +31,13 @@ export function useLinkConversation({
     const conversation = conversations.find(
       (conversation) => conversation.id === initialConversationId
     );
-    if (!conversation) return;
+
+    if (!conversation) {
+      onConversationFound({
+        id: initialConversationId,
+      } as IConversation);
+      return;
+    }
 
     hasInitialized.current = true;
 

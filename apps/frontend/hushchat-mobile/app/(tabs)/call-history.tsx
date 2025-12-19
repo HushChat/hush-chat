@@ -10,7 +10,7 @@
 import CallItemList from "@/components/call-history/CallHistoryPanel";
 import { useCallLogsQuery } from "@/query/useCallLogsQuery";
 import React, { useMemo } from "react";
-import CallInterface from "@/components/call-history/CallInterface";
+import CallInterface from "@/components/call-history/CallInterface/CallInterface";
 
 export default function CallHistoryScreen() {
   const {

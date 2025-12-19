@@ -32,10 +32,11 @@ public class MessageMentionService {
     private final MessageMentionRepository messageMentionRepository;
     private final ConversationUtilService conversationUtilService;
 
+
     public MessageMentionService(
-        UserRepository userRepository, 
-        MessageMentionRepository messageMentionRepository, 
-        ConversationUtilService conversationUtilService
+            UserRepository userRepository,
+            MessageMentionRepository messageMentionRepository,
+            ConversationUtilService conversationUtilService
     ) {
         this.userRepository = userRepository;
         this.messageMentionRepository = messageMentionRepository;
@@ -67,16 +68,13 @@ public class MessageMentionService {
 
         try {
             messageMentionRepository.saveAll(messageMentions);
-
-            List<UserViewDTO> mentionUserDTOs = mentionedUsers.stream().map(UserViewDTO::new).toList();
-            messageViewDTO.setMentions(mentionUserDTOs);
         } catch (Exception e) {
             logger.error("cannot save message mentions for message: {}", savedMessage, e);
             throw new CustomInternalServerErrorException("Cannot save message mentions");
         }
     }
 
-    private List<ChatUser> getMentionedUsersByUsernames(String messageText) {
+    public List<ChatUser> getMentionedUsersByUsernames(String messageText) {
         List<String> usernames = extractUsernames(messageText);
         if (usernames.isEmpty()) {
             return null;

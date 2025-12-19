@@ -17,6 +17,7 @@ interface ActionsHeaderProps {
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
+  onSelectMessageInfo?: (c: ConversationAPIResponse, m: IMessage) => void;
   onDownload: (attachment: IMessageAttachment) => void;
 }
 
@@ -29,11 +30,13 @@ const ActionsHeader = ({
   onForward,
   onUnsend,
   onCopy,
+  onSelectMessageInfo,
   onDownload,
 }: ActionsHeaderProps) => {
   debugger;
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
+  const currentUserIsSender = user?.id === message?.senderId;
   const downloadableAttachment = selectedAttachment || 
     message?.messageAttachments?.find(att => getFileType(att.originalFileName) !== 'image');
 
@@ -86,6 +89,17 @@ const ActionsHeader = ({
             onPress={() => onPinToggle(message)}
             color={isPinned ? "#6B4EFF" : "#6B7280"}
           />
+
+          {currentUserIsSender &&
+            !message.isUnsend &&
+            (message.messageText || message.hasAttachment) &&
+            conversation &&
+            onSelectMessageInfo && (
+              <HeaderAction
+                iconName="information-circle-outline"
+                onPress={() => onSelectMessageInfo(conversation, message)}
+              />
+            )}
 
           <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
         </View>

@@ -7,16 +7,21 @@ import com.platform.software.chat.conversation.repository.ConversationRepository
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.message.dto.MessageForwardRequestDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.utils.CommonUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -184,16 +189,20 @@ public class ConversationUtilService {
     @Cacheable(value = CacheNames.GET_CONVERSATION_META_DATA, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     public ConversationMetaDataDTO getConversationMetaDataDTO(Long conversationId, Long userId) {
         ConversationParticipant conversationParticipant = getConversationParticipantOrThrow(conversationId, userId);
-        if(conversationParticipant.getIsDeleted()){
-            throw new CustomBadRequestException("Can,t find conversation with ID %s".formatted(conversationId));
-        }
         Conversation conversation = getConversationOrThrow(conversationId);
         ConversationMetaDataDTO conversationMetaDataDTO = conversationRepository.findConversationMetaData(conversationId, userId);
 
         Message pinnedMessage = conversation.getPinnedMessage();
         if (pinnedMessage != null) {
-            BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
-            conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            boolean isVisible = CommonUtils.isMessageVisible(
+                pinnedMessage.getCreatedAt(), 
+                conversationParticipant.getLastDeletedTime()
+            );
+            
+            if(isVisible) {
+                BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
+                conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            }
         }
         return conversationMetaDataDTO;
     }
@@ -207,8 +216,7 @@ public class ConversationUtilService {
      */
     public ConversationDTO addSignedImageUrlToConversationDTO(ConversationDTO conversationDTO,String fileName) {
         String newFileName = (conversationDTO.getId()) + "_" + fileName;
-        String imageIndexName = String.format("chat-service/conversation/%s", newFileName);
-        conversationDTO.setImageIndexedName(imageIndexName);
+        conversationDTO.setImageIndexedName(newFileName);
 
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
         conversationDTO.setSignedImageUrl(imageSignedDTO.getUrl());
@@ -216,9 +224,9 @@ public class ConversationUtilService {
         return conversationDTO;
     }
 
-    public String getImageViewSignedUrl(String imageIndexedName) {
+    public String getImageViewSignedUrl(MediaPathEnum path, MediaSizeEnum size, String imageIndexedName) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+            return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
         }
         return imageIndexedName;
     }
@@ -302,7 +310,7 @@ public class ConversationUtilService {
      * only the other participants in the conversation.
      * </p>
      *
-     * @param conversationId  the ID of the conversation 
+     * @param conversationId  the ID of the conversation
      * @param senderId        the ID of the user to be excluded from the result
      * @return a list of ChatUser objects representing all participants
      *         in the conversation except the sender
@@ -313,5 +321,55 @@ public class ConversationUtilService {
 
         return participants.stream().map(participant -> participant.getUser())
                     .filter(user -> !user.getId().equals(sernderId)).toList();
+    }
+
+    /**
+     * Deletes a conversation.
+     *
+     * @param conversation the Conversation entity to be deleted
+     * @return the deleted Conversation entity
+     */
+    public Conversation deleteConversation(Conversation conversation) {
+        conversation.setDeleted(true);
+        try {
+            return conversationRepository.save(conversation);
+        } catch (Exception exception) {
+            logger.error("failed to delete conversation id: {}", conversation.getId(), exception);
+            throw new CustomBadRequestException("Failed to delete conversation");
+        }
+    }
+
+    /**
+     * Enriches message attachments with signed URLs for file access.
+     *
+     * @param attachments the list of message attachments to process, may be null or empty
+     * @return a list of enriched attachment DTOs with signed URLs, or an empty list if input is null/empty
+     */
+    public List<MessageAttachmentDTO> getEnrichedMessageAttachmentsDTO(List<MessageAttachment> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+        for (MessageAttachment attachment : attachments) {
+            MessageAttachmentDTO dto = new MessageAttachmentDTO();
+            try {
+                String fileViewSignedURL = cloudPhotoHandlingService
+                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
+
+                dto.setId(attachment.getId());
+                dto.setFileUrl(fileViewSignedURL);
+                dto.setIndexedFileName(attachment.getIndexedFileName());
+                dto.setOriginalFileName(attachment.getOriginalFileName());
+                dto.setType(attachment.getType());
+
+                attachmentDTOs.add(dto);
+            } catch (Exception e) {
+                logger.error("Failed to process attachment {}: {}", attachment.getOriginalFileName(), e.getMessage());
+                dto.setFileUrl(null);
+            }
+        }
+
+        return attachmentDTOs;
     }
 }
