@@ -11,13 +11,7 @@ interface SendButtonProps {
 
 export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) => {
   if (isSending) {
-    return (
-      <ActivityIndicator
-        size="small"
-        color={COLOR_ACTIVITY}
-        className="absolute right-3 bottom-2"
-      />
-    );
+    return <ActivityIndicator size="small" color={COLOR_ACTIVITY} />;
   }
 
   return (

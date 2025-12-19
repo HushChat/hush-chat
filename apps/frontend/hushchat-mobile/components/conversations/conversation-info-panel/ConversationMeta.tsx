@@ -26,9 +26,9 @@ const ConversationMeta = ({
   const messageContent = LastMessagePreviewContent({ lastMessage });
   const isGif = !!lastMessage?.gifUrl;
 
-  return (
-    <View className="flex-row items-center gap-x-2 flex-1">
-      {isGif ? (
+  const renderMessagePreview = () => {
+    if (isGif) {
+      return (
         <View className="flex-row items-center gap-1 flex-1">
           <MaterialIcons
             name="gif"
@@ -43,20 +43,26 @@ const ConversationMeta = ({
             GIF
           </AppText>
         </View>
-      ) : (
-        <>
-          {typeof messageContent === "string" ? (
-            <AppText
-              className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
-              numberOfLines={1}
-            >
-              {messageContent}
-            </AppText>
-          ) : (
-            <View className="flex-1">{messageContent}</View>
-          )}
-        </>
-      )}
+      );
+    }
+
+    if (typeof messageContent === "string") {
+      return (
+        <AppText
+          className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
+          numberOfLines={1}
+        >
+          {messageContent}
+        </AppText>
+      );
+    }
+
+    return <View className="flex-1">{messageContent}</View>;
+  };
+
+  return (
+    <View className="flex-row items-center gap-x-2 flex-1">
+      {renderMessagePreview()}
 
       {muted && <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" />}
 

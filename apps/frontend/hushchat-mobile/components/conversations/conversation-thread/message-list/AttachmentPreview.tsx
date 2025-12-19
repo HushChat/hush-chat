@@ -12,7 +12,6 @@ export const AttachmentPreview = ({ attachment, gifUrl }: AttachmentPreviewProps
 
   const isDocument = attachment?.type === MessageAttachmentTypeEnum.DOCUMENT;
   const imageUri = attachment?.fileUrl ? attachment.fileUrl : gifUrl;
-  console.log("AttachmentPreview - imageUri:", imageUri);
 
   if (isDocument) {
     const extension = attachment.originalFileName?.split(".").pop() || "DOC";

@@ -1,25 +1,20 @@
-import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  View,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Dimensions,
-  Image,
-} from "react-native";
+import React from "react";
+import { View, FlatList, TouchableOpacity, useWindowDimensions, Image } from "react-native";
 import { AppText } from "@/components/AppText";
 import { useGifPicker } from "@/hooks/useGifPicker";
 import {
   GifPickerFooter,
   GifPickerHeader,
   GifPickerSearch,
-  LoadingView,
 } from "@/components/conversation-input/GifPickerHelperUi";
 import { GifPickerProps } from "@/types/chat/types";
+import { TenorGif } from "@/services/gifService";
+import LoadingState from "@/components/LoadingState";
 
-export const GifPickerComponent: React.FC<GifPickerProps> = (props) => {
-  const { visible } = props;
+export const GifPickerComponent: React.FC<GifPickerProps> = ({ visible, onClose, onGifSelect }) => {
+  const { width } = useWindowDimensions();
+  const numColumns = width >= 600 ? 3 : 2;
+
   const {
     searchQuery,
     setSearchQuery,
@@ -29,23 +24,11 @@ export const GifPickerComponent: React.FC<GifPickerProps> = (props) => {
     loadMore,
     handleClose,
     handleSelect,
-  } = useGifPicker(props);
+  } = useGifPicker({ onClose, onGifSelect });
 
-  const [numColumns, setNumColumns] = useState(2);
-
-  useEffect(() => {
-    const updateColumns = () => {
-      const { width } = Dimensions.get("window");
-      setNumColumns(width >= 600 ? 3 : 2);
-    };
-    updateColumns();
-    const sub = Dimensions.addEventListener("change", updateColumns);
-    return () => sub?.remove();
-  }, []);
-
-  const renderGifItem = ({ item }: { item: any }) => {
-    const gifUrl = item.media_formats?.gif?.url || item.media?.[0]?.gif?.url;
-    const tinygifUrl = item.media_formats?.tinygif?.url || item.media?.[0]?.tinygif?.url;
+  const renderGifItem = ({ item }: { item: TenorGif }) => {
+    const gifUrl = item.media_formats?.gif?.url;
+    const tinygifUrl = item.media_formats?.tinygif?.url;
     if (!gifUrl || !tinygifUrl) return null;
 
     return (
@@ -59,45 +42,39 @@ export const GifPickerComponent: React.FC<GifPickerProps> = (props) => {
     );
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={handleClose}>
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white dark:bg-gray-900 rounded-tl-[20px] rounded-tr-[20px] h-[80%]">
-          <GifPickerHeader onClose={handleClose} />
-          <GifPickerSearch value={searchQuery} onChange={setSearchQuery} />
+    <View className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+      <View className="h-[400px]">
+        <GifPickerHeader onClose={handleClose} />
+        <GifPickerSearch value={searchQuery} onChange={setSearchQuery} />
 
-          {isLoading ? (
-            <LoadingView />
-          ) : (
-            <FlatList
-              data={gifs}
-              numColumns={numColumns}
-              key={numColumns}
-              keyExtractor={(item) => item.id}
-              renderItem={renderGifItem}
-              contentContainerStyle={{ padding: 8, flexGrow: 1 }}
-              ListEmptyComponent={
-                <View className="flex-1 justify-center items-center p-10">
-                  <AppText className="text-sm text-gray-500 dark:text-gray-400">
-                    No GIFs found
-                  </AppText>
-                </View>
-              }
-              onEndReached={loadMore}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={
-                isFetchingNextPage ? (
-                  <View className="py-4 items-center">
-                    <ActivityIndicator size="small" color="#9CA3AF" />
-                  </View>
-                ) : null
-              }
-            />
-          )}
+        {isLoading ? (
+          <LoadingState />
+        ) : (
+          <FlatList
+            data={gifs}
+            numColumns={numColumns}
+            key={numColumns}
+            keyExtractor={(item) => item.id}
+            renderItem={renderGifItem}
+            contentContainerStyle={{ padding: 8, flexGrow: 1 }}
+            ListEmptyComponent={
+              <View className="flex-1 justify-center items-center p-10">
+                <AppText className="text-sm text-gray-500 dark:text-gray-400">
+                  No GIFs found
+                </AppText>
+              </View>
+            }
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={isFetchingNextPage ? <LoadingState /> : null}
+          />
+        )}
 
-          <GifPickerFooter />
-        </View>
+        <GifPickerFooter />
       </View>
-    </Modal>
+    </View>
   );
 };

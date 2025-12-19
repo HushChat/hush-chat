@@ -1,11 +1,11 @@
 import React from "react";
-import { View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export const GifPickerHeader = ({ onClose }: { onClose: () => void }) => {
-  const { isDark } = useAuthThemeColors();
+  const { isDark } = useAppTheme();
   return (
     <View className="flex-row items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4">
       <AppText className="text-lg font-semibold dark:text-white">Select GIF</AppText>
@@ -48,11 +48,5 @@ export const GifPickerSearch = ({
 export const GifPickerFooter = () => (
   <View className="items-center border-t border-gray-200 dark:border-gray-800 p-3">
     <AppText className="text-xs text-gray-500 dark:text-gray-400">Powered by Tenor</AppText>
-  </View>
-);
-
-export const LoadingView = () => (
-  <View className="w-full p-10 items-center justify-center flex-1">
-    <ActivityIndicator size="large" color="#9CA3AF" />
   </View>
 );

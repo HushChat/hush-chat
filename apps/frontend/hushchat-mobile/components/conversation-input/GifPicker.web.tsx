@@ -14,9 +14,9 @@ import {
   GifPickerFooter,
   GifPickerHeader,
   GifPickerSearch,
-  LoadingView,
 } from "@/components/conversation-input/GifPickerHelperUi";
 import { GifPickerProps } from "@/types/chat/types";
+import LoadingState from "@/components/LoadingState";
 
 export const GifPickerComponent: React.FC<GifPickerProps> = (props) => {
   const { visible } = props;
@@ -61,7 +61,7 @@ export const GifPickerComponent: React.FC<GifPickerProps> = (props) => {
         >
           <View className="flex-row flex-wrap p-3">
             {isLoading ? (
-              <LoadingView />
+              <LoadingState />
             ) : isEmpty ? (
               <View className="w-full p-10 items-center">
                 <AppText className="dark:text-gray-400">No GIFs found</AppText>

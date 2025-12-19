@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Pressable, View, StyleSheet, ViewStyle, TextStyle, Image } from "react-native";
+import React from "react";
+import { Pressable, View, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
@@ -9,12 +9,6 @@ import { ForwardedLabel } from "@/components/conversations/conversation-thread/c
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
 import { PLATFORM } from "@/constants/platformConstants";
-import { logError } from "@/utils/logger";
-
-const COLORS = {
-  FORWARDED_RIGHT_BORDER: "#60A5FA30",
-  FORWARDED_LEFT_BORDER: "#9CA3AF30",
-};
 
 interface IMessageBubbleProps {
   message: IMessage;
@@ -48,36 +42,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 }) => {
   const messageContent = message.messageText;
   const hasGif = !!message.gifUrl;
-  const [gifDimensions, setGifDimensions] = useState({ width: 250, height: 250 });
-
-  useEffect(() => {
-    if (hasGif && message.gifUrl && !PLATFORM.IS_WEB) {
-      Image.getSize(
-        message.gifUrl,
-        (width, height) => {
-          const maxSize = 250;
-          const aspectRatio = width / height;
-
-          if (width > height) {
-            setGifDimensions({ width: maxSize, height: maxSize / aspectRatio });
-          } else {
-            setGifDimensions({ width: maxSize * aspectRatio, height: maxSize });
-          }
-        },
-        (error) => {
-          logError("Error getting image size:", error);
-        }
-      );
-    }
-  }, [hasGif, message.gifUrl]);
-
-  const forwardedBorderStyle = isForwardedMessage
-    ? isCurrentUser
-      ? styles.forwardedRight
-      : styles.forwardedLeft
-    : null;
-
-  const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
 
   const handleMentionPress = (username: string) => {
     if (!onMentionClick || !message.mentions) return;
@@ -126,8 +90,19 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
             "shadow-sm": isForwardedMessage,
 
             "px-3 py-2": !(hasImages && !messageContent) && !hasGif,
+
+            "max-w-[305px]": hasAttachments,
+
+            "border-r-2": isForwardedMessage && isCurrentUser,
+            "border-l-2": isForwardedMessage && !isCurrentUser,
           })}
-          style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
+          style={
+            isForwardedMessage
+              ? isCurrentUser
+                ? { borderRightColor: "#60A5FA30" }
+                : { borderLeftColor: "#9CA3AF30" }
+              : undefined
+          }
         >
           {hasGif && !message.isUnsend && (
             <View className={messageContent ? "mb-2" : ""}>
@@ -135,16 +110,12 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
                 <img
                   src={message.gifUrl}
                   alt="gif"
-                  className="max-w-[250px] max-h-[250px] rounded-lg"
+                  className="max-w-[250px] max-h-[250px] rounded-lg object-contain"
                 />
               ) : (
                 <Image
                   source={{ uri: message.gifUrl }}
-                  style={{
-                    width: gifDimensions.width,
-                    height: gifDimensions.height,
-                    borderRadius: 8,
-                  }}
+                  className="w-[250px] h-[250px] rounded-lg"
                   resizeMode="contain"
                 />
               )}
@@ -171,20 +142,3 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
     </Pressable>
   );
 };
-
-const styles = StyleSheet.create({
-  maxWidthAttachments: {
-    maxWidth: 305,
-  },
-  maxWidthRegular: {
-    maxWidth: "100%",
-  },
-  forwardedRight: {
-    borderRightWidth: 2,
-    borderRightColor: COLORS.FORWARDED_RIGHT_BORDER,
-  },
-  forwardedLeft: {
-    borderLeftWidth: 2,
-    borderLeftColor: COLORS.FORWARDED_LEFT_BORDER,
-  },
-});
