@@ -1339,6 +1339,27 @@ public class ConversationService {
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
         }
 
+        boolean isPinnedMessageExpired = false;
+        if (conversationMetaDataDTO.getPinnedMessageUntil() != null) {
+            isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().isBefore(ZonedDateTime.now());
+
+            if (isPinnedMessageExpired) {
+                Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+                conversation.setPinnedMessage(null);
+                conversation.setPinnedMessageUntil(null);
+
+                conversationMetaDataDTO.setPinnedMessage(null);
+
+                try {
+                    conversationRepository.save(conversation);
+                } catch (Exception error) {
+                    logger.error("save conversation: {} by user: {} with null pinned message failed", conversation.getId(), userId, error);
+                }
+
+                cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+            }
+        }
+
         return conversationMetaDataDTO;
     }
 

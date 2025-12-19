@@ -1,11 +1,14 @@
 package com.platform.software.chat.conversation.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor
@@ -22,6 +25,10 @@ public class ConversationMetaDataDTO {
     private BasicMessageDTO pinnedMessage;
     private ChatUserStatus chatUserStatus;
 
+    // remove this, redis cache ignore this since it use Jakson
+    @JsonIgnore
+    private ZonedDateTime pinnedMessageUntil;
+
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();
         this.name = conversation.getName();
@@ -30,5 +37,6 @@ public class ConversationMetaDataDTO {
         this.isBlocked = false;
         this.description = conversation.getDescription();
         this.signedImageUrl = conversation.getSignedImageUrl();
+        this.pinnedMessageUntil = conversation.getPinnedMessageUntil();
     }
 }
