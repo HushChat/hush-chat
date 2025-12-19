@@ -15,10 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,16 +25,14 @@ public class ChatNotificationService {
     private final ChatNotificationRepository chatNotificationRepository;
     private final ChatNotificationUtilService chatNotificationUtilService;
     private final NotificationServiceFactory notificationServiceFactory;
-    private final MessageMentionService messageMentionService;
 
     private static final Logger logger = LoggerFactory.getLogger(ChatNotificationService.class);
 
-    public ChatNotificationService(UserService userService, ChatNotificationRepository chatNotificationRepository, ChatNotificationUtilService chatNotificationUtilService, NotificationServiceFactory notificationServiceFactory, MessageMentionService messageMentionService) {
+    public ChatNotificationService(UserService userService, ChatNotificationRepository chatNotificationRepository, ChatNotificationUtilService chatNotificationUtilService, NotificationServiceFactory notificationServiceFactory) {
         this.userService = userService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.chatNotificationUtilService = chatNotificationUtilService;
         this.notificationServiceFactory = notificationServiceFactory;
-        this.messageMentionService = messageMentionService;
     }
 
     /**
@@ -112,9 +107,7 @@ public class ChatNotificationService {
 
         List<Long> mentionedUsers = mentionsAll
                 ? null
-                : messageMentionService.getMentionedUsersByUsernames(message.getMessageText()).stream()
-                .map(ChatUser::getId)
-                .collect(Collectors.toList());
+                : chatNotificationUtilService.getMentionedUserIds(message.getMessageText());
 
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false, mentionsAll, mentionedUsers);
 
