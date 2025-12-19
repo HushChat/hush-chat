@@ -1547,6 +1547,9 @@ public class ConversationService {
         try {
             conversationParticipantRepository.save(participantToAdd);
             conversationInviteLinkRepository.save(conversationInviteLink);
+
+            conversationEventService.createMessageWithConversationEvent(conversation.getId(), loggedInUserId, List.of(loggedInUserId), ConversationEventType.USER_JOINED);
+
         } catch (Exception e) {
             logger.error("Failed to add participant. conversationId={}, initiator={}", conversation.getId(), loggedInUserId, e);
             throw new CustomBadRequestException("Failed to join the conversation. Please try again later");
