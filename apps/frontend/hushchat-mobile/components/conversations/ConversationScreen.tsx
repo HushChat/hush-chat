@@ -22,13 +22,13 @@ import { getCriteria } from "@/utils/conversationUtils";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface/ChatInterface";
+import { router } from "expo-router";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useWebSocket } from "@/contexts/WebSocketContext";
-import { router } from "expo-router";
 import { CHATS_PATH } from "@/constants/routes";
 
 interface IConversationScreenProps {
