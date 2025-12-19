@@ -193,6 +193,15 @@ const getPaginationConfig = <T extends { id: any }>() => {
   };
 };
 
+const capitalizeFirstLetter = (word: string): string => {
+  if (!word) return "";
+
+  const trimmed = word.trim();
+  if (!trimmed) return "";
+
+  return trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase();
+};
+
 export {
   getLastMessageTime,
   getNavigationTheme,
@@ -207,4 +216,5 @@ export {
   getPaginationConfig,
   shouldUseMobileUI,
   navigateBackOrFallback,
+  capitalizeFirstLetter,
 };

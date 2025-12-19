@@ -8,6 +8,7 @@ import {
   GROUP_CONVERSATION_SELECT_PARTICIPANTS,
   SETTINGS_CONTACT,
   SETTINGS_INVITE,
+  SETTINGS_USERS_LIST,
   SETTINGS_WORKSPACE,
 } from "@/constants/routes";
 import classNames from "classnames";
@@ -79,6 +80,15 @@ export default function ChatInterfaceMobile({
         onPress: () => {
           setSheetVisible(false);
           router.push(SETTINGS_INVITE);
+        },
+      },
+      {
+        id: "users",
+        title: "Users",
+        icon: "people",
+        onPress: () => {
+          setSheetVisible(false);
+          router.push(SETTINGS_USERS_LIST);
         },
       },
     ];
