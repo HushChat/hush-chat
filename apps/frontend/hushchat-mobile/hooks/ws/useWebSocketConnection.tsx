@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
-import { DeviceType } from "@/types/chat/types";
 import {
   CONNECTED_RESPONSE,
   ERROR_RESPONSE,
@@ -15,7 +14,6 @@ import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
 import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
 import { WS_TOPICS } from "@/constants/ws/wsTopics";
-import { PLATFORM } from "@/constants/platformConstants";
 
 // Define topics to subscribe to
 const TOPICS = [
@@ -24,11 +22,6 @@ const TOPICS = [
   { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
   { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
 ] as const;
-
-const getDeviceType = (): DeviceType => {
-  if (PLATFORM.IS_WEB) return "WEB";
-  return "MOBILE";
-};
 
 export const publishUserActivity = (
   ws: WebSocket | null,
@@ -42,7 +35,7 @@ export const publishUserActivity = (
   try {
     const body = JSON.stringify(data);
 
-    const currentDeviceType = getDeviceType();
+    const currentDeviceType = data.deviceType;
 
     const sendFrameBytes = [
       ...Array.from(new TextEncoder().encode("SEND\n")),
@@ -68,7 +61,7 @@ export const publishUserActivity = (
 export default function useWebSocketConnection() {
   const { isAuthenticated } = useAuthStore();
   const {
-    user: { email },
+    user: { email, deviceType },
   } = useUserStore();
   const wsRef = useRef<WebSocket | null>(null);
   const shouldStopRetrying = useRef(false);
@@ -118,7 +111,6 @@ export default function useWebSocketConnection() {
         wsRef.current = ws;
 
         ws.onopen = () => {
-          const deviceType = getDeviceType();
           // Send CONNECT frame
           const connectFrameBytes = [
             ...Array.from(new TextEncoder().encode("CONNECT\n")),
@@ -144,7 +136,7 @@ export default function useWebSocketConnection() {
 
             // Subscribe to all topics
             TOPICS.forEach((topic) => {
-              subscribeToTopic(ws, topic.destination, topic.id);
+              subscribeToTopic(ws, topic.destination, topic.id, deviceType);
             });
           } else if (event.data.startsWith(ERROR_RESPONSE)) {
             logInfo("STOMP error:", event.data);
@@ -229,9 +221,7 @@ export default function useWebSocketConnection() {
       return false;
     }
 
-    const deviceType = getDeviceType();
-
-    return publishUserActivity(wsRef.current, { ...data, deviceType });
+    return publishUserActivity(wsRef.current, data);
   };
 
   // return the connection status

@@ -26,13 +26,10 @@ const UserStatusIndicator = ({
   const color = getStatusColor(userStatus);
 
   if (deviceType) {
-    const iconName = deviceType === "WEB" ? "laptop-outline" : "phone-portrait-outline";
+    const iconName = deviceType === DeviceType.WEB ? "laptop-outline" : "phone-portrait-outline";
 
     return (
-      <View
-        className="absolute bottom-0 right-0 bg-background-light dark:bg-background-dark rounded-full items-center justify-center border-2 border-white dark:border-gray-900"
-        style={{ width: 18, height: 18 }}
-      >
+      <View className="absolute bottom-0 right-0 bg-background-light dark:bg-background-dark rounded-full items-center justify-center border-2 border-white dark:border-gray-900 w-[18px] h-[18px]">
         <Ionicons name={iconName} size={10} color={color} />
       </View>
     );
