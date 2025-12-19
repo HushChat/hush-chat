@@ -4412,6 +4412,13 @@ expo-linking@~8.0.8:
     expo-constants "~18.0.8"
     invariant "^2.2.4"
 
+expo-local-authentication@~17.0.8:
+  version "17.0.8"
+  resolved "https://registry.yarnpkg.com/expo-local-authentication/-/expo-local-authentication-17.0.8.tgz#ca1ffee71566a02995f4a10d2181803724619db7"
+  integrity sha512-Q5fXHhu6w3pVPlFCibU72SYIAN+9wX7QpFn9h49IUqs0Equ44QgswtGrxeh7fdnDqJrrYGPet5iBzjnE70uolA==
+  dependencies:
+    invariant "^2.2.4"
+
 expo-media-library@~18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-18.2.0.tgz#b7515e25df5951e6b579b2ca1bee934ed206fa43"
@@ -4478,10 +4485,10 @@ expo-router@~6.0.6:
     use-latest-callback "^0.2.1"
     vaul "^1.1.2"
 
-expo-secure-store@~15.0.7:
-  version "15.0.7"
-  resolved "https://registry.yarnpkg.com/expo-secure-store/-/expo-secure-store-15.0.7.tgz#f74f928029889b8a32c0eafc2a214abee1e8b71e"
-  integrity sha512-9q7+G1Zxr5P6J5NRIlm86KulvmYwc6UnQlYPjQLDu1drDnerz6AT6l884dPu29HgtDTn4rR0heYeeGFhMKM7/Q==
+expo-secure-store@~15.0.8:
+  version "15.0.8"
+  resolved "https://registry.yarnpkg.com/expo-secure-store/-/expo-secure-store-15.0.8.tgz#678065599bb76061b5a85b15b9426bf7a11089ae"
+  integrity sha512-lHnzvRajBu4u+P99+0GEMijQMFCOYpWRO4dWsXSuMt77+THPIGjzNvVKrGSl6mMrLsfVaKL8BpwYZLGlgA+zAw==
 
 expo-splash-screen@~31.0.10:
   version "31.0.10"

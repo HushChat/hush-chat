@@ -9,6 +9,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
 import { logWarn, logError } from "@/utils/logger";
+import { disableBiometricLogin } from "./biometricAuthUtils";
 
 const storage = StorageFactory.createStorage();
 
@@ -76,6 +77,7 @@ export async function saveTokens(
 
 /**
  * Clears all authentication tokens (ID, access, refresh) from storage.
+ * Also clears biometric login credentials.
  */
 export async function clearTokens(): Promise<void> {
   await Promise.all([
@@ -84,6 +86,9 @@ export async function clearTokens(): Promise<void> {
     storage.remove(REFRESH_TOKEN_KEY),
     storage.remove(WORKSPACE),
   ]);
+
+  // Clear biometric credentials when clearing tokens
+  await disableBiometricLogin();
 }
 
 /**

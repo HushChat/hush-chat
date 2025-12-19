@@ -1,3 +1,4 @@
+// app/(auth)/login.tsx
 import React from "react";
 import { useRouter } from "expo-router";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
@@ -9,8 +10,21 @@ import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 export default function LoginScreen() {
   const { colors } = useAuthThemeColors();
   const router = useRouter();
-  const { formValues, formErrors, showErrors, errorMessage, onValueChange, submit } =
-    useLoginForm();
+
+  const {
+    formValues,
+    formErrors,
+    showErrors,
+    errorMessage,
+    onValueChange,
+    submit,
+
+    // ✅ BIOMETRIC PROPS (ONLY THESE EXIST)
+    biometricInfo,
+    isBiometricEnabled,
+    isAuthenticating,
+    handleBiometricLogin,
+  } = useLoginForm();
 
   return (
     <AuthMobileLayout colors={colors} image={Images.LoginPeople} onBack={() => router.back()}>
@@ -22,6 +36,11 @@ export default function LoginScreen() {
         formErrors={formErrors}
         showErrors={showErrors}
         onValueChange={onValueChange}
+        /* 🔐 BIOMETRIC */
+        biometricInfo={biometricInfo}
+        isBiometricEnabled={isBiometricEnabled}
+        isAuthenticating={isAuthenticating}
+        handleBiometricLogin={handleBiometricLogin}
       />
     </AuthMobileLayout>
   );

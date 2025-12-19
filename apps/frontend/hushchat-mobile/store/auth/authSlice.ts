@@ -3,6 +3,7 @@ import { saveTokens, clearTokens, getAllTokens } from "@/utils/authUtils";
 import axios from "axios";
 import { AUTH_API_ENDPOINTS } from "@/constants/apiConstants";
 import { logInfo } from "@/utils/logger";
+import { disableBiometricLogin } from "@/utils/biometricAuthUtils";
 
 export interface AuthState {
   userToken: string | null;
@@ -32,18 +33,13 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
     try {
       const accessToken = (await getAllTokens()).accessToken;
       if (accessToken) {
-        await axios.post(
-          AUTH_API_ENDPOINTS.LOGOUT(accessToken),
-          {},
-          {
-            skipErrorToast: true,
-          }
-        );
+        await axios.post(AUTH_API_ENDPOINTS.LOGOUT(accessToken), {}, { skipErrorToast: true });
       }
     } catch (error) {
       logInfo("Error during logout:", error);
     } finally {
       await clearTokens();
+      await disableBiometricLogin(); // Clear biometric credentials
       set({ userToken: null, isAuthenticated: false, isWorkspaceSelected: false });
     }
   },

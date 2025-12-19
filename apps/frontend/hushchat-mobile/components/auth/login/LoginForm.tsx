@@ -6,12 +6,13 @@ import {
   FormContainer,
 } from "@/components/FormComponents";
 import { memo } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { AUTH_FORGOT_PASSWORD_PATH, AUTH_REGISTER_PATH } from "@/constants/routes";
 import { TLoginFormProps } from "@/types/login/types";
 import TextField from "@/components/forms/TextField";
 import { AppText } from "@/components/AppText";
+import { Ionicons } from "@expo/vector-icons";
 
 export const LoginForm = memo(
   ({
@@ -22,6 +23,11 @@ export const LoginForm = memo(
     formErrors,
     showErrors,
     onValueChange,
+    // 🔽 BIOMETRIC PROPS
+    biometricInfo,
+    isBiometricEnabled,
+    isAuthenticating,
+    handleBiometricLogin,
   }: TLoginFormProps) => (
     <FormContainer>
       <FormHeader
@@ -55,6 +61,7 @@ export const LoginForm = memo(
             onValueChange={onValueChange}
           />
         </View>
+
         <TouchableOpacity
           className="self-end pt-2 mb-5"
           onPress={() => router.push(AUTH_FORGOT_PASSWORD_PATH)}
@@ -64,7 +71,27 @@ export const LoginForm = memo(
           </AppText>
         </TouchableOpacity>
 
+        {/* 🔐 NORMAL LOGIN */}
         <FormButton title="Log In" onPress={onSubmit} colors={colors} />
+
+        {/* 🔐 BIOMETRIC LOGIN */}
+        {/* 🛡️ Added optional chaining (?) just in case, though hook fixes it */}
+        {biometricInfo?.isAvailable && isBiometricEnabled && (
+          <TouchableOpacity
+            className="mt-4 flex-row items-center justify-center gap-2"
+            onPress={handleBiometricLogin}
+            disabled={isAuthenticating}
+          >
+            {isAuthenticating ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : (
+              <Ionicons name="scan-outline" size={22} color={colors.primary} />
+            )}
+            <AppText className="text-[16px] font-semibold" style={{ color: colors.primary }}>
+              Login with {biometricInfo?.label || "Biometrics"}
+            </AppText>
+          </TouchableOpacity>
+        )}
 
         <LinkText
           text="Don't have an account?"
@@ -76,4 +103,5 @@ export const LoginForm = memo(
     </FormContainer>
   )
 );
+
 LoginForm.displayName = "LoginForm";
