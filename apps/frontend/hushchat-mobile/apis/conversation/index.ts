@@ -217,6 +217,27 @@ export const sendMessageByConversationIdFiles = async (
   }
 };
 
+export const createMessagesWithAttachments = async (
+  conversationId: number,
+  attachments: {
+    messageText: string;
+    fileName: string;
+    parentMessageId?: number | null;
+  }[]
+) => {
+  try {
+    const response = await axios.post(
+      CONVERSATION_API_ENDPOINTS.REQUEST_ATTACHMENT_UPLOAD_URL(conversationId),
+      attachments
+    );
+
+    return response.data;
+  } catch (error) {
+    ToastUtils.error("Unable to request attachment upload URL: " + error);
+    throw error;
+  }
+};
+
 export const toggleConversationFavorite = async (conversationId: string) => {
   try {
     const response = await axios.patch(

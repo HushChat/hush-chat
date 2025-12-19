@@ -21,3 +21,5 @@ export const SETTINGS_CONTACT = "/settings/contact";
 export const SETTINGS_INVITE = "/settings/invite";
 export const SETTINGS_WORKSPACE = "/settings/change-workspace";
 export const CONVERSATION = (id: number): Href => `/conversations/${id}` as Href;
+export const MESSAGE_READ_PARTICIPANTS =
+  "/conversations/[conversationId]/messages/[messageId]/read-by";

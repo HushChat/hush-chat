@@ -2,12 +2,14 @@ import React, { memo, useCallback, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
+
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import WebChatContextMenu from "@/components/WebContextMenu";
-import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
+
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
+
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
@@ -108,12 +110,9 @@ const ConversationInput = ({
           <AntDesign name="gif" size={24} className="text-gray-500 dark:text-gray-400" />
         </TouchableOpacity>
 
-        <View className={classNames("flex-1", !isControlledMode && "mx-4")}>
+        <View className={classNames("flex-1", !isControlledMode && "mx-2")}>
           <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
-            <View
-              className="relative flex-row flex-end rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4"
-              style={{ paddingRight: hideSendButton ? 16 : RIGHT_ICON_GUTTER }}
-            >
+            <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4">
               <MessageTextArea
                 ref={input.messageTextInputRef}
                 value={input.message}
@@ -131,7 +130,6 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
-
               {!hideSendButton && (
                 <SendButton
                   showSend={input.isValidMessage}

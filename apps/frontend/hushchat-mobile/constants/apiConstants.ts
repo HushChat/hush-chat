@@ -68,6 +68,10 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
   GET_LAST_SEEN_MESSAGE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
+  GET_MESSAGE_SEEN_PARTICIPANTS: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/seen-by`,
+  REQUEST_ATTACHMENT_UPLOAD_URL: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-message-signed-url`,
 };
 
 export const USER_API_ENDPOINTS = {

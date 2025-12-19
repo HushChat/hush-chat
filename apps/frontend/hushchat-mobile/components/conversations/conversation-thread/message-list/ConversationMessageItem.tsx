@@ -39,6 +39,7 @@ import { MentionProfileModal } from "@/components/conversations/conversation-thr
 import { router } from "expo-router";
 import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
+import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
 import { CONVERSATION } from "@/constants/routes";
 
 const COLORS = {
@@ -69,6 +70,8 @@ interface MessageItemProps {
   showSenderAvatar: boolean;
   showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  targetMessageId?: number | null;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -95,6 +98,8 @@ export const ConversationMessageItem = ({
   showSenderAvatar,
   showSenderName,
   onNavigateToMessage,
+  targetMessageId,
+  webMessageInfoPress,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -207,6 +212,15 @@ export const ConversationMessageItem = ({
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
+
+      if (isCurrentUser && !message.isUnsend) {
+        options.push({
+          id: 4,
+          name: "Message Info",
+          iconName: "information-circle-outline",
+          action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+        });
+      }
     }
     return options;
   }, [
@@ -427,19 +441,26 @@ export const ConversationMessageItem = ({
 
             {renderParentMessage()}
 
-            <MessageBubble
-              message={message}
-              isCurrentUser={isCurrentUser}
-              hasText={hasText}
-              hasAttachments={hasAttachments}
-              hasImages={hasImages()}
-              selected={selected}
-              selectionMode={selectionMode}
-              isForwardedMessage={isForwardedMessage}
-              attachments={attachments}
-              onBubblePress={handleBubblePress}
-              onMentionClick={handleMentionClick}
-            />
+            <View className={isCurrentUser ? "self-end" : "self-start"}>
+              <MessageHighlightWrapper
+                isHighlighted={message.id === targetMessageId}
+                glowColor="#3B82F6"
+              >
+                <MessageBubble
+                  message={message}
+                  isCurrentUser={isCurrentUser}
+                  hasText={hasText}
+                  hasAttachments={hasAttachments}
+                  hasImages={hasImages()}
+                  selected={selected}
+                  selectionMode={selectionMode}
+                  isForwardedMessage={isForwardedMessage}
+                  attachments={attachments}
+                  onBubblePress={handleBubblePress}
+                  onMentionClick={handleMentionClick}
+                />
+              </MessageHighlightWrapper>
+            </View>
 
             <MessageReactions
               message={message}
