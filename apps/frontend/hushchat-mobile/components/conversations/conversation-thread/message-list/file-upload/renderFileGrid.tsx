@@ -89,4 +89,10 @@ export const renderFileGrid = (
   attachments: IMessageAttachment[],
   isCurrentUser: boolean,
   onAttachmentLongPress?: (attachment: IMessageAttachment) => void
-) => <RenderFileGrid attachments={attachments} isCurrentUser={isCurrentUser} />;
+) => (
+  <RenderFileGrid
+    attachments={attachments}
+    isCurrentUser={isCurrentUser}
+    onAttachmentLongPress={onAttachmentLongPress}
+  />
+);
