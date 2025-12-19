@@ -128,13 +128,6 @@ export default function OneToOneChatInfo({
       <View style={styles.inner}>
         <View className="border border-[#E4E4E4] dark:border-[#E4E4E42B]" />
         <View>
-          <ActionItem
-            icon="images-outline"
-            label="All Media files"
-            onPress={onShowMediaAttachments}
-          />
-        </View>
-        <View>
           <ChatInfoCommonAction
             conversationId={conversation.id}
             isFavorite={conversationInfo?.favorite || false}
@@ -142,6 +135,7 @@ export default function OneToOneChatInfo({
             isMuted={!!conversationInfo?.mutedUntil}
             onBack={onBack}
             setSelectedConversation={setSelectedConversation}
+            onShowMediaAttachments={onShowMediaAttachments}
           />
           <ActionItem
             icon="ban-outline"

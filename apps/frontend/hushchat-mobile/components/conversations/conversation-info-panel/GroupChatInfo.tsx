@@ -258,11 +258,6 @@ export default function GroupChatInfo({
         showsVerticalScrollIndicator={true}
         className="custom-scrollbar"
       >
-        <ActionItem
-          icon="images-outline"
-          label="All Media files"
-          onPress={onShowMediaAttachments}
-        />
         {/* Participants Preview */}
         <View style={styles.participantsSection}>
           <View className="flex-row items-center mb-3">
@@ -321,6 +316,7 @@ export default function GroupChatInfo({
                 isMuted={conversationInfo?.mutedUntil ? true : false}
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
+                onShowMediaAttachments={onShowMediaAttachments}
               />
               <ActionItem
                 icon="exit-outline"

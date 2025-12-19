@@ -1,11 +1,12 @@
-import { getConversationAttachments } from "@/apis/conversation";
+import { AttachmentFilterCriteria, getConversationAttachments } from "@/apis/conversation";
 import { conversationQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQuery } from "./usePaginatedQuery";
+import { IMessageAttachment } from "@/types/chat/types";
 
 export const useConversationAttachmentsQuery = (
   conversationId: number,
-  pageSize: number = 15,
-  type: string = ""
+  criteria: AttachmentFilterCriteria,
+  pageSize: number = 15
 ) => {
   const {
     pages,
@@ -16,12 +17,12 @@ export const useConversationAttachmentsQuery = (
     isFetchingNextPage,
     invalidateQuery,
     refetch,
-  } = usePaginatedQuery({
-    queryKey: conversationQueryKeys.conversationAttachments(conversationId, type, pageSize),
+  } = usePaginatedQuery<IMessageAttachment>({
+    queryKey: conversationQueryKeys.conversationAttachments(conversationId, criteria, pageSize),
     queryFn: (pageParam: number) =>
-      getConversationAttachments(conversationId, type, pageParam, pageSize),
+      getConversationAttachments(conversationId, criteria, pageParam, pageSize),
     options: {
-      staleTime: 0, // cache for 5 minutes
+      staleTime: 0,
     },
     initialPageParam: 0,
   });

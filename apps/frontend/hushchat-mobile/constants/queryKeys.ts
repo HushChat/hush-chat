@@ -1,4 +1,4 @@
-import { type ConversationFilterCriteria } from "@/apis/conversation";
+import { AttachmentFilterCriteria, type ConversationFilterCriteria } from "@/apis/conversation";
 
 const CALL_LOGS = "call-logs";
 const GROUP_INFO = "group-info";
@@ -55,12 +55,11 @@ export const conversationQueryKeys = {
     conversationId,
   ],
 
-  conversationAttachments: (conversationId: number, type: string, pageSize: number) => [
-    CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY,
-    conversationId,
-    type,
-    pageSize,
-  ],
+  conversationAttachments: (
+    conversationId: number,
+    criteria: AttachmentFilterCriteria,
+    pageSize: number
+  ) => [CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY, conversationId, criteria, pageSize],
 };
 
 export const conversationMessageQueryKeys = {

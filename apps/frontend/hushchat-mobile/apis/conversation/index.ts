@@ -1,7 +1,13 @@
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import axios, { AxiosError } from "axios";
-import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/types/chat/types";
+import {
+  IConversation,
+  IGroupConversation,
+  IMessage,
+  IMessageView,
+  MessageAttachmentTypeEnum,
+} from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
@@ -54,6 +60,10 @@ export type ReportReason = "SPAM" | "HARASSMENT" | "INAPPROPRIATE_CONTENT" | "OT
 export interface ReportConversationParams {
   conversationId: number;
   reason: ReportReason;
+}
+
+export interface AttachmentFilterCriteria {
+  type: MessageAttachmentTypeEnum;
 }
 
 export const getAllConversations = async (
@@ -477,7 +487,7 @@ export const sendInviteToWorkspace = async (email: string) => {
 
 export const getConversationAttachments = async (
   conversationId: number,
-  type: string,
+  criteria: AttachmentFilterCriteria,
   page: number,
   size: number
 ) => {
@@ -485,7 +495,7 @@ export const getConversationAttachments = async (
     const response = await axios.get(
       CONVERSATION_API_ENDPOINTS.GET_CONVERSATION_ATTACHMENTS(conversationId),
       {
-        params: { type, page, size },
+        params: { ...criteria, page, size },
       }
     );
     return { data: response.data };

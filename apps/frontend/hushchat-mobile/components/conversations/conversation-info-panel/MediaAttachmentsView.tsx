@@ -7,14 +7,17 @@ import {
   Image,
   ActivityIndicator,
   Linking,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { IMessageAttachment, MessageAttachmentTypeEnum } from "@/types/chat/types";
 import { useConversationAttachmentsQuery } from "@/query/useGetConversationAttachmentsQuery";
-import { ImagePreview } from "../conversation-thread/composer/image-preview/ImagePreview";
+import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
 import { getFileType } from "@/utils/files/getFileType";
 import { capitalizeFirstLetter } from "@/utils/commonUtils";
+import { AttachmentFilterCriteria } from "@/apis/conversation";
 
 interface MediaAttachmentsViewProps {
   conversationId: number;
@@ -48,22 +51,28 @@ export default function MediaAttachmentsView({
   conversationId,
   onBack,
 }: MediaAttachmentsViewProps) {
-  const [activeTab, setActiveTab] = useState<MessageAttachmentTypeEnum>(MessageAttachmentTypeEnum.MEDIA);
+  const [activeTab, setActiveTab] = useState<MessageAttachmentTypeEnum>(
+    MessageAttachmentTypeEnum.MEDIA
+  );
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const { colors } = useAppTheme();
 
   const typeFilter = activeTab;
 
-  const { pages, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useConversationAttachmentsQuery(conversationId, 20, typeFilter);
+  const filtercriteria: AttachmentFilterCriteria = {
+    type: typeFilter,
+  };
 
-  const attachments = useMemo(
-    () => pages?.pages.flatMap((page) => page.content || []) || [],
+  const { pages, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useConversationAttachmentsQuery(conversationId, filtercriteria, 20);
+
+  const attachments: IMessageAttachment[] = useMemo(
+    () => pages?.pages.flatMap((page) => (page.content || []) as IMessageAttachment[]) || [],
     [pages]
   );
 
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
 
@@ -85,7 +94,7 @@ export default function MediaAttachmentsView({
   if (isLoading) {
     return (
       <View className="flex-1" style={{ backgroundColor: colors.background }}>
-        <Header title="Attachments" onBack={onBack} colors={colors} />
+        <Header title="Attachments" onBack={onBack} color={colors.text} />
         <View className="flex-1 justify-center items-center px-8">
           <ActivityIndicator size="large" color={colors.tint} />
           <Text className="text-sm mt-3" style={{ color: colors.icon }}>
@@ -99,7 +108,7 @@ export default function MediaAttachmentsView({
   if (error) {
     return (
       <View className="flex-1" style={{ backgroundColor: colors.background }}>
-        <Header title="Attachments" onBack={onBack} colors={colors} />
+        <Header title="Attachments" onBack={onBack} color={colors.text} />
         <View className="flex-1 justify-center items-center px-8">
           <Ionicons name="alert-circle-outline" size={64} color={colors.icon} />
           <Text className="text-base mt-4 text-center" style={{ color: colors.icon }}>
@@ -119,7 +128,7 @@ export default function MediaAttachmentsView({
         onClose={handleCloseImagePreview}
       />
 
-      <Header title="Attachments" onBack={onBack} colors={colors} />
+      <Header title="Attachments" onBack={onBack} color={colors.text} />
 
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} colors={colors} />
 
@@ -145,13 +154,19 @@ export default function MediaAttachmentsView({
   );
 }
 
-function Header({ title, onBack, colors }: any) {
+interface HeaderProps {
+  title: string;
+  onBack: () => void;
+  color: string;
+}
+
+function Header({ title, onBack, color }: HeaderProps) {
   return (
     <View className="flex-row items-center px-4 py-3">
       <TouchableOpacity onPress={onBack} className="p-1 mr-3">
-        <Ionicons name="chevron-back" size={24} color={colors.text} />
+        <Ionicons name="chevron-back" size={24} color={color} />
       </TouchableOpacity>
-      <Text className="text-lg font-semibold" style={{ color: colors.text }}>
+      <Text className="text-lg font-semibold" style={{ color: color }}>
         {title}
       </Text>
     </View>
@@ -184,8 +199,10 @@ function TabBar({ activeTab, onTabChange, colors }: any) {
 }
 
 function EmptyState({ activeTab, colors }: any) {
-  const message = activeTab === MessageAttachmentTypeEnum.MEDIA ? "No media files yet" : "No documents yet";
-  const iconName = activeTab === MessageAttachmentTypeEnum.MEDIA ? "images-outline" : "document-text-outline";
+  const message =
+    activeTab === MessageAttachmentTypeEnum.MEDIA ? "No media files yet" : "No documents yet";
+  const iconName =
+    activeTab === MessageAttachmentTypeEnum.MEDIA ? "images-outline" : "document-text-outline";
 
   return (
     <View className="flex-1 justify-center items-center px-8">
@@ -197,7 +214,24 @@ function EmptyState({ activeTab, colors }: any) {
   );
 }
 
-function MediaGrid({ attachments, onScroll, onImagePress, isFetchingNextPage, colors }: any) {
+interface MediaGridProps {
+  attachments: IMessageAttachment[];
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  onImagePress: (index: number) => void;
+  isFetchingNextPage: boolean;
+  colors: {
+    text: string;
+    tint: string;
+  };
+}
+
+function MediaGrid({
+  attachments,
+  onScroll,
+  onImagePress,
+  isFetchingNextPage,
+  colors,
+}: MediaGridProps) {
   const groupedMedia = groupByMonth(attachments);
 
   return (
@@ -212,12 +246,18 @@ function MediaGrid({ attachments, onScroll, onImagePress, isFetchingNextPage, co
           </Text>
           <View className="flex-row flex-wrap gap-0.5">
             {items.map((item) => {
-              const globalIndex = attachments.findIndex((att: any) => att.id === item.id);
+              const handlePress = () => {
+                const index = attachments.findIndex(
+                  (att: IMessageAttachment) => att.id === item.id
+                );
+                if (index !== -1) onImagePress(index);
+              };
+
               return (
                 <TouchableOpacity
                   key={item.id}
                   className="w-[115px] h-[115px] rounded-lg overflow-hidden bg-gray-500/20 border-2 border-gray-500/20"
-                  onPress={() => onImagePress(globalIndex)}
+                  onPress={handlePress}
                 >
                   <Image
                     source={{ uri: item.fileUrl }}
@@ -240,7 +280,17 @@ function MediaGrid({ attachments, onScroll, onImagePress, isFetchingNextPage, co
   );
 }
 
-function DocsList({ attachments, onScroll, isFetchingNextPage, colors }: any) {
+interface DocsListProps {
+  attachments: IMessageAttachment[];
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  isFetchingNextPage: boolean;
+  colors: {
+    text: string;
+    icon: string;
+    tint: string;
+  };
+}
+function DocsList({ attachments, onScroll, isFetchingNextPage, colors }: DocsListProps) {
   const handleDownload = (url: string) => {
     Linking.openURL(url);
   };
@@ -259,7 +309,7 @@ function DocsList({ attachments, onScroll, isFetchingNextPage, colors }: any) {
               onPress={() => handleDownload(item.fileUrl)}
             >
               <View className="items-center justify-center">
-                <Ionicons name={icon as any} size={20} color={color} />
+                <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={20} color={color} />
                 <Text className="text-[10px] font-semibold mt-1" style={{ color }}>
                   {label}
                 </Text>
