@@ -1,9 +1,9 @@
 import { IMessageAttachment } from "@/types/chat/types";
 import { View, ViewStyle } from "react-native";
-import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
 import { DocumentCard } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard";
 import { ImageGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid";
 import { useFileGrid } from "@/hooks/conversation-thread/useFileGrid";
+import MediaPreview from "@/components/conversations/conversation-thread/composer/image-preview/MediaPreview";
 
 const GRID_CONFIG = {
   MAX_WIDTH: 280,
@@ -59,7 +59,7 @@ const RenderFileGrid = ({
         )}
       </View>
 
-      <ImagePreview
+      <MediaPreview
         visible={previewVisible}
         images={mediaItems}
         initialIndex={selectedImageIndex}

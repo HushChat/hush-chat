@@ -34,27 +34,3 @@ export const calculateThumbnailScrollOffset = (
   const itemWidth = thumbnailSize + THUMBNAIL.GAP;
   return Math.max(0, index * itemWidth - itemWidth);
 };
-
-export const getNavigatedIndex = (
-  currentIndex: number,
-  direction: "prev" | "next",
-  totalCount: number,
-  wrap: boolean = false
-): number => {
-  if (direction === "prev") {
-    if (currentIndex > 0) return currentIndex - 1;
-    return wrap ? totalCount - 1 : currentIndex;
-  } else {
-    if (currentIndex < totalCount - 1) return currentIndex + 1;
-    return wrap ? 0 : currentIndex;
-  }
-};
-
-export const canNavigate = (
-  currentIndex: number,
-  direction: "prev" | "next",
-  totalCount: number
-): boolean => {
-  if (direction === "prev") return currentIndex > 0;
-  return currentIndex < totalCount - 1;
-};

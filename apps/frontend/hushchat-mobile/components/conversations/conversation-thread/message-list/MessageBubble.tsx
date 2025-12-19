@@ -19,8 +19,7 @@ interface IMessageBubbleProps {
   isCurrentUser: boolean;
   hasText: boolean;
   hasAttachments: boolean;
-  hasImages: boolean;
-  hasVideos: boolean;
+  hasMedia: boolean;
   selected: boolean;
   selectionMode: boolean;
   isForwardedMessage: boolean;
@@ -36,8 +35,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   isCurrentUser,
   hasText,
   hasAttachments,
-  hasImages,
-  hasVideos,
+  hasMedia,
   selected,
   selectionMode,
   isForwardedMessage,
@@ -47,8 +45,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   style,
 }) => {
   const messageContent = message.messageText;
-
-  const hasMedia = hasImages || hasVideos;
 
   const forwardedBorderStyle = isForwardedMessage
     ? isCurrentUser

@@ -18,6 +18,7 @@ import {
   useKeyboardNavigation,
   useThumbnailScroll,
 } from "@/hooks/useImagePreviewHooks";
+import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
 
 interface IHeaderProps {
   fileName: string;
@@ -77,11 +78,7 @@ const NavigationButton = ({ direction, onPress }: INavigationButtonProps) => {
 
 const MediaViewer = ({ attachment, isVideo }: IMediaViewerProps) => {
   if (isVideo) {
-    return (
-      <video src={attachment?.fileUrl} controls style={videoStyles.player}>
-        Your browser does not support the video tag.
-      </video>
-    );
+    return <VideoPlayer uri={attachment?.fileUrl} style={videoStyles.player} />;
   }
 
   return (
@@ -130,7 +127,7 @@ const ThumbnailStrip = ({
   );
 };
 
-export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
+export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const thumbnailScrollRef = useRef<ScrollView>(null);
 
@@ -220,4 +217,4 @@ const videoStyles = {
   },
 };
 
-export default ImagePreview;
+export default MediaPreview;

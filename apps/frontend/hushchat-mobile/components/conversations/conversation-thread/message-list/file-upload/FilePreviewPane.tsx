@@ -3,17 +3,11 @@ import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
-import { DOC_EXTENSIONS, SIZES, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
+import { SIZES } from "@/constants/mediaConstants";
 import { AppText } from "@/components/AppText";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
-
-const VideoPlayer = ({ uri, style }: { uri: string; style: any }) => {
-  return (
-    <video src={uri} style={style} controls preload="metadata" className="rounded-lg">
-      Your browser does not support the video tag.
-    </video>
-  );
-};
+import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
+import { getFileTypeFromName } from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewItem";
 
 type TFilePreviewPaneProps = {
   file: File;
@@ -49,13 +43,10 @@ const FilePreviewPane = ({
   useEffect(() => {
     if (!file) return;
 
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    const isDocument = DOC_EXTENSIONS.includes(ext || "");
-    const isVideo = VIDEO_EXTENSIONS.includes(ext || "");
+    const type = getFileTypeFromName(file.name);
+    setFileType(type);
 
-    setFileType(isDocument ? "document" : isVideo ? "video" : "image");
-
-    if (!isDocument) {
+    if (type !== "document") {
       const obj = URL.createObjectURL(file);
       setUrl(obj);
       return () => URL.revokeObjectURL(obj);

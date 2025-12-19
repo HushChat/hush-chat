@@ -6,12 +6,13 @@ import classNames from "classnames";
 import { colorScheme } from "nativewind";
 
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-import { DOC_EXTENSIONS, SIZES, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
+import { SIZES } from "@/constants/mediaConstants";
 import { AppText } from "@/components/AppText";
+import { getFileType } from "@/utils/files/getFileType";
 
 type FileType = "image" | "video" | "document";
 
-interface FilePreviewItemProps {
+interface IFilePreviewItemProps {
   file: File;
   index: number;
   isSelected: boolean;
@@ -19,17 +20,17 @@ interface FilePreviewItemProps {
   onRemove: (index: number) => void;
 }
 
-interface ImagePreviewProps {
+interface IMediaPreviewProps {
   uri: string;
   isSelected: boolean;
 }
 
-interface VideoPreviewProps {
+interface IVideoPreviewProps {
   uri: string;
   isSelected: boolean;
 }
 
-interface DocumentPreviewProps {
+interface IDocumentPreviewProps {
   extension: string;
   iconColor: string;
   isSelected: boolean;
@@ -37,14 +38,6 @@ interface DocumentPreviewProps {
 
 const BYTES_PER_KB = 1024;
 const PREVIEW_SIZE = 48;
-
-const getFileTypeFromName = (fileName: string): FileType => {
-  const extension = fileName.split(".").pop()?.toLowerCase() || "";
-
-  if (DOC_EXTENSIONS.includes(extension)) return "document";
-  if (VIDEO_EXTENSIONS.includes(extension)) return "video";
-  return "image";
-};
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return "0 Bytes";
@@ -69,7 +62,7 @@ const SelectedBadge: React.FC = () => (
   </View>
 );
 
-const ImagePreviewThumbnail: React.FC<ImagePreviewProps> = ({ uri, isSelected }) => (
+const ImagePreviewThumbnail = ({ uri, isSelected }: IMediaPreviewProps) => (
   <View className="relative mr-3">
     <Image
       source={{ uri }}
@@ -82,7 +75,7 @@ const ImagePreviewThumbnail: React.FC<ImagePreviewProps> = ({ uri, isSelected })
   </View>
 );
 
-const VideoPreviewThumbnail: React.FC<VideoPreviewProps> = ({ uri, isSelected }) => (
+const VideoPreviewThumbnail = ({ uri, isSelected }: IVideoPreviewProps) => (
   <View className="relative mr-3">
     <View className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
       <Image
@@ -100,11 +93,7 @@ const VideoPreviewThumbnail: React.FC<VideoPreviewProps> = ({ uri, isSelected })
   </View>
 );
 
-const DocumentPreviewThumbnail: React.FC<DocumentPreviewProps> = ({
-  extension,
-  iconColor,
-  isSelected,
-}) => (
+const DocumentPreviewThumbnail = ({ extension, iconColor, isSelected }: IDocumentPreviewProps) => (
   <View className="relative mr-3 w-12 h-12 rounded-lg items-center justify-center bg-gray-200 dark:bg-gray-700">
     <Ionicons name="document-text" size={24} color={iconColor} />
     <AppText className="text-[8px] font-bold mt-0.5" style={{ color: iconColor }}>
@@ -121,7 +110,7 @@ const useFilePreview = (file: File | undefined) => {
   useEffect(() => {
     if (!file) return;
 
-    const type = getFileTypeFromName(file.name);
+    const type = getFileType(file.name);
     setFileType(type);
 
     if (type === "document") {
@@ -145,26 +134,19 @@ const useIconColor = (): string => {
   return isDark ? "#ffffff" : "#6B4EFF";
 };
 
-export const FilePreviewItem: React.FC<FilePreviewItemProps> = ({
+export const FilePreviewItem = ({
   file,
   index,
   isSelected,
   onSelect,
   onRemove,
-}) => {
+}: IFilePreviewItemProps) => {
   const { previewUrl, fileType } = useFilePreview(file);
   const iconColor = useIconColor();
 
   const formattedSize = useMemo(() => formatFileSize(file?.size ?? 0), [file?.size]);
 
   const fileExtension = useMemo(() => getFileExtension(file?.name || ""), [file?.name]);
-
-  const containerClasses = classNames(
-    "w-56 relative mb-2 rounded-xl p-2 border",
-    "bg-secondary-light/60 dark:bg-secondary-dark/70",
-    "border-gray-200 dark:border-gray-700",
-    isSelected && "border border-primary-light dark:border-primary-dark shadow-sm"
-  );
 
   const handleRemove = () => onRemove(index);
 
@@ -190,7 +172,12 @@ export const FilePreviewItem: React.FC<FilePreviewItemProps> = ({
     <TouchableOpacity
       onPress={onSelect}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
-      className={containerClasses}
+      className={classNames(
+        "w-56 relative mb-2 rounded-xl p-2 border",
+        "bg-secondary-light/60 dark:bg-secondary-dark/70",
+        "border-gray-200 dark:border-gray-700",
+        isSelected && "border border-primary-light dark:border-primary-dark shadow-sm"
+      )}
       accessibilityLabel={`${file?.name || "File"}, ${formattedSize}`}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}

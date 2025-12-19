@@ -106,8 +106,10 @@ export const ConversationMessageItem = ({
 
   const queryClient = useQueryClient();
 
-  const hasImages = () => attachments.some(isImageAttachment);
-  const hasVideos = () => attachments.some(isVideoAttachment);
+  const hasMedia = useMemo(
+    () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
+    [attachments]
+  );
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
   const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
@@ -453,8 +455,7 @@ export const ConversationMessageItem = ({
                   isCurrentUser={isCurrentUser}
                   hasText={hasText}
                   hasAttachments={hasAttachments}
-                  hasImages={hasImages()}
-                  hasVideos={hasVideos()}
+                  hasMedia={hasMedia}
                   selected={selected}
                   selectionMode={selectionMode}
                   isForwardedMessage={isForwardedMessage}

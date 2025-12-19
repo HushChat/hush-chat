@@ -6,7 +6,8 @@ import { IMessage, MessageAttachmentTypeEnum } from "@/types/chat/types";
 import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
-import { DOC_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
+import { getFileType } from "@/utils/files/getFileType";
+import { ToastUtils } from "@/utils/toastUtils";
 
 export type TFileWithCaption = {
   file: File;
@@ -72,32 +73,27 @@ export const useSendMessageHandler = ({
   const { updateConversationMessagesCache, updateConversationsListCache } =
     useConversationMessagesQuery(currentConversationId);
 
-  const getFileType = (fileName: string): "image" | "video" | "document" => {
-    const ext = fileName.split(".").pop()?.toLowerCase() || "";
-
-    if (IMAGE_EXTENSIONS.includes(ext)) return "image";
-    if (VIDEO_EXTENSIONS.includes(ext)) return "video";
-    if (DOC_EXTENSIONS.includes(ext)) return "document";
-
-    return "document"; // default
-  };
-
   const renameFile = useCallback(
     (file: File, index: number): File => {
       const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
       const ext = file.name.split(".").pop() || "";
       const fileType = getFileType(file.name);
 
+      if (fileType === "unsupported") {
+        ToastUtils.error("Unsupported file type");
+        throw new Error("Unsupported file type");
+      }
+
       let newName: string;
+
       switch (fileType) {
         case "image":
-          newName = `HushChat Image ${currentConversationId}${index} ${timestamp}.${ext}`;
+          newName = `HushChat Image ${currentConversationId}-${index} ${timestamp}.${ext}`;
           break;
         case "video":
-          newName = `HushChat Video ${currentConversationId}${index} ${timestamp}.${ext}`;
+          newName = `HushChat Video ${currentConversationId}-${index} ${timestamp}.${ext}`;
           break;
         case "document":
-        default:
           newName = file.name;
           break;
       }

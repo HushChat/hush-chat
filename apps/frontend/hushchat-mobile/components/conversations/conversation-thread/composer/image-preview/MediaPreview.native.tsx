@@ -145,7 +145,7 @@ const ThumbnailStrip = ({
   </MotionView>
 );
 
-export const ImagePreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
+export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const insets = useSafeAreaInsets();
 
@@ -289,4 +289,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ImagePreview;
+export default MediaPreview;

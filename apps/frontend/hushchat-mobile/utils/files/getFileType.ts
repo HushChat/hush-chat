@@ -1,15 +1,15 @@
-export const getFileType = (
-  fileName: string | undefined | null
-): "image" | "video" | "pdf" | "word" | "excel" | "unknown" => {
-  if (!fileName) return "unknown";
+import { DOC_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
 
-  const ext = fileName.toLowerCase().split(".").pop() || "";
+export type FileType = "image" | "video" | "document" | "unsupported";
 
-  if (["jpg", "jpeg", "png", "svg", "gif", "webp"].includes(ext)) return "image";
-  if (["mp4", "mov", "webm", "avi", "mkv"].includes(ext)) return "video";
-  if (ext === "pdf") return "pdf";
-  if (["doc", "docx"].includes(ext)) return "word";
-  if (["xls", "xlsx"].includes(ext)) return "excel";
+export const getFileType = (fileName: string): FileType => {
+  const ext = fileName.split(".").pop()?.toLowerCase();
 
-  return "unknown";
+  if (!ext) return "unsupported";
+
+  if (IMAGE_EXTENSIONS.includes(ext)) return "image";
+  if (VIDEO_EXTENSIONS.includes(ext)) return "video";
+  if (DOC_EXTENSIONS.includes(ext)) return "document";
+
+  return "unsupported";
 };
