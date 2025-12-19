@@ -1,8 +1,6 @@
 package com.platform.software.chat.notification.service;
 
-import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.entity.Message;
-import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.notification.dto.DeviceTokenUpsertDTO;
 import com.platform.software.chat.notification.dto.NotificationRequestDTO;
 import com.platform.software.chat.notification.entity.ChatNotification;
@@ -15,8 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ChatNotificationService {
