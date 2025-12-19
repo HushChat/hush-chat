@@ -10,7 +10,7 @@
  *
  * `allowForwardPagination` must be true to load forward pages.
  */
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient, NotifyOnChangeProps } from "@tanstack/react-query";
 import { CursorPaginatedQueryOptions, CursorPaginatedResponse } from "@/apis/conversation";
 
 export const PAGINATE_BACKWARD = "paginate_backward" as const;
@@ -40,7 +40,8 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
   pageSize = 20,
   enabled = true,
   allowForwardPagination = false,
-}: CursorPaginatedQueryOptions<T>) {
+  notifyOnChangeProps,
+}: CursorPaginatedQueryOptions<T> & { notifyOnChangeProps?: NotifyOnChangeProps }) {
   const queryClient = useQueryClient();
 
   const {
@@ -100,8 +101,11 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
       };
     },
 
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    notifyOnChangeProps,
   });
 
   return {

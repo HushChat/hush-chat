@@ -31,13 +31,17 @@ export function useConversationMessagesQuery(conversationId: number) {
     [userId, conversationId]
   );
 
-  useEffect(() => {
-    if (previousConversationId.current !== conversationId) {
-      previousConversationId.current = conversationId;
-      setInMessageWindowView(false);
-      setTargetMessageId(null);
-    }
-  }, [conversationId]);
+  // Reset state when conversation changes (synchronous, runs during render)
+  if (
+    previousConversationId.current !== null &&
+    previousConversationId.current !== conversationId
+  ) {
+    setInMessageWindowView(false);
+    setTargetMessageId(null);
+    previousConversationId.current = conversationId;
+  } else if (previousConversationId.current === null) {
+    previousConversationId.current = conversationId;
+  }
 
   const {
     pages,
@@ -57,6 +61,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
     allowForwardPagination: inMessageWindowView,
+    notifyOnChangeProps: ["data", "error"],
   });
 
   const loadMessageWindow = useCallback(
