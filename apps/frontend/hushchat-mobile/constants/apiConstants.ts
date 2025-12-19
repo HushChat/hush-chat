@@ -16,12 +16,13 @@ export const USER_API_BASE = "/users";
 export const MESSAGE_API_BASE = "/messages";
 export const SEARCH_API_BASE = "/search";
 export const WORKSPACES_API_BASE = "/workspaces";
+export const WORKSPACE_ADMIN_API_BASE = "/admin/workspace";
 
 export const WORKSPACE_ENDPOINTS = {
   GET: `${WORKSPACES_API_BASE}/my-workspaces`,
   REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
-  INVITE_TO_WORKSPACE: `${WORKSPACES_API_BASE}/invite`,
+  INVITE_TO_WORKSPACE: `${WORKSPACE_ADMIN_API_BASE}/invite`,
 };
 
 export const SETTINGS_API_BASE = "/settings";
@@ -67,6 +68,10 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
   GET_LAST_SEEN_MESSAGE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
+  GET_MESSAGE_SEEN_PARTICIPANTS: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/seen-by`,
+  REQUEST_ATTACHMENT_UPLOAD_URL: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-message-signed-url`,
   GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
 };

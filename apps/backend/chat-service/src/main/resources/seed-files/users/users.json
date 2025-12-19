@@ -6,7 +6,8 @@
     "lastName": "Akka",
     "email": "jane@chat.com",
     "active": true,
-    "deleted": false
+    "deleted": false,
+    "role": "ADMIN"
   },
   {
     "id": 2,

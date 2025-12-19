@@ -25,19 +25,19 @@ export interface ReactionSummary {
   currentUserReaction: string;
 }
 
+export enum MessageAttachmentTypeEnum {
+  MEDIA = "MEDIA",
+  DOCS = "DOCS",
+}
+
 export interface IMessageAttachment {
   mimeType: string;
   id?: number;
   originalFileName: string;
   indexedFileName: string;
   fileUrl: string;
-  type: AttachmentType;
+  type: MessageAttachmentTypeEnum;
   updatedAt: string;
-}
-
-export enum AttachmentType {
-  MEDIA = "MEDIA",
-  DOCS = "DOCS",
 }
 
 export enum MessageTypeEnum {
@@ -282,6 +282,11 @@ export enum chatUserStatus {
   BUSY = "BUSY",
 }
 
+export interface IUserStatus {
+  conversationId: number;
+  status: chatUserStatus;
+}
+
 export interface IActionConfig {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
@@ -298,16 +303,12 @@ export interface ConversationInputProps {
   onOpenDocumentPickerNative?: () => void;
   disabled?: boolean;
   isSending?: boolean;
-  placeholder?: string;
-  minLines?: number;
-  maxLines?: number;
-  lineHeight?: number;
-  verticalPadding?: number;
-  maxChars?: number;
-  autoFocus?: boolean;
   replyToMessage?: IMessage | null;
   onCancelReply?: () => void;
   isGroupChat?: boolean;
+  controlledValue?: string;
+  onControlledValueChange?: (text: string) => void;
+  hideSendButton?: boolean;
 }
 
 export interface ConversationInputConfig {

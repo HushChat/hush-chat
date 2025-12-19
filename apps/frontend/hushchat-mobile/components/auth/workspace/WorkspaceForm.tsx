@@ -1,7 +1,7 @@
 import { TWorkspaceFormProps, Workspace, WorkspaceStatus } from "@/types/login/types";
 import React, { useState } from "react";
 import { FormButton, FormContainer, FormHeader, LinkText } from "@/components/FormComponents";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
 import WorkspaceDropdown from "@/components/auth/workspace/WorkspaceDropdown";
 import { CHATS_PATH, WORKSPACE_CREATE_PATH, WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
@@ -10,6 +10,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
 import { AppText } from "@/components/AppText";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
+import { ToastUtils } from "@/utils/toastUtils";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
@@ -40,6 +41,8 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
 
     if (selectedWorkspace.status === WorkspaceStatus.PENDING) {
       onNavigateToRegister();
+    } else if (selectedWorkspace.status === WorkspaceStatus.SUSPENDED) {
+      ToastUtils.error("Your access to this workspace has been suspended. Please contact support.");
     } else {
       handleNext();
     }
@@ -67,9 +70,9 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
 
         {workspacesError && (
           <View className="py-2 px-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <Text className="text-red-600 dark:text-red-400">
+            <AppText className="text-red-600 dark:text-red-400">
               {workspacesError.message || "Failed to load workspaces"}
-            </Text>
+            </AppText>
           </View>
         )}
 

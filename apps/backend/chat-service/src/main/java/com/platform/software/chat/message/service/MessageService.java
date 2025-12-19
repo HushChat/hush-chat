@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.readstatus.repository.Conversatio
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.*;
@@ -17,6 +18,7 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
@@ -53,6 +55,7 @@ public class MessageService {
     private final MessageHistoryRepository messageHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
+    private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -104,6 +107,13 @@ public class MessageService {
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
+
+
+        if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
+            MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
+            List<MessageAttachmentDTO> enrichedMessageAttachmentDTOts = messageUtilService.enrichParentMessageAttachmentsWithSignedUrl(List.of(attachmentDTO));
+            messageViewDTO.getParentMessage().setMessageAttachments(enrichedMessageAttachmentDTOts);
+        }
 
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
@@ -164,7 +174,7 @@ public class MessageService {
         return newMessageHistory;
     }
 
-    private Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
+    public Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
         Message message = messageRepository.findByConversation_IdAndIdAndSender_Id(conversationId, messageId, userId)
             .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to edit this message"));
         return message;
@@ -203,6 +213,37 @@ public class MessageService {
                 conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
         );
         return signedURLResponseDTO;
+    }
+
+    /**
+     * Create messages with attachments list.
+     *
+     * @param messageDTOs    the message dt os
+     * @param conversationId the conversation id
+     * @param loggedInUserId the logged in user id
+     * @return the list
+     */
+    @Transactional
+    public List<MessageViewDTO> createMessagesWithAttachments(
+        List<MessageWithAttachmentUpsertDTO> messageDTOs,
+        Long conversationId,
+        Long loggedInUserId
+    ) {
+        List<MessageViewDTO> createdMessages = new ArrayList<>();
+        for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
+            Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
+            SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFileName(), savedMessage);
+
+            MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+            messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+            createdMessages.add(messageViewDTO);
+
+            messagePublisherService.invokeNewMessageToParticipants(
+                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+            );
+        }
+
+        return createdMessages;
     }
 
     /* * Creates a MessageViewDTO from the saved message and sets the sender ID and parent message ID.
@@ -277,7 +318,9 @@ public class MessageService {
 
             try {
                 for(Message message: forwardingMessages){
-                    messageRepository.saveMessageWthSearchVector(message);
+                    Message savedMessage = messageRepository.saveMessageWthSearchVector(message);
+
+                    setLastSeenMessageForMessageSentUser(targetConversation.getModel(), savedMessage, loggedInUser);
 
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message);
 
@@ -349,7 +392,7 @@ public class MessageService {
      * @return the Message entity
      */
     public Message getMessageOrThrow(Long messageId) {
-        return messageRepository.findById(messageId)
+        return messageRepository.findByIdWithSenderAndConversation(messageId)
             .orElseThrow(() -> {
                 logger.error("message with id {} not found when creating favorite message", messageId);
                 return new CustomResourceNotFoundException("Message not found!");
@@ -470,5 +513,12 @@ public class MessageService {
 
         message.setIsUnsend(true);
         messageRepository.save(message);
+
+        eventPublisher.publishEvent(new MessageUnsentEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            message.getConversation().getId(),
+            message.getId(),
+            loggedInUserId
+        ));
     }
 }

@@ -1,18 +1,21 @@
 import { createContext, useContext, ReactNode } from "react";
-import { WebSocketStatus } from "@/types/ws/types";
-import useWebSocketConnection from "@/hooks/useWebSocketConnection";
+import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
+import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
 
 interface WebSocketContextValue {
   connectionStatus: WebSocketStatus;
+  publishActivity: (data: UserActivityWSSubscriptionData) => boolean;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue | undefined>(undefined);
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
-  const { connectionStatus } = useWebSocketConnection();
+  const { connectionStatus, publishActivity } = useWebSocketConnection();
 
   return (
-    <WebSocketContext.Provider value={{ connectionStatus }}>{children}</WebSocketContext.Provider>
+    <WebSocketContext.Provider value={{ connectionStatus, publishActivity }}>
+      {children}
+    </WebSocketContext.Provider>
   );
 }
 

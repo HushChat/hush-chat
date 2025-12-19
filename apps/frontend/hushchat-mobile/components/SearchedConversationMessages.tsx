@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity, ActivityIndicator } from "react-native";
 import { debounce } from "lodash";
 
 import { PLATFORM } from "@/constants/platformConstants";
@@ -11,6 +11,8 @@ import useConversationMessagesSearchQuery from "@/query/useConversationMessagesS
 import BackButton from "@/components/BackButton";
 import SearchBar from "@/components/SearchBar";
 import { SearchedMessagesList } from "@/components/conversations/conversation-thread/message-list/SearchedMessagesList";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import { AppText } from "@/components/AppText";
 
 interface WebSearchedConversationMessages {
   conversationId?: number;
@@ -27,6 +29,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 }) => {
   const [inputValue, setInputValue] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const isMobileLayout = useIsMobileLayout();
 
   const debouncedSearch = useMemo(
     () =>
@@ -59,9 +62,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
 
   const handleMessagePress = useCallback(
     (message: any) => {
-      if (PLATFORM.IS_WEB) {
-        onMessageClicked?.(message);
-      } else {
+      if (isMobileLayout) {
         router.push({
           pathname: CHAT_VIEW_PATH,
           params: {
@@ -69,16 +70,18 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
             messageId: message.id,
           },
         });
+      } else {
+        onMessageClicked?.(message);
       }
     },
-    [conversationId, onMessageClicked]
+    [isMobileLayout, conversationId, onMessageClicked]
   );
 
   const renderEmptyState = useCallback(() => {
     if (inputValue.length > 0 && searchQuery.length === 0) {
       return (
         <View className="flex-1 justify-center items-center">
-          <Text className="text-gray-500">Typing...</Text>
+          <AppText className="text-gray-500">Typing...</AppText>
         </View>
       );
     }
@@ -87,7 +90,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
       return (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" />
-          <Text className="mt-2 text-gray-500">Searching...</Text>
+          <AppText className="mt-2 text-gray-500">Searching...</AppText>
         </View>
       );
     }
@@ -95,16 +98,16 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
     if (searchQuery.length > 0 && searchedMessages.length === 0) {
       return (
         <View className="flex-1 justify-center items-center px-8">
-          <Text className="text-center text-gray-500">
+          <AppText className="text-center text-gray-500">
             No messages found for &quot;{searchQuery}&quot;
-          </Text>
+          </AppText>
         </View>
       );
     }
 
     return (
       <View className="flex-1 justify-center items-center px-8">
-        <Text className="text-center text-gray-500">Type to search for messages</Text>
+        <AppText className="text-center text-gray-500">Type to search for messages</AppText>
       </View>
     );
   }, [inputValue.length, isLoadingSearchedMessages, searchQuery, searchedMessages.length]);
@@ -127,9 +130,9 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
       <View className="p-4 pb-2">
         <View className="flex-row items-center justify-between mb-4">
           {PLATFORM.IS_WEB && (
-            <Text className="text-lg font-semibold text-gray-900 dark:text-white">
+            <AppText className="text-lg font-semibold text-gray-900 dark:text-white">
               Search Messages
-            </Text>
+            </AppText>
           )}
 
           {PLATFORM.IS_WEB && <BackButton onPress={onClose} />}
@@ -148,9 +151,9 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
                 activeOpacity={DEFAULT_ACTIVE_OPACITY}
                 className="px-3"
               >
-                <Text className="text-base font-semibold text-text-primary-light dark:text-text-primary-dark">
+                <AppText className="text-base font-semibold text-text-primary-light dark:text-text-primary-dark">
                   Cancel
-                </Text>
+                </AppText>
               </TouchableOpacity>
             </View>
           )}
@@ -169,9 +172,9 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
       <View className="flex-1">
         {searchedMessagesError ? (
           <View className="flex-1 justify-center items-center">
-            <Text className="text-red-500">Error loading results</Text>
+            <AppText className="text-red-500">Error loading results</AppText>
             <TouchableOpacity onPress={() => refetchSearchedMessages()}>
-              <Text className="text-blue-500 mt-2">Retry</Text>
+              <AppText className="text-blue-500 mt-2">Retry</AppText>
             </TouchableOpacity>
           </View>
         ) : searchedMessages.length > 0 ? (

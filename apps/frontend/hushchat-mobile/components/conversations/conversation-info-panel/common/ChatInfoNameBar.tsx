@@ -1,8 +1,8 @@
 import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { PLATFORM } from "@/constants/platformConstants";
 import { AppText } from "@/components/AppText";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 type ChatInfoNameBarProps = {
   title: string;
@@ -20,16 +20,17 @@ export default function ChatInfoNameBar({
   onPressCall,
   onPressSearch,
 }: ChatInfoNameBarProps) {
+  const isMobileLayout = useIsMobileLayout();
   return (
     <View className="px-4 py-[14px] flex-row items-center justify-between">
       <AppText
-        className={`font-semibold text-black dark:text-white ${PLATFORM.IS_WEB ? "text-lg" : "text-xl"}`}
+        className={`font-semibold text-black dark:text-white ${!isMobileLayout ? "text-lg" : "text-xl"}`}
         numberOfLines={1}
       >
         {title}
       </AppText>
 
-      {showActions && !PLATFORM.IS_WEB && (
+      {showActions && isMobileLayout && (
         <View className="flex-row gap-[10px]">
           <TouchableOpacity
             className="rounded-full p-[10px] bg-secondary-light dark:bg-secondary-dark"

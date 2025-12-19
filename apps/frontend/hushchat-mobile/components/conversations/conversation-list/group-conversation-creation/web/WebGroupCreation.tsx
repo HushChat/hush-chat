@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { TUser } from "@/types/user/types";
 import { UserMultiSelectList } from "@/components/UserMultiSelect";
@@ -9,6 +9,7 @@ import { IConversation } from "@/types/chat/types";
 
 import { MotionView } from "@/motion/MotionView";
 import { MotionEasing } from "@/motion/easing";
+import { AppText } from "@/components/AppText";
 
 type TWebGroupCreationOverlay = {
   visible: boolean;
@@ -81,9 +82,9 @@ export const WebGroupCreation = ({
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
 
-          <Text className="text-xl font-semibold text-gray-900 dark:text-white">
+          <AppText className="text-xl font-semibold text-gray-900 dark:text-white">
             {showConfigurationForm ? "Group Details" : "New group"}
-          </Text>
+          </AppText>
         </View>
 
         {!showConfigurationForm && (
@@ -97,13 +98,13 @@ export const WebGroupCreation = ({
             }`}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
-            <Text
+            <AppText
               className={`text-xs font-medium leading-none ${
                 selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-300"
               }`}
             >
               Continue
-            </Text>
+            </AppText>
           </TouchableOpacity>
         )}
       </View>

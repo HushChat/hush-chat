@@ -7,6 +7,7 @@ import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
+import { TUser } from "@/types/user/types";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
@@ -24,6 +25,7 @@ interface IMessageBubbleProps {
   isForwardedMessage: boolean;
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
+  onMentionClick?: (user: TUser) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
 }
@@ -39,8 +41,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   isForwardedMessage,
   attachments,
   onBubblePress,
+  onMentionClick,
   style,
-  messageTextStyle,
 }) => {
   const messageContent = message.messageText;
 
@@ -51,6 +53,16 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
     : null;
 
   const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+
+  const handleMentionPress = (username: string) => {
+    if (!onMentionClick || !message.mentions) return;
+
+    const mentionedUser = message.mentions.find((user) => user.username === username);
+
+    if (mentionedUser) {
+      onMentionClick(mentionedUser);
+    }
+  };
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
@@ -81,7 +93,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
               (hasText || hasImages) && isCurrentUser,
             "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
               (hasText || hasImages) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasImages),
+            "bg-transparent": !(hasText || hasImages) || message.isUnsend,
 
             "border-sky-500 dark:border-sky-400": selected && selectionMode,
             "border-transparent": !(selected && selectionMode),
@@ -101,9 +113,9 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           {!message.isUnsend && messageContent ? (
             <FormattedText
               text={message.messageText}
-              style={messageTextStyle || styles.messageText}
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
+              onMentionPress={handleMentionPress}
             />
           ) : message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
@@ -115,16 +127,11 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 };
 
 const styles = StyleSheet.create({
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontFamily: "Poppins-Regular",
-  },
   maxWidthAttachments: {
     maxWidth: 305,
   },
   maxWidthRegular: {
-    maxWidth: "70%",
+    maxWidth: "100%",
   },
   forwardedRight: {
     borderRightWidth: 2,

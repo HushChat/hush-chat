@@ -4,6 +4,7 @@ services:
     container_name: chat_service_backend
     ports:
       - "3092:3092"
+    restart: always
     environment:
       ACTIVE_SPRING_PROFILES: ${ACTIVE_SPRING_PROFILES}
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
@@ -44,6 +45,7 @@ services:
     container_name: chat_service_frontend
     ports:
       - "8081:80"
+    restart: always
     networks:
       - infra_network
 

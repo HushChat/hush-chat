@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { AttachmentType, IMessageAttachment } from "@/types/chat/types";
+import { IMessageAttachment, MessageAttachmentTypeEnum } from "@/types/chat/types";
 import { useConversationAttachmentsQuery } from "@/query/useGetConversationAttachmentsQuery";
 import { ImagePreview } from "../conversation-thread/composer/image-preview/ImagePreview";
 import { getFileType } from "@/utils/files/getFileType";
@@ -48,7 +48,7 @@ export default function MediaAttachmentsView({
   conversationId,
   onBack,
 }: MediaAttachmentsViewProps) {
-  const [activeTab, setActiveTab] = useState<AttachmentType>(AttachmentType.MEDIA);
+  const [activeTab, setActiveTab] = useState<MessageAttachmentTypeEnum>(MessageAttachmentTypeEnum.MEDIA);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const { colors } = useAppTheme();
@@ -125,7 +125,7 @@ export default function MediaAttachmentsView({
 
       {attachments.length === 0 ? (
         <EmptyState activeTab={activeTab} colors={colors} />
-      ) : activeTab === AttachmentType.MEDIA ? (
+      ) : activeTab === MessageAttachmentTypeEnum.MEDIA ? (
         <MediaGrid
           attachments={attachments}
           onScroll={handleScroll}
@@ -161,7 +161,7 @@ function Header({ title, onBack, colors }: any) {
 function TabBar({ activeTab, onTabChange, colors }: any) {
   return (
     <View className="flex-row justify-between px-4 border-b border-gray-500/20">
-      {Object.values(AttachmentType).map((tab) => {
+      {Object.values(MessageAttachmentTypeEnum).map((tab) => {
         const isActive = activeTab === tab;
         return (
           <TouchableOpacity
@@ -184,8 +184,8 @@ function TabBar({ activeTab, onTabChange, colors }: any) {
 }
 
 function EmptyState({ activeTab, colors }: any) {
-  const message = activeTab === AttachmentType.MEDIA ? "No media files yet" : "No documents yet";
-  const iconName = activeTab === AttachmentType.MEDIA ? "images-outline" : "document-text-outline";
+  const message = activeTab === MessageAttachmentTypeEnum.MEDIA ? "No media files yet" : "No documents yet";
+  const iconName = activeTab === MessageAttachmentTypeEnum.MEDIA ? "images-outline" : "document-text-outline";
 
   return (
     <View className="flex-1 justify-center items-center px-8">

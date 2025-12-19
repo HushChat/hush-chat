@@ -10,6 +10,9 @@ export interface ConversationState {
   setSelectionMode: (mode: boolean) => void;
   selectedMessageIds: Set<number>;
   setSelectedMessageIds: (ids: Set<number>) => void;
+  isMarkdownEnabled: boolean;
+  setIsMarkdownEnabled: (enabled: boolean) => void;
+  toggleMarkdown: () => void;
   resetState: () => void;
 }
 
@@ -24,6 +27,9 @@ export const createConversationSlice: StateCreator<ConversationState> = (
   setSelectionMode: (mode: boolean) => set({ selectionMode: mode }),
   selectedMessageIds: new Set<number>(),
   setSelectedMessageIds: (ids: Set<number>) => set({ selectedMessageIds: new Set(ids) }),
+  isMarkdownEnabled: true,
+  setIsMarkdownEnabled: (enabled: boolean) => set({ isMarkdownEnabled: enabled }),
+  toggleMarkdown: () => set((state) => ({ isMarkdownEnabled: !state.isMarkdownEnabled })),
   resetState: () =>
     set({
       selectedConversationType: ConversationType.ALL,

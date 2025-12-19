@@ -37,4 +37,8 @@ public interface ConversationParticipantQueryRepository {
     );
 
     void restoreParticipantsByConversationId(Long conversationId);
+
+    long chatUserIdByConversationParticipantId(Long conversationParticipantId);
+
+    List<Long> findOneToOneConversationIdsByUserEmail(String email);
 }

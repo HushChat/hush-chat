@@ -8,5 +8,6 @@ export enum PanelType {
   GROUP_SETTINGS = "group_settings",
   MEDIA_ATTACHMENTS = "media_attachments",
   GROUP_PERMISSIONS = "group_permissions",
+  MESSAGE_INFO = "message_info",
   // Add more panel types here as needed
 }
