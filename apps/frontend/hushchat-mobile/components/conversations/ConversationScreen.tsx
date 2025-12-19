@@ -28,6 +28,8 @@ import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { router } from "expo-router";
+import { CHATS_PATH } from "@/constants/routes";
 
 interface IConversationScreenProps {
   initialConversationId?: number;
@@ -102,9 +104,9 @@ export default function ConversationScreen({ initialConversationId }: IConversat
     setSelectedConversation(conversation);
     if (PLATFORM.IS_WEB) {
       if (conversation) {
-        window.history.pushState({}, "", `/conversations/${conversation.id}`);
+        router.setParams({ id: conversation.id.toString() });
       } else {
-        window.history.pushState({}, "", "/(tabs)/conversations");
+        router.push(CHATS_PATH);
       }
     }
   }, []);
