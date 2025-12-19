@@ -3,28 +3,27 @@ import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
-import { emitConversationCreated, emitNewMessage, emitUserStatus } from "@/services/eventBus";
-import { DeviceType, IConversation, IUserStatus } from "@/types/chat/types";
+import { DeviceType } from "@/types/chat/types";
 import {
   CONNECTED_RESPONSE,
-  CONVERSATION_CREATED_TOPIC,
   ERROR_RESPONSE,
-  MESSAGE_RECEIVED_TOPIC,
   MESSAGE_RESPONSE,
-  ONLINE_STATUS_TOPIC,
   RETRY_TIME_MS,
 } from "@/constants/wsConstants";
 import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
+import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
+import { WS_TOPICS } from "@/constants/ws/wsTopics";
 import { PLATFORM } from "@/constants/platformConstants";
 
 // Define topics to subscribe to
 const TOPICS = [
-  { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
-  { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
-  { destination: CONVERSATION_CREATED_TOPIC, id: "sub-conversation-created" },
-];
+  { destination: WS_TOPICS.message.received, id: "sub-message-received" },
+  { destination: WS_TOPICS.user.onlineStatus, id: "sub-online-status" },
+  { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
+  { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
+] as const;
 
 const getDeviceType = (): DeviceType => {
   if (PLATFORM.IS_WEB) return "WEB";
@@ -63,31 +62,6 @@ export const publishUserActivity = (
   } catch (error) {
     logInfo("Error publishing user activity:", error);
     return false;
-  }
-};
-
-// Handle different message types based on topic
-const handleMessageByTopic = (topic: string, body: string) => {
-  try {
-    if (topic.includes(MESSAGE_RECEIVED_TOPIC)) {
-      // Handle message received
-      const wsMessageWithConversation = JSON.parse(body) as IConversation;
-      if (wsMessageWithConversation.messages?.length !== 0) {
-        emitNewMessage(wsMessageWithConversation);
-      }
-    } else if (topic.includes(ONLINE_STATUS_TOPIC)) {
-      // Handle online status update
-      const onlineStatusData = JSON.parse(body) as IUserStatus;
-      emitUserStatus(onlineStatusData);
-    } else if (topic.includes(CONVERSATION_CREATED_TOPIC)) {
-      // Handle group conversation creation
-      const newConversation = JSON.parse(body) as IConversation;
-      emitConversationCreated(newConversation);
-    } else {
-      logDebug("Received message from unknown topic:", topic);
-    }
-  } catch (error) {
-    logInfo("Error parsing message from topic:", topic, error);
   }
 };
 
