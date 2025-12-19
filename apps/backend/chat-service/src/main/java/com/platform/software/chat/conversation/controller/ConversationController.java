@@ -530,4 +530,13 @@ public class ConversationController {
         conversationService.reportConversation(userDetails.getId(), conversationId, request.getReason());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @ApiOperation(value = "Create conversation invite Link", response = InviteLinkDTO.class)
+    @PostMapping("{conversationId}/invite-link")
+    public ResponseEntity<InviteLinkDTO> createInviteLink(
+            @PathVariable Long conversationId,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(conversationService.createInviteLink(userDetails.getId(), conversationId));
+    }
 }

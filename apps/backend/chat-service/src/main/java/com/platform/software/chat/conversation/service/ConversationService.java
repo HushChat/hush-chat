@@ -1,14 +1,12 @@
 package com.platform.software.chat.conversation.service;
 
 import com.platform.software.chat.conversation.dto.*;
-import com.platform.software.chat.conversation.entity.Conversation;
-import com.platform.software.chat.conversation.entity.ConversationEvent;
-import com.platform.software.chat.conversation.entity.ConversationReport;
-import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
+import com.platform.software.chat.conversation.entity.*;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
+import com.platform.software.chat.conversation.repository.ConversationInviteLinkRepository;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
@@ -63,6 +61,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
+
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -93,6 +93,10 @@ public class ConversationService {
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ConversationInviteLinkRepository conversationInviteLinkRepository;
+
+    private static final int INVITE_LINK_MAX_PARTICIPANTS = 5;
+    private static final int INVITE_LINK_EXPIRY_DAYS = 5;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -825,8 +829,6 @@ public class ConversationService {
      */
     @Transactional
     public void addParticipantsToConversation(Long initiatorUserId, Long conversationId, JoinParticipantRequestDTO joinRequest) {
-        // TODO: Currently, if a participant is rejoined, their entire conversation history becomes visible again.
-        //       Fix this later by introducing a new table to store participant lifecycle details
 
         ValidationUtils.validate(joinRequest);
 
@@ -1459,5 +1461,46 @@ public class ConversationService {
         });
 
         return userDTOs;
+    }
+
+    /**
+     * Creates a shareable invite link for a conversation.
+     * Only conversation admins are allowed to generate invite links.
+     * The link expires after 5 days and has a limited number of uses.
+     *
+     * @param loggedInUserId  ID of the user requesting the invite link
+     * @param conversationId ID of the target conversation
+     * @return generated invite link details
+     * @throws CustomForbiddenException if the user is not an admin of the conversation
+     */
+    @Transactional
+    public InviteLinkDTO createInviteLink(Long loggedInUserId, Long conversationId){
+        ConversationParticipant requestedParticipant = conversationUtilService
+                .getConversationParticipantOrThrow(conversationId, loggedInUserId);
+
+        if(!requestedParticipant.getConversation().getIsGroup()){
+            throw new CustomBadRequestException("Invite links can only be created for group conversations");
+        }
+
+        if (!requestedParticipant.getRole().equals(ConversationParticipantRoleEnum.ADMIN)) {
+            throw new CustomForbiddenException("Only admins can invite participants");
+        }
+
+        ConversationInviteLink inviteLink = new ConversationInviteLink();
+        inviteLink.setConversation(requestedParticipant.getConversation());
+        inviteLink.setCreatedBy(requestedParticipant.getUser());
+        inviteLink.setToken(ConversationUtilService.generateInviteToken());
+        inviteLink.setExpiresAt(
+                Date.from(Instant.now().plus(INVITE_LINK_EXPIRY_DAYS, ChronoUnit.DAYS))
+        );
+        inviteLink.setMaxUsers((long) INVITE_LINK_MAX_PARTICIPANTS);
+        inviteLink.setActive(true);
+
+        conversationInviteLinkRepository.save(inviteLink);
+
+        return new InviteLinkDTO(
+                conversationUtilService.buildInviteUrl(inviteLink.getToken()),
+                inviteLink.getExpiresAt()
+        );
     }
 }

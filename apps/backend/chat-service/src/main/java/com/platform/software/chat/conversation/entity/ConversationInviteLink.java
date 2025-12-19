@@ -21,8 +21,8 @@ public class ConversationInviteLink extends AuditModel {
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
-    @Column(name = "token", nullable = false, unique = true)
-    private Long token;
+    @Column(name = "token", nullable = false, unique = true, length = 64)
+    private String token;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", nullable = false)
@@ -32,7 +32,7 @@ public class ConversationInviteLink extends AuditModel {
 
     private Long maxUsers;
 
-    private Long usedCount;
+    private Long usedCount = 0L;
 
     private boolean isActive;
 }

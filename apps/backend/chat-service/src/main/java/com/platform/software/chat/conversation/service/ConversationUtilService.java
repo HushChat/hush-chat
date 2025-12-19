@@ -24,6 +24,7 @@ import com.platform.software.utils.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -41,11 +43,16 @@ import java.util.stream.Collectors;
 public class ConversationUtilService {
     Logger logger = LoggerFactory.getLogger(ConversationUtilService.class);
 
+    @Value("${client.base.url}")
+    private String frontendBaseUrl;
+
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final ConversationService conversationService;
+    private static final SecureRandom secureRandom = new SecureRandom();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
 
     public ConversationUtilService(
             ConversationParticipantRepository conversationParticipantRepository,
@@ -371,5 +378,26 @@ public class ConversationUtilService {
         }
 
         return attachmentDTOs;
+    }
+
+    /**
+     * Generates a secure, URL-safe random token for invite links.
+     *
+     * @return generated invite token
+     */
+    public static String generateInviteToken() {
+        byte[] randomBytes = new byte[24]; // 24 bytes = 32 chars
+        secureRandom.nextBytes(randomBytes);
+        return base64Encoder.encodeToString(randomBytes);
+    }
+
+    /**
+     * Builds the full invite URL using the given token.
+     *
+     * @param token invite token
+     * @return complete invite URL
+     */
+    public String buildInviteUrl(String token) {
+        return String.format("%s/invite/%s", frontendBaseUrl, token);
     }
 }
