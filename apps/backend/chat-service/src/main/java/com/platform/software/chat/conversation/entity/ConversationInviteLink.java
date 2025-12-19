@@ -17,6 +17,10 @@ public class ConversationInviteLink extends AuditModel {
     @GeneratedValue(generator = "conversation_invite_link_generator")
     private Long id;
 
+    //prevents concurrent updates
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;

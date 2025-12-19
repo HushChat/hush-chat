@@ -540,5 +540,12 @@ public class ConversationController {
         return ResponseEntity.ok(conversationService.createInviteLink(userDetails.getId(), conversationId));
     }
 
-
+    @ApiOperation(value = "Join conversation using invite token", response = ConversationDTO.class)
+    @GetMapping("join/{token}")
+    public ResponseEntity<ConversationDTO> joinConversationByInviteLink(
+            @PathVariable String token,
+            @AuthenticatedUser UserDetails userDetails
+    ){
+        return ResponseEntity.ok(conversationService.joinConversationByInviteLink(userDetails.getId(), token));
+    }
 }

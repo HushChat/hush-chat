@@ -1495,4 +1495,63 @@ public class ConversationService {
                 inviteLink.getExpiresAt()
         );
     }
+
+    /**
+     * Allows a user to join a group conversation using a valid invite link.
+     * Validates the invite link, checks existing participation, and adds or
+     * reactivates the participant while updating invite link usage.
+     *
+     * @param loggedInUserId ID of the user joining the conversation
+     * @param token invite link token
+     * @return conversation details after joining
+     * @throws CustomBadRequestException if the invite link is invalid, expired,
+     *         already used up, or the user is already an active participant
+     */
+    @Transactional
+    public ConversationDTO joinConversationByInviteLink(Long loggedInUserId, String token){
+        ConversationInviteLink conversationInviteLink =
+                conversationInviteLinkRepository.findValidInviteLinkByToken(token);
+
+        //Validate user
+        Map<Long, ChatUser> validUser =
+                conversationUtilService.validateUsersTryingToAdd(Collections.singletonList(loggedInUserId));
+
+        Conversation conversation = conversationInviteLink.getConversation();
+
+        //Get conversation existing participant
+        Map<Long, ConversationParticipant> existingUser = conversationUtilService
+                .getConversationParticipantMap(conversation.getId(), Collections.singletonList(loggedInUserId));
+
+        ConversationParticipant participantToAdd;
+
+        if(existingUser == null || !existingUser.containsKey(loggedInUserId)){
+
+            participantToAdd = createParticipant(validUser.get(loggedInUserId), conversation);
+
+        } else {
+            participantToAdd = existingUser.get(loggedInUserId);
+
+            if (participantToAdd.getIsActive()) {
+                throw new CustomBadRequestException("You are already a participant in this conversation");
+            }
+
+            ParticipantProcessingResult participantProcessingResult = processExistingParticipants(Collections.singletonList(participantToAdd));
+            participantToAdd = participantProcessingResult.reactivated().getFirst();
+        }
+
+        //increment used by count
+        conversationInviteLink.setUsedCount(
+                conversationInviteLink.getUsedCount() + 1
+        );
+
+        try {
+            conversationParticipantRepository.save(participantToAdd);
+            conversationInviteLinkRepository.save(conversationInviteLink);
+        } catch (Exception e) {
+            logger.error("Failed to add participant. conversationId={}, initiator={}", conversation.getId(), loggedInUserId, e);
+            throw new CustomBadRequestException("Failed to join the conversation. Please try again later");
+        }
+
+        return new ConversationDTO(conversation);
+    }
 }
