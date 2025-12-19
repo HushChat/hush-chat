@@ -23,6 +23,7 @@ interface IUseSendMessageHandlerParams {
     parentMessageId?: number | null
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
+  updateConversationMessagesCache: (message: IMessage) => void;
 }
 
 const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg", "gif", "webp"];
