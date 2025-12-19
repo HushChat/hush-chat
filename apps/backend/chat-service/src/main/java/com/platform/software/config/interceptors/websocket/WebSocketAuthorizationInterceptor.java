@@ -118,8 +118,8 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             // Store session information in STOMP session attributes
             accessor.getSessionAttributes().put(GeneralConstants.USER_ID_ATTR, sessionKey);
             accessor.getSessionAttributes().put(Constants.JWT_CLAIM_EMAIL, email);
-            accessor.getSessionAttributes().put("workspaceId", workspaceId);
-            accessor.getSessionAttributes().put("deviceType", deviceType);
+            accessor.getSessionAttributes().put(GeneralConstants.WORKSPACE_ID, workspaceId);
+            accessor.getSessionAttributes().put(GeneralConstants.DEVICE_TYPE, deviceType);
 
             // Use sessionKey as the principal identifier
             Principal principal = () -> sessionKey;
@@ -149,7 +149,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     private void handleDisconnection(StompHeaderAccessor accessor) {
         String sessionKey = (String) accessor.getSessionAttributes().get(GeneralConstants.USER_ID_ATTR);
         String email = (String) accessor.getSessionAttributes().get(Constants.JWT_CLAIM_EMAIL);
-        String deviceType = (String) accessor.getSessionAttributes().get("deviceType");
+        String deviceType = (String) accessor.getSessionAttributes().get(GeneralConstants.DEVICE_TYPE);
 
         if (sessionKey != null) {
             sessionManager.removeWebSocketSessionInfo(sessionKey, email, deviceType);
@@ -164,13 +164,11 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {
         WebSocketSessionInfoDAO existingSession = sessionManager.getWebSocketSessionInfo(sessionKey);
 
-        String deviceType = extractHeaderValue(accessor, "Device-Type");
+        String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
 
         if (existingSession == null) {
-            logger.info("workspace-id: {} user {} connected via {}", workspaceId, user.getId(), deviceType);
             sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType);
         } else {
-            logger.info("workspace-id: {} user {} re-connected via {}", workspaceId, user.getId(), deviceType);
             sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType);
         }
     }

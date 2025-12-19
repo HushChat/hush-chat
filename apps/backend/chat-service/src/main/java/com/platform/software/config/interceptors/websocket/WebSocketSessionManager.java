@@ -227,6 +227,16 @@ public class WebSocketSessionManager {
             : ChatUserStatus.OFFLINE;
     }
 
+    /**
+     * Retrieves the device type for a user's active WebSocket session in a workspace.
+     *
+     * @param workspaceId the unique identifier of the workspace
+     * @param email the email address of the user
+     * @return the {@link DeviceType} of the user's active session, or {@code null} if no active
+     *         session exists for the specified workspace and email combination
+     * @see #getSessionKey(String, String)
+     * @see WebSocketSessionInfoDAO#getDeviceType()
+     */
     public DeviceType getUserDeviceType(String workspaceId, String email) {
         String webSocketStoreKey = getSessionKey(workspaceId, email);
         WebSocketSessionInfoDAO sessionInfo = webSocketSessionInfos.get(webSocketStoreKey);
