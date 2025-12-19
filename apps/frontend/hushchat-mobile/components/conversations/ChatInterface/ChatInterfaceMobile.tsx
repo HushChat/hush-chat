@@ -22,6 +22,7 @@ import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatus
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { AppText } from "@/components/AppText";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
+import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
 
 export default function ChatInterfaceMobile({
   chatItemList,
@@ -35,6 +36,8 @@ export default function ChatInterfaceMobile({
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
   const { selectedConversationType, setSelectedConversationType } = useConversationStore();
   const { workspaces } = useUserWorkspacesQuery();
+
+  const headerTitle = useConversationHeaderTitle(selectedConversationType);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -113,7 +116,7 @@ export default function ChatInterfaceMobile({
                 "text-3xl font-bold": selectedConversationType !== ConversationType.ARCHIVED,
               })}
             >
-              {selectedConversationType === ConversationType.ARCHIVED ? "Archived" : "Chats"}
+              {headerTitle}
             </AppText>
           </View>
 
