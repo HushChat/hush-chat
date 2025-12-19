@@ -88,7 +88,7 @@ export const DocumentCard = ({ attachment, isCurrentUser, onLongPress }: TDocume
         </View>
 
         <View style={staticStyles.documentDownloadContainer}>
-            <Ionicons name="download-outline" size={16} color={color} />
+          <Ionicons name="download-outline" size={16} color={color} />
         </View>
       </View>
     </TouchableOpacity>

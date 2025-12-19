@@ -33,12 +33,12 @@ const ActionsHeader = ({
   onSelectMessageInfo,
   onDownload,
 }: ActionsHeaderProps) => {
-  debugger;
   const { user } = useUserStore();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
   const currentUserIsSender = user?.id === message?.senderId;
-  const downloadableAttachment = selectedAttachment || 
-    message?.messageAttachments?.find(att => getFileType(att.originalFileName) !== 'image');
+  const downloadableAttachment =
+    selectedAttachment ||
+    message?.messageAttachments?.find((att) => getFileType(att.originalFileName) !== "image");
 
   return (
     <View className="absolute bottom-full !z-50 w-full bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
@@ -68,11 +68,10 @@ const ActionsHeader = ({
           </View>
         </View>
 
-
         <View className="flex-row items-center gap-2">
           {downloadableAttachment && (
-            <HeaderAction 
-              iconName="download-outline" 
+            <HeaderAction
+              iconName="download-outline"
               onPress={() => onDownload(downloadableAttachment)}
             />
           )}
