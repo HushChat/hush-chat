@@ -33,6 +33,7 @@ import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.common.utils.StringUtils;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.DocUploadRequestDTO;
@@ -394,7 +395,7 @@ public class ConversationService {
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
                 .peek(dto -> {
-                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
+                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM ,dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
 
@@ -459,7 +460,8 @@ public class ConversationService {
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
             if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                String signedImageUrl =
+                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
                 user.setSignedImageUrl(signedImageUrl);
             }
 
@@ -979,6 +981,12 @@ public class ConversationService {
 
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
 
+            eventPublisher.publishEvent(new ConversationUpdateEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    adminUserId,
+                    conversation
+            ));
+
             return buildConversationDTO(conversation);
         } catch (Exception e) {
             logger.error("failed to update group info for conversationId: {} by user id: {}",
@@ -1020,10 +1028,16 @@ public class ConversationService {
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
 
         if (imageSignedDTO != null && CommonUtils.isNotEmptyObj(imageSignedDTO.getIndexedFileName())) {
-            conversation.setImageIndexedName(imageSignedDTO.getIndexedFileName());
+            conversation.setImageIndexedName(newFileName);
             try {
                 conversationRepository.save(conversation);
                 cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+
+                eventPublisher.publishEvent(new ConversationUpdateEvent(
+                        WorkspaceContext.getCurrentWorkspace(),
+                        loggedInUserId,
+                        conversation
+                ));
             } catch (Exception exception) {
                 logger.error("failed to update group icon for conversationId: {} by user id: {}",
                         conversationId, loggedInUserId, exception);
@@ -1172,7 +1186,8 @@ public class ConversationService {
                 .findDirectOtherMeta(conversationId, requestingUserId)
                 .orElseThrow(() -> new CustomBadRequestException("No other user found or not a direct conversation"));
 
-        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(meta.getImageIndexedName());
+        String imageViewSignedUrl =
+                conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.LARGE, meta.getImageIndexedName());
         meta.setSignedImageUrl(imageViewSignedUrl);
         meta.setImageIndexedName(null);
 
@@ -1229,7 +1244,7 @@ public class ConversationService {
         }
 
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
-        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(conversation.getImageIndexedName());
+        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.LARGE, conversation.getImageIndexedName());
         conversation.setSignedImageUrl(imageViewSignedUrl);
 
         if (!conversation.getIsGroup()) {
@@ -1301,7 +1316,8 @@ public class ConversationService {
                     ));
 
             String imageIndexedName = directOtherMeta.getImageIndexedName();
-            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
+            String signedImageIndexedName =
+                    conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
 
             conversationMetaDataDTO.setName(directOtherMeta.getFullName());
             conversationMetaDataDTO.setIsBlocked(directOtherMeta.isBlocked());
@@ -1319,7 +1335,7 @@ public class ConversationService {
 
         } else {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
-            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
+            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
         }
 
