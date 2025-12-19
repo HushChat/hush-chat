@@ -1476,15 +1476,7 @@ public class ConversationService {
     @Transactional
     public InviteLinkDTO createInviteLink(Long loggedInUserId, Long conversationId){
         ConversationParticipant requestedParticipant = conversationUtilService
-                .getConversationParticipantOrThrow(conversationId, loggedInUserId);
-
-        if(!requestedParticipant.getConversation().getIsGroup()){
-            throw new CustomBadRequestException("Invite links can only be created for group conversations");
-        }
-
-        if (!requestedParticipant.getRole().equals(ConversationParticipantRoleEnum.ADMIN)) {
-            throw new CustomForbiddenException("Only admins can invite participants");
-        }
+                .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
 
         ConversationInviteLink inviteLink = new ConversationInviteLink();
         inviteLink.setConversation(requestedParticipant.getConversation());
