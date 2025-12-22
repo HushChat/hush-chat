@@ -1,9 +1,9 @@
 databaseChangeLog:
   - changeSet:
-      id: add_status_attribute_to_workspace
+      id: add_pinned_message_until_to_conversation
       author: ransilu
       tag: release-7.1
-      comment: "add new add pinned_message_until column to conversation table"
+      comment: "add new pinned_message_until column to conversation table"
       changes:
         - addColumn:
             tableName: conversation
