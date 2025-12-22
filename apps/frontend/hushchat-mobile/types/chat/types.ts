@@ -327,3 +327,9 @@ export const DEFAULT_CONFIG: ConversationInputConfig = {
   placeholder: "Type a message...",
   autoFocus: false,
 };
+
+export const PIN_MESSAGE_OPTIONS = [
+  { label: "1 day", value: "1d" },
+  { label: "7 days", value: "7d" },
+  { label: "30 days", value: "30d" },
+];

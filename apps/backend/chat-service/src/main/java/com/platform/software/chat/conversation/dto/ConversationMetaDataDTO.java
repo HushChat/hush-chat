@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -24,10 +24,7 @@ public class ConversationMetaDataDTO {
     private String description;
     private BasicMessageDTO pinnedMessage;
     private ChatUserStatus chatUserStatus;
-
-    // remove this, redis cache ignore this since it use Jakson
-    @JsonIgnore
-    private ZonedDateTime pinnedMessageUntil;
+    private Date pinnedMessageUntil;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();
@@ -37,6 +34,8 @@ public class ConversationMetaDataDTO {
         this.isBlocked = false;
         this.description = conversation.getDescription();
         this.signedImageUrl = conversation.getSignedImageUrl();
-        this.pinnedMessageUntil = conversation.getPinnedMessageUntil();
+        this.pinnedMessageUntil = conversation.getPinnedMessageUntil() != null
+                ? Date.from(conversation.getPinnedMessageUntil().toInstant())
+                : null;
     }
 }

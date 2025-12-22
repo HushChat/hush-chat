@@ -60,6 +60,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
+
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -1341,7 +1343,8 @@ public class ConversationService {
 
         boolean isPinnedMessageExpired = false;
         if (conversationMetaDataDTO.getPinnedMessageUntil() != null) {
-            isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().isBefore(ZonedDateTime.now());
+
+            isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().toInstant().isBefore(Instant.now());
 
             if (isPinnedMessageExpired) {
                 Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);

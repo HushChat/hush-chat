@@ -157,6 +157,7 @@ public class ConversationMessageController {
      *
      * @param conversationId the ID of the conversation
      * @param messageId the ID of the message to pin
+     * @param duration the duration the message needs to be pinned
      * @param userDetails the authenticated user details
      * @return ResponseEntity with status OK
      */
@@ -165,7 +166,7 @@ public class ConversationMessageController {
     public ResponseEntity<Void> pinMessage(
             @PathVariable Long conversationId,
             @PathVariable Long messageId,
-            @RequestParam String duration,
+            @RequestParam(required = false) String duration,
             @AuthenticatedUser UserDetails userDetails
     ) {
         conversationService.togglePinMessage(
