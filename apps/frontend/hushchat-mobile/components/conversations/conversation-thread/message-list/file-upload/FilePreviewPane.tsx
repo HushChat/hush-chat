@@ -7,8 +7,7 @@ import { SIZES } from "@/constants/mediaConstants";
 import { AppText } from "@/components/AppText";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
-import { getFileTypeFromName } from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewItem";
-
+import { getFileType } from "@/utils/files/getFileType";
 type TFilePreviewPaneProps = {
   file: File;
   conversationId: number;
@@ -43,7 +42,7 @@ const FilePreviewPane = ({
   useEffect(() => {
     if (!file) return;
 
-    const type = getFileTypeFromName(file.name);
+    const type = getFileType(file.name);
     setFileType(type);
 
     if (type !== "document") {
