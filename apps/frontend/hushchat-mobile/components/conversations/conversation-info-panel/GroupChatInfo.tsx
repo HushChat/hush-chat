@@ -35,12 +35,14 @@ interface GroupChatInfoProps {
   conversation: IConversation;
   onBack: () => void;
   setSelectedConversation: (conversation: null) => void;
+  onShowMediaAttachments: () => void;
 }
 
 export default function GroupChatInfo({
   conversation,
   onBack,
   setSelectedConversation,
+  onShowMediaAttachments,
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
 
@@ -324,6 +326,7 @@ export default function GroupChatInfo({
                 isMuted={!!conversationInfo?.mutedUntil}
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
+                onShowMediaAttachments={onShowMediaAttachments}
               />
               <ActionItem
                 icon="exit-outline"

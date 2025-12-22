@@ -1,7 +1,13 @@
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import axios, { AxiosError } from "axios";
-import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/types/chat/types";
+import {
+  IConversation,
+  IGroupConversation,
+  IMessage,
+  IMessageView,
+  MessageAttachmentTypeEnum,
+} from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
@@ -54,6 +60,10 @@ export type ReportReason = "SPAM" | "HARASSMENT" | "INAPPROPRIATE_CONTENT" | "OT
 export interface ReportConversationParams {
   conversationId: number;
   reason: ReportReason;
+}
+
+export interface AttachmentFilterCriteria {
+  type: MessageAttachmentTypeEnum;
 }
 
 export const getAllConversations = async (
@@ -486,6 +496,26 @@ export const sendInviteToWorkspace = async (email: string) => {
   }
 };
 
+export const getConversationAttachments = async (
+  conversationId: number,
+  criteria: AttachmentFilterCriteria,
+  page: number,
+  size: number
+) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_CONVERSATION_ATTACHMENTS(conversationId),
+      {
+        params: { ...criteria, page, size },
+      }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const createInviteLink = async (conversationId: number) => {
   try {
     const response = await axios.post(
@@ -506,3 +536,4 @@ export const getInviteLink = async (conversationId: number) => {
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
+

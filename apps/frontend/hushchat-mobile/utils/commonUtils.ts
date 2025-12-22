@@ -193,6 +193,15 @@ const getPaginationConfig = <T extends { id: any }>() => {
   };
 };
 
+const capitalizeFirstLetter = (word: string): string => {
+  if (!word) return "";
+
+  const trimmed = word.trim();
+  if (!trimmed) return "";
+
+  return trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase();
+};
+
 const getDeviceType = (): DeviceType => {
   if (PLATFORM.IS_WEB) return DeviceType.WEB;
   return DeviceType.MOBILE;
@@ -212,5 +221,6 @@ export {
   getPaginationConfig,
   shouldUseMobileUI,
   navigateBackOrFallback,
+  capitalizeFirstLetter,
   getDeviceType,
 };
