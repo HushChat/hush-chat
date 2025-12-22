@@ -95,10 +95,6 @@ export default function RegularConversationListView({
 
   const renderItem = useCallback(
     ({ item }: { item: IConversation }) => {
-      if (!item.messages || item.messages.length === 0) {
-        return null;
-      }
-
       return (
         <ConversationListItem
           conversation={item}
