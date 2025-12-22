@@ -28,8 +28,8 @@ export interface ReactionSummary {
 }
 
 export enum MessageAttachmentTypeEnum {
-  IMAGE = "IMAGE",
-  DOCUMENT = "DOCUMENT",
+  MEDIA = "MEDIA",
+  DOCS = "DOCS",
 }
 
 export interface IMessageAttachment {
@@ -39,6 +39,7 @@ export interface IMessageAttachment {
   indexedFileName: string;
   fileUrl: string;
   type: MessageAttachmentTypeEnum;
+  updatedAt: string;
 }
 
 export enum MessageTypeEnum {
