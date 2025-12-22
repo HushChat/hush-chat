@@ -977,6 +977,11 @@ public class ConversationService {
 
         conversation.setName(newName);
         conversation.setDescription(groupConversationDTO.getDescription());
+
+        if (groupConversationDTO.getOnlyAdminsCanSendMessages() != null) {
+            conversation.setOnlyAdminsCanSendMessages(groupConversationDTO.getOnlyAdminsCanSendMessages());
+        }
+
         try {
             conversationRepository.save(conversation);
             setGroupUpdateChangeEvents(adminUserId, isGroupNameChanged, conversation, isGroupDescriptionChanged);
@@ -1010,6 +1015,38 @@ public class ConversationService {
             conversationEventService.createMessageWithConversationEvent(
                 conversationId, adminUserId, null, ConversationEventType.GROUP_DESCRIPTION_CHANGED
             );
+        }
+    }
+
+    /**
+     * Updates the onlyAdminsCanSendMessages permission setting for a group conversation.
+     * This setting restricts message sending to admin participants only when enabled.
+     * Only admin participants are authorized to modify this setting.
+     * @param adminUserId id of requesting user (must be admin)
+     * @param conversationId id of conversation
+     * @param conversationPermissionUpdateDTO the DTO containing the new permission setting
+     * @return ConversationDTO the updated conversation data
+     */
+    @Transactional
+    public ConversationDTO updateOnlyAdminsCanSendMessages(Long adminUserId, Long conversationId, ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO) {
+        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
+        Conversation conversation = adminParticipant.getConversation();
+
+        if (conversation.getOnlyAdminsCanSendMessages() != null && 
+            conversation.getOnlyAdminsCanSendMessages().equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages())) {
+            return buildConversationDTO(conversation);
+        }
+
+        conversation.setOnlyAdminsCanSendMessages(Boolean.TRUE.equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages()));
+
+        try {
+            conversationRepository.save(conversation);
+            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+            return buildConversationDTO(conversation);
+        } catch (Exception e) {
+            logger.error("failed to update onlyAdminsCanSendMessages for conversationId: {} by user id: {}",
+                    conversationId, adminUserId, e);
+            throw new CustomInternalServerErrorException("Failed to update conversation permission setting");
         }
     }
 
@@ -1339,6 +1376,11 @@ public class ConversationService {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
             String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
+            ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+
+            if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
+                conversationMetaDataDTO.setIsCurrentUserAdmin(true);
+            }
         }
 
         boolean isPinnedMessageExpired = false;

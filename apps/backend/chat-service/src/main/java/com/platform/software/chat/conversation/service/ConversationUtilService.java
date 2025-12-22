@@ -377,4 +377,29 @@ public class ConversationUtilService {
 
         return attachmentDTOs;
     }
+
+    /**
+     * Retrieves all active participants of a conversation except the given sender.
+     * <p>
+     * A participant is considered active if they:
+     * <ul>
+     *   <li>Belong to the given conversation</li>
+     *   <li>Are not marked as deleted from the conversation</li>
+     *   <li>Are marked as active</li>
+     * </ul>
+     * The sender is explicitly excluded from the returned result.
+     *
+     * @param conversationId the conversation ID
+     * @param senderId       the user ID to exclude from the result
+     * @return a list of active chat users in the conversation excluding the sender
+     */
+    public List<ChatUser> getAllActiveParticipantsExceptSender(Long conversationId, Long senderId) {
+        return conversationParticipantRepository
+            .findByConversationIdAndConversationDeletedFalseAndIsActiveTrue(conversationId)
+            .stream()
+            .map(ConversationParticipant::getUser)
+            .filter(user -> user != null && user.getId() != null)
+            .filter(user -> !user.getId().equals(senderId))
+            .toList();
+    }
 }

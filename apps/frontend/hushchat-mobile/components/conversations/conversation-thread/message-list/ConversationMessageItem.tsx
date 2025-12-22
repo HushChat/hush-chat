@@ -34,7 +34,7 @@ import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
-import { isImageAttachment } from "@/utils/messageHelpers";
+import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
 import { router } from "expo-router";
@@ -109,9 +109,11 @@ export const ConversationMessageItem = ({
 
   const queryClient = useQueryClient();
 
+  const hasMedia = useMemo(
+    () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
+    [attachments]
+  );
   const { openModal, closeModal } = useModalContext();
-
-  const hasImages = () => attachments.some(isImageAttachment);
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
   const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
@@ -314,6 +316,7 @@ export const ConversationMessageItem = ({
     },
     [createConversation]
   );
+
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
     () => {
@@ -484,7 +487,7 @@ export const ConversationMessageItem = ({
                   isCurrentUser={isCurrentUser}
                   hasText={hasText}
                   hasAttachments={hasAttachments}
-                  hasImages={hasImages()}
+                  hasMedia={hasMedia}
                   selected={selected}
                   selectionMode={selectionMode}
                   isForwardedMessage={isForwardedMessage}

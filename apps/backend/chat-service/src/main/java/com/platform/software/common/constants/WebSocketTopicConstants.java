@@ -30,4 +30,7 @@ public final class WebSocketTopicConstants {
     /** Message unsent event */
     public static final String MESSAGE_UNSENT = "/topic/message-unsent/";
 
+    /** Message reaction event */
+    public static final String MESSAGE_REACTION = "/topic/message-reaction/";
+
 }

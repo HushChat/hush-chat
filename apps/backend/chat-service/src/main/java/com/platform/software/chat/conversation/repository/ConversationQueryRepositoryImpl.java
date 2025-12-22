@@ -9,6 +9,7 @@ import com.platform.software.chat.conversationparticipant.entity.QConversationPa
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
@@ -25,10 +26,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
@@ -254,7 +252,13 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                 ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail());
 
+                                DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                                        WorkspaceContext.getCurrentWorkspace(),
+                                        otherParticipant.getUser().getEmail()
+                                );
+
                                 dto.setChatUserStatus(status);
+                                dto.setDeviceType(deviceType);
                             }
                         }
                     }
@@ -268,11 +272,13 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         if (isVisible) {
                                 MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
                                 dto.setMessages(List.of(messageViewDTO));
+                                return dto;
                         }
                     }
 
-                    return dto;
+                    return dto.getIsGroup() ? dto : null;
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         return new PageImpl<>(conversationDTOs, pageable, totalCount);
@@ -334,7 +340,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         .and(qConversationParticipant.isActive.isTrue()))
                 .fetchFirst() != null;
     }
-  
+
     public Optional<DirectOtherMetaDTO> findDirectOtherMeta(Long conversationId, Long userId) {
           QConversation c = QConversation.conversation;
           QConversationParticipant cpSelf = QConversationParticipant.conversationParticipant;

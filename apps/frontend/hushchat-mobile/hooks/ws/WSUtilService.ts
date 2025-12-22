@@ -1,6 +1,7 @@
 import { logDebug, logInfo } from "@/utils/logger";
 import { decodeJWTToken } from "@/utils/authUtils";
 import { INVALID_ACCESS_TOKEN_ERROR } from "@/constants/wsConstants";
+import { DeviceType } from "@/types/chat/types";
 
 interface DecodedJWTPayload {
   sub: string;
@@ -12,14 +13,19 @@ interface DecodedJWTPayload {
 
   [key: string]: any;
 }
-
-export const subscribeToTopic = (ws: WebSocket, destination: string, subscriptionId: string) => {
+export const subscribeToTopic = (
+  ws: WebSocket,
+  destination: string,
+  subscriptionId: string,
+  deviceType: DeviceType
+) => {
   const fullDestination = `/user${destination}`;
 
   const subscribeFrameBytes = [
     ...Array.from(new TextEncoder().encode("SUBSCRIBE\n")),
     ...Array.from(new TextEncoder().encode(`destination:${fullDestination}\n`)),
     ...Array.from(new TextEncoder().encode(`id:${subscriptionId}\n`)),
+    ...Array.from(new TextEncoder().encode(`Device-Type:${deviceType}\n`)),
     0x0a, // empty line
     0x00, // null terminator
   ];

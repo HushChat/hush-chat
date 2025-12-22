@@ -1,6 +1,5 @@
 package com.platform.software.chat.notification.service;
 
-import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.notification.dto.DeviceTokenUpsertDTO;
@@ -111,8 +110,9 @@ public class ChatNotificationService {
         boolean mentionsAll = message.getMessageText().toLowerCase().contains(Constants.MENTION_ALL);
 
         List<Long> mentionedUsers = mentionsAll
-                ? null
-                : messageMentionService.getMentionedUsersByUsernames(message.getMessageText()).stream()
+                ? List.of()
+                : messageMentionService.getMentionedUsersByUsernames(message.getMessageText())
+                .stream()
                 .map(ChatUser::getId)
                 .collect(Collectors.toList());
 

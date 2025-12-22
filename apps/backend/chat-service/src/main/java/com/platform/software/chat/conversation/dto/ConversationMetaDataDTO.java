@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.user.entity.ChatUserStatus;
@@ -24,6 +23,8 @@ public class ConversationMetaDataDTO {
     private String description;
     private BasicMessageDTO pinnedMessage;
     private ChatUserStatus chatUserStatus;
+    private Boolean onlyAdminsCanSendMessages;
+    private Boolean isCurrentUserAdmin;
     private Date pinnedMessageUntil;
 
     public ConversationMetaDataDTO(Conversation conversation) {
@@ -34,6 +35,7 @@ public class ConversationMetaDataDTO {
         this.isBlocked = false;
         this.description = conversation.getDescription();
         this.signedImageUrl = conversation.getSignedImageUrl();
+        this.onlyAdminsCanSendMessages = conversation.getOnlyAdminsCanSendMessages();
         this.pinnedMessageUntil = conversation.getPinnedMessageUntil() != null
                 ? Date.from(conversation.getPinnedMessageUntil().toInstant())
                 : null;

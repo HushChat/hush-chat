@@ -3,11 +3,9 @@ package com.platform.software.chat.message.attachment.repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.AttachmentFilterTypeEnum;
 import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
@@ -34,7 +32,7 @@ public class MessageAttachmentQueryRepositoryImpl implements MessageAttachmentQu
     }
 
     @Override
-    public Page<MessageAttachmentDTO> filterAttachments(
+    public Page<MessageAttachment> filterAttachments(
         AttachmentFilterCriteria filterCriteria,
         Pageable pageable
     ) {
@@ -56,11 +54,9 @@ public class MessageAttachmentQueryRepositoryImpl implements MessageAttachmentQu
             .limit(pageable.getPageSize())
             .fetch();
 
-        Page<MessageAttachmentDTO> attachmentDTOs = new PageImpl<>(
-                attachments.stream().map(MessageAttachmentDTO::new).collect(Collectors.toList()),
-                pageable, totalCount);
+        Page<MessageAttachment> attachmentPage = new PageImpl<>(attachments, pageable, totalCount);
 
-        return attachmentDTOs;
+        return attachmentPage;
     }
 
     private void applyFilters(JPAQuery<MessageAttachment> query, AttachmentFilterCriteria filterCriteria) {
