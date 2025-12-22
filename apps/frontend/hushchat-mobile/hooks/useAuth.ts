@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuthStore } from "@/store/auth/authStore";
 import { useRouter } from "expo-router";
 import { loginUser } from "@/services/authService";
@@ -11,6 +11,17 @@ export function useAuth() {
   const router = useRouter();
   const saveUserAuthData = useAuthStore((state) => state.saveUserAuthData);
   const queryClient = useQueryClient();
+
+  const handleLoginSuccess = useCallback(
+    async (idToken: string, accessToken: string, refreshToken: string) => {
+      await saveUserAuthData(idToken, accessToken, refreshToken);
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      router.replace(AUTH_WORKSPACE_FORM_PATH);
+    },
+    [saveUserAuthData, router]
+  );
 
   const handleLogin = async (username: string, password: string) => {
     queryClient.clear();
@@ -27,17 +38,13 @@ export function useAuth() {
       return;
     }
 
-    await saveUserAuthData(response.idToken, response.accessToken, response.refreshToken);
-
-    // small delay to ensure storage flushes on slower devices
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    router.replace(AUTH_WORKSPACE_FORM_PATH);
+    await handleLoginSuccess(response.idToken, response.accessToken, response.refreshToken);
   };
 
   return {
     errorMessage,
     setErrorMessage,
     handleLogin,
+    handleLoginSuccess,
   };
 }

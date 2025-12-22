@@ -6,7 +6,7 @@ import {
   FormContainer,
 } from "@/components/FormComponents";
 import { memo } from "react";
-import { TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 import { AUTH_FORGOT_PASSWORD_PATH, AUTH_REGISTER_PATH } from "@/constants/routes";
 import { TLoginFormProps } from "@/types/login/types";
@@ -23,11 +23,8 @@ export const LoginForm = memo(
     formErrors,
     showErrors,
     onValueChange,
-    // 🔽 BIOMETRIC PROPS
-    biometricInfo,
-    isBiometricEnabled,
-    isAuthenticating,
-    handleBiometricLogin,
+    canUseBiometrics,
+    onBiometricLogin,
   }: TLoginFormProps) => (
     <FormContainer>
       <FormHeader
@@ -50,7 +47,6 @@ export const LoginForm = memo(
             showErrors={showErrors}
             onValueChange={onValueChange}
           />
-
           <TextField
             name="password"
             placeholder="Password"
@@ -71,25 +67,20 @@ export const LoginForm = memo(
           </AppText>
         </TouchableOpacity>
 
-        {/* 🔐 NORMAL LOGIN */}
         <FormButton title="Log In" onPress={onSubmit} colors={colors} />
-
-        {/* 🔐 BIOMETRIC LOGIN */}
-        {/* 🛡️ Added optional chaining (?) just in case, though hook fixes it */}
-        {biometricInfo?.isAvailable && isBiometricEnabled && (
+        {canUseBiometrics && (
           <TouchableOpacity
-            className="mt-4 flex-row items-center justify-center gap-2"
-            onPress={handleBiometricLogin}
-            disabled={isAuthenticating}
+            onPress={onBiometricLogin}
+            className="flex-row justify-center items-center p-3 rounded-xl border border-dashed mb-2"
+            style={{ borderColor: colors.primary }}
           >
-            {isAuthenticating ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : (
-              <Ionicons name="scan-outline" size={22} color={colors.primary} />
-            )}
-            <AppText className="text-[16px] font-semibold" style={{ color: colors.primary }}>
-              Login with {biometricInfo?.label || "Biometrics"}
-            </AppText>
+            <Ionicons
+              name="apps-outline"
+              size={16}
+              color={colors.primary}
+              style={{ marginRight: 8 }}
+            />
+            <AppText style={{ color: colors.primary, fontWeight: "600" }}>Login with Pin</AppText>
           </TouchableOpacity>
         )}
 

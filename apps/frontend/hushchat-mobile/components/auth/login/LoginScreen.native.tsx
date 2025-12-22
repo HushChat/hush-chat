@@ -1,4 +1,3 @@
-// app/(auth)/login.tsx
 import React from "react";
 import { useRouter } from "expo-router";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
@@ -18,11 +17,7 @@ export default function LoginScreen() {
     errorMessage,
     onValueChange,
     submit,
-
-    // ✅ BIOMETRIC PROPS (ONLY THESE EXIST)
-    biometricInfo,
-    isBiometricEnabled,
-    isAuthenticating,
+    canUseBiometrics,
     handleBiometricLogin,
   } = useLoginForm();
 
@@ -36,11 +31,8 @@ export default function LoginScreen() {
         formErrors={formErrors}
         showErrors={showErrors}
         onValueChange={onValueChange}
-        /* 🔐 BIOMETRIC */
-        biometricInfo={biometricInfo}
-        isBiometricEnabled={isBiometricEnabled}
-        isAuthenticating={isAuthenticating}
-        handleBiometricLogin={handleBiometricLogin}
+        canUseBiometrics={canUseBiometrics}
+        onBiometricLogin={handleBiometricLogin}
       />
     </AuthMobileLayout>
   );
