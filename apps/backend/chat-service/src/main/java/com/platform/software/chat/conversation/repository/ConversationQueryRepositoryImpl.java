@@ -276,7 +276,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         }
                     }
 
-                    return null;
+                    return dto.getIsGroup() ? dto : null;
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
