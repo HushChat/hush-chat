@@ -18,6 +18,7 @@ import { getFileType } from "@/utils/files/getFileType";
 import { capitalizeFirstLetter } from "@/utils/commonUtils";
 import { AttachmentFilterCriteria } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
+import classNames from "classnames";
 
 interface MediaAttachmentsViewProps {
   conversationId: number;
@@ -173,7 +174,7 @@ function Header({ title, onBack, color }: HeaderProps) {
   );
 }
 
-function TabBar({ activeTab, onTabChange, colors }: any) {
+function TabBar({ activeTab, onTabChange }: any) {
   return (
     <View className="flex-row justify-between px-4 border-b border-gray-500/20">
       {Object.values(MessageAttachmentTypeEnum).map((tab) => {
@@ -185,8 +186,10 @@ function TabBar({ activeTab, onTabChange, colors }: any) {
             className="flex-1 items-center justify-center py-4 relative"
           >
             <AppText
-              className="text-base font-medium"
-              style={{ color: isActive ? "#6B4EFF" : colors.icon }}
+              className={classNames(
+                "text-base font-medium",
+                isActive ? "text-primary" : "text-gray-400"
+              )}
             >
               {capitalizeFirstLetter(tab)}
             </AppText>
