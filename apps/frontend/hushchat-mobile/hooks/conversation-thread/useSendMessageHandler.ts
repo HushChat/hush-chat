@@ -6,6 +6,8 @@ import { IMessage, MessageAttachmentTypeEnum } from "@/types/chat/types";
 import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
+import { getFileType } from "@/utils/files/getFileType";
+import { ToastUtils } from "@/utils/toastUtils";
 
 export type TFileWithCaption = {
   file: File;
@@ -24,8 +26,6 @@ interface IUseSendMessageHandlerParams {
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
 }
-
-const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "svg", "gif", "webp"];
 
 let tempMessageIdCounter = -1;
 export const generateTempMessageId = (): number => tempMessageIdCounter--;
@@ -75,13 +75,28 @@ export const useSendMessageHandler = ({
 
   const renameFile = useCallback(
     (file: File, index: number): File => {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "";
-      const isImage = IMAGE_EXTENSIONS.includes(ext);
-
-      if (!isImage) return file;
-
       const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
-      const newName = `ChatApp Image ${currentConversationId}${index} ${timestamp}.${ext}`;
+      const ext = file.name.split(".").pop() || "";
+      const fileType = getFileType(file.name);
+
+      if (fileType === "unsupported") {
+        ToastUtils.error("Unsupported file type");
+        throw new Error("Unsupported file type");
+      }
+
+      let newName: string;
+
+      switch (fileType) {
+        case "image":
+          newName = `HushChat Image ${currentConversationId}-${index} ${timestamp}.${ext}`;
+          break;
+        case "video":
+          newName = `HushChat Video ${currentConversationId}-${index} ${timestamp}.${ext}`;
+          break;
+        case "document":
+          newName = file.name;
+          break;
+      }
 
       return new File([file], newName, {
         type: file.type,

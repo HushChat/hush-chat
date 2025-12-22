@@ -22,6 +22,7 @@ const TOPICS = [
   { destination: WS_TOPICS.user.onlineStatus, id: "sub-online-status" },
   { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
   { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
+  { destination: WS_TOPICS.message.react, id: "sub-message-reaction" },
 ] as const;
 
 export const publishUserActivity = (
