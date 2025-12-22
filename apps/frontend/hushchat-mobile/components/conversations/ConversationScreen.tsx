@@ -24,12 +24,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface/ChatInterface";
 import { router } from "expo-router";
 import { PLATFORM } from "@/constants/platformConstants";
-import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { CHATS_PATH } from "@/constants/routes";
 
 interface IConversationScreenProps {
   initialConversationId?: number;
@@ -101,11 +101,12 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   });
 
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
+    setSelectedConversation(conversation);
     if (PLATFORM.IS_WEB) {
       if (conversation) {
-        router.replace(CONVERSATION(conversation.id));
+        router.setParams({ id: conversation.id.toString() });
       } else {
-        router.replace(CHATS_PATH);
+        router.push(CHATS_PATH);
       }
     }
   }, []);
