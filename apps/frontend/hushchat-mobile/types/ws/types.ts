@@ -61,3 +61,18 @@ export interface MessageUnsentPayload {
   messageId: number;
   actorUserId: number;
 }
+
+export enum MessageReactionActionEnum {
+  ADDED = "ADDED",
+  UPDATED = "UPDATED",
+  REMOVED = "REMOVED",
+}
+
+export interface MessageReactionPayload {
+  conversationId: number;
+  messageId: number;
+  actorUserId: number;
+  reactionType: string | null;
+  previousReactionType?: string | null;
+  reactionAction: MessageReactionActionEnum;
+}
