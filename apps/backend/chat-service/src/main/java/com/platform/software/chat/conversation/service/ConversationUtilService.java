@@ -404,6 +404,21 @@ public class ConversationUtilService {
             .toList();
     }
 
+    /**
+     * Clears the pinned message of a conversation if it has expired.
+     * <p>
+     * This method checks whether the {@code pinnedMessageUntil} field in the given
+     * {@link ConversationMetaDataDTO} has passed the current time. If so, it removes
+     * the pinned message record from the conversation in the database and evicts
+     * related cache entries for the current workspace.
+     * </p>
+     *
+     * @param conversationId The unique identifier of the conversation whose pinned message may be cleared.
+     * @param userId The identifier of the user performing the operation, used for logging and auditing.
+     * @param conversationMetaDataDTO The metadata object containing the pinned message expiration timestamp.
+     * @return {@code true} if the pinned message was expired and successfully cleared (or attempted to clear),
+     *         {@code false} if no expiration occurred or the pinned message was not present.
+     */
     public boolean clearPinnedMessageIfExpired(Long conversationId, Long userId, ConversationMetaDataDTO conversationMetaDataDTO) {
         if (conversationMetaDataDTO.getPinnedMessageUntil() != null) {
             boolean isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().toInstant().isBefore(Instant.now());
