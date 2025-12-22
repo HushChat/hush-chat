@@ -84,6 +84,7 @@ export const USER_API_ENDPOINTS = {
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
   SAVE_TOKEN: `/notifications/device-token`,
   CHANGE_PASSWORD: `/users/change-password`,
+  CHANGE_AVAILABILITY_STATUS: `users/change-availability-status`,
 };
 
 export const MESSAGE_API_ENDPOINTS = {

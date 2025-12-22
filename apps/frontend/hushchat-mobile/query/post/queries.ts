@@ -12,7 +12,7 @@ import {
   reportConversation,
   ReportReason,
 } from "@/apis/conversation";
-import { blockUser, changePassword } from "@/apis/user";
+import { blockUser, changePassword, updateUserAvailabilityStatus } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { addMessageReaction, pinMessage } from "@/apis/message";
 import {
@@ -164,3 +164,5 @@ export const useChangePasswordQuery = createMutationHook<
   }
   return result;
 });
+
+export const useUpdateAvailabilityStatusMutation = createMutationHook(updateUserAvailabilityStatus);

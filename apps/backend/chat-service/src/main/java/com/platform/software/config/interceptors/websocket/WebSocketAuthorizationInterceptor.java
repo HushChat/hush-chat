@@ -167,9 +167,9 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
 
         if (existingSession == null) {
-            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType);
+            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType, user.getAvailabilityStatus());
         } else {
-            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType);
+            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType, user.getAvailabilityStatus());
         }
     }
 

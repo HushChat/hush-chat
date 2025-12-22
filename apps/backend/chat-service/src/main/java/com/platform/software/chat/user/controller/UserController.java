@@ -1,5 +1,6 @@
 package com.platform.software.chat.user.controller;
 
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.dto.UserResetPasswordDTO;
 
@@ -195,5 +196,24 @@ public class UserController {
             userResetPasswordDTO.getNewPassword()
         );
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * Updates the availability status of the currently authenticated user.
+     * <p>
+     * This endpoint allows an authenticated user to toggle or change their current availability status.
+     * The operation delegates the update to {@code userService.updateUserAvailability(UserDetails)},
+     * which returns the updated {@link UserStatusEnum}.
+     * </p>
+     *
+     * @param authenticatedUser the currently authenticated user obtained from the security context,
+     *                          injected via {@link AuthenticatedUser}
+     * @return a {@link ResponseEntity} containing the updated {@link UserStatusEnum} and an HTTP 200 (OK) status
+     */
+    @ApiOperation(value = "Change user availability status", response = UserStatusEnum.class)
+    @PatchMapping("change-availability-status")
+    public ResponseEntity<UserStatusEnum> updateUserAvailability(@AuthenticatedUser UserDetails authenticatedUser) {
+        UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser);
+        return new ResponseEntity<>(userStatusEnum, HttpStatus.OK);
     }
 }
