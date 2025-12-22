@@ -5,6 +5,7 @@ import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.user.entity.ChatUser;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,6 @@ public class ChatNotificationUtilService {
         List<ChatUser> users = messageMentionService.getMentionedUsersByUsernames(messageText);
         return users != null
                 ? users.stream().map(ChatUser::getId).collect(Collectors.toList())
-                : null;
+                : List.of();
     }
 }
