@@ -3,8 +3,6 @@ package com.platform.software.chat.user.controller;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.dto.UserResetPasswordDTO;
 
-import com.platform.software.config.workspace.WorkspaceContext;
-import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -32,18 +30,15 @@ public class UserController {
     private final UserService userService;
     private final CallLogService callLogService;
     private final CognitoService cognitoService;
-    private final WorkspaceUserService workspaceUserService;
 
     public UserController(
         UserService userService, 
         CallLogService callLogService,
-        CognitoService cognitoService,
-        WorkspaceUserService workspaceUserService
+        CognitoService cognitoService
         ) {
         this.userService = userService;
         this.callLogService = callLogService;
         this.cognitoService = cognitoService;
-        this.workspaceUserService = workspaceUserService;
     }
 
     /**
@@ -200,26 +195,5 @@ public class UserController {
             userResetPasswordDTO.getNewPassword()
         );
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    /**
-     * Updates the role of a user within the current workspace.
-     * <p>
-     * This endpoint allows the authenticated user to change the role of another user
-     * (identified by their email) in the currently active workspace context. The actual
-     * role-switching logic is delegated to {@code workspaceUserService.toggleUserRole}.
-     * </p>
-     *
-     * @param userDetails The details of the currently authenticated user, extracted from the authentication context.
-     * @param email       The email address of the user whose role should be toggled within the workspace.
-     * @return A {@link ResponseEntity} with HTTP status {@code 204 No Content} if the operation succeeds.
-     *
-     * @throws org.springframework.security.access.AccessDeniedException if the current user is not authorized to perform this operation.
-     */
-    @ApiOperation(value = "Update user role in workspace")
-    @PatchMapping("{email}/role")
-    public ResponseEntity<Void> toggleUserRole(@AuthenticatedUser UserDetails userDetails, @PathVariable String email) {
-        workspaceUserService.toggleUserRole(userDetails, WorkspaceContext.getCurrentWorkspace(), email);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

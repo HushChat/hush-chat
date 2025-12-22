@@ -200,16 +200,16 @@ public class WorkspaceUserService {
         WorkspaceUtils.runInGlobalSchema(() -> {
             transactionTemplate.executeWithoutResult(status -> {
                 WorkspaceUser requester = workspaceUserRepository.findByEmailAndRoleAndWorkspace_WorkspaceIdentifier(
-                        userDetails.getEmail(), WorkspaceUserRole.ADMIN, workspaceIdentifier).orElseThrow(() -> new CustomAccessDeniedException("User Has No Admin privilege"));
+                        userDetails.getEmail(), WorkspaceUserRole.ADMIN, workspaceIdentifier).orElseThrow(() -> new CustomAccessDeniedException("User has no admin privilege"));
 
                 if (requester.getEmail().equals(targetUserEmail)) {
                     logger.warn("admin {} attempted to change their own role", requester.getEmail());
-                    throw new CustomBadRequestException("You Cannot Change Your Own Role");
+                    throw new CustomBadRequestException("You cannot change your own role");
                 }
 
                 WorkspaceUser targetUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
                                 targetUserEmail, workspaceIdentifier)
-                        .orElseThrow(() -> new CustomBadRequestException("User Not Found In This Workspace"));
+                        .orElseThrow(() -> new CustomBadRequestException("User not found in this workspace"));
 
                 try {
                     targetUser.setRole(
@@ -225,7 +225,7 @@ public class WorkspaceUserService {
                     );
                 } catch (Exception e) {
                     logger.info("failed to change role for user: {} by user: {} to workspace: {}. Error: {}", targetUserEmail, userDetails.getEmail(), workspaceIdentifier, e.getMessage());
-                    throw new CustomBadRequestException("Update User Role Failed");
+                    throw new CustomBadRequestException("Update user role failed");
                 }
             });
         });

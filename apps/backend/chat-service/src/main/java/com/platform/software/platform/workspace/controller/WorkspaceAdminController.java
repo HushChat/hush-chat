@@ -79,4 +79,25 @@ public class WorkspaceAdminController {
         workspaceUserService.inviteUserToWorkspace(userDetails.getEmail(), workspaceIdentifier, workspaceUserInviteDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    /**
+     * Updates the role of a user within the current workspace.
+     * <p>
+     * This endpoint allows the authenticated user to change the role of another user
+     * (identified by their email) in the currently active workspace context. The actual
+     * role-switching logic is delegated to {@code workspaceUserService.toggleUserRole}.
+     * </p>
+     *
+     * @param userDetails The details of the currently authenticated user, extracted from the authentication context.
+     * @param email       The email address of the user whose role should be toggled within the workspace.
+     * @return A {@link ResponseEntity} with HTTP status {@code 204 No Content} if the operation succeeds.
+     *
+     * @throws org.springframework.security.access.AccessDeniedException if the current user is not authorized to perform this operation.
+     */
+    @ApiOperation(value = "Update user role in workspace")
+    @PatchMapping("users/{email}/role")
+    public ResponseEntity<Void> toggleUserRole(@AuthenticatedUser UserDetails userDetails, @PathVariable String email) {
+        workspaceUserService.toggleUserRole(userDetails, WorkspaceContext.getCurrentWorkspace(), email);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }
