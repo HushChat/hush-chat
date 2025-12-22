@@ -18,6 +18,8 @@ export interface IConversation {
   archivedByLoggedInUser: boolean;
   unreadCount: number;
   chatUserStatus: chatUserStatus;
+  onlyAdminsCanSendMessages: boolean;
+  deviceType?: DeviceType;
 }
 
 export interface ReactionSummary {
@@ -281,9 +283,16 @@ export enum chatUserStatus {
   BUSY = "BUSY",
 }
 
+export enum DeviceType {
+  WEB = "WEB",
+  MOBILE = "MOBILE",
+  UNKNOWN = "UNKNOWN",
+}
+
 export interface IUserStatus {
   conversationId: number;
   status: chatUserStatus;
+  deviceType?: DeviceType;
 }
 
 export interface IActionConfig {

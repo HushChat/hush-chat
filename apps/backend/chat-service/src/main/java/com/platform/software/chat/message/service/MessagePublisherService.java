@@ -10,11 +10,13 @@ import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.ReactionTypeEnum;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.common.model.MessageReactionActionEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.workspace.WorkspaceContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -55,6 +57,11 @@ public class MessagePublisherService {
             String workspaceId) {
         ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
 
+        ConversationParticipantViewDTO senderParticipant = conversationDTO.getParticipants().stream()
+                .filter(p -> p.getUser().getId().equals(senderId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));;
+
         // when sending ws message, conversation name need to be named of the message
         // sender for non group conversations
         UserUtilService.setConversationNameForNonGroup(senderId, conversationDTO, true);
@@ -77,6 +84,12 @@ public class MessagePublisherService {
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
         conversationDTO.setMessages(List.of(messageViewDTO));
+
+        DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                WorkspaceContext.getCurrentWorkspace(),
+                senderParticipant.getUser().getEmail()
+        );
+        conversationDTO.setDeviceType(deviceType);
 
         conversationDTO.getParticipants().stream()
                 .filter(p -> p.getUser() != null && p.getUser().getId() != null)

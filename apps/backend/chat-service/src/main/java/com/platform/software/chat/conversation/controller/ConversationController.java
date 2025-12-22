@@ -531,6 +531,21 @@ public class ConversationController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @ApiOperation(value = "Update message sending restrictions for group", response = ConversationDTO.class)
+    @PatchMapping("{conversationId}/message-restrictions")
+    public ResponseEntity<ConversationDTO> updateMessageRestrictions(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        ConversationDTO updated = conversationService.updateOnlyAdminsCanSendMessages(
+                userDetails.getId(),
+                conversationId,
+                conversationPermissionUpdateDTO
+        );
+        return ResponseEntity.ok(updated);
+    }
+  
     @ApiOperation(value = "Create conversation invite Link", response = InviteLinkDTO.class)
     @PostMapping("{conversationId}/invite-link")
     public ResponseEntity<InviteLinkDTO> createInviteLink(
