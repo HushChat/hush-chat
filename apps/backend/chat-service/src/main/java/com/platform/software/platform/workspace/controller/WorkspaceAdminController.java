@@ -8,7 +8,6 @@ import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
-import com.platform.software.platform.workspace.dto.WorkspaceUserRoleUpdateDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
@@ -79,24 +78,5 @@ public class WorkspaceAdminController {
     ) {
         workspaceUserService.inviteUserToWorkspace(userDetails.getEmail(), workspaceIdentifier, workspaceUserInviteDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    /**
-     * Updates a user's role within the current workspace by toggling between ADMIN and MEMBER roles.
-     * This endpoint requires the authenticated user to have ADMIN privileges in the workspace.
-     *
-     * @param userDetails the authenticated user making the request, automatically injected via
-     *                    {@code @AuthenticatedUser} annotation. Must have ADMIN role.
-     * @param workspaceUserRoleUpdateDTO the request body containing the email address of the user
-     *                                   whose role should be updated.
-     *
-     * @return {@link ResponseEntity} with HTTP 204 (No Content) status upon successful role update.
-     *
-     */
-    @ApiOperation(value = "Update user role in workspace")
-    @PatchMapping("role-update")
-    public ResponseEntity<Void> toggleUserRole(@AuthenticatedUser UserDetails userDetails, @RequestBody WorkspaceUserRoleUpdateDTO workspaceUserRoleUpdateDTO) {
-        workspaceUserService.toggleUserRole(userDetails, WorkspaceContext.getCurrentWorkspace(), workspaceUserRoleUpdateDTO);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
