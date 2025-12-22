@@ -8,6 +8,7 @@ import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
+import com.platform.software.platform.workspace.dto.WorkspaceUserRoleUpdateDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
