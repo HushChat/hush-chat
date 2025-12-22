@@ -1,3 +1,5 @@
+import { DeviceType } from "@/types/chat/types";
+
 export interface WebSocketMessage {
   id: string;
   conversationId: number;
@@ -54,6 +56,7 @@ export interface UserActivityWSSubscriptionData {
   email: string;
   visibleConversations: number[]; // list of conversations visible - mobile or web
   openedConversation: number | null; // indicates user's selected conversation, could be null
+  deviceType?: DeviceType;
 }
 
 export interface MessageUnsentPayload {
