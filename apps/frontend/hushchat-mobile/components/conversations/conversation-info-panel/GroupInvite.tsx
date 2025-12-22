@@ -37,7 +37,7 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
     refetch,
   } = useConversationInviteLinkQuery(conversation.id);
 
-  const resetGroupInviteLink = (conversationId: number) => {
+  const resetGroupInviteLink = () => {
     openModal({
       type: MODAL_TYPES.confirm,
       title: "Reset Invite Link",
@@ -50,7 +50,7 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
           variant: MODAL_BUTTON_VARIANTS.primary,
           onPress: () =>
             handleResetInviteLink.mutate({
-              conversationId,
+              conversationId: conversation.id,
             }),
         },
       ],
@@ -171,7 +171,7 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
           icon="refresh-outline"
           label="Reset Link"
           critical={true}
-          onPress={() => resetGroupInviteLink(conversation.id)}
+          onPress={resetGroupInviteLink}
         />
       </View>
     </MotionView>
