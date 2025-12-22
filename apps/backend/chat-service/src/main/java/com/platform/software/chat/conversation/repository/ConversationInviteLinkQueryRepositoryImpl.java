@@ -25,10 +25,12 @@ public class ConversationInviteLinkQueryRepositoryImpl implements ConversationIn
                 .where(
                     qConversationInviteLink.token.eq(token),
                     qConversationInviteLink.isActive.isTrue(),
-                    qConversationInviteLink.expiresAt.after(new Date()),
-                    qConversationInviteLink.usedCount.lt(qConversationInviteLink.maxUsers)
+                        qConversationInviteLink.expiresAt.isNull()
+                                .or(qConversationInviteLink.expiresAt.after(new Date())),
+                        qConversationInviteLink.maxUsers.isNull()
+                                .or(qConversationInviteLink.usedCount.lt(qConversationInviteLink.maxUsers))
                 )
-                .fetchOne();
+                .fetchFirst();
 
         if(conversationInviteLink == null){
             throw new CustomBadRequestException("Invalid or expired invite link");

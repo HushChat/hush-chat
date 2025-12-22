@@ -53,6 +53,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -95,8 +96,11 @@ public class ConversationService {
     private final ApplicationEventPublisher eventPublisher;
     private final ConversationInviteLinkRepository conversationInviteLinkRepository;
 
-    private static final int INVITE_LINK_MAX_PARTICIPANTS = 5;
-    private static final int INVITE_LINK_EXPIRY_DAYS = 5;
+    @Value("${invite.link.max-participants}")
+    private int inviteLinkMaxParticipants;
+
+    @Value("${invite.link.expiry-days}")
+    private int inviteLinkExpiryDays;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -1483,9 +1487,9 @@ public class ConversationService {
         inviteLink.setCreatedBy(requestedParticipant.getUser());
         inviteLink.setToken(ConversationUtilService.generateInviteToken());
         inviteLink.setExpiresAt(
-                Date.from(Instant.now().plus(INVITE_LINK_EXPIRY_DAYS, ChronoUnit.DAYS))
+                Date.from(Instant.now().plus(inviteLinkExpiryDays, ChronoUnit.DAYS))
         );
-        inviteLink.setMaxUsers((long) INVITE_LINK_MAX_PARTICIPANTS);
+        inviteLink.setMaxUsers((long) inviteLinkMaxParticipants);
         inviteLink.setActive(true);
 
         conversationInviteLinkRepository.save(inviteLink);

@@ -541,7 +541,7 @@ public class ConversationController {
     }
 
     @ApiOperation(value = "Join conversation using invite token", response = ConversationDTO.class)
-    @GetMapping("join/{token}")
+    @PostMapping("invite-link/{token}/join")
     public ResponseEntity<ConversationDTO> joinConversationByInviteLink(
             @PathVariable String token,
             @AuthenticatedUser UserDetails userDetails
