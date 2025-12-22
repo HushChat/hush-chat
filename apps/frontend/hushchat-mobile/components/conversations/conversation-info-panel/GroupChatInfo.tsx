@@ -25,6 +25,7 @@ import {
 } from "@/query/post/queries";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
+import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
 
 const COLORS = {
   button: "#3b82f6",
@@ -96,6 +97,10 @@ export default function GroupChatInfo({
 
   const handleAddMoreParticipants = () => {
     openPanel(PanelType.ADD_PARTICIPANTS);
+  };
+
+  const handleInviteViaLink = () => {
+    openPanel(PanelType.INVITE_LINK);
   };
 
   const exitGroupMutation = useExitGroupConversationMutation(
@@ -301,6 +306,11 @@ export default function GroupChatInfo({
                     onPress={handleAddMoreParticipants}
                   />
                   <ActionItem
+                    icon="link-outline"
+                    label="Invite via Link"
+                    onPress={handleInviteViaLink}
+                  />
+                  <ActionItem
                     icon="settings-outline"
                     label="Group Settings"
                     onPress={handleGroupSettings}
@@ -311,7 +321,7 @@ export default function GroupChatInfo({
                 conversationId={conversation.id}
                 isFavorite={conversationInfo?.favorite || false}
                 isPinned={conversationInfo?.pinned || false}
-                isMuted={conversationInfo?.mutedUntil ? true : false}
+                isMuted={!!conversationInfo?.mutedUntil}
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
               />
@@ -359,6 +369,16 @@ export default function GroupChatInfo({
             conversation={conversation}
             onClose={closePanel}
             visible={activePanel === PanelType.GROUP_SETTINGS}
+          />
+        </View>
+      )}
+
+      {isPanelContentReady && activePanel === PanelType.INVITE_LINK && (
+        <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
+          <GroupInvite
+            conversation={conversation}
+            onClose={closePanel}
+            visible={activePanel === PanelType.INVITE_LINK}
           />
         </View>
       )}

@@ -8,5 +8,6 @@ export enum PanelType {
   GROUP_SETTINGS = "group_settings",
   GROUP_PERMISSIONS = "group_permissions",
   MESSAGE_INFO = "message_info",
+  INVITE_LINK = "invite_link",
   // Add more panel types here as needed
 }
