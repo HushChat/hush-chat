@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_status_attribute_to_workspace
+      author: ransilu
+      tag: release-7.1
+      comment: "add new add pinned_message_until column to conversation table"
+      changes:
+        - addColumn:
+            tableName: conversation
+            columns:
+              - column:
+                  name: pinned_message_until
+                  type: timestamptz
+                  constraints:
+                    nullable: true
