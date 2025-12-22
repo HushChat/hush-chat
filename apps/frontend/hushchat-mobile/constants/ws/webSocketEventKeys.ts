@@ -23,6 +23,7 @@ export const CONVERSATION_EVENTS = {
   MESSAGE_DELIVERED: "conversation:messageDelivered",
   CREATED: "conversation:created",
   MESSAGE_UNSENT: "conversation:messageUnsent",
+  MESSAGE_REACTION: "conversation:messageReaction",
 } as const;
 
 export const USER_EVENTS = {
