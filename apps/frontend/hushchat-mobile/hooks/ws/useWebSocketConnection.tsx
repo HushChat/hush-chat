@@ -14,6 +14,7 @@ import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
 import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
 import { WS_TOPICS } from "@/constants/ws/wsTopics";
+import { getDeviceType } from "@/utils/commonUtils";
 
 // Define topics to subscribe to
 const TOPICS = [
@@ -61,7 +62,7 @@ export const publishUserActivity = (
 export default function useWebSocketConnection() {
   const { isAuthenticated } = useAuthStore();
   const {
-    user: { email, deviceType },
+    user: { email },
   } = useUserStore();
   const wsRef = useRef<WebSocket | null>(null);
   const shouldStopRetrying = useRef(false);
@@ -80,6 +81,8 @@ export default function useWebSocketConnection() {
     shouldStopRetrying.current = false;
 
     const mainServiceWsBaseUrl = getWSBaseURL();
+
+    const deviceType = getDeviceType();
 
     const fetchAndSubscribe = async () => {
       if (shouldStopRetrying.current || isCancelled) {
@@ -221,7 +224,9 @@ export default function useWebSocketConnection() {
       return false;
     }
 
-    return publishUserActivity(wsRef.current, data);
+    const deviceType = getDeviceType();
+
+    return publishUserActivity(wsRef.current, { ...data, deviceType });
   };
 
   // return the connection status

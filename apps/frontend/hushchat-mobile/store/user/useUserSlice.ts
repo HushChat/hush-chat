@@ -2,7 +2,6 @@ import { getUserInfo } from "@/apis/user";
 import { IUser } from "@/types/user/types";
 import { logInfo } from "@/utils/logger";
 import { StateCreator } from "zustand";
-import { getDeviceType } from "@/utils/commonUtils";
 
 export interface UserState {
   user: IUser;
@@ -24,7 +23,6 @@ const initialUserState: IUser = {
   active: false,
   workspaceName: "",
   workspaceRole: "",
-  deviceType: null,
 };
 
 export const createUserSlice: StateCreator<UserState> = (set) => ({
@@ -68,7 +66,6 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
       const user: IUser = {
         ...response.data,
         workspaceRole: response.data.workspaceRole,
-        deviceType: getDeviceType(),
       };
 
       set({

@@ -71,7 +71,7 @@ const ConversationThreadScreen = ({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
   const {
-    user: { id: currentUserId, email, deviceType },
+    user: { id: currentUserId, email },
   } = useUserStore();
   const queryClient = useQueryClient();
   const { publishActivity } = useWebSocket();
@@ -96,7 +96,6 @@ const ConversationThreadScreen = ({
         workspaceId: workspace as string,
         email,
         openedConversation: currentConversationId,
-        deviceType,
       } as UserActivityWSSubscriptionData);
     };
 

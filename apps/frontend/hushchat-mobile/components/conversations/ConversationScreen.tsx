@@ -41,7 +41,7 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const {
-    user: { email, deviceType },
+    user: { email },
   } = useUserStore();
 
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
@@ -81,7 +81,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
         workspaceId: workspace as string,
         email,
         visibleConversations: conversationIds,
-        deviceType,
       } as UserActivityWSSubscriptionData);
     };
 
