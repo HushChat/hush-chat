@@ -50,4 +50,20 @@ public class ConversationInviteLinkQueryRepositoryImpl implements ConversationIn
                 )
                 .execute();
     }
+
+    @Override
+    public ConversationInviteLink findActiveInviteLink(Long conversationId) {
+
+        return jpaQueryFactory
+                .selectFrom(qConversationInviteLink)
+                .where(
+                        qConversationInviteLink.conversation.id.eq(conversationId),
+                        qConversationInviteLink.isActive.isTrue(),
+                        qConversationInviteLink.expiresAt.isNull()
+                                .or(qConversationInviteLink.expiresAt.after(new Date())),
+                        qConversationInviteLink.maxUsers.isNull()
+                                .or(qConversationInviteLink.usedCount.lt(qConversationInviteLink.maxUsers))
+                )
+                .fetchFirst();
+    }
 }

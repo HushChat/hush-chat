@@ -5,4 +5,5 @@ import com.platform.software.chat.conversation.entity.ConversationInviteLink;
 public interface ConversationInviteLinkQueryRepository {
     ConversationInviteLink findValidInviteLinkByToken(String token);
     void invalidateAllInviteLinksByConversationId(Long conversationId);
+    ConversationInviteLink findActiveInviteLink(Long conversationId);
 }

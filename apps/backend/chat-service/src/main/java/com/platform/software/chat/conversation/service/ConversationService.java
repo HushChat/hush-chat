@@ -1523,7 +1523,11 @@ public class ConversationService {
                 .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
 
         ConversationInviteLink inviteLink = conversationInviteLinkRepository
-                .findConversationInviteLinkByConversation_IdAndIsActive(conversationId, true);
+                .findActiveInviteLink(conversationId);
+
+        if (inviteLink == null) {
+            return this.createNewInviteLink(loggedInUserId, conversationId);
+        }
 
         return new InviteLinkDTO(
                 conversationUtilService.buildInviteUrl(inviteLink.getToken()),
