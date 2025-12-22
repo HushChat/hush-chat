@@ -1,6 +1,7 @@
 package com.platform.software.chat.notification.service;
 
 import com.platform.software.chat.message.entity.Message;
+import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.notification.dto.DeviceTokenUpsertDTO;
 import com.platform.software.chat.notification.dto.NotificationRequestDTO;
 import com.platform.software.chat.notification.entity.ChatNotification;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatNotificationService {
@@ -25,14 +27,16 @@ public class ChatNotificationService {
     private final ChatNotificationRepository chatNotificationRepository;
     private final ChatNotificationUtilService chatNotificationUtilService;
     private final NotificationServiceFactory notificationServiceFactory;
+    private final MessageMentionService messageMentionService;
 
     private static final Logger logger = LoggerFactory.getLogger(ChatNotificationService.class);
 
-    public ChatNotificationService(UserService userService, ChatNotificationRepository chatNotificationRepository, ChatNotificationUtilService chatNotificationUtilService, NotificationServiceFactory notificationServiceFactory) {
+    public ChatNotificationService(UserService userService, ChatNotificationRepository chatNotificationRepository, ChatNotificationUtilService chatNotificationUtilService, NotificationServiceFactory notificationServiceFactory, MessageMentionService messageMentionService) {
         this.userService = userService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.chatNotificationUtilService = chatNotificationUtilService;
         this.notificationServiceFactory = notificationServiceFactory;
+        this.messageMentionService = messageMentionService;
     }
 
     /**
@@ -106,8 +110,8 @@ public class ChatNotificationService {
         boolean mentionsAll = message.getMessageText().toLowerCase().contains(Constants.MENTION_ALL);
 
         List<Long> mentionedUsers = mentionsAll
-                ? null
-                : chatNotificationUtilService.getMentionedUserIds(message.getMessageText());
+                ? List.of()
+                : messageMentionService.getMentionedUsersByUsernames(message.getMessageText()).stream().map(ChatUser::getId).collect(Collectors.toList());
 
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false, mentionsAll, mentionedUsers);
 
