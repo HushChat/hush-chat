@@ -193,6 +193,11 @@ export interface GroupProfile {
   active: boolean;
 }
 
+export interface InviteLink {
+  inviteUrl: string;
+  expiresAt: string;
+}
+
 export interface IBasicMessage {
   id: number;
   senderId: number;

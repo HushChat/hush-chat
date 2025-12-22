@@ -6,6 +6,7 @@ import com.platform.software.chat.conversation.readstatus.dto.ConversationReadIn
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
+import com.platform.software.chat.conversation.repository.ConversationInviteLinkRepository;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
@@ -52,6 +53,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -92,6 +94,7 @@ public class ConversationService {
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ConversationInviteLinkRepository conversationInviteLinkRepository;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -824,8 +827,6 @@ public class ConversationService {
      */
     @Transactional
     public void addParticipantsToConversation(Long initiatorUserId, Long conversationId, JoinParticipantRequestDTO joinRequest) {
-        // TODO: Currently, if a participant is rejoined, their entire conversation history becomes visible again.
-        //       Fix this later by introducing a new table to store participant lifecycle details
 
         ValidationUtils.validate(joinRequest);
 
@@ -1518,5 +1519,110 @@ public class ConversationService {
         });
 
         return userDTOs;
+    }
+
+    /**
+     * Retrieves the current active invite link for a conversation.
+     * Only conversation admins are allowed to access the invite link.
+     *
+     * @param loggedInUserId ID of the user requesting the invite link
+     * @param conversationId ID of the target conversation
+     * @return current active invite link details
+     * @throws CustomForbiddenException if the user is not an admin of the conversation
+     */
+    public InviteLinkDTO getCurrentInviteLink(Long loggedInUserId, Long conversationId) {
+        ConversationParticipant requestedParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
+
+        ConversationInviteLink inviteLink = conversationInviteLinkRepository
+                .findActiveInviteLink(conversationId);
+
+        if (inviteLink == null) {
+            return conversationUtilService.createAndSaveNewInviteLink(conversationId, requestedParticipant);
+        }
+
+        return new InviteLinkDTO(
+                conversationUtilService.buildInviteUrl(inviteLink.getToken()),
+                inviteLink.getExpiresAt()
+        );
+    }
+
+    /**
+     * Creates a shareable invite link for a conversation.
+     * Only conversation admins are allowed to generate invite links.
+     * The link expires after 5 days and has a limited number of uses.
+     *
+     * @param loggedInUserId  ID of the user requesting the invite link
+     * @param conversationId ID of the target conversation
+     * @return generated invite link details
+     * @throws CustomForbiddenException if the user is not an admin of the conversation
+     */
+    public InviteLinkDTO createNewInviteLink(Long loggedInUserId, Long conversationId){
+        ConversationParticipant requestedParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
+
+        return conversationUtilService.createAndSaveNewInviteLink(conversationId, requestedParticipant);
+    }
+
+    /**
+     * Allows a user to join a group conversation using a valid invite link.
+     * Validates the invite link, checks existing participation, and adds or
+     * reactivates the participant while updating invite link usage.
+     *
+     * @param loggedInUserId ID of the user joining the conversation
+     * @param token invite link token
+     * @return conversation details after joining
+     * @throws CustomBadRequestException if the invite link is invalid, expired,
+     *         already used up, or the user is already an active participant
+     */
+    @Transactional
+    public ConversationDTO joinConversationByInviteLink(Long loggedInUserId, String token){
+        ConversationInviteLink conversationInviteLink =
+                conversationInviteLinkRepository.findValidInviteLinkByToken(token);
+
+        //Validate user
+        Map<Long, ChatUser> validUser =
+                conversationUtilService.validateUsersTryingToAdd(Collections.singletonList(loggedInUserId));
+
+        Conversation conversation = conversationInviteLink.getConversation();
+
+        //Get conversation existing participant
+        Map<Long, ConversationParticipant> existingUser = conversationUtilService
+                .getConversationParticipantMap(conversation.getId(), Collections.singletonList(loggedInUserId));
+
+        ConversationParticipant participantToAdd;
+
+        if(existingUser == null || !existingUser.containsKey(loggedInUserId)){
+
+            participantToAdd = createParticipant(validUser.get(loggedInUserId), conversation);
+
+        } else {
+            participantToAdd = existingUser.get(loggedInUserId);
+
+            if (participantToAdd.getIsActive()) {
+                throw new CustomBadRequestException("You are already a participant in this conversation");
+            }
+
+            ParticipantProcessingResult participantProcessingResult = processExistingParticipants(Collections.singletonList(participantToAdd));
+            participantToAdd = participantProcessingResult.reactivated().getFirst();
+        }
+
+        //increment used by count
+        conversationInviteLink.setUsedCount(
+                conversationInviteLink.getUsedCount() + 1
+        );
+
+        try {
+            conversationParticipantRepository.save(participantToAdd);
+            conversationInviteLinkRepository.save(conversationInviteLink);
+
+            conversationEventService.createMessageWithConversationEvent(conversation.getId(), loggedInUserId, List.of(loggedInUserId), ConversationEventType.USER_JOINED);
+
+        } catch (Exception e) {
+            logger.error("Failed to add participant. conversationId={}, initiator={}", conversation.getId(), loggedInUserId, e);
+            throw new CustomBadRequestException("Failed to join the conversation. Please try again later");
+        }
+
+        return new ConversationDTO(conversation);
     }
 }
