@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { getInitials } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
-import { chatUserStatus } from "@/types/chat/types";
+import { chatUserStatus, DeviceType } from "@/types/chat/types";
 import UserStatusIndicator from "@/components/UserStatusIndicator";
 import UploadIndicator from "@/components/UploadIndicator";
 
@@ -28,6 +28,7 @@ interface IInitialsAvatarProps {
   showCameraIcon?: boolean;
   isUploading?: boolean;
   onPress?: () => void;
+  deviceType?: DeviceType;
 }
 
 const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> = {
@@ -76,6 +77,7 @@ const InitialsAvatar = ({
   showCameraIcon = false,
   isUploading = false,
   onPress,
+  deviceType,
 }: IInitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
 
@@ -113,7 +115,9 @@ const InitialsAvatar = ({
           </View>
         )}
 
-        {showOnlineStatus && <UserStatusIndicator userStatus={userStatus} />}
+        {showOnlineStatus && (
+          <UserStatusIndicator userStatus={userStatus} deviceType={deviceType} />
+        )}
       </View>
     </Wrapper>
   );

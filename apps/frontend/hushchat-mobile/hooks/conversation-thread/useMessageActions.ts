@@ -47,12 +47,12 @@ export function useMessageActions(
   );
 
   const togglePin = useCallback(
-    (message?: IBasicMessage) => {
+    (message?: IBasicMessage, duration?: string | null) => {
       const conversationId = conversation?.id;
       if (!conversationId || !message) return;
 
       setSelectedPinnedMessage(message);
-      togglePinMessage({ conversationId, messageId: message.id });
+      togglePinMessage({ conversationId, messageId: message.id, duration });
     },
     [conversation?.id, togglePinMessage]
   );

@@ -1,7 +1,13 @@
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import axios, { AxiosError } from "axios";
-import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/types/chat/types";
+import {
+  IConversation,
+  IGroupConversation,
+  IMessage,
+  IMessageView,
+  MessageAttachmentTypeEnum,
+} from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
@@ -56,6 +62,10 @@ export interface ReportConversationParams {
   reason: ReportReason;
 }
 
+export interface AttachmentFilterCriteria {
+  type: MessageAttachmentTypeEnum;
+}
+
 export const getAllConversations = async (
   criteria: ConversationFilterCriteria = {},
   offset: number = 0,
@@ -108,6 +118,17 @@ export const updateConversationById = async (
   const response = await axios.patch(
     CONVERSATION_API_ENDPOINTS.UPDATE_CONVERSATION(conversationId),
     { name, description }
+  );
+  return { data: response.data };
+};
+
+export const updateMessageRestrictions = async (
+  conversationId: number,
+  onlyAdminsCanSendMessages: boolean
+) => {
+  const response = await axios.patch(
+    `${CONVERSATION_API_ENDPOINTS.UPDATE_MESSAGE_RESTRICTIONS(conversationId)}`,
+    { onlyAdminsCanSendMessages }
   );
   return { data: response.data };
 };
@@ -472,5 +493,44 @@ export const sendInviteToWorkspace = async (email: string) => {
     return { data: response.data };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const getConversationAttachments = async (
+  conversationId: number,
+  criteria: AttachmentFilterCriteria,
+  page: number,
+  size: number
+) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_CONVERSATION_ATTACHMENTS(conversationId),
+      {
+        params: { ...criteria, page, size },
+      }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
+export const ResetInviteLink = async (conversationId: number) => {
+  try {
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.RESET_INVITE_LINK(conversationId));
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const getInviteLink = async (conversationId: number) => {
+  try {
+    const response = await axios.get(CONVERSATION_API_ENDPOINTS.GET_INVITE_LINK(conversationId));
+    return response.data;
+  } catch (error: any) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };

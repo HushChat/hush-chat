@@ -13,6 +13,7 @@ import {
   IOption,
   ReactionType,
   MessageTypeEnum,
+  PIN_MESSAGE_OPTIONS,
 } from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,7 +34,7 @@ import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
-import { isImageAttachment } from "@/utils/messageHelpers";
+import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
 import { router } from "expo-router";
@@ -41,6 +42,8 @@ import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
 import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
 import { CONVERSATION } from "@/constants/routes";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { useModalContext } from "@/context/modal-context";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -63,7 +66,7 @@ interface MessageItemProps {
   onToggleSelection: (messageId: number) => void;
   onMessageLongPress?: (message: IMessage) => void;
   onCloseAllOverlays?: () => void;
-  onMessagePin: (message: IMessage) => void;
+  onMessagePin: (message: IMessage, duration: string | null) => void;
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
@@ -106,7 +109,11 @@ export const ConversationMessageItem = ({
 
   const queryClient = useQueryClient();
 
-  const hasImages = () => attachments.some(isImageAttachment);
+  const hasMedia = useMemo(
+    () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
+    [attachments]
+  );
+  const { openModal, closeModal } = useModalContext();
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
   const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
@@ -178,6 +185,34 @@ export const ConversationMessageItem = ({
     [selectionMode, isSystemEvent]
   );
 
+  const handleTogglePinMessage = useCallback(() => {
+    if (isThisMessagePinned) {
+      onMessagePin(message, null);
+      return;
+    }
+
+    openModal({
+      type: MODAL_TYPES.confirm,
+      title: "Pin Message",
+      description: "Select how long you want to pin this message",
+      buttons: [
+        ...PIN_MESSAGE_OPTIONS.map((option) => ({
+          text: option.label,
+          onPress: () => {
+            onMessagePin(message, option.value);
+            closeModal();
+          },
+        })),
+        {
+          text: "Cancel",
+          onPress: closeModal,
+          variant: MODAL_BUTTON_VARIANTS.destructive,
+        },
+      ],
+      icon: "pin-outline",
+    });
+  }, [isThisMessagePinned, openModal, PIN_MESSAGE_OPTIONS, closeModal]);
+
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
 
   const webOptions: IOption[] = useMemo(() => {
@@ -196,7 +231,7 @@ export const ConversationMessageItem = ({
         id: 2,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
-        action: () => onMessagePin(message),
+        action: () => handleTogglePinMessage(),
       },
       {
         id: 3,
@@ -281,6 +316,7 @@ export const ConversationMessageItem = ({
     },
     [createConversation]
   );
+
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
     () => {
@@ -451,7 +487,7 @@ export const ConversationMessageItem = ({
                   isCurrentUser={isCurrentUser}
                   hasText={hasText}
                   hasAttachments={hasAttachments}
-                  hasImages={hasImages()}
+                  hasMedia={hasMedia}
                   selected={selected}
                   selectionMode={selectionMode}
                   isForwardedMessage={isForwardedMessage}

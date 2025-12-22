@@ -15,7 +15,7 @@ interface IRenderMessageParams {
   selectMessage: (msg: IMessage) => void;
   openPicker: (id: string) => void;
   closeAll: () => void;
-  togglePin: (msg: IMessage) => void;
+  togglePin: (msg: IMessage, duration: string | null) => void;
   unSendMessage: (msg: IMessage) => void;
   selectedConversationId: number;
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;

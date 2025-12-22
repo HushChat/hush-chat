@@ -210,7 +210,7 @@ const ConversationMessageList = ({
           message={selectedActionMessage}
           conversation={conversationAPIResponse}
           onClose={closeActions}
-          onPinToggle={(message) => togglePin(message)}
+          onPinToggle={(message, duration) => togglePin(message, duration)}
           onForward={(message) => {
             startSelectionWith(message?.id);
             closeActions();
