@@ -32,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -401,5 +402,24 @@ public class ConversationUtilService {
             .filter(user -> user != null && user.getId() != null)
             .filter(user -> !user.getId().equals(senderId))
             .toList();
+    }
+
+    public boolean clearPinnedMessageIfExpired(Long conversationId, Long userId, ConversationMetaDataDTO conversationMetaDataDTO) {
+        if (conversationMetaDataDTO.getPinnedMessageUntil() != null) {
+            boolean isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().toInstant().isBefore(Instant.now());
+
+            if (isPinnedMessageExpired) {
+                try {
+                    conversationRepository.clearExpiredPinnedMessageFromConversation(conversationId);
+                } catch (Exception error) {
+                    logger.error("update conversation: {} by user: {} with null pinned message failed", conversationId, userId, error);
+                }
+
+                cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -21,6 +21,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -33,6 +34,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 public class ConversationQueryRepositoryImpl implements ConversationQueryRepository {
@@ -468,5 +470,16 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .fetch();
 
         return new PageImpl<>(results, pageable, totalCount);
+    }
+
+    @Override
+    @Transactional
+    public long clearExpiredPinnedMessageFromConversation(Long conversationId) {
+        return jpaQueryFactory
+                .update(qConversation)
+                .set(qConversation.pinnedMessage, Expressions.nullExpression())
+                .set(qConversation.pinnedMessageUntil,  Expressions.nullExpression())
+                .where(qConversation.id.eq(conversationId))
+                .execute();
     }
 }

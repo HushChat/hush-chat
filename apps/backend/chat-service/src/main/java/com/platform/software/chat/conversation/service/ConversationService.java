@@ -1108,18 +1108,18 @@ public class ConversationService {
 
         boolean isPinningAction = !currentlyPinned;
 
-        ZonedDateTime mutedUntil = null;
+        ZonedDateTime pinnedUntil = null;
 
         if (durationKey != null && isPinningAction) {
             PinnedDurationEnum pinnedDuration = PinnedDurationEnum.fromKey(durationKey);
             if (pinnedDuration == null) {
                 throw new CustomBadRequestException("Invalid pinned duration: " + durationKey);
             }
-            mutedUntil = ZonedDateTime.now().plus(pinnedDuration.getAmount(), pinnedDuration.getUnit());
+            pinnedUntil = ZonedDateTime.now().plus(pinnedDuration.getAmount(), pinnedDuration.getUnit());
         }
 
         conversation.setPinnedMessage(isPinningAction ? message : null);
-        conversation.setPinnedMessageUntil(mutedUntil);
+        conversation.setPinnedMessageUntil(pinnedUntil);
 
         try {
             conversationRepository.save(conversation);
@@ -1383,26 +1383,10 @@ public class ConversationService {
             }
         }
 
-        boolean isPinnedMessageExpired = false;
-        if (conversationMetaDataDTO.getPinnedMessageUntil() != null) {
-
-            isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().toInstant().isBefore(Instant.now());
-
-            if (isPinnedMessageExpired) {
-                Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
-                conversation.setPinnedMessage(null);
-                conversation.setPinnedMessageUntil(null);
-
-                conversationMetaDataDTO.setPinnedMessage(null);
-
-                try {
-                    conversationRepository.save(conversation);
-                } catch (Exception error) {
-                    logger.error("save conversation: {} by user: {} with null pinned message failed", conversation.getId(), userId, error);
-                }
-
-                cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
-            }
+        boolean isPinnedMessageExpired = conversationUtilService.clearPinnedMessageIfExpired(conversationId, userId, conversationMetaDataDTO);
+        if (isPinnedMessageExpired) {
+            conversationMetaDataDTO.setPinnedMessage(null);
+            conversationMetaDataDTO.setPinnedMessageUntil(null);
         }
 
         return conversationMetaDataDTO;
