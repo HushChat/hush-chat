@@ -37,6 +37,12 @@ export const conversationQueryKeys = {
     userId,
   ],
 
+  conversationInviteLink: (conversationId: number) => [
+    CONVERSATION_QUERY_BASE_KEY,
+    conversationId,
+    "invite-link",
+  ],
+
   ConversationParticipants: (conversationId: number, keyword: string) => [
     CONVERSATION_QUERY_BASE_KEY,
     keyword,

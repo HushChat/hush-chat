@@ -2,7 +2,10 @@ package com.platform.software.chat.conversation.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
+import com.platform.software.chat.conversation.dto.InviteLinkDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationInviteLink;
+import com.platform.software.chat.conversation.repository.ConversationInviteLinkRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
@@ -33,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -46,6 +50,12 @@ public class ConversationUtilService {
     @Value("${client.base.url}")
     private String frontendBaseUrl;
 
+    @Value("${invite.link.max-participants}")
+    private int inviteLinkMaxParticipants;
+
+    @Value("${invite.link.expiry-days}")
+    private int inviteLinkExpiryDays;
+
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
@@ -53,19 +63,21 @@ public class ConversationUtilService {
     private final ConversationService conversationService;
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
+    private final ConversationInviteLinkRepository conversationInviteLinkRepository;
 
     public ConversationUtilService(
             ConversationParticipantRepository conversationParticipantRepository,
             UserRepository userRepository,
             ConversationRepository conversationRepository,
             CloudPhotoHandlingService cloudPhotoHandlingService,
-            @Lazy ConversationService conversationService
+            @Lazy ConversationService conversationService, ConversationInviteLinkRepository conversationInviteLinkRepository
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
         this.conversationService = conversationService;
+        this.conversationInviteLinkRepository = conversationInviteLinkRepository;
     }
 
     /**
@@ -424,5 +436,27 @@ public class ConversationUtilService {
             .filter(user -> user != null && user.getId() != null)
             .filter(user -> !user.getId().equals(senderId))
             .toList();
+    }
+
+    @Transactional
+    public InviteLinkDTO createAndSaveNewInviteLink(Long conversationId, ConversationParticipant requestedParticipant) {
+        conversationInviteLinkRepository.invalidateAllInviteLinksByConversationId(conversationId);
+
+        ConversationInviteLink inviteLink = new ConversationInviteLink();
+        inviteLink.setConversation(requestedParticipant.getConversation());
+        inviteLink.setCreatedBy(requestedParticipant.getUser());
+        inviteLink.setToken(ConversationUtilService.generateInviteToken());
+        inviteLink.setExpiresAt(
+                Date.from(Instant.now().plus(inviteLinkExpiryDays, ChronoUnit.DAYS))
+        );
+        inviteLink.setMaxUsers((long) inviteLinkMaxParticipants);
+        inviteLink.setActive(true);
+
+        conversationInviteLinkRepository.save(inviteLink);
+
+        return new InviteLinkDTO(
+                buildInviteUrl(inviteLink.getToken()),
+                inviteLink.getExpiresAt()
+        );
     }
 }

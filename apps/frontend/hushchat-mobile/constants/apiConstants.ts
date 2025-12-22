@@ -74,6 +74,10 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/seen-by`,
   REQUEST_ATTACHMENT_UPLOAD_URL: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-message-signed-url`,
+  CREATE_INVITE_LINK: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
+  GET_INVITE_LINK: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
 };
 
 export const USER_API_ENDPOINTS = {

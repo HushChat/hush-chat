@@ -485,3 +485,24 @@ export const sendInviteToWorkspace = async (email: string) => {
     return { error: error.response?.data?.error || error.message };
   }
 };
+
+export const createInviteLink = async (conversationId: number) => {
+  try {
+    const response = await axios.post(
+      CONVERSATION_API_ENDPOINTS.CREATE_INVITE_LINK(conversationId)
+    );
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const getInviteLink = async (conversationId: number) => {
+  try {
+    const response = await axios.get(CONVERSATION_API_ENDPOINTS.GET_INVITE_LINK(conversationId));
+    return response.data;
+  } catch (error: any) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};

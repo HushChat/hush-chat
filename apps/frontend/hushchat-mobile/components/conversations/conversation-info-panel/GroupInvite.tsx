@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   Share,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { IConversation } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
@@ -14,6 +14,7 @@ import ActionItem from "./common/ActionItem";
 import { MotionView } from "@/motion/MotionView";
 import * as Clipboard from "expo-clipboard";
 import { ToastUtils } from "@/utils/toastUtils";
+import { useConversationInviteLinkQuery } from "@/query/useConversationInviteLinkQuery";
 
 interface IGroupInviteProps {
   conversation: IConversation;
@@ -25,33 +26,8 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
   const screenWidth = Dimensions.get("window").width;
   const isInitialMount = useRef(true);
 
-  const [inviteLink, setInviteLink] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-
-  async function getInviteLink(conversationId: number): Promise<string> {
-    return "https://example.com/invite/ksdgaskhfAKSJH1234" + conversationId;
-  }
-
-  useEffect(() => {
-    const fetchInviteLink = async () => {
-      if (!visible) return;
-
-      setLoading(true);
-      setError("");
-
-      try {
-        const link = await getInviteLink(conversation.id);
-        setInviteLink(link);
-      } catch {
-        setError("Failed to load invite link");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInviteLink();
-  }, [visible, conversation.id]);
+  const { conversationInviteLink, isLoadingConversationInviteLink, conversationInviteLinkError } =
+    useConversationInviteLinkQuery(conversation.id);
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -62,11 +38,11 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
   }, [conversation.id, onClose]);
 
   const handleCopyLink = async () => {
-    if (!inviteLink) {
+    if (!conversationInviteLink?.inviteUrl) {
       return;
     }
     try {
-      await Clipboard.setStringAsync(inviteLink);
+      await Clipboard.setStringAsync(conversationInviteLink.inviteUrl);
       ToastUtils.success("Success", "Invite link copied to clipboard");
     } catch {
       ToastUtils.error("Error", "Failed to copy link");
@@ -74,13 +50,13 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
   };
 
   const handleShareLink = async () => {
-    if (!inviteLink) {
+    if (!conversationInviteLink?.inviteUrl) {
       return;
     }
     try {
       await Share.share({
-        message: `Join our group! ${inviteLink}`,
-        url: inviteLink,
+        message: `Join our group! ${conversationInviteLink.inviteUrl}`,
+        url: conversationInviteLink.inviteUrl,
         title: "Group Invite Link",
       });
     } catch {
@@ -114,17 +90,19 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
           {conversation.name}
         </AppText>
 
-        {loading ? (
+        {isLoadingConversationInviteLink ? (
           <View className="flex-row items-center py-2">
             <ActivityIndicator size="small" color="#6B7280" />
             <AppText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
               Loading link...
             </AppText>
           </View>
-        ) : error ? (
+        ) : conversationInviteLinkError ? (
           <View className="flex-row items-center py-2">
             <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
-            <AppText className="ml-2 text-sm text-red-500">{error}</AppText>
+            <AppText className="ml-2 text-sm text-red-500">
+              {conversationInviteLinkError.message}
+            </AppText>
           </View>
         ) : (
           <View className="bg-white dark:bg-gray-900 rounded px-3 py-2.5">
@@ -136,7 +114,7 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
                   numberOfLines={3}
                   ellipsizeMode="tail"
                 >
-                  {inviteLink || "No link available"}
+                  {conversationInviteLink?.inviteUrl || "No link available"}
                 </AppText>
               </View>
             </View>

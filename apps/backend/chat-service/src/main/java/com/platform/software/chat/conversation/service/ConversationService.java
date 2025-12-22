@@ -96,12 +96,6 @@ public class ConversationService {
     private final ApplicationEventPublisher eventPublisher;
     private final ConversationInviteLinkRepository conversationInviteLinkRepository;
 
-    @Value("${invite.link.max-participants}")
-    private int inviteLinkMaxParticipants;
-
-    @Value("${invite.link.expiry-days}")
-    private int inviteLinkExpiryDays;
-
     /**
      * Builds a ConversationDTO from a Conversation entity.
      *
@@ -1519,14 +1513,14 @@ public class ConversationService {
      * @throws CustomForbiddenException if the user is not an admin of the conversation
      */
     public InviteLinkDTO getCurrentInviteLink(Long loggedInUserId, Long conversationId) {
-        conversationUtilService
+        ConversationParticipant requestedParticipant = conversationUtilService
                 .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
 
         ConversationInviteLink inviteLink = conversationInviteLinkRepository
                 .findActiveInviteLink(conversationId);
 
         if (inviteLink == null) {
-            return this.createNewInviteLink(loggedInUserId, conversationId);
+            return conversationUtilService.createAndSaveNewInviteLink(conversationId, requestedParticipant);
         }
 
         return new InviteLinkDTO(
@@ -1545,30 +1539,11 @@ public class ConversationService {
      * @return generated invite link details
      * @throws CustomForbiddenException if the user is not an admin of the conversation
      */
-    @Transactional
     public InviteLinkDTO createNewInviteLink(Long loggedInUserId, Long conversationId){
         ConversationParticipant requestedParticipant = conversationUtilService
                 .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
 
-        //Invalidate existing invite links
-        conversationInviteLinkRepository.invalidateAllInviteLinksByConversationId(conversationId);
-
-        ConversationInviteLink inviteLink = new ConversationInviteLink();
-        inviteLink.setConversation(requestedParticipant.getConversation());
-        inviteLink.setCreatedBy(requestedParticipant.getUser());
-        inviteLink.setToken(ConversationUtilService.generateInviteToken());
-        inviteLink.setExpiresAt(
-                Date.from(Instant.now().plus(inviteLinkExpiryDays, ChronoUnit.DAYS))
-        );
-        inviteLink.setMaxUsers((long) inviteLinkMaxParticipants);
-        inviteLink.setActive(true);
-
-        conversationInviteLinkRepository.save(inviteLink);
-
-        return new InviteLinkDTO(
-                conversationUtilService.buildInviteUrl(inviteLink.getToken()),
-                inviteLink.getExpiresAt()
-        );
+        return conversationUtilService.createAndSaveNewInviteLink(conversationId, requestedParticipant);
     }
 
     /**
