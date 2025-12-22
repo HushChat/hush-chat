@@ -3,9 +3,11 @@ import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
-import { DOC_EXTENSIONS, SIZES } from "@/constants/mediaConstants";
+import { SIZES } from "@/constants/mediaConstants";
 import { AppText } from "@/components/AppText";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
+import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
+import { getFileTypeFromName } from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewItem";
 
 type TFilePreviewPaneProps = {
   file: File;
@@ -31,7 +33,7 @@ const FilePreviewPane = ({
   onCancelReply,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState<"image" | "document">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video">("image");
 
   const isDark = colorScheme.get() === "dark";
   const iconColor = isDark ? "#ffffff" : "#6B4EFF";
@@ -41,11 +43,10 @@ const FilePreviewPane = ({
   useEffect(() => {
     if (!file) return;
 
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    const isDocument = DOC_EXTENSIONS.includes(ext || "");
-    setFileType(isDocument ? "document" : "image");
+    const type = getFileTypeFromName(file.name);
+    setFileType(type);
 
-    if (!isDocument) {
+    if (type !== "document") {
       const obj = URL.createObjectURL(file);
       setUrl(obj);
       return () => URL.revokeObjectURL(obj);
@@ -66,6 +67,10 @@ const FilePreviewPane = ({
       <View className="flex-1 items-center justify-center px-6">
         {fileType === "image" ? (
           <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />
+        ) : fileType === "video" ? (
+          <View style={styles.videoContainer}>
+            <VideoPlayer uri={url} style={styles.video} />
+          </View>
         ) : (
           <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
             <Ionicons name="document-text-outline" size={64} color={iconColor} />
@@ -103,6 +108,18 @@ const styles = StyleSheet.create({
   previewImage: {
     width: "100%",
     height: 420,
+  },
+  videoContainer: {
+    width: "100%",
+    height: 420,
+    backgroundColor: "#000",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  video: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
   },
   inputContainer: {
     position: "relative",
