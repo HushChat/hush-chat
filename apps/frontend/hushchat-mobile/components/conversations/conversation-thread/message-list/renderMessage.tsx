@@ -2,7 +2,7 @@ import React from "react";
 import { SectionListData } from "react-native";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
 import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
-import { shouldShowSenderAvatar } from "@/utils/messageUtils";
+import { shouldShowSenderAvatar, shouldShowSenderName } from "@/utils/messageUtils";
 
 interface IRenderMessageParams {
   currentUserId: number | null | undefined;
@@ -20,6 +20,8 @@ interface IRenderMessageParams {
   selectedConversationId: number;
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   onNavigateToMessage?: (messageId: number) => void;
+  targetMessageId?: number | null;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -48,6 +50,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      targetMessageId,
+      webMessageInfoPress,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -58,6 +62,12 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       index,
       !!conversationAPIResponse?.isGroup,
       !!isCurrentUser
+    );
+
+    const showSenderName = shouldShowSenderName(
+      section.data,
+      index,
+      !!conversationAPIResponse?.isGroup
     );
 
     return (
@@ -79,7 +89,10 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         selectedConversationId={selectedConversationId}
         onViewReactions={viewReactions}
         showSenderAvatar={showSenderAvatar}
+        showSenderName={showSenderName}
         onNavigateToMessage={onNavigateToMessage}
+        targetMessageId={targetMessageId}
+        webMessageInfoPress={webMessageInfoPress}
       />
     );
   };

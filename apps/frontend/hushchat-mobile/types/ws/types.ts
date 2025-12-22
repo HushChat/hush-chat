@@ -55,3 +55,24 @@ export interface UserActivityWSSubscriptionData {
   visibleConversations: number[]; // list of conversations visible - mobile or web
   openedConversation: number | null; // indicates user's selected conversation, could be null
 }
+
+export interface MessageUnsentPayload {
+  conversationId: number;
+  messageId: number;
+  actorUserId: number;
+}
+
+export enum MessageReactionActionEnum {
+  ADDED = "ADDED",
+  UPDATED = "UPDATED",
+  REMOVED = "REMOVED",
+}
+
+export interface MessageReactionPayload {
+  conversationId: number;
+  messageId: number;
+  actorUserId: number;
+  reactionType: string | null;
+  previousReactionType?: string | null;
+  reactionAction: MessageReactionActionEnum;
+}

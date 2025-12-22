@@ -15,10 +15,13 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.utils.CommonUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -186,16 +189,20 @@ public class ConversationUtilService {
     @Cacheable(value = CacheNames.GET_CONVERSATION_META_DATA, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     public ConversationMetaDataDTO getConversationMetaDataDTO(Long conversationId, Long userId) {
         ConversationParticipant conversationParticipant = getConversationParticipantOrThrow(conversationId, userId);
-        if(conversationParticipant.getIsDeleted()){
-            throw new CustomBadRequestException("Can,t find conversation with ID %s".formatted(conversationId));
-        }
         Conversation conversation = getConversationOrThrow(conversationId);
         ConversationMetaDataDTO conversationMetaDataDTO = conversationRepository.findConversationMetaData(conversationId, userId);
 
         Message pinnedMessage = conversation.getPinnedMessage();
         if (pinnedMessage != null) {
-            BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
-            conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            boolean isVisible = CommonUtils.isMessageVisible(
+                pinnedMessage.getCreatedAt(), 
+                conversationParticipant.getLastDeletedTime()
+            );
+            
+            if(isVisible) {
+                BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
+                conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            }
         }
         return conversationMetaDataDTO;
     }
@@ -209,8 +216,7 @@ public class ConversationUtilService {
      */
     public ConversationDTO addSignedImageUrlToConversationDTO(ConversationDTO conversationDTO,String fileName) {
         String newFileName = (conversationDTO.getId()) + "_" + fileName;
-        String imageIndexName = String.format("chat-service/conversation/%s", newFileName);
-        conversationDTO.setImageIndexedName(imageIndexName);
+        conversationDTO.setImageIndexedName(newFileName);
 
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
         conversationDTO.setSignedImageUrl(imageSignedDTO.getUrl());
@@ -218,9 +224,9 @@ public class ConversationUtilService {
         return conversationDTO;
     }
 
-    public String getImageViewSignedUrl(String imageIndexedName) {
+    public String getImageViewSignedUrl(MediaPathEnum path, MediaSizeEnum size, String imageIndexedName) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+            return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
         }
         return imageIndexedName;
     }
@@ -365,5 +371,30 @@ public class ConversationUtilService {
         }
 
         return attachmentDTOs;
+    }
+
+    /**
+     * Retrieves all active participants of a conversation except the given sender.
+     * <p>
+     * A participant is considered active if they:
+     * <ul>
+     *   <li>Belong to the given conversation</li>
+     *   <li>Are not marked as deleted from the conversation</li>
+     *   <li>Are marked as active</li>
+     * </ul>
+     * The sender is explicitly excluded from the returned result.
+     *
+     * @param conversationId the conversation ID
+     * @param senderId       the user ID to exclude from the result
+     * @return a list of active chat users in the conversation excluding the sender
+     */
+    public List<ChatUser> getAllActiveParticipantsExceptSender(Long conversationId, Long senderId) {
+        return conversationParticipantRepository
+            .findByConversationIdAndConversationDeletedFalseAndIsActiveTrue(conversationId)
+            .stream()
+            .map(ConversationParticipant::getUser)
+            .filter(user -> user != null && user.getId() != null)
+            .filter(user -> !user.getId().equals(senderId))
+            .toList();
     }
 }

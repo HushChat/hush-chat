@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +49,14 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
     }
 
     @Override
+    public String getPhotoViewSignedURL(MediaPathEnum mediaPathEnum, MediaSizeEnum size, String fileName) {
+        String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
+        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+    }
+
+    @Override
     public SignedURLResponseDTO generateSignedURLForMessageAttachmentsUpload(DocUploadRequestDTO attachmentRequestDTO, Long requestId) {
-        String objectKey = String.format("chat-service/message-attachments/%s", requestId);
+        String objectKey = String.format(MediaPathEnum.MESSAGE_ATTACHMENT.getName(), requestId);
         return getSignedURLToUpload(attachmentRequestDTO, objectKey, DocUploadRequestDTO.class);
     }
 

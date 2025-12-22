@@ -51,4 +51,7 @@ public class ConversationParticipant extends AuditModel {
     private Boolean isDeleted = false;
 
     private ZonedDateTime lastDeletedTime = null;
+
+    @Column(name = "notify_on_mentions_only")
+    private Boolean notifyOnMentionsOnly = false;
 }

@@ -7,11 +7,12 @@ import com.platform.software.config.interceptors.WorkspaceAdminRestrictedAccess;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
-import com.platform.software.platform.workspace.dto.WorkspaceUserRoleUpdateDTO;
+import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import io.swagger.annotations.ApiOperation;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -66,6 +67,17 @@ public class WorkspaceAdminController {
     ) {
         Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsers(pageable);
         return new ResponseEntity<>(workspaceUsers, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "invite to workspaces")
+    @PostMapping("/invite")
+    public ResponseEntity<Void> inviteToWorkspace(
+            @RequestHeader("X-Tenant") String workspaceIdentifier,
+            @AuthenticatedUser UserDetails userDetails,
+            @Valid @RequestBody WorkspaceUserInviteDTO workspaceUserInviteDTO
+    ) {
+        workspaceUserService.inviteUserToWorkspace(userDetails.getEmail(), workspaceIdentifier, workspaceUserInviteDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     /**

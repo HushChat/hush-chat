@@ -302,32 +302,49 @@ export interface ConversationInputProps {
   onOpenDocumentPickerNative?: () => void;
   disabled?: boolean;
   isSending?: boolean;
-  placeholder?: string;
-  minLines?: number;
-  maxLines?: number;
-  lineHeight?: number;
-  verticalPadding?: number;
-  maxChars?: number;
-  autoFocus?: boolean;
   replyToMessage?: IMessage | null;
   onCancelReply?: () => void;
   isGroupChat?: boolean;
+  controlledValue?: string;
+  onControlledValueChange?: (text: string) => void;
+  hideSendButton?: boolean;
 }
 
-export interface ConversationInputConfig {
-  minLines: number;
-  maxLines: number;
-  lineHeight: number;
-  verticalPadding: number;
-  placeholder: string;
-  autoFocus: boolean;
+export type TNavigationDirection = "prev" | "next";
+
+export interface IThumbnailItemProps {
+  attachment: IMessageAttachment;
+  index: number;
+  isActive: boolean;
+  thumbnailUri?: string;
+  onPress: (index: number) => void;
 }
 
-export const DEFAULT_CONFIG: ConversationInputConfig = {
-  minLines: 1,
-  maxLines: 6,
-  lineHeight: 22,
-  verticalPadding: 12,
-  placeholder: "Type a message...",
-  autoFocus: false,
-};
+export interface IThumbnailStripBaseProps {
+  attachments: IMessageAttachment[];
+  currentIndex: number;
+  thumbnails: Record<number, string>;
+  onSelectIndex: (index: number) => void;
+}
+
+export interface IConfirmDialogProps {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export interface IMediaViewerBaseProps {
+  attachment: IMessageAttachment | undefined;
+  isVideo: boolean;
+}
+
+export interface IUseVideoThumbnailsOptions {
+  windowSize?: number;
+  quality?: number;
+  captureTime?: number;
+}
+
+export interface IConfirmDialogState {
+  visible: boolean;
+  existingFileUri: string | null;
+}
