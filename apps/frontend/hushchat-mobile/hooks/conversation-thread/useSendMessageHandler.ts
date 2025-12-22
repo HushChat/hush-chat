@@ -25,6 +25,7 @@ interface IUseSendMessageHandlerParams {
     parentMessageId?: number | null
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
+  updateConversationMessagesCache: (message: IMessage) => void;
 }
 
 let tempMessageIdCounter = -1;
