@@ -19,6 +19,7 @@ export interface IConversation {
   unreadCount: number;
   chatUserStatus: chatUserStatus;
   onlyAdminsCanSendMessages: boolean;
+  deviceType?: DeviceType;
 }
 
 export interface ReactionSummary {
@@ -282,9 +283,16 @@ export enum chatUserStatus {
   BUSY = "BUSY",
 }
 
+export enum DeviceType {
+  WEB = "WEB",
+  MOBILE = "MOBILE",
+  UNKNOWN = "UNKNOWN",
+}
+
 export interface IUserStatus {
   conversationId: number;
   status: chatUserStatus;
+  deviceType?: DeviceType;
 }
 
 export interface IActionConfig {
@@ -311,20 +319,41 @@ export interface ConversationInputProps {
   hideSendButton?: boolean;
 }
 
-export interface ConversationInputConfig {
-  minLines: number;
-  maxLines: number;
-  lineHeight: number;
-  verticalPadding: number;
-  placeholder: string;
-  autoFocus: boolean;
+export type TNavigationDirection = "prev" | "next";
+
+export interface IThumbnailItemProps {
+  attachment: IMessageAttachment;
+  index: number;
+  isActive: boolean;
+  thumbnailUri?: string;
+  onPress: (index: number) => void;
 }
 
-export const DEFAULT_CONFIG: ConversationInputConfig = {
-  minLines: 1,
-  maxLines: 6,
-  lineHeight: 22,
-  verticalPadding: 12,
-  placeholder: "Type a message...",
-  autoFocus: false,
-};
+export interface IThumbnailStripBaseProps {
+  attachments: IMessageAttachment[];
+  currentIndex: number;
+  thumbnails: Record<number, string>;
+  onSelectIndex: (index: number) => void;
+}
+
+export interface IConfirmDialogProps {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export interface IMediaViewerBaseProps {
+  attachment: IMessageAttachment | undefined;
+  isVideo: boolean;
+}
+
+export interface IUseVideoThumbnailsOptions {
+  windowSize?: number;
+  quality?: number;
+  captureTime?: number;
+}
+
+export interface IConfirmDialogState {
+  visible: boolean;
+  existingFileUri: string | null;
+}
