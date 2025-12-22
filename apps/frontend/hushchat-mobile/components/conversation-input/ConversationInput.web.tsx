@@ -122,7 +122,7 @@ const ConversationInput = ({
             <FileInput
               ref={input.fileInputRef}
               onChange={input.handleFileChange}
-              accept="image/*"
+              accept="image/*,video/*"
             />
             <FileInput
               ref={input.documentInputRef}

@@ -5,6 +5,7 @@ export const WS_TOPICS = {
   message: {
     received: "/topic/message-received/",
     unsent: "/topic/message-unsent/",
+    react: "/topic/message-reaction/",
   },
   user: {
     onlineStatus: "/topic/online-status/",
