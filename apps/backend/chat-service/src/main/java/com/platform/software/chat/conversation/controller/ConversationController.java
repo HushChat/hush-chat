@@ -545,14 +545,23 @@ public class ConversationController {
         );
         return ResponseEntity.ok(updated);
     }
-  
-    @ApiOperation(value = "Create conversation invite Link", response = InviteLinkDTO.class)
-    @PostMapping("{conversationId}/invite-link")
-    public ResponseEntity<InviteLinkDTO> createInviteLink(
+
+    @ApiOperation(value = "Get conversation invite Link", response = InviteLinkDTO.class)
+    @GetMapping("{conversationId}/invite-link")
+    public ResponseEntity<InviteLinkDTO> getActiveInviteLink(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails
     ) {
-        return ResponseEntity.ok(conversationService.createInviteLink(userDetails.getId(), conversationId));
+        return ResponseEntity.ok(conversationService.getCurrentInviteLink(userDetails.getId(), conversationId));
+    }
+  
+    @ApiOperation(value = "Create conversation invite Link", response = InviteLinkDTO.class)
+    @PostMapping("{conversationId}/invite-link")
+    public ResponseEntity<InviteLinkDTO> createNewInviteLink(
+            @PathVariable Long conversationId,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(conversationService.createNewInviteLink(userDetails.getId(), conversationId));
     }
 
     @ApiOperation(value = "Join conversation using invite token", response = ConversationDTO.class)

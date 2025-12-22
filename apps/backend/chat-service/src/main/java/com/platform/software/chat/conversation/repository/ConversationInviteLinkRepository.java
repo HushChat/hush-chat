@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ConversationInviteLinkRepository extends JpaRepository<ConversationInviteLink, Long>, ConversationInviteLinkQueryRepository {
+    ConversationInviteLink findConversationInviteLinkByConversation_IdAndIsActive(Long conversationId, Boolean active);
 }

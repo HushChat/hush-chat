@@ -38,4 +38,16 @@ public class ConversationInviteLinkQueryRepositoryImpl implements ConversationIn
 
         return conversationInviteLink;
     }
+
+    @Override
+    public void invalidateAllInviteLinksByConversationId(Long conversationId) {
+        jpaQueryFactory
+                .update(qConversationInviteLink)
+                .set(qConversationInviteLink.isActive, false)
+                .where(
+                        qConversationInviteLink.conversation.id.eq(conversationId),
+                        qConversationInviteLink.isActive.isTrue()
+                )
+                .execute();
+    }
 }

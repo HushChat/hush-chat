@@ -1510,6 +1510,28 @@ public class ConversationService {
     }
 
     /**
+     * Retrieves the current active invite link for a conversation.
+     * Only conversation admins are allowed to access the invite link.
+     *
+     * @param loggedInUserId ID of the user requesting the invite link
+     * @param conversationId ID of the target conversation
+     * @return current active invite link details
+     * @throws CustomForbiddenException if the user is not an admin of the conversation
+     */
+    public InviteLinkDTO getCurrentInviteLink(Long loggedInUserId, Long conversationId) {
+        conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
+
+        ConversationInviteLink inviteLink = conversationInviteLinkRepository
+                .findConversationInviteLinkByConversation_IdAndIsActive(conversationId, true);
+
+        return new InviteLinkDTO(
+                conversationUtilService.buildInviteUrl(inviteLink.getToken()),
+                inviteLink.getExpiresAt()
+        );
+    }
+
+    /**
      * Creates a shareable invite link for a conversation.
      * Only conversation admins are allowed to generate invite links.
      * The link expires after 5 days and has a limited number of uses.
@@ -1520,9 +1542,12 @@ public class ConversationService {
      * @throws CustomForbiddenException if the user is not an admin of the conversation
      */
     @Transactional
-    public InviteLinkDTO createInviteLink(Long loggedInUserId, Long conversationId){
+    public InviteLinkDTO createNewInviteLink(Long loggedInUserId, Long conversationId){
         ConversationParticipant requestedParticipant = conversationUtilService
                 .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
+
+        //Invalidate existing invite links
+        conversationInviteLinkRepository.invalidateAllInviteLinksByConversationId(conversationId);
 
         ConversationInviteLink inviteLink = new ConversationInviteLink();
         inviteLink.setConversation(requestedParticipant.getConversation());
