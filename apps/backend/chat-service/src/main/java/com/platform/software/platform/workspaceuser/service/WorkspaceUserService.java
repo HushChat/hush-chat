@@ -194,7 +194,6 @@ public class WorkspaceUserService {
      *                                   the role update operation fails.
      *
      * @see WorkspaceUserRole
-     * @see WorkspaceUserRoleUpdateDTO
      * @see UserDetails
      */
     public void toggleUserRole(UserDetails userDetails, String workspaceIdentifier, String targetUserEmail) {
