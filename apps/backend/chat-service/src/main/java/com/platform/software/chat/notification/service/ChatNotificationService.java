@@ -111,7 +111,10 @@ public class ChatNotificationService {
 
         List<Long> mentionedUsers = mentionsAll
                 ? List.of()
-                : messageMentionService.getMentionedUsersByUsernames(message.getMessageText()).stream().map(ChatUser::getId).collect(Collectors.toList());
+                : messageMentionService.getMentionedUsersByUsernames(message.getMessageText())
+                .stream()
+                .map(ChatUser::getId)
+                .collect(Collectors.toList());
 
         List<String> tokens = chatNotificationRepository.findTokensByConversationId(conversationId, loggedInUserId, false, mentionsAll, mentionedUsers);
 
