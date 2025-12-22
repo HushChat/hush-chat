@@ -516,11 +516,9 @@ export const getConversationAttachments = async (
   }
 };
 
-export const createInviteLink = async (conversationId: number) => {
+export const ResetInviteLink = async (conversationId: number) => {
   try {
-    const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.CREATE_INVITE_LINK(conversationId)
-    );
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.RESET_INVITE_LINK(conversationId));
     return { data: response.data };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };
@@ -536,4 +534,3 @@ export const getInviteLink = async (conversationId: number) => {
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
-

@@ -15,6 +15,9 @@ import { MotionView } from "@/motion/MotionView";
 import * as Clipboard from "expo-clipboard";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useConversationInviteLinkQuery } from "@/query/useConversationInviteLinkQuery";
+import { useResetConversationInviteLinkMutation } from "@/query/delete/queries";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { useModalContext } from "@/context/modal-context";
 
 interface IGroupInviteProps {
   conversation: IConversation;
@@ -25,9 +28,48 @@ interface IGroupInviteProps {
 export default function GroupInvite({ conversation, onClose, visible }: IGroupInviteProps) {
   const screenWidth = Dimensions.get("window").width;
   const isInitialMount = useRef(true);
+  const { openModal, closeModal } = useModalContext();
 
-  const { conversationInviteLink, isLoadingConversationInviteLink, conversationInviteLinkError } =
-    useConversationInviteLinkQuery(conversation.id);
+  const {
+    conversationInviteLink,
+    isLoadingConversationInviteLink,
+    conversationInviteLinkError,
+    refetch,
+  } = useConversationInviteLinkQuery(conversation.id);
+
+  const resetGroupInviteLink = (conversationId: number) => {
+    openModal({
+      type: MODAL_TYPES.confirm,
+      title: "Reset Invite Link",
+      description:
+        "Are you sure you want to reset the group invite link? This will invalidate the current link and generate a new one.",
+      buttons: [
+        { text: "Cancel", onPress: closeModal },
+        {
+          text: "Reset",
+          variant: MODAL_BUTTON_VARIANTS.primary,
+          onPress: () =>
+            handleResetInviteLink.mutate({
+              conversationId,
+            }),
+        },
+      ],
+      icon: "shield-checkmark-outline",
+    });
+  };
+
+  const handleResetInviteLink = useResetConversationInviteLinkMutation(
+    { conversationId: conversation.id },
+    async () => {
+      closeModal();
+      ToastUtils.success("Success", "Invite link has been reset.");
+      await refetch();
+    },
+    (error) => {
+      closeModal();
+      ToastUtils.error((error as string) || "Error", "Failed to reset invite link.");
+    }
+  );
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -125,7 +167,12 @@ export default function GroupInvite({ conversation, onClose, visible }: IGroupIn
       <View className="mt-5 px-4">
         <ActionItem icon="link-outline" label="Copy Link" onPress={handleCopyLink} />
         <ActionItem icon="share-social-outline" label="Share Link" onPress={handleShareLink} />
-        <ActionItem icon="refresh-outline" label="Reset Link" critical={true} onPress={() => {}} />
+        <ActionItem
+          icon="refresh-outline"
+          label="Reset Link"
+          critical={true}
+          onPress={() => resetGroupInviteLink(conversation.id)}
+        />
       </View>
     </MotionView>
   );
