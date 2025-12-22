@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: create conversation_invite_link sequence
       author: moditha
-      tag: release-8.1
+      tag: release-9.1
       changes:
         - createSequence:
             sequenceName: conversation_invite_link_generator
@@ -16,7 +16,7 @@ databaseChangeLog:
   - changeSet:
       id: create conversation_invite_link table
       author: moditha
-      tag: release-8.2
+      tag: release-9.2
       changes:
         - createTable:
             tableName: conversation_invite_link
@@ -95,7 +95,7 @@ databaseChangeLog:
   - changeSet:
       id: add foreign key constraints for conversation_invite_link
       author: moditha
-      tag: release-8.3
+      tag: release-9.3
       changes:
         - addForeignKeyConstraint:
             baseTableName: conversation_invite_link
@@ -116,7 +116,7 @@ databaseChangeLog:
   - changeSet:
       id: create indexes for conversation_invite_link
       author: moditha
-      tag: release-8.4
+      tag: release-9.4
       changes:
         - createIndex:
             indexName: idx_conversation_invite_link_token
