@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   Image,
@@ -14,10 +13,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { IMessageAttachment, MessageAttachmentTypeEnum } from "@/types/chat/types";
 import { useConversationAttachmentsQuery } from "@/query/useGetConversationAttachmentsQuery";
-import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
+import { MediaPreview } from "@/components/conversations/conversation-thread/composer/image-preview/MediaPreview";
 import { getFileType } from "@/utils/files/getFileType";
 import { capitalizeFirstLetter } from "@/utils/commonUtils";
 import { AttachmentFilterCriteria } from "@/apis/conversation";
+import { AppText } from "@/components/AppText";
 
 interface MediaAttachmentsViewProps {
   conversationId: number;
@@ -97,9 +97,9 @@ export default function MediaAttachmentsView({
         <Header title="Attachments" onBack={onBack} color={colors.text} />
         <View className="flex-1 justify-center items-center px-8">
           <ActivityIndicator size="large" color={colors.tint} />
-          <Text className="text-sm mt-3" style={{ color: colors.icon }}>
+          <AppText className="text-sm mt-3" style={{ color: colors.icon }}>
             Loading attachments...
-          </Text>
+          </AppText>
         </View>
       </View>
     );
@@ -111,9 +111,9 @@ export default function MediaAttachmentsView({
         <Header title="Attachments" onBack={onBack} color={colors.text} />
         <View className="flex-1 justify-center items-center px-8">
           <Ionicons name="alert-circle-outline" size={64} color={colors.icon} />
-          <Text className="text-base mt-4 text-center" style={{ color: colors.icon }}>
+          <AppText className="text-base mt-4 text-center" style={{ color: colors.icon }}>
             Failed to load attachments
-          </Text>
+          </AppText>
         </View>
       </View>
     );
@@ -121,7 +121,7 @@ export default function MediaAttachmentsView({
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <ImagePreview
+      <MediaPreview
         visible={showImagePreview}
         images={attachments}
         initialIndex={selectedImageIndex}
@@ -166,9 +166,9 @@ function Header({ title, onBack, color }: HeaderProps) {
       <TouchableOpacity onPress={onBack} className="p-1 mr-3">
         <Ionicons name="chevron-back" size={24} color={color} />
       </TouchableOpacity>
-      <Text className="text-lg font-semibold" style={{ color: color }}>
+      <AppText className="text-lg font-semibold" style={{ color: color }}>
         {title}
-      </Text>
+      </AppText>
     </View>
   );
 }
@@ -184,12 +184,12 @@ function TabBar({ activeTab, onTabChange, colors }: any) {
             onPress={() => onTabChange(tab)}
             className="flex-1 items-center justify-center py-4 relative"
           >
-            <Text
+            <AppText
               className="text-base font-medium"
               style={{ color: isActive ? "#6B4EFF" : colors.icon }}
             >
               {capitalizeFirstLetter(tab)}
-            </Text>
+            </AppText>
             {isActive && <View className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6B4EFF]" />}
           </TouchableOpacity>
         );
@@ -207,9 +207,9 @@ function EmptyState({ activeTab, colors }: any) {
   return (
     <View className="flex-1 justify-center items-center px-8">
       <Ionicons name={iconName as any} size={64} color={colors.icon} />
-      <Text className="text-base mt-4 text-center" style={{ color: colors.icon }}>
+      <AppText className="text-base mt-4 text-center" style={{ color: colors.icon }}>
         {message}
-      </Text>
+      </AppText>
     </View>
   );
 }
@@ -238,12 +238,12 @@ function MediaGrid({
     <ScrollView className="flex-1" onScroll={onScroll} scrollEventThrottle={400}>
       {Array.from(groupedMedia.entries()).map(([monthYear, items]) => (
         <View key={monthYear} className="px-4 pt-6">
-          <Text
+          <AppText
             className="text-xs font-semibold tracking-wider mb-3"
             style={{ color: colors.text }}
           >
             {monthYear.toUpperCase()}
-          </Text>
+          </AppText>
           <View className="flex-row flex-wrap gap-0.5">
             {items.map((item) => {
               const handlePress = () => {
@@ -310,22 +310,22 @@ function DocsList({ attachments, onScroll, isFetchingNextPage, colors }: DocsLis
             >
               <View className="items-center justify-center">
                 <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={20} color={color} />
-                <Text className="text-[10px] font-semibold mt-1" style={{ color }}>
+                <AppText className="text-[10px] font-semibold mt-1" style={{ color }}>
                   {label}
-                </Text>
+                </AppText>
               </View>
 
               <View className="flex-1">
-                <Text
+                <AppText
                   className="text-sm font-medium mb-1"
                   style={{ color: colors.text }}
                   numberOfLines={2}
                 >
                   {item.originalFileName}
-                </Text>
-                <Text className="text-xs" style={{ color: colors.icon }}>
+                </AppText>
+                <AppText className="text-xs" style={{ color: colors.icon }}>
                   {item.mimeType}
-                </Text>
+                </AppText>
               </View>
 
               <Ionicons name="download-outline" size={20} color={colors.icon} />
