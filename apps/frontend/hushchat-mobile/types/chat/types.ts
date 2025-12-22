@@ -363,3 +363,9 @@ export interface IConfirmDialogState {
   visible: boolean;
   existingFileUri: string | null;
 }
+
+export const PIN_MESSAGE_OPTIONS = [
+  { label: "1 day", value: "1d" },
+  { label: "7 days", value: "7d" },
+  { label: "30 days", value: "30d" },
+];
