@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { View, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { joinConversationByInvite } from "@/apis/conversation";
 import { ToastUtils } from "@/utils/toastUtils";
-import { logInfo } from "@/utils/logger";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 import { AppText } from "@/components/AppText";
+import { useJoinConversationByInviteMutation } from "@/query/post/queries";
 
 export default function InviteScreen() {
   const { inviteCode } = useLocalSearchParams<{ inviteCode: string }>();
@@ -21,31 +20,29 @@ export default function InviteScreen() {
     setLoading(true);
     setError(null);
 
-    try {
-      const response = await joinConversationByInvite(inviteCode as string);
-
-      if (!response.error) {
-        setConversationName(response.data.name);
-        ToastUtils.success("Successfully joined the conversation: " + response.data.name);
-        setLoading(false);
-
-        setTimeout(() => {
-          router.replace(`/conversations/${response.data.id}`);
-        }, 2000);
-      } else {
-        setError(response.error || "Invalid or expired invite code.");
-        setLoading(false);
-
-        setTimeout(() => {
-          router.replace("/conversations");
-        }, 3000);
-      }
-    } catch (err) {
-      logInfo("Error handling invite:", err);
-      setError("Failed to process invite. Please try again.");
-      setLoading(false);
-    }
+    JoinByInvite.mutate({ token: inviteCode });
   };
+
+  const JoinByInvite = useJoinConversationByInviteMutation(
+    { token: inviteCode },
+    async (conversation) => {
+      setConversationName(conversation.name);
+      ToastUtils.success("Successfully joined the conversation: " + conversation.name);
+      setLoading(false);
+
+      setTimeout(() => {
+        router.replace(`/conversations/${conversation.id}`);
+      }, 2000);
+    },
+    (error: any) => {
+      setError(error?.message || "Invalid or expired invite code.");
+      setLoading(false);
+
+      setTimeout(() => {
+        router.replace("/conversations");
+      }, 3000);
+    }
+  );
 
   const errorColor = isDark ? "#ef4444" : "#dc2626";
 
