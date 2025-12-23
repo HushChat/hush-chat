@@ -80,6 +80,7 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
   GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
+  JOIN_VIA_INVITE_LINK: (token: string) => `${CONVERSATION_API_BASE}/invite-link/${token}/join`,
 };
 
 export const USER_API_ENDPOINTS = {
