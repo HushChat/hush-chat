@@ -75,6 +75,7 @@ interface MessageItemProps {
   onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
   webMessageInfoPress?: (messageId: number) => void;
+  onMarkMessageAsUnread: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -103,6 +104,7 @@ export const ConversationMessageItem = ({
   onNavigateToMessage,
   targetMessageId,
   webMessageInfoPress,
+  onMarkMessageAsUnread,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -256,6 +258,15 @@ export const ConversationMessageItem = ({
           action: () => webMessageInfoPress && webMessageInfoPress(message.id),
         });
       }
+    }
+
+    if (!isCurrentUser && !message.isUnsend) {
+      options.push({
+        id: 5,
+        name: "Mark as Unread",
+        iconName: "mail-unread-outline" as keyof typeof Ionicons.glyphMap,
+        action: () => onMarkMessageAsUnread(message),
+      });
     }
     return options;
   }, [

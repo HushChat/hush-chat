@@ -81,6 +81,21 @@ export const unsendMessage = async (params: { messageId: number }) => {
   }
 };
 
+export const markMessageAsUnread = async (params: {
+  messageId: number;
+  conversationId: number;
+}) => {
+  try {
+    const response = await axios.patch(
+      CONVERSATION_API_ENDPOINTS.MARK_MESSAGE_AS_UNREAD(params.conversationId, params.messageId)
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const getMessageReactions = async (
   messageId: number,
   page: number = 0,
