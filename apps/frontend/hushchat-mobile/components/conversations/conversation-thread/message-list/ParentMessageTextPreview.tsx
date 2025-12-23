@@ -18,10 +18,10 @@ export const ParentMessageTextPreview = ({
     const firstAttachment = message.messageAttachments?.[0];
     if (!firstAttachment) return "Message";
 
-    if (firstAttachment.type === MessageAttachmentTypeEnum.DOCUMENT) {
+    if (firstAttachment.type === MessageAttachmentTypeEnum.DOCS) {
       return firstAttachment.originalFileName || "File";
     }
-    if (firstAttachment.type === MessageAttachmentTypeEnum.IMAGE) {
+    if (firstAttachment.type === MessageAttachmentTypeEnum.MEDIA) {
       return "Photo";
     }
     return "Attachment";

@@ -10,7 +10,7 @@ interface AttachmentPreviewProps {
 export const AttachmentPreview = ({ attachment, gifUrl }: AttachmentPreviewProps) => {
   if ((!attachment || !attachment.fileUrl) && !gifUrl) return null;
 
-  const isDocument = attachment?.type === MessageAttachmentTypeEnum.DOCUMENT;
+  const isDocument = attachment?.type === MessageAttachmentTypeEnum.DOCS;
   const imageUri = attachment?.fileUrl ? attachment.fileUrl : gifUrl;
 
   if (isDocument) {

@@ -4,6 +4,7 @@ import {
   WebSocketError,
   NotificationPayload,
   MessageUnsentPayload,
+  MessageReactionPayload,
 } from "@/types/ws/types";
 import { IConversation, IUserStatus } from "@/types/chat/types";
 import {
@@ -41,6 +42,7 @@ export type WebSocketEvents = {
   };
   [CONVERSATION_EVENTS.CREATED]: IConversation;
   [CONVERSATION_EVENTS.MESSAGE_UNSENT]: MessageUnsentPayload;
+  [CONVERSATION_EVENTS.MESSAGE_REACTION]: MessageReactionPayload;
 
   // User presence events
   [USER_EVENTS.PRESENCE]: IUserStatus;
@@ -89,6 +91,10 @@ export const emitConversationCreated = (conversation: IConversation) => {
 
 export const emitMessageUnsent = (data: MessageUnsentPayload) => {
   eventBus.emit(CONVERSATION_EVENTS.MESSAGE_UNSENT, data);
+};
+
+export const emitMessageReaction = (data: MessageReactionPayload) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_REACTION, data);
 };
 
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {

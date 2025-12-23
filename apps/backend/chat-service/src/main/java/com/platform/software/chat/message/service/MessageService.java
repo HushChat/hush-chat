@@ -13,13 +13,16 @@ import com.platform.software.chat.message.attachment.service.MessageAttachmentSe
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageHistory;
+import com.platform.software.chat.message.entity.MessageMention;
 import com.platform.software.chat.message.repository.MessageHistoryRepository;
+import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
+import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
@@ -30,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -55,6 +59,8 @@ public class MessageService {
     private final MessageHistoryRepository messageHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
+    private final CloudPhotoHandlingService cloudPhotoHandlingService;
+    private final MessageMentionRepository messageMentionRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -521,5 +527,34 @@ public class MessageService {
             message.getId(),
             loggedInUserId
         ));
+    }
+
+    /**
+     * Retrieves all message mentions by others for a specific user with pagination support.
+     * <p>
+     * This method queries the database for all messages where the specified user has been mentioned,
+     * converts the entities to DTOs, and returns them in a paginated format.
+     * </p>
+     *
+     * @param userDetails the user whose message mentions are being retrieved
+     * @param pageable pagination and sorting information (page number, size, sort order)
+     * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
+     */
+    public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
+        Page<MessageMention> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
+
+        Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
+            MessageMentionDTO dto = new MessageMentionDTO(messageMention);
+
+            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
+            if (imageIndexedName != null) {
+                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
+            }
+
+            return dto;
+        });
+
+        return messageMentionDTOPages;
     }
 }
