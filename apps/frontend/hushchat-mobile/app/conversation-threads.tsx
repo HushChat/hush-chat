@@ -148,20 +148,21 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
-    if (
-      currentConversationId &&
-      messages.length > 0 &&
-      lastSeenMessageInfo?.lastSeenMessageId !== undefined
-    ) {
+    if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
       const firstMessage = messages[0];
 
       if (!firstMessage.id || typeof firstMessage.id !== "number") {
         return;
       }
 
-      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
+      // Always update to the first (most recent) message when viewing the conversation
+      // This handles both initial load and returning to the conversation
+      const shouldUpdate =
+        lastSeenMessageInfo.lastSeenMessageId === null || // First time viewing
+        lastSeenMessageInfo.lastSeenMessageId === undefined || // No last seen message
+        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId; // New messages exist
 
-      if (!isFirstMessageLastSeen) {
+      if (shouldUpdate) {
         setLastSeenMessageForConversation({
           messageId: firstMessage.id,
           conversationId: currentConversationId,
@@ -260,6 +261,14 @@ const ConversationThreadScreen = ({
       setSelectedMessage(null);
       updateConversationMessagesCache(newMessage);
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
+
+      // Update last seen message when user sends a message
+      if (newMessage.id && typeof newMessage.id === "number") {
+        setLastSeenMessageForConversation({
+          messageId: newMessage.id,
+          conversationId: currentConversationId,
+        });
+      }
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
