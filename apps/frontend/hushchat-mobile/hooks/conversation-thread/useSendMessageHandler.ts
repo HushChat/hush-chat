@@ -25,6 +25,7 @@ interface IUseSendMessageHandlerParams {
     parentMessageId?: number | null
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
+  updateConversationMessagesCache: (message: IMessage) => void;
 }
 
 let tempMessageIdCounter = -1;
@@ -55,7 +56,8 @@ const createTempImageMessage = ({
       originalFileName: file.name,
       indexedFileName: "",
       mimeType: file.type,
-      type: MessageAttachmentTypeEnum.IMAGE,
+      type: MessageAttachmentTypeEnum.MEDIA,
+      updatedAt: "",
     },
   ],
   hasAttachment: true,

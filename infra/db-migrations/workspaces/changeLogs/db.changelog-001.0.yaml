@@ -1,0 +1,87 @@
+databaseChangeLog:
+  - changeSet:
+      id: create chat_user_info sequence
+      author: moditha
+      tag: release-10.1
+      changes:
+        - createSequence:
+            sequenceName: chat_user_info_generator
+            startValue: 1
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            cacheSize: 1
+            cycle: false
+
+  - changeSet:
+      id: create chat_user_info table
+      author: moditha
+      tag: release-10.2
+      changes:
+        - createTable:
+            tableName: chat_user_info
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  defaultValueSequenceNext: chat_user_info_generator
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: chat_user_info_pkey
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: contact_number
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: designation
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: chat_user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  - changeSet:
+      id: add foreign key constraint for chat_user_info
+      author: moditha
+      tag: release-10.3
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: chat_user_info
+            baseColumnNames: chat_user_id
+            constraintName: fk_chat_user_info_chat_user
+            referencedTableName: chat_user
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+  - changeSet:
+      id: create index for chat_user_info
+      author: moditha
+      tag: release-10.4
+      changes:
+        - createIndex:
+            indexName: idx_chat_user_info_chat_user_id
+            tableName: chat_user_info
+            columns:
+              - column:
+                  name: chat_user_id

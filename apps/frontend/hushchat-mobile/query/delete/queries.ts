@@ -2,6 +2,7 @@ import {
   ConversationFilterCriteria,
   deleteConversationByID,
   removeConversationParticipant,
+  ResetInviteLink,
   updateConversationParticipantRole,
 } from "@/apis/conversation";
 import { unblockUser } from "@/apis/user";
@@ -64,4 +65,13 @@ export const useUpdateConversationParticipantRoleMutation = createMutationHook<
         keyParams.participantId
       ),
     ] as string[][]
+);
+
+export const useResetConversationInviteLinkMutation = createMutationHook<
+  void,
+  { conversationId: number }
+>(
+  (params: { conversationId: number }) => ResetInviteLink(params.conversationId),
+  (keyParams: { conversationId: number }) => () =>
+    [conversationQueryKeys.conversationInviteLink(keyParams.conversationId)] as string[][]
 );

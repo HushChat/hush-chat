@@ -14,6 +14,7 @@ import com.platform.software.chat.notification.repository.ChatNotificationReposi
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserInfoRepository;
 import com.platform.software.chat.user.repository.UserQueryRepository;
 import com.platform.software.common.dto.LoginDTO;
 import com.platform.software.common.model.MediaPathEnum;
@@ -81,6 +82,7 @@ public class UserServiceImpl implements UserService {
     private final ChatNotificationRepository chatNotificationRepository;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
+    private final UserInfoRepository userInfoRepository;
     private final WebSocketSessionManager webSocketSessionManager;
 
     public UserServiceImpl(
@@ -95,8 +97,9 @@ public class UserServiceImpl implements UserService {
             UserUtilService userUtilService,
             AWSconfig awSconfig,
             ChatNotificationRepository chatNotificationRepository,
-            WorkspaceRepository workspaceRepository,
             WorkspaceUserRepository workspaceUserRepository,
+            WorkspaceRepository workspaceRepository,
+            UserInfoRepository userInfoRepository,
             @Lazy WebSocketSessionManager webSocketSessionManager
     ) {
         this.userRepository = userRepository;
@@ -112,6 +115,7 @@ public class UserServiceImpl implements UserService {
         this.awSconfig = awSconfig;
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
+        this.userInfoRepository = userInfoRepository;
         this.webSocketSessionManager = webSocketSessionManager;
     }
 
@@ -461,6 +465,22 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(result, pageable, workspaceUserPage.getTotalElements());
+    }
+
+    @Override
+    public UserProfileDTO getUserProfile(Long id){
+
+        UserProfileDTO userPublicProfile = userInfoRepository.getProfileById(id);
+
+        if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty()){
+            userPublicProfile.setSignedImageUrl(
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            userPublicProfile.getSignedImageUrl()
+                    )
+            );
+        }
+
+        return userPublicProfile;
     }
 
     /**

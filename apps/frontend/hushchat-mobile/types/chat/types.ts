@@ -18,6 +18,7 @@ export interface IConversation {
   archivedByLoggedInUser: boolean;
   unreadCount: number;
   chatUserStatus: chatUserStatus;
+  onlyAdminsCanSendMessages: boolean;
   deviceType?: DeviceType;
 }
 
@@ -27,8 +28,8 @@ export interface ReactionSummary {
 }
 
 export enum MessageAttachmentTypeEnum {
-  IMAGE = "IMAGE",
-  DOCUMENT = "DOCUMENT",
+  MEDIA = "MEDIA",
+  DOCS = "DOCS",
 }
 
 export interface IMessageAttachment {
@@ -38,6 +39,7 @@ export interface IMessageAttachment {
   indexedFileName: string;
   fileUrl: string;
   type: MessageAttachmentTypeEnum;
+  updatedAt: string;
 }
 
 export enum MessageTypeEnum {
@@ -189,6 +191,11 @@ export interface GroupProfile {
   favorite: boolean;
   admin: boolean;
   active: boolean;
+}
+
+export interface InviteLink {
+  inviteUrl: string;
+  expiresAt: string;
 }
 
 export interface IBasicMessage {
@@ -357,3 +364,9 @@ export interface IConfirmDialogState {
   visible: boolean;
   existingFileUri: string | null;
 }
+
+export const PIN_MESSAGE_OPTIONS = [
+  { label: "1 day", value: "1d" },
+  { label: "7 days", value: "7d" },
+  { label: "30 days", value: "30d" },
+];

@@ -1,8 +1,7 @@
 package com.platform.software.chat.user.controller;
 
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
-import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
-import com.platform.software.chat.user.dto.UserResetPasswordDTO;
+import com.platform.software.chat.user.dto.*;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.platform.software.chat.call.dto.CallLogViewDTO;
 import com.platform.software.chat.call.service.CallLogService;
-import com.platform.software.chat.user.dto.UserDTO;
-import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.service.security.CognitoService;
@@ -196,6 +193,14 @@ public class UserController {
             userResetPasswordDTO.getNewPassword()
         );
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get user profile by id", response = UserProfileDTO.class)
+    @GetMapping("profile/{id}")
+    public ResponseEntity<UserProfileDTO> userProfile(
+            @PathVariable Long id
+    ){
+        return ResponseEntity.ok(userService.getUserProfile(id));
     }
 
     /**

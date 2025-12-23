@@ -204,3 +204,8 @@ export type DeviceToken = {
   token: string;
   platform: "MOBILE" | "WEB";
 };
+
+export enum UserType {
+  ADMIN = "ADMIN",
+  MEMBER = "MEMBER",
+}

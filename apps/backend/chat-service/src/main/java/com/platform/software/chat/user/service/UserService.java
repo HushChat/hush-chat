@@ -55,6 +55,8 @@ public interface UserService {
 
     Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable);
 
+    UserProfileDTO getUserProfile(Long id);
+
     UserStatusEnum updateUserAvailability(UserDetails authenticatedUser);
 
     String getUserAvailabilityStatus(String email);
