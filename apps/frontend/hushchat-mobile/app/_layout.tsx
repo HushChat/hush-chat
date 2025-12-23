@@ -71,6 +71,7 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="conversations/conversation-info/[id]/index" />
         <Stack.Screen name="conversations/conversation-info/[id]/group-settings" />
         <Stack.Screen name="conversations/forward-panel" />
+        <Stack.Screen name="conversations/[conversationId]/messages/[messageId]" />
         <Stack.Screen name="conversations/[conversationId]/messages/[messageId]/read-by" />
         <Stack.Screen name="conversation-threads" />
         <Stack.Screen name="search-view" />

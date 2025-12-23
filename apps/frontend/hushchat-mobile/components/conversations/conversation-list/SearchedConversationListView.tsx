@@ -4,7 +4,7 @@ import {
   ISearchResults,
   ISectionedSearchResult,
 } from "@/types/chat/types";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { View, ActivityIndicator, ListRenderItemInfo } from "react-native";
 import Alert from "@/components/Alert";
 import ConversationListItem from "@/components/conversations/conversation-list/ConversationListItem";
@@ -19,6 +19,8 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
 import { AppText } from "@/components/AppText";
+import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+import { useSearchSelectedMessageStore } from "@/store/search-message/useSearchMessageStore";
 
 interface SearchedConversationListProps {
   searchedConversationsResult: ISearchResults;
@@ -67,6 +69,25 @@ export default function SearchedConversationList({
       ToastUtils.error(getAPIErrorMsg(error));
     }
   );
+
+  const { searchSelectedConversationId, searchSelectedMessageId } = useSearchSelectedMessageStore();
+
+  const { loadMessageWindow } = useConversationMessagesQuery(Number(searchSelectedConversationId));
+
+  const handleNavigateToMessage = useCallback(
+    (messageId: number) => {
+      if (loadMessageWindow) {
+        void loadMessageWindow(messageId);
+      }
+    },
+    [loadMessageWindow, searchSelectedConversationId, searchSelectedMessageId]
+  );
+
+  useEffect(() => {
+    if (searchSelectedMessageId) {
+      handleNavigateToMessage(Number(searchSelectedMessageId));
+    }
+  }, [searchSelectedMessageId, handleNavigateToMessage]);
 
   const handleOpenOrCreateConversation = useCallback(
     (targetUser: TUser) => {
@@ -153,9 +174,15 @@ export default function SearchedConversationList({
 
         return (
           <SearchedItem
+            message={firstMessage}
             conversation={conversation}
             searchQuery={searchQuery}
-            onConversationItemPress={() => handleChatPress(setSelectedConversation)(conversation)}
+            onConversationItemPress={() =>
+              handleChatPress(setSelectedConversation)(conversation, firstMessage.id)
+            }
+            onMessageItemPress={(message) =>
+              handleChatPress(setSelectedConversation)(conversation, message.id)
+            }
             isCurrentUser={isCurrentUser}
           />
         );
