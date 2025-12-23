@@ -541,3 +541,12 @@ export const getInviteLink = async (conversationId: number) => {
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
+
+export const joinConversationByInvite = async (token: string) => {
+  try {
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.JOIN_VIA_INVITE_LINK(token));
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+};
