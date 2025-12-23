@@ -3,6 +3,7 @@ import {
   ConversationFilterCriteria,
   setLastSeenMessageByConversationId,
   toggleConversationFavorite,
+  toggleNotifyOnlyOnMention,
   updateMessageRestrictions,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
@@ -61,6 +62,15 @@ export const useUpdateMessageRestrictionsMutation = createMutationHook<
 >(
   ({ conversationId, onlyAdminsCanSendMessages }) =>
     updateMessageRestrictions(conversationId, onlyAdminsCanSendMessages),
+  (keyParams: { userId: number; conversationId: number }) => () =>
+    [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
+);
+
+export const useToggleNotifyOnlyOnMentionMutation = createMutationHook<
+  IConversation,
+  { conversationId: number }
+>(
+  ({ conversationId }) => toggleNotifyOnlyOnMention(conversationId),
   (keyParams: { userId: number; conversationId: number }) => () =>
     [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
 );
