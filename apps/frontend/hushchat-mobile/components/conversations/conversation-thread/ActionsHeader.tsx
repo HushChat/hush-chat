@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_HIT_SLOP } from "@/constants/ui";
@@ -6,18 +6,18 @@ import {
   IMessage,
   ConversationAPIResponse,
   PIN_MESSAGE_OPTIONS,
-  IMessageAttachment,
 } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { AppText } from "@/components/AppText";
 import HeaderAction from "@/components/conversations/conversation-info-panel/common/HeaderAction";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
-import { getFileType } from "@/utils/files/getFileType";
+import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
+import { downloadFileNative } from "@/utils/messageUtils";
+import { ToastUtils } from "@/utils/toastUtils";
 
 interface ActionsHeaderProps {
   message: IMessage;
-  selectedAttachment?: IMessageAttachment | null;
   conversation?: ConversationAPIResponse;
   onClose: () => void;
   onPinToggle: (m: IMessage, duration: string | null) => void;
@@ -25,12 +25,10 @@ interface ActionsHeaderProps {
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
   onSelectMessageInfo?: (c: ConversationAPIResponse, m: IMessage) => void;
-  onDownload: (attachment: IMessageAttachment) => void;
 }
 
 const ActionsHeader = ({
   message,
-  selectedAttachment,
   conversation,
   onClose,
   onPinToggle,
@@ -38,12 +36,21 @@ const ActionsHeader = ({
   onUnsend,
   onCopy,
   onSelectMessageInfo,
-  onDownload,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const { openModal, closeModal } = useModalContext();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
   const currentUserIsSender = user?.id === message?.senderId;
+
+  const documentAttachments = useMemo(() => {
+    if (!message?.messageAttachments) return [];
+    
+    return message.messageAttachments.filter(
+      (attachment) => !isImageAttachment(attachment) && !isVideoAttachment(attachment)
+    );
+  }, [message?.messageAttachments]);
+
+  const hasDocumentAttachments = documentAttachments.length > 0;
 
   const handleTogglePinMessage = useCallback(() => {
     if (isPinned) {
@@ -71,10 +78,18 @@ const ActionsHeader = ({
       ],
       icon: "pin-outline",
     });
-  }, [isPinned, openModal, PIN_MESSAGE_OPTIONS, closeModal]);
-  const downloadableAttachment =
-    selectedAttachment ||
-    message?.messageAttachments?.find((att) => getFileType(att.originalFileName) !== "image");
+  }, [isPinned, openModal, onPinToggle, message, closeModal]);
+
+  const handleDownload = useCallback(async () => {
+    if (documentAttachments.length === 0) return;
+
+    try {
+      const firstDocument = documentAttachments[0];
+      await downloadFileNative(firstDocument);
+    } catch {
+      ToastUtils.error("Failed to download document");
+    }
+  }, [documentAttachments]);
 
   return (
     <View className="absolute bottom-full !z-50 w-full bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
@@ -105,10 +120,10 @@ const ActionsHeader = ({
         </View>
 
         <View className="flex-row items-center gap-2">
-          {downloadableAttachment && (
+          {hasDocumentAttachments && (
             <HeaderAction
               iconName="download-outline"
-              onPress={() => onDownload(downloadableAttachment)}
+              onPress={handleDownload}
             />
           )}
           {!message.isUnsend && message.messageText && (

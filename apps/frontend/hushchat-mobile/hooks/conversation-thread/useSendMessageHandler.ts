@@ -75,7 +75,6 @@ export const useSendMessageHandler = ({
   const {
     updateConversationMessagesCache,
     updateConversationsListCache,
-    invalidateQuery: refetchConversationMessages,
   } = useConversationMessagesQuery(currentConversationId);
 
   const renameFile = useCallback(
@@ -152,7 +151,6 @@ export const useSendMessageHandler = ({
 
           await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMessage?.id ?? null);
 
-          refetchConversationMessages();
           setSelectedMessage(null);
           return;
         }

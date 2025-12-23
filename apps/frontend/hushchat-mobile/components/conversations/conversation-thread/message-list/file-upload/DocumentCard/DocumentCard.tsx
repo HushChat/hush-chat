@@ -14,14 +14,14 @@ import {
 } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/documentCard.styles";
 import { ToastUtils } from "@/utils/toastUtils";
 import { PLATFORM } from "@/constants/platformConstants";
+import { downloadFileWeb, openFileNative } from "@/utils/messageUtils";
 
 type TDocumentCardProps = {
   attachment: IMessageAttachment;
   isCurrentUser: boolean;
-  onLongPress?: (attachment: IMessageAttachment) => void;
 };
 
-export const DocumentCard = ({ attachment, isCurrentUser, onLongPress }: TDocumentCardProps) => {
+export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -40,7 +40,7 @@ export const DocumentCard = ({ attachment, isCurrentUser, onLongPress }: TDocume
   const textPrimary = isDark ? "#ffffff" : "#111827";
   const textSecondary = isDark ? "#9ca3af" : "#6B7280";
 
-  const downloadDocument = async () => {
+   const handleDocumentPress = async () => {
     const fileUrl = attachment.fileUrl;
     const fileName = attachment.originalFileName || attachment.indexedFileName;
 
@@ -49,28 +49,21 @@ export const DocumentCard = ({ attachment, isCurrentUser, onLongPress }: TDocume
       return;
     }
 
-    if (PLATFORM.IS_WEB) {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(blobUrl);
-      return;
+    try {
+      if (PLATFORM.IS_WEB) {
+        await downloadFileWeb(fileUrl, fileName);
+      } else {
+        await openFileNative(fileUrl);
+      }
+    } catch (error) {
+      console.error("Error handling document:", error);
+      ToastUtils.error("Failed to open document");
     }
-
-    Linking.openURL(attachment.fileUrl);
   };
 
   return (
     <TouchableOpacity
-      onPress={downloadDocument}
-      onLongPress={() => onLongPress?.(attachment)}
+      onPress={handleDocumentPress}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
       style={dynamicStyles.documentCard(isCurrentUser, bgColor, borderColor)}
     >

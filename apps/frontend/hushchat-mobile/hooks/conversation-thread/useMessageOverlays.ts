@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import * as Haptics from "expo-haptics";
-import type { IMessage, ConversationAPIResponse, IMessageAttachment } from "@/types/chat/types";
+import type { IMessage, ConversationAPIResponse } from "@/types/chat/types";
 
 export function useMessageOverlays(
   conversation: ConversationAPIResponse | undefined,
@@ -8,18 +8,16 @@ export function useMessageOverlays(
 ) {
   const [selectedActionMessage, setSelectedActionMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
-  const [selectedAttachment, setSelectedAttachment] = useState<IMessageAttachment | null>(null);
 
   /**
    * Long press -> open actions (pin, copy, forward, unsend)
    */
   const openActions = useCallback(
-    (message: IMessage, attachment?: IMessageAttachment) => {
+    (message: IMessage) => {
       if (conversation?.isBlocked) return;
 
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setSelectedActionMessage(message);
-      setSelectedAttachment(attachment || null);
     },
     [conversation?.isBlocked]
   );
@@ -29,7 +27,6 @@ export function useMessageOverlays(
    */
   const closeActions = useCallback(() => {
     setSelectedActionMessage(null);
-    setSelectedAttachment(null);
   }, []);
 
   /**
@@ -56,12 +53,10 @@ export function useMessageOverlays(
   const closeAll = useCallback(() => {
     setOpenPickerMessageId(null);
     setSelectedActionMessage(null);
-    setSelectedAttachment(null);
   }, []);
 
   return {
     selectedActionMessage,
-    selectedAttachment,
     openPickerMessageId,
     openActions,
     closeActions,

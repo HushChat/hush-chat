@@ -26,7 +26,6 @@ interface IMessageBubbleProps {
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
   onMentionClick?: (user: TUser) => void;
-  onAttachmentLongPress?: (attachment: IMessageAttachment) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
 }
@@ -43,7 +42,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   attachments,
   onBubblePress,
   onMentionClick,
-  onAttachmentLongPress,
   style,
 }) => {
   const messageContent = message.messageText;
@@ -108,7 +106,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         >
           {hasAttachments && (
             <View className={messageContent ? "mb-2" : ""}>
-              {renderFileGrid(attachments, isCurrentUser, onAttachmentLongPress)}
+              {renderFileGrid(attachments, isCurrentUser)}
             </View>
           )}
 
