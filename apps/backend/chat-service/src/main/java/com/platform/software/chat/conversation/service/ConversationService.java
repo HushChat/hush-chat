@@ -1,14 +1,12 @@
 package com.platform.software.chat.conversation.service;
 
 import com.platform.software.chat.conversation.dto.*;
-import com.platform.software.chat.conversation.entity.Conversation;
-import com.platform.software.chat.conversation.entity.ConversationEvent;
-import com.platform.software.chat.conversation.entity.ConversationReport;
-import com.platform.software.chat.conversation.entity.ConversationReportReasonEnum;
+import com.platform.software.chat.conversation.entity.*;
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
+import com.platform.software.chat.conversation.repository.ConversationInviteLinkRepository;
 import com.platform.software.chat.conversation.repository.ConversationReportRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
@@ -36,6 +34,7 @@ import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.common.utils.StringUtils;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.DocUploadRequestDTO;
@@ -54,6 +53,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -62,6 +62,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
+
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -92,6 +94,7 @@ public class ConversationService {
     private final ConversationEventService conversationEventService;
     private final MessageUtilService messageUtilService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ConversationInviteLinkRepository conversationInviteLinkRepository;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -397,7 +400,7 @@ public class ConversationService {
 
         List<ConversationDTO> updatedContent = conversations.getContent().stream()
                 .peek(dto -> {
-                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getImageIndexedName());
+                    String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(dto.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM ,dto.getImageIndexedName());
                     dto.setSignedImageUrl(imageViewSignedUrl);
                     dto.setImageIndexedName(null);
 
@@ -462,7 +465,8 @@ public class ConversationService {
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
             if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                String signedImageUrl =
+                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
                 user.setSignedImageUrl(signedImageUrl);
             }
 
@@ -798,9 +802,9 @@ public class ConversationService {
         ConversationParticipantViewDTO leavingParticipant = getParticipantIfAllowedToRemoveAdminRole(userId, conversationId);
 
         try {
-            conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
-
             conversationEventService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
+
+            conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
         } catch (Exception e) {
             logger.error("user: %s cannot leave the conversation due to an error".formatted(userId), e);
             throw new CustomInternalServerErrorException("Failed to leave the conversation");
@@ -828,8 +832,6 @@ public class ConversationService {
      */
     @Transactional
     public void addParticipantsToConversation(Long initiatorUserId, Long conversationId, JoinParticipantRequestDTO joinRequest) {
-        // TODO: Currently, if a participant is rejoined, their entire conversation history becomes visible again.
-        //       Fix this later by introducing a new table to store participant lifecycle details
 
         ValidationUtils.validate(joinRequest);
 
@@ -981,11 +983,22 @@ public class ConversationService {
 
         conversation.setName(newName);
         conversation.setDescription(groupConversationDTO.getDescription());
+
+        if (groupConversationDTO.getOnlyAdminsCanSendMessages() != null) {
+            conversation.setOnlyAdminsCanSendMessages(groupConversationDTO.getOnlyAdminsCanSendMessages());
+        }
+
         try {
             conversationRepository.save(conversation);
             setGroupUpdateChangeEvents(adminUserId, isGroupNameChanged, conversation, isGroupDescriptionChanged);
 
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+
+            eventPublisher.publishEvent(new ConversationUpdateEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    adminUserId,
+                    conversation
+            ));
 
             return buildConversationDTO(conversation);
         } catch (Exception e) {
@@ -1012,6 +1025,38 @@ public class ConversationService {
     }
 
     /**
+     * Updates the onlyAdminsCanSendMessages permission setting for a group conversation.
+     * This setting restricts message sending to admin participants only when enabled.
+     * Only admin participants are authorized to modify this setting.
+     * @param adminUserId id of requesting user (must be admin)
+     * @param conversationId id of conversation
+     * @param conversationPermissionUpdateDTO the DTO containing the new permission setting
+     * @return ConversationDTO the updated conversation data
+     */
+    @Transactional
+    public ConversationDTO updateOnlyAdminsCanSendMessages(Long adminUserId, Long conversationId, ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO) {
+        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
+        Conversation conversation = adminParticipant.getConversation();
+
+        if (conversation.getOnlyAdminsCanSendMessages() != null && 
+            conversation.getOnlyAdminsCanSendMessages().equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages())) {
+            return buildConversationDTO(conversation);
+        }
+
+        conversation.setOnlyAdminsCanSendMessages(Boolean.TRUE.equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages()));
+
+        try {
+            conversationRepository.save(conversation);
+            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+            return buildConversationDTO(conversation);
+        } catch (Exception e) {
+            logger.error("failed to update onlyAdminsCanSendMessages for conversationId: {} by user id: {}",
+                    conversationId, adminUserId, e);
+            throw new CustomInternalServerErrorException("Failed to update conversation permission setting");
+        }
+    }
+
+    /**
      * generate signed image url for uploading the image s3 bucket.
      *
      * @param loggedInUserId       the ID of the user updating the group info
@@ -1028,10 +1073,16 @@ public class ConversationService {
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
 
         if (imageSignedDTO != null && CommonUtils.isNotEmptyObj(imageSignedDTO.getIndexedFileName())) {
-            conversation.setImageIndexedName(imageSignedDTO.getIndexedFileName());
+            conversation.setImageIndexedName(newFileName);
             try {
                 conversationRepository.save(conversation);
                 cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+
+                eventPublisher.publishEvent(new ConversationUpdateEvent(
+                        WorkspaceContext.getCurrentWorkspace(),
+                        loggedInUserId,
+                        conversation
+                ));
             } catch (Exception exception) {
                 logger.error("failed to update group icon for conversationId: {} by user id: {}",
                         conversationId, loggedInUserId, exception);
@@ -1047,9 +1098,10 @@ public class ConversationService {
      * @param userId         the ID of the user pinning the message
      * @param conversationId the ID of the conversation
      * @param messageId      the ID of the message to pin
+     * @param durationKey    duration key for a specific time
      */
     @Transactional
-    public void togglePinMessage(Long userId, Long conversationId, Long messageId) {
+    public void togglePinMessage(Long userId, Long conversationId, Long messageId, String durationKey) {
         conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
 
         Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
@@ -1062,7 +1114,18 @@ public class ConversationService {
 
         boolean isPinningAction = !currentlyPinned;
 
+        ZonedDateTime pinnedUntil = null;
+
+        if (durationKey != null && isPinningAction) {
+            PinnedDurationEnum pinnedDuration = PinnedDurationEnum.fromKey(durationKey);
+            if (pinnedDuration == null) {
+                throw new CustomBadRequestException("Invalid pinned duration: " + durationKey);
+            }
+            pinnedUntil = ZonedDateTime.now().plus(pinnedDuration.getAmount(), pinnedDuration.getUnit());
+        }
+
         conversation.setPinnedMessage(isPinningAction ? message : null);
+        conversation.setPinnedMessageUntil(pinnedUntil);
 
         try {
             conversationRepository.save(conversation);
@@ -1168,7 +1231,8 @@ public class ConversationService {
                 .findDirectOtherMeta(conversationId, requestingUserId)
                 .orElseThrow(() -> new CustomBadRequestException("No other user found or not a direct conversation"));
 
-        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(meta.getImageIndexedName());
+        String imageViewSignedUrl =
+                conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.LARGE, meta.getImageIndexedName());
         meta.setSignedImageUrl(imageViewSignedUrl);
         meta.setImageIndexedName(null);
 
@@ -1225,7 +1289,7 @@ public class ConversationService {
         }
 
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
-        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(conversation.getImageIndexedName());
+        String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.LARGE, conversation.getImageIndexedName());
         conversation.setSignedImageUrl(imageViewSignedUrl);
 
         if (!conversation.getIsGroup()) {
@@ -1297,7 +1361,8 @@ public class ConversationService {
                     ));
 
             String imageIndexedName = directOtherMeta.getImageIndexedName();
-            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
+            String signedImageIndexedName =
+                    conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
 
             conversationMetaDataDTO.setName(directOtherMeta.getFullName());
             conversationMetaDataDTO.setIsBlocked(directOtherMeta.isBlocked());
@@ -1315,8 +1380,19 @@ public class ConversationService {
 
         } else {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
-            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(imageIndexedName);
+            String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
+            ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+
+            if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
+                conversationMetaDataDTO.setIsCurrentUserAdmin(true);
+            }
+        }
+
+        boolean isPinnedMessageExpired = conversationUtilService.clearPinnedMessageIfExpired(conversationId, userId, conversationMetaDataDTO);
+        if (isPinnedMessageExpired) {
+            conversationMetaDataDTO.setPinnedMessage(null);
+            conversationMetaDataDTO.setPinnedMessageUntil(null);
         }
 
         return conversationMetaDataDTO;
@@ -1448,5 +1524,110 @@ public class ConversationService {
         });
 
         return userDTOs;
+    }
+
+    /**
+     * Retrieves the current active invite link for a conversation.
+     * Only conversation admins are allowed to access the invite link.
+     *
+     * @param loggedInUserId ID of the user requesting the invite link
+     * @param conversationId ID of the target conversation
+     * @return current active invite link details
+     * @throws CustomForbiddenException if the user is not an admin of the conversation
+     */
+    public InviteLinkDTO getCurrentInviteLink(Long loggedInUserId, Long conversationId) {
+        ConversationParticipant requestedParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
+
+        ConversationInviteLink inviteLink = conversationInviteLinkRepository
+                .findActiveInviteLink(conversationId);
+
+        if (inviteLink == null) {
+            return conversationUtilService.createAndSaveNewInviteLink(conversationId, requestedParticipant);
+        }
+
+        return new InviteLinkDTO(
+                conversationUtilService.buildInviteUrl(inviteLink.getToken()),
+                inviteLink.getExpiresAt()
+        );
+    }
+
+    /**
+     * Creates a shareable invite link for a conversation.
+     * Only conversation admins are allowed to generate invite links.
+     * The link expires after 5 days and has a limited number of uses.
+     *
+     * @param loggedInUserId  ID of the user requesting the invite link
+     * @param conversationId ID of the target conversation
+     * @return generated invite link details
+     * @throws CustomForbiddenException if the user is not an admin of the conversation
+     */
+    public InviteLinkDTO createNewInviteLink(Long loggedInUserId, Long conversationId){
+        ConversationParticipant requestedParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(loggedInUserId, conversationId);
+
+        return conversationUtilService.createAndSaveNewInviteLink(conversationId, requestedParticipant);
+    }
+
+    /**
+     * Allows a user to join a group conversation using a valid invite link.
+     * Validates the invite link, checks existing participation, and adds or
+     * reactivates the participant while updating invite link usage.
+     *
+     * @param loggedInUserId ID of the user joining the conversation
+     * @param token invite link token
+     * @return conversation details after joining
+     * @throws CustomBadRequestException if the invite link is invalid, expired,
+     *         already used up, or the user is already an active participant
+     */
+    @Transactional
+    public ConversationDTO joinConversationByInviteLink(Long loggedInUserId, String token){
+        ConversationInviteLink conversationInviteLink =
+                conversationInviteLinkRepository.findValidInviteLinkByToken(token);
+
+        //Validate user
+        Map<Long, ChatUser> validUser =
+                conversationUtilService.validateUsersTryingToAdd(Collections.singletonList(loggedInUserId));
+
+        Conversation conversation = conversationInviteLink.getConversation();
+
+        //Get conversation existing participant
+        Map<Long, ConversationParticipant> existingUser = conversationUtilService
+                .getConversationParticipantMap(conversation.getId(), Collections.singletonList(loggedInUserId));
+
+        ConversationParticipant participantToAdd;
+
+        if(existingUser == null || !existingUser.containsKey(loggedInUserId)){
+
+            participantToAdd = createParticipant(validUser.get(loggedInUserId), conversation);
+
+        } else {
+            participantToAdd = existingUser.get(loggedInUserId);
+
+            if (participantToAdd.getIsActive()) {
+                throw new CustomBadRequestException("You are already a participant in this conversation");
+            }
+
+            ParticipantProcessingResult participantProcessingResult = processExistingParticipants(Collections.singletonList(participantToAdd));
+            participantToAdd = participantProcessingResult.reactivated().getFirst();
+        }
+
+        //increment used by count
+        conversationInviteLink.setUsedCount(
+                conversationInviteLink.getUsedCount() + 1
+        );
+
+        try {
+            conversationParticipantRepository.save(participantToAdd);
+            conversationInviteLinkRepository.save(conversationInviteLink);
+
+            conversationEventService.createMessageWithConversationEvent(conversation.getId(), loggedInUserId, List.of(loggedInUserId), ConversationEventType.USER_JOINED);
+
+        } catch (Exception e) {
+            logger.error("Failed to add participant. conversationId={}, initiator={}", conversation.getId(), loggedInUserId, e);
+            throw new CustomBadRequestException("Failed to join the conversation. Please try again later");
+        }
+
+        return new ConversationDTO(conversation);
     }
 }

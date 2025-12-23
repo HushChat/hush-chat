@@ -1,47 +1,19 @@
+import {
+  DOC_EXTENSIONS,
+  IMAGE_EXTENSIONS,
+  VIDEO_EXTENSIONS,
+  MAX_IMAGE_SIZE_KB,
+  MAX_VIDEO_SIZE_KB,
+  MAX_DOCUMENT_SIZE_KB,
+} from "@/constants/mediaConstants";
 import { ToastUtils } from "@/utils/toastUtils";
+import { getFileType } from "@/utils/files/getFileType";
 
 export const MAX_FILES = 10;
-export const MAX_IMAGE_SIZE = 5_000_000;
-export const MAX_DOCUMENT_SIZE = 10_000_000;
+export const ALLOWED_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...DOC_EXTENSIONS];
 
-export const ALLOWED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-];
-
-export const ALLOWED_DOCUMENT_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "text/plain",
-];
-
-const getFileCategory = (file: File): "image" | "document" | "invalid" => {
-  const type = file.type || "";
-
-  if (ALLOWED_IMAGE_TYPES.includes(type) || type.startsWith("image/")) {
-    return "image";
-  }
-
-  if (ALLOWED_DOCUMENT_TYPES.includes(type)) {
-    return "document";
-  }
-
-  const extension = file.name.split(".").pop()?.toLowerCase();
-  if (extension) {
-    const docExtensions = ["pdf", "doc", "docx", "xls", "xlsx", "txt"];
-
-    if (docExtensions.includes(extension)) {
-      return "document";
-    }
-  }
-  return "invalid";
-};
+const formatFileSize = (sizeKB: number) =>
+  sizeKB >= 1024 ? `${(sizeKB / 1024).toFixed(2)} MB` : `${sizeKB.toFixed(2)} KB`;
 
 export const validateFiles = (
   files: FileList | File[],
@@ -52,24 +24,47 @@ export const validateFiles = (
   const fileArray = Array.from(files);
 
   if (currentFileCount + fileArray.length > MAX_FILES) {
-    errors.push(`You can only attach up to ${MAX_FILES} files in total`);
-    return { errors, validFiles };
+    const msg = `You can only attach up to ${MAX_FILES} files in total`;
+    ToastUtils.error(msg);
+    return { errors: [msg], validFiles };
   }
 
   fileArray.forEach((file) => {
     const fileErrors: string[] = [];
-    const category = getFileCategory(file);
+    const extension = file.name.split(".").pop()?.toLowerCase() || "";
+    const fileType = getFileType(file.name);
+    const sizeKB = file.size / 1024;
 
-    if (category === "invalid") {
-      fileErrors.push(`File ${file.name} has an unsupported type.`);
-    } else {
-      const maxSize = category === "image" ? MAX_IMAGE_SIZE : MAX_DOCUMENT_SIZE;
+    if (fileType === "unsupported" || !ALLOWED_EXTENSIONS.includes(extension)) {
+      fileErrors.push(
+        `"${file.name}" is not supported. Allowed: images (${IMAGE_EXTENSIONS.join(
+          ", "
+        )}), videos (${VIDEO_EXTENSIONS.join(", ")}), documents (${DOC_EXTENSIONS.join(", ")})`
+      );
+      errors.push(...fileErrors);
+      return;
+    }
 
-      if (file.size > maxSize) {
-        fileErrors.push(
-          `File ${file.name} is too large (max ${maxSize / 1_000_000}MB for ${category}s)`
-        );
-      }
+    let maxSize: number;
+
+    switch (fileType) {
+      case "image":
+        maxSize = MAX_IMAGE_SIZE_KB;
+        break;
+      case "video":
+        maxSize = MAX_VIDEO_SIZE_KB;
+        break;
+      case "document":
+        maxSize = MAX_DOCUMENT_SIZE_KB;
+        break;
+    }
+
+    if (sizeKB > maxSize) {
+      fileErrors.push(
+        `"${file.name}" is too large. Max allowed: ${formatFileSize(
+          maxSize
+        )}, current: ${formatFileSize(sizeKB)}`
+      );
     }
 
     if (fileErrors.length === 0) {

@@ -10,6 +10,5 @@ import java.util.Optional;
 public interface ChatNotificationRepository extends JpaRepository<ChatNotification, Long>, ChatNotificationQueryRepository {
 
     Optional<ChatNotification> findByToken(String token);
-
     void deleteChatNotificationsByChatUser_Email(String email);
 }

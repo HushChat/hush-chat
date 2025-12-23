@@ -11,9 +11,11 @@ import com.platform.software.chat.conversation.repository.ConversationRepository
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserInfoRepository;
 import com.platform.software.chat.user.repository.UserQueryRepository;
 import com.platform.software.common.dto.LoginDTO;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.AWSconfig;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
@@ -28,6 +30,7 @@ import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepo
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
 import com.platform.software.chat.user.repository.UserBlockRepository;
+import com.platform.software.platform.workspace.repository.WorkspaceRepository; 
 
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
@@ -71,7 +74,9 @@ public class UserServiceImpl implements UserService {
     private final UserUtilService userUtilService;
     private final AWSconfig awSconfig;
     private final ChatNotificationRepository chatNotificationRepository;
+    private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
+    private final UserInfoRepository userInfoRepository;
 
 
     public UserServiceImpl(
@@ -85,7 +90,10 @@ public class UserServiceImpl implements UserService {
             ConversationRepository conversationRepository,
             UserUtilService userUtilService,
             AWSconfig awSconfig,
-            ChatNotificationRepository chatNotificationRepository, WorkspaceUserRepository workspaceUserRepository
+            ChatNotificationRepository chatNotificationRepository, 
+            WorkspaceUserRepository workspaceUserRepository, 
+            WorkspaceRepository workspaceRepository,
+            UserInfoRepository userInfoRepository
     ) {
         this.userRepository = userRepository;
         this.cognitoService = cognitoService;
@@ -98,7 +106,9 @@ public class UserServiceImpl implements UserService {
         this.userUtilService = userUtilService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.awSconfig = awSconfig;
+        this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
+        this.userInfoRepository = userInfoRepository;
     }
 
     @Override
@@ -107,7 +117,7 @@ public class UserServiceImpl implements UserService {
 
         return users.map(user -> {
             UserDTO userDTO = new UserDTO(user);
-            userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+            userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.SMALL));
             return userDTO;
         });
     }
@@ -195,7 +205,16 @@ public class UserServiceImpl implements UserService {
         });
         
         UserViewDTO userViewDTO = new UserViewDTO(user);
-        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.MEDIUM));
+        
+        String currentWorkspaceIdentifier = WorkspaceContext.getCurrentWorkspace();
+
+        if (currentWorkspaceIdentifier != null) {
+            workspaceRepository.findByWorkspaceIdentifier(currentWorkspaceIdentifier)
+                .ifPresent(workspace -> {
+                    userViewDTO.setWorkspaceName(workspace.getName());
+                });
+        }
         WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(user.getEmail(), workspaceIdentifier);
         userViewDTO.setWorkspaceRole(workspaceUser.getRole());
         return userViewDTO;
@@ -290,9 +309,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.countByIdIn(userIds);
     }
 
-    private String getUserProfileImageUrl(String imageIndexedName) {
+    private String getUserProfileImageUrl(String imageIndexedName, MediaSizeEnum size) {
         if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+            return cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, size, imageIndexedName);
         }
         return imageIndexedName;
     }
@@ -400,7 +419,7 @@ public class UserServiceImpl implements UserService {
         userDTO.setDeleted(user.getDeleted());
         userDTO.setImageIndexedName(user.getImageIndexedName());
         userDTO.setConversationId(conversationMap.get(user.getId()));
-        userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.SMALL));
 
         return userDTO;
     }
@@ -438,5 +457,21 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(result, pageable, workspaceUserPage.getTotalElements());
+    }
+
+    @Override
+    public UserProfileDTO getUserProfile(Long id){
+
+        UserProfileDTO userPublicProfile = userInfoRepository.getProfileById(id);
+
+        if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty()){
+            userPublicProfile.setSignedImageUrl(
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            userPublicProfile.getSignedImageUrl()
+                    )
+            );
+        }
+
+        return userPublicProfile;
     }
 }

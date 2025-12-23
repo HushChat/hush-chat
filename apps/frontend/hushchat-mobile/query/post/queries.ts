@@ -11,6 +11,7 @@ import {
   exitGroupConversation,
   reportConversation,
   ReportReason,
+  joinConversationByInvite,
 } from "@/apis/conversation";
 import { blockUser, changePassword } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
@@ -50,7 +51,7 @@ export const useCreateOneToOneConversationMutation = createMutationHook<IConvers
 
 export const usePinMessageMutation = createMutationHook<
   IMessage,
-  { conversationId: number; messageId: number }
+  { conversationId: number; messageId: number; duration: string | null }
 >(
   pinMessage,
   (keyParams: { userId: number; conversationId: number }) => () =>
@@ -164,3 +165,12 @@ export const useChangePasswordQuery = createMutationHook<
   }
   return result;
 });
+
+export const useJoinConversationByInviteMutation = createMutationHook<
+  IConversation,
+  { token: string }
+>(
+  (params: { token: string }) => joinConversationByInvite(params.token),
+  (keyParams: { token: string }) => () =>
+    [conversationQueryKeys.joinConversationByInvite(keyParams.token)] as string[][]
+);

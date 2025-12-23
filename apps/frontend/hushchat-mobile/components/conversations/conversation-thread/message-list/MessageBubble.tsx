@@ -22,7 +22,7 @@ interface IMessageBubbleProps {
   isCurrentUser: boolean;
   hasText: boolean;
   hasAttachments: boolean;
-  hasImages: boolean;
+  hasMedia: boolean;
   selected: boolean;
   selectionMode: boolean;
   isForwardedMessage: boolean;
@@ -38,7 +38,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   isCurrentUser,
   hasText,
   hasAttachments,
-  hasImages,
+  hasMedia,
   selected,
   selectionMode,
   isForwardedMessage,
@@ -102,17 +102,17 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         <View
           className={classNames("rounded-lg border-2", {
             "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasImages) && isCurrentUser,
+              (hasText || hasMedia) && isCurrentUser,
             "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasImages) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasImages),
+              (hasText || hasMedia) && !isCurrentUser,
+            "bg-transparent": !(hasText || hasMedia) || message.isUnsend,
 
             "border-sky-500 dark:border-sky-400": selected && selectionMode,
             "border-transparent": !(selected && selectionMode),
 
             "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(messageContent && !hasImages && messageUrlMetadata),
+            "px-3 py-2": !(hasMedia && !messageContent && messageUrlMetadata),
             "p-1": messageUrlMetadata,
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     maxWidth: 305,
   },
   maxWidthRegular: {
-    maxWidth: "70%",
+    maxWidth: "100%",
   },
   maxWidthWebForLink: {
     maxWidth: "40%",

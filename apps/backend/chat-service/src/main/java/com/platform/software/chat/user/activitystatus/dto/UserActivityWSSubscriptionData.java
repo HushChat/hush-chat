@@ -11,4 +11,5 @@ public class UserActivityWSSubscriptionData {
 
     private Set<Long> visibleConversations; // list of conversations visible - mobile or web
     private Long openedConversation; // indicates user's selected conversation, could be null
+    private String deviceType;
 }

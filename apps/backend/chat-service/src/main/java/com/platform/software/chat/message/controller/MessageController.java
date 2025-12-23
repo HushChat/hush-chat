@@ -195,6 +195,29 @@ public class MessageController {
         );
     }
 
+    /**
+     * Retrieves all message mentions by others for the authenticated user.
+     * <p>
+     * This endpoint returns a paginated list of messages where the authenticated user
+     * has been mentioned by others. The results can be sorted and filtered using pagination parameters.
+     * </p>
+     *
+     * @param authenticatedUser the currently authenticated user whose mentions are being retrieved
+     * @param pageable pagination and sorting information (page number, size, sort order)
+     * @return a {@link ResponseEntity} containing a {@link Page} of {@link MessageMentionDTO} objects
+     *         with HTTP status 200 (OK)
+     */
+    @ApiOperation(value = "get all user message mentions by others")
+    @GetMapping("/mentions")
+    public ResponseEntity<Page<MessageMentionDTO>> getAllUserMessageMentions(
+            @AuthenticatedUser UserDetails authenticatedUser,
+            Pageable pageable
+    ) {
+        Page<MessageMentionDTO> messageMentionPages = messageService.getAllUserMessageMentions(authenticatedUser, pageable);
+
+        return ResponseEntity.ok(messageMentionPages);
+    }
+
     @ApiOperation(value = "get message url meta data")
     @GetMapping("urlMetadata/{messageId}")
     public ResponseEntity<MessageUrlMetadataDTO> getMessageUrlMetadata(@PathVariable Long messageId) {

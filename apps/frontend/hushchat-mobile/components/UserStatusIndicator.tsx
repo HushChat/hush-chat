@@ -1,6 +1,7 @@
-import { chatUserStatus } from "@/types/chat/types";
+import { chatUserStatus, DeviceType } from "@/types/chat/types";
 import { View } from "react-native";
 import React from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 const StatusColorMap: Record<string, string> = {
   [chatUserStatus.ONLINE]: "#22C55E",
@@ -15,14 +16,30 @@ const getStatusColor = (status: string): string => {
 
 interface UserStatusIndicatorProps {
   userStatus?: chatUserStatus;
+  deviceType?: DeviceType;
 }
 
-const UserStatusIndicator = ({ userStatus = chatUserStatus.OFFLINE }: UserStatusIndicatorProps) => {
+const UserStatusIndicator = ({
+  userStatus = chatUserStatus.OFFLINE,
+  deviceType,
+}: UserStatusIndicatorProps) => {
+  const color = getStatusColor(userStatus);
+
+  if (deviceType) {
+    const iconName = deviceType === DeviceType.WEB ? "laptop-outline" : "phone-portrait-outline";
+
+    return (
+      <View className="absolute bottom-0 right-0 bg-background-light dark:bg-background-dark rounded-full items-center justify-center border-2 border-white dark:border-gray-900 w-[18px] h-[18px]">
+        <Ionicons name={iconName} size={10} color={color} />
+      </View>
+    );
+  }
+
   return (
     <View
-      className="absolute bottom-0 right-0 border-white w-[12px] h-[12px] rounded-full border-2 bg-[getStatusColor(userStatus)]"
+      className="absolute bottom-0 right-0 border-white dark:border-gray-900 w-[12px] h-[12px] rounded-full border-2"
       style={{
-        backgroundColor: getStatusColor(userStatus),
+        backgroundColor: color,
       }}
     />
   );
