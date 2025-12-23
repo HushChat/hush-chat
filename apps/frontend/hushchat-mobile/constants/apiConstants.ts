@@ -82,6 +82,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
   TOGGLE_NOTIFY_ONLY_ON_MENTIONS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/notification`,
+  MARK_MESSAGE_AS_UNREAD: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
 };
 
 export const USER_API_ENDPOINTS = {
