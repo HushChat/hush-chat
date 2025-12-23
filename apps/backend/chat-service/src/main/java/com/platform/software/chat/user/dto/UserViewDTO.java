@@ -1,5 +1,6 @@
 package com.platform.software.chat.user.dto;
 
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class UserViewDTO {
     private String signedImageUrl;
     private String workspaceName;
     private WorkspaceUserRole workspaceRole;
+    private UserStatusEnum status;
 
     public UserViewDTO(ChatUser user) {
         this.setId(user.getId());
@@ -26,6 +28,7 @@ public class UserViewDTO {
         this.setEmail(user.getEmail());
         this.setUsername(user.getUsername());
         this.setSignedImageUrl(user.getSignedImageUrl());
+        this.setStatus(user.getAvailabilityStatus());
     }
 
     public String getWorkspaceName() {

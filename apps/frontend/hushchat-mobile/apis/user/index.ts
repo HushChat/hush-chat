@@ -97,3 +97,12 @@ export const getUserWorkspaces = async () => {
     return { error: getAPIErrorMsg(error) };
   }
 };
+
+export const updateUserAvailabilityStatus = async () => {
+  try {
+    const response = await axios.patch(USER_API_ENDPOINTS.CHANGE_AVAILABILITY_STATUS);
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};

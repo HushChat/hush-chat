@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_availability_status_to_chat_user
+      author: ransilu
+      tag: release-8.1
+      comment: "add availability_status to chat_user and set default to AVAILABLE"
+      changes:
+        - addColumn:
+            tableName: chat_user
+            columns:
+              - column:
+                  name: availability_status
+                  type: VARCHAR(50)
+                  defaultValue: 'AVAILABLE'
+                  constraints:
+                    nullable: false
