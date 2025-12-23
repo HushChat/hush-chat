@@ -1,0 +1,147 @@
+databaseChangeLog:
+  - changeSet:
+      id: create conversation_invite_link sequence
+      author: moditha
+      tag: release-9.1
+      changes:
+        - createSequence:
+            sequenceName: conversation_invite_link_generator
+            startValue: 1
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            cacheSize: 1
+            cycle: false
+
+  - changeSet:
+      id: create conversation_invite_link table
+      author: moditha
+      tag: release-9.2
+      changes:
+        - createTable:
+            tableName: conversation_invite_link
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  defaultValueSequenceNext: conversation_invite_link_generator
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: conversation_invite_link_pkey
+
+              - column:
+                  name: version
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: conversation_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: token
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: created_by_user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: true
+
+              - column:
+                  name: max_users
+                  type: bigint
+                  constraints:
+                    nullable: true
+
+              - column:
+                  name: used_count
+                  type: bigint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: is_active
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: add foreign key constraints for conversation_invite_link
+      author: moditha
+      tag: release-9.3
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: conversation_invite_link
+            baseColumnNames: conversation_id
+            constraintName: fk_conversation_invite_link_conversation
+            referencedTableName: conversation
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: conversation_invite_link
+            baseColumnNames: created_by_user_id
+            constraintName: fk_conversation_invite_link_created_by_user
+            referencedTableName: chat_user
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+  - changeSet:
+      id: create indexes for conversation_invite_link
+      author: moditha
+      tag: release-9.4
+      changes:
+        - createIndex:
+            indexName: idx_conversation_invite_link_token
+            tableName: conversation_invite_link
+            columns:
+              - column:
+                  name: token
+
+        - createIndex:
+            indexName: idx_conversation_invite_link_conversation_id
+            tableName: conversation_invite_link
+            columns:
+              - column:
+                  name: conversation_id
+
+        - createIndex:
+            indexName: idx_conversation_invite_link_created_by_user_id
+            tableName: conversation_invite_link
+            columns:
+              - column:
+                  name: created_by_user_id
+
+        - createIndex:
+            indexName: idx_conversation_invite_link_is_active
+            tableName: conversation_invite_link
+            columns:
+              - column:
+                  name: is_active

@@ -19,14 +19,14 @@ interface IMessageBubbleProps {
   isCurrentUser: boolean;
   hasText: boolean;
   hasAttachments: boolean;
-  hasImages: boolean;
+  hasMedia: boolean;
   selected: boolean;
   selectionMode: boolean;
   isForwardedMessage: boolean;
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
   onMentionClick?: (user: TUser) => void;
-  onAttachmentLongPress?: (attachment: IMessageAttachment) => void;            
+  onAttachmentLongPress?: (attachment: IMessageAttachment) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
 }
@@ -36,7 +36,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   isCurrentUser,
   hasText,
   hasAttachments,
-  hasImages,
+  hasMedia,
   selected,
   selectionMode,
   isForwardedMessage,
@@ -92,17 +92,17 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         <View
           className={classNames("rounded-lg border-2", {
             "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasImages) && isCurrentUser,
+              (hasText || hasMedia) && isCurrentUser,
             "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasImages) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasImages) || message.isUnsend,
+              (hasText || hasMedia) && !isCurrentUser,
+            "bg-transparent": !(hasText || hasMedia) || message.isUnsend,
 
             "border-sky-500 dark:border-sky-400": selected && selectionMode,
             "border-transparent": !(selected && selectionMode),
 
             "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasImages && !messageContent),
+            "px-3 py-2": !(hasMedia && !messageContent),
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >

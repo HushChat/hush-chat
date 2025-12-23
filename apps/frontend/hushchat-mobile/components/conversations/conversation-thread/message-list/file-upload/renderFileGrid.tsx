@@ -1,22 +1,12 @@
-/**
- * renderFileGrid.tsx
- * Updated with image preview functionality
- */
-
 import { IMessageAttachment } from "@/types/chat/types";
 import { View, ViewStyle } from "react-native";
-import { ImagePreview } from "@/components/conversations/conversation-thread/composer/image-preview/ImagePreview";
 import { DocumentCard } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard";
 import { ImageGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid";
 import { useFileGrid } from "@/hooks/conversation-thread/useFileGrid";
+import MediaPreview from "@/components/conversations/conversation-thread/composer/image-preview/MediaPreview";
 
 const GRID_CONFIG = {
   MAX_WIDTH: 280,
-  MAX_HEIGHT: 280,
-  SINGLE_IMAGE_MAX_HEIGHT: 350,
-  IMAGE_GAP: 2,
-  BORDER_RADIUS: 8,
-  MAX_DISPLAY_IMAGES: 4,
 } as const;
 
 const dynamicStyles = {
@@ -25,8 +15,8 @@ const dynamicStyles = {
     alignSelf: isCurrentUser ? "flex-end" : "flex-start",
   }),
 
-  documentSpacing: (hasMultipleDocs: boolean, hasImages: boolean): ViewStyle => ({
-    marginBottom: hasMultipleDocs || hasImages ? 8 : 0,
+  documentSpacing: (hasMultipleDocs: boolean, hasMedia: boolean): ViewStyle => ({
+    marginBottom: hasMultipleDocs || hasMedia ? 8 : 0,
   }),
 } as const;
 
@@ -40,17 +30,17 @@ const RenderFileGrid = ({
   onAttachmentLongPress?: (attachment: IMessageAttachment) => void;
 }) => {
   const {
-    images,
+    mediaItems,
     documents,
     previewVisible,
     selectedImageIndex,
     openPreview,
     closePreview,
-    hasImages,
+    hasMedia,
     hasDocuments,
   } = useFileGrid(attachments);
 
-  if (!hasImages && !hasDocuments) return null;
+  if (!hasMedia && !hasDocuments) return null;
 
   return (
     <>
@@ -58,7 +48,7 @@ const RenderFileGrid = ({
         {documents.map((doc, index) => (
           <View
             key={doc.id || `doc-${index}`}
-            style={dynamicStyles.documentSpacing(documents.length > 1, images.length > 0)}
+            style={dynamicStyles.documentSpacing(documents.length > 1, hasMedia)}
           >
             <DocumentCard
               attachment={doc}
@@ -68,16 +58,16 @@ const RenderFileGrid = ({
           </View>
         ))}
 
-        {hasImages && (
+        {hasMedia && (
           <View style={dynamicStyles.container(isCurrentUser)}>
-            <ImageGrid images={images} onImagePress={openPreview} />
+            <ImageGrid images={mediaItems} onImagePress={openPreview} />
           </View>
         )}
       </View>
 
-      <ImagePreview
+      <MediaPreview
         visible={previewVisible}
-        images={images}
+        images={mediaItems}
         initialIndex={selectedImageIndex}
         onClose={closePreview}
       />

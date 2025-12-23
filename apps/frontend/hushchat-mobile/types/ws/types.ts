@@ -1,3 +1,5 @@
+import { DeviceType } from "@/types/chat/types";
+
 export interface WebSocketMessage {
   id: string;
   conversationId: number;
@@ -54,10 +56,26 @@ export interface UserActivityWSSubscriptionData {
   email: string;
   visibleConversations: number[]; // list of conversations visible - mobile or web
   openedConversation: number | null; // indicates user's selected conversation, could be null
+  deviceType?: DeviceType;
 }
 
 export interface MessageUnsentPayload {
   conversationId: number;
   messageId: number;
   actorUserId: number;
+}
+
+export enum MessageReactionActionEnum {
+  ADDED = "ADDED",
+  UPDATED = "UPDATED",
+  REMOVED = "REMOVED",
+}
+
+export interface MessageReactionPayload {
+  conversationId: number;
+  messageId: number;
+  actorUserId: number;
+  reactionType: string | null;
+  previousReactionType?: string | null;
+  reactionAction: MessageReactionActionEnum;
 }
