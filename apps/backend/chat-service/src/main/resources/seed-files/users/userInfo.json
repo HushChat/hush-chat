@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "contactNumber": "+94771234501",
+    "address": "Colombo 07, Sri Lanka",
+    "designation": "System Administrator",
+    "chatUser": { "id": 1 }
+  },
+  {
+    "id": 2,
+    "contactNumber": "+94771234502",
+    "address": "Galle, Sri Lanka",
+    "designation": "Support Engineer",
+    "chatUser": { "id": 2 }
+  },
+  {
+    "id": 3,
+    "contactNumber": "+94771234503",
+    "address": "Kandy, Sri Lanka",
+    "designation": "HR Executive",
+    "chatUser": { "id": 3 }
+  },
+  {
+    "id": 4,
+    "contactNumber": "+94771234504",
+    "address": "Negombo, Sri Lanka",
+    "designation": "Product Manager",
+    "chatUser": { "id": 4 }
+  },
+  {
+    "id": 5,
+    "contactNumber": "+94771234505",
+    "address": "Matara, Sri Lanka",
+    "designation": "UI/UX Designer",
+    "chatUser": { "id": 5 }
+  },
+  {
+    "id": 6,
+    "contactNumber": "+94771234506",
+    "address": "Kurunegala, Sri Lanka",
+    "designation": "Backend Developer",
+    "chatUser": { "id": 6 }
+  },
+  {
+    "id": 7,
+    "contactNumber": "+94771234507",
+    "address": "Jaffna, Sri Lanka",
+    "designation": "QA Engineer",
+    "chatUser": { "id": 7 }
+  },
+  {
+    "id": 8,
+    "contactNumber": "+94771234508",
+    "address": "Anuradhapura, Sri Lanka",
+    "designation": "DevOps Engineer",
+    "chatUser": { "id": 8 }
+  },
+  {
+    "id": 9,
+    "contactNumber": "+94771234509",
+    "address": "Batticaloa, Sri Lanka",
+    "designation": "Business Analyst",
+    "chatUser": { "id": 9 }
+  },
+  {
+    "id": 10,
+    "contactNumber": "+94771234510",
+    "address": "Nugegoda, Sri Lanka",
+    "designation": "Software Engineer",
+    "chatUser": { "id": 10 }
+  }
+]
