@@ -195,7 +195,7 @@ public class UserController {
     }
 
     @ApiOperation(value = "Get user profile by id", response = UserProfileDTO.class)
-    @GetMapping("{id}")
+    @GetMapping("profile/{id}")
     public ResponseEntity<UserProfileDTO> userProfile(
             @PathVariable Long id
     ){
