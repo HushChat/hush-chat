@@ -14,7 +14,8 @@ interface ASTNode {
 export const useMarkdownRules = (
   handleLinkPress: (url: string) => void,
   isCurrentUser: boolean,
-  onWebContextMenu: (e: any, url: string) => void
+  onWebContextMenu: (e: any, url: string) => void,
+  onMentionPress?: (username: string) => void
 ) => {
   return useMemo(
     () => ({
@@ -38,9 +39,11 @@ export const useMarkdownRules = (
         const url = node.attributes.href;
         let activeStyle = styles.link;
         let isSpecial = false;
+        let isMention = false;
 
         if (url.startsWith("mention:")) {
           isSpecial = true;
+          isMention = true;
           activeStyle = {
             color: isCurrentUser ? "#beb4e8" : "#6366f1",
             fontWeight: "700",
@@ -66,11 +69,20 @@ export const useMarkdownRules = (
         const content = isSpecial ? node.children.map((child) => child.content).join("") : children;
         const isHoverable = PLATFORM.IS_WEB && !isSpecial;
 
+        const handlePress = () => {
+          if (isMention && onMentionPress) {
+            const username = url.replace("mention:", "");
+            onMentionPress(username);
+          } else {
+            handleLinkPress(url);
+          }
+        };
+
         return (
           <AppText
             key={node.key}
             style={activeStyle}
-            onPress={() => handleLinkPress(url)}
+            onPress={handlePress}
             className={isHoverable ? "hover:underline hover:decoration-[#7dd3fc]" : ""}
             {...(isHoverable && { onContextMenu: (e: any) => onWebContextMenu(e, url) })}
           >
@@ -79,6 +91,6 @@ export const useMarkdownRules = (
         );
       },
     }),
-    [handleLinkPress, isCurrentUser, onWebContextMenu]
+    [handleLinkPress, isCurrentUser, onWebContextMenu, onMentionPress] // Add onMentionPress to dependencies
   );
 };
