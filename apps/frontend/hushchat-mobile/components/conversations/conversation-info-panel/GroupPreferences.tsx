@@ -1,6 +1,6 @@
 import { Dimensions, TouchableOpacity, View, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
 import { MotionView } from "@/motion/MotionView";
@@ -25,6 +25,10 @@ export default function GroupPreferences({
   const [notifyOnMentionsOnly, setNotifyOnMentionsOnly] = useState<boolean>(
     conversation.notifyOnMentionsOnly
   );
+
+  useEffect(() => {
+    setNotifyOnMentionsOnly(conversation.notifyOnMentionsOnly);
+  }, [conversation.notifyOnMentionsOnly]);
 
   const toggleNotifyOnlyOnMentionMutation = useToggleNotifyOnlyOnMentionMutation(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
