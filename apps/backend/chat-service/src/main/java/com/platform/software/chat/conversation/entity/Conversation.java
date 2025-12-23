@@ -1,5 +1,6 @@
 package com.platform.software.chat.conversation.entity;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.entity.Message;
@@ -43,6 +44,8 @@ public class Conversation extends AuditModel{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pinned_message_id")
     private Message pinnedMessage;
+
+    private ZonedDateTime pinnedMessageUntil;
 
     private String description;
 

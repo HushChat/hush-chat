@@ -22,6 +22,7 @@ import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
+import com.platform.software.config.cache.RedisCacheService;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.utils.CommonUtils;
 
@@ -64,13 +65,16 @@ public class ConversationUtilService {
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
     private final ConversationInviteLinkRepository conversationInviteLinkRepository;
+    private final RedisCacheService cacheService;
 
     public ConversationUtilService(
             ConversationParticipantRepository conversationParticipantRepository,
             UserRepository userRepository,
             ConversationRepository conversationRepository,
             CloudPhotoHandlingService cloudPhotoHandlingService,
-            @Lazy ConversationService conversationService, ConversationInviteLinkRepository conversationInviteLinkRepository
+            @Lazy ConversationService conversationService,
+            ConversationInviteLinkRepository conversationInviteLinkRepository,
+            RedisCacheService cacheService
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
@@ -78,6 +82,7 @@ public class ConversationUtilService {
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
         this.conversationService = conversationService;
         this.conversationInviteLinkRepository = conversationInviteLinkRepository;
+        this.cacheService = cacheService;
     }
 
     /**
@@ -223,6 +228,7 @@ public class ConversationUtilService {
                 conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
             }
         }
+
         return conversationMetaDataDTO;
     }
 
@@ -412,7 +418,7 @@ public class ConversationUtilService {
     public String buildInviteUrl(String token) {
         return String.format("%s/invite/%s", frontendBaseUrl, token);
     }
-  
+
     /**
      * Retrieves all active participants of a conversation except the given sender.
      * <p>
@@ -458,5 +464,39 @@ public class ConversationUtilService {
                 buildInviteUrl(inviteLink.getToken()),
                 inviteLink.getExpiresAt()
         );
+    }
+
+    /**
+     * Clears the pinned message of a conversation if it has expired.
+     * <p>
+     * This method checks whether the {@code pinnedMessageUntil} field in the given
+     * {@link ConversationMetaDataDTO} has passed the current time. If so, it removes
+     * the pinned message record from the conversation in the database and evicts
+     * related cache entries for the current workspace.
+     * </p>
+     *
+     * @param conversationId The unique identifier of the conversation whose pinned message may be cleared.
+     * @param userId The identifier of the user performing the operation, used for logging and auditing.
+     * @param conversationMetaDataDTO The metadata object containing the pinned message expiration timestamp.
+     * @return {@code true} if the pinned message was expired and successfully cleared (or attempted to clear),
+     *         {@code false} if no expiration occurred or the pinned message was not present.
+     */
+    public boolean clearPinnedMessageIfExpired(Long conversationId, Long userId, ConversationMetaDataDTO conversationMetaDataDTO) {
+        if (conversationMetaDataDTO.getPinnedMessageUntil() != null) {
+            boolean isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().toInstant().isBefore(Instant.now());
+
+            if (isPinnedMessageExpired) {
+                try {
+                    conversationRepository.clearExpiredPinnedMessageFromConversation(conversationId);
+                } catch (Exception error) {
+                    logger.error("update conversation: {} by user: {} with null pinned message failed", conversationId, userId, error);
+                }
+
+                cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+
+                return true;
+            }
+        }
+        return false;
     }
 }

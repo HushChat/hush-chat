@@ -1093,9 +1093,10 @@ public class ConversationService {
      * @param userId         the ID of the user pinning the message
      * @param conversationId the ID of the conversation
      * @param messageId      the ID of the message to pin
+     * @param durationKey    duration key for a specific time
      */
     @Transactional
-    public void togglePinMessage(Long userId, Long conversationId, Long messageId) {
+    public void togglePinMessage(Long userId, Long conversationId, Long messageId, String durationKey) {
         conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
 
         Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
@@ -1108,7 +1109,18 @@ public class ConversationService {
 
         boolean isPinningAction = !currentlyPinned;
 
+        ZonedDateTime pinnedUntil = null;
+
+        if (durationKey != null && isPinningAction) {
+            PinnedDurationEnum pinnedDuration = PinnedDurationEnum.fromKey(durationKey);
+            if (pinnedDuration == null) {
+                throw new CustomBadRequestException("Invalid pinned duration: " + durationKey);
+            }
+            pinnedUntil = ZonedDateTime.now().plus(pinnedDuration.getAmount(), pinnedDuration.getUnit());
+        }
+
         conversation.setPinnedMessage(isPinningAction ? message : null);
+        conversation.setPinnedMessageUntil(pinnedUntil);
 
         try {
             conversationRepository.save(conversation);
@@ -1370,6 +1382,12 @@ public class ConversationService {
             if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
                 conversationMetaDataDTO.setIsCurrentUserAdmin(true);
             }
+        }
+
+        boolean isPinnedMessageExpired = conversationUtilService.clearPinnedMessageIfExpired(conversationId, userId, conversationMetaDataDTO);
+        if (isPinnedMessageExpired) {
+            conversationMetaDataDTO.setPinnedMessage(null);
+            conversationMetaDataDTO.setPinnedMessageUntil(null);
         }
 
         return conversationMetaDataDTO;
