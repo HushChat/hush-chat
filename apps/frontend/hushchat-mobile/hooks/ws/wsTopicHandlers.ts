@@ -1,12 +1,13 @@
 import { WS_TOPICS, WSTopic } from "@/constants/ws/wsTopics";
 import {
   emitConversationCreated,
+  emitMessageReaction,
   emitMessageUnsent,
   emitNewMessage,
   emitUserStatus,
 } from "@/services/eventBus";
 import { IConversation, IUserStatus } from "@/types/chat/types";
-import { MessageUnsentPayload } from "@/types/ws/types";
+import { MessageReactionPayload, MessageUnsentPayload } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 
 export type TopicHandler = (body: string) => void;
@@ -20,6 +21,11 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
   [WS_TOPICS.message.unsent]: (body) => {
     const payload = JSON.parse(body) as MessageUnsentPayload;
     emitMessageUnsent(payload);
+  },
+
+  [WS_TOPICS.message.react]: (body) => {
+    const data = JSON.parse(body) as MessageReactionPayload;
+    emitMessageReaction(data);
   },
 
   [WS_TOPICS.user.onlineStatus]: (body) => {

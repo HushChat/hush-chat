@@ -23,7 +23,11 @@ import {
   USER_EVENTS,
   WEBSOCKET_EVENTS,
 } from "@/constants/ws/webSocketEventKeys";
-import { MessageUnsentPayload } from "@/types/ws/types";
+import {
+  MessageReactionActionEnum,
+  MessageReactionPayload,
+  MessageUnsentPayload,
+} from "@/types/ws/types";
 
 const PAGE_SIZE = 20;
 
@@ -98,6 +102,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       ...notificationConversation,
       chatUserStatus: matchedNotification?.chatUserStatus,
       unreadCount: updatedUnreadCount,
+      deviceType: matchedNotification?.deviceType,
     };
 
     appendToOffsetPaginatedCache<IConversation>(
@@ -295,6 +300,86 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, [queryClient, conversationsQueryKey, loggedInUserId]);
 
+  useEffect(() => {
+    const handleMessageReaction = (payload: MessageReactionPayload) => {
+      const { conversationId, messageId } = payload;
+
+      const applyToMessage = (msg: IMessage) => {
+        if (Number(msg?.id) !== Number(messageId)) return msg;
+
+        const prevSummary = msg.reactionSummary ?? { counts: {}, currentUserReaction: "" };
+        const counts: Record<string, number> = { ...(prevSummary.counts ?? {}) };
+
+        const dec = (key: string) => {
+          if (!key) return;
+          const next = (counts[key] ?? 0) - 1;
+          if (next <= 0) delete counts[key];
+          else counts[key] = next;
+        };
+
+        const inc = (key: string) => {
+          if (!key) return;
+          counts[key] = (counts[key] ?? 0) + 1;
+        };
+
+        const prevType = (payload.previousReactionType ?? "").trim();
+        const nextType = (payload.reactionType ?? "").trim();
+        const loggedInUserIsInitiator = Number(payload.actorUserId) === Number(loggedInUserId);
+
+        const removed = payload.reactionAction === MessageReactionActionEnum.REMOVED;
+
+        if (prevType) dec(prevType);
+        if (!removed && nextType) inc(nextType);
+
+        return {
+          ...msg,
+          reactionSummary: {
+            counts,
+            currentUserReaction: loggedInUserIsInitiator
+              ? removed
+                ? ""
+                : nextType
+              : prevSummary.currentUserReaction,
+          },
+        };
+      };
+
+      // Update ONLY thread message caches (all variants)
+      const threadKey = conversationMessageQueryKeys.messages(
+        Number(loggedInUserId),
+        conversationId
+      );
+      const root = Array.isArray(threadKey) ? threadKey[0] : threadKey;
+
+      queryClient.setQueriesData(
+        {
+          predicate: (q) => {
+            const key = q.queryKey as any[];
+            if (!Array.isArray(key)) return false;
+            if (key[0] !== root) return false;
+
+            // Match this conversation's thread query
+            return key.some((k) => Number(k) === Number(conversationId));
+          },
+        },
+        (old: any) => {
+          if (!old?.pages) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page: PaginatedResult<IMessage>) => ({
+              ...page,
+              content: (page?.content ?? []).map(applyToMessage),
+            })),
+          };
+        }
+      );
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.MESSAGE_REACTION, handleMessageReaction);
+    return () => eventBus.off(CONVERSATION_EVENTS.MESSAGE_REACTION, handleMessageReaction);
+  }, [queryClient, loggedInUserId]);
+
   const clearNotificationConversation = useCallback(() => {
     setNotificationConversation(null);
   }, []);
@@ -344,6 +429,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     const mergedConversation = {
       ...conversation,
       chatUserStatus: userStatus.status,
+      deviceType: userStatus.deviceType,
     };
 
     appendToOffsetPaginatedCache<IConversation>(

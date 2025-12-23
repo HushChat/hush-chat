@@ -60,7 +60,7 @@ public class MessageMentionService {
                     messageViewDTO.getSenderId())
                 : getMentionedUsersByUsernames(messageText);
 
-        if (mentionedUsers == null) {
+        if (mentionedUsers == null || mentionedUsers.isEmpty()) {
             return;
         }
 
@@ -77,7 +77,7 @@ public class MessageMentionService {
     public List<ChatUser> getMentionedUsersByUsernames(String messageText) {
         List<String> usernames = extractUsernames(messageText);
         if (usernames.isEmpty()) {
-            return null;
+            return List.of();
         }
 
         return userRepository.findByUsernameIn(usernames);
