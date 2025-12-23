@@ -36,7 +36,7 @@ export default function InviteScreen() {
           });
         }, 2000);
       } else {
-        setError(response.error.message || "Invalid or expired invite code.");
+        setError(response.error || "Invalid or expired invite code.");
         setLoading(false);
 
         setTimeout(() => {
