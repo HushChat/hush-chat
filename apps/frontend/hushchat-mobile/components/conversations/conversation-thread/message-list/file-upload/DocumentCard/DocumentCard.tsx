@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, View, Linking } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 
@@ -40,7 +40,7 @@ export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) 
   const textPrimary = isDark ? "#ffffff" : "#111827";
   const textSecondary = isDark ? "#9ca3af" : "#6B7280";
 
-   const handleDocumentPress = async () => {
+  const handleDocumentPress = async () => {
     const fileUrl = attachment.fileUrl;
     const fileName = attachment.originalFileName || attachment.indexedFileName;
 
