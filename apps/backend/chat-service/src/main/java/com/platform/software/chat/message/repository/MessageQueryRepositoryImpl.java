@@ -248,23 +248,21 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     @Override
     public Optional<Message> findPreviousMessage(Long conversationId, Long messageId, ConversationParticipant participant) {
         QMessage message = QMessage.message;
-        
+    
         Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
                 .map(zdt -> Date.from(zdt.toInstant()))
-                .orElse(new Date(0));
-        
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(message.conversation.id.eq(conversationId))
-            .and(message.id.lt(messageId))
-            .and(message.isUnsend.eq(false))
-            .and(message.createdAt.after(deletedAt));
+                .orElse(null);
         
         return Optional.ofNullable(
             queryFactory.selectFrom(message)
-                .where(builder)
+                .where(
+                    message.conversation.id.eq(conversationId),
+                    message.id.lt(messageId),
+                    message.isUnsend.isFalse(),
+                    deletedAt != null ? message.createdAt.after(deletedAt) : null
+                )
                 .orderBy(message.id.desc())
-                .limit(1)
-                .fetchOne()
+                .fetchFirst()
         );
     }
 }
