@@ -29,10 +29,20 @@ export const removeMessageReaction = async (messageId: number) => {
   }
 };
 
-export const pinMessage = async (params: { conversationId: number; messageId: number }) => {
+export const pinMessage = async (params: {
+  conversationId: number;
+  messageId: number;
+  duration: string | null;
+}) => {
   try {
     const response = await axios.post(
-      CONVERSATION_API_ENDPOINTS.PIN_MESSAGE(params.conversationId, params.messageId)
+      CONVERSATION_API_ENDPOINTS.PIN_MESSAGE(params.conversationId, params.messageId),
+      null,
+      {
+        params: {
+          duration: params.duration,
+        },
+      }
     );
     return { data: response.data };
   } catch (error: unknown) {
@@ -71,6 +81,21 @@ export const unsendMessage = async (params: { messageId: number }) => {
   }
 };
 
+export const markMessageAsUnread = async (params: {
+  messageId: number;
+  conversationId: number;
+}) => {
+  try {
+    const response = await axios.patch(
+      CONVERSATION_API_ENDPOINTS.MARK_MESSAGE_AS_UNREAD(params.conversationId, params.messageId)
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const getMessageReactions = async (
   messageId: number,
   page: number = 0,
@@ -80,6 +105,26 @@ export const getMessageReactions = async (
     const response = await axios.get(MESSAGE_API_ENDPOINTS.REACTIONS(messageId), {
       params: { page, size },
     });
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
+export const getMessageSeenParticipants = async (
+  conversationId: number,
+  messageId: number,
+  page: number = 0,
+  size: number = 20
+) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_MESSAGE_SEEN_PARTICIPANTS(conversationId, messageId),
+      {
+        params: { page, size },
+      }
+    );
     return { data: response.data };
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;

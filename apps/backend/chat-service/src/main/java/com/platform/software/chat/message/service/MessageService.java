@@ -2,6 +2,7 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
@@ -13,13 +14,16 @@ import com.platform.software.chat.message.attachment.service.MessageAttachmentSe
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageHistory;
+import com.platform.software.chat.message.entity.MessageMention;
 import com.platform.software.chat.message.repository.MessageHistoryRepository;
+import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
+import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
@@ -30,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -56,6 +61,7 @@ public class MessageService {
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
+    private final MessageMentionRepository messageMentionRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -174,7 +180,7 @@ public class MessageService {
         return newMessageHistory;
     }
 
-    private Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
+    public Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
         Message message = messageRepository.findByConversation_IdAndIdAndSender_Id(conversationId, messageId, userId)
             .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to edit this message"));
         return message;
@@ -213,6 +219,37 @@ public class MessageService {
                 conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
         );
         return signedURLResponseDTO;
+    }
+
+    /**
+     * Create messages with attachments list.
+     *
+     * @param messageDTOs    the message dt os
+     * @param conversationId the conversation id
+     * @param loggedInUserId the logged in user id
+     * @return the list
+     */
+    @Transactional
+    public List<MessageViewDTO> createMessagesWithAttachments(
+        List<MessageWithAttachmentUpsertDTO> messageDTOs,
+        Long conversationId,
+        Long loggedInUserId
+    ) {
+        List<MessageViewDTO> createdMessages = new ArrayList<>();
+        for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
+            Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
+            SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFileName(), savedMessage);
+
+            MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+            messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+            createdMessages.add(messageViewDTO);
+
+            messagePublisherService.invokeNewMessageToParticipants(
+                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+            );
+        }
+
+        return createdMessages;
     }
 
     /* * Creates a MessageViewDTO from the saved message and sets the sender ID and parent message ID.
@@ -482,5 +519,90 @@ public class MessageService {
 
         message.setIsUnsend(true);
         messageRepository.save(message);
+
+        eventPublisher.publishEvent(new MessageUnsentEvent(
+            WorkspaceContext.getCurrentWorkspace(),
+            message.getConversation().getId(),
+            message.getId(),
+            loggedInUserId
+        ));
+    }
+
+    /**
+     * Retrieves all message mentions by others for a specific user with pagination support.
+     * <p>
+     * This method queries the database for all messages where the specified user has been mentioned,
+     * converts the entities to DTOs, and returns them in a paginated format.
+     * </p>
+     *
+     * @param userDetails the user whose message mentions are being retrieved
+     * @param pageable pagination and sorting information (page number, size, sort order)
+     * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
+     */
+    public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
+        Page<MessageMention> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
+
+        Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
+            MessageMentionDTO dto = new MessageMentionDTO(messageMention);
+
+            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
+            if (imageIndexedName != null) {
+                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
+            }
+
+            return dto;
+        });
+
+        return messageMentionDTOPages;
+    }
+
+    /**
+     * Marks a message as unread by setting the user's last seen message to the previous message.
+     * If the target message is the first message in the conversation, sets last seen to null.
+     *
+     * @param conversationId The conversation ID
+     * @param loggedInUserId The logged-in user ID
+     * @param messageId The message ID to mark as unread
+     * @return ConversationReadInfo with updated read status
+     */
+    @Transactional
+    public ConversationReadInfo markMessageAsUnread(Long conversationId, Long loggedInUserId, Long messageId) {
+        ConversationParticipant participant = conversationUtilService
+            .getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        
+        Message targetMessage = messageRepository
+            .findByConversation_IdAndId(conversationId, messageId)
+            .orElseThrow(() -> new CustomBadRequestException("Message not found in this conversation"));
+
+        if (targetMessage.getSender().getId().equals(loggedInUserId)) {
+            throw new CustomBadRequestException("Cannot mark your own messages as unread");
+        }
+        
+        Optional<Message> previousMessage = messageRepository
+            .findPreviousMessage(conversationId, messageId, participant);
+        
+        ConversationReadStatus updatingStatus = conversationReadStatusRepository
+            .findByConversationIdAndUserId(conversationId, loggedInUserId)
+            .orElseGet(() -> {
+                ConversationReadStatus newStatus = new ConversationReadStatus();
+                newStatus.setUser(participant.getUser());
+                newStatus.setConversation(participant.getConversation());
+                return newStatus;
+            });
+        
+        updatingStatus.setMessage(previousMessage.orElse(null));
+        
+        try {
+            conversationReadStatusRepository.save(updatingStatus);
+        } catch (Exception exception) {
+            logger.error("failed to mark message {} as unread for user {}", messageId, loggedInUserId, exception);
+            throw new CustomBadRequestException("Failed to mark message as unread");
+        }
+        
+        return conversationReadStatusRepository.findConversationReadInfoByConversationIdAndUserId(
+            conversationId,
+            loggedInUserId
+        );
     }
 }

@@ -7,12 +7,17 @@ import FilePreviewPane from "./FilePreviewPane";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
 import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 
+export type FileWithCaption = {
+  file: File;
+  caption: string;
+};
+
 type TFilePreviewOverlayProps = {
   files: File[];
   conversationId: number;
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: (caption: string) => void;
+  onSendFiles: (filesWithCaptions: FileWithCaption[]) => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
   isGroupChat?: boolean;
@@ -33,18 +38,52 @@ const FilePreviewOverlay = ({
   onCancelReply,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [caption, setCaption] = useState("");
+  const [captions, setCaptions] = useState<Map<number, string>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (selectedIndex >= files.length) setSelectedIndex(Math.max(0, files.length - 1));
+    setCaptions((prev) => {
+      const newCaptions = new Map(prev);
+      files.forEach((_, index) => {
+        if (!newCaptions.has(index)) {
+          newCaptions.set(index, "");
+        }
+      });
+      Array.from(newCaptions.keys()).forEach((key) => {
+        if (key >= files.length) {
+          newCaptions.delete(key);
+        }
+      });
+      return newCaptions;
+    });
+  }, [files.length]);
+
+  useEffect(() => {
+    if (selectedIndex >= files.length) {
+      setSelectedIndex(Math.max(0, files.length - 1));
+    }
   }, [files.length, selectedIndex]);
+
+  const handleCaptionChange = useCallback(
+    (text: string) => {
+      setCaptions((prev) => {
+        const newCaptions = new Map(prev);
+        newCaptions.set(selectedIndex, text);
+        return newCaptions;
+      });
+    },
+    [selectedIndex]
+  );
+
+  const getCurrentCaption = useCallback(() => {
+    return captions.get(selectedIndex) || "";
+  }, [captions, selectedIndex]);
 
   const onHiddenPickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { files: choose } = e.target;
-      if (choose && choose.length > 0) {
-        const { errors, validFiles } = validateFiles(choose, files.length);
+      const { files: chosen } = e.target;
+      if (chosen && chosen.length > 0) {
+        const { errors, validFiles } = validateFiles(chosen, files.length);
         errors.forEach((err) => ToastUtils.error(err));
         if (validFiles.length > 0) onFileSelect(validFiles);
       }
@@ -61,13 +100,35 @@ const FilePreviewOverlay = ({
     fileInputRef.current?.click();
   }, [files.length]);
 
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      setCaptions((prev) => {
+        const newCaptions = new Map<number, string>();
+        prev.forEach((caption, key) => {
+          if (key < index) {
+            newCaptions.set(key, caption);
+          } else if (key > index) {
+            newCaptions.set(key - 1, caption);
+          }
+        });
+        return newCaptions;
+      });
+      onRemoveFile(index);
+    },
+    [onRemoveFile]
+  );
+
   const handleSend = useCallback(() => {
-    onSendFiles(caption);
-    setCaption("");
-  }, [onSendFiles, caption]);
+    const filesWithCaptions: FileWithCaption[] = files.map((file, index) => ({
+      file,
+      caption: captions.get(index) || "",
+    }));
+    onSendFiles(filesWithCaptions);
+    setCaptions(new Map());
+  }, [files, captions, onSendFiles]);
 
   const handleClose = useCallback(() => {
-    setCaption("");
+    setCaptions(new Map());
     onClose();
   }, [onClose]);
 
@@ -80,13 +141,13 @@ const FilePreviewOverlay = ({
           files={files}
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
-          onRemoveFile={onRemoveFile}
+          onRemoveFile={handleRemoveFile}
         />
         <FilePreviewPane
           file={files[selectedIndex]}
           conversationId={conversationId}
-          caption={caption}
-          onCaptionChange={setCaption}
+          caption={getCurrentCaption()}
+          onCaptionChange={handleCaptionChange}
           onSendFiles={handleSend}
           isSending={isSending}
           isGroupChat={isGroupChat}
@@ -102,6 +163,7 @@ const FilePreviewOverlay = ({
         onAddMore={handleAddMore}
         onClose={handleClose}
         onSend={handleSend}
+        fileCount={files.length}
       />
       <input
         ref={fileInputRef}

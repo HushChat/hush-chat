@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
@@ -10,6 +10,8 @@ import { useConversationByIdQuery } from "@/query/useConversationByIdQuery";
 import OneToOneChatInfo from "@/components/conversations/conversation-info-panel/OneToOneChatInfo";
 import GroupChatInfo from "@/components/conversations/conversation-info-panel/GroupChatInfo";
 import { AppText } from "@/components/AppText";
+import { PanelType } from "@/types/web-panel/types";
+import MediaAttachmentsView from "@/components/conversations/conversation-info-panel/MediaAttachmentsView";
 
 export interface ChatInfoScreenProps {
   conversationId: number;
@@ -26,6 +28,7 @@ export default function ConversationInfoPanel({
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const router = useRouter();
+  const [currentPanel, setCurrentPanel] = useState<PanelType>(PanelType.PROFILE);
 
   const {
     conversationAPIResponse,
@@ -34,7 +37,21 @@ export default function ConversationInfoPanel({
     refetchConversation,
   } = useConversationByIdQuery(conversationId);
 
-  const goBack = () => (onClose ? onClose() : router.back());
+  const handleBack = () => {
+    if (currentPanel === PanelType.MEDIA_ATTACHMENTS) {
+      setCurrentPanel(PanelType.PROFILE);
+    } else {
+      if (onClose) {
+        onClose();
+      } else {
+        router.back();
+      }
+    }
+  };
+
+  const handleShowMediaAttachments = () => {
+    setCurrentPanel(PanelType.MEDIA_ATTACHMENTS);
+  };
 
   if (conversationAPILoading) {
     return (
@@ -58,7 +75,7 @@ export default function ConversationInfoPanel({
       <ErrorView
         title="Conversation"
         message={conversationAPIError?.message || "Unable to load conversation details"}
-        onBack={goBack}
+        onBack={handleBack}
         onRetry={refetchConversation}
         imageSource={Images.NoConversationFound}
       />
@@ -67,22 +84,35 @@ export default function ConversationInfoPanel({
 
   const { isGroup } = conversationAPIResponse;
 
-  return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark border-l border-gray-200 dark:border-gray-800">
-      <MotionView visible={true} preset="slideUp" duration={500} style={styles.flex1}>
-        {isGroup ? (
+  const renderContent = () => {
+    switch (currentPanel) {
+      case PanelType.MEDIA_ATTACHMENTS:
+        return <MediaAttachmentsView conversationId={conversationId} onBack={handleBack} />;
+
+      case PanelType.PROFILE:
+      default:
+        return isGroup ? (
           <GroupChatInfo
             conversation={conversationAPIResponse}
-            onBack={goBack}
+            onBack={handleBack}
             setSelectedConversation={setSelectedConversation}
+            onShowMediaAttachments={handleShowMediaAttachments}
           />
         ) : (
           <OneToOneChatInfo
             conversation={conversationAPIResponse}
-            onBack={goBack}
+            onBack={handleBack}
             setSelectedConversation={setSelectedConversation}
+            onShowMediaAttachments={handleShowMediaAttachments}
           />
-        )}
+        );
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark border-l border-gray-200 dark:border-gray-800">
+      <MotionView visible={true} preset="slideUp" duration={500} style={styles.flex1}>
+        {renderContent()}
       </MotionView>
     </SafeAreaView>
   );

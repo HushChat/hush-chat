@@ -1,5 +1,6 @@
 package com.platform.software.config.interceptors.websocket;
 
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.UserActivityStatusWSService;
 import com.platform.software.chat.user.activitystatus.dto.UserActivityWSSubscriptionData;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,25 +38,28 @@ public class WebSocketSessionManager {
     /**
      * Register session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor, String workspaceId, String email) {
+    public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor, String workspaceId, String email, String deviceType) {
+        DeviceType device = DeviceType.fromString(deviceType);
+
         WebSocketSessionInfoDAO webSocketSessionInfoDAO = WebSocketSessionInfoDAO.builder()
-            .stompSessionId(accessor.getSessionId())
-            .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
-            .connectedTime(ZonedDateTime.now())
-            .createdTime(ZonedDateTime.now())
-            .disconnectedTime(null)
-            .build();
+                .stompSessionId(accessor.getSessionId())
+                .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
+                .deviceType(device)
+                .connectedTime(ZonedDateTime.now())
+                .createdTime(ZonedDateTime.now())
+                .disconnectedTime(null)
+                .build();
 
         webSocketSessionInfos.put(userId, webSocketSessionInfoDAO);
 
-        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE);
+        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, deviceType);
         logger.info("registered stomp session for user: {}", userId);
     }
 
     /**
      * re connecting session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email) {
+    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email, String deviceType) {
         Optional<WebSocketSessionInfoDAO> session = getValidSession(userId);
         if (session.isPresent()) {
             WebSocketSessionInfoDAO existingSession = session.get();
@@ -64,7 +67,7 @@ public class WebSocketSessionManager {
             existingSession.setDisconnectedTime(null);
             webSocketSessionInfos.put(userId, existingSession);
 
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE);
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, deviceType);
             logger.debug("session re connected for user: {}", userId);
         }
     }
@@ -79,8 +82,11 @@ public class WebSocketSessionManager {
                 existingSession.setVisibleConversations(subscriptionData.getVisibleConversations());
             }
 
+            DeviceType device = DeviceType.fromString(subscriptionData.getDeviceType());
+
             existingSession.setOpenedConversation(subscriptionData.getOpenedConversation());
             existingSession.setDisconnectedTime(null);
+            existingSession.setDeviceType(device);
             webSocketSessionInfos.put(userId, existingSession);
         }
     }
@@ -103,12 +109,11 @@ public class WebSocketSessionManager {
         return Optional.empty();
     }
 
-    public void removeWebSocketSessionInfo(String userId, String email) {
+    public void removeWebSocketSessionInfo(String userId, String email, String deviceType) {
         WebSocketSessionInfoDAO removed = webSocketSessionInfos.remove(userId);
-        String workspaceId = userId.split(":", 2)[0];
-        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE);
-
         if (removed != null) {
+            String workspaceId = userId.split(":", 2)[0];
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE, deviceType);
             logger.debug("removed session for user: {}", userId);
         }
     }
@@ -127,10 +132,9 @@ public class WebSocketSessionManager {
     public void sendMessageToEveryConnectedUser(String path, Object payload) {
         for (Map.Entry<String, WebSocketSessionInfoDAO> entry : webSocketSessionInfos.entrySet()) {
             try {
-                String[] workspaceIdEmail = entry.getKey().split(":", 2); // Split into max 2 parts
-                if (workspaceIdEmail.length >= 2) {
-                    String encodedEmail = workspaceIdEmail[1];
-                    template.convertAndSend(path + encodedEmail, payload);
+                String sessionKey = entry.getKey();
+                if (!sessionKey.isEmpty()) {
+                    template.convertAndSendToUser(sessionKey, path, payload);
                 }
             } catch (Exception e) {
                 logger.warn("failed to send message to user with key: {}", entry.getKey(), e);
@@ -141,9 +145,9 @@ public class WebSocketSessionManager {
     /**
      * Send message to a specific user using encoded email
      */
-    public void sendMessageToUser(String encodedEmail, String path, Object payload) {
+    public void sendMessageToUser(String sessionKey, String path, Object payload) {
         try {
-            template.convertAndSend(path + encodedEmail, payload);
+            template.convertAndSendToUser(sessionKey ,path, payload);
         } catch (Exception e) {
             logger.warn("failed to send message to user", e);
         }
@@ -159,7 +163,7 @@ public class WebSocketSessionManager {
         if (webSocketSessionInfoDAO != null) {
             try {
                 String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-                template.convertAndSend(path + encodedEmail, payload);
+                template.convertAndSendToUser(webSocketStoreKey, path, payload);
                 logger.debug("message sent to user: {} at path: {}", email, path + encodedEmail);
             } catch (Exception e) {
                 logger.warn("failed to send message at tenant: {}", workspaceId, e);
@@ -221,5 +225,25 @@ public class WebSocketSessionManager {
         return isUserConnected(workspaceId, email)
             ? ChatUserStatus.ONLINE
             : ChatUserStatus.OFFLINE;
+    }
+
+    /**
+     * Retrieves the device type for a user's active WebSocket session in a workspace.
+     *
+     * @param workspaceId the unique identifier of the workspace
+     * @param email the email address of the user
+     * @return the {@link DeviceType} of the user's active session, or {@code null} if no active
+     *         session exists for the specified workspace and email combination
+     * @see #getSessionKey(String, String)
+     * @see WebSocketSessionInfoDAO#getDeviceType()
+     */
+    public DeviceType getUserDeviceType(String workspaceId, String email) {
+        String webSocketStoreKey = getSessionKey(workspaceId, email);
+        WebSocketSessionInfoDAO sessionInfo = webSocketSessionInfos.get(webSocketStoreKey);
+
+        if (sessionInfo != null) {
+            return sessionInfo.getDeviceType();
+        }
+        return null;
     }
 }

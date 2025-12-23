@@ -9,7 +9,7 @@ interface AttachmentPreviewProps {
 export const AttachmentPreview = ({ attachment }: AttachmentPreviewProps) => {
   if (!attachment || !attachment.fileUrl) return null;
 
-  const isDocument = attachment.type === MessageAttachmentTypeEnum.DOCUMENT;
+  const isDocument = attachment.type === MessageAttachmentTypeEnum.DOCS;
 
   if (isDocument) {
     const extension = attachment.originalFileName?.split(".").pop() || "DOC";

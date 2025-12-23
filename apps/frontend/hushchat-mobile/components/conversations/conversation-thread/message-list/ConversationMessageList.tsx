@@ -19,6 +19,8 @@ import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions
 import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
 import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
 import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
+import { useRouter } from "expo-router";
+import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -28,12 +30,14 @@ interface IMessagesListProps {
   conversationAPIResponse?: ConversationAPIResponse;
   pickerState: TPickerState;
   selectedConversationId: number;
+  setSelectedConversation: (conversationId: number | null) => void;
   onLoadNewer: () => void;
   hasMoreNewer: boolean;
   isFetchingNewer: boolean;
   onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
   onTargetMessageScrolled?: () => void;
+  webMessageInfoPress?: (messageId: number) => void;
 }
 
 const ConversationMessageList = ({
@@ -43,20 +47,27 @@ const ConversationMessageList = ({
   onMessageSelect,
   conversationAPIResponse,
   selectedConversationId,
+  setSelectedConversation,
   onLoadNewer,
   hasMoreNewer,
   isFetchingNewer,
   onNavigateToMessage,
   targetMessageId,
   onTargetMessageScrolled,
+  webMessageInfoPress,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
+  const router = useRouter();
   const currentUserId = user?.id;
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
   const sectionListRef = useRef<SectionList>(null);
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
-  const { togglePin, unSendMessage } = useMessageActions(conversationAPIResponse, currentUserId);
+  const { togglePin, unSendMessage, markMessageAsUnread } = useMessageActions(
+    conversationAPIResponse,
+    currentUserId,
+    setSelectedConversation
+  );
 
   const {
     selectedActionMessage,
@@ -140,6 +151,13 @@ const ConversationMessageList = ({
     }
   }, [targetMessageId, groupedSections, onTargetMessageScrolled]);
 
+  const handleMessageInfoClick = useCallback((conversationId: number, messageId: number) => {
+    router.push({
+      pathname: MESSAGE_READ_PARTICIPANTS,
+      params: { conversationId, messageId },
+    });
+  }, []);
+
   const renderMessage = useMemo(
     () =>
       createRenderMessage({
@@ -158,6 +176,9 @@ const ConversationMessageList = ({
         selectedConversationId,
         viewReactions,
         onNavigateToMessage,
+        targetMessageId,
+        webMessageInfoPress,
+        markMessageAsUnread,
       }),
     [
       currentUserId,
@@ -175,6 +196,9 @@ const ConversationMessageList = ({
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      targetMessageId,
+      webMessageInfoPress,
+      markMessageAsUnread,
     ]
   );
 
@@ -194,13 +218,20 @@ const ConversationMessageList = ({
           message={selectedActionMessage}
           conversation={conversationAPIResponse}
           onClose={closeActions}
-          onPinToggle={(message) => togglePin(message)}
+          onPinToggle={(message, duration) => togglePin(message, duration)}
           onForward={(message) => {
             startSelectionWith(message?.id);
             closeActions();
           }}
           onUnsend={(messages) => unSendMessage(messages)}
           onCopy={(message) => copyToClipboard(message.messageText)}
+          onSelectMessageInfo={(conversationAPIResponse, message) =>
+            handleMessageInfoClick(conversationAPIResponse.id, message.id)
+          }
+          onMarkAsUnread={(message) => {
+            markMessageAsUnread(message);
+            closeActions();
+          }}
         />
       )}
 

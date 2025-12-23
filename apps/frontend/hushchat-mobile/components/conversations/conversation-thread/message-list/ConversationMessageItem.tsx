@@ -13,6 +13,8 @@ import {
   IOption,
   ReactionType,
   MessageTypeEnum,
+  PIN_MESSAGE_OPTIONS,
+  IMessageAttachment,
 } from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,13 +35,16 @@ import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
-import { isImageAttachment } from "@/utils/messageHelpers";
+import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
 import { router } from "expo-router";
 import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
+import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
 import { CONVERSATION } from "@/constants/routes";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { useModalContext } from "@/context/modal-context";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -60,15 +65,18 @@ interface MessageItemProps {
   selected: boolean;
   onStartSelectionWith: (messageId: number) => void;
   onToggleSelection: (messageId: number) => void;
-  onMessageLongPress?: (message: IMessage) => void;
+  onMessageLongPress?: (message: IMessage, attachment?: IMessageAttachment) => void;
   onCloseAllOverlays?: () => void;
-  onMessagePin: (message: IMessage) => void;
+  onMessagePin: (message: IMessage, duration: string | null) => void;
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
   showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  targetMessageId?: number | null;
+  webMessageInfoPress?: (messageId: number) => void;
+  onMarkMessageAsUnread: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -95,13 +103,20 @@ export const ConversationMessageItem = ({
   showSenderAvatar,
   showSenderName,
   onNavigateToMessage,
+  targetMessageId,
+  webMessageInfoPress,
+  onMarkMessageAsUnread,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
 
   const queryClient = useQueryClient();
 
-  const hasImages = () => attachments.some(isImageAttachment);
+  const hasMedia = useMemo(
+    () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
+    [attachments]
+  );
+  const { openModal, closeModal } = useModalContext();
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
   const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
@@ -173,6 +188,34 @@ export const ConversationMessageItem = ({
     [selectionMode, isSystemEvent]
   );
 
+  const handleTogglePinMessage = useCallback(() => {
+    if (isThisMessagePinned) {
+      onMessagePin(message, null);
+      return;
+    }
+
+    openModal({
+      type: MODAL_TYPES.confirm,
+      title: "Pin Message",
+      description: "Select how long you want to pin this message",
+      buttons: [
+        ...PIN_MESSAGE_OPTIONS.map((option) => ({
+          text: option.label,
+          onPress: () => {
+            onMessagePin(message, option.value);
+            closeModal();
+          },
+        })),
+        {
+          text: "Cancel",
+          onPress: closeModal,
+          variant: MODAL_BUTTON_VARIANTS.destructive,
+        },
+      ],
+      icon: "pin-outline",
+    });
+  }, [isThisMessagePinned, openModal, PIN_MESSAGE_OPTIONS, closeModal]);
+
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
 
   const webOptions: IOption[] = useMemo(() => {
@@ -191,7 +234,7 @@ export const ConversationMessageItem = ({
         id: 2,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
-        action: () => onMessagePin(message),
+        action: () => handleTogglePinMessage(),
       },
       {
         id: 3,
@@ -207,6 +250,24 @@ export const ConversationMessageItem = ({
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
+
+      if (isCurrentUser && !message.isUnsend) {
+        options.push({
+          id: 4,
+          name: "Message Info",
+          iconName: "information-circle-outline",
+          action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+        });
+      }
+    }
+
+    if (!isCurrentUser && !message.isUnsend) {
+      options.push({
+        id: 5,
+        name: "Mark as Unread",
+        iconName: "mail-unread-outline" as keyof typeof Ionicons.glyphMap,
+        action: () => onMarkMessageAsUnread(message),
+      });
     }
     return options;
   }, [
@@ -219,21 +280,24 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
-  const handleLongPress = useCallback(() => {
-    if (conversationAPIResponse?.isBlocked) return;
-    if (selectionMode) return;
-    if (isSystemEvent) return;
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onOpenPicker(String(message.id));
-    onMessageLongPress?.(message);
-  }, [
-    conversationAPIResponse?.isBlocked,
-    selectionMode,
-    message,
-    onMessageLongPress,
-    onOpenPicker,
-    isSystemEvent,
-  ]);
+  const handleLongPress = useCallback(
+    (attachment?: IMessageAttachment) => {
+      if (conversationAPIResponse?.isBlocked) return;
+      if (selectionMode) return;
+      if (isSystemEvent) return;
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onOpenPicker(String(message.id));
+      onMessageLongPress?.(message, attachment);
+    },
+    [
+      conversationAPIResponse?.isBlocked,
+      selectionMode,
+      message,
+      onMessageLongPress,
+      onOpenPicker,
+      isSystemEvent,
+    ]
+  );
 
   const handleOpenPicker = useCallback(() => {
     if (conversationAPIResponse?.isBlocked || !conversationAPIResponse?.isActive) return;
@@ -267,6 +331,7 @@ export const ConversationMessageItem = ({
     },
     [createConversation]
   );
+
   const addReaction = useAddMessageReactionMutation(
     { userId: Number(userId), conversationId: selectedConversationId },
     () => {
@@ -427,19 +492,26 @@ export const ConversationMessageItem = ({
 
             {renderParentMessage()}
 
-            <MessageBubble
-              message={message}
-              isCurrentUser={isCurrentUser}
-              hasText={hasText}
-              hasAttachments={hasAttachments}
-              hasImages={hasImages()}
-              selected={selected}
-              selectionMode={selectionMode}
-              isForwardedMessage={isForwardedMessage}
-              attachments={attachments}
-              onBubblePress={handleBubblePress}
-              onMentionClick={handleMentionClick}
-            />
+            <View className={isCurrentUser ? "self-end" : "self-start"}>
+              <MessageHighlightWrapper
+                isHighlighted={message.id === targetMessageId}
+                glowColor="#3B82F6"
+              >
+                <MessageBubble
+                  message={message}
+                  isCurrentUser={isCurrentUser}
+                  hasText={hasText}
+                  hasAttachments={hasAttachments}
+                  hasMedia={hasMedia}
+                  selected={selected}
+                  selectionMode={selectionMode}
+                  isForwardedMessage={isForwardedMessage}
+                  attachments={attachments}
+                  onBubblePress={handleBubblePress}
+                  onMentionClick={handleMentionClick}
+                />
+              </MessageHighlightWrapper>
+            </View>
 
             <MessageReactions
               message={message}
