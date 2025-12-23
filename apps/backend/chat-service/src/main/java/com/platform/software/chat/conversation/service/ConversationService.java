@@ -1625,4 +1625,19 @@ public class ConversationService {
 
         return new ConversationDTO(conversation);
     }
+
+    /**
+     * Toggles the notification setting for mentions only in a conversation for a specific user.
+     *
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     * @return the updated notifyOnMentionsOnly status
+     */
+    @Transactional
+    public boolean toggleNotifyMentionsOnly(Long conversationId, Long loggedInUserId) {
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        participant.setNotifyOnMentionsOnly(!participant.getNotifyOnMentionsOnly());
+        conversationParticipantRepository.save(participant);
+        return participant.getNotifyOnMentionsOnly();
+    }
 }

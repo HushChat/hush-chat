@@ -572,4 +572,12 @@ public class ConversationController {
     ){
         return ResponseEntity.ok(conversationService.joinConversationByInviteLink(userDetails.getId(), token));
     }
+
+    @PatchMapping("{conversationId}/notification")
+    public ResponseEntity<Boolean> toggleNotifyOnlyOnMentions(
+        @AuthenticatedUser UserDetails userDetails,
+        @PathVariable Long conversationId
+    ) {
+        return ResponseEntity.ok(conversationService.toggleNotifyMentionsOnly(conversationId, userDetails.getId()));
+    }
 }
