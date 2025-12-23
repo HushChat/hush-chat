@@ -117,3 +117,19 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
     return null;
   }
 };
+
+export const findFirstUnreadMessageIndex = (
+  messages: readonly IMessage[],
+  lastSeenMessageId: number | null
+): number => {
+  if (!lastSeenMessageId) return -1;
+
+  // Find the index of the last seen message
+  const lastSeenIndex = messages.findIndex((msg) => msg.id === lastSeenMessageId);
+
+  // If not found or it's the last message, no unread messages
+  if (lastSeenIndex === -1 || lastSeenIndex === 0) return -1;
+
+  // The first unread message is the one before the last seen (since list is inverted)
+  return lastSeenIndex - 1;
+};
