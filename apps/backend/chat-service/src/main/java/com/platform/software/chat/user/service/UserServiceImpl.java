@@ -460,9 +460,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserPublicProfileDTO getPublicProfile(Long id){
+    public UserProfileDTO getUserProfile(Long id){
 
-        UserPublicProfileDTO userPublicProfile = userInfoRepository.getPublicProfile(id);
+        UserProfileDTO userPublicProfile = userInfoRepository.getProfileById(id);
 
         if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty()){
             userPublicProfile.setSignedImageUrl(

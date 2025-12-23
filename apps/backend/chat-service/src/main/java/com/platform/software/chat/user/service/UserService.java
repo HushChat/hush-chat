@@ -53,6 +53,6 @@ public interface UserService {
 
     Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable);
 
-    UserPublicProfileDTO getPublicProfile(Long id);
+    UserProfileDTO getUserProfile(Long id);
 }
 

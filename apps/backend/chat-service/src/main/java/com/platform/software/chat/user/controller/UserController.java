@@ -194,11 +194,11 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get user public profile by id", response = UserPublicProfileDTO.class)
-    @GetMapping("public/{id}")
-    public ResponseEntity<UserPublicProfileDTO> userPublicProfile(
+    @ApiOperation(value = "Get user profile by id", response = UserProfileDTO.class)
+    @GetMapping("{id}")
+    public ResponseEntity<UserProfileDTO> userProfile(
             @PathVariable Long id
     ){
-        return ResponseEntity.ok(userService.getPublicProfile(id));
+        return ResponseEntity.ok(userService.getUserProfile(id));
     }
 }
