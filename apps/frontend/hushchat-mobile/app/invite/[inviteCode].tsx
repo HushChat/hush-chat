@@ -30,10 +30,7 @@ export default function InviteScreen() {
         setLoading(false);
 
         setTimeout(() => {
-          router.replace({
-            pathname: "/conversations",
-            params: { id: String(response.data.id) },
-          });
+          router.replace(`/conversations/${response.data.id}`);
         }, 2000);
       } else {
         setError(response.error || "Invalid or expired invite code.");
