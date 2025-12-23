@@ -16,12 +16,13 @@ export const USER_API_BASE = "/users";
 export const MESSAGE_API_BASE = "/messages";
 export const SEARCH_API_BASE = "/search";
 export const WORKSPACES_API_BASE = "/workspaces";
+export const WORKSPACE_ADMIN_API_BASE = "/admin/workspace";
 
 export const WORKSPACE_ENDPOINTS = {
   GET: `${WORKSPACES_API_BASE}/my-workspaces`,
   REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
-  INVITE_TO_WORKSPACE: `${WORKSPACES_API_BASE}/invite`,
+  INVITE_TO_WORKSPACE: `${WORKSPACE_ADMIN_API_BASE}/invite`,
 };
 
 export const SETTINGS_API_BASE = "/settings";
@@ -61,12 +62,24 @@ export const CONVERSATION_API_ENDPOINTS = {
   TOGGLE_MUTE_CONVERSATION: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/mute`,
   UPDATE_CONVERSATION: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}`,
+  UPDATE_MESSAGE_RESTRICTIONS: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/message-restrictions`,
   UPDATE_CONVERSATION_PARTICIPANT_ROLE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/admins`,
   SET_LAST_SEEN_MESSAGE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
   GET_LAST_SEEN_MESSAGE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/last-read-status`,
+  GET_MESSAGE_SEEN_PARTICIPANTS: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/seen-by`,
+  REQUEST_ATTACHMENT_UPLOAD_URL: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-message-signed-url`,
+  RESET_INVITE_LINK: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
+  GET_INVITE_LINK: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
+  GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
   MARK_MESSAGE_AS_UNREAD: (conversationId: number, messageId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
 };

@@ -1,11 +1,4 @@
-import {
-  View,
-  TouchableOpacity,
-  Pressable,
-  GestureResponderEvent,
-  Modal,
-  StyleSheet,
-} from "react-native";
+import { View, TouchableOpacity, Pressable, GestureResponderEvent } from "react-native";
 import React, { useCallback, useState, useRef } from "react";
 import { IConversation } from "@/types/chat/types";
 import { getLastMessageTime } from "@/utils/commonUtils";
@@ -15,13 +8,9 @@ import { PLATFORM } from "@/constants/platformConstants";
 import classNames from "classnames";
 import ConversationWebContextMenu from "@/components/conversations/WebConversationContextMenu";
 import { MaterialIcons } from "@expo/vector-icons";
-import ProfilePictureModalContent from "@/components/ProfilePictureModelContent";
+import { ProfileCardModal } from "@/components/ProfileCardModal";
 import { AppText } from "@/components/AppText";
 import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
-
-const BG = {
-  modalBackdrop: "rgba(9, 15, 29, 0.8)",
-};
 
 const ConversationListItem = ({
   conversation,
@@ -59,6 +48,8 @@ const ConversationListItem = ({
     setShowOptions(false);
   }, []);
 
+  const secondaryText = conversation.isGroup ? "Group Chat" : "Private Chat";
+
   return (
     <>
       <Pressable
@@ -85,6 +76,7 @@ const ConversationListItem = ({
             imageUrl={conversation.signedImageUrl}
             userStatus={conversation.chatUserStatus}
             showOnlineStatus={!conversation.isGroup}
+            deviceType={conversation.deviceType}
           />
         </TouchableOpacity>
 
@@ -95,7 +87,7 @@ const ConversationListItem = ({
             </AppText>
             <View className="flex-row items-center gap-1">
               {conversation.pinnedByLoggedInUser && (
-                <View style={styles.pinRotate}>
+                <View className="rotate-45">
                   <MaterialIcons name="push-pin" size={14} color="#3B82F6" />
                 </View>
               )}
@@ -129,40 +121,18 @@ const ConversationListItem = ({
         conversationsRefetch={conversationsRefetch}
       />
 
-      <Modal
+      <ProfileCardModal
         visible={showProfileModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowProfileModal(false)}
-      >
-        <Pressable style={styles.modalBackdrop} onPress={() => setShowProfileModal(false)}>
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            className="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-xs w-full"
-          >
-            <AppText className="text-center text-text-primary-light dark:text-text-primary-dark text-lg font-semibold mb-4">
-              {conversation.name}
-            </AppText>
-
-            <ProfilePictureModalContent conversation={conversation} />
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => setShowProfileModal(false)}
+        data={{
+          name: conversation.name,
+          imageUrl: conversation.signedImageUrl,
+          isGroup: conversation.isGroup,
+          username: secondaryText,
+        }}
+      />
     </>
   );
 };
 
 export default ConversationListItem;
-
-const styles = StyleSheet.create({
-  pinRotate: {
-    transform: [{ rotate: "45deg" }],
-  },
-
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: BG.modalBackdrop,
-  },
-});

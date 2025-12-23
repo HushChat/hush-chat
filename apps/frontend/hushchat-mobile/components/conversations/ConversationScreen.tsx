@@ -101,8 +101,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   });
 
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
-    setSelectedConversation(conversation);
-
     if (PLATFORM.IS_WEB) {
       if (conversation) {
         router.replace(CONVERSATION(conversation.id));

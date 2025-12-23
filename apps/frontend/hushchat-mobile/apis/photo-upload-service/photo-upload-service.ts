@@ -10,16 +10,22 @@ import {
   UploadResult,
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
-import { sendMessageByConversationIdFiles } from "@/apis/conversation";
+import { createMessagesWithAttachments } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
+import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
+import { useState } from "react";
+import {
+  MAX_DOCUMENT_SIZE_KB,
+  MAX_IMAGE_SIZE_KB,
+  MAX_VIDEO_SIZE_KB,
+} from "@/constants/mediaConstants";
 
 export enum UploadType {
   PROFILE = "profile",
   GROUP = "group",
 }
 
-export const MAX_IMAGE_KB = 1024 * 5; // 5 MB
-const MAX_DOCUMENT_KB = 1024 * 10; // 10 MB
+export const MAX_IMAGE_KB = 1024 * 5;
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
   "application/msword",
@@ -32,6 +38,50 @@ export const ALLOWED_DOCUMENT_TYPES = [
 ];
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+
+const ALLOWED_VIDEO_TYPES = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-msvideo",
+  "video/x-matroska",
+  "video/x-m4v",
+];
+
+const sizeMap = {
+  image: MAX_IMAGE_SIZE_KB,
+  video: MAX_VIDEO_SIZE_KB,
+  document: MAX_DOCUMENT_SIZE_KB,
+};
+
+type TAttachmentUploadRequest = {
+  messageText: string;
+  fileName: string;
+  parentMessageId?: number | null;
+};
+
+interface IMessageWithSignedUrl {
+  id: number;
+  signedUrl: {
+    originalFileName: string;
+    indexedFileName: string;
+    url: string;
+    filePath?: string | null;
+  } | null;
+}
+
+const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[] => {
+  if (Array.isArray(response)) {
+    return response
+      .filter((item) => item.signedUrl && item.signedUrl.url)
+      .map((item) => ({
+        originalFileName: item.signedUrl.originalFileName,
+        url: item.signedUrl.url,
+        indexedFileName: item.signedUrl.indexedFileName,
+      }));
+  }
+  return [];
+};
 
 export const pickAndUploadImage = async (
   id: string,
@@ -51,7 +101,6 @@ export const pickAndUploadImage = async (
       return;
     }
 
-    // Check file size is below 5mb
     const asset =
       pickerResult.assets && pickerResult.assets.length > 0 ? pickerResult.assets[0] : null;
     if (!asset) return;
@@ -60,7 +109,7 @@ export const pickAndUploadImage = async (
     const blob = await response.blob();
     const fileSizeInKB = blob.size / 1024;
 
-    if (fileSizeInKB > MAX_IMAGE_KB) {
+    if (fileSizeInKB > MAX_IMAGE_SIZE_KB) {
       ToastUtils.error("Select an image size below 5MB");
       return;
     }
@@ -152,44 +201,70 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
   return { fileUri, fileName, fileType };
 };
 
-export function useMessageAttachmentUploader(conversationId: number, messageToSend: string) {
-  const getSignedUrls = async (files: LocalFile[]): Promise<SignedUrl[] | null> => {
-    const fileNames = files.map((file) => file.name);
-    const response = await sendMessageByConversationIdFiles(
-      conversationId,
-      messageToSend,
-      fileNames
-    );
-    const signed = response?.signedURLs || [];
-    return signed.map((s: { originalFileName: string; url: string; indexedFileName: string }) => ({
-      originalFileName: s.originalFileName,
-      url: s.url,
-      indexedFileName: s.indexedFileName,
+export function useMessageAttachmentUploader(conversationId: number) {
+  const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
+  const getSignedUrls = async (
+    files: LocalFile[],
+    messageText: string = "",
+    parentMessageId?: number | null
+  ): Promise<SignedUrl[] | null> => {
+    const attachments: TAttachmentUploadRequest[] = files.map((file) => ({
+      messageText,
+      fileName: file.name,
+      parentMessageId,
     }));
+
+    const response = await createMessagesWithAttachments(conversationId, attachments);
+    return extractSignedUrls(response);
+  };
+
+  const getSignedUrlsWithCaptions = async (
+    filesWithCaptions: { file: LocalFile; caption: string }[],
+    parentMessageId?: number | null
+  ): Promise<SignedUrl[] | null> => {
+    const attachments: TAttachmentUploadRequest[] = filesWithCaptions.map(({ file, caption }) => ({
+      messageText: caption,
+      fileName: file.name,
+      parentMessageId,
+    }));
+
+    const response = await createMessagesWithAttachments(conversationId, attachments);
+    return extractSignedUrls(response);
   };
 
   const hook = useNativePickerUpload(getSignedUrls);
 
-  const pickAndUploadImages = async () =>
-    hook.pickAndUpload({
-      source: "media",
-      mediaKind: "image",
-      multiple: true,
-      maxSizeKB: MAX_IMAGE_KB,
-      allowedMimeTypes: ["image/*"],
-      allowsEditing: false,
-    });
+  const pickAndUploadImagesAndVideos = async (messageText: string = "") =>
+    hook.pickAndUpload(
+      {
+        source: "media",
+        mediaKind: "all",
+        multiple: true,
+        maxSizeKB: MAX_VIDEO_SIZE_KB,
+        allowedMimeTypes: ["image/*", "video/*"],
+        allowsEditing: false,
+      },
+      messageText
+    );
 
-  const pickAndUploadDocuments = async () =>
-    hook.pickAndUpload({
-      source: "document",
-      multiple: true,
-      maxSizeKB: MAX_DOCUMENT_KB,
-      allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
-    });
+  const pickAndUploadDocuments = async (messageText: string = "") =>
+    hook.pickAndUpload(
+      {
+        source: "document",
+        multiple: true,
+        maxSizeKB: MAX_DOCUMENT_SIZE_KB,
+        allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+      },
+      messageText
+    );
 
-  const uploadFilesFromWeb = async (files: File[]): Promise<UploadResult[]> => {
-    if (!files || files.length === 0) return [];
+  const uploadFilesFromWebWithCaptions = async (
+    filesWithCaptions: TFileWithCaption[],
+    parentMessageId?: number | null
+  ): Promise<UploadResult[]> => {
+    if (!filesWithCaptions || filesWithCaptions.length === 0) return [];
+
+    setIsUploadingWebFiles(true);
 
     const toLocal = (f: File): LocalFile & { _blobUrl: string } => ({
       uri: URL.createObjectURL(f),
@@ -199,17 +274,20 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
       _blobUrl: "",
     });
 
-    const locals: (LocalFile & { _blobUrl: string })[] = [];
+    const validFiles: { file: LocalFile & { _blobUrl: string }; caption: string }[] = [];
     const skipped: UploadResult[] = [];
 
-    for (const file of files) {
+    for (const { file, caption } of filesWithCaptions) {
       const fileType = file.type || "";
       const isImage = ALLOWED_IMAGE_TYPES.some(
         (type) => fileType === type || fileType.startsWith("image/")
       );
+      const isVideo = ALLOWED_VIDEO_TYPES.some(
+        (type) => fileType === type || fileType.startsWith("video/")
+      );
       const isDocument = ALLOWED_DOCUMENT_TYPES.includes(fileType);
 
-      if (!isImage && !isDocument) {
+      if (!isImage && !isVideo && !isDocument) {
         skipped.push({
           success: false,
           fileName: file.name,
@@ -218,7 +296,13 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
         continue;
       }
 
-      const maxSize = isImage ? MAX_IMAGE_KB : MAX_DOCUMENT_KB;
+      const getMaxSize = () => {
+        if (isImage) return sizeMap.image;
+        if (isVideo) return sizeMap.video;
+        return sizeMap.document;
+      };
+
+      const maxSize = getMaxSize();
       const fileSizeKB = file.size / 1024;
 
       if (fileSizeKB > maxSize) {
@@ -229,24 +313,86 @@ export function useMessageAttachmentUploader(conversationId: number, messageToSe
         });
         continue;
       }
+
       const lf = toLocal(file);
       lf._blobUrl = lf.uri;
-      locals.push(lf);
+      validFiles.push({ file: lf, caption });
     }
 
     try {
-      const results = await hook.upload(locals);
+      const signedUrls = await getSignedUrlsWithCaptions(
+        validFiles.map(({ file, caption }) => ({ file, caption })),
+        parentMessageId
+      );
+
+      if (!signedUrls || signedUrls.length === 0) {
+        throw new Error("No signed URLs returned from server");
+      }
+
+      const results: UploadResult[] = [];
+      for (let i = 0; i < validFiles.length; i++) {
+        const { file } = validFiles[i];
+        const signed = signedUrls[i];
+
+        if (!signed || !signed.url) {
+          results.push({
+            success: false,
+            fileName: file.name,
+            error: "Missing signed URL for file",
+          });
+          continue;
+        }
+
+        try {
+          const blob = await (await fetch(file.uri)).blob();
+          await fetch(signed.url, {
+            method: "PUT",
+            body: blob,
+            headers: {
+              "Content-Type": file.type || blob.type || "application/octet-stream",
+            },
+          });
+          results.push({ success: true, fileName: file.name, signed });
+        } catch (e: any) {
+          results.push({
+            success: false,
+            fileName: file.name,
+            error: e?.message ?? "Upload failed",
+            signed,
+          });
+        }
+      }
+
       return [...results, ...skipped];
     } finally {
-      locals.forEach((lf) => {
+      setIsUploadingWebFiles(false);
+      validFiles.forEach(({ file }) => {
         try {
-          URL.revokeObjectURL(lf._blobUrl);
+          URL.revokeObjectURL(file._blobUrl);
         } catch (err) {
-          logWarn("Failed to revoke object URL:", lf._blobUrl, err);
+          logWarn("Failed to revoke object URL:", file._blobUrl, err);
         }
       });
     }
   };
 
-  return { ...hook, pickAndUploadImages, pickAndUploadDocuments, uploadFilesFromWeb };
+  const uploadFilesFromWeb = async (
+    files: File[],
+    messageText: string = ""
+  ): Promise<UploadResult[]> => {
+    const filesWithCaptions = files.map((file) => ({
+      file,
+      caption: messageText,
+    }));
+    return uploadFilesFromWebWithCaptions(filesWithCaptions);
+  };
+
+  return {
+    ...hook,
+    pickAndUploadImagesAndVideos,
+    pickAndUploadDocuments,
+    uploadFilesFromWeb,
+    uploadFilesFromWebWithCaptions,
+    isUploading: isUploadingWebFiles,
+  };
 }

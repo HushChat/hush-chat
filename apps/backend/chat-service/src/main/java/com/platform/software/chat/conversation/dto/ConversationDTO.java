@@ -3,6 +3,7 @@ package com.platform.software.chat.conversation.dto;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.common.model.ModelMapper;
 import lombok.Data;
@@ -27,6 +28,8 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private boolean isMutedByLoggedInUser;
     private boolean isFavoriteByLoggedInUser;
     private ChatUserStatus chatUserStatus;
+    private boolean onlyAdminsCanSendMessages;
+    private DeviceType deviceType;
 
     private Long unreadCount;
 
@@ -50,6 +53,8 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.isMutedByLoggedInUser = other.isMutedByLoggedInUser;
         this.isFavoriteByLoggedInUser = other.isFavoriteByLoggedInUser;
         this.chatUserStatus = other.chatUserStatus;
+        this.onlyAdminsCanSendMessages = other.onlyAdminsCanSendMessages;
+        this.deviceType = other.deviceType;
     }
 
     @Override
@@ -80,5 +85,6 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.imageIndexedName = dao.getImageIndexedName();
         this.description = dao.getDescription();
         this.signedImageUrl = dao.getSignedImageUrl();
+        this.onlyAdminsCanSendMessages = dao.getOnlyAdminsCanSendMessages();
     }
 }

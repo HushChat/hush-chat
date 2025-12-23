@@ -15,11 +15,13 @@ interface IRenderMessageParams {
   selectMessage: (msg: IMessage) => void;
   openPicker: (id: string) => void;
   closeAll: () => void;
-  togglePin: (msg: IMessage) => void;
+  togglePin: (msg: IMessage, duration: string | null) => void;
   unSendMessage: (msg: IMessage) => void;
   selectedConversationId: number;
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   onNavigateToMessage?: (messageId: number) => void;
+  targetMessageId?: number | null;
+  webMessageInfoPress?: (messageId: number) => void;
   markMessageAsUnread: (msg: IMessage) => void;
 }
 
@@ -49,6 +51,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       selectedConversationId,
       viewReactions,
       onNavigateToMessage,
+      targetMessageId,
+      webMessageInfoPress,
       markMessageAsUnread,
     } = params;
 
@@ -89,6 +93,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         showSenderAvatar={showSenderAvatar}
         showSenderName={showSenderName}
         onNavigateToMessage={onNavigateToMessage}
+        targetMessageId={targetMessageId}
+        webMessageInfoPress={webMessageInfoPress}
         onMarkMessageAsUnread={markMessageAsUnread}
       />
     );

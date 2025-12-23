@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MotionView } from "@/motion/MotionView";
-import { MotionConfig } from "@/motion/config";
 import { AppText } from "@/components/AppText";
 
 export interface SelectionActionBarProps {
@@ -30,13 +29,14 @@ const MessageForwardActionBar = ({
   return (
     <MotionView
       visible={visible}
-      preset="slideUp"
-      duration={MotionConfig.duration.md}
+      initial={{ opacity: 0, translateY: 16 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      duration={200}
       pointerEvents={visible ? "auto" : "none"}
-      className="absolute left-4 right-4 bottom-4"
+      style={styles.container}
       testID="selectionActionBar"
     >
-      <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark">
+      <View className="flex-row items-center justify-between px-4 py-4 bg-background-light dark:bg-background-dark rounded-lg shadow-lg">
         <AppText
           className="text-sm font-medium ml-2"
           style={isDark ? styles.selectedLabelDark : styles.selectedLabelLight}
@@ -66,6 +66,13 @@ const MessageForwardActionBar = ({
 export default React.memo(MessageForwardActionBar);
 
 const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 16,
+    zIndex: 9999,
+  },
   selectedLabelDark: { color: COLOR_TOKENS.labelDark },
   selectedLabelLight: { color: COLOR_TOKENS.labelLight },
   iconMarginRight: { marginRight: 4 },

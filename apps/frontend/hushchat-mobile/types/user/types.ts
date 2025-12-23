@@ -2,6 +2,7 @@ import * as yup from "yup";
 import type { Asserts } from "yup";
 import { passwordRules } from "@/utils/passwordRules";
 import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
+import { DeviceType } from "@/types/chat/types";
 
 export const UserSchema = yup.object({
   id: yup.number().nullable().notRequired(),
@@ -10,11 +11,13 @@ export const UserSchema = yup.object({
   email: yup.string().required(),
   active: yup.boolean().required(),
   signedImageUrl: yup.string().nullable().notRequired(),
+  workspaceName: yup.string().nullable().notRequired(),
   workspaceRole: yup
     .mixed<WorkspaceUserRole>()
     .oneOf(Object.values(WorkspaceUserRole))
     .nullable()
     .notRequired(),
+  deviceType: yup.mixed<DeviceType>().oneOf(Object.values(DeviceType)).nullable().notRequired(),
 });
 
 export const RegisterUser = yup.object({
@@ -189,9 +192,15 @@ export type TUser = {
   active?: boolean;
   conversationId?: number;
   signedImageUrl: string;
+  workspaceName?: string;
 };
 
 export type DeviceToken = {
   token: string;
   platform: "MOBILE" | "WEB";
 };
+
+export enum UserType {
+  ADMIN = "ADMIN",
+  MEMBER = "MEMBER",
+}
