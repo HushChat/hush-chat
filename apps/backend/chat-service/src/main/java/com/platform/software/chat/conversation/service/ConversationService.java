@@ -1379,6 +1379,8 @@ public class ConversationService {
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
             ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
 
+            conversationMetaDataDTO.setNotifyOnMentionsOnly(participant.getNotifyOnMentionsOnly());
+
             if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
                 conversationMetaDataDTO.setIsCurrentUserAdmin(true);
             }
