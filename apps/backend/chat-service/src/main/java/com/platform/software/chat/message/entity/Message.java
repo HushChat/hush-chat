@@ -62,7 +62,4 @@ public class Message extends AuditModel{
 
     @Enumerated(EnumType.STRING)
     private MessageTypeEnum messageType;
-
-    @Column(columnDefinition = "TEXT")
-    private String gifUrl;
 }

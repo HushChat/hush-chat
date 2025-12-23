@@ -70,13 +70,12 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
-    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType, String gifUrl) {
+    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType) {
         Message newMessage = new Message();
         newMessage.setMessageText(messageText);
         newMessage.setConversation(conversation);
         newMessage.setSender(loggedInUser);
         newMessage.setMessageType(messageType);
-        newMessage.setGifUrl(gifUrl);
         return newMessage;
     }
 
@@ -90,6 +89,7 @@ public class MessageService {
                     copy.setMessage(newMessage);
                     copy.setOriginalFileName(a.getOriginalFileName());
                     copy.setIndexedFileName(a.getIndexedFileName());
+                    copy.setType(a.getType());
                     return copy;
                 })
                 .collect(Collectors.toList());
@@ -238,10 +238,21 @@ public class MessageService {
         List<MessageViewDTO> createdMessages = new ArrayList<>();
         for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
             Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
-            SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFileName(), savedMessage);
+            MessageViewDTO messageViewDTO = getMessageViewDTO(
+                loggedInUserId, 
+                messageDTO.getParentMessageId(), 
+                savedMessage
+            );
+            if (messageDTO.isGifAttachment()) {
+                messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+            } else {
+                SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(
+                    messageDTO.getFileName(), 
+                    savedMessage
+                );
+                messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+            }
 
-            MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
-            messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
             createdMessages.add(messageViewDTO);
 
             messagePublisherService.invokeNewMessageToParticipants(
@@ -305,7 +316,7 @@ public class MessageService {
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
             messages.forEach(message -> {
-                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType(), message.getGifUrl());
+                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
                 forwardingMessages.add(newMessage);
@@ -317,8 +328,7 @@ public class MessageService {
                         messageForwardRequestDTO.getCustomText(),
                         targetConversation.getModel(),
                         loggedInUser,
-                        MessageTypeEnum.TEXT,
-                        null
+                        MessageTypeEnum.TEXT
                 );
                 forwardingMessages.add(customMessage);
             }
