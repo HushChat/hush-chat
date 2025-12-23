@@ -30,6 +30,7 @@ export interface ReactionSummary {
 export enum MessageAttachmentTypeEnum {
   MEDIA = "MEDIA",
   DOCS = "DOCS",
+  GIF = "GIF",
 }
 
 export interface IMessageAttachment {
@@ -67,7 +68,6 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
-  gifUrl?: string;
 }
 
 export interface IMessageView extends IMessage {
@@ -205,7 +205,7 @@ export interface IBasicMessage {
   senderFirstName: string | null;
   senderLastName: string | null;
   messageText: string;
-  gifUrl?: string;
+  messageAttachments?: IMessageAttachment[];
 }
 
 export interface ConversationAPIResponse {

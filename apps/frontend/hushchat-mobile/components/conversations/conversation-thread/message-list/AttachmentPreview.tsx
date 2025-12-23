@@ -4,14 +4,14 @@ import { AppText } from "@/components/AppText";
 
 interface AttachmentPreviewProps {
   attachment?: IMessageAttachment;
-  gifUrl?: string;
 }
 
-export const AttachmentPreview = ({ attachment, gifUrl }: AttachmentPreviewProps) => {
-  if ((!attachment || !attachment.fileUrl) && !gifUrl) return null;
+export const AttachmentPreview = ({ attachment }: AttachmentPreviewProps) => {
+  if (!attachment || !attachment.fileUrl) return null;
 
   const isDocument = attachment?.type === MessageAttachmentTypeEnum.DOCS;
-  const imageUri = attachment?.fileUrl ? attachment.fileUrl : gifUrl;
+  const isGif = attachment.type === MessageAttachmentTypeEnum.GIF;
+  const imageUri = isGif ? attachment.indexedFileName : attachment.fileUrl;
 
   if (isDocument) {
     const extension = attachment.originalFileName?.split(".").pop() || "DOC";

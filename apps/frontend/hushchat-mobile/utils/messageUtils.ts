@@ -1,5 +1,10 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
-import { IMessage } from "@/types/chat/types";
+import {
+  IBasicMessage,
+  IMessage,
+  IMessageAttachment,
+  MessageAttachmentTypeEnum,
+} from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
 
@@ -116,4 +121,20 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
     console.warn("Invalid URL encountered:", fullUrl);
     return null;
   }
+};
+
+const getGifAttachment = (message?: IMessage | IBasicMessage): IMessageAttachment | undefined => {
+  if (!message?.messageAttachments) return undefined;
+
+  return message.messageAttachments.find(
+    (attachment) => attachment.type === MessageAttachmentTypeEnum.GIF
+  );
+};
+
+export const hasGif = (message?: IMessage | IBasicMessage): boolean => {
+  return !!getGifAttachment(message);
+};
+
+export const getGifUrl = (message?: IMessage | IBasicMessage): string | undefined => {
+  return getGifAttachment(message)?.indexedFileName;
 };

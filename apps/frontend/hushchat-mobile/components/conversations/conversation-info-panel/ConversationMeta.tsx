@@ -7,6 +7,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { IMessage } from "@/types/chat/types";
 import { RefObject } from "react";
 import { LastMessagePreviewContent } from "@/components/LastMessagePreviewContent";
+import { hasGif } from "@/utils/messageUtils";
 
 interface Props {
   lastMessage: IMessage | undefined;
@@ -24,7 +25,7 @@ const ConversationMeta = ({
   onChevronPress,
 }: Props) => {
   const messageContent = LastMessagePreviewContent({ lastMessage });
-  const isGif = !!lastMessage?.gifUrl;
+  const isGif = hasGif(lastMessage);
 
   const renderMessagePreview = () => {
     if (isGif) {

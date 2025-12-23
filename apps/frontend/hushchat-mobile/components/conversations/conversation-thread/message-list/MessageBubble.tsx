@@ -9,6 +9,7 @@ import { ForwardedLabel } from "@/components/conversations/conversation-thread/c
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
 import { PLATFORM } from "@/constants/platformConstants";
+import { getGifUrl, hasGif } from "@/utils/messageUtils";
 
 interface IMessageBubbleProps {
   message: IMessage;
@@ -41,7 +42,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   style,
 }) => {
   const messageContent = message.messageText;
-  const hasGif = !!message.gifUrl;
+  const hasGifMedia = hasGif(message);
+  const gifUrl = getGifUrl(message);
 
   const handleMentionPress = (username: string) => {
     if (!onMentionClick || !message.mentions) return;
@@ -79,17 +81,17 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         <View
           className={classNames("rounded-lg border-2", {
             "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasMedia || hasGif) && isCurrentUser,
+              (hasText || hasMedia || hasGifMedia) && isCurrentUser,
             "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasMedia || hasGif) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasMedia || hasGif) || message.isUnsend,
+              (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
+            "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
 
             "border-sky-500 dark:border-sky-400": selected && selectionMode,
             "border-transparent": !(selected && selectionMode),
 
             "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasMedia && !messageContent) && !hasGif,
+            "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
           })}
           style={
             isForwardedMessage
@@ -99,24 +101,24 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
               : undefined
           }
         >
-          {hasGif && !message.isUnsend && (
+          {hasGifMedia && !message.isUnsend && (
             <View className={messageContent ? "mb-2" : ""}>
               {PLATFORM.IS_WEB ? (
                 <img
-                  src={message.gifUrl}
+                  src={gifUrl}
                   alt="gif"
                   className="max-w-[250px] max-h-[250px] rounded-lg object-contain"
                 />
               ) : (
                 <Image
-                  source={{ uri: message.gifUrl }}
-                  className="w-[250px] h-[250px] rounded-lg"
+                  source={{ uri: gifUrl }}
+                  style={{ width: 250, aspectRatio: 1, borderRadius: 8 }}
                   resizeMode="contain"
                 />
               )}
             </View>
           )}
-          {hasAttachments && (
+          {hasAttachments && !hasGifMedia && (
             <View className={messageContent ? "mb-2" : ""}>
               {renderFileGrid(attachments, isCurrentUser)}
             </View>

@@ -1,10 +1,15 @@
+import { gifQueryKeys } from "@/constants/queryKeys";
 import { searchTenorGifs } from "@/services/gifService";
+import { useUserStore } from "@/store/user/useUserStore";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 export default function useSearchGifsQuery(searchQuery: string) {
+  const {
+    user: { id: userId },
+  } = useUserStore();
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     useInfiniteQuery({
-      queryKey: ["gifs", "search", searchQuery],
+      queryKey: gifQueryKeys.searchGifs(Number(userId), searchQuery),
       initialPageParam: "",
       queryFn: ({ pageParam }) => searchTenorGifs(searchQuery, 20, pageParam as string),
       getNextPageParam: (lastPage: any) => {

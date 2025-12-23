@@ -1,3 +1,4 @@
+import { GIF_API_ENDPOINTS } from "@/constants/apiConstants";
 import axios from "axios";
 
 export interface TenorGif {
@@ -34,7 +35,7 @@ export const searchTenorGifs = async (
   limit: number = 20,
   pos?: string
 ): Promise<TenorApiResponse> => {
-  const response = await axios.get(`tenor/search`, {
+  const response = await axios.get(GIF_API_ENDPOINTS.SEARCH, {
     params: {
       q: query,
       limit,
@@ -48,7 +49,7 @@ export const getTrendingGifs = async (
   limit: number = 20,
   pos?: string
 ): Promise<TenorApiResponse> => {
-  const response = await axios.get(`tenor/featured`, {
+  const response = await axios.get(GIF_API_ENDPOINTS.TRENDING, {
     params: {
       limit,
       pos,

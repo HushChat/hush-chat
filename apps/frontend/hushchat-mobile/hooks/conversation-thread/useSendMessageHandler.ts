@@ -26,6 +26,11 @@ interface IUseSendMessageHandlerParams {
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
   updateConversationMessagesCache: (message: IMessage) => void;
+  sendGifMessage: (
+    gifUrl: string,
+    messageText: string,
+    parentMessageId?: number | null
+  ) => Promise<IMessage>;
 }
 
 let tempMessageIdCounter = -1;
@@ -63,6 +68,38 @@ const createTempImageMessage = ({
   hasAttachment: true,
 });
 
+const createTempGifMessage = ({
+  gifUrl,
+  messageText,
+  conversationId,
+  senderId,
+}: {
+  gifUrl: string;
+  messageText: string;
+  conversationId: number;
+  senderId: number;
+}): IMessage => ({
+  id: generateTempMessageId(),
+  isForwarded: false,
+  senderId,
+  senderFirstName: "",
+  senderLastName: "",
+  messageText,
+  createdAt: new Date().toISOString(),
+  conversationId,
+  messageAttachments: [
+    {
+      fileUrl: gifUrl,
+      originalFileName: "tenor_gif.gif",
+      indexedFileName: gifUrl,
+      mimeType: "image/gif",
+      type: MessageAttachmentTypeEnum.GIF,
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+  hasAttachment: true,
+});
+
 export const useSendMessageHandler = ({
   currentConversationId,
   currentUserId,
@@ -71,6 +108,7 @@ export const useSendMessageHandler = ({
   sendMessage,
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
+  sendGifMessage,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache } =
     useConversationMessagesQuery(currentConversationId);
@@ -153,11 +191,26 @@ export const useSendMessageHandler = ({
           return;
         }
 
+        if (gifUrl) {
+          const tempGifMessage = createTempGifMessage({
+            gifUrl,
+            messageText: trimmed,
+            conversationId: currentConversationId,
+            senderId: Number(currentUserId),
+          });
+
+          updateConversationMessagesCache(tempGifMessage);
+          updateConversationsListCache(tempGifMessage);
+
+          await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
+          setSelectedMessage(null);
+          return;
+        }
+
         sendMessage({
           conversationId: currentConversationId,
           message: trimmed,
           parentMessageId: parentMessage?.id,
-          gifUrl: gifUrl,
         });
 
         setSelectedMessage(null);
