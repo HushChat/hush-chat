@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: create chat_user_info sequence
       author: moditha
-      tag: release-8.1
+      tag: release-10.1
       changes:
         - createSequence:
             sequenceName: chat_user_info_generator
@@ -16,7 +16,7 @@ databaseChangeLog:
   - changeSet:
       id: create chat_user_info table
       author: moditha
-      tag: release-8.2
+      tag: release-10.2
       changes:
         - createTable:
             tableName: chat_user_info
@@ -64,7 +64,7 @@ databaseChangeLog:
   - changeSet:
       id: add foreign key constraint for chat_user_info
       author: moditha
-      tag: release-8.3
+      tag: release-10.3
       changes:
         - addForeignKeyConstraint:
             baseTableName: chat_user_info
@@ -77,7 +77,7 @@ databaseChangeLog:
   - changeSet:
       id: create index for chat_user_info
       author: moditha
-      tag: release-8.4
+      tag: release-10.4
       changes:
         - createIndex:
             indexName: idx_chat_user_info_chat_user_id
