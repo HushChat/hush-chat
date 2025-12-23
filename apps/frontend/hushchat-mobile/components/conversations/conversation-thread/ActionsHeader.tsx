@@ -21,6 +21,7 @@ interface ActionsHeaderProps {
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
   onSelectMessageInfo?: (c: ConversationAPIResponse, m: IMessage) => void;
+  onMarkAsUnread: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -32,6 +33,7 @@ const ActionsHeader = ({
   onUnsend,
   onCopy,
   onSelectMessageInfo,
+  onMarkAsUnread,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const { openModal, closeModal } = useModalContext();
@@ -116,6 +118,9 @@ const ActionsHeader = ({
         </View>
 
         <View className="flex-row items-center gap-2">
+          {message.senderId !== Number(user.id) && !message.isUnsend && (
+            <HeaderAction iconName="mail-unread-outline" onPress={() => onMarkAsUnread(message)} />
+          )}
           {hasDocumentAttachments && (
             <HeaderAction iconName="download-outline" onPress={handleDownload} />
           )}

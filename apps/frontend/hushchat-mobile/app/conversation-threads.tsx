@@ -384,6 +384,7 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
+        setSelectedConversation={setSelectedConversationId}
         onNavigateToMessage={handleNavigateToMessage}
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}

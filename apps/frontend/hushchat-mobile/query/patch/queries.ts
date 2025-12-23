@@ -15,7 +15,7 @@ import {
 } from "@/types/chat/types";
 import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
-import { forwardMessages, unsendMessage } from "@/apis/message";
+import { forwardMessages, markMessageAsUnread, unsendMessage } from "@/apis/message";
 
 export const useArchiveConversationMutation = createMutationHook<void, number>(
   archiveConversationById,
@@ -48,6 +48,15 @@ export const useForwardMessageMutation = createMutationHook<void, TMessageForwar
 
 export const usePatchUnsendMessageMutation = createMutationHook<void, { messageId: number }>(
   unsendMessage
+);
+
+export const useMarkMessageAsUnreadMutation = createMutationHook<
+  void,
+  { messageId: number; conversationId: number }
+>(
+  markMessageAsUnread,
+  (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
+    [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][]
 );
 
 export const useSetLastSeenMessageMutation = createMutationHook<
