@@ -91,6 +91,6 @@ export const useMarkdownRules = (
         );
       },
     }),
-    [handleLinkPress, isCurrentUser, onWebContextMenu, onMentionPress] // Add onMentionPress to dependencies
+    [handleLinkPress, isCurrentUser, onWebContextMenu, onMentionPress]
   );
 };
