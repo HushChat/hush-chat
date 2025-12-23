@@ -2,11 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_HIT_SLOP } from "@/constants/ui";
-import {
-  IMessage,
-  ConversationAPIResponse,
-  PIN_MESSAGE_OPTIONS,
-} from "@/types/chat/types";
+import { IMessage, ConversationAPIResponse, PIN_MESSAGE_OPTIONS } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { AppText } from "@/components/AppText";
 import HeaderAction from "@/components/conversations/conversation-info-panel/common/HeaderAction";
@@ -44,7 +40,7 @@ const ActionsHeader = ({
 
   const documentAttachments = useMemo(() => {
     if (!message?.messageAttachments) return [];
-    
+
     return message.messageAttachments.filter(
       (attachment) => !isImageAttachment(attachment) && !isVideoAttachment(attachment)
     );
@@ -78,7 +74,7 @@ const ActionsHeader = ({
       ],
       icon: "pin-outline",
     });
-  }, [isPinned, openModal, onPinToggle, message, closeModal]);
+  }, [isPinned, openModal, PIN_MESSAGE_OPTIONS, closeModal]);
 
   const handleDownload = useCallback(async () => {
     if (documentAttachments.length === 0) return;
@@ -121,10 +117,7 @@ const ActionsHeader = ({
 
         <View className="flex-row items-center gap-2">
           {hasDocumentAttachments && (
-            <HeaderAction
-              iconName="download-outline"
-              onPress={handleDownload}
-            />
+            <HeaderAction iconName="download-outline" onPress={handleDownload} />
           )}
           {!message.isUnsend && message.messageText && (
             <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
