@@ -72,10 +72,8 @@ export const useSendMessageHandler = ({
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
 }: IUseSendMessageHandlerParams) => {
-  const {
-    updateConversationMessagesCache,
-    updateConversationsListCache,
-  } = useConversationMessagesQuery(currentConversationId);
+  const { updateConversationMessagesCache, updateConversationsListCache } =
+    useConversationMessagesQuery(currentConversationId);
 
   const renameFile = useCallback(
     (file: File, index: number): File => {

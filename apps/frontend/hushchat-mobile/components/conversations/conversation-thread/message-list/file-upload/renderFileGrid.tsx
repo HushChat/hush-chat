@@ -48,10 +48,7 @@ const RenderFileGrid = ({
             key={doc.id || `doc-${index}`}
             style={dynamicStyles.documentSpacing(documents.length > 1, hasMedia)}
           >
-            <DocumentCard
-              attachment={doc}
-              isCurrentUser={isCurrentUser}
-            />
+            <DocumentCard attachment={doc} isCurrentUser={isCurrentUser} />
           </View>
         ))}
 
@@ -72,12 +69,6 @@ const RenderFileGrid = ({
   );
 };
 
-export const renderFileGrid = (
-  attachments: IMessageAttachment[],
-  isCurrentUser: boolean,
-) => (
-  <RenderFileGrid
-    attachments={attachments}
-    isCurrentUser={isCurrentUser}
-  />
+export const renderFileGrid = (attachments: IMessageAttachment[], isCurrentUser: boolean) => (
+  <RenderFileGrid attachments={attachments} isCurrentUser={isCurrentUser} />
 );
