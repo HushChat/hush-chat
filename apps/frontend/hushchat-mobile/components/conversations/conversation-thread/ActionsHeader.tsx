@@ -1,21 +1,27 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_HIT_SLOP } from "@/constants/ui";
-import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
+import { IMessage, ConversationAPIResponse, PIN_MESSAGE_OPTIONS } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { AppText } from "@/components/AppText";
 import HeaderAction from "@/components/conversations/conversation-info-panel/common/HeaderAction";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { useModalContext } from "@/context/modal-context";
+import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
+import { downloadFileNative } from "@/utils/messageUtils";
+import { ToastUtils } from "@/utils/toastUtils";
 
 interface ActionsHeaderProps {
   message: IMessage;
   conversation?: ConversationAPIResponse;
   onClose: () => void;
-  onPinToggle: (m: IMessage) => void;
+  onPinToggle: (m: IMessage, duration: string | null) => void;
   onForward: (m: IMessage) => void;
   onUnsend: (m: IMessage) => void;
   onCopy: (m: IMessage) => void;
   onSelectMessageInfo?: (c: ConversationAPIResponse, m: IMessage) => void;
+  onMarkAsUnread: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -27,10 +33,61 @@ const ActionsHeader = ({
   onUnsend,
   onCopy,
   onSelectMessageInfo,
+  onMarkAsUnread,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
+  const { openModal, closeModal } = useModalContext();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
   const currentUserIsSender = user?.id === message?.senderId;
+
+  const documentAttachments = useMemo(() => {
+    if (!message?.messageAttachments) return [];
+
+    return message.messageAttachments.filter(
+      (attachment) => !isImageAttachment(attachment) && !isVideoAttachment(attachment)
+    );
+  }, [message?.messageAttachments]);
+
+  const hasDocumentAttachments = documentAttachments.length > 0;
+
+  const handleTogglePinMessage = useCallback(() => {
+    if (isPinned) {
+      onPinToggle(message, null);
+      return;
+    }
+
+    openModal({
+      type: MODAL_TYPES.confirm,
+      title: "Pin Message",
+      description: "Select how long you want to pin this message",
+      buttons: [
+        ...PIN_MESSAGE_OPTIONS.map((option) => ({
+          text: option.label,
+          onPress: () => {
+            onPinToggle(message, option.value);
+            closeModal();
+          },
+        })),
+        {
+          text: "Cancel",
+          onPress: closeModal,
+          variant: MODAL_BUTTON_VARIANTS.destructive,
+        },
+      ],
+      icon: "pin-outline",
+    });
+  }, [isPinned, openModal, PIN_MESSAGE_OPTIONS, closeModal]);
+
+  const handleDownload = useCallback(async () => {
+    if (documentAttachments.length === 0) return;
+
+    try {
+      const firstDocument = documentAttachments[0];
+      await downloadFileNative(firstDocument);
+    } catch {
+      ToastUtils.error("Failed to download document");
+    }
+  }, [documentAttachments]);
 
   return (
     <View className="absolute bottom-full !z-50 w-full bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
@@ -61,6 +118,12 @@ const ActionsHeader = ({
         </View>
 
         <View className="flex-row items-center gap-2">
+          {message.senderId !== Number(user.id) && !message.isUnsend && (
+            <HeaderAction iconName="mail-unread-outline" onPress={() => onMarkAsUnread(message)} />
+          )}
+          {hasDocumentAttachments && (
+            <HeaderAction iconName="download-outline" onPress={handleDownload} />
+          )}
           {!message.isUnsend && message.messageText && (
             <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
           )}
@@ -71,7 +134,7 @@ const ActionsHeader = ({
 
           <HeaderAction
             iconName={isPinned ? "pin" : "pin-outline"}
-            onPress={() => onPinToggle(message)}
+            onPress={() => handleTogglePinMessage()}
             color={isPinned ? "#6B4EFF" : "#6B7280"}
           />
 

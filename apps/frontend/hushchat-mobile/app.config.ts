@@ -11,18 +11,33 @@ export default () => ({
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "chat",
+    scheme: "gethush",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     owner: process.env.EAS_PROJECT_OWNER,
     ios: {
       supportsTablet: true,
+      associatedDomains: ["applinks:app.gethush.chat"],
     },
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: "app.gethush.chat",
+              pathPrefix: "/invite",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
       package: "com.hush.chat",
       // versionCode: 2,
       // useNextNotificationsApi: true,
