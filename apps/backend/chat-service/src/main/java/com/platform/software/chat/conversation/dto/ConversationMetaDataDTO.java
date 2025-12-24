@@ -26,6 +26,7 @@ public class ConversationMetaDataDTO {
     private Boolean onlyAdminsCanSendMessages;
     private Boolean isCurrentUserAdmin;
     private Date pinnedMessageUntil;
+    private boolean notifyOnMentionsOnly;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();
