@@ -5,6 +5,7 @@ public enum AttachmentTypeEnum {
     VIDEO("VIDEO"),
     AUDIO("AUDIO"),
     DOCUMENT("DOCUMENT"),
+    GIF("GIF"),
     OTHER("OTHER");
 
     private final String name;

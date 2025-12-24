@@ -31,6 +31,7 @@ export interface ReactionSummary {
 export enum MessageAttachmentTypeEnum {
   MEDIA = "MEDIA",
   DOCS = "DOCS",
+  GIF = "GIF",
 }
 
 export interface IMessageAttachment {
@@ -205,6 +206,7 @@ export interface IBasicMessage {
   senderFirstName: string | null;
   senderLastName: string | null;
   messageText: string;
+  messageAttachments?: IMessageAttachment[];
 }
 
 export interface ConversationAPIResponse {
@@ -312,7 +314,12 @@ export interface IActionConfig {
 
 export interface ConversationInputProps {
   conversationId: number;
-  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onSendMessage: (
+    message: string,
+    parentMessage?: IMessage,
+    files?: File[],
+    gifUrl?: string
+  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   onOpenDocumentPickerNative?: () => void;
@@ -370,3 +377,9 @@ export const PIN_MESSAGE_OPTIONS = [
   { label: "7 days", value: "7d" },
   { label: "30 days", value: "30d" },
 ];
+
+export interface GifPickerProps {
+  visible: boolean;
+  onClose: () => void;
+  onGifSelect: (gifUrl: string) => void;
+}

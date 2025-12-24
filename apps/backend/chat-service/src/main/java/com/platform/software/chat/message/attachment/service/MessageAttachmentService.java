@@ -61,6 +61,32 @@ public class MessageAttachmentService {
         return signedURLResponse;
     }
 
+    /**
+     * Create a GIF attachment without file upload
+     * 
+     * @param gifUrl The Tenor GIF URL
+     * @param message The message to attach the GIF to
+     * @return The created MessageAttachment
+     */
+    public MessageAttachment createGifAttachment(String gifUrl, Message message) {
+        if (gifUrl == null || gifUrl.isEmpty()) {
+            throw new CustomBadRequestException("GIF URL cannot be empty");
+        }
+
+        MessageAttachment gifAttachment = new MessageAttachment();
+        gifAttachment.setMessage(message);
+        gifAttachment.setOriginalFileName("tenor_gif_" + System.currentTimeMillis() + ".gif");
+        gifAttachment.setIndexedFileName(gifUrl);
+        gifAttachment.setType(AttachmentTypeEnum.GIF);
+
+        try {
+            return messageAttachmentRepository.save(gifAttachment);
+        } catch (Exception exception) {
+            logger.error("failed to save GIF attachment for message {}", message.getId(), exception);
+            throw new CustomBadRequestException("Failed to save GIF attachment");
+        }
+    }
+
     private List<MessageAttachment> createMessageAttachments(List<SignedURLDTO> signedURLs, Message message) {
         return signedURLs.stream()
             .map(signedURL -> createMessageAttachment(signedURL, message))
@@ -96,9 +122,15 @@ public class MessageAttachmentService {
         Page<MessageAttachment> attachmentPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria, pageable);
         Page<MessageAttachmentDTO> attachmentDTOPage = attachmentPage.map(attachment -> {
             MessageAttachmentDTO attachmentDTO = new MessageAttachmentDTO(attachment);
-            String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
-            attachmentDTO.setFileUrl(fileViewSignedURL);
+
+            if (attachment.getType() == AttachmentTypeEnum.GIF) {
+                attachmentDTO.setFileUrl(attachment.getIndexedFileName());
+            } else {
+                String fileViewSignedURL = cloudPhotoHandlingService
+                    .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                attachmentDTO.setFileUrl(fileViewSignedURL);
+            }
+
             return attachmentDTO;
         });
         return attachmentDTOPage;

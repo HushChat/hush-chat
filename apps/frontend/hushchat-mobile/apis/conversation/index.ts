@@ -18,6 +18,7 @@ import {
 import { ApiResponse } from "@/types/common/types";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import type { QueryKey } from "@tanstack/react-query";
+import { TAttachmentUploadRequest } from "@/apis/photo-upload-service/photo-upload-service";
 
 export interface ConversationFilterCriteria {
   isArchived?: boolean;
@@ -245,11 +246,7 @@ export const sendMessageByConversationIdFiles = async (
 
 export const createMessagesWithAttachments = async (
   conversationId: number,
-  attachments: {
-    messageText: string;
-    fileName: string;
-    parentMessageId?: number | null;
-  }[]
+  attachments: TAttachmentUploadRequest[]
 ) => {
   try {
     const response = await axios.post(

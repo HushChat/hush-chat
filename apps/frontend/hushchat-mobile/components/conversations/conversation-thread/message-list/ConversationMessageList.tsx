@@ -12,7 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDate, hasGif } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -239,6 +239,7 @@ const ConversationMessageList = ({
         <PinnedMessageBar
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
+          isGifUrl={hasGif(pinnedMessage)}
           onUnpin={() => togglePin(pinnedMessage)}
           onPress={handlePinnedMessageClick}
         />

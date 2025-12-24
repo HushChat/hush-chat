@@ -12,6 +12,7 @@ public class MessageUpsertDTO {
     private String messageText;
     private DocUploadRequestDTO files;
     private Long parentMessageId;
+    private String gifUrl;
 
     public MessageUpsertDTO(String messageText) {
         this.messageText = messageText;

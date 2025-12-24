@@ -1,5 +1,5 @@
 import { Pressable, View, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppText } from "@/components/AppText";
@@ -11,6 +11,7 @@ const COLORS = {
 interface PinnedMessageBarProps {
   senderName: string;
   messageText: string;
+  isGifUrl?: boolean;
   onPress?: () => void;
   onUnpin?: () => void;
 }
@@ -18,6 +19,7 @@ interface PinnedMessageBarProps {
 export const PinnedMessageBar = ({
   senderName,
   messageText,
+  isGifUrl,
   onPress,
   onUnpin,
 }: PinnedMessageBarProps) => {
@@ -48,12 +50,21 @@ export const PinnedMessageBar = ({
             {senderName}
           </AppText>
         </View>
-        <AppText
-          className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed"
-          numberOfLines={2}
-        >
-          {messageText}
-        </AppText>
+        {isGifUrl ? (
+          <View className="flex-row items-center gap-1">
+            <MaterialIcons name="gif" size={20} color={isDark ? "#E5E7EB" : "#1F2937"} />
+            <AppText className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+              GIF
+            </AppText>
+          </View>
+        ) : (
+          <AppText
+            className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed"
+            numberOfLines={2}
+          >
+            {messageText}
+          </AppText>
+        )}
       </View>
 
       <Pressable

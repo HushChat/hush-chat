@@ -80,7 +80,7 @@ const MessageTextArea = forwardRef<TextInput, IMessageTextAreaProps>(
         ref={ref}
         className={classNames(
           "flex-1 text-base text-text-primary-light dark:text-text-primary-dark",
-          PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-3"
+          PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-2"
         )}
         style={computedInputStyle}
         placeholder={placeholder}
