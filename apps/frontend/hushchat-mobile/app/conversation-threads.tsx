@@ -274,7 +274,6 @@ const ConversationThreadScreen = ({
     sendMessage,
     uploadFilesFromWebWithCaptions,
     handleCloseImagePreview,
-    refetchConversationMessages, // ADD THIS - pass the refetch function
   });
 
   const handleSendFilesFromPreview = useCallback(
