@@ -575,7 +575,7 @@ public class ConversationService {
 
         Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId, loggedInParticipant.getIsReadReceiptsEnabled());
     }
 
     /**
@@ -593,7 +593,7 @@ public class ConversationService {
 
         Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId, loggedInParticipant.getIsReadReceiptsEnabled());
     }
 
     /**
@@ -604,11 +604,11 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId) {
+    private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId, boolean includeReadStatus) {
 
         Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
-        Long lastReadMessageId = getLastReadMessageIdByParticipants(conversationId, loggedInUserId);
+        Long lastReadMessageId = includeReadStatus ? getLastReadMessageIdByParticipants(conversationId, loggedInUserId) : null;
 
         List<Long> messageIds = extractMessageIds(messages);
 
