@@ -8,6 +8,7 @@ import { sendTokenToBackend } from "@/apis/user";
 import { refreshIdToken, isTokenExpiringSoon } from "@/utils/authUtils";
 import { PLATFORM } from "@/constants/platformConstants";
 import { SplashScreen } from "expo-router";
+import { initializeDeviceId } from "@/utils/deviceIdUtils";
 
 export function useAppInitialization(fontsLoaded: boolean) {
   const { isAuthenticated, isWorkspaceSelected } = useAuthStore();
@@ -19,6 +20,7 @@ export function useAppInitialization(fontsLoaded: boolean) {
     setAPIDefaults();
     setupAuthorizationHeader();
     setupGlobalErrorHandling();
+    initializeDeviceId();
   }, []);
 
   /** Load user data when authenticated */

@@ -30,6 +30,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     Logger logger = LoggerFactory.getLogger(WebSocketAuthorizationInterceptor.class);
@@ -77,10 +78,11 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         String bearerToken = extractHeaderValue(accessor, GeneralConstants.AUTHORIZATION_HEADER);
         String workspaceId = extractHeaderValue(accessor, GeneralConstants.WORKSPACE_ID_HEADER);
         String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
+        String deviceId = extractHeaderValue(accessor, GeneralConstants.DEVICE_ID_HEADER);
 
         if (deviceType == null) deviceType = "UNKNOWN";
 
-        if (bearerToken == null || workspaceId == null) {
+        if (bearerToken == null || workspaceId == null || deviceId == null) {
             logger.error("web socket cannot authorize: missing required parameters.");
             throw new CustomForbiddenException("Missing required authentication parameters");
         }
@@ -113,7 +115,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             WorkspaceContext.setCurrentWorkspace(workspaceId);
             ChatUser user = userService.getUserByEmail(email);
 
-            String sessionKey = createSessionKey(workspaceId, email);
+            String sessionKey = createSessionKey(workspaceId, email, deviceId);
 
             // Store session information in STOMP session attributes
             accessor.getSessionAttributes().put(GeneralConstants.USER_ID_ATTR, sessionKey);
@@ -157,8 +159,8 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         }
     }
 
-    private String createSessionKey(String tenantId, String email) {
-        return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
+    private String createSessionKey(String tenantId, String email, String deviceId) {
+        return String.format("%s:%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8), deviceId);
     }
 
     private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {
