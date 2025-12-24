@@ -159,6 +159,10 @@ const ConversationThreadScreen = ({
         return;
       }
 
+      if (firstMessage.senderId === currentUserId) {
+        return;
+      }
+
       const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
 
       if (!isFirstMessageLastSeen) {
@@ -270,6 +274,7 @@ const ConversationThreadScreen = ({
     sendMessage,
     uploadFilesFromWebWithCaptions,
     handleCloseImagePreview,
+    refetchConversationMessages, // ADD THIS - pass the refetch function
   });
 
   const handleSendFilesFromPreview = useCallback(
