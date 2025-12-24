@@ -44,6 +44,7 @@ interface ConversationNotificationsContextValue {
   notificationConversation: IConversation | null;
   clearNotificationConversation: () => void;
   updateConversation: (conversationId: string | number, updates: Partial<IConversation>) => void;
+  resetAllUnreadCounts: () => void;
 }
 
 const ConversationNotificationsContext = createContext<
@@ -70,6 +71,29 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     Number(loggedInUserId),
     criteria
   );
+
+  /**
+   * Reset all unread counts to 0 across all conversations in cache
+   */
+  const resetAllUnreadCounts = useCallback(() => {
+    queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
+      conversationsQueryKey,
+      (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            content: page.content.map((conversation) => ({
+              ...conversation,
+              unreadCount: 0,
+            })),
+          })),
+        };
+      }
+    );
+  }, [queryClient, conversationsQueryKey]);
 
   /**
    * Message-received -> update unread and move to top
@@ -451,6 +475,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         notificationConversation,
         clearNotificationConversation,
         updateConversation,
+        resetAllUnreadCounts,
       }}
     >
       {children}

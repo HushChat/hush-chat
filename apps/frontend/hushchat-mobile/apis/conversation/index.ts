@@ -542,6 +542,15 @@ export const getInviteLink = async (conversationId: number) => {
   }
 };
 
+export const markAllMessagesInAllConversationsAsRead = async () => {
+  try {
+    await axios.patch(CONVERSATION_API_ENDPOINTS.MARK_ALL_CONVERSATIONS_AS_READ);
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    ToastUtils.error(axiosError?.response?.data?.error || axiosError?.message);
+  }
+};
+
 export const joinConversationByInvite = async (token: string) => {
   try {
     const response = await axios.post(CONVERSATION_API_ENDPOINTS.JOIN_VIA_INVITE_LINK(token));
