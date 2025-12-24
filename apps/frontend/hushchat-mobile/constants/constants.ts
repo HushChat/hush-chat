@@ -20,6 +20,7 @@ export const TITLES = {
   DELETE_CHAT: "Delete chat",
   PIN_CONVERSATION: "Pin Conversation",
   UNPIN_CONVERSATION: "Unpin Conversation",
+  MARK_AS_READ: "Mark as read",
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";

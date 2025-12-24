@@ -482,4 +482,16 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .where(qConversation.id.eq(conversationId))
                 .execute();
     }
+
+    @Override
+    public List<Conversation> getAllConversationsForCurrentUser(Long userId) {
+        return jpaQueryFactory
+                .select(qConversation)
+                .from(qConversation)
+                .join(qConversation.conversationParticipants, qConversationParticipant)
+                .where(qConversation.deleted.eq(false)
+                        .and(qConversationParticipant.user.id.eq(userId)))
+                .groupBy(qConversation.id)
+                .fetch();
+    }
 }

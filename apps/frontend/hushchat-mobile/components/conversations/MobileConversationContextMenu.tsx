@@ -17,6 +17,7 @@ import {
 } from "@/query/post/queries";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useOneToOneConversationInfoQuery } from "@/query/useOneToOneConversationInfoQuery";
+import { useMarkConversationAsRead } from "@/hooks/useMarkConversationAsRead";
 
 interface MobileConversationContextMenuProps {
   conversationId: number;
@@ -53,6 +54,7 @@ const MobileConversationContextMenu = ({
   const { conversationInfo: oneToOneInfo } = useOneToOneConversationInfoQuery(
     !isGroup ? conversationId : 0
   );
+  const { markConversationAsRead } = useMarkConversationAsRead();
 
   const togglePinConversation = useTogglePinConversationMutation(
     {
@@ -183,6 +185,12 @@ const MobileConversationContextMenu = ({
               }
             },
           },
+      {
+        id: "3",
+        title: TITLES.MARK_AS_READ,
+        icon: "chatbox-ellipses-outline",
+        onPress: () => markConversationAsRead(conversationId),
+      },
     ];
     options.push({
       id: "3",

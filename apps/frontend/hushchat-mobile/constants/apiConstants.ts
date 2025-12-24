@@ -85,6 +85,9 @@ export const CONVERSATION_API_ENDPOINTS = {
   JOIN_VIA_INVITE_LINK: (token: string) => `${CONVERSATION_API_BASE}/invite-link/${token}/join`,
   MARK_MESSAGE_AS_UNREAD: (conversationId: number, messageId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
+  MARK_ALL_CONVERSATIONS_AS_READ: `${CONVERSATION_API_BASE}/read-all`,
+  MARK_CONVERSATION_MESSAGES_AS_READ: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/read-all`,
 };
 
 export const USER_API_ENDPOINTS = {

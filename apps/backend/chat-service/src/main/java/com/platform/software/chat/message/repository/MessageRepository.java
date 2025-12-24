@@ -92,4 +92,9 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
         @Param("userId") Long userId,
         Pageable pageable
     );
+
+    Optional<Message> findTopByConversationIdAndIsUnsendFalseOrderByCreatedAtDesc(
+            Long conversationId
+    );
+
 }

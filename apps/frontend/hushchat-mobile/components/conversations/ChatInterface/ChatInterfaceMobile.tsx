@@ -23,6 +23,7 @@ import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { AppText } from "@/components/AppText";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
+import { useMarkAllConversationsAsRead } from "@/hooks/useMarkAllConversationsAsRead ";
 
 export default function ChatInterfaceMobile({
   chatItemList,
@@ -36,6 +37,7 @@ export default function ChatInterfaceMobile({
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
   const { selectedConversationType, setSelectedConversationType } = useConversationStore();
   const { workspaces } = useUserWorkspacesQuery();
+  const { markAllConversationsAsRead } = useMarkAllConversationsAsRead();
 
   const headerTitle = useConversationHeaderTitle(selectedConversationType);
 
@@ -62,6 +64,12 @@ export default function ChatInterfaceMobile({
           setSheetVisible(false);
           router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
         },
+      },
+      {
+        id: "mark-all-as-read",
+        title: "Mark all as read",
+        icon: "chatbox-ellipses-outline",
+        onPress: markAllConversationsAsRead,
       },
       {
         id: "contact",
