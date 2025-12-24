@@ -1,4 +1,3 @@
-// @/hooks/useMarkConversationAsRead.ts
 import { useQueryClient } from "@tanstack/react-query";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { ToastUtils } from "@/utils/toastUtils";
