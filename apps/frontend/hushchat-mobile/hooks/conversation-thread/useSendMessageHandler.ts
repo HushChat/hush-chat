@@ -25,7 +25,7 @@ interface IUseSendMessageHandlerParams {
     parentMessageId?: number | null
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
-  updateConversationMessagesCache: (message: IMessage) => void;
+  refetchConversationMessages: () => Promise<void>; // ADD THIS
 }
 
 let tempMessageIdCounter = -1;
@@ -71,6 +71,7 @@ export const useSendMessageHandler = ({
   sendMessage,
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
+  refetchConversationMessages, // ADD THIS
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache } =
     useConversationMessagesQuery(currentConversationId);
@@ -147,7 +148,13 @@ export const useSendMessageHandler = ({
             caption: trimmed,
           }));
 
-          await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMessage?.id ?? null);
+          // Store parent message ID before upload
+          const parentMsgId = parentMessage?.id ?? null;
+
+          await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMsgId);
+
+          // Refetch messages to get real IDs from backend
+          await refetchConversationMessages();
 
           setSelectedMessage(null);
           return;
@@ -173,12 +180,16 @@ export const useSendMessageHandler = ({
       updateConversationsListCache,
       setSelectedMessage,
       renameFile,
+      refetchConversationMessages, // ADD THIS
     ]
   );
 
   const handleSendFilesWithCaptions = useCallback(
     async (filesWithCaptions: TFileWithCaption[]) => {
       if (!filesWithCaptions || filesWithCaptions.length === 0) return;
+
+      // Store the parent message ID BEFORE any async operations
+      const parentMsgId = selectedMessage?.id ?? null;
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
@@ -209,15 +220,19 @@ export const useSendMessageHandler = ({
           })
         );
 
+        // Use the stored parent message ID
         const results = await uploadFilesFromWebWithCaptions(
           preparedFiles,
-          selectedMessage?.id ?? null
+          parentMsgId // Use stored value, not selectedMessage.id
         );
 
         const failedCount = results.filter((r) => !r.success).length;
         if (failedCount > 0) {
           logError(`${failedCount} file(s) failed to upload`);
         }
+
+        // CRITICAL: Refetch messages to get real IDs from backend
+        await refetchConversationMessages();
 
         handleCloseImagePreview();
         setSelectedMessage(null);
@@ -235,6 +250,7 @@ export const useSendMessageHandler = ({
       handleCloseImagePreview,
       setSelectedMessage,
       renameFile,
+      refetchConversationMessages, // ADD THIS
     ]
   );
 
