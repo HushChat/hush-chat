@@ -330,10 +330,7 @@ export default function GroupChatInfo({
                 onPress={handleGroupPreferences}
               />
               <ChatInfoCommonAction
-                conversationId={conversation.id}
-                isFavorite={conversationInfo?.favorite || false}
-                isPinned={conversationInfo?.pinned || false}
-                isMuted={!!conversationInfo?.mutedUntil}
+                conversation={conversation}
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
                 onShowMediaAttachments={onShowMediaAttachments}

@@ -16,28 +16,29 @@ import { useToggleMuteConversationMutation } from "@/query/post/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import ActionList from "@/components/conversations/conversation-info-panel/common/ActionList";
-import { IActionConfig } from "@/types/chat/types";
+import { IActionConfig, IConversation } from "@/types/chat/types";
 import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
 
 type TChatInfoActionProps = {
-  conversationId: number;
-  isFavorite: boolean;
-  isPinned: boolean;
-  isMuted: boolean;
+  conversation: IConversation;
   onBack: () => void;
   setSelectedConversation?: (conversation: null) => void;
   onShowMediaAttachments?: () => void;
 };
 
 export default function ChatInfoCommonAction({
-  conversationId,
-  isFavorite: initialFavorite,
-  isPinned: initialPinned,
-  isMuted,
+  conversation,
   onBack,
   setSelectedConversation = () => {},
   onShowMediaAttachments,
 }: TChatInfoActionProps) {
+  const {
+    id: conversationId,
+    favoriteByLoggedInUser: initialFavorite,
+    pinnedByLoggedInUser: initialPinned,
+    mutedByLoggedInUser: isMuted,
+  } = conversation;
+
   const { openModal, closeModal } = useModalContext();
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
