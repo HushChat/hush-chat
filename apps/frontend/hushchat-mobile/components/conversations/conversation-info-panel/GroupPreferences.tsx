@@ -65,20 +65,35 @@ export default function GroupPreferences({
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
           <AppText className="text-xl font-semibold text-gray-900 dark:text-white">
-            Group Preferences
+            Conversation Preferences
           </AppText>
         </View>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={true}>
-        <View className="mt-4">
+        {conversation?.isGroup && (
+          <View className="mt-4">
+            <AppText className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Notifications
+            </AppText>
+            <ActionToggleItem
+              icon="notifications-outline"
+              title="Mentions Only"
+              description="Receive notifications only when someone mentions you in this conversation."
+              value={notifyOnMentionsOnly}
+              onValueChange={handleToggleNotifyOnlyOnMentions}
+            />
+          </View>
+        )}
+
+        <View className="mt-6">
           <AppText className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Notifications
+            Privacy
           </AppText>
           <ActionToggleItem
-            icon="notifications-outline"
-            title="Mentions Only"
-            description="Receive notifications only when someone mentions you in this conversation."
+            icon="eye-outline"
+            title="Read receipts"
+            description="When turned off, you won’t see read receipts from others, and they won’t see yours."
             value={notifyOnMentionsOnly}
             onValueChange={handleToggleNotifyOnlyOnMentions}
           />
