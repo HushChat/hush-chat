@@ -14,6 +14,7 @@ import {
   ReactionType,
   MessageTypeEnum,
   PIN_MESSAGE_OPTIONS,
+  IMessageAttachment,
 } from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
@@ -64,7 +65,7 @@ interface MessageItemProps {
   selected: boolean;
   onStartSelectionWith: (messageId: number) => void;
   onToggleSelection: (messageId: number) => void;
-  onMessageLongPress?: (message: IMessage) => void;
+  onMessageLongPress?: (message: IMessage, attachment?: IMessageAttachment) => void;
   onCloseAllOverlays?: () => void;
   onMessagePin: (message: IMessage, duration: string | null) => void;
   onUnsendMessage: (message: IMessage) => void;
@@ -75,6 +76,7 @@ interface MessageItemProps {
   onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
   webMessageInfoPress?: (messageId: number) => void;
+  onMarkMessageAsUnread: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -103,6 +105,7 @@ export const ConversationMessageItem = ({
   onNavigateToMessage,
   targetMessageId,
   webMessageInfoPress,
+  onMarkMessageAsUnread,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -257,6 +260,15 @@ export const ConversationMessageItem = ({
         });
       }
     }
+
+    if (!isCurrentUser && !message.isUnsend) {
+      options.push({
+        id: 5,
+        name: "Mark as Unread",
+        iconName: "mail-unread-outline" as keyof typeof Ionicons.glyphMap,
+        action: () => onMarkMessageAsUnread(message),
+      });
+    }
     return options;
   }, [
     message,
@@ -268,21 +280,24 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
-  const handleLongPress = useCallback(() => {
-    if (conversationAPIResponse?.isBlocked) return;
-    if (selectionMode) return;
-    if (isSystemEvent) return;
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onOpenPicker(String(message.id));
-    onMessageLongPress?.(message);
-  }, [
-    conversationAPIResponse?.isBlocked,
-    selectionMode,
-    message,
-    onMessageLongPress,
-    onOpenPicker,
-    isSystemEvent,
-  ]);
+  const handleLongPress = useCallback(
+    (attachment?: IMessageAttachment) => {
+      if (conversationAPIResponse?.isBlocked) return;
+      if (selectionMode) return;
+      if (isSystemEvent) return;
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onOpenPicker(String(message.id));
+      onMessageLongPress?.(message, attachment);
+    },
+    [
+      conversationAPIResponse?.isBlocked,
+      selectionMode,
+      message,
+      onMessageLongPress,
+      onOpenPicker,
+      isSystemEvent,
+    ]
+  );
 
   const handleOpenPicker = useCallback(() => {
     if (conversationAPIResponse?.isBlocked || !conversationAPIResponse?.isActive) return;

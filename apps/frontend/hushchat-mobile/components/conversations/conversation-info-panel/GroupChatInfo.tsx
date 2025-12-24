@@ -26,6 +26,7 @@ import {
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
+import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
 
 const COLORS = {
   button: "#3b82f6",
@@ -95,6 +96,10 @@ export default function GroupChatInfo({
 
   const handleGroupSettings = () => {
     openPanel(PanelType.GROUP_SETTINGS);
+  };
+
+  const handleGroupPreferences = () => {
+    openPanel(PanelType.GROUP_PREFERENCES);
   };
 
   const handleAddMoreParticipants = () => {
@@ -319,6 +324,11 @@ export default function GroupChatInfo({
                   />
                 </>
               )}
+              <ActionItem
+                icon="options-outline"
+                label="Group Preferences"
+                onPress={handleGroupPreferences}
+              />
               <ChatInfoCommonAction
                 conversationId={conversation.id}
                 isFavorite={conversationInfo?.favorite || false}
@@ -382,6 +392,16 @@ export default function GroupChatInfo({
             conversation={conversation}
             onClose={closePanel}
             visible={activePanel === PanelType.INVITE_LINK}
+          />
+        </View>
+      )}
+
+      {isPanelContentReady && activePanel === PanelType.GROUP_PREFERENCES && (
+        <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
+          <GroupPreferences
+            conversation={conversation}
+            onClose={closePanel}
+            visible={activePanel === PanelType.GROUP_PREFERENCES}
           />
         </View>
       )}

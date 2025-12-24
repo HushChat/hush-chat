@@ -203,7 +203,12 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
   return { fileUri, fileName, fileType };
 };
 
-export function useMessageAttachmentUploader(conversationId: number) {
+type UploadCompletionCallback = (results: UploadResult[]) => void | Promise<void>;
+
+export function useMessageAttachmentUploader(
+  conversationId: number,
+  onUploadComplete?: UploadCompletionCallback
+) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const getSignedUrls = async (
     files: LocalFile[],
@@ -253,8 +258,8 @@ export function useMessageAttachmentUploader(conversationId: number) {
 
   const hook = useNativePickerUpload(getSignedUrls);
 
-  const pickAndUploadImagesAndVideos = async (messageText: string = "") =>
-    hook.pickAndUpload(
+  const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
+    const results = await hook.pickAndUpload(
       {
         source: "media",
         mediaKind: "all",
@@ -266,8 +271,15 @@ export function useMessageAttachmentUploader(conversationId: number) {
       messageText
     );
 
-  const pickAndUploadDocuments = async (messageText: string = "") =>
-    hook.pickAndUpload(
+    if (results && onUploadComplete) {
+      await onUploadComplete(results);
+    }
+
+    return results;
+  };
+
+  const pickAndUploadDocuments = async (messageText: string = "") => {
+    const results = await hook.pickAndUpload(
       {
         source: "document",
         multiple: true,
@@ -276,6 +288,13 @@ export function useMessageAttachmentUploader(conversationId: number) {
       },
       messageText
     );
+
+    if (results && onUploadComplete) {
+      await onUploadComplete(results);
+    }
+
+    return results;
+  };
 
   const uploadFilesFromWebWithCaptions = async (
     filesWithCaptions: TFileWithCaption[],
@@ -382,7 +401,13 @@ export function useMessageAttachmentUploader(conversationId: number) {
         }
       }
 
-      return [...results, ...skipped];
+      const allResults = [...results, ...skipped];
+
+      if (onUploadComplete) {
+        await onUploadComplete(allResults);
+      }
+
+      return allResults;
     } finally {
       setIsUploadingWebFiles(false);
       validFiles.forEach(({ file }) => {

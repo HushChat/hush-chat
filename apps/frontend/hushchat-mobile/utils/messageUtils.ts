@@ -7,6 +7,10 @@ import {
 } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
+import { Directory, Paths, File } from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { Linking } from "react-native";
+import { PLATFORM } from "@/constants/platformConstants";
 
 interface IGroupedMessages {
   title: string;
@@ -120,6 +124,95 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
   } catch {
     console.warn("Invalid URL encountered:", fullUrl);
     return null;
+  }
+};
+
+export const downloadFileNative = async (attachment: IMessageAttachment): Promise<void> => {
+  if (!PLATFORM.IS_WEB) {
+    const fileUrl = attachment.fileUrl;
+    const fileName = attachment.originalFileName || attachment.indexedFileName;
+
+    try {
+      const cacheDir = new Directory(Paths.cache, "downloads");
+
+      if (!cacheDir.exists) {
+        await cacheDir.create();
+      }
+
+      const destinationFile = new File(cacheDir, fileName);
+
+      if (destinationFile.exists) {
+        try {
+          const fileSize = destinationFile.size;
+
+          if (fileSize && fileSize > 0) {
+            const canShare = await Sharing.isAvailableAsync();
+            if (canShare) {
+              await Sharing.shareAsync(destinationFile.uri, {
+                mimeType: attachment.mimeType || "application/octet-stream",
+              });
+            } else {
+              ToastUtils.success("Document ready");
+            }
+            return;
+          } else {
+            await destinationFile.delete();
+          }
+        } catch {
+          try {
+            await destinationFile.delete();
+          } catch {
+            return;
+          }
+        }
+      }
+
+      await File.downloadFileAsync(fileUrl, destinationFile);
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(destinationFile.uri, {
+          mimeType: attachment.mimeType || "application/octet-stream",
+        });
+      }
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      ToastUtils.error("Failed to download document");
+    }
+  }
+};
+
+export const downloadFileWeb = async (fileUrl: string, fileName: string): Promise<void> => {
+  try {
+    const response = await fetch(fileUrl);
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Error downloading file on web:", error);
+    throw error;
+  }
+};
+
+export const openFileNative = async (fileUrl: string): Promise<void> => {
+  try {
+    const canOpen = await Linking.canOpenURL(fileUrl);
+
+    if (canOpen) {
+      await Linking.openURL(fileUrl);
+    } else {
+      ToastUtils.error("Cannot open this file");
+    }
+  } catch (error) {
+    console.error("Error opening file on native:", error);
+    throw error;
   }
 };
 

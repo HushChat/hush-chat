@@ -19,6 +19,7 @@ export interface IConversation {
   unreadCount: number;
   chatUserStatus: chatUserStatus;
   onlyAdminsCanSendMessages: boolean;
+  notifyOnMentionsOnly: boolean;
   deviceType?: DeviceType;
 }
 

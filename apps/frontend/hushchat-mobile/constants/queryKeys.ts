@@ -45,6 +45,12 @@ export const conversationQueryKeys = {
     "invite-link",
   ],
 
+  joinConversationByInvite: (token: string) => [
+    CONVERSATION_QUERY_BASE_KEY,
+    token,
+    "join-by-invite",
+  ],
+
   ConversationParticipants: (conversationId: number, keyword: string) => [
     CONVERSATION_QUERY_BASE_KEY,
     keyword,
