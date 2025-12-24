@@ -24,14 +24,14 @@ export interface FormattedTextProps {
 }
 
 const FormattedText = (props: FormattedTextProps) => {
-  const { text, mentions = [], isCurrentUser } = props;
+  const { text, mentions = [], isCurrentUser, onMentionPress } = props;
   const { isMarkdownEnabled } = useConversationStore();
 
   const processedText = useProcessedText(text, mentions);
   const { markdownStyles } = useMarkdownStyles(isCurrentUser);
   const handleLinkPress = useLinkHandler(props);
   const { menuVisible, menuPos, openMenu, closeMenu, copyLink } = useWebContextMenu();
-  const rules = useMarkdownRules(handleLinkPress, isCurrentUser, openMenu);
+  const rules = useMarkdownRules(handleLinkPress, isCurrentUser, openMenu, onMentionPress);
   const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
 
   if (!isMarkdownEnabled) {
