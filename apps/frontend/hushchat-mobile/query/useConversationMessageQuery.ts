@@ -162,6 +162,28 @@ export function useConversationMessagesQuery(conversationId: number) {
     [queryClient, conversationId, userId]
   );
 
+  const replaceTempMessage = useCallback(
+    (tempId: number, realId: number) => {
+      queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+        queryKey,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              content: page.content.map((msg) =>
+                msg.id === tempId ? { ...msg, id: realId } : msg
+              ),
+            })),
+          };
+        }
+      );
+    },
+    [queryClient, queryKey]
+  );
+
   const { lastMessage } = useConversationMessages(conversationId);
 
   useEffect(() => {
@@ -184,6 +206,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     invalidateQuery,
     updateConversationMessagesCache,
     updateConversationsListCache,
+    replaceTempMessage,
     loadMessageWindow,
     inMessageWindowView,
     targetMessageId,

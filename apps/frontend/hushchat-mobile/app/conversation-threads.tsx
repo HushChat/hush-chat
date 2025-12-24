@@ -159,6 +159,10 @@ const ConversationThreadScreen = ({
         return;
       }
 
+      if (firstMessage.senderId === currentUserId) {
+        return;
+      }
+
       const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
 
       if (!isFirstMessageLastSeen) {
