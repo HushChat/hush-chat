@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 public class MessageUpsertDTO {
     private String messageText;
     private DocUploadRequestDTO files;
+    private MessageTypeEnum messageType;
     private Long parentMessageId;
 
     public MessageUpsertDTO(String messageText) {
