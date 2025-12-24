@@ -68,6 +68,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isIncludeUrlMetadata: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -370,3 +371,10 @@ export const PIN_MESSAGE_OPTIONS = [
   { label: "7 days", value: "7d" },
   { label: "30 days", value: "30d" },
 ];
+
+export interface TMessageUrlMetadata {
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  domain?: string;
+}
