@@ -133,6 +133,13 @@ export const updateMessageRestrictions = async (
   return { data: response.data };
 };
 
+export const toggleNotifyOnlyOnMention = async (conversationId: number) => {
+  const response = await axios.patch(
+    `${CONVERSATION_API_ENDPOINTS.TOGGLE_NOTIFY_ONLY_ON_MENTIONS(conversationId)}`
+  );
+  return { data: response.data };
+};
+
 export const getAllCallLogs = async (page: number = 0, size: number = 10) => {
   try {
     const response = await axios.get(USER_API_ENDPOINTS.CALL_LOGS, {
