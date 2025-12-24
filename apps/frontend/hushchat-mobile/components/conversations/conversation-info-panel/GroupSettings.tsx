@@ -48,6 +48,8 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
 
   const { refetch: refetchConversationList } = useConversationsQuery();
 
+  const isAdmin = conversation.isCurrentUserAdmin;
+
   const updateConversation = usePatchConversationQuery(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
     () => {
@@ -213,13 +215,15 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
         )}
       </View>
 
-      <View className="mt-12 px-4">
-        <ActionItem
-          icon="shield-checkmark-outline"
-          label="Group Permissions"
-          onPress={handleGroupPermissions}
-        />
-      </View>
+      {isAdmin && (
+        <View className="mt-12 px-4">
+          <ActionItem
+            icon="shield-checkmark-outline"
+            label="Group Permissions"
+            onPress={handleGroupPermissions}
+          />
+        </View>
+      )}
 
       {isPanelContentReady && activePanel === PanelType.GROUP_PERMISSIONS && (
         <View className="absolute inset-0 bg-background-light dark:bg-background-dark">

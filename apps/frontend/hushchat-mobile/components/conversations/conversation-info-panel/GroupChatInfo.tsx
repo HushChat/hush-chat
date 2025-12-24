@@ -55,6 +55,10 @@ export default function GroupChatInfo({
     conversation.id
   );
 
+  const isAdmin = conversationInfo?.admin;
+  const canAddParticipants = isAdmin || !conversation.onlyAdminsCanAddParticipants;
+  const canEditGroupInfo = isAdmin || !conversation.onlyAdminsCanEditGroupInfo;
+
   const {
     user: { id: userId },
   } = useUserStore();
@@ -305,24 +309,27 @@ export default function GroupChatInfo({
         <View style={styles.actionSection}>
           {conversationInfo?.active ? (
             <View>
-              {conversationInfo.admin && (
-                <>
-                  <ActionItem
-                    icon="person-add-outline"
-                    label="Add Participants"
-                    onPress={handleAddMoreParticipants}
-                  />
-                  <ActionItem
-                    icon="link-outline"
-                    label="Invite via Link"
-                    onPress={handleInviteViaLink}
-                  />
-                  <ActionItem
-                    icon="settings-outline"
-                    label="Group Settings"
-                    onPress={handleGroupSettings}
-                  />
-                </>
+              {canAddParticipants && (
+                <ActionItem
+                  icon="person-add-outline"
+                  label="Add Participants"
+                  onPress={handleAddMoreParticipants}
+                />
+              )}
+
+              {isAdmin && (
+                <ActionItem
+                  icon="link-outline"
+                  label="Invite via Link"
+                  onPress={handleInviteViaLink}
+                />
+              )}
+              {canEditGroupInfo && (
+                <ActionItem
+                  icon="settings-outline"
+                  label="Group Settings"
+                  onPress={handleGroupSettings}
+                />
               )}
               <ActionItem
                 icon="options-outline"

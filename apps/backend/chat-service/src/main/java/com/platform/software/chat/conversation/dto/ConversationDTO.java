@@ -29,6 +29,8 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private boolean isFavoriteByLoggedInUser;
     private ChatUserStatus chatUserStatus;
     private boolean onlyAdminsCanSendMessages;
+    private boolean onlyAdminsCanAddParticipants;
+    private boolean onlyAdminsCanEditGroupInfo;
     private DeviceType deviceType;
 
     private Long unreadCount;
@@ -54,6 +56,8 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.isFavoriteByLoggedInUser = other.isFavoriteByLoggedInUser;
         this.chatUserStatus = other.chatUserStatus;
         this.onlyAdminsCanSendMessages = other.onlyAdminsCanSendMessages;
+        this.onlyAdminsCanAddParticipants = other.onlyAdminsCanAddParticipants;
+        this.onlyAdminsCanEditGroupInfo = other.onlyAdminsCanEditGroupInfo;
         this.deviceType = other.deviceType;
     }
 
@@ -86,5 +90,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.description = dao.getDescription();
         this.signedImageUrl = dao.getSignedImageUrl();
         this.onlyAdminsCanSendMessages = dao.getOnlyAdminsCanSendMessages();
+        this.onlyAdminsCanAddParticipants = dao.getOnlyAdminsCanAddParticipants();
+        this.onlyAdminsCanEditGroupInfo = dao.getOnlyAdminsCanEditGroupInfo();
     }
 }
