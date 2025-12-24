@@ -47,7 +47,7 @@ const ConversationInput = ({
     setMobileMenuVisible(false);
   }, []);
 
-  const handleImagePickerSelect = useCallback(() => {
+  const handleMediaPickerSelect = useCallback(() => {
     setMobileMenuVisible(false);
 
     setTimeout(() => {
@@ -146,7 +146,7 @@ const ConversationInput = ({
         <MobileAttachmentModal
           visible={mobileMenuVisible}
           onClose={handleCloseMobileMenu}
-          onOpenImagePicker={handleImagePickerSelect}
+          onOpenMediaPicker={handleMediaPickerSelect}
           onOpenDocumentPicker={handleDocumentPickerSelect}
         />
       )}

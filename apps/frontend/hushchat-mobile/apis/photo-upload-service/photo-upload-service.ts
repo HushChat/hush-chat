@@ -14,6 +14,11 @@ import { createMessagesWithAttachments } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useState } from "react";
+import {
+  MAX_DOCUMENT_SIZE_KB,
+  MAX_IMAGE_SIZE_KB,
+  MAX_VIDEO_SIZE_KB,
+} from "@/constants/mediaConstants";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -21,7 +26,6 @@ export enum UploadType {
 }
 
 export const MAX_IMAGE_KB = 1024 * 5;
-const MAX_DOCUMENT_KB = 1024 * 10;
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
   "application/msword",
@@ -34,6 +38,21 @@ export const ALLOWED_DOCUMENT_TYPES = [
 ];
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+
+const ALLOWED_VIDEO_TYPES = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-msvideo",
+  "video/x-matroska",
+  "video/x-m4v",
+];
+
+const sizeMap = {
+  image: MAX_IMAGE_SIZE_KB,
+  video: MAX_VIDEO_SIZE_KB,
+  document: MAX_DOCUMENT_SIZE_KB,
+};
 
 type TAttachmentUploadRequest = {
   messageText: string;
@@ -90,7 +109,7 @@ export const pickAndUploadImage = async (
     const blob = await response.blob();
     const fileSizeInKB = blob.size / 1024;
 
-    if (fileSizeInKB > MAX_IMAGE_KB) {
+    if (fileSizeInKB > MAX_IMAGE_SIZE_KB) {
       ToastUtils.error("Select an image size below 5MB");
       return;
     }
@@ -182,7 +201,12 @@ export const getImagePickerAsset = (pickerResult: ImagePickerResult, uploadType:
   return { fileUri, fileName, fileType };
 };
 
-export function useMessageAttachmentUploader(conversationId: number) {
+type UploadCompletionCallback = (results: UploadResult[]) => void | Promise<void>;
+
+export function useMessageAttachmentUploader(
+  conversationId: number,
+  onUploadComplete?: UploadCompletionCallback
+) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const getSignedUrls = async (
     files: LocalFile[],
@@ -215,29 +239,43 @@ export function useMessageAttachmentUploader(conversationId: number) {
 
   const hook = useNativePickerUpload(getSignedUrls);
 
-  const pickAndUploadImages = async (messageText: string = "") =>
-    hook.pickAndUpload(
+  const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
+    const results = await hook.pickAndUpload(
       {
         source: "media",
-        mediaKind: "image",
+        mediaKind: "all",
         multiple: true,
-        maxSizeKB: MAX_IMAGE_KB,
-        allowedMimeTypes: ["image/*"],
+        maxSizeKB: MAX_VIDEO_SIZE_KB,
+        allowedMimeTypes: ["image/*", "video/*"],
         allowsEditing: false,
       },
       messageText
     );
 
-  const pickAndUploadDocuments = async (messageText: string = "") =>
-    hook.pickAndUpload(
+    if (results && onUploadComplete) {
+      await onUploadComplete(results);
+    }
+
+    return results;
+  };
+
+  const pickAndUploadDocuments = async (messageText: string = "") => {
+    const results = await hook.pickAndUpload(
       {
         source: "document",
         multiple: true,
-        maxSizeKB: MAX_DOCUMENT_KB,
+        maxSizeKB: MAX_DOCUMENT_SIZE_KB,
         allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
       },
       messageText
     );
+
+    if (results && onUploadComplete) {
+      await onUploadComplete(results);
+    }
+
+    return results;
+  };
 
   const uploadFilesFromWebWithCaptions = async (
     filesWithCaptions: TFileWithCaption[],
@@ -263,9 +301,12 @@ export function useMessageAttachmentUploader(conversationId: number) {
       const isImage = ALLOWED_IMAGE_TYPES.some(
         (type) => fileType === type || fileType.startsWith("image/")
       );
+      const isVideo = ALLOWED_VIDEO_TYPES.some(
+        (type) => fileType === type || fileType.startsWith("video/")
+      );
       const isDocument = ALLOWED_DOCUMENT_TYPES.includes(fileType);
 
-      if (!isImage && !isDocument) {
+      if (!isImage && !isVideo && !isDocument) {
         skipped.push({
           success: false,
           fileName: file.name,
@@ -274,7 +315,13 @@ export function useMessageAttachmentUploader(conversationId: number) {
         continue;
       }
 
-      const maxSize = isImage ? MAX_IMAGE_KB : MAX_DOCUMENT_KB;
+      const getMaxSize = () => {
+        if (isImage) return sizeMap.image;
+        if (isVideo) return sizeMap.video;
+        return sizeMap.document;
+      };
+
+      const maxSize = getMaxSize();
       const fileSizeKB = file.size / 1024;
 
       if (fileSizeKB > maxSize) {
@@ -335,7 +382,13 @@ export function useMessageAttachmentUploader(conversationId: number) {
         }
       }
 
-      return [...results, ...skipped];
+      const allResults = [...results, ...skipped];
+
+      if (onUploadComplete) {
+        await onUploadComplete(allResults);
+      }
+
+      return allResults;
     } finally {
       setIsUploadingWebFiles(false);
       validFiles.forEach(({ file }) => {
@@ -361,7 +414,7 @@ export function useMessageAttachmentUploader(conversationId: number) {
 
   return {
     ...hook,
-    pickAndUploadImages,
+    pickAndUploadImagesAndVideos,
     pickAndUploadDocuments,
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,

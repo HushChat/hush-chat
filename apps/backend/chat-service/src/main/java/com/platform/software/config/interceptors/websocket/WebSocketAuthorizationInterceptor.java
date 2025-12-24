@@ -76,6 +76,9 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         // Get authentication token from headers
         String bearerToken = extractHeaderValue(accessor, GeneralConstants.AUTHORIZATION_HEADER);
         String workspaceId = extractHeaderValue(accessor, GeneralConstants.WORKSPACE_ID_HEADER);
+        String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
+
+        if (deviceType == null) deviceType = "UNKNOWN";
 
         if (bearerToken == null || workspaceId == null) {
             logger.error("web socket cannot authorize: missing required parameters.");
@@ -115,7 +118,8 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             // Store session information in STOMP session attributes
             accessor.getSessionAttributes().put(GeneralConstants.USER_ID_ATTR, sessionKey);
             accessor.getSessionAttributes().put(Constants.JWT_CLAIM_EMAIL, email);
-            accessor.getSessionAttributes().put("workspaceId", workspaceId);
+            accessor.getSessionAttributes().put(GeneralConstants.WORKSPACE_ID, workspaceId);
+            accessor.getSessionAttributes().put(GeneralConstants.DEVICE_TYPE, deviceType);
 
             // Use sessionKey as the principal identifier
             Principal principal = () -> sessionKey;
@@ -145,9 +149,10 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     private void handleDisconnection(StompHeaderAccessor accessor) {
         String sessionKey = (String) accessor.getSessionAttributes().get(GeneralConstants.USER_ID_ATTR);
         String email = (String) accessor.getSessionAttributes().get(Constants.JWT_CLAIM_EMAIL);
+        String deviceType = (String) accessor.getSessionAttributes().get(GeneralConstants.DEVICE_TYPE);
 
         if (sessionKey != null) {
-            sessionManager.removeWebSocketSessionInfo(sessionKey, email);
+            sessionManager.removeWebSocketSessionInfo(sessionKey, email, deviceType);
             logger.info("removed websocket session for user: {}", email);
         }
     }
@@ -159,12 +164,12 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {
         WebSocketSessionInfoDAO existingSession = sessionManager.getWebSocketSessionInfo(sessionKey);
 
+        String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
+
         if (existingSession == null) {
-            logger.info("workspace-id: {} user {} connected", workspaceId, user.getId());
-            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email);
+            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType);
         } else {
-            logger.info("workspace-id: {} user {} re-connected", workspaceId, user.getId());
-            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email);
+            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType);
         }
     }
 

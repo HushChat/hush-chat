@@ -25,6 +25,8 @@ import {
 } from "@/query/post/queries";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
+import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
+import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
 
 const COLORS = {
   button: "#3b82f6",
@@ -34,12 +36,14 @@ interface GroupChatInfoProps {
   conversation: IConversation;
   onBack: () => void;
   setSelectedConversation: (conversation: null) => void;
+  onShowMediaAttachments: () => void;
 }
 
 export default function GroupChatInfo({
   conversation,
   onBack,
   setSelectedConversation,
+  onShowMediaAttachments,
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
 
@@ -94,8 +98,16 @@ export default function GroupChatInfo({
     openPanel(PanelType.GROUP_SETTINGS);
   };
 
+  const handleGroupPreferences = () => {
+    openPanel(PanelType.GROUP_PREFERENCES);
+  };
+
   const handleAddMoreParticipants = () => {
     openPanel(PanelType.ADD_PARTICIPANTS);
+  };
+
+  const handleInviteViaLink = () => {
+    openPanel(PanelType.INVITE_LINK);
   };
 
   const exitGroupMutation = useExitGroupConversationMutation(
@@ -301,19 +313,30 @@ export default function GroupChatInfo({
                     onPress={handleAddMoreParticipants}
                   />
                   <ActionItem
+                    icon="link-outline"
+                    label="Invite via Link"
+                    onPress={handleInviteViaLink}
+                  />
+                  <ActionItem
                     icon="settings-outline"
                     label="Group Settings"
                     onPress={handleGroupSettings}
                   />
                 </>
               )}
+              <ActionItem
+                icon="options-outline"
+                label="Group Preferences"
+                onPress={handleGroupPreferences}
+              />
               <ChatInfoCommonAction
                 conversationId={conversation.id}
                 isFavorite={conversationInfo?.favorite || false}
                 isPinned={conversationInfo?.pinned || false}
-                isMuted={conversationInfo?.mutedUntil ? true : false}
+                isMuted={!!conversationInfo?.mutedUntil}
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
+                onShowMediaAttachments={onShowMediaAttachments}
               />
               <ActionItem
                 icon="exit-outline"
@@ -359,6 +382,26 @@ export default function GroupChatInfo({
             conversation={conversation}
             onClose={closePanel}
             visible={activePanel === PanelType.GROUP_SETTINGS}
+          />
+        </View>
+      )}
+
+      {isPanelContentReady && activePanel === PanelType.INVITE_LINK && (
+        <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
+          <GroupInvite
+            conversation={conversation}
+            onClose={closePanel}
+            visible={activePanel === PanelType.INVITE_LINK}
+          />
+        </View>
+      )}
+
+      {isPanelContentReady && activePanel === PanelType.GROUP_PREFERENCES && (
+        <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
+          <GroupPreferences
+            conversation={conversation}
+            onClose={closePanel}
+            visible={activePanel === PanelType.GROUP_PREFERENCES}
           />
         </View>
       )}

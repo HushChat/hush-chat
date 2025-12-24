@@ -66,6 +66,8 @@ export const CONVERSATION_API_ENDPOINTS = {
   TOGGLE_MUTE_CONVERSATION: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/mute`,
   UPDATE_CONVERSATION: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}`,
+  UPDATE_MESSAGE_RESTRICTIONS: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/message-restrictions`,
   UPDATE_CONVERSATION_PARTICIPANT_ROLE: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/admins`,
   SET_LAST_SEEN_MESSAGE: (conversationId: number) =>
@@ -76,6 +78,17 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/seen-by`,
   REQUEST_ATTACHMENT_UPLOAD_URL: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-message-signed-url`,
+  RESET_INVITE_LINK: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
+  GET_INVITE_LINK: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
+  GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
+  TOGGLE_NOTIFY_ONLY_ON_MENTIONS: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/notifications/mentions-only`,
+  JOIN_VIA_INVITE_LINK: (token: string) => `${CONVERSATION_API_BASE}/invite-link/${token}/join`,
+  MARK_MESSAGE_AS_UNREAD: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
 };
 
 export const USER_API_ENDPOINTS = {

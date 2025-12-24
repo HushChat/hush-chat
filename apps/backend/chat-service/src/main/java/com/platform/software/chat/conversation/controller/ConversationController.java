@@ -530,4 +530,54 @@ public class ConversationController {
         conversationService.reportConversation(userDetails.getId(), conversationId, request.getReason());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @ApiOperation(value = "Update message sending restrictions for group", response = ConversationDTO.class)
+    @PatchMapping("{conversationId}/message-restrictions")
+    public ResponseEntity<ConversationDTO> updateMessageRestrictions(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        ConversationDTO updated = conversationService.updateOnlyAdminsCanSendMessages(
+                userDetails.getId(),
+                conversationId,
+                conversationPermissionUpdateDTO
+        );
+        return ResponseEntity.ok(updated);
+    }
+
+    @ApiOperation(value = "Get conversation invite Link", response = InviteLinkDTO.class)
+    @GetMapping("{conversationId}/invite-link")
+    public ResponseEntity<InviteLinkDTO> getActiveInviteLink(
+            @PathVariable Long conversationId,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(conversationService.getCurrentInviteLink(userDetails.getId(), conversationId));
+    }
+  
+    @ApiOperation(value = "Create conversation invite Link", response = InviteLinkDTO.class)
+    @PostMapping("{conversationId}/invite-link")
+    public ResponseEntity<InviteLinkDTO> createNewInviteLink(
+            @PathVariable Long conversationId,
+            @AuthenticatedUser UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(conversationService.createNewInviteLink(userDetails.getId(), conversationId));
+    }
+
+    @ApiOperation(value = "Join conversation using invite token", response = ConversationDTO.class)
+    @PostMapping("invite-link/{token}/join")
+    public ResponseEntity<ConversationDTO> joinConversationByInviteLink(
+            @PathVariable String token,
+            @AuthenticatedUser UserDetails userDetails
+    ){
+        return ResponseEntity.ok(conversationService.joinConversationByInviteLink(userDetails.getId(), token));
+    }
+
+    @PatchMapping("{conversationId}/notifications/mentions-only")
+    public ResponseEntity<Boolean> toggleNotifyOnlyOnMentions(
+        @AuthenticatedUser UserDetails userDetails,
+        @PathVariable Long conversationId
+    ) {
+        return ResponseEntity.ok(conversationService.toggleNotifyMentionsOnly(conversationId, userDetails.getId()));
+    }
 }

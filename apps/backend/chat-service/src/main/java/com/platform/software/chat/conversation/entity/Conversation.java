@@ -1,5 +1,6 @@
 package com.platform.software.chat.conversation.entity;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.entity.Message;
@@ -9,7 +10,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
 
 @Entity
 @Setter
@@ -45,5 +45,10 @@ public class Conversation extends AuditModel{
     @JoinColumn(name = "pinned_message_id")
     private Message pinnedMessage;
 
+    private ZonedDateTime pinnedMessageUntil;
+
     private String description;
+
+    @Column(name = "only_admins_can_send_messages")
+    private Boolean onlyAdminsCanSendMessages = false;
 }

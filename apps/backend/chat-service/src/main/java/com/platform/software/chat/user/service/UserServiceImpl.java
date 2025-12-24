@@ -10,6 +10,7 @@ import com.platform.software.chat.conversation.repository.ConversationRepository
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserInfoRepository;
 import com.platform.software.chat.user.repository.UserQueryRepository;
 import com.platform.software.common.dto.LoginDTO;
 import com.platform.software.common.model.MediaPathEnum;
@@ -74,6 +75,7 @@ public class UserServiceImpl implements UserService {
     private final ChatNotificationRepository chatNotificationRepository;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
+    private final UserInfoRepository userInfoRepository;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -86,9 +88,10 @@ public class UserServiceImpl implements UserService {
             ConversationRepository conversationRepository,
             UserUtilService userUtilService,
             AWSconfig awSconfig,
-            ChatNotificationRepository chatNotificationRepository, 
-           
-            WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository
+            ChatNotificationRepository chatNotificationRepository,  
+            WorkspaceUserRepository workspaceUserRepository, 
+            WorkspaceRepository workspaceRepository,
+            UserInfoRepository userInfoRepository
     ) {
         this.userRepository = userRepository;
         this.cognitoService = cognitoService;
@@ -103,6 +106,7 @@ public class UserServiceImpl implements UserService {
         this.awSconfig = awSconfig;
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
+        this.userInfoRepository = userInfoRepository;
     }
 
     @Override
@@ -459,5 +463,21 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(result, pageable, workspaceUserPage.getTotalElements());
+    }
+
+    @Override
+    public UserProfileDTO getUserProfile(Long id){
+
+        UserProfileDTO userPublicProfile = userInfoRepository.getProfileById(id);
+
+        if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty()){
+            userPublicProfile.setSignedImageUrl(
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            userPublicProfile.getSignedImageUrl()
+                    )
+            );
+        }
+
+        return userPublicProfile;
     }
 }
