@@ -24,6 +24,8 @@ public class ConversationMetaDataDTO {
     private BasicMessageDTO pinnedMessage;
     private ChatUserStatus chatUserStatus;
     private Boolean onlyAdminsCanSendMessages;
+    private Boolean onlyAdminsCanAddParticipants;
+    private Boolean onlyAdminsCanEditGroupInfo;
     private Boolean isCurrentUserAdmin;
     private Date pinnedMessageUntil;
     private boolean notifyOnMentionsOnly;
@@ -37,6 +39,8 @@ public class ConversationMetaDataDTO {
         this.description = conversation.getDescription();
         this.signedImageUrl = conversation.getSignedImageUrl();
         this.onlyAdminsCanSendMessages = conversation.getOnlyAdminsCanSendMessages();
+        this.onlyAdminsCanAddParticipants = conversation.getOnlyAdminsCanAddParticipants();
+        this.onlyAdminsCanEditGroupInfo = conversation.getOnlyAdminsCanEditGroupInfo();
         this.pinnedMessageUntil = conversation.getPinnedMessageUntil() != null
                 ? Date.from(conversation.getPinnedMessageUntil().toInstant())
                 : null;

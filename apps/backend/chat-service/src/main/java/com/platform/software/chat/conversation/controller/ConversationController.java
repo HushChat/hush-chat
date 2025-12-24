@@ -538,7 +538,7 @@ public class ConversationController {
             @Valid @RequestBody ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO,
             @AuthenticatedUser UserDetails userDetails
     ) {
-        ConversationDTO updated = conversationService.updateOnlyAdminsCanSendMessages(
+        ConversationDTO updated = conversationService.updateGroupPermissions(
                 userDetails.getId(),
                 conversationId,
                 conversationPermissionUpdateDTO

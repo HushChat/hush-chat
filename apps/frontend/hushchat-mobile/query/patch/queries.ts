@@ -67,10 +67,16 @@ export const useSetLastSeenMessageMutation = createMutationHook<
 
 export const useUpdateMessageRestrictionsMutation = createMutationHook<
   IConversation,
-  { conversationId: number; onlyAdminsCanSendMessages: boolean }
+  {
+    conversationId: number;
+    permissions: {
+      onlyAdminsCanSendMessages?: boolean;
+      onlyAdminsCanAddParticipants?: boolean;
+      onlyAdminsCanEditGroupInfo?: boolean;
+    };
+  }
 >(
-  ({ conversationId, onlyAdminsCanSendMessages }) =>
-    updateMessageRestrictions(conversationId, onlyAdminsCanSendMessages),
+  ({ conversationId, permissions }) => updateMessageRestrictions(conversationId, permissions),
   (keyParams: { userId: number; conversationId: number }) => () =>
     [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
 );

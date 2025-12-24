@@ -19,6 +19,9 @@ export interface IConversation {
   unreadCount: number;
   chatUserStatus: chatUserStatus;
   onlyAdminsCanSendMessages: boolean;
+  onlyAdminsCanAddParticipants: boolean;
+  onlyAdminsCanEditGroupInfo: boolean;
+  isCurrentUserAdmin?: boolean;
   notifyOnMentionsOnly: boolean;
   deviceType?: DeviceType;
 }
@@ -370,3 +373,9 @@ export const PIN_MESSAGE_OPTIONS = [
   { label: "7 days", value: "7d" },
   { label: "30 days", value: "30d" },
 ];
+
+export enum GroupPermissionType {
+  ONLY_ADMINS_CAN_SEND_MESSAGES = "onlyAdminsCanSendMessages",
+  ONLY_ADMINS_CAN_ADD_PARTICIPANTS = "onlyAdminsCanAddParticipants",
+  ONLY_ADMINS_CAN_EDIT_GROUP_INFO = "onlyAdminsCanEditGroupInfo",
+}

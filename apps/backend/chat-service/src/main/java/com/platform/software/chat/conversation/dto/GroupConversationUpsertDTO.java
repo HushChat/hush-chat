@@ -10,5 +10,4 @@ public class GroupConversationUpsertDTO {
     private String description;
     private List<Long> participantUserIds;
     private String imageFileName;
-    private Boolean onlyAdminsCanSendMessages;
 }

@@ -17,4 +17,20 @@ public class ConversationPermissionGuard {
             }
         }
     }
+
+    public void validateAddParticipantsAccess(Conversation conversation, ConversationParticipant participant) {
+        if (Boolean.TRUE.equals(conversation.getOnlyAdminsCanAddParticipants())) {
+            if (participant.getRole() != ConversationParticipantRoleEnum.ADMIN) {
+                throw new CustomBadRequestException("Only admins can add participants to this conversation");
+            }
+        }
+    }
+
+    public void validateEditGroupInfoAccess(Conversation conversation, ConversationParticipant participant) {
+        if (Boolean.TRUE.equals(conversation.getOnlyAdminsCanEditGroupInfo())) {
+            if (participant.getRole() != ConversationParticipantRoleEnum.ADMIN) {
+                throw new CustomBadRequestException("Only admins can edit group information");
+            }
+        }
+    }
 }

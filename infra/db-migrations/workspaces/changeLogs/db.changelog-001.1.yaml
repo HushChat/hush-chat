@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_group_permission_fields_to_conversation
+      author: wenura
+      tag: release-11.1
+      changes:
+        - addColumn:
+            tableName: conversation
+            columns:
+              - column:
+                  name: only_admins_can_add_participants
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: only_admins_can_edit_group_info
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
