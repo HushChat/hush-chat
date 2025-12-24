@@ -15,6 +15,8 @@ import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hook
 import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
 import { WS_TOPICS } from "@/constants/ws/wsTopics";
 import { getDeviceType } from "@/utils/commonUtils";
+import { DEVICE_ID_KEY } from "@/constants/constants";
+import { getDeviceId } from "@/utils/deviceIdUtils";
 
 // Define topics to subscribe to
 const TOPICS = [
@@ -38,10 +40,12 @@ export const publishUserActivity = (
     const body = JSON.stringify(data);
 
     const currentDeviceType = data.deviceType;
+    const deviceId = data.deviceId;
 
     const sendFrameBytes = [
       ...Array.from(new TextEncoder().encode("SEND\n")),
       ...Array.from(new TextEncoder().encode("destination:/app/subscribed-conversations\n")),
+      ...Array.from(new TextEncoder().encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
       ...Array.from(new TextEncoder().encode(`Device-Type:${currentDeviceType}\n`)),
       ...Array.from(new TextEncoder().encode(`content-length:${body.length}\n`)),
       ...Array.from(new TextEncoder().encode("content-type:application/json\n")),
@@ -84,6 +88,7 @@ export default function useWebSocketConnection() {
     const mainServiceWsBaseUrl = getWSBaseURL();
 
     const deviceType = getDeviceType();
+    const deviceId = getDeviceId();
 
     const fetchAndSubscribe = async () => {
       if (shouldStopRetrying.current || isCancelled) {
@@ -120,6 +125,7 @@ export default function useWebSocketConnection() {
             ...Array.from(new TextEncoder().encode("CONNECT\n")),
             ...Array.from(new TextEncoder().encode(`Authorization:Bearer ${idToken}\n`)),
             ...Array.from(new TextEncoder().encode(`Workspace-Id:${workspace}\n`)),
+            ...Array.from(new TextEncoder().encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
             ...Array.from(new TextEncoder().encode(`Device-Type:${deviceType}\n`)),
             ...Array.from(new TextEncoder().encode("accept-version:1.2\n")),
             ...Array.from(new TextEncoder().encode("heart-beat:0,0\n")),
@@ -226,8 +232,9 @@ export default function useWebSocketConnection() {
     }
 
     const deviceType = getDeviceType();
+    const deviceId = getDeviceId();
 
-    return publishUserActivity(wsRef.current, { ...data, deviceType });
+    return publishUserActivity(wsRef.current, { ...data, deviceType, deviceId });
   };
 
   // return the connection status
