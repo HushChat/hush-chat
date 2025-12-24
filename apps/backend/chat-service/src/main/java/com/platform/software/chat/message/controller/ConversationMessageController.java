@@ -237,4 +237,19 @@ public class ConversationMessageController {
         Page<UserBasicViewDTO> userBasicViewDTOs = conversationService.getMessageSeenGroupParticipants(conversationId, messageId, userDetails.getId(), pageable);
         return new ResponseEntity<>(userBasicViewDTOs, HttpStatus.OK);
     }
+
+    @PatchMapping("/{messageId}/mark-unread")
+    public ResponseEntity<ConversationReadInfo> markMessageAsUnread(
+            @PathVariable Long conversationId,
+            @PathVariable Long messageId,
+            @AuthenticatedUser UserDetails userDetails) {
+        
+        ConversationReadInfo readInfo = messageService.markMessageAsUnread(
+            conversationId,
+            userDetails.getId(),
+            messageId
+        );
+        
+        return ResponseEntity.ok(readInfo);
+    }
 }
