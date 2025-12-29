@@ -19,6 +19,7 @@ import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
@@ -31,6 +32,8 @@ export default function RootLayout() {
   });
   const queryClient = createQueryClient();
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
+
+  useOfflineSync();
 
   return (
     <GestureHandlerRootView>

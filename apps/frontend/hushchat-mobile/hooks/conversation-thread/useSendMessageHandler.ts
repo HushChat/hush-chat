@@ -8,6 +8,8 @@ import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
 import { getFileType } from "@/utils/files/getFileType";
 import { ToastUtils } from "@/utils/toastUtils";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { MessagesRepo } from "@/db/messages-repo";
 
 export type TFileWithCaption = {
   file: File;
@@ -36,13 +38,16 @@ const createTempImageMessage = ({
   messageText,
   conversationId,
   senderId,
+  status,
 }: {
   file: File;
   messageText: string;
   conversationId: number;
   senderId: number;
+  status: "pending" | "sent" | "failed";
 }): IMessage => ({
   id: generateTempMessageId(),
+  status,
   isForwarded: false,
   senderId,
   senderFirstName: "",
@@ -72,6 +77,7 @@ export const useSendMessageHandler = ({
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
 }: IUseSendMessageHandlerParams) => {
+  const isOnline = useNetworkStatus();
   const { updateConversationMessagesCache, updateConversationsListCache } =
     useConversationMessagesQuery(currentConversationId);
 
@@ -128,6 +134,7 @@ export const useSendMessageHandler = ({
                 messageText: trimmed,
                 conversationId: currentConversationId,
                 senderId: Number(currentUserId),
+                status: isOnline ? "sent" : "pending",
               })
             );
           });
@@ -139,8 +146,16 @@ export const useSendMessageHandler = ({
               messageText: trimmed || `Sent ${renamedFiles.length} file(s)`,
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
+              status: isOnline ? "sent" : "pending",
             })
           );
+
+          if (!isOnline) {
+            ToastUtils.error("Files will be sent when online (Not implemented yet)");
+            // TODO: Handle offline file uploads
+            setSelectedMessage(null);
+            return;
+          }
 
           const filesWithCaptions: TFileWithCaption[] = renamedFiles.map((file) => ({
             file,
@@ -148,6 +163,37 @@ export const useSendMessageHandler = ({
           }));
 
           await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMessage?.id ?? null);
+
+          setSelectedMessage(null);
+          return;
+        }
+
+        if (!isOnline) {
+          const tempId = generateTempMessageId();
+          const tempMessage: IMessage = {
+            id: tempId,
+            senderId: Number(currentUserId),
+            senderFirstName: "",
+            senderLastName: "",
+            messageText: trimmed,
+            createdAt: new Date().toISOString(),
+            conversationId: currentConversationId,
+            status: "pending",
+            hasAttachment: false,
+            parentMessageId: parentMessage?.id,
+            isForwarded: false,
+          };
+
+          updateConversationMessagesCache(tempMessage);
+
+          await MessagesRepo.savePendingMessage({
+            id: String(tempId),
+            conversation_id: currentConversationId,
+            message_text: trimmed,
+            created_at: tempMessage.createdAt,
+            status: "pending",
+            parent_message_id: parentMessage?.id,
+          });
 
           setSelectedMessage(null);
           return;
@@ -195,6 +241,7 @@ export const useSendMessageHandler = ({
               messageText: caption,
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
+              status: isOnline ? "sent" : "pending",
             })
           );
         });
@@ -206,8 +253,17 @@ export const useSendMessageHandler = ({
             messageText: lastItem.caption || `Sent ${preparedFiles.length} file(s)`,
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
+            status: isOnline ? "sent" : "pending",
           })
         );
+
+        if (!isOnline) {
+          ToastUtils.error("Files will be sent when online.");
+          // TODO: Offline file support
+          handleCloseImagePreview();
+          setSelectedMessage(null);
+          return;
+        }
 
         const results = await uploadFilesFromWebWithCaptions(
           preparedFiles,

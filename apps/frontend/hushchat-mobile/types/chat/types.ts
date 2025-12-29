@@ -68,6 +68,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  status?: "pending" | "sent" | "failed";
 }
 
 export interface IMessageView extends IMessage {

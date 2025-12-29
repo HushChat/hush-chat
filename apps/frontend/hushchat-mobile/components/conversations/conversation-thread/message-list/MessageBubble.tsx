@@ -120,6 +120,11 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           ) : message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
           ) : null}
+          {message.status === "pending" && (
+            <View className="ml-1 self-end">
+              <Ionicons name="time-outline" size={12} color="#6B7280" />
+            </View>
+          )}
         </View>
       </View>
     </Pressable>
