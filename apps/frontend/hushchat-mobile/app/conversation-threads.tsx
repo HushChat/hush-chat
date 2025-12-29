@@ -270,6 +270,7 @@ const ConversationThreadScreen = ({
     sendMessage,
     uploadFilesFromWebWithCaptions,
     handleCloseImagePreview,
+    updateConversationMessagesCache,
   });
 
   const handleSendFilesFromPreview = useCallback(
@@ -458,6 +459,7 @@ const ConversationThreadScreen = ({
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        updateConversationMessagesCache={updateConversationMessagesCache}
       />
     );
   }, [

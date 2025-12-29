@@ -7,6 +7,7 @@ import {
   IMessage,
   IMessageView,
   MessageAttachmentTypeEnum,
+  MessageTypeEnum,
 } from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
@@ -51,12 +52,14 @@ export interface AddConversationParticipantsParams {
   conversationId: number;
   newParticipantIds: number[];
 }
+
 export interface ToggleMuteConversationParams {
   conversationId: number;
   duration: "15m" | "1h" | "1d" | "always";
 }
 
 export type ReportReason = "SPAM" | "HARASSMENT" | "INAPPROPRIATE_CONTENT" | "OTHER";
+
 export interface ReportConversationParams {
   conversationId: number;
   reason: ReportReason;
@@ -221,7 +224,8 @@ export const getLastSeenMessageByConversationId = async (conversationId: number)
 export const sendMessageByConversationIdFiles = async (
   conversationId: number,
   message: string,
-  fileNames: string[]
+  fileNames: string[],
+  type?: MessageTypeEnum
 ) => {
   try {
     const response = await axios.post(CONVERSATION_API_ENDPOINTS.SIGNED_URLS(conversationId), {
@@ -229,6 +233,7 @@ export const sendMessageByConversationIdFiles = async (
       files: {
         fileNames,
       },
+      messageType: type,
     });
     return response.data;
   } catch (error) {

@@ -1,11 +1,13 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
-import { IMessage, IMessageAttachment } from "@/types/chat/types";
+import { IMessage, IMessageAttachment, MessageTypeEnum } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
 import { Directory, Paths, File } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Linking } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
+import { LocalFile, SignedUrlResponse } from "@/hooks/useNativePickerUpload";
+import { sendMessageByConversationIdFiles } from "@/apis/conversation";
 
 interface IGroupedMessages {
   title: string;
@@ -209,4 +211,38 @@ export const openFileNative = async (fileUrl: string): Promise<void> => {
     console.error("Error opening file on native:", error);
     throw error;
   }
+};
+
+/**
+ * Fetches signed URLs from the backend for audio upload
+ * @param conversationId
+ * @param messageToSend
+ * @param files - Array of local files to get signed URLs for
+ * @param type
+ * @returns Array of signed URLs or null if failed
+ */
+export const getSignedUrls = async (
+  conversationId: number,
+  messageToSend: string,
+  files: LocalFile[],
+  type?: MessageTypeEnum
+): Promise<SignedUrlResponse> => {
+  const fileNames = files.map((file) => file.name);
+  const response = await sendMessageByConversationIdFiles(
+    conversationId,
+    messageToSend,
+    fileNames,
+    type
+  );
+  const signed = response?.signedURLs || [];
+  return {
+    message: response.message,
+    signedURLs: signed.map(
+      (s: { originalFileName: string; url: string; indexedFileName: string }) => ({
+        originalFileName: s.originalFileName,
+        url: s.url,
+        indexedFileName: s.indexedFileName,
+      })
+    ),
+  };
 };
