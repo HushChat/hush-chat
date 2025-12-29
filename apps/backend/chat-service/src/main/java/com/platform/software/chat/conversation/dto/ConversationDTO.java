@@ -16,6 +16,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private Long id;
     private String name;
     private Boolean isGroup;
+    private Boolean isSelfConversation;
     private Date createdAt;
     private String imageIndexedName;
     private String signedImageUrl;
@@ -42,6 +43,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.id = other.id;
         this.name = other.name;
         this.isGroup = other.isGroup;
+        this.isSelfConversation = other.isSelfConversation;
         this.createdAt = other.createdAt;
         this.imageIndexedName = other.imageIndexedName;
         this.signedImageUrl = other.signedImageUrl;
@@ -86,5 +88,6 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.description = dao.getDescription();
         this.signedImageUrl = dao.getSignedImageUrl();
         this.onlyAdminsCanSendMessages = dao.getOnlyAdminsCanSendMessages();
+        this.isSelfConversation = dao.getIsSelfConversation();
     }
 }

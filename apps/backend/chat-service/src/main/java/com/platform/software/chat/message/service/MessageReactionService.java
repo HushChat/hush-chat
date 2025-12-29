@@ -65,7 +65,9 @@ public class MessageReactionService {
         Message message = messageService.getMessageIfUserParticipant(userId, messageId);
         Conversation conversation = message.getConversation();
 
-        messageUtilService.validateInteractionAllowed(conversation, userId);
+        if (!conversation.getIsSelfConversation()) {
+            messageUtilService.validateInteractionAllowed(conversation, userId);
+        }
 
         Optional<MessageReaction> existingReaction =
                 messageReactionRepository.findByMessageIdAndUserId(messageId, userId);

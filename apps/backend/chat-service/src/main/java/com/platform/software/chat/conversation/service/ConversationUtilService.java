@@ -310,8 +310,13 @@ public class ConversationUtilService {
 
         //create conversations for those user ids including logged in user id and return conversation ids
         for (Long userId : userIdsToCreateConversations) {
+            boolean isSelfConversation = userId.equals(loggedInUserId);
+            List<Long> participantIds = isSelfConversation 
+                ? List.of(loggedInUserId) 
+                : List.of(userId, loggedInUserId);
+
             ConversationDTO newConversation = conversationService.saveConversationAndBuildDTO(
-                    conversationService.createConversation(loggedInUserId ,List.of(userId, loggedInUserId), false)
+                    conversationService.createConversation(loggedInUserId ,participantIds, false, isSelfConversation)
             );
             conversationIds.add(newConversation.getId());
         }
