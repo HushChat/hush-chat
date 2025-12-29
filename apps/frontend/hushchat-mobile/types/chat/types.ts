@@ -299,6 +299,7 @@ export enum DeviceType {
 
 export interface IUserStatus {
   conversationId: number;
+  email: string;
   status: chatUserStatus;
   deviceType?: DeviceType;
 }

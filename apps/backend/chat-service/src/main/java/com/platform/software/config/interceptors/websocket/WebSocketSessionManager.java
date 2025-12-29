@@ -85,6 +85,7 @@ public class WebSocketSessionManager {
 
             existingSession.setDeviceType(DeviceType.fromString(device));
             existingSession.setDisconnectedTime(null);
+            existingSession.setChatUserStatus(userStatus);
             webSocketSessionInfos.put(userId, existingSession);
 
             if (UserStatusEnum.BUSY.equals(userStatus)) {
