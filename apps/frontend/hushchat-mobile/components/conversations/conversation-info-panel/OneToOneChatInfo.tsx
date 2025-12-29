@@ -21,6 +21,7 @@ interface OneToOneChatInfoProps {
   onBack: () => void;
   setSelectedConversation: (conversation: null) => void;
   onShowMediaAttachments: () => void;
+  onShowGroupPreferences: () => void;
 }
 
 export default function OneToOneChatInfo({
@@ -28,6 +29,7 @@ export default function OneToOneChatInfo({
   onBack,
   setSelectedConversation,
   onShowMediaAttachments,
+  onShowGroupPreferences,
 }: OneToOneChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
   const { conversationInfo, isLoadingConversationInfo, refetch } = useOneToOneConversationInfoQuery(
@@ -133,6 +135,7 @@ export default function OneToOneChatInfo({
             onBack={onBack}
             setSelectedConversation={setSelectedConversation}
             onShowMediaAttachments={onShowMediaAttachments}
+            onShowGroupPreferences={onShowGroupPreferences}
           />
           <ActionItem
             icon="ban-outline"

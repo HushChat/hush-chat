@@ -26,7 +26,6 @@ import {
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
-import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
 
 const COLORS = {
   button: "#3b82f6",
@@ -37,6 +36,7 @@ interface GroupChatInfoProps {
   onBack: () => void;
   setSelectedConversation: (conversation: null) => void;
   onShowMediaAttachments: () => void;
+  onShowGroupPreferences: () => void;
 }
 
 export default function GroupChatInfo({
@@ -44,6 +44,7 @@ export default function GroupChatInfo({
   onBack,
   setSelectedConversation,
   onShowMediaAttachments,
+  onShowGroupPreferences,
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
 
@@ -96,10 +97,6 @@ export default function GroupChatInfo({
 
   const handleGroupSettings = () => {
     openPanel(PanelType.GROUP_SETTINGS);
-  };
-
-  const handleGroupPreferences = () => {
-    openPanel(PanelType.GROUP_PREFERENCES);
   };
 
   const handleAddMoreParticipants = () => {
@@ -324,16 +321,12 @@ export default function GroupChatInfo({
                   />
                 </>
               )}
-              <ActionItem
-                icon="options-outline"
-                label="Group Preferences"
-                onPress={handleGroupPreferences}
-              />
               <ChatInfoCommonAction
                 conversation={conversation}
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
                 onShowMediaAttachments={onShowMediaAttachments}
+                onShowGroupPreferences={onShowGroupPreferences}
               />
               <ActionItem
                 icon="exit-outline"
@@ -389,16 +382,6 @@ export default function GroupChatInfo({
             conversation={conversation}
             onClose={closePanel}
             visible={activePanel === PanelType.INVITE_LINK}
-          />
-        </View>
-      )}
-
-      {isPanelContentReady && activePanel === PanelType.GROUP_PREFERENCES && (
-        <View className="absolute inset-0 bg-background-light dark:bg-background-dark">
-          <GroupPreferences
-            conversation={conversation}
-            onClose={closePanel}
-            visible={activePanel === PanelType.GROUP_PREFERENCES}
           />
         </View>
       )}

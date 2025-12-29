@@ -24,6 +24,7 @@ type TChatInfoActionProps = {
   onBack: () => void;
   setSelectedConversation?: (conversation: null) => void;
   onShowMediaAttachments?: () => void;
+  onShowGroupPreferences?: () => void;
 };
 
 export default function ChatInfoCommonAction({
@@ -31,6 +32,7 @@ export default function ChatInfoCommonAction({
   onBack,
   setSelectedConversation = () => {},
   onShowMediaAttachments,
+  onShowGroupPreferences,
 }: TChatInfoActionProps) {
   const {
     id: conversationId,
@@ -71,6 +73,7 @@ export default function ChatInfoCommonAction({
   );
 
   const handleShowMediaAttachments = onShowMediaAttachments || (() => {});
+  const handleShowGroupPreferences = onShowGroupPreferences || (() => {});
 
   useEffect(() => {
     setIsMutedState(isMuted);
@@ -136,6 +139,11 @@ export default function ChatInfoCommonAction({
 
   const actions: IActionConfig[] = useMemo(
     () => [
+      {
+        label: "Conversation Preferences",
+        icon: "options-outline",
+        onPress: handleShowGroupPreferences,
+      },
       {
         label: "All Media files",
         icon: "images-outline",
