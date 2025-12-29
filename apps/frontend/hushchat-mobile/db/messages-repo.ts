@@ -1,4 +1,4 @@
-import { db } from "./index";
+import { getDB } from "./index"; // Import getDB instead of db
 
 export interface PendingMessage {
   id: string;
@@ -12,6 +12,8 @@ export interface PendingMessage {
 export const MessagesRepo = {
   savePendingMessage: async (message: PendingMessage) => {
     try {
+      const db = await getDB(); // <--- Get DB instance asynchronously
+
       await db.runAsync(
         `INSERT OR REPLACE INTO pending_messages (id, conversation_id, message_text, created_at, status, parent_message_id) VALUES (?, ?, ?, ?, ?, ?)`,
         [
@@ -31,6 +33,8 @@ export const MessagesRepo = {
 
   getPendingMessages: async (): Promise<PendingMessage[]> => {
     try {
+      const db = await getDB(); // <--- Get DB instance asynchronously
+
       const result = await db.getAllAsync<PendingMessage>(
         `SELECT * FROM pending_messages ORDER BY created_at ASC`
       );
@@ -43,6 +47,7 @@ export const MessagesRepo = {
 
   deletePendingMessage: async (id: string) => {
     try {
+      const db = await getDB(); // <--- Get DB instance asynchronously
       await db.runAsync(`DELETE FROM pending_messages WHERE id = ?`, [id]);
     } catch (error) {
       console.error("Error deleting pending message:", error);

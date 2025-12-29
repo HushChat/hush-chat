@@ -1,11 +1,26 @@
-import { type SQLiteDatabase, openDatabaseSync } from "expo-sqlite";
+import { type SQLiteDatabase, openDatabaseAsync } from "expo-sqlite";
 
 const DATABASE_NAME = "hushchat.db";
 
-export const db: SQLiteDatabase = openDatabaseSync(DATABASE_NAME);
+// Singleton instance variable
+let dbInstance: SQLiteDatabase | null = null;
+
+// Get the DB instance (opens it if not already open)
+export const getDB = async (): Promise<SQLiteDatabase> => {
+  if (dbInstance) {
+    return dbInstance;
+  }
+
+  // Use Async here to prevent the "Sync operation timeout" on Web
+  dbInstance = await openDatabaseAsync(DATABASE_NAME);
+  return dbInstance;
+};
 
 export const initDatabase = async () => {
   try {
+    // Await the DB connection
+    const db = await getDB();
+
     await db.execAsync(`
       PRAGMA journal_mode = WAL;
       CREATE TABLE IF NOT EXISTS pending_messages (

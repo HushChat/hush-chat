@@ -20,12 +20,23 @@ import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useEffect, useState } from "react";
+import { initDatabase } from "@/db";
+import { ActivityIndicator, View } from "react-native";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
 
 export default function RootLayout() {
   const { colorScheme } = useAppTheme();
+  const [isDbReady, setIsDbReady] = useState(false);
+
+  useEffect(() => {
+    // Initialize DB on mount
+    initDatabase()
+      .then(() => setIsDbReady(true))
+      .catch((e) => console.error("DB Init Failed:", e));
+  }, []);
 
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
@@ -33,7 +44,18 @@ export default function RootLayout() {
   const queryClient = createQueryClient();
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
 
-  useOfflineSync();
+  const OfflineSyncManager = () => {
+    useOfflineSync();
+    return null;
+  };
+
+  if (!isDbReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <GestureHandlerRootView>
@@ -48,6 +70,7 @@ export default function RootLayout() {
                     config={toastConfig}
                     topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
                   />
+                  <OfflineSyncManager />
                   <StatusBar style="auto" />
                 </ModalProvider>
               </ConversationNotificationsProvider>
