@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_is_self_conversation_to_conversation
+      author: wenura
+      tag: release-11.1
+      changes:
+        - addColumn:
+            tableName: conversation
+            columns:
+              - column:
+                  name: is_self_conversation
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
