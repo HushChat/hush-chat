@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, View, Pressable, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
@@ -7,14 +7,6 @@ import { downloadFileWeb, openFileNative } from "@/utils/messageUtils";
 import { PLATFORM } from "@/constants/platformConstants";
 import { ToastUtils } from "@/utils/toastUtils";
 
-// Conditional imports for Web
-let docxPreview: any;
-let XLSX: any;
-if (PLATFORM.IS_WEB) {
-  docxPreview = require("docx-preview");
-  XLSX = require("xlsx");
-}
-
 interface IDocumentPreviewProps {
   visible: boolean;
   attachment: IMessageAttachment | null;
@@ -22,84 +14,36 @@ interface IDocumentPreviewProps {
 }
 
 export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPreviewProps) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  // Store the raw file data here
-  const [fileBlob, setFileBlob] = useState<Blob | null>(null);
-  const [excelHTML, setExcelHTML] = useState<string | null>(null);
-
-  const docContainerRef = useRef<HTMLDivElement>(null);
-
-  const fileName = attachment?.originalFileName || attachment?.indexedFileName || "Document";
-  const fileUrl = attachment?.fileUrl;
-  const fileExt = fileName.split(".").pop()?.toLowerCase() || "";
-
-  const isPdfOrText = ["pdf", "txt", "json", "png", "jpg", "jpeg"].includes(fileExt);
-  const isWord = ["docx"].includes(fileExt);
-  const isExcel = ["xlsx", "xls", "csv"].includes(fileExt);
-
-  // 1. Reset state when attachment opens
   useEffect(() => {
-    if (visible && attachment) {
+    if (visible) {
       setLoading(true);
-      setError(null);
-      setFileBlob(null);
-      setExcelHTML(null);
-      fetchDocument();
+      setError(false);
     }
   }, [visible, attachment]);
 
-  // 2. Fetch the data FIRST
-  const fetchDocument = async () => {
-    if (!fileUrl || !PLATFORM.IS_WEB) return;
+  if (!visible || !attachment) return null;
 
-    // If it's PDF/Image, we don't need to fetch blob, iframe handles it
-    if (isPdfOrText) {
-      setLoading(false);
-      return;
-    }
+  const fileName = attachment.originalFileName || attachment.indexedFileName || "Document";
+  const fileUrl = attachment.fileUrl;
+  const fileExt = fileName.split(".").pop()?.toLowerCase() || "";
 
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
+  const isNativeWeb = [
+    "pdf",
+    "txt",
+    "json",
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "svg",
+    "mp4",
+    "webm",
+  ].includes(fileExt);
 
-      if (isWord) {
-        setFileBlob(blob); // Save blob, this triggers re-render showing the div
-      } else if (isExcel) {
-        const arrayBuffer = await blob.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const html = XLSX.utils.sheet_to_html(workbook.Sheets[sheetName], { id: "excel-table" });
-        setExcelHTML(html);
-      }
-    } catch (err) {
-      console.error("Fetch failed", err);
-      setError("Failed to load file.");
-    } finally {
-      setLoading(false); // Stop loading, allow components to mount
-    }
-  };
-
-  // 3. Render WORD document ONLY after the div is definitely on screen
-  useEffect(() => {
-    if (!loading && fileBlob && isWord && docContainerRef.current) {
-      // Clear container first
-      docContainerRef.current.innerHTML = "";
-
-      docxPreview
-        .renderAsync(fileBlob, docContainerRef.current, docContainerRef.current, {
-          className: "docx-viewer",
-          inWrapper: true,
-          ignoreWidth: false,
-          experimental: true,
-        })
-        .catch((e: any) => {
-          console.error("Docx render failed", e);
-          setError("Preview failed. Please download.");
-        });
-    }
-  }, [loading, fileBlob, isWord]); // Runs when loading finishes and blob exists
+  const isOfficeDoc = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(fileExt);
 
   const handleDownload = async () => {
     if (!fileUrl) return;
@@ -115,67 +59,57 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     if (fileUrl) await openFileNative(fileUrl);
   };
 
-  // --- RENDER CONTENT ---
+  const handleIframeLoad = () => {
+    setLoading(false);
+  };
+
+  const handleIframeError = () => {
+    setLoading(false);
+    setError(true);
+  };
+
+  const getViewerUrl = () => {
+    if (!fileUrl) return "";
+
+    if (isNativeWeb) {
+      if (fileExt === "pdf") return `${fileUrl}#toolbar=0&navpanes=0`;
+      return fileUrl;
+    }
+
+    if (isOfficeDoc) {
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+    }
+
+    return "";
+  };
+
   const renderContent = () => {
-    if (loading) {
-      return (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B82F6" />
-          <AppText className="mt-4 text-gray-500">Loading Preview...</AppText>
-        </View>
-      );
-    }
+    if (error || !fileUrl) return renderFallbackUI(true);
 
-    if (error) return renderFallbackUI(true);
+    const viewerUrl = getViewerUrl();
 
-    // PDF / IMAGE (Iframe)
-    if (isPdfOrText) {
-      return (
-        <iframe
-          src={fileUrl}
-          style={{ width: "100%", height: "100%", border: "none" }}
-          title={fileName}
-        />
-      );
-    }
+    if (!viewerUrl) return renderFallbackUI();
 
-    // WORD (Div Container)
-    // IMPORTANT: This div must exist for docxPreview to work.
-    if (isWord && fileBlob) {
-      return (
-        <div
-          className="web-scroll-container"
-          style={{ width: "100%", height: "100%", overflowY: "auto", background: "#f3f4f6" }}
-        >
-          {/* This ref is populated by the useEffect above */}
-          <div ref={docContainerRef} style={{ padding: "24px", minHeight: "100%" }} />
-        </div>
-      );
-    }
+    return (
+      <View className="flex-1 w-full h-full relative bg-gray-100 dark:bg-black">
+        {loading && (
+          <View className="absolute inset-0 flex items-center justify-center z-10">
+            <ActivityIndicator size="large" color="#3B82F6" />
+            <AppText className="mt-4 text-gray-500">Loading Document...</AppText>
+          </View>
+        )}
 
-    // EXCEL (HTML Table)
-    if (isExcel && excelHTML) {
-      return (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            overflow: "auto",
-            background: "white",
-            padding: "20px",
-          }}
-        >
-          <div dangerouslySetInnerHTML={{ __html: excelHTML }} className="excel-viewer" />
-          <style>{`
-            .excel-viewer table { border-collapse: collapse; width: 100%; font-family: Calibri, sans-serif; font-size: 14px; }
-            .excel-viewer td, .excel-viewer th { border: 1px solid #e5e7eb; padding: 4px 8px; white-space: nowrap; }
-            .excel-viewer tr:first-child { background-color: #f3f4f6; font-weight: bold; text-align: center; }
-          `}</style>
-        </div>
-      );
-    }
-
-    return renderFallbackUI();
+        {PLATFORM.IS_WEB && (
+          <iframe
+            src={viewerUrl}
+            style={{ width: "100%", height: "100%", border: "none" }}
+            title={fileName}
+            onLoad={handleIframeLoad}
+            onError={handleIframeError}
+          />
+        )}
+      </View>
+    );
   };
 
   const renderFallbackUI = (isError = false) => (
@@ -184,10 +118,12 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
         <Ionicons name="document-text" size={48} color={isError ? "#EF4444" : "#3B82F6"} />
       </View>
       <AppText className="text-lg text-center font-medium mb-2">
-        {isError ? "Preview Error" : "Preview Unavailable"}
+        {isError ? "Preview Failed" : "Preview Unavailable"}
       </AppText>
       <AppText className="text-sm text-center text-gray-500 mb-6">
-        {PLATFORM.IS_WEB ? "Please download to view." : "Open in device viewer."}
+        {PLATFORM.IS_WEB
+          ? "This file cannot be previewed. Please download it."
+          : "Open in device viewer."}
       </AppText>
       {!PLATFORM.IS_WEB ? (
         <Pressable onPress={handleMobileOpen} className="bg-blue-500 px-6 py-3 rounded-full">
@@ -201,13 +137,10 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     </View>
   );
 
-  if (!visible || !attachment) return null;
-
   return (
     <Modal visible={visible} transparent={false} animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 bg-white dark:bg-[#111827]">
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 z-10">
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111827] z-20">
           <View className="flex-1 mr-4">
             <AppText
               className="text-lg font-semibold text-gray-900 dark:text-white"
@@ -229,8 +162,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
           </View>
         </View>
 
-        {/* Content */}
-        <View className="flex-1  w-full h-full relative">
+        <View className="flex-1 bg-gray-50 dark:bg-black w-full h-full">
           {PLATFORM.IS_WEB ? renderContent() : renderFallbackUI()}
         </View>
       </View>

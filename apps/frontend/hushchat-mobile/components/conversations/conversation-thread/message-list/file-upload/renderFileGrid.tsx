@@ -5,7 +5,6 @@ import { DocumentCard } from "@/components/conversations/conversation-thread/mes
 import { ImageGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid";
 import { useFileGrid } from "@/hooks/conversation-thread/useFileGrid";
 import MediaPreview from "@/components/conversations/conversation-thread/composer/image-preview/MediaPreview";
-// Import the new component
 import { DocumentPreview } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/DocumentPreview";
 
 const GRID_CONFIG = {
