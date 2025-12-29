@@ -80,6 +80,9 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
   GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
+  TOGGLE_NOTIFY_ONLY_ON_MENTIONS: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/notifications/mentions-only`,
+  JOIN_VIA_INVITE_LINK: (token: string) => `${CONVERSATION_API_BASE}/invite-link/${token}/join`,
   MARK_MESSAGE_AS_UNREAD: (conversationId: number, messageId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
 };

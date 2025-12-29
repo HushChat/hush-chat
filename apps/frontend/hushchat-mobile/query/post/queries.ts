@@ -11,6 +11,7 @@ import {
   exitGroupConversation,
   reportConversation,
   ReportReason,
+  joinConversationByInvite,
 } from "@/apis/conversation";
 import { blockUser, changePassword, updateUserAvailabilityStatus } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
@@ -164,5 +165,14 @@ export const useChangePasswordQuery = createMutationHook<
   }
   return result;
 });
+
+export const useJoinConversationByInviteMutation = createMutationHook<
+  IConversation,
+  { token: string }
+>(
+  (params: { token: string }) => joinConversationByInvite(params.token),
+  (keyParams: { token: string }) => () =>
+    [conversationQueryKeys.joinConversationByInvite(keyParams.token)] as string[][]
+);
 
 export const useUpdateAvailabilityStatusMutation = createMutationHook(updateUserAvailabilityStatus);
