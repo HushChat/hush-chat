@@ -141,18 +141,14 @@ const ConversationInput = ({
                 onSubmitEditing={handleSubmitEditing}
               />
 
-              {!hideSendButton && (
-                <View className="mb-4">
-                  <SendButton
-                    showSend={input.isValidMessage}
-                    isSending={isSending || audio.isRecordUploading}
-                    isRecording={audio.isRecording}
-                    onPress={handleSendButtonPress}
-                    onStartRecording={audio.handleStartRecording}
-                    onStopRecording={audio.handleStopRecording}
-                  />
-                </View>
-              )}
+              <SendButton
+                showSend={input.isValidMessage}
+                isSending={isSending || audio.isRecordUploading}
+                isRecording={audio.isRecording}
+                onPress={handleSendButtonPress}
+                onStartRecording={audio.handleStartRecording}
+                onStopRecording={audio.handleStopRecording}
+              />
             </View>
           </Animated.View>
         </View>
