@@ -35,4 +35,6 @@ public interface ConversationQueryRepository {
 
     long clearExpiredPinnedMessageFromConversation(Long conversationId);
 
+    Page<Conversation> findCommonGroupsBetweenUsers(Long userOneId, Long userTwoId, Pageable pageable);
+
 }
