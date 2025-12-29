@@ -6,7 +6,10 @@ import ActionToggleItem from "@/components/conversations/conversation-info-panel
 import { MotionView } from "@/motion/MotionView";
 import { IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
-import { useToggleNotifyOnlyOnMentionMutation } from "@/query/patch/queries";
+import {
+  useToggleNotifyOnlyOnMentionMutation,
+  useToggleReadReceiptsMutation,
+} from "@/query/patch/queries";
 
 interface IGroupPreferencesProps {
   conversation: IConversation;
@@ -26,11 +29,21 @@ export default function GroupPreferences({
     conversation.notifyOnMentionsOnly
   );
 
+  const [readReceiptsEnabled, setReadReceiptsEnabled] = useState<boolean>(
+    conversation.readReceiptsEnabled
+  );
+
   useEffect(() => {
     setNotifyOnMentionsOnly(conversation.notifyOnMentionsOnly);
-  }, [conversation.notifyOnMentionsOnly]);
+    setReadReceiptsEnabled(conversation.readReceiptsEnabled);
+  }, [conversation.notifyOnMentionsOnly, conversation.readReceiptsEnabled]);
 
   const toggleNotifyOnlyOnMentionMutation = useToggleNotifyOnlyOnMentionMutation(
+    { userId: Number(user.id), conversationId: Number(conversation?.id) },
+    () => {}
+  );
+
+  const toggleReadReceiptsMutation = useToggleReadReceiptsMutation(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
     () => {}
   );
@@ -47,6 +60,23 @@ export default function GroupPreferences({
       {
         onError: () => {
           setNotifyOnMentionsOnly(!newValue);
+        },
+      }
+    );
+  };
+
+  const handleToggleReadReceipts = (newValue: boolean) => {
+    if (!conversation?.id) return;
+
+    setReadReceiptsEnabled(newValue);
+
+    toggleReadReceiptsMutation.mutate(
+      {
+        conversationId: Number(conversation?.id),
+      },
+      {
+        onError: () => {
+          setReadReceiptsEnabled(!newValue);
         },
       }
     );
@@ -94,8 +124,8 @@ export default function GroupPreferences({
             icon="eye-outline"
             title="Read receipts"
             description="When turned off, you won’t see read receipts from others, and they won’t see yours."
-            value={notifyOnMentionsOnly}
-            onValueChange={handleToggleNotifyOnlyOnMentions}
+            value={readReceiptsEnabled}
+            onValueChange={handleToggleReadReceipts}
           />
         </View>
       </ScrollView>

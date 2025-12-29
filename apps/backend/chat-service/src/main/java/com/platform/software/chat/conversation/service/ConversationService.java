@@ -1344,6 +1344,7 @@ public class ConversationService {
      */
     public ConversationMetaDataDTO getConversationMetaData(Long conversationId, Long userId) {
         ConversationMetaDataDTO conversationMetaDataDTO = conversationUtilService.getConversationMetaDataDTO(conversationId, userId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
         conversationMetaDataDTO.setIsActive(conversationRepository.getIsActiveByConversationIdAndUserId(conversationId, userId));
 
         if (!conversationMetaDataDTO.getIsGroup()) {
@@ -1372,14 +1373,15 @@ public class ConversationService {
                     directOtherMeta.getEmail()
             );
             conversationMetaDataDTO.setChatUserStatus(status);
+            conversationMetaDataDTO.setReadReceiptsEnabled(participant.getIsReadReceiptsEnabled());
 
         } else {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
             String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
-            ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
 
             conversationMetaDataDTO.setNotifyOnMentionsOnly(participant.getNotifyOnMentionsOnly());
+            conversationMetaDataDTO.setReadReceiptsEnabled(participant.getIsReadReceiptsEnabled());
 
             if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
                 conversationMetaDataDTO.setIsCurrentUserAdmin(true);
