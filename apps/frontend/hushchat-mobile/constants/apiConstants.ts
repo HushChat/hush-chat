@@ -27,6 +27,7 @@ export const WORKSPACE_ENDPOINTS = {
 
 export const ADMIN_WORKSPACE_ENDPOINTS = {
   GET_WORKSPACE_USERS: `${ADMIN_WORKSPACES_API_BASE}/users`,
+  UPDATE_PROFILE: (userId: number) => `${ADMIN_WORKSPACES_API_BASE}/users/${userId}`,
 };
 
 export const SETTINGS_API_BASE = "/settings";
@@ -101,6 +102,7 @@ export const USER_API_ENDPOINTS = {
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
   SAVE_TOKEN: `/notifications/device-token`,
   CHANGE_PASSWORD: `/users/change-password`,
+  PROFILE: (userId: number) => `${USER_API_BASE}/profile/${userId}`,
 };
 
 export const MESSAGE_API_ENDPOINTS = {

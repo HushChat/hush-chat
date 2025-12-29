@@ -248,6 +248,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                             if (otherParticipant.getUser().getFirstName() != null && otherParticipant.getUser().getLastName() != null) {
                                 String name = otherParticipant.getUser().getFirstName() + " " + otherParticipant.getUser().getLastName();
                                 String imageIndexedName = otherParticipant.getUser().getImageIndexedName();
+                                dto.setPeerUserId(otherParticipant.getUser().getId());
                                 dto.setName(name);
                                 dto.setImageIndexedName(imageIndexedName);
 

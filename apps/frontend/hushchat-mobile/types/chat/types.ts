@@ -21,6 +21,7 @@ export interface IConversation {
   onlyAdminsCanSendMessages: boolean;
   notifyOnMentionsOnly: boolean;
   deviceType?: DeviceType;
+  peerUserId?: number;
 }
 
 export interface ReactionSummary {

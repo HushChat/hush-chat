@@ -90,4 +90,6 @@ export const userQueryKeys = {
   userProfile: (userId: number) => [USER_QUERY_BASE_KEY, userId],
 
   userWorkspace: (userId: number) => [USER_QUERY_BASE_KEY, WORKSPACES, userId],
+
+  chatUserProfile: (userId: number | null) => [USER_QUERY_BASE_KEY, "profile", userId],
 };

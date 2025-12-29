@@ -2,6 +2,8 @@ package com.platform.software.platform.workspace.controller;
 
 import com.platform.software.chat.conversation.dto.ConversationAdminViewDTO;
 import com.platform.software.chat.conversation.service.ConversationService;
+import com.platform.software.chat.user.dto.UserProfileDTO;
+import com.platform.software.chat.user.dto.UserProfileUpdateDTO;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.interceptors.WorkspaceAdminRestrictedAccess;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
@@ -112,5 +114,12 @@ public class WorkspaceAdminController {
     public ResponseEntity<Void> toggleUserRole(@AuthenticatedUser UserDetails userDetails, @PathVariable String email) {
         workspaceUserService.toggleUserRole(userDetails, WorkspaceContext.getCurrentWorkspace(), email);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @ApiOperation(value = "Update user profile")
+    @PatchMapping("users/{id}")
+    public ResponseEntity<UserProfileDTO> updateUserProfile(@PathVariable Long id, @RequestBody UserProfileUpdateDTO updateDTO) {
+        UserProfileDTO userProfileDTO = userService.updateUserProfile(id, updateDTO);
+        return new ResponseEntity<>(userProfileDTO, HttpStatus.OK);
     }
 }

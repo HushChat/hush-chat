@@ -1,5 +1,6 @@
 package com.platform.software.chat.user.dto;
 
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,4 +18,5 @@ public class UserProfileDTO {
     private String contactNumber;
     private String address;
     private String designation;
+    private ChatUserStatus chatUserStatus;
 }

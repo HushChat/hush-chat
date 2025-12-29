@@ -85,6 +85,7 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="settings/users/index" />
         <Stack.Screen name="settings/users/list" />
         <Stack.Screen name="settings/users/[userId]" />
+        <Stack.Screen name="user-profile/[userId]" />
       </Stack>
     </>
   );

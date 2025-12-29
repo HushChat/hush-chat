@@ -12,8 +12,11 @@ export interface IWorkspaceUser {
   lastName: string;
   username: string;
   email: string;
-  imageIndexedName: string;
+  signedImageUrl: string;
   status: WorkspaceUserStatus;
   conversationId: number;
   chatUserStatus: chatUserStatus;
+  contactNumber: string;
+  address: string;
+  designation: string;
 }

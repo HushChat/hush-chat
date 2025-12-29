@@ -2,7 +2,7 @@ import * as yup from "yup";
 import type { Asserts } from "yup";
 import { passwordRules } from "@/utils/passwordRules";
 import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
-import { DeviceType } from "@/types/chat/types";
+import { chatUserStatus, DeviceType } from "@/types/chat/types";
 
 export const UserSchema = yup.object({
   id: yup.number().nullable().notRequired(),
@@ -203,4 +203,28 @@ export type DeviceToken = {
 export enum UserType {
   ADMIN = "ADMIN",
   MEMBER = "MEMBER",
+}
+
+export interface IUserProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  signedImageUrl: string;
+  conversationId: number;
+  chatUserStatus: chatUserStatus;
+  contactNumber: string;
+  address: string;
+  designation: string;
+}
+
+export interface UpdateUserProfileInput {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  contactNumber: string;
+  address: string;
+  designation: string;
 }

@@ -15,8 +15,10 @@ import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.service.security.CognitoService;
 import com.platform.software.config.aws.DocUploadRequestDTO;
 import com.platform.software.config.aws.SignedURLDTO;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
+import com.platform.software.config.workspace.WorkspaceContext;
 import io.swagger.annotations.ApiOperation;
 import jakarta.validation.Valid;
 
@@ -27,15 +29,18 @@ public class UserController {
     private final UserService userService;
     private final CallLogService callLogService;
     private final CognitoService cognitoService;
+    private final WebSocketSessionManager webSocketSessionManager;
 
     public UserController(
         UserService userService, 
         CallLogService callLogService,
-        CognitoService cognitoService
+        CognitoService cognitoService,
+        WebSocketSessionManager webSocketSessionManager
         ) {
         this.userService = userService;
         this.callLogService = callLogService;
         this.cognitoService = cognitoService;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     /**
@@ -199,6 +204,9 @@ public class UserController {
     public ResponseEntity<UserProfileDTO> userProfile(
             @PathVariable Long id
     ){
-        return ResponseEntity.ok(userService.getUserProfile(id));
+        UserProfileDTO userProfileDTO = userService.getUserProfile(id);
+        userProfileDTO.setChatUserStatus(webSocketSessionManager
+                .getUserChatStatus(WorkspaceContext.getCurrentWorkspace(), userProfileDTO.getEmail()));
+        return ResponseEntity.ok(userProfileDTO);
     }
 }

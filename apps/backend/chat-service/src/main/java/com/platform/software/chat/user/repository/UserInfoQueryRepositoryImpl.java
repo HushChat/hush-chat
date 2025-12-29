@@ -21,14 +21,14 @@ public class UserInfoQueryRepositoryImpl implements UserInfoQueryRepository {
     @Override
     public UserProfileDTO getProfileById(Long id) {
         UserProfileDTO userPublicProfile = jpaQueryFactory
-                .select(Projections.constructor(
+                .select(Projections.bean(
                         UserProfileDTO.class,
                         chatUser.id,
                         chatUser.firstName,
                         chatUser.lastName,
                         chatUser.username,
                         chatUser.email,
-                        chatUser.imageIndexedName,
+                        chatUser.imageIndexedName.as("signedImageUrl"),
                         chatUserInfo.contactNumber,
                         chatUserInfo.address,
                         chatUserInfo.designation

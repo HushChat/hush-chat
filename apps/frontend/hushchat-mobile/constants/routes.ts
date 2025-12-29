@@ -26,3 +26,4 @@ export const MESSAGE_READ_PARTICIPANTS =
 export const USER_DETAILS = (userId: number): Href => `/settings/users/${userId}` as Href;
 export const SETTINGS_USERS_LIST = "/settings/users/list";
 export const SETTINGS_USERS = "/settings/users";
+export const USER_PROFILE = (userId: number): Href => `user-profile/${userId}` as Href;
