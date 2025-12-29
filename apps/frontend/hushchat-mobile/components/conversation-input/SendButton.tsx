@@ -2,6 +2,7 @@ import React from "react";
 import { ActivityIndicator, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLOR_ACTIVITY, ICON_SIZE } from "@/constants/composerConstants";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface SendButtonProps {
   showSend: boolean;
@@ -20,6 +21,8 @@ export const SendButton = ({
   onStartRecording,
   onStopRecording,
 }: SendButtonProps) => {
+  const { isDark } = useAppTheme();
+
   if (isSending) {
     return (
       <ActivityIndicator
@@ -44,7 +47,7 @@ export const SendButton = ({
         <Ionicons
           name="send"
           size={ICON_SIZE}
-          className="!text-primary-light dark:!text-primary-dark"
+          color={isDark ? "!text-primary-light" : "!text-primary-dark"}
         />
       </Pressable>
     );

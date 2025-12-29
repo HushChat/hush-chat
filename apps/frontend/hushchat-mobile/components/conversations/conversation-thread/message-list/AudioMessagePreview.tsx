@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { View, Pressable } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Pressable, GestureResponderEvent } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import classNames from "classnames";
@@ -20,12 +20,34 @@ export const AudioMessagePreview = ({
 }: AudioMessagePreviewProps) => {
   const webAudioRef = useRef<HTMLAudioElement | null>(null);
   const nativeSoundRef = useRef<Audio.Sound | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(providedDuration || 0);
   const [error, setError] = useState(false);
+  const [trackWidth, setTrackWidth] = useState<number>(0);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      if (webAudioRef.current) {
+        webAudioRef.current.pause();
+        webAudioRef.current.src = ""; // Force the browser to release the stream
+        webAudioRef.current = null;
+      }
+
+      if (nativeSoundRef.current) {
+        const sound = nativeSoundRef.current;
+        nativeSoundRef.current = null;
+        sound.unloadAsync().catch((err) => logError("Error unloading sound:", err));
+      }
+    };
+  }, []);
 
   // Web Audio initialization
   const initWebAudio = () => {
@@ -165,33 +187,19 @@ export const AudioMessagePreview = ({
     }
   };
 
-  // Web seek handler
-  const handleWebSeek = (event: any) => {
-    if (!webAudioRef.current || !duration) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const percentage = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-    webAudioRef.current.currentTime = percentage * duration;
-    setCurrentTime(Math.floor(percentage * duration));
-  };
+  const handleSeek = (event: GestureResponderEvent) => {
+    if (!trackWidth || !duration) return;
+    const { locationX } = event.nativeEvent;
+    const percentage = Math.max(0, Math.min(1, locationX / trackWidth));
+    const newTime = Math.floor(percentage * duration);
+    setCurrentTime(newTime);
 
-  // Native seek handler
-  const handleNativeSeek = async (event: any) => {
-    if (!nativeSoundRef.current || !duration) return;
-    try {
-      const { locationX } = event.nativeEvent;
-      const percentage = Math.max(0, Math.min(1, locationX / 200));
-      await nativeSoundRef.current.setPositionAsync(percentage * duration * 1000);
-      setCurrentTime(Math.floor(percentage * duration));
-    } catch (err) {
-      logError("Native seek error:", err);
-    }
-  };
-
-  const handleSeek = (event: any) => {
-    if (PLATFORM.IS_WEB) {
-      handleWebSeek(event);
-    } else {
-      handleNativeSeek(event);
+    if (PLATFORM.IS_WEB && webAudioRef.current) {
+      webAudioRef.current.currentTime = newTime;
+    } else if (nativeSoundRef.current) {
+      nativeSoundRef.current.setPositionAsync(newTime * 1000).catch((err) => {
+        logError("Seek error:", err);
+      });
     }
   };
 
@@ -236,6 +244,7 @@ export const AudioMessagePreview = ({
               "h-1 rounded-full overflow-hidden",
               isCurrentUser ? "bg-white/20" : "bg-gray-300 dark:bg-gray-600"
             )}
+            onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
           >
             <View
               className={classNames(

@@ -4,7 +4,7 @@ const CALL_LOGS = "call-logs";
 const GROUP_INFO = "group-info";
 const WORKSPACES = "workspaces";
 
-const CONVERSATION_QUERY_BASE_KEY = "conversations";
+export const CONVERSATION_QUERY_BASE_KEY = "conversations";
 const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
 const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
 const CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY = "conversation-attachments";

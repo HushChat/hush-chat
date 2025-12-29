@@ -324,6 +324,7 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  updateConversationMessagesCache: (IMessage: any) => void;
 }
 
 export type TNavigationDirection = "prev" | "next";

@@ -2,8 +2,13 @@ import { View } from "react-native";
 import { AppText } from "@/components/AppText";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
+import { TUseAudioRecordingReturn } from "@/hooks/useAudioRecording";
 
-export const RecordingDisplayBar = ({ audio }: { audio: any }) => (
+interface RecordingDisplayBarProps {
+  audio: TUseAudioRecordingReturn;
+}
+
+export const RecordingDisplayBar = ({ audio }: RecordingDisplayBarProps) => (
   <View className="px-4 py-2 bg-red-50 dark:bg-red-900/20 border-t border-gray-200 dark:border-gray-800">
     <View className="flex-row items-center justify-between">
       <View className="flex-row items-center">

@@ -2,22 +2,33 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getDraftKey } from "@/constants/constants";
 import { StorageFactory } from "@/utils/storage/storageFactory";
-import { PLATFORM } from "@/constants/platformConstants";
 import {
   AudioRecorder,
-  stopAudioRecordingWeb,
-  stopAudioRecordingNative,
+  RecordingSession,
   useMessageAudioUploader,
 } from "@/apis/audio-upload-service/audio-upload-service";
 import { LocalFile, UploadResult } from "@/hooks/useNativePickerUpload";
+import { IMessage } from "@/types/chat/types";
+
+export type TUseAudioRecordingReturn = {
+  isRecording: boolean;
+  isRecordUploading: boolean;
+  recordingDuration: number;
+  formatDuration: (seconds: number) => string;
+  handleStartRecording: () => Promise<void>;
+  handleStopRecording: () => Promise<void>;
+  handleCancelRecording: () => Promise<void>;
+};
 
 interface UseAudioRecordingProps {
   conversationId: number;
   message: string;
-  replyToMessage: any;
+  replyToMessage: IMessage;
   onCancelReply?: () => void;
-  updateConversationMessagesCache: (msg: any) => void;
+  updateConversationMessagesCache: (msg: IMessage) => void;
 }
+
+const storage = StorageFactory.createStorage();
 
 export const useAudioRecording = ({
   conversationId,
@@ -25,13 +36,12 @@ export const useAudioRecording = ({
   replyToMessage,
   onCancelReply,
   updateConversationMessagesCache,
-}: UseAudioRecordingProps) => {
+}: UseAudioRecordingProps): TUseAudioRecordingReturn => {
   const [isRecording, setIsRecording] = useState(false);
   const [isRecordUploading, setIsRecordUploading] = useState(false);
-  const [recordingInstance, setRecordingInstance] = useState<any>(null);
+  const [recordingInstance, setRecordingInstance] = useState<RecordingSession | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  const recordingTimerRef = useRef<NodeJS.Timeout | number | null>(null);
-  const storage = StorageFactory.createStorage();
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const audioUploader = useMessageAudioUploader(
     conversationId,
@@ -89,35 +99,29 @@ export const useAudioRecording = ({
       setIsRecording(false);
       setIsRecordUploading(true);
 
+      const result = await AudioRecorder.stopRecording(recordingInstance);
+      if (!result) {
+        ToastUtils.error("Failed to save recording");
+
+        setRecordingInstance(null);
+        setRecordingDuration(0);
+        setIsRecordUploading(false);
+        return;
+      }
+
       let uploadResults: UploadResult[];
 
-      if (PLATFORM.IS_WEB) {
-        const blob = await stopAudioRecordingWeb(
-          recordingInstance.mediaRecorder,
-          recordingInstance.audioChunks
-        );
-
-        if (!blob) {
-          ToastUtils.error("Failed to save recording");
-          setIsRecordUploading(false);
-          return;
-        }
+      if (recordingInstance.platform === "web") {
+        const blob = result instanceof Blob ? result : null;
+        if (!blob) throw new Error("Expected Blob for web recording");
 
         const extension = blob.type.includes("webm") ? "webm" : "mp4";
         const audioFile = new File([blob], `audio_${Date.now()}.${extension}`, {
           type: blob.type,
         });
-
         uploadResults = await audioUploader.uploadAudioFile(audioFile);
       } else {
-        const uri = await stopAudioRecordingNative(recordingInstance);
-
-        if (!uri) {
-          ToastUtils.error("Failed to save recording");
-          setIsRecordUploading(false);
-          return;
-        }
-
+        const uri = result as string;
         const response = await fetch(uri);
         const blob = await response.blob();
 
@@ -127,13 +131,15 @@ export const useAudioRecording = ({
           type: "audio/m4a",
           size: blob.size,
         };
-
         uploadResults = await audioUploader.uploadAudioLocalFile(localFile);
       }
 
       const failed = uploadResults.find((r) => !r.success);
       if (failed) {
         ToastUtils.error(failed.error || "Failed to upload audio");
+
+        setRecordingInstance(null);
+        setRecordingDuration(0);
         setIsRecordUploading(false);
         return;
       }
@@ -168,11 +174,11 @@ export const useAudioRecording = ({
     try {
       clearTimer();
 
-      if (PLATFORM.IS_WEB) {
+      if (recordingInstance.platform === "web") {
         recordingInstance.mediaRecorder.stop();
-        recordingInstance.mediaRecorder.stream.getTracks().forEach((track: any) => track.stop());
+        recordingInstance.mediaRecorder.stream.getTracks().forEach((track) => track.stop());
       } else {
-        await recordingInstance.stopAndUnloadAsync();
+        await recordingInstance.recording.stopAndUnloadAsync();
       }
 
       setIsRecording(false);

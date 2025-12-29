@@ -14,7 +14,6 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { FileInput } from "@/components/conversation-input/FileInput";
-import { useAudioRecording } from "@/hooks/useAudioRecording";
 import { RecordingDisplayBar } from "@/components/conversation-input/RecordingDisplayBar";
 
 const ConversationInput = ({
@@ -30,7 +29,7 @@ const ConversationInput = ({
   onControlledValueChange,
   hideSendButton = false,
   updateConversationMessagesCache,
-}: ConversationInputProps & { updateConversationMessagesCache: (msg: any) => void }) => {
+}: ConversationInputProps) => {
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -40,13 +39,6 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
-  });
-
-  const audio = useAudioRecording({
-    conversationId,
-    message: input.message,
-    replyToMessage,
-    onCancelReply,
     updateConversationMessagesCache,
   });
 
@@ -81,7 +73,7 @@ const ConversationInput = ({
         />
       )}
 
-      {audio.isRecording && <RecordingDisplayBar audio={audio} />}
+      {input.audio.isRecording && <RecordingDisplayBar audio={input.audio} />}
 
       <View
         className={classNames(
@@ -93,7 +85,7 @@ const ConversationInput = ({
         {!isControlledMode && (
           <AttachmentButton
             ref={input.addButtonRef}
-            disabled={disabled || audio.isRecording}
+            disabled={disabled || input.audio.isRecording}
             toggled={input.menuVisible}
             onPress={input.handleAddButtonPress}
           />
@@ -106,7 +98,7 @@ const ConversationInput = ({
                 ref={input.messageTextInputRef}
                 value={input.message}
                 placeholder={input.placeholder}
-                disabled={disabled || audio.isRecording}
+                disabled={disabled || input.audio.isRecording}
                 autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
@@ -122,11 +114,11 @@ const ConversationInput = ({
               {!hideSendButton && (
                 <SendButton
                   showSend={input.isValidMessage}
-                  isSending={isSending || audio.isRecordUploading}
-                  isRecording={audio.isRecording}
+                  isSending={isSending || input.audio.isRecordUploading}
+                  isRecording={input.audio.isRecording}
                   onPress={handleSendPress}
-                  onStartRecording={audio.handleStartRecording}
-                  onStopRecording={audio.handleStopRecording}
+                  onStartRecording={input.audio.handleStartRecording}
+                  onStopRecording={input.audio.handleStopRecording}
                 />
               )}
             </View>

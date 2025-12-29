@@ -129,7 +129,6 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
-          {/* Audio Attachments (Web only) */}
           {hasAudio && (
             <View className={messageContent || hasOtherAttachments ? "mb-2" : ""}>
               {audioAttachments.map((audio) => (
@@ -142,14 +141,12 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
             </View>
           )}
 
-          {/* Other File Attachments */}
           {hasOtherAttachments && (
             <View className={messageContent ? "mb-2" : ""}>
               {renderFileGrid(otherAttachments, isCurrentUser)}
             </View>
           )}
 
-          {/* Text Content */}
           {!message.isUnsend && messageContent ? (
             <FormattedText
               text={message.messageText}

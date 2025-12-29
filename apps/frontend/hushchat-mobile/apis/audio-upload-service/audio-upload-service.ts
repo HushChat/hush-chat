@@ -6,13 +6,16 @@ import { type IMessage, MessageAttachmentTypeEnum, MessageTypeEnum } from "@/typ
 import { useUserStore } from "@/store/user/useUserStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSignedUrls } from "@/utils/messageUtils";
+import { CONVERSATION_QUERY_BASE_KEY } from "@/constants/queryKeys";
 
-const MAX_AUDIO_KB = 1024 * 10; // 10 MB
+const MAX_AUDIO_MB = 10;
+const BYTES_PER_MB = 1024 * 1024;
+const MAX_AUDIO_BYTES = MAX_AUDIO_MB * BYTES_PER_MB;
 
 /**
  * Configuration for native audio recording (iOS and Android)
  */
-const NATIVE_RECORDING_OPTIONS = {
+const NATIVE_RECORDING_OPTIONS: Audio.RecordingOptions = {
   android: {
     extension: ".m4a",
     outputFormat: Audio.AndroidOutputFormat.MPEG_4,
@@ -34,6 +37,33 @@ const NATIVE_RECORDING_OPTIONS = {
     bitsPerSecond: 128000,
   },
 };
+
+type WebRecordingSession = {
+  platform: "web";
+  mediaRecorder: MediaRecorder;
+  audioChunks: Blob[];
+};
+
+type NativeRecordingSession = {
+  platform: "native";
+  recording: Audio.Recording;
+};
+
+export type RecordingSession = WebRecordingSession | NativeRecordingSession;
+
+type WebDurationInput = {
+  platform: "web";
+  blob: Blob;
+};
+
+type NativeDurationInput = {
+  platform: "native";
+  recording: Audio.Recording;
+};
+
+type DurationInput = WebDurationInput | NativeDurationInput;
+
+type ValidationResult = { isValid: true } | { isValid: false; error: string };
 
 /**
  * Requests microphone permission for native platforms
@@ -110,19 +140,12 @@ export const getAudioDurationNative = async (recording: Audio.Recording): Promis
 };
 
 /**
- * Requests microphone permission for web platform
- * @returns Permission status
+ * Checks if a media stream has active audio tracks
+ * @param stream - The MediaStream to check
+ * @returns boolean
  */
-export const requestAudioPermissionWeb = async (): Promise<boolean> => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    // Stop the stream immediately, we only needed it for permission
-    stream.getTracks().forEach((track) => track.stop());
-    return true;
-  } catch (error) {
-    logWarn("Failed to request web audio permission:", error);
-    return false;
-  }
+export const isAudioPermissionGrantedWeb = (stream: MediaStream | null): boolean => {
+  return !!stream && stream.getAudioTracks().some((track) => track.enabled);
 };
 
 /**
@@ -135,12 +158,12 @@ export const startAudioRecordingWeb = async (): Promise<{
   audioChunks: Blob[];
 } | null> => {
   try {
-    const hasPermission = await requestAudioPermissionWeb();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const hasPermission = await isAudioPermissionGrantedWeb(stream);
     if (!hasPermission) {
       throw new Error("Microphone permission required");
     }
-
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
     // Prioritize audio/mp4 (m4a) for better iOS/cross-platform compatibility
     let mimeType = "audio/webm"; // fallback
@@ -233,13 +256,19 @@ export const getAudioDurationWeb = async (blob: Blob): Promise<number> => {
 };
 
 /**
- * Validates audio file size
- * @param sizeInBytes - File size in bytes
- * @returns True if valid, false otherwise
+ * Validates audio file existence and size
  */
-const validateAudioSize = (sizeInBytes: number): boolean => {
-  const sizeInKB = sizeInBytes / 1024;
-  return sizeInKB <= MAX_AUDIO_KB;
+const getAudioValidationResult = (size: number | undefined): ValidationResult => {
+  if (size === undefined || size === null) {
+    return { isValid: false, error: "Could not determine audio file size" };
+  }
+  if (size === 0) {
+    return { isValid: false, error: "Audio file is empty" };
+  }
+  if (size > MAX_AUDIO_BYTES) {
+    return { isValid: false, error: `Audio file too large (> ${MAX_AUDIO_MB} MB)` };
+  }
+  return { isValid: true };
 };
 
 /**
@@ -265,18 +294,18 @@ export function useMessageAudioUploader(
    * @param files - Array of File or LocalFile objects
    * @param savedMessage
    */
-  const updateMessageList = async (files: (File | LocalFile)[], savedMessage: IMessage | null) => {
+  const updateMessageList = async (files: LocalFile[], savedMessage: IMessage | null) => {
     const tempMessage: IMessage = {
       id: savedMessage?.id,
       senderId: Number(currentUserId),
-      senderFirstName: "",
-      senderLastName: "",
+      senderFirstName: savedMessage?.senderFirstName ?? "",
+      senderLastName: savedMessage?.senderLastName ?? "",
       messageText: messageToSend,
       createdAt: new Date().toISOString(),
       conversationId: conversationId,
       messageType: MessageTypeEnum.AUDIO,
       messageAttachments: files.map((file) => ({
-        fileUrl: file instanceof File ? URL.createObjectURL(file) : file.uri,
+        fileUrl: file.uri,
         originalFileName: file.name,
         indexedFileName: "",
         mimeType: file.type,
@@ -294,14 +323,9 @@ export function useMessageAudioUploader(
    * @returns Upload results array
    */
   const uploadAudioFile = async (file: File): Promise<UploadResult[]> => {
-    if (!validateAudioSize(file.size)) {
-      return [
-        {
-          success: false,
-          fileName: file.name,
-          error: `Audio file too large (> ${MAX_AUDIO_KB / 1024} MB)`,
-        },
-      ];
+    const validation = getAudioValidationResult(file.size);
+    if (!validation.isValid) {
+      return [{ success: false, fileName: file.name, error: validation.error }];
     }
 
     const localFile: LocalFile = {
@@ -314,8 +338,8 @@ export function useMessageAudioUploader(
     try {
       const results = await hook.upload([localFile], "", MessageTypeEnum.AUDIO);
 
-      await updateMessageList([file], results?.[0]?.message ?? null);
-      await queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      await updateMessageList([localFile], results?.[0]?.message ?? null);
+      await queryClient.invalidateQueries({ queryKey: [CONVERSATION_QUERY_BASE_KEY] });
       URL.revokeObjectURL(localFile.uri);
 
       return results || [];
@@ -332,21 +356,16 @@ export function useMessageAudioUploader(
    * @returns Upload results array
    */
   const uploadAudioLocalFile = async (localFile: LocalFile): Promise<UploadResult[]> => {
-    if (!validateAudioSize(localFile.size ?? 0)) {
-      return [
-        {
-          success: false,
-          fileName: localFile.name,
-          error: `Audio file too large (> ${MAX_AUDIO_KB / 1024} MB)`,
-        },
-      ];
+    const validation = getAudioValidationResult(localFile.size);
+    if (!validation.isValid) {
+      return [{ success: false, fileName: localFile.name, error: validation.error }];
     }
 
     try {
       const response = await hook.upload([localFile], "", MessageTypeEnum.AUDIO);
 
       await updateMessageList([localFile], response?.[0]?.message ?? null);
-      await queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      await queryClient.invalidateQueries({ queryKey: [CONVERSATION_QUERY_BASE_KEY] });
       return response || [];
     } catch (error) {
       logWarn("Failed to upload native audio file:", error);
@@ -366,37 +385,46 @@ export const AudioRecorder = {
    * Starts audio recording based on current platform
    * @returns Recording instance (Audio.Recording for native, MediaRecorder data for web)
    */
-  startRecording: async () => {
+  startRecording: async (): Promise<RecordingSession | null> => {
     if (Platform.OS === "web") {
-      return await startAudioRecordingWeb();
+      const result = await startAudioRecordingWeb();
+      if (!result) return null;
+      return {
+        platform: "web",
+        mediaRecorder: result.mediaRecorder,
+        audioChunks: result.audioChunks,
+      };
     } else {
-      return await startAudioRecordingNative();
+      const recording = await startAudioRecordingNative();
+      if (!recording) return null;
+      return {
+        platform: "native",
+        recording,
+      };
     }
   },
 
   /**
    * Stops audio recording based on current platform
-   * @param recording - Recording instance from startRecording
+   * @param session - Recording instance from startRecording
    * @returns File URI (native) or Blob (web)
    */
-  stopRecording: async (recording: any) => {
-    if (Platform.OS === "web") {
-      return await stopAudioRecordingWeb(recording.mediaRecorder, recording.audioChunks);
-    } else {
-      return await stopAudioRecordingNative(recording);
+  stopRecording: async (session: RecordingSession): Promise<string | Blob | null> => {
+    if (session.platform === "web") {
+      return await stopAudioRecordingWeb(session.mediaRecorder, session.audioChunks);
     }
+    return await stopAudioRecordingNative(session.recording);
   },
-
   /**
    * Gets recording duration based on current platform
-   * @param recordingOrBlob - Recording instance or Blob
+   * @param input - Recording instance or Blob
    * @returns Duration in seconds
    */
-  getDuration: async (recordingOrBlob: any) => {
-    if (Platform.OS === "web") {
-      return await getAudioDurationWeb(recordingOrBlob);
+  getDuration: async (input: DurationInput) => {
+    if (input.platform === "web") {
+      return await getAudioDurationWeb(input.blob);
     } else {
-      return await getAudioDurationNative(recordingOrBlob);
+      return await getAudioDurationNative(input.recording);
     }
   },
 };

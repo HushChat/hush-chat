@@ -8,6 +8,7 @@ import { useMessageInput } from "@/hooks/conversation-input/useMessageInput";
 import { useMentions } from "@/hooks/conversation-input/useMentions";
 import { useReplyHandler } from "@/hooks/conversation-input/useReplyHandler";
 import { useFilePicker } from "@/hooks/conversation-input/useFilePicker";
+import { useAudioRecording } from "@/hooks/useAudioRecording";
 
 type TConversationInputOptions = Pick<
   ConversationInputProps,
@@ -20,6 +21,7 @@ type TConversationInputOptions = Pick<
   | "onCancelReply"
   | "controlledValue"
   | "onControlledValueChange"
+  | "updateConversationMessagesCache"
 >;
 
 export function useConversationInput({
@@ -32,6 +34,7 @@ export function useConversationInput({
   onCancelReply,
   controlledValue,
   onControlledValueChange,
+  updateConversationMessagesCache,
 }: TConversationInputOptions) {
   const messageTextInputRef = useRef<TextInput>(null);
   const defaultPlaceholderText = "Type a message...";
@@ -63,6 +66,14 @@ export function useConversationInput({
   const currentMessage = isControlledMode
     ? controlledValue
     : messageInputController.currentTypedMessage;
+
+  const audio = useAudioRecording({
+    conversationId,
+    message: currentMessage,
+    replyToMessage,
+    onCancelReply,
+    updateConversationMessagesCache: updateConversationMessagesCache!,
+  });
 
   const latestMessageTextRef = useRef(currentMessage);
   latestMessageTextRef.current = currentMessage;
@@ -211,6 +222,8 @@ export function useConversationInput({
 
     message: currentMessage,
     isValidMessage,
+
+    audio,
 
     inputHeight: autoHeightController.currentInputHeight,
     minHeight: autoHeightController.minimumInputHeight,
