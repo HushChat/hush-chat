@@ -596,7 +596,7 @@ public class ConversationController {
             @AuthenticatedUser UserDetails userDetails,
             Pageable pageable
     ) {
-        Page<ConversationViewDTO> commonGroupConversations = conversationService.getCommonConversationGroups(
+        Page<ConversationViewDTO> commonGroupConversations = conversationService.getCommonConversationGroupsBetweenTwoUsers(
                 userDetails.getId(),
                 conversationId,
                 pageable

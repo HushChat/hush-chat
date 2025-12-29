@@ -27,6 +27,7 @@ type TChatInfoActionProps = {
   onBack: () => void;
   setSelectedConversation?: (conversation: null) => void;
   onShowMediaAttachments?: () => void;
+  onSelectCommonGroups?: () => void;
 };
 
 export default function ChatInfoCommonAction({
@@ -37,6 +38,7 @@ export default function ChatInfoCommonAction({
   onBack,
   setSelectedConversation = () => {},
   onShowMediaAttachments,
+  onSelectCommonGroups,
 }: TChatInfoActionProps) {
   const { openModal, closeModal } = useModalContext();
   const { selectedConversationType } = useConversationStore();
@@ -145,6 +147,15 @@ export default function ChatInfoCommonAction({
         icon: isPinned ? "pin-outline" : "pin",
         onPress: togglePin,
       },
+      ...(onSelectCommonGroups
+        ? [
+            {
+              label: "Common groups",
+              icon: "people-circle-outline" as const,
+              onPress: onSelectCommonGroups,
+            },
+          ]
+        : []),
       {
         label: isFavorite ? "Remove from Favorites" : "Add to Favorites",
         icon: isFavorite ? "heart" : "heart-outline",

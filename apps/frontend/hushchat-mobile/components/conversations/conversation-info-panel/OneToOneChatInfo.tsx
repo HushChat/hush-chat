@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { useModalContext } from "@/context/modal-context";
@@ -15,6 +15,9 @@ import { useBlockUserMutation } from "@/query/post/queries";
 import { useUnblockUserMutation } from "@/query/delete/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { PanelType } from "@/types/web-panel/types";
+import useWebPanelManager from "@/hooks/useWebPanelManager";
+import CommonGroupsView from "@/components/conversations/conversation-info-panel/CommonGroupsView";
 
 interface OneToOneChatInfoProps {
   conversation: IConversation;
@@ -29,6 +32,7 @@ export default function OneToOneChatInfo({
   setSelectedConversation,
   onShowMediaAttachments,
 }: OneToOneChatInfoProps) {
+  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const { openModal, closeModal } = useModalContext();
   const { conversationInfo, isLoadingConversationInfo, refetch } = useOneToOneConversationInfoQuery(
     conversation.id
@@ -36,6 +40,18 @@ export default function OneToOneChatInfo({
   const {
     user: { id: userId },
   } = useUserStore();
+
+  const { activePanel, isPanelContentReady, openPanel, closePanel } =
+    useWebPanelManager(screenWidth);
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setScreenWidth(window.width);
+    });
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   const blockUserMutation = useBlockUserMutation(
     { userId: Number(userId), conversationId: conversation.id },
@@ -60,6 +76,10 @@ export default function OneToOneChatInfo({
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
+
+  const handleShowCommonGroups = () => {
+    openPanel(PanelType.COMMON_GROUP);
+  };
 
   const handleBlockUser = () => {
     openModal({
@@ -125,37 +145,50 @@ export default function OneToOneChatInfo({
         }
       />
 
-      <View style={styles.inner}>
-        <View className="border border-[#E4E4E4] dark:border-[#E4E4E42B]" />
-        <View>
-          <ChatInfoCommonAction
-            conversationId={conversation.id}
-            isFavorite={conversationInfo?.favorite || false}
-            isPinned={conversationInfo?.pinned || false}
-            isMuted={!!conversationInfo?.mutedUntil}
-            onBack={onBack}
-            setSelectedConversation={setSelectedConversation}
-            onShowMediaAttachments={onShowMediaAttachments}
-          />
-          <ActionItem
-            icon="ban-outline"
-            label={`${conversationInfo?.blocked ? "Unblock" : "Block"} ${
-              conversationInfo?.userView.firstName
-            } ${conversationInfo?.userView.lastName}`}
-            onPress={conversationInfo?.blocked ? handleUnblockUser : handleBlockUser}
-            color="#EF4444"
-          />
-        </View>
-      </View>
+      <View className="border border-[#E4E4E4] dark:border-[#E4E4E42B]" />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        className="custom-scrollbar"
+      >
+        <ChatInfoCommonAction
+          conversationId={conversation.id}
+          isFavorite={conversationInfo?.favorite || false}
+          isPinned={conversationInfo?.pinned || false}
+          isMuted={!!conversationInfo?.mutedUntil}
+          onBack={onBack}
+          setSelectedConversation={setSelectedConversation}
+          onShowMediaAttachments={onShowMediaAttachments}
+          onSelectCommonGroups={handleShowCommonGroups}
+        />
+        <ActionItem
+          icon="ban-outline"
+          label={`${conversationInfo?.blocked ? "Unblock" : "Block"} ${
+            conversationInfo?.userView.firstName
+          } ${conversationInfo?.userView.lastName}`}
+          onPress={conversationInfo?.blocked ? handleUnblockUser : handleBlockUser}
+          color="#EF4444"
+        />
+      </ScrollView>
+
+      {isPanelContentReady && activePanel === PanelType.COMMON_GROUP && (
+        <CommonGroupsView
+          conversationId={conversation.id}
+          onClose={closePanel}
+          visible={activePanel === PanelType.COMMON_GROUP}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
   container: {
     flex: 1,
-  },
-  inner: {
-    paddingHorizontal: 16,
   },
 });

@@ -1660,7 +1660,7 @@ public class ConversationService {
      * @throws CustomBadRequestException if the conversationId is invalid, not a one-to-one chat,
      * or if the logged-in user is not a participant
      */
-    public Page<ConversationViewDTO> getCommonConversationGroups(Long loggedInUserId, Long conversationId,  Pageable pageable) {
+    public Page<ConversationViewDTO> getCommonConversationGroupsBetweenTwoUsers(Long loggedInUserId, Long conversationId,  Pageable pageable) {
         DirectOtherMetaDTO meta = conversationRepository
                 .findDirectOtherMeta(conversationId, loggedInUserId)
                 .orElseThrow(() -> new CustomBadRequestException("Target conversation is not a valid one-to-one chat."));
@@ -1675,7 +1675,7 @@ public class ConversationService {
                 .map(conversation -> {
                     ConversationViewDTO dto = new ConversationViewDTO(conversation);
 
-                    String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(conversation.getImageIndexedName());
+                    String signedUrl = conversationUtilService.getImageViewSignedUrl( MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.MEDIUM ,conversation.getImageIndexedName());
                     dto.setSignedImageUrl(signedUrl);
                     return dto;
                 });
