@@ -1642,4 +1642,19 @@ public class ConversationService {
         conversationParticipantRepository.save(participant);
         return participant.getNotifyOnMentionsOnly();
     }
+
+    /**
+     * Toggles the read receipts setting in a conversation for a specific user.
+     *
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     * @return the updated isReadReceiptsEnabled status
+     */
+    @Transactional
+    public boolean toggleReadReceiptsEnabled(Long conversationId, Long loggedInUserId) {
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        participant.setIsReadReceiptsEnabled(!participant.getIsReadReceiptsEnabled());
+        conversationParticipantRepository.save(participant);
+        return participant.getNotifyOnMentionsOnly();
+    }
 }

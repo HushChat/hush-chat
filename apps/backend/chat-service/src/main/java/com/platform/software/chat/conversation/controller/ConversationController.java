@@ -580,4 +580,12 @@ public class ConversationController {
     ) {
         return ResponseEntity.ok(conversationService.toggleNotifyMentionsOnly(conversationId, userDetails.getId()));
     }
+
+    @PatchMapping("{conversationId}/privacy/read-receipts")
+    public ResponseEntity<Boolean> toggleReadReceiptsEnabled(
+            @AuthenticatedUser UserDetails userDetails,
+            @PathVariable Long conversationId
+    ) {
+        return ResponseEntity.ok(conversationService.toggleReadReceiptsEnabled(conversationId, userDetails.getId()));
+    }
 }
