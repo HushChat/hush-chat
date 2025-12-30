@@ -4,9 +4,11 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, SectionList, View } from "react-native";
+import { ActivityIndicator, SectionList, View, TouchableOpacity } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
+import { Ionicons } from "@expo/vector-icons";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
 import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -62,6 +64,7 @@ const ConversationMessageList = ({
   const pinnedMessage = conversationAPIResponse?.pinnedMessage;
   const sectionListRef = useRef<SectionList>(null);
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
+  const { isDark } = useAppTheme();
 
   const { togglePin, unSendMessage, markMessageAsUnread } = useMessageActions(
     conversationAPIResponse,
@@ -211,6 +214,22 @@ const ConversationMessageList = ({
     );
   }, [isFetchingNextPage]);
 
+  const [showScrollToBottom, setShowScrollToBottom] = React.useState(false);
+
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowScrollToBottom(offsetY > 300);
+  };
+
+  const scrollToBottom = () => {
+    sectionListRef.current?.scrollToLocation({
+      sectionIndex: 0,
+      itemIndex: 0,
+      animated: true,
+      viewOffset: 0,
+    });
+  };
+
   return (
     <>
       {selectedActionMessage && !PLATFORM.IS_WEB && (
@@ -244,37 +263,51 @@ const ConversationMessageList = ({
         />
       )}
 
-      <SectionList
-        ref={sectionListRef}
-        sections={groupedSections}
-        keyExtractor={(item, index) => {
-          const fallbackKey = `temp-${item.conversationId}-${index}`;
-          return (item.id ?? fallbackKey).toString();
-        }}
-        renderItem={renderMessage}
-        renderSectionFooter={({ section }) => <DateSection title={section.title} />}
-        inverted
-        showsVerticalScrollIndicator={false}
-        onEndReached={onLoadMore}
-        onEndReachedThreshold={0.1}
-        ListFooterComponent={renderLoadingFooter}
-        ListHeaderComponent={
-          <LoadRecentMessagesButton
-            onLoadNewer={onLoadNewer}
-            hasMoreNewer={hasMoreNewer}
-            isFetchingNewer={isFetchingNewer}
-          />
-        }
-        onTouchEnd={closeAll}
-        onScrollBeginDrag={closeAll}
-        extraData={{
-          selectionMode,
-          selectedMessageIdsSize: selectedMessageIds.size,
-          hasMoreNewer,
-          isFetchingNewer,
-          targetMessageId,
-        }}
-      />
+      <View className="flex-1 relative">
+        <SectionList
+          ref={sectionListRef}
+          sections={groupedSections}
+          keyExtractor={(item, index) => {
+            const fallbackKey = `temp-${item.conversationId}-${index}`;
+            return (item.id ?? fallbackKey).toString();
+          }}
+          renderItem={renderMessage}
+          renderSectionFooter={({ section }) => <DateSection title={section.title} />}
+          inverted
+          showsVerticalScrollIndicator={false}
+          onEndReached={onLoadMore}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderLoadingFooter}
+          ListHeaderComponent={
+            <LoadRecentMessagesButton
+              onLoadNewer={onLoadNewer}
+              hasMoreNewer={hasMoreNewer}
+              isFetchingNewer={isFetchingNewer}
+            />
+          }
+          onTouchEnd={closeAll}
+          onScrollBeginDrag={closeAll}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          extraData={{
+            selectionMode,
+            selectedMessageIdsSize: selectedMessageIds.size,
+            hasMoreNewer,
+            isFetchingNewer,
+            targetMessageId,
+          }}
+        />
+        {showScrollToBottom && (
+          <TouchableOpacity
+            onPress={scrollToBottom}
+            className="absolute bottom-6 right-4 bg-gray-200 dark:bg-gray-700 p-2 rounded-full shadow-lg z-50 items-center justify-center border border-gray-300 dark:border-gray-600"
+            style={{ width: 40, height: 40, elevation: 5 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-down" size={24} color={isDark ? "#e5e7eb" : "#374151"} />
+          </TouchableOpacity>
+        )}
+      </View>
       {reactionsModal.visible && (
         <MessageReactionsModal
           messageId={reactionsModal.messageId}
