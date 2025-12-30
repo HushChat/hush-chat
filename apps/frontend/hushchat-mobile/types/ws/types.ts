@@ -60,6 +60,13 @@ export interface UserActivityWSSubscriptionData {
   deviceId?: string;
 }
 
+export interface TypingIndicatorWSData {
+  conversationId: number;
+  typing: boolean; // true = started typing, false = stopped
+  deviceType?: DeviceType;
+  deviceId?: string;
+}
+
 export interface MessageUnsentPayload {
   conversationId: number;
   messageId: number;
