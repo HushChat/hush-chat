@@ -1,5 +1,6 @@
 package com.platform.software.chat.message.entity;
 
+import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.common.model.AuditModel;
 import jakarta.persistence.*;
@@ -28,4 +29,8 @@ public class FavouriteMessage extends AuditModel {
     @JoinColumn(name = "message_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Message message;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conversation_id")
+    private Conversation conversation;
 }

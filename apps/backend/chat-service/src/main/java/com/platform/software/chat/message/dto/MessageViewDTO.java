@@ -33,6 +33,7 @@ public class MessageViewDTO {
     private Boolean isReadByEveryone;
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
+    private Boolean isFavorite;
 
     private SignedURLDTO signedUrl;
 

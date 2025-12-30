@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.dto.MessageWithAttachmentUpsertDTO;
+import com.platform.software.chat.message.service.FavoriteMessageService;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.config.aws.SignedURLResponseDTO;
@@ -32,15 +33,18 @@ public class ConversationMessageController {
     private final MessageService messageService;
     private final ConversationService conversationService;
     private final ConversationReadStatusService conversationReadStatusService;
+    private final FavoriteMessageService favoriteMessageService;
 
     public ConversationMessageController(
         MessageService messageService, 
         ConversationService conversationService, 
-        ConversationReadStatusService conversationReadStatusService
+        ConversationReadStatusService conversationReadStatusService,
+        FavoriteMessageService favoriteMessageService
     ) {
         this.messageService = messageService;
         this.conversationService = conversationService;
         this.conversationReadStatusService = conversationReadStatusService;
+        this.favoriteMessageService = favoriteMessageService;
     }
 
     /**
@@ -251,5 +255,29 @@ public class ConversationMessageController {
         );
         
         return ResponseEntity.ok(readInfo);
+    }
+
+
+    /**
+     * Create a favorite message for the authenticated user for given conversation.
+     *
+     * @param authenticatedUser the authenticated user details
+     * @param conversationId the ID of conversation the message belongs to
+     * @param messageId the ID of the message to be favorite
+     * @return ResponseEntity containing the created MessageViewDTO
+     */
+    @ApiOperation(value = "Create favorite message", response = MessageViewDTO.class)
+    @PostMapping("{messageId}/favorite")
+    public ResponseEntity<MessageViewDTO> createFavoriteMessage(
+            @AuthenticatedUser UserDetails authenticatedUser,
+            @PathVariable Long conversationId,
+            @PathVariable Long messageId
+    ) {
+        MessageViewDTO favoriteMessage = favoriteMessageService.toggleFavoriteMessage(
+                authenticatedUser.getId(),
+                conversationId,
+                messageId
+        );
+        return ResponseEntity.ok(favoriteMessage);
     }
 }

@@ -9,6 +9,7 @@ import com.platform.software.chat.conversationparticipant.dto.ConversationPartic
 import com.platform.software.chat.conversationparticipant.dto.JoinParticipantRequestDTO;
 import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.service.FavoriteMessageService;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.config.aws.DocUploadRequestDTO;
 import com.platform.software.config.aws.SignedURLDTO;
@@ -31,15 +32,18 @@ public class ConversationController {
     private final ConversationService conversationService;
     private final CallLogService callLogService;
     private final MessageService messageService;
+    private final FavoriteMessageService favoriteMessageService;
 
     public ConversationController(
         ConversationService conversationService,
         MessageService messageService,
-        CallLogService callLogService
+        CallLogService callLogService,
+        FavoriteMessageService favoriteMessageService
     ) {
         this.conversationService = conversationService;
         this.callLogService = callLogService;
         this.messageService = messageService;
+        this.favoriteMessageService = favoriteMessageService;
     }
 
     /**Create a new conversation, either one-to-one.
@@ -579,5 +583,28 @@ public class ConversationController {
         @PathVariable Long conversationId
     ) {
         return ResponseEntity.ok(conversationService.toggleNotifyMentionsOnly(conversationId, userDetails.getId()));
+    }
+
+    /**
+     * Get all favorite messages of a conversation for the logged-in user.
+     *
+     * @param conversationId the conversation id
+     * @param authenticatedUser the authenticated user details
+     * @param pageable pagination information
+     * @return ResponseEntity containing a page of MessageViewDTO
+     */
+    @ApiOperation(value = "Get all favorite messages for logged in user", response = MessageViewDTO.class)
+    @GetMapping("{conversationId}/favorite-messages")
+    public ResponseEntity<Page<MessageViewDTO>> getFavoriteMessages(
+            @PathVariable Long conversationId,
+            @AuthenticatedUser UserDetails authenticatedUser,
+            Pageable pageable
+    ) {
+        Page<MessageViewDTO> favoriteMessages = favoriteMessageService.getFavoriteMessages(
+                conversationId,
+                authenticatedUser.getId(),
+                pageable
+        );
+        return ResponseEntity.ok(favoriteMessages);
     }
 }
