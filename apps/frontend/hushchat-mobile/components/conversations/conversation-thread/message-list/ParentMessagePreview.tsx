@@ -12,10 +12,11 @@ interface ParentMessagePreviewProps {
   parentMessage: IMessage;
   currentUserId: string;
   onNavigateToMessage?: (messageId: number) => void;
+  isFavoriteView?: boolean;
 }
 
 const ParentMessagePreview = memo<ParentMessagePreviewProps>(
-  ({ message, parentMessage, currentUserId, onNavigateToMessage }) => {
+  ({ message, parentMessage, currentUserId, onNavigateToMessage, isFavoriteView }) => {
     const isCurrentUser = message.senderId === Number(currentUserId);
 
     const hasAttachment = !!parentMessage.messageAttachments?.[0];
@@ -48,7 +49,7 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
         <View
           className={classNames(
             "max-w-[75%] border-l-4 px-3 py-2 rounded-md mb-2",
-            isCurrentUser
+            !isFavoriteView && isCurrentUser
               ? "self-end border-primary-light bg-secondary-light dark:border-primary-dark dark:bg-secondary-dark"
               : "self-start border-primary-dark bg-secondary-light dark:border-primary-light dark:bg-secondary-dark"
           )}
@@ -56,7 +57,7 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
           <AppText
             className={classNames(
               "text-xs font-semibold mb-1",
-              isCurrentUser
+              !isFavoriteView && isCurrentUser
                 ? "text-primary-light text-right"
                 : "text-primary-dark dark:text-primary-light text-left"
             )}

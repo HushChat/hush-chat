@@ -22,6 +22,7 @@ interface ActionsHeaderProps {
   onCopy: (m: IMessage) => void;
   onSelectMessageInfo?: (c: ConversationAPIResponse, m: IMessage) => void;
   onMarkAsUnread: (m: IMessage) => void;
+  onStarMessage: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -34,11 +35,13 @@ const ActionsHeader = ({
   onCopy,
   onSelectMessageInfo,
   onMarkAsUnread,
+  onStarMessage,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const { openModal, closeModal } = useModalContext();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
   const currentUserIsSender = user?.id === message?.senderId;
+  const isFavourite = message.isFavorite;
 
   const documentAttachments = useMemo(() => {
     if (!message?.messageAttachments) return [];
@@ -148,6 +151,11 @@ const ActionsHeader = ({
                 onPress={() => onSelectMessageInfo(conversation, message)}
               />
             )}
+
+          <HeaderAction
+            iconName={isFavourite ? "star" : "star-outline"}
+            onPress={() => onStarMessage(message)}
+          />
 
           <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
         </View>

@@ -6,7 +6,6 @@
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureResponderEvent, View, StyleSheet } from "react-native";
-import { format } from "date-fns";
 import {
   ConversationAPIResponse,
   IMessage,
@@ -19,7 +18,6 @@ import {
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import ParentMessagePreview from "./ParentMessagePreview";
 import WebContextMenu from "@/components/WebContextMenu";
 import { SwipeableMessageRow } from "@/gestures/components/SwipeableMessageRow";
 import { useAddMessageReactionMutation } from "@/query/post/queries";
@@ -31,20 +29,16 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
-import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
-import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
-import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
-import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
 import { router } from "expo-router";
 import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
-import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
 import { CONVERSATION } from "@/constants/routes";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
+import MessageContentBlock from "@/components/conversations/conversation-thread/MessageContentBlock";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -77,6 +71,7 @@ interface MessageItemProps {
   targetMessageId?: number | null;
   webMessageInfoPress?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
+  onMessageFavorite: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -106,16 +101,10 @@ export const ConversationMessageItem = ({
   targetMessageId,
   webMessageInfoPress,
   onMarkMessageAsUnread,
+  onMessageFavorite,
 }: MessageItemProps) => {
-  const attachments = message.messageAttachments ?? [];
-  const hasAttachments = attachments.length > 0;
-
   const queryClient = useQueryClient();
 
-  const hasMedia = useMemo(
-    () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
-    [attachments]
-  );
   const { openModal, closeModal } = useModalContext();
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
@@ -127,7 +116,6 @@ export const ConversationMessageItem = ({
   const [selectedMentionUser, setSelectedMentionUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
-  const parentMessage = message.parentMessage;
   const [reactionSummary, setReactionSummary] = useState(
     message.reactionSummary || { counts: {}, currentUserReaction: "" }
   );
@@ -139,14 +127,7 @@ export const ConversationMessageItem = ({
 
   const messageContent = message.messageText;
   const isForwardedMessage = message.isForwarded;
-  const hasText = !!messageContent;
-  const isGroupChat = conversationAPIResponse?.isGroup;
   const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
-
-  const messageTime = useMemo(
-    () => format(new Date(message.createdAt), "h:mm a"),
-    [message.createdAt]
-  );
 
   useEffect(() => {
     if (message.reactionSummary) setReactionSummary(message.reactionSummary);
@@ -155,12 +136,6 @@ export const ConversationMessageItem = ({
   const hasReactions = useMemo(
     () => Object.values(reactionSummary?.counts || {}).some((count) => (count || 0) > 0),
     [reactionSummary]
-  );
-
-  const senderName = useMemo(
-    () =>
-      `${message.senderFirstName || ""} ${message.senderLastName || ""}`.trim() || "Unknown User",
-    [message.senderFirstName, message.senderLastName]
   );
 
   const outerGesture = useMemo(() => {
@@ -232,12 +207,20 @@ export const ConversationMessageItem = ({
       },
       {
         id: 2,
+        name: message.isFavorite ? "Unfavorite" : "Favorite",
+        iconName: (message.isFavorite
+          ? "heart"
+          : "heart-outline") as keyof typeof Ionicons.glyphMap,
+        action: () => onMessageFavorite?.(message),
+      },
+      {
+        id: 3,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
         action: () => handleTogglePinMessage(),
       },
       {
-        id: 3,
+        id: 4,
         name: "Select message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
@@ -245,7 +228,7 @@ export const ConversationMessageItem = ({
     ];
     if (isCurrentUser && !message.isUnsend) {
       options.push({
-        id: 4,
+        id: 5,
         name: "Unsend Message",
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
@@ -253,7 +236,7 @@ export const ConversationMessageItem = ({
 
       if (isCurrentUser && !message.isUnsend) {
         options.push({
-          id: 4,
+          id: 6,
           name: "Message Info",
           iconName: "information-circle-outline",
           action: () => webMessageInfoPress && webMessageInfoPress(message.id),
@@ -427,20 +410,6 @@ export const ConversationMessageItem = ({
     setShowMentionProfileModal(true);
   }, []);
 
-  const renderParentMessage = () => {
-    if (!parentMessage || message.isUnsend) return null;
-    return (
-      <View className="mb-1">
-        <ParentMessagePreview
-          message={message}
-          parentMessage={parentMessage}
-          currentUserId={currentUserId}
-          onNavigateToMessage={onNavigateToMessage}
-        />
-      </View>
-    );
-  };
-
   const handleBubblePress = useCallback(() => {
     if (!selectionMode) return;
     if (isSystemEvent) return;
@@ -461,81 +430,44 @@ export const ConversationMessageItem = ({
 
   const ContentBlock = () => (
     <View style={styles.contentBlockWrapper}>
-      <View className="group mb-3">
-        <View className="flex-row mx-2">
-          {showSenderAvatar ? (
-            <View className="mr-2 pt-1 w-10 h-10">
-              <InitialsAvatar
-                name={senderName}
-                size={AvatarSize.extraSmall}
-                imageUrl={message.senderSignedImageUrl}
-              />
-            </View>
-          ) : isGroupChat ? (
-            <View className="mr-2 pt-1 w-10 h-10" />
-          ) : null}
-          <View className="flex-1">
-            <MessageHeader
-              isCurrentUser={isCurrentUser}
-              isGroupChat={isGroupChat}
-              showSenderName={showSenderName}
-              senderName={senderName}
-              messageTime={messageTime}
-              messageIsUnsend={message.isUnsend}
-              selectionMode={selectionMode}
-              currentUserId={currentUserId}
-              onOpenPicker={handleOpenPicker}
-              onOpenMenu={openWebMenuAtEvent}
-              messageText={message.messageText}
-              isRead={message.isReadByEveryone}
-            />
+      <MessageContentBlock
+        isGroup={conversationAPIResponse?.isGroup}
+        message={message}
+        isCurrentUser={isCurrentUser}
+        currentUserId={currentUserId}
+        showSenderAvatar={showSenderAvatar}
+        selected={selected}
+        selectionMode={selectionMode}
+        handleOpenPicker={handleOpenPicker}
+        openWebMenuAtEvent={openWebMenuAtEvent}
+        onBubblePress={handleBubblePress}
+        onNavigateToMessage={onNavigateToMessage}
+        showSenderName={showSenderName}
+        targetMessageId={targetMessageId}
+        isForwardedMessage={isForwardedMessage}
+        onMentionClick={handleMentionClick}
+      >
+        <MessageReactions
+          message={message}
+          isCurrentUser={isCurrentUser}
+          isPickerOpen={isPickerOpen}
+          conversationIsBlocked={conversationAPIResponse?.isBlocked ?? false}
+          selectionMode={selectionMode}
+          reactedByCurrentUser={reactedByCurrentUser}
+          reactionSummary={reactionSummary}
+          hasReactions={hasReactions}
+          onSelectReaction={handleSelectReaction}
+          onCloseAllOverlays={onCloseAllOverlays}
+          onViewReactions={handleViewReactions}
+        />
 
-            {renderParentMessage()}
-
-            <View className={isCurrentUser ? "self-end" : "self-start"}>
-              <MessageHighlightWrapper
-                isHighlighted={message.id === targetMessageId}
-                glowColor="#3B82F6"
-              >
-                <MessageBubble
-                  message={message}
-                  isCurrentUser={isCurrentUser}
-                  hasText={hasText}
-                  hasAttachments={hasAttachments}
-                  hasMedia={hasMedia}
-                  selected={selected}
-                  selectionMode={selectionMode}
-                  isForwardedMessage={isForwardedMessage}
-                  attachments={attachments}
-                  onBubblePress={handleBubblePress}
-                  onMentionClick={handleMentionClick}
-                />
-              </MessageHighlightWrapper>
-            </View>
-
-            <MessageReactions
-              message={message}
-              isCurrentUser={isCurrentUser}
-              isPickerOpen={isPickerOpen}
-              conversationIsBlocked={conversationAPIResponse?.isBlocked ?? false}
-              selectionMode={selectionMode}
-              reactedByCurrentUser={reactedByCurrentUser}
-              reactionSummary={reactionSummary}
-              hasReactions={hasReactions}
-              onSelectReaction={handleSelectReaction}
-              onCloseAllOverlays={onCloseAllOverlays}
-              onViewReactions={handleViewReactions}
-            />
-
-            <MentionProfileModal
-              visible={showMentionProfileModal}
-              user={selectedMentionUser}
-              onClose={() => setShowMentionProfileModal(false)}
-              onMessagePress={handleMessageMentionedUser}
-            />
-          </View>
-        </View>
-      </View>
+        <MentionProfileModal
+          visible={showMentionProfileModal}
+          user={selectedMentionUser}
+          onClose={() => setShowMentionProfileModal(false)}
+          onMessagePress={handleMessageMentionedUser}
+        />
+      </MessageContentBlock>
 
       {PLATFORM.IS_WEB && (
         <WebContextMenu

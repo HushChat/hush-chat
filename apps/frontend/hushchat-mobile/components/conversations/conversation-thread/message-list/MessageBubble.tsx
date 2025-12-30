@@ -28,6 +28,7 @@ interface IMessageBubbleProps {
   onMentionClick?: (user: TUser) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
+  isFavoriteView?: boolean;
 }
 
 export const MessageBubble: React.FC<IMessageBubbleProps> = ({
@@ -43,6 +44,7 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   onBubblePress,
   onMentionClick,
   style,
+  isFavoriteView = false,
 }) => {
   const messageContent = message.messageText;
 
@@ -82,7 +84,10 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
       )}
 
       <View
-        className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
+        className={classNames(
+          "rounded-xl",
+          !isFavoriteView && isCurrentUser ? "items-end" : "items-start"
+        )}
         style={style}
       >
         <ForwardedLabel isForwardedMessage={isForwardedMessage} isCurrentUser={isCurrentUser} />

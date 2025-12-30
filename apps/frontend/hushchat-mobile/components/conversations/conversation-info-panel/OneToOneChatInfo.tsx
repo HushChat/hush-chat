@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, Dimensions } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { useModalContext } from "@/context/modal-context";
@@ -15,6 +15,10 @@ import { useBlockUserMutation } from "@/query/post/queries";
 import { useUnblockUserMutation } from "@/query/delete/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
+import useWebPanelManager from "@/hooks/useWebPanelManager";
+import { PanelType } from "@/types/web-panel/types";
+import { MotionView } from "@/motion/MotionView";
+import FavoriteMessages from "@/components/conversations/conversation-info-panel/FavoriteMessages";
 
 interface OneToOneChatInfoProps {
   conversation: IConversation;
@@ -36,6 +40,24 @@ export default function OneToOneChatInfo({
   const {
     user: { id: userId },
   } = useUserStore();
+
+  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
+
+  const { activePanel, closePanel, openPanel, panelWidth, isPanelContentReady } =
+    useWebPanelManager(screenWidth);
+
+  const handleFavoriteMessages = () => {
+    openPanel(PanelType.FAVORITE_MESSAGES);
+  };
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
+      setScreenWidth(window.width);
+    });
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   const blockUserMutation = useBlockUserMutation(
     { userId: Number(userId), conversationId: conversation.id },
@@ -136,6 +158,7 @@ export default function OneToOneChatInfo({
             onBack={onBack}
             setSelectedConversation={setSelectedConversation}
             onShowMediaAttachments={onShowMediaAttachments}
+            showFavoriteMessages={handleFavoriteMessages}
           />
           <ActionItem
             icon="ban-outline"
@@ -147,6 +170,17 @@ export default function OneToOneChatInfo({
           />
         </View>
       </View>
+
+      {isPanelContentReady && activePanel === PanelType.FAVORITE_MESSAGES && (
+        <MotionView
+          visible={activePanel === PanelType.FAVORITE_MESSAGES}
+          className="flex-1 absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondary-dark"
+          from={{ translateX: panelWidth, opacity: 0 }}
+          to={{ translateX: 0, opacity: 10 }}
+        >
+          <FavoriteMessages conversationId={conversation.id} onClose={closePanel} />
+        </MotionView>
+      )}
     </View>
   );
 }

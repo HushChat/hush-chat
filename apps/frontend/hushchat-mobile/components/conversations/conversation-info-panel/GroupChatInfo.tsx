@@ -27,6 +27,8 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
 import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
+import { MotionView } from "@/motion/MotionView";
+import FavoriteMessages from "@/components/conversations/conversation-info-panel/FavoriteMessages";
 
 const COLORS = {
   button: "#3b82f6",
@@ -108,6 +110,10 @@ export default function GroupChatInfo({
 
   const handleInviteViaLink = () => {
     openPanel(PanelType.INVITE_LINK);
+  };
+
+  const handleFavoriteMessages = () => {
+    openPanel(PanelType.FAVORITE_MESSAGES);
   };
 
   const exitGroupMutation = useExitGroupConversationMutation(
@@ -337,6 +343,7 @@ export default function GroupChatInfo({
                 onBack={onBack}
                 setSelectedConversation={setSelectedConversation}
                 onShowMediaAttachments={onShowMediaAttachments}
+                showFavoriteMessages={handleFavoriteMessages}
               />
               <ActionItem
                 icon="exit-outline"
@@ -404,6 +411,17 @@ export default function GroupChatInfo({
             visible={activePanel === PanelType.GROUP_PREFERENCES}
           />
         </View>
+      )}
+
+      {isPanelContentReady && activePanel === PanelType.FAVORITE_MESSAGES && (
+        <MotionView
+          visible={activePanel === PanelType.FAVORITE_MESSAGES}
+          className="flex-1 absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondary-dark"
+          from={{ translateX: panelWidth, opacity: 0 }}
+          to={{ translateX: 0, opacity: 1 }}
+        >
+          <FavoriteMessages conversationId={conversation.id} onClose={closePanel} />
+        </MotionView>
       )}
     </View>
   );
