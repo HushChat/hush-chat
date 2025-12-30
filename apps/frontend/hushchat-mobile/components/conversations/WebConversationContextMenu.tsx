@@ -4,6 +4,7 @@ import { TITLES } from "@/constants/constants";
 import { ToastUtils } from "@/utils/toastUtils";
 import WebChatContextMenu from "@/components/WebContextMenu";
 import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
+import { useMarkConversationAsRead } from "@/hooks/useMarkConversationAsRead";
 
 interface ConversationWebChatContextMenuProps {
   visible: boolean;
@@ -34,6 +35,7 @@ const ConversationWebChatContextMenu = ({
       initialPinned,
       initialFavorite,
     });
+  const { markConversationAsRead } = useMarkConversationAsRead();
 
   const handleOptionSelect = useCallback(
     async (action: () => Promise<void> | void) => {
@@ -85,6 +87,12 @@ const ConversationWebChatContextMenu = ({
           },
       {
         id: 4,
+        name: TITLES.MARK_AS_READ,
+        iconName: "chatbox-ellipses-outline",
+        action: () => markConversationAsRead(conversationId),
+      },
+      {
+        id: 5,
         name: TITLES.DELETE_CHAT,
         iconName: "trash-outline",
         action: () => handleDeletePress(conversationId),

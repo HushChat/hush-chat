@@ -252,4 +252,21 @@ public class ConversationMessageController {
         
         return ResponseEntity.ok(readInfo);
     }
+
+    /**
+     * Mark all messages as read for a single conversation.
+     *
+     * @param userDetails      the authenticated user
+     * @param conversationId   the ID of the conversation to mark as read
+     * @return the response entity indicating the operation result
+     */
+    @ApiOperation("Mark all messages as read for a conversation")
+    @PatchMapping("/read-all")
+    public ResponseEntity<Void> markConversationAsRead(
+            @AuthenticatedUser UserDetails userDetails,
+            @PathVariable Long conversationId
+    ) {
+        conversationReadStatusService.markConversationAsRead(userDetails.getId(), conversationId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 }

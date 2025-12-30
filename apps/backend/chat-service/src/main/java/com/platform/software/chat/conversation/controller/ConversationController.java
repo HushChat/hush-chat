@@ -3,6 +3,7 @@ package com.platform.software.chat.conversation.controller;
 import com.platform.software.chat.call.dto.CallLogUpsertDTO;
 import com.platform.software.chat.call.service.CallLogService;
 import com.platform.software.chat.conversation.dto.*;
+import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
@@ -31,15 +32,18 @@ public class ConversationController {
     private final ConversationService conversationService;
     private final CallLogService callLogService;
     private final MessageService messageService;
+    private final ConversationReadStatusService conversationReadStatusService;
 
     public ConversationController(
         ConversationService conversationService,
         MessageService messageService,
-        CallLogService callLogService
+        CallLogService callLogService,
+        ConversationReadStatusService conversationReadStatusService
     ) {
         this.conversationService = conversationService;
         this.callLogService = callLogService;
         this.messageService = messageService;
+        this.conversationReadStatusService = conversationReadStatusService;
     }
 
     /**Create a new conversation, either one-to-one.
@@ -571,6 +575,21 @@ public class ConversationController {
             @AuthenticatedUser UserDetails userDetails
     ){
         return ResponseEntity.ok(conversationService.joinConversationByInviteLink(userDetails.getId(), token));
+    }
+
+    /**
+     * Mark all conversations as read.
+     *
+     * @param userDetails the authenticated user
+     * @return the response entity indicating the operation result
+     */
+    @ApiOperation("Mark all conversations as read")
+    @PatchMapping("/read-all")
+    public ResponseEntity<Void> markAllConversationsAsRead(
+        @AuthenticatedUser UserDetails userDetails
+    ) {
+        conversationReadStatusService.markAllConversationsAsRead(userDetails.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PatchMapping("{conversationId}/notifications/mentions-only")

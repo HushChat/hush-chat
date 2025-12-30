@@ -35,4 +35,5 @@ public interface ConversationQueryRepository {
 
     long clearExpiredPinnedMessageFromConversation(Long conversationId);
 
+    List<Conversation> getAllConversationsForCurrentUser(Long userId);
 }

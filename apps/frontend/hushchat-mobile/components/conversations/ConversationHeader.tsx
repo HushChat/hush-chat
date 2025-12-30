@@ -10,6 +10,7 @@ import { AppText } from "@/components/AppText";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
+import { useMarkAllConversationsAsRead } from "@/hooks/useMarkAllConversationsAsRead ";
 
 type TChatHeaderMenuProps = {
   onRefresh: () => void;
@@ -27,6 +28,7 @@ export const ConversationHeader = ({
   setSelectedConversationType,
 }: TChatHeaderMenuProps) => {
   const { visible, position, openAtEvent, close } = useContextMenu();
+  const { markAllConversationsAsRead } = useMarkAllConversationsAsRead();
 
   const headerTitle = useConversationHeaderTitle(selectedConversationType);
 
@@ -38,6 +40,12 @@ export const ConversationHeader = ({
       action: () => {
         if (onCreateGroup) return onCreateGroup();
       },
+    },
+    {
+      id: 2,
+      name: "Mark all as Read",
+      iconName: "chatbox-ellipses-outline",
+      action: markAllConversationsAsRead,
     },
   ];
 

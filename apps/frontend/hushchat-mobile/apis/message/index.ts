@@ -131,3 +131,14 @@ export const getMessageSeenParticipants = async (
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
+
+export const markConversationMessagesAsRead = async (conversationId: number) => {
+  try {
+    await axios.patch(
+      CONVERSATION_API_ENDPOINTS.MARK_CONVERSATION_MESSAGES_AS_READ(conversationId)
+    );
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
