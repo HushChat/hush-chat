@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +23,10 @@ public class ConversationMetaDataDTO {
     private String description;
     private BasicMessageDTO pinnedMessage;
     private ChatUserStatus chatUserStatus;
+    private Boolean onlyAdminsCanSendMessages;
+    private Boolean isCurrentUserAdmin;
+    private Date pinnedMessageUntil;
+    private boolean notifyOnMentionsOnly;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();
@@ -30,5 +36,9 @@ public class ConversationMetaDataDTO {
         this.isBlocked = false;
         this.description = conversation.getDescription();
         this.signedImageUrl = conversation.getSignedImageUrl();
+        this.onlyAdminsCanSendMessages = conversation.getOnlyAdminsCanSendMessages();
+        this.pinnedMessageUntil = conversation.getPinnedMessageUntil() != null
+                ? Date.from(conversation.getPinnedMessageUntil().toInstant())
+                : null;
     }
 }

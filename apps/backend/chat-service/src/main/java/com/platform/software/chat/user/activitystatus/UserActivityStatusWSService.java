@@ -1,6 +1,7 @@
 package com.platform.software.chat.user.activitystatus;
 
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusDTO;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.common.constants.WebSocketTopicConstants;
@@ -22,7 +23,7 @@ public class UserActivityStatusWSService {
     private final SimpMessagingTemplate template;
 
     @Async
-    public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status) {
+    public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status, String deviceType) {
         WorkspaceContext.setCurrentWorkspace(workspaceId);
 
         // TODO: cache, must be sure about the cache evict
@@ -49,6 +50,8 @@ public class UserActivityStatusWSService {
             .filter(Objects::nonNull)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        DeviceType device = DeviceType.valueOf(deviceType);
+
         for (Map.Entry<String, Set<Long>> entry : matchingSessionKeysWithConversations.entrySet()) {
             String workspaceIdAndEmail = entry.getKey();
 
@@ -56,7 +59,7 @@ public class UserActivityStatusWSService {
                 template.convertAndSendToUser(
                     workspaceIdAndEmail,
                     WebSocketTopicConstants.ONLINE_STATUS,
-                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status)
+                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status, device)
                 );
             }
         }

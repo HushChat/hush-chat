@@ -26,6 +26,7 @@ type TChatInfoActionProps = {
   isMuted: boolean;
   onBack: () => void;
   setSelectedConversation?: (conversation: null) => void;
+  onShowMediaAttachments?: () => void;
 };
 
 export default function ChatInfoCommonAction({
@@ -35,6 +36,7 @@ export default function ChatInfoCommonAction({
   isMuted,
   onBack,
   setSelectedConversation = () => {},
+  onShowMediaAttachments,
 }: TChatInfoActionProps) {
   const { openModal, closeModal } = useModalContext();
   const { selectedConversationType } = useConversationStore();
@@ -66,6 +68,8 @@ export default function ChatInfoCommonAction({
       ToastUtils.error(getAPIErrorMsg(error));
     }
   );
+
+  const handleShowMediaAttachments = onShowMediaAttachments || (() => {});
 
   useEffect(() => {
     setIsMutedState(isMuted);
@@ -132,6 +136,11 @@ export default function ChatInfoCommonAction({
   const actions: IActionConfig[] = useMemo(
     () => [
       {
+        label: "All Media files",
+        icon: "images-outline",
+        onPress: handleShowMediaAttachments,
+      },
+      {
         label: isPinned ? "Unpin" : "Pin",
         icon: isPinned ? "pin-outline" : "pin",
         onPress: togglePin,
@@ -160,6 +169,7 @@ export default function ChatInfoCommonAction({
       togglePin,
       toggleFavorite,
       handleToggleMuteConversation,
+      onShowMediaAttachments,
     ]
   );
 
