@@ -35,6 +35,7 @@ export default function FavoriteMessages({ conversationId, onClose }: IFavoriteM
 
   const render = ({ item }: { item: IMessage }) => {
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
+    const isForwardedMessage = item.isForwarded;
 
     return (
       <MessageContentBlock
@@ -44,8 +45,9 @@ export default function FavoriteMessages({ conversationId, onClose }: IFavoriteM
         showSenderAvatar={true}
         selected={false}
         selectionMode={false}
-        showHeader={true}
         isFavoriteView={true}
+        showSenderName={true}
+        isForwardedMessage={isForwardedMessage}
       />
     );
   };

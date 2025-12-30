@@ -446,6 +446,7 @@ export const ConversationMessageItem = ({
         targetMessageId={targetMessageId}
         isForwardedMessage={isForwardedMessage}
         onMentionClick={handleMentionClick}
+        isFavoriteView={false}
       >
         <MessageReactions
           message={message}
