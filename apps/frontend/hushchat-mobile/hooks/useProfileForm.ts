@@ -3,7 +3,7 @@ import { useForm } from "@/hooks/useForm";
 import { ProfilePasswordSchema } from "@/types/user/types";
 import type { TProfileFormProps } from "@/types/login/types";
 import { useUpdateUserMutation } from "@/query/patch/queries";
-import { useChangePasswordQuery } from "@/query/post/queries";
+import { useChangePasswordMutation } from "@/query/post/queries";
 import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 import {
@@ -35,8 +35,9 @@ export function useProfileForm() {
       confirmPassword: "",
     });
 
-  const changeUserPassword = useChangePasswordQuery(
-    () => {
+  const changeUserPassword = useChangePasswordMutation(
+    undefined,
+    async () => {
       ToastUtils.success("Password updated successfully");
       setValues((prev) => ({
         ...prev,
