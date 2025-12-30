@@ -21,6 +21,7 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.constants.GeneralConstants;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.model.UserDetails;
@@ -77,7 +78,15 @@ public class MessageService {
         newMessage.setConversation(conversation);
         newMessage.setSender(loggedInUser);
         newMessage.setMessageType(messageType);
+        newMessage.setHasLinks(hasLinks(messageText));
         return newMessage;
+    }
+
+    private static boolean hasLinks(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return false;
+        }
+        return GeneralConstants.URL_PATTERN.matcher(text).find();
     }
 
     private List<MessageAttachment> mapToNewAttachments(List<MessageAttachment> attachments, Message newMessage) {
@@ -113,7 +122,6 @@ public class MessageService {
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
-
 
         if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
             MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
@@ -162,6 +170,7 @@ public class MessageService {
         }
 
         message.setMessageText(messageDTO.getMessageText());
+        message.setHasLinks(hasLinks(messageDTO.getMessageText()));
         MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
@@ -604,5 +613,12 @@ public class MessageService {
             conversationId,
             loggedInUserId
         );
+    }
+
+    public Page<MessageViewDTO> getMessagesWithLinks(Long conversationId, Pageable pageable) {
+        Page<Message> messages = messageRepository.findByConversationIdAndHasLinksTrueOrderByCreatedAtDesc(conversationId, pageable);
+
+        Page<MessageViewDTO> messageDTOs = messages.map(MessageViewDTO::new);
+        return messageDTOs;
     }
 }

@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_has_links_to_message
+      author: pramodya
+      tag: release-8.1
+      comment: "Add hasLinks column to message table"
+      changes:
+        - addColumn:
+            tableName: message
+            columns:
+              - column:
+                  name: has_links
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: update_existing_messages_has_links
+      author: pramodya
+      tag: release-8.2
+      comment: "Update existing messages to set hasLinks flag for messages containing URLs"
+      changes:
+        - sql:
+            sql: >
+              UPDATE message 
+              SET has_links = true 
+              WHERE message_text ~ 'https?://[^\s]+'
+              AND is_unsend = false;

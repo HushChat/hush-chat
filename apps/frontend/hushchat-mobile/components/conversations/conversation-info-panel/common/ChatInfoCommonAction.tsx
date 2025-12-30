@@ -136,7 +136,7 @@ export default function ChatInfoCommonAction({
   const actions: IActionConfig[] = useMemo(
     () => [
       {
-        label: "All Media files",
+        label: "Media, links, docs",
         icon: "images-outline",
         onPress: handleShowMediaAttachments,
       },

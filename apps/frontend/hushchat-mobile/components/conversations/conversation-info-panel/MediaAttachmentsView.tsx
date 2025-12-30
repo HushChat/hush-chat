@@ -19,10 +19,17 @@ import { capitalizeFirstLetter } from "@/utils/commonUtils";
 import { AttachmentFilterCriteria } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
 import classNames from "classnames";
+import LinksList from "./LinkList";
 
 interface MediaAttachmentsViewProps {
   conversationId: number;
   onBack: () => void;
+}
+
+export enum AttachmentViewTabEnum {
+  MEDIA = "MEDIA",
+  DOCS = "DOCS",
+  LINKS = "LINKS",
 }
 
 const groupByMonth = (attachments: IMessageAttachment[]): Map<string, IMessageAttachment[]> => {
@@ -52,33 +59,41 @@ export default function MediaAttachmentsView({
   conversationId,
   onBack,
 }: MediaAttachmentsViewProps) {
-  const [activeTab, setActiveTab] = useState<MessageAttachmentTypeEnum>(
-    MessageAttachmentTypeEnum.MEDIA
-  );
+  const [activeTab, setActiveTab] = useState<AttachmentViewTabEnum>(AttachmentViewTabEnum.MEDIA);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const { colors } = useAppTheme();
 
-  const typeFilter = activeTab;
+  const typeFilter: MessageAttachmentTypeEnum | undefined =
+    activeTab === AttachmentViewTabEnum.LINKS
+      ? undefined
+      : (activeTab as unknown as MessageAttachmentTypeEnum);
 
   const filtercriteria: AttachmentFilterCriteria = {
     type: typeFilter,
   };
 
-  const { pages, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useConversationAttachmentsQuery(conversationId, filtercriteria, 20);
+  const {
+    pages: attachmentPages,
+    isLoading: isLoadingAttachments,
+    error: attachmentsError,
+    fetchNextPage: fetchNextAttachments,
+    hasNextPage: hasNextAttachments,
+    isFetchingNextPage: isFetchingNextAttachments,
+  } = useConversationAttachmentsQuery(conversationId, filtercriteria, 20);
 
   const attachments: IMessageAttachment[] = useMemo(
-    () => pages?.pages.flatMap((page) => (page.content || []) as IMessageAttachment[]) || [],
-    [pages]
+    () =>
+      attachmentPages?.pages.flatMap((page) => (page.content || []) as IMessageAttachment[]) || [],
+    [attachmentPages]
   );
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
 
-    if (isNearBottom && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+    if (isNearBottom && hasNextAttachments && !isFetchingNextAttachments) {
+      fetchNextAttachments();
     }
   };
 
@@ -92,28 +107,28 @@ export default function MediaAttachmentsView({
     setSelectedImageIndex(-1);
   };
 
-  if (isLoading) {
+  if (isLoadingAttachments && activeTab !== AttachmentViewTabEnum.LINKS) {
     return (
       <View className="flex-1" style={{ backgroundColor: colors.background }}>
-        <Header title="Attachments" onBack={onBack} color={colors.text} />
+        <Header onBack={onBack} color={colors.text} />
         <View className="flex-1 justify-center items-center px-8">
           <ActivityIndicator size="large" color={colors.tint} />
           <AppText className="text-sm mt-3" style={{ color: colors.icon }}>
-            Loading attachments...
+            Loading...
           </AppText>
         </View>
       </View>
     );
   }
 
-  if (error) {
+  if (attachmentsError && activeTab !== AttachmentViewTabEnum.LINKS) {
     return (
       <View className="flex-1" style={{ backgroundColor: colors.background }}>
-        <Header title="Attachments" onBack={onBack} color={colors.text} />
+        <Header onBack={onBack} color={colors.text} />
         <View className="flex-1 justify-center items-center px-8">
           <Ionicons name="alert-circle-outline" size={64} color={colors.icon} />
           <AppText className="text-base mt-4 text-center" style={{ color: colors.icon }}>
-            Failed to load attachments
+            Failed to load
           </AppText>
         </View>
       </View>
@@ -129,25 +144,27 @@ export default function MediaAttachmentsView({
         onClose={handleCloseImagePreview}
       />
 
-      <Header title="Attachments" onBack={onBack} color={colors.text} />
+      <Header onBack={onBack} color={colors.text} />
 
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} colors={colors} />
 
-      {attachments.length === 0 ? (
+      {activeTab === AttachmentViewTabEnum.LINKS ? (
+        <LinksList conversationId={conversationId} colors={colors} />
+      ) : attachments.length === 0 ? (
         <EmptyState activeTab={activeTab} colors={colors} />
-      ) : activeTab === MessageAttachmentTypeEnum.MEDIA ? (
+      ) : activeTab === AttachmentViewTabEnum.MEDIA ? (
         <MediaGrid
           attachments={attachments}
           onScroll={handleScroll}
           onImagePress={handleOpenImage}
-          isFetchingNextPage={isFetchingNextPage}
+          isFetchingNextPage={isFetchingNextAttachments}
           colors={colors}
         />
       ) : (
         <DocsList
           attachments={attachments}
           onScroll={handleScroll}
-          isFetchingNextPage={isFetchingNextPage}
+          isFetchingNextPage={isFetchingNextAttachments}
           colors={colors}
         />
       )}
@@ -156,28 +173,31 @@ export default function MediaAttachmentsView({
 }
 
 interface HeaderProps {
-  title: string;
   onBack: () => void;
   color: string;
 }
 
-function Header({ title, onBack, color }: HeaderProps) {
+function Header({ onBack, color }: HeaderProps) {
   return (
     <View className="flex-row items-center px-4 py-3">
       <TouchableOpacity onPress={onBack} className="p-1 mr-3">
         <Ionicons name="chevron-back" size={24} color={color} />
       </TouchableOpacity>
-      <AppText className="text-lg font-semibold" style={{ color: color }}>
-        {title}
-      </AppText>
     </View>
   );
 }
 
-function TabBar({ activeTab, onTabChange }: any) {
+function TabBar({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: AttachmentViewTabEnum;
+  onTabChange: (tab: AttachmentViewTabEnum) => void;
+  colors: any;
+}) {
   return (
     <View className="flex-row justify-between px-4 border-b border-gray-500/20">
-      {Object.values(MessageAttachmentTypeEnum).map((tab) => {
+      {Object.values(AttachmentViewTabEnum).map((tab) => {
         const isActive = activeTab === tab;
         return (
           <TouchableOpacity
@@ -201,15 +221,27 @@ function TabBar({ activeTab, onTabChange }: any) {
   );
 }
 
-function EmptyState({ activeTab, colors }: any) {
-  const message =
-    activeTab === MessageAttachmentTypeEnum.MEDIA ? "No media files yet" : "No documents yet";
-  const iconName =
-    activeTab === MessageAttachmentTypeEnum.MEDIA ? "images-outline" : "document-text-outline";
+function EmptyState({ activeTab, colors }: { activeTab: AttachmentViewTabEnum; colors: any }) {
+  const config = {
+    [AttachmentViewTabEnum.MEDIA]: {
+      message: "No media files yet",
+      icon: "images-outline",
+    },
+    [AttachmentViewTabEnum.DOCS]: {
+      message: "No documents yet",
+      icon: "document-text-outline",
+    },
+    [AttachmentViewTabEnum.LINKS]: {
+      message: "No links shared yet",
+      icon: "link-outline",
+    },
+  };
+
+  const { message, icon } = config[activeTab] || config[AttachmentViewTabEnum.MEDIA];
 
   return (
     <View className="flex-1 justify-center items-center px-8">
-      <Ionicons name={iconName as any} size={64} color={colors.icon} />
+      <Ionicons name={icon as any} size={64} color={colors.icon} />
       <AppText className="text-base mt-4 text-center" style={{ color: colors.icon }}>
         {message}
       </AppText>
@@ -293,6 +325,7 @@ interface DocsListProps {
     tint: string;
   };
 }
+
 function DocsList({ attachments, onScroll, isFetchingNextPage, colors }: DocsListProps) {
   const handleDownload = (url: string) => {
     Linking.openURL(url);

@@ -252,4 +252,13 @@ public class ConversationMessageController {
         
         return ResponseEntity.ok(readInfo);
     }
+
+    @GetMapping("/links")
+    public ResponseEntity<Page<MessageViewDTO>> getMessagesWithLinks(
+        @PathVariable Long conversationId,
+        Pageable pageable
+    ) {
+        Page<MessageViewDTO> messages = messageService.getMessagesWithLinks(conversationId, pageable);
+        return ResponseEntity.ok(messages);
+    }
 }
