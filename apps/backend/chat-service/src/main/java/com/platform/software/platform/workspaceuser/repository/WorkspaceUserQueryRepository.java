@@ -9,5 +9,5 @@ public interface WorkspaceUserQueryRepository {
     Workspace findPendingWorkspaceByUserEmailOrThrow(String email, String currantWorkspace);
     Workspace validateWorkspaceMembershipOrThrow(String inviterEmail, String workspaceIdentifier);
     WorkspaceUser validateWorkspaceAccess(String workspaceIdentifier, String email);
-    Page<WorkspaceUser> fetchWorkspaceUsersPage(Pageable pageable);
+    Page<WorkspaceUser> fetchWorkspaceUsersPage(Pageable pageable, String searchKeyword);
 }

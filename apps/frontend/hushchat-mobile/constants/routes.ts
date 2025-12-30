@@ -23,3 +23,6 @@ export const SETTINGS_WORKSPACE = "/settings/change-workspace";
 export const CONVERSATION = (id: number): Href => `/conversations/${id}` as Href;
 export const MESSAGE_READ_PARTICIPANTS =
   "/conversations/[conversationId]/messages/[messageId]/read-by";
+export const USER_DETAILS = (userId: number): Href => `/settings/users/${userId}` as Href;
+export const SETTINGS_USERS_LIST = "/settings/users/list";
+export const SETTINGS_USERS = "/settings/users";
