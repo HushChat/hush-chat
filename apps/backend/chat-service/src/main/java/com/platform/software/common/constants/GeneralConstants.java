@@ -1,5 +1,6 @@
 package com.platform.software.common.constants;
 
+import java.util.regex.Pattern;
 
 public class GeneralConstants {
     public static final String X_TENANT_HEADER = Constants.X_TENANT_HEADER;
@@ -14,4 +15,9 @@ public class GeneralConstants {
 
     public static final String WORKSPACE_ID = "workspaceId";
     public static final String DEVICE_TYPE = "deviceType";
+
+    public static final Pattern URL_PATTERN = Pattern.compile(
+        "https?://[\\w\\-]+(\\.[\\w\\-]+)+[/#?]?.*?(?=\\s|$)",
+        Pattern.CASE_INSENSITIVE
+    );
 }

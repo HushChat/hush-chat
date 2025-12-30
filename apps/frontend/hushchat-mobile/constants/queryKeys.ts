@@ -82,6 +82,13 @@ export const conversationMessageQueryKeys = {
   ],
 
   messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
+
+  messagesWithLink: (conversationId: number, pageSize: number) => [
+    CONVERSATION_MESSAGE_QUERY_BASE_KEY,
+    conversationId,
+    "links",
+    pageSize,
+  ],
 };
 
 export const userQueryKeys = {

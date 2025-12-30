@@ -63,7 +63,7 @@ export interface ReportConversationParams {
 }
 
 export interface AttachmentFilterCriteria {
-  type: MessageAttachmentTypeEnum;
+  type?: MessageAttachmentTypeEnum;
 }
 
 export const getAllConversations = async (
@@ -548,5 +548,20 @@ export const joinConversationByInvite = async (token: string) => {
     return { data: response.data };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const getMessagesWithLink = async (conversationId: number, page: number, size: number) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_MESSAGES_WITH_LINK(conversationId),
+      {
+        params: { page, size },
+      }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };

@@ -62,4 +62,7 @@ public class Message extends AuditModel{
 
     @Enumerated(EnumType.STRING)
     private MessageTypeEnum messageType;
+
+    @Column(nullable = false)
+    private Boolean hasLinks = false;
 }

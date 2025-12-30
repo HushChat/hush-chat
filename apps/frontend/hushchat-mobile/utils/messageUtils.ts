@@ -210,3 +210,32 @@ export const openFileNative = async (fileUrl: string): Promise<void> => {
     throw error;
   }
 };
+
+/**
+ * Returns "Today", "Yesterday", day name for last 7 days, or formatted date
+ */
+export const formatRelativeDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return "Today";
+  }
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  const daysAgo = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysAgo < 7) {
+    return date.toLocaleDateString("en-US", { weekday: "long" });
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
+};
