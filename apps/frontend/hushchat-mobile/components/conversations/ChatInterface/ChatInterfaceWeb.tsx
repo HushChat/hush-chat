@@ -159,15 +159,16 @@ export default function ChatInterfaceWeb({
             onCreateGroup={() => setShowCreateGroup(true)}
           />
 
-          {selectedConversationType === ConversationType.ALL && (
-            <View className="px-4 sm:px-6">
-              <SearchBar
-                value={searchQuery}
-                onChangeText={onSearchQueryInserting}
-                onClear={() => onSearchQueryInserting("")}
-              />
-            </View>
-          )}
+          {selectedConversationType === ConversationType.ALL ||
+            (selectedConversationType === ConversationType.ARCHIVED && (
+              <View className="px-4 sm:px-6">
+                <SearchBar
+                  value={searchQuery}
+                  onChangeText={onSearchQueryInserting}
+                  onClear={() => onSearchQueryInserting("")}
+                />
+              </View>
+            ))}
 
           {selectedConversationType !== ConversationType.ARCHIVED && (
             <View className="px-4 sm:px-6 py-3">
