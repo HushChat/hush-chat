@@ -22,6 +22,8 @@ export type TLoginFormProps = {
   formErrors: Record<string, string>;
   showErrors: boolean;
   onValueChange: (arg: { name: string; value: string }) => void;
+  canUseBiometrics?: boolean;
+  onBiometricLogin?: () => void;
 };
 
 export interface Workspace {

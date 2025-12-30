@@ -12,6 +12,7 @@ import { AUTH_FORGOT_PASSWORD_PATH, AUTH_REGISTER_PATH } from "@/constants/route
 import { TLoginFormProps } from "@/types/login/types";
 import TextField from "@/components/forms/TextField";
 import { AppText } from "@/components/AppText";
+import { Ionicons } from "@expo/vector-icons";
 
 export const LoginForm = memo(
   ({
@@ -22,6 +23,8 @@ export const LoginForm = memo(
     formErrors,
     showErrors,
     onValueChange,
+    canUseBiometrics,
+    onBiometricLogin,
   }: TLoginFormProps) => (
     <FormContainer>
       <FormHeader
@@ -44,7 +47,6 @@ export const LoginForm = memo(
             showErrors={showErrors}
             onValueChange={onValueChange}
           />
-
           <TextField
             name="password"
             placeholder="Password"
@@ -55,6 +57,7 @@ export const LoginForm = memo(
             onValueChange={onValueChange}
           />
         </View>
+
         <TouchableOpacity
           className="self-end pt-2 mb-5"
           onPress={() => router.push(AUTH_FORGOT_PASSWORD_PATH)}
@@ -65,6 +68,21 @@ export const LoginForm = memo(
         </TouchableOpacity>
 
         <FormButton title="Log In" onPress={onSubmit} colors={colors} />
+        {canUseBiometrics && (
+          <TouchableOpacity
+            onPress={onBiometricLogin}
+            className="flex-row justify-center items-center p-3 rounded-xl border border-dashed mb-2"
+            style={{ borderColor: colors.primary }}
+          >
+            <Ionicons
+              name="apps-outline"
+              size={16}
+              color={colors.primary}
+              style={{ marginRight: 8 }}
+            />
+            <AppText style={{ color: colors.primary, fontWeight: "600" }}>Login with Pin</AppText>
+          </TouchableOpacity>
+        )}
 
         <LinkText
           text="Don't have an account?"
@@ -76,4 +94,5 @@ export const LoginForm = memo(
     </FormContainer>
   )
 );
+
 LoginForm.displayName = "LoginForm";
