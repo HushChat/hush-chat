@@ -19,7 +19,7 @@ import { downloadFileWeb, openFileNative } from "@/utils/messageUtils";
 type TDocumentCardProps = {
   attachment: IMessageAttachment;
   isCurrentUser: boolean;
-  onPreview?: () => void; // Add this
+  onPreview?: () => void;
 };
 
 export const DocumentCard = ({ attachment, isCurrentUser, onPreview }: TDocumentCardProps) => {

@@ -1,24 +1,14 @@
 import React, { useState } from "react";
-import { Modal, View, Pressable, ActivityIndicator, Platform, SafeAreaView } from "react-native";
+import { Modal, View, Pressable, ActivityIndicator, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
-import { useColorScheme } from "nativewind";
+import { SafeAreaView } from "react-native-safe-area-context";
 import classNames from "classnames";
 
 import { AppText } from "@/components/AppText";
 import { IMessageAttachment } from "@/types/chat/types";
 import { openFileNative } from "@/utils/messageUtils";
-
-// Helper to get active hex colors for Icon/Loader props
-const useThemeColors = () => {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  return {
-    primary: isDark ? "#563dc4" : "#6B4EFF",
-    icon: isDark ? "#9ca3af" : "#6B7280",
-  };
-};
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface IDocumentPreviewProps {
   visible: boolean;
@@ -29,7 +19,15 @@ interface IDocumentPreviewProps {
 export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPreviewProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const themeColors = useThemeColors();
+
+  const { colors } = useAppTheme();
+
+  const themeColors = {
+    primary: colors.tint,
+    icon: colors.icon,
+    background: colors.background,
+    text: colors.text,
+  };
 
   if (!visible || !attachment) return null;
 
@@ -115,9 +113,11 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: themeColors.background }}
+        className="bg-background-light dark:bg-background-dark"
+      >
         <View className="flex-1">
-          {/* Header */}
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-background-light dark:bg-background-dark">
             <View className="flex-1 mr-4">
               <AppText
@@ -128,10 +128,10 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
               </AppText>
             </View>
             <View className="flex-row gap-2">
-              <Pressable onPress={handleOpenExternal} className="p-2 active:opacity-80">
+              <Pressable onPress={handleOpenExternal} className="p-2 active:opacity-70">
                 <Ionicons name="download-outline" size={24} color={themeColors.primary} />
               </Pressable>
-              <Pressable onPress={onClose} className="p-2 active:opacity-80">
+              <Pressable onPress={onClose} className="p-2 active:opacity-70">
                 <Ionicons name="close" size={24} color={themeColors.icon} />
               </Pressable>
             </View>

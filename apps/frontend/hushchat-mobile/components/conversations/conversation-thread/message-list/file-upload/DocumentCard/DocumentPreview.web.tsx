@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Modal, View, Pressable, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useColorScheme } from "nativewind";
 import classNames from "classnames";
 
 import { AppText } from "@/components/AppText";
 import { IMessageAttachment } from "@/types/chat/types";
 import { downloadFileWeb } from "@/utils/messageUtils";
-
-// Helper to get active hex colors for Icon/Loader props
-const useThemeColors = () => {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  return {
-    primary: isDark ? "#563dc4" : "#6B4EFF", // primary-dark : primary-light
-    icon: isDark ? "#9ca3af" : "#6B7280", // text-secondary-dark : text-secondary-light
-    error: "#EF4444",
-  };
-};
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface IDocumentPreviewProps {
   visible: boolean;
@@ -29,7 +17,14 @@ interface IDocumentPreviewProps {
 export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPreviewProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const themeColors = useThemeColors();
+
+  const { isDark } = useAppTheme();
+
+  const themeColors = {
+    primary: isDark ? "#563dc4" : "#6B4EFF",
+    icon: isDark ? "#9ca3af" : "#6B7280",
+    error: "#EF4444",
+  };
 
   useEffect(() => {
     if (visible) {
@@ -119,7 +114,6 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   return (
     <Modal visible={visible} transparent={false} animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-background-light dark:bg-background-dark">
-        {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-background-light dark:bg-background-dark">
           <View className="flex-1 mr-4">
             <AppText
@@ -130,16 +124,10 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
             </AppText>
           </View>
           <View className="flex-row gap-2">
-            <Pressable
-              onPress={handleDownload}
-              className="p-2 bg-secondary-light dark:bg-secondary-dark rounded-full hover:opacity-80 active:opacity-70"
-            >
+            <Pressable onPress={handleDownload} className="p-2 hover:opacity-70">
               <Ionicons name="download-outline" size={24} color={themeColors.primary} />
             </Pressable>
-            <Pressable
-              onPress={onClose}
-              className="p-2 bg-secondary-light dark:bg-secondary-dark rounded-full hover:opacity-80 active:opacity-70"
-            >
+            <Pressable onPress={onClose} className="p-2 hover:opacity-70">
               <Ionicons name="close" size={24} color={themeColors.icon} />
             </Pressable>
           </View>

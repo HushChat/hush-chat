@@ -1,4 +1,4 @@
-import { useState } from "react"; // Import useState
+import { useState } from "react";
 import { IMessageAttachment } from "@/types/chat/types";
 import { View, ViewStyle } from "react-native";
 import { DocumentCard } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard";
@@ -28,7 +28,6 @@ const RenderFileGrid = ({
   attachments: IMessageAttachment[];
   isCurrentUser: boolean;
 }) => {
-  // 1. Add state for Document Preview
   const [docPreviewVisible, setDocPreviewVisible] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<IMessageAttachment | null>(null);
 
@@ -43,7 +42,6 @@ const RenderFileGrid = ({
     hasDocuments,
   } = useFileGrid(attachments);
 
-  // 2. Handler to open document preview
   const handleOpenDocPreview = (doc: IMessageAttachment) => {
     setSelectedDoc(doc);
     setDocPreviewVisible(true);
@@ -64,7 +62,6 @@ const RenderFileGrid = ({
             key={doc.id || `doc-${index}`}
             style={dynamicStyles.documentSpacing(documents.length > 1, hasMedia)}
           >
-            {/* 3. Pass the onPreview prop */}
             <DocumentCard
               attachment={doc}
               isCurrentUser={isCurrentUser}
@@ -80,7 +77,6 @@ const RenderFileGrid = ({
         )}
       </View>
 
-      {/* Existing Media Preview (Images/Videos) */}
       <MediaPreview
         visible={previewVisible}
         images={mediaItems}
@@ -88,7 +84,6 @@ const RenderFileGrid = ({
         onClose={closePreview}
       />
 
-      {/* 4. New Document Preview Modal */}
       <DocumentPreview
         visible={docPreviewVisible}
         attachment={selectedDoc}
