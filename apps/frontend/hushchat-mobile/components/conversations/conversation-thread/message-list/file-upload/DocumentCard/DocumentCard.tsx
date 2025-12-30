@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, View, Linking } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 
@@ -12,6 +12,9 @@ import {
   staticStyles,
   dynamicStyles,
 } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/documentCard.styles";
+import { ToastUtils } from "@/utils/toastUtils";
+import { PLATFORM } from "@/constants/platformConstants";
+import { downloadFileWeb, openFileNative } from "@/utils/messageUtils";
 
 type TDocumentCardProps = {
   attachment: IMessageAttachment;
@@ -37,13 +40,30 @@ export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) 
   const textPrimary = isDark ? "#ffffff" : "#111827";
   const textSecondary = isDark ? "#9ca3af" : "#6B7280";
 
-  const handlePress = () => {
-    if (attachment.fileUrl) Linking.openURL(attachment.fileUrl);
+  const handleDocumentPress = async () => {
+    const fileUrl = attachment.fileUrl;
+    const fileName = attachment.originalFileName || attachment.indexedFileName;
+
+    if (!fileUrl) {
+      ToastUtils.error("File URL not available");
+      return;
+    }
+
+    try {
+      if (PLATFORM.IS_WEB) {
+        await downloadFileWeb(fileUrl, fileName);
+      } else {
+        await openFileNative(fileUrl);
+      }
+    } catch (error) {
+      console.error("Error handling document:", error);
+      ToastUtils.error("Failed to open document");
+    }
   };
 
   return (
     <TouchableOpacity
-      onPress={handlePress}
+      onPress={handleDocumentPress}
       activeOpacity={DEFAULT_ACTIVE_OPACITY}
       style={dynamicStyles.documentCard(isCurrentUser, bgColor, borderColor)}
     >
