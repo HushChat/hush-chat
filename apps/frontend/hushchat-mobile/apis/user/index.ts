@@ -3,6 +3,7 @@ import axios from "axios";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { DeviceToken } from "@/types/user/types";
 import { getAllTokens } from "@/utils/authUtils";
+import { chatUserStatus } from "@/types/chat/types";
 
 export const getUserInfo = async () => {
   try {
@@ -98,9 +99,15 @@ export const getUserWorkspaces = async () => {
   }
 };
 
-export const updateUserAvailabilityStatus = async () => {
+export const updateUserAvailabilityStatus = async (status: chatUserStatus) => {
   try {
-    const response = await axios.patch(USER_API_ENDPOINTS.CHANGE_AVAILABILITY_STATUS);
+    const response = await axios.patch(
+      USER_API_ENDPOINTS.CHANGE_AVAILABILITY_STATUS,
+      {},
+      {
+        params: { status },
+      }
+    );
     return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };

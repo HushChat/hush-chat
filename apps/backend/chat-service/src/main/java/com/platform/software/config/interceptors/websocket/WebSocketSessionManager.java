@@ -61,11 +61,8 @@ public class WebSocketSessionManager {
 
         webSocketSessionInfos.put(userId, webSocketSessionInfoDAO);
 
-        if (UserStatusEnum.BUSY.equals(userStatus)) {
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, userStatus, deviceType);
-        } else {
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, deviceType);
-        }
+        UserStatusEnum normalizedStatus = normalizeStatus(userStatus);
+        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, deviceType);
 
         logger.info("registered stomp session for user: {}", userId);
     }
@@ -88,11 +85,9 @@ public class WebSocketSessionManager {
             existingSession.setChatUserStatus(userStatus);
             webSocketSessionInfos.put(userId, existingSession);
 
-            if (UserStatusEnum.BUSY.equals(userStatus)) {
-                userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, userStatus, device);
-            } else {
-                userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, device);
-            }
+            UserStatusEnum normalizedStatus = normalizeStatus(userStatus);
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, device);
+
             logger.debug("session re connected for user: {}", userId);
         }
     }
@@ -294,5 +289,13 @@ public class WebSocketSessionManager {
             return sessionInfo.getDeviceType();
         }
         return null;
+    }
+
+    /**
+     * Normalizes the user status: Only BUSY and ONLINE are treated as active statuses.
+     * If the status is not BUSY, it defaults to ONLINE, since this use in register and reconnecting session
+     */
+    private UserStatusEnum normalizeStatus(UserStatusEnum status) {
+        return UserStatusEnum.BUSY.equals(status) ? UserStatusEnum.BUSY : UserStatusEnum.ONLINE;
     }
 }

@@ -484,25 +484,23 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Toggles the availability status of the authenticated user between AVAILABLE and BUSY.
+     * Change the availability status of the authenticated user
      * <p>
-     * This method retrieves the user, switches their availability status, persists the change,
+     * This method retrieves the user, change their availability status as requested, persists the change,
      * and evicts relevant cache entries to ensure data consistency.
      * </p>
      *
      * @param authenticatedUser the authenticated user details containing the user ID
+     * @param status the status user requesting to have
      * @return the updated {@link UserStatusEnum} after toggling
      * @throws CustomInternalServerErrorException if the user status update fails during persistence
      * @throws IllegalArgumentException if the user cannot be validated or found
      */
-    public UserStatusEnum updateUserAvailability(UserDetails authenticatedUser) {
+    @Transactional
+    public UserStatusEnum updateUserAvailability(UserDetails authenticatedUser, UserStatusEnum status) {
         ChatUser user = validateAndGetUser(authenticatedUser.getId());
 
-        if (user.getAvailabilityStatus().equals(UserStatusEnum.AVAILABLE)) {
-            user.setAvailabilityStatus(UserStatusEnum.BUSY);
-        } else if (user.getAvailabilityStatus().equals(UserStatusEnum.BUSY)) {
-            user.setAvailabilityStatus(UserStatusEnum.AVAILABLE);
-        }
+        user.setAvailabilityStatus(status);
 
         try {
             userRepository.save(user);

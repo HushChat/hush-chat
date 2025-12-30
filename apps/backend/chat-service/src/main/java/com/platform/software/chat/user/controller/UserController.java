@@ -216,9 +216,9 @@ public class UserController {
      * @return a {@link ResponseEntity} containing the updated {@link UserStatusEnum} and an HTTP 200 (OK) status
      */
     @ApiOperation(value = "Change user availability status", response = UserStatusEnum.class)
-    @PatchMapping("change-availability-status")
-    public ResponseEntity<UserStatusEnum> updateUserAvailability(@AuthenticatedUser UserDetails authenticatedUser) {
-        UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser);
+    @PatchMapping("availability")
+    public ResponseEntity<UserStatusEnum> updateUserAvailability(@AuthenticatedUser UserDetails authenticatedUser, @RequestParam UserStatusEnum status) {
+        UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser, status);
         return new ResponseEntity<>(userStatusEnum, HttpStatus.OK);
     }
 }

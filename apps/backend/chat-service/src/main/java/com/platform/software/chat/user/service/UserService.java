@@ -57,7 +57,7 @@ public interface UserService {
 
     UserProfileDTO getUserProfile(Long id);
 
-    UserStatusEnum updateUserAvailability(UserDetails authenticatedUser);
+    UserStatusEnum updateUserAvailability(UserDetails authenticatedUser, UserStatusEnum status);
 
     String getUserAvailabilityStatus(String email);
 }

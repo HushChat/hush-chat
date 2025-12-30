@@ -15,8 +15,9 @@ export default function AvailabilitySection({ status }: { status: chatUserStatus
   });
 
   const toggleAvailability = useCallback(() => {
-    mutate(undefined);
-  }, [mutate]);
+    const nextStatus = isAvailable ? chatUserStatus.BUSY : chatUserStatus.AVAILABLE;
+    mutate(nextStatus);
+  }, [isAvailable, mutate]);
 
   return (
     <View className="flex-row items-center justify-between">
