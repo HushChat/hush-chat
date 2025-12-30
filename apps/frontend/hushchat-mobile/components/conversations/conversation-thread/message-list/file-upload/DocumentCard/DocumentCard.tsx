@@ -85,10 +85,6 @@ export const DocumentCard = ({ attachment, isCurrentUser, onPreview }: TDocument
           </AppText>
           <AppText style={dynamicStyles.documentSubtitle(textSecondary)}>{label} Document</AppText>
         </View>
-
-        <View style={staticStyles.documentDownloadContainer}>
-          <Ionicons name="download-outline" size={16} color={color} />
-        </View>
       </View>
     </TouchableOpacity>
   );
