@@ -8,6 +8,7 @@ import { formatDateTime } from "@/utils/commonUtils";
 import BackButton from "@/components/BackButton";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
+import { useCallback } from "react";
 
 type TMentionedMessagesOverlay = {
   onClose?: () => void;
@@ -46,7 +47,7 @@ export default function MentionedMessageListView({ onClose }: TMentionedMessages
     );
   };
 
-  const render = ({ item }: { item: IMentionedMessage }) => {
+  const render = useCallback(({ item }: { item: IMentionedMessage }) => {
     const senderName = item.message.senderFirstName + " " + item.message.senderLastName;
 
     return (
@@ -84,7 +85,7 @@ export default function MentionedMessageListView({ onClose }: TMentionedMessages
         <View className="h-[1px] bg-gray-200 dark:bg-gray-700 w-[90%] self-center mt-3" />
       </View>
     );
-  };
+  }, []);
 
   return (
     <View className="flex-1">
