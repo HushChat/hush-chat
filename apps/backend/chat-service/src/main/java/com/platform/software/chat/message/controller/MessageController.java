@@ -218,6 +218,17 @@ public class MessageController {
         return ResponseEntity.ok(messageMentionPages);
     }
 
+    /**
+     * Retrieves metadata for URLs contained within a specific message.
+     * <p>
+     * This endpoint fetches information such as page titles, descriptions, and preview images
+     * associated with any links found in the message identified by the given ID.
+     * </p>
+     *
+     * @param messageId the unique identifier of the message whose URL metadata is to be retrieved
+     * @return a {@link ResponseEntity} containing the {@link MessageUrlMetadataDTO} with
+     * the extracted metadata and an HTTP 200 OK status
+     */
     @ApiOperation(value = "get message url meta data")
     @GetMapping("urlMetadata/{messageId}")
     public ResponseEntity<MessageUrlMetadataDTO> getMessageUrlMetadata(@PathVariable Long messageId) {

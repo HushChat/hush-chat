@@ -621,6 +621,15 @@ public class MessageService {
         return messageMentionDTOPages;
     }
 
+    /**
+     * Scrapes and extracts metadata from the first URL found within a specific message's text.
+     *
+     * @param messageId the ID of the message to process
+     * @return a {@link MessageUrlMetadataDTO} containing the scraped preview data,
+     * or {@code null} if the message contains no valid URL
+     * @throws CustomBadRequestException if the message does not exist or if an error
+     * occurs while connecting to and parsing the external URL
+     */
     public MessageUrlMetadataDTO getMessageUrlMetadata(Long messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new CustomBadRequestException("Message not found"));
@@ -680,6 +689,13 @@ public class MessageService {
         return dto;
     }
 
+    /**
+     * Extracts the content attribute of a meta tag from the provided HTML document.
+     *
+     * @param doc      the Jsoup {@link Document} representing the parsed HTML page
+     * @param property the name or property attribute value to search for (e.g., "og:title", "description")
+     * @return the string value of the {@code content} attribute if found; {@code null} otherwise
+     */
     private String getMetaTagContent(Document doc, String property) {
         Element element = doc.select("meta[property=" + property + "]").first();
         if (element == null) {
