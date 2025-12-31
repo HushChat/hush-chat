@@ -210,3 +210,11 @@ export const openFileNative = async (fileUrl: string): Promise<void> => {
     throw error;
   }
 };
+
+// Helper function to truncate text based on character count
+export const truncateCharacters = (text: string, limit: number) => {
+  if (text.length > limit) {
+    return text.substring(0, limit) + "...";
+  }
+  return text;
+};

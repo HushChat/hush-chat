@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import FormattedText from "@/components/FormattedText";
 import classNames from "classnames";
 import { TMessageUrlMetadata } from "@/types/chat/types";
+import { truncateCharacters } from "@/utils/messageUtils";
 
 interface LinkPreviewCardProps {
   messageText: string;
@@ -17,6 +18,12 @@ export default function LinkPreviewCard({
   isCurrentUser,
   isLoading,
 }: LinkPreviewCardProps) {
+  const truncatedDescription = useMemo(() => {
+    if (!messageUrlMetadata?.description) return "";
+
+    return truncateCharacters(messageUrlMetadata.description, 200);
+  }, [messageUrlMetadata]);
+
   return (
     <TouchableOpacity activeOpacity={0.9} className=" rounded-md">
       {isLoading ? (
@@ -45,7 +52,7 @@ export default function LinkPreviewCard({
               <FormattedText text={messageUrlMetadata.title} isCurrentUser={isCurrentUser} />
             )}
             {messageUrlMetadata.description && (
-              <FormattedText text={messageUrlMetadata.description} isCurrentUser={isCurrentUser} />
+              <FormattedText text={truncatedDescription} isCurrentUser={isCurrentUser} />
             )}
 
             {messageUrlMetadata.domain && (

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Pressable, View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,11 +55,13 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
       : styles.forwardedLeft
     : null;
 
-  const bubbleMaxWidthStyle = hasAttachments
-    ? styles.maxWidthAttachments
-    : !PLATFORM.IS_WEB
-      ? styles.maxWidthRegular
-      : styles.maxWidthWebForLink;
+  const bubbleMaxWidthStyle = useMemo(() => {
+    if (message.isIncludeUrlMetadata) {
+      return PLATFORM.IS_WEB ? styles.maxWidthWebForLink : styles.maxWidthRegular;
+    }
+
+    return hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+  }, [message]);
 
   const { messageUrlMetadata, isMessageUrlMetadataLoading } = useMessageUrlMetadataQuery(
     message.id,
