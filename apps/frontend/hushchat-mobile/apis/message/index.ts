@@ -132,6 +132,18 @@ export const getMessageSeenParticipants = async (
   }
 };
 
+export const getMentionedMessages = async (page: number = 0, size: number = 20) => {
+  try {
+    const response = await axios.get(MESSAGE_API_ENDPOINTS.MENTIONED_MESSAGES, {
+      params: { page, size },
+    });
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const getMessageUrlMetadata = async (messageId: number) => {
   const response = await axios.get(MESSAGE_API_ENDPOINTS.GET_URL_METADATA(messageId));
   return response.data;
