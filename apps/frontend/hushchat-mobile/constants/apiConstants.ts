@@ -99,12 +99,14 @@ export const USER_API_ENDPOINTS = {
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
   SAVE_TOKEN: `/notifications/device-token`,
   CHANGE_PASSWORD: `/users/change-password`,
+  CHANGE_AVAILABILITY_STATUS: `${USER_API_BASE}/availability`,
 };
 
 export const MESSAGE_API_ENDPOINTS = {
   REACTIONS: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/reactions`,
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
+  MENTIONED_MESSAGES: `${MESSAGE_API_BASE}/mentions`,
 };
 
 export const SETTINGS_API_ENDPOINTS = {

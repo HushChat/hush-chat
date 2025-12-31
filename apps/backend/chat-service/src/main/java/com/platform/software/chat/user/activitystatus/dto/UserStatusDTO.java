@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserStatusDTO {
     private Long conversationId;
+    private String email;
     private UserStatusEnum status;
     private DeviceType deviceType;
 }
