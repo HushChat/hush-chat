@@ -4,6 +4,8 @@ import com.platform.software.chat.conversation.typingstatus.dto.UserTypingStatus
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
+
 @Controller
 public class TypingStatusWSController {
 
@@ -14,7 +16,7 @@ public class TypingStatusWSController {
     }
 
     @MessageMapping("/typing")
-    public void handleTypingIndicator(UserTypingStatusDTO userTypingStatusDTO) {
-        typingStatusWSService.invokeUserIsTyping(userTypingStatusDTO);
+    public void handleTypingIndicator(UserTypingStatusDTO userTypingStatusDTO, Principal principal) {
+        typingStatusWSService.invokeUserIsTyping(userTypingStatusDTO, principal.getName());
     }
 }
