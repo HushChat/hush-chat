@@ -2,11 +2,14 @@ import { ActivityIndicator, Dimensions, FlatList, TouchableOpacity, View } from 
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
-import React from "react";
+import React, { useCallback } from "react";
 import { useGetAllCommonGroupsQuery } from "@/query/useGetAllCommonGroupsQuery";
-import { Conversation } from "@/types/chat/types";
+import { IConversation } from "@/types/chat/types";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { Image } from "expo-image";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import { useRouter } from "expo-router";
+import { CHAT_VIEW_PATH } from "@/constants/routes";
 
 const SIZE = 40;
 
@@ -14,14 +17,18 @@ interface ICommonGroupsViewProps {
   conversationId: number;
   onClose: () => void;
   visible: boolean;
+  setSelectedConversation: (conversation: IConversation | null) => void;
 }
 
 export default function CommonGroupsView({
   conversationId,
   onClose,
   visible,
+  setSelectedConversation,
 }: ICommonGroupsViewProps) {
   const screenWidth = Dimensions.get("window").width;
+  const isMobileLayout = useIsMobileLayout();
+  const router = useRouter();
 
   const {
     commonGroupConversations,
@@ -36,6 +43,24 @@ export default function CommonGroupsView({
       void fetchNextPage();
     }
   };
+
+  const handleCommonGroupPress = useCallback(
+    (conversation: IConversation) => {
+      if (isMobileLayout) {
+        router.push({
+          pathname: CHAT_VIEW_PATH,
+          params: {
+            conversationId: conversation.id,
+          },
+        });
+      } else {
+        if (setSelectedConversation) {
+          setSelectedConversation(conversation);
+        }
+      }
+    },
+    [isMobileLayout, setSelectedConversation]
+  );
 
   const renderEmptyComponent = () => {
     if (isLoadingCommonGroupConversations) {
@@ -53,8 +78,11 @@ export default function CommonGroupsView({
     );
   };
 
-  const renderCommonGroups = ({ item }: { item: Conversation }) => (
-    <View className="flex-row items-center px-4 py-3">
+  const renderCommonGroups = ({ item }: { item: IConversation }) => (
+    <TouchableOpacity
+      onPress={() => handleCommonGroupPress(item)}
+      className="flex-row items-center px-4 py-3"
+    >
       {item.signedImageUrl ? (
         <Image
           source={{ uri: item.signedImageUrl }}
@@ -73,7 +101,7 @@ export default function CommonGroupsView({
           {item.name}
         </AppText>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

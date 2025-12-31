@@ -1,11 +1,11 @@
-import { Conversation } from "@/types/chat/types";
+import { IConversation } from "@/types/chat/types";
 import { usePaginatedQuery } from "@/query/usePaginatedQuery";
 import { useMemo } from "react";
 import { conversationQueryKeys } from "@/constants/queryKeys";
 import { getCommonGroups } from "@/apis/conversation";
 
 type TUseGetAllMessageSeenParticipantsResult = Readonly<{
-  commonGroupConversations: readonly Conversation[];
+  commonGroupConversations: readonly IConversation[];
   isLoadingCommonGroupConversations: boolean;
   commonGroupConversationsError: unknown;
   fetchNextPage: () => Promise<unknown>;
@@ -27,7 +27,7 @@ export function useGetAllCommonGroupsQuery(
     isFetchingNextPage,
     invalidateQuery,
     refetch,
-  } = usePaginatedQuery<Conversation>({
+  } = usePaginatedQuery<IConversation>({
     queryKey: conversationQueryKeys.commonGroupInfo(conversationId),
     queryFn: (pageParam: number) => getCommonGroups(conversationId, pageParam, 10),
     initialPageParam: 0,

@@ -16,7 +16,7 @@ import { useToggleMuteConversationMutation } from "@/query/post/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import ActionList from "@/components/conversations/conversation-info-panel/common/ActionList";
-import { IActionConfig } from "@/types/chat/types";
+import { IActionConfig, IConversation } from "@/types/chat/types";
 import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
 
 type TChatInfoActionProps = {
@@ -25,7 +25,7 @@ type TChatInfoActionProps = {
   isPinned: boolean;
   isMuted: boolean;
   onBack: () => void;
-  setSelectedConversation?: (conversation: null) => void;
+  setSelectedConversation?: (conversation: IConversation | null) => void;
   onShowMediaAttachments?: () => void;
   onSelectCommonGroups?: () => void;
 };

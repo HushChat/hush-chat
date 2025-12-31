@@ -22,7 +22,7 @@ import CommonGroupsView from "@/components/conversations/conversation-info-panel
 interface OneToOneChatInfoProps {
   conversation: IConversation;
   onBack: () => void;
-  setSelectedConversation: (conversation: null) => void;
+  setSelectedConversation: (conversation: IConversation | null) => void;
   onShowMediaAttachments: () => void;
 }
 
@@ -177,6 +177,7 @@ export default function OneToOneChatInfo({
           conversationId={conversation.id}
           onClose={closePanel}
           visible={activePanel === PanelType.COMMON_GROUP}
+          setSelectedConversation={setSelectedConversation}
         />
       )}
     </View>
