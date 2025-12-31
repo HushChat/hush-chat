@@ -21,6 +21,8 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.model.UserDetails;
@@ -541,35 +543,6 @@ public class MessageService {
     }
 
     /**
-     * Retrieves all message mentions by others for a specific user with pagination support.
-     * <p>
-     * This method queries the database for all messages where the specified user has been mentioned,
-     * converts the entities to DTOs, and returns them in a paginated format.
-     * </p>
-     *
-     * @param userDetails the user whose message mentions are being retrieved
-     * @param pageable pagination and sorting information (page number, size, sort order)
-     * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
-     */
-    public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
-        Page<MessageMention> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
-
-        Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
-            MessageMentionDTO dto = new MessageMentionDTO(messageMention);
-
-            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
-            if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
-                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
-            }
-
-            return dto;
-        });
-
-        return messageMentionDTOPages;
-    }
-
-    /**
      * Marks a message as unread by setting the user's last seen message to the previous message.
      * If the target message is the first message in the conversation, sets last seen to null.
      *
@@ -616,5 +589,34 @@ public class MessageService {
             conversationId,
             loggedInUserId
         );
+    }
+
+    /**
+     * Retrieves all message mentions by others for a specific user with pagination support.
+     * <p>
+     * This method queries the database for all messages where the specified user has been mentioned,
+     * converts the entities to DTOs, and returns them in a paginated format.
+     * </p>
+     *
+     * @param userDetails the user whose message mentions are being retrieved
+     * @param pageable pagination and sorting information (page number, size, sort order)
+     * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
+     */
+    public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
+        Page<MessageMention> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
+
+        Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
+            MessageMentionDTO dto = new MessageMentionDTO(messageMention);
+
+            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
+            if (imageIndexedName != null) {
+                String signedImageUrl = conversationUtilService.getImageViewSignedUrl( MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM , imageIndexedName);
+                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
+            }
+
+            return dto;
+        });
+
+        return messageMentionDTOPages;
     }
 }

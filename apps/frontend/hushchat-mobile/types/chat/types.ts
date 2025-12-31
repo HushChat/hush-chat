@@ -101,6 +101,7 @@ export enum ConversationType {
   UNREAD = "UNREAD",
   GROUPS = "GROUPS",
   MUTED = "MUTED",
+  MENTIONED = "MENTIONED",
 }
 
 export interface oneToOneChatInfo {
@@ -290,6 +291,7 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
+  AVAILABLE = "AVAILABLE",
 }
 
 export enum DeviceType {
@@ -300,6 +302,7 @@ export enum DeviceType {
 
 export interface IUserStatus {
   conversationId: number;
+  email: string;
   status: chatUserStatus;
   deviceType?: DeviceType;
 }
@@ -377,6 +380,13 @@ export const PIN_MESSAGE_OPTIONS = [
   { label: "7 days", value: "7d" },
   { label: "30 days", value: "30d" },
 ];
+
+export interface IMentionedMessage {
+  id: number;
+  message: IMessage;
+  mentionedUser: TUser;
+  conversation: IConversation;
+}
 
 export interface GifPickerProps {
   visible: boolean;
