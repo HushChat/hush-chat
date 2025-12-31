@@ -19,7 +19,17 @@ import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hook
 import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
 import { WS_TOPICS } from "@/constants/ws/wsTopics";
 import { getDeviceType } from "@/utils/commonUtils";
-import { DEVICE_ID_KEY } from "@/constants/constants";
+import {
+  DEVICE_ID_KEY,
+  HEADER_ACCEPT_VERSION,
+  HEADER_AUTHORIZATION,
+  HEADER_CONTENT_LENGTH,
+  HEADER_CONTENT_TYPE,
+  HEADER_DESTINATION,
+  HEADER_DEVICE_TYPE,
+  HEADER_HEART_BEAT,
+  HEADER_WORKSPACE_ID,
+} from "@/constants/constants";
 import { getDeviceId } from "@/utils/deviceIdUtils";
 
 // Define topics to subscribe to
@@ -51,11 +61,14 @@ const buildStompSendFrame = (
 ): Uint8Array => {
   const sendFrameBytes = [
     ...Array.from(encoder.encode("SEND\n")),
-    ...Array.from(encoder.encode(`destination:${destination}\n`)),
+    ...Array.from(encoder.encode(`${HEADER_DESTINATION}:${destination}\n`)),
     ...Array.from(encoder.encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
-    ...Array.from(encoder.encode(`Device-Type:${deviceType}\n`)),
-    ...Array.from(encoder.encode(`content-length:${body.length}\n`)),
-    ...Array.from(encoder.encode("content-type:application/json\n")),
+    ...Array.from(encoder.encode(`${HEADER_DEVICE_TYPE}:${deviceType}\n`)),
+    ...Array.from(encoder.encode(`${HEADER_CONTENT_LENGTH}:${body.length}\n`)),
+    ...Array.from(
+      encoder.encode(`${HEADER_CONTENT_TYPE}:application/json
+`)
+    ),
     0x0a, // empty line
     ...Array.from(encoder.encode(body)),
     0x00, // null terminator
@@ -158,12 +171,12 @@ export default function useWebSocketConnection() {
           // Send CONNECT frame
           const connectFrameBytes = [
             ...Array.from(encoder.encode("CONNECT\n")),
-            ...Array.from(encoder.encode(`Authorization:Bearer ${idToken}\n`)),
-            ...Array.from(encoder.encode(`Workspace-Id:${workspace}\n`)),
+            ...Array.from(encoder.encode(`${HEADER_AUTHORIZATION}:Bearer ${idToken}\n`)),
+            ...Array.from(encoder.encode(`${HEADER_WORKSPACE_ID}:${workspace}\n`)),
             ...Array.from(encoder.encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
-            ...Array.from(encoder.encode(`Device-Type:${deviceType}\n`)),
-            ...Array.from(encoder.encode("accept-version:1.2\n")),
-            ...Array.from(encoder.encode("heart-beat:0,0\n")),
+            ...Array.from(encoder.encode(`${HEADER_DEVICE_TYPE}:${deviceType}\n`)),
+            ...Array.from(encoder.encode(`${HEADER_ACCEPT_VERSION}:1.2`)),
+            ...Array.from(encoder.encode(`${HEADER_HEART_BEAT}:0,0`)),
             0x0a, // empty line
             0x00, // null terminator
           ];
