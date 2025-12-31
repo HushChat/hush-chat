@@ -94,8 +94,12 @@ const ConversationMessageList = ({
   }, [messages]);
 
   const firstUnreadMessageIndex = useMemo(() => {
+    if (messages.length > 0 && messages[0]?.senderId === currentUserId) {
+      return -1;
+    }
+
     return findFirstUnreadMessageIndex(messages, lastSeenMessageId ?? null);
-  }, [messages, lastSeenMessageId]);
+  }, [messages, lastSeenMessageId, currentUserId]);
 
   const handlePinnedMessageClick = useCallback(() => {
     if (onNavigateToMessage && pinnedMessage) {
@@ -217,11 +221,12 @@ const ConversationMessageList = ({
     (info: any) => {
       const messageIndex = messages.findIndex((msg) => msg.id === info.item.id);
       const isFirstUnread = messageIndex === firstUnreadMessageIndex;
+      const unreadCount = firstUnreadMessageIndex + 1;
 
       return (
         <>
           {renderMessage(info)}
-          {isFirstUnread && <UnreadMessageSection />}
+          {isFirstUnread && <UnreadMessageSection count={unreadCount} />}
         </>
       );
     },

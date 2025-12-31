@@ -155,12 +155,10 @@ const ConversationThreadScreen = ({
         return;
       }
 
-      // Always update to the first (most recent) message when viewing the conversation
-      // This handles both initial load and returning to the conversation
       const shouldUpdate =
-        lastSeenMessageInfo.lastSeenMessageId === null || // First time viewing
-        lastSeenMessageInfo.lastSeenMessageId === undefined || // No last seen message
-        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId; // New messages exist
+        lastSeenMessageInfo.lastSeenMessageId === null ||
+        lastSeenMessageInfo.lastSeenMessageId === undefined ||
+        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
       if (shouldUpdate) {
         setLastSeenMessageForConversation({
@@ -260,7 +258,6 @@ const ConversationThreadScreen = ({
       updateConversationMessagesCache(newMessage);
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
 
-      // Update last seen message when user sends a message
       if (newMessage.id && typeof newMessage.id === "number") {
         setLastSeenMessageForConversation({
           messageId: newMessage.id,
