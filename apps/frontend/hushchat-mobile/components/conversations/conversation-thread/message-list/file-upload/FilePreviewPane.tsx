@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
@@ -8,6 +8,7 @@ import { AppText } from "@/components/AppText";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
 import { getFileType } from "@/utils/files/getFileType";
+
 type TFilePreviewPaneProps = {
   file: File;
   conversationId: number;
@@ -32,12 +33,16 @@ const FilePreviewPane = ({
   onCancelReply,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState<"image" | "document" | "video">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video" | "unsupported">("image");
+  const [loading, setLoading] = useState(false);
 
   const isDark = colorScheme.get() === "dark";
   const iconColor = isDark ? "#ffffff" : "#6B4EFF";
-
   const K = 1024;
+
+  const fileExt = file?.name.split(".").pop()?.toLowerCase() || "";
+
+  const isPdfOrText = ["pdf", "txt", "json", "xml"].includes(fileExt);
 
   useEffect(() => {
     if (!file) return;
@@ -45,11 +50,17 @@ const FilePreviewPane = ({
     const type = getFileType(file.name);
     setFileType(type);
 
-    if (type !== "document") {
-      const obj = URL.createObjectURL(file);
-      setUrl(obj);
-      return () => URL.revokeObjectURL(obj);
+    if (isPdfOrText) {
+      setLoading(true);
     }
+
+    const objUrl = URL.createObjectURL(file);
+    setUrl(objUrl);
+
+    return () => {
+      URL.revokeObjectURL(objUrl);
+      setLoading(false);
+    };
   }, [file]);
 
   const prettySize = useMemo(() => {
@@ -61,27 +72,54 @@ const FilePreviewPane = ({
 
   if (!file) return null;
 
+  const renderPreviewContent = () => {
+    if (fileType === "image") {
+      return <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />;
+    }
+
+    if (fileType === "video") {
+      return (
+        <View style={styles.videoContainer}>
+          <VideoPlayer uri={url} style={styles.video} />
+        </View>
+      );
+    }
+
+    if (isPdfOrText && url) {
+      return (
+        <View style={styles.iframeContainer}>
+          <iframe
+            className="custom-scrollbar"
+            src={`${url}#toolbar=0&navpanes=0`}
+            style={{ width: "100%", height: "100%", border: "none" }}
+            title={file.name}
+            onLoad={() => setLoading(false)}
+          />
+          {loading && (
+            <View style={styles.loaderOverlay}>
+              <ActivityIndicator size="large" color={iconColor} />
+            </View>
+          )}
+        </View>
+      );
+    }
+
+    return (
+      <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
+        <Ionicons name="document-text-outline" size={64} color={iconColor} />
+        <AppText className="mt-4 text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
+          {file.name}
+        </AppText>
+        <AppText className="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+          {prettySize}
+        </AppText>
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
-      <View className="flex-1 items-center justify-center px-6">
-        {fileType === "image" ? (
-          <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />
-        ) : fileType === "video" ? (
-          <View style={styles.videoContainer}>
-            <VideoPlayer uri={url} style={styles.video} />
-          </View>
-        ) : (
-          <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
-            <Ionicons name="document-text-outline" size={64} color={iconColor} />
-            <AppText className="mt-4 text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
-              {file.name}
-            </AppText>
-            <AppText className="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">
-              {prettySize}
-            </AppText>
-          </View>
-        )}
-      </View>
+      <View className="flex-1 items-center justify-center px-6 py-4">{renderPreviewContent()}</View>
 
       <View style={styles.inputContainer}>
         <ConversationInput
@@ -106,11 +144,13 @@ export default FilePreviewPane;
 const styles = StyleSheet.create({
   previewImage: {
     width: "100%",
-    height: 420,
+    height: "100%",
+    maxHeight: 500,
   },
   videoContainer: {
     width: "100%",
-    height: 420,
+    height: "100%",
+    maxHeight: 500,
     backgroundColor: "#000",
     borderRadius: 8,
     overflow: "hidden",
@@ -119,6 +159,22 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     objectFit: "contain",
+  },
+  iframeContainer: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "white",
+    borderRadius: 8,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    position: "relative",
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.8)",
   },
   inputContainer: {
     position: "relative",
