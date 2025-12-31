@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { Modal, View, Pressable, ActivityIndicator, Platform } from "react-native";
+import { Modal, View, Pressable, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import classNames from "classnames";
 
 import { AppText } from "@/components/AppText";
 import { IMessageAttachment } from "@/types/chat/types";
 import { openFileNative } from "@/utils/messageUtils";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { PLATFORM } from "@/constants/platformConstants";
 
 interface IDocumentPreviewProps {
   visible: boolean;
@@ -20,6 +21,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
 
   const themeColors = {
@@ -45,7 +47,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   const getMobileViewerUrl = () => {
     if (!fileUrl) return "";
 
-    if (Platform.OS === "android") {
+    if (PLATFORM.IS_ANDROID) {
       if (isPdf) {
         return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(fileUrl)}`;
       }
@@ -112,9 +114,14 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   );
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: themeColors.background }}
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: themeColors.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        }}
         className="bg-background-light dark:bg-background-dark"
       >
         <View className="flex-1">
@@ -128,10 +135,10 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
               </AppText>
             </View>
             <View className="flex-row gap-2">
-              <Pressable onPress={handleOpenExternal} className="p-2 active:opacity-70">
+              <Pressable onPress={handleOpenExternal} className="p-2 active:opacity-80">
                 <Ionicons name="download-outline" size={24} color={themeColors.primary} />
               </Pressable>
-              <Pressable onPress={onClose} className="p-2 active:opacity-70">
+              <Pressable onPress={onClose} className="p-2 active:opacity-80">
                 <Ionicons name="close" size={24} color={themeColors.icon} />
               </Pressable>
             </View>
@@ -139,7 +146,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
 
           {renderContent()}
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
