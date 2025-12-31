@@ -15,7 +15,7 @@ import {
 } from "@/apis/conversation";
 import { blockUser, changePassword } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
-import { addMessageReaction, pinMessage } from "@/apis/message";
+import { addMessageReaction, favoriteMessage, pinMessage } from "@/apis/message";
 import {
   IConversation,
   IGroupConversation,
@@ -176,3 +176,8 @@ export const useJoinConversationByInviteMutation = createMutationHook<
   (keyParams: { token: string }) => () =>
     [conversationQueryKeys.joinConversationByInvite(keyParams.token)] as string[][]
 );
+
+export const useFavoriteMessageMutation = createMutationHook<
+  IMessage,
+  { conversationId: number; messageId: number }
+>(favoriteMessage);

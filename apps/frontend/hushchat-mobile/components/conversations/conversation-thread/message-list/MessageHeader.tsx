@@ -18,6 +18,7 @@ interface IMessageHeaderProps {
   isRead?: boolean;
   onOpenPicker: () => void;
   onOpenMenu: (event: GestureResponderEvent) => void;
+  isFavoriteView?: boolean;
 }
 
 export const MessageHeader: React.FC<IMessageHeaderProps> = ({
@@ -33,15 +34,16 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   isRead = false,
   onOpenPicker,
   onOpenMenu,
+  isFavoriteView = false,
 }) => {
   return (
     <View
       className={classNames("flex-row items-center gap-2 mb-1", {
-        "justify-end": isCurrentUser,
+        "justify-end": isCurrentUser && !isFavoriteView,
         "justify-start": !isCurrentUser,
       })}
     >
-      {isCurrentUser && (
+      {!isFavoriteView && isCurrentUser && (
         <MessageActions
           messageText={messageText}
           messageIsUnsend={messageIsUnsend}
@@ -53,7 +55,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
         />
       )}
 
-      {isGroupChat && showSenderName && (
+      {(isFavoriteView || isGroupChat) && showSenderName && (
         <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
           {isCurrentUser ? "You" : senderName}
         </AppText>
@@ -69,7 +71,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
         )}
       </View>
 
-      {!isCurrentUser && (
+      {!isFavoriteView && !isCurrentUser && (
         <MessageActions
           messageText={messageText}
           messageIsUnsend={messageIsUnsend}

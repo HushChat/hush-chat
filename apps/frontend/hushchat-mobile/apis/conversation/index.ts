@@ -550,3 +550,22 @@ export const joinConversationByInvite = async (token: string) => {
     return { error: error.response?.data?.error || error.message };
   }
 };
+
+export const getFavoriteMessages = async (
+  conversationId: number,
+  page: number = 0,
+  size: number = 20
+) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_ALL_FAVORITE_MESSAGES(conversationId),
+      {
+        params: { page, size },
+      }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};

@@ -23,6 +23,7 @@ interface IRenderMessageParams {
   targetMessageId?: number | null;
   webMessageInfoPress?: (messageId: number) => void;
   markMessageAsUnread: (msg: IMessage) => void;
+  toggleFavorite: (msg: IMessage) => void;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -54,6 +55,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       targetMessageId,
       webMessageInfoPress,
       markMessageAsUnread,
+      toggleFavorite,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -96,6 +98,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         targetMessageId={targetMessageId}
         webMessageInfoPress={webMessageInfoPress}
         onMarkMessageAsUnread={markMessageAsUnread}
+        onMessageFavorite={toggleFavorite}
       />
     );
   };

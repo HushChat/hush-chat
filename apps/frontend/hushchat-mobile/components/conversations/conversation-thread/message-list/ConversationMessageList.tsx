@@ -63,7 +63,7 @@ const ConversationMessageList = ({
   const sectionListRef = useRef<SectionList>(null);
   const { reactionsModal, menuPosition, viewReactions, closeReactions } = useMessageReactions();
 
-  const { togglePin, unSendMessage, markMessageAsUnread } = useMessageActions(
+  const { togglePin, unSendMessage, markMessageAsUnread, toggleFavorite } = useMessageActions(
     conversationAPIResponse,
     currentUserId,
     setSelectedConversation
@@ -179,6 +179,7 @@ const ConversationMessageList = ({
         targetMessageId,
         webMessageInfoPress,
         markMessageAsUnread,
+        toggleFavorite,
       }),
     [
       currentUserId,
@@ -199,6 +200,7 @@ const ConversationMessageList = ({
       targetMessageId,
       webMessageInfoPress,
       markMessageAsUnread,
+      toggleFavorite,
     ]
   );
 
@@ -232,6 +234,7 @@ const ConversationMessageList = ({
             markMessageAsUnread(message);
             closeActions();
           }}
+          onStarMessage={toggleFavorite}
         />
       )}
 

@@ -50,7 +50,7 @@ export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMess
   });
 };
 
-function getDateTitle(date: Date): string {
+export function getDateTitle(date: Date): string {
   if (isToday(date)) return "Today";
   if (isYesterday(date)) return "Yesterday";
   return format(date, "MMM dd, yyyy");

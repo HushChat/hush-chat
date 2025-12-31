@@ -72,6 +72,12 @@ export const conversationQueryKeys = {
     criteria: AttachmentFilterCriteria,
     pageSize: number
   ) => [CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY, conversationId, criteria, pageSize],
+
+  favoriteMessages: (conversationId: number) => [
+    CONVERSATION_QUERY_BASE_KEY,
+    "favorite-messages",
+    conversationId,
+  ],
 };
 
 export const conversationMessageQueryKeys = {
