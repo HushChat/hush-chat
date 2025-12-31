@@ -115,6 +115,7 @@ export default function MessageContentBlock({
             onOpenMenu={openWebMenuAtEvent}
             messageText={message.messageText}
             isRead={message.isReadByEveryone}
+            isFavoriteView={isFavoriteView}
           />
 
           {renderParentMessage()}
