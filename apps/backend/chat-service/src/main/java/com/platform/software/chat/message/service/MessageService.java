@@ -21,6 +21,8 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.model.UserDetails;
@@ -596,7 +598,7 @@ public class MessageService {
 
             String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
             if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                String signedImageUrl = conversationUtilService.getImageViewSignedUrl( MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM , imageIndexedName);
                 dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
             }
 
