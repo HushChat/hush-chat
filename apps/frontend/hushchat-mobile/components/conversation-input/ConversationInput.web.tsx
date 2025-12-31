@@ -14,6 +14,7 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { FileInput } from "@/components/conversation-input/FileInput";
+import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
 
 const ConversationInput = ({
   conversationId,
@@ -28,6 +29,7 @@ const ConversationInput = ({
   onControlledValueChange,
   hideSendButton = false,
 }: ConversationInputProps) => {
+  const { publishTyping } = useWebSocketConnection();
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -37,6 +39,12 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    onTypingStatusChange: (isTyping, convId) => {
+      publishTyping({
+        conversationId: convId,
+        typing: isTyping,
+      });
+    },
   });
 
   const handleKeyPress = useCallback(

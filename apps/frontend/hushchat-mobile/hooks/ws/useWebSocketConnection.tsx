@@ -272,18 +272,24 @@ export default function useWebSocketConnection() {
     return publishUserActivity(wsRef.current, { ...data, deviceType, deviceId });
   };
 
-  const publishTyping = (data: TypingIndicatorWSData) => {
+  const publishTyping = async (data: TypingIndicatorWSData) => {
     if (connectionStatus !== WebSocketStatus.Connected) {
       logInfo("Cannot publish typing: WebSocket not connected", {
         status: connectionStatus,
       });
       return false;
     }
-
+    const { workspace } = await getAllTokens();
     const deviceType = getDeviceType();
     const deviceId = getDeviceId();
+    const workspaceId = workspace;
 
-    return publishTypingStatus(wsRef.current, { ...data, deviceType, deviceId });
+    if (!workspaceId) {
+      logInfo("Cannot publish typing: workspaceId is missing");
+      return false;
+    }
+
+    return publishTypingStatus(wsRef.current, { ...data, deviceType, deviceId, workspaceId });
   };
 
   // return the connection status
