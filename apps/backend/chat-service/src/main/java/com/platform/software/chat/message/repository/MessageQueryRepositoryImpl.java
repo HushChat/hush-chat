@@ -8,6 +8,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.controller.external.IdBasedPageRequest;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -242,5 +243,26 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                 .fetchOne();
 
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<Message> findPreviousMessage(Long conversationId, Long messageId, ConversationParticipant participant) {
+        QMessage message = QMessage.message;
+    
+        Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
+                .map(zdt -> Date.from(zdt.toInstant()))
+                .orElse(null);
+        
+        return Optional.ofNullable(
+            queryFactory.selectFrom(message)
+                .where(
+                    message.conversation.id.eq(conversationId),
+                    message.id.lt(messageId),
+                    message.isUnsend.isFalse(),
+                    deletedAt != null ? message.createdAt.after(deletedAt) : null
+                )
+                .orderBy(message.id.desc())
+                .fetchFirst()
+        );
     }
 }

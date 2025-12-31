@@ -207,7 +207,7 @@ public class MessageController {
      */
     @ApiOperation(value = "get all user message mentions by others")
     @GetMapping("/mentions")
-    public ResponseEntity<Page<MessageMentionDTO>> getAllUserMessageMentions(
+    public ResponseEntity<Page<MessageMentionDTO>> getMentionsByOthersForUser(
             @AuthenticatedUser UserDetails authenticatedUser,
             Pageable pageable
     ) {

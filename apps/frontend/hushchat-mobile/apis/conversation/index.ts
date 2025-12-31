@@ -133,6 +133,13 @@ export const updateMessageRestrictions = async (
   return { data: response.data };
 };
 
+export const toggleNotifyOnlyOnMention = async (conversationId: number) => {
+  const response = await axios.patch(
+    `${CONVERSATION_API_ENDPOINTS.TOGGLE_NOTIFY_ONLY_ON_MENTIONS(conversationId)}`
+  );
+  return { data: response.data };
+};
+
 export const getAllCallLogs = async (page: number = 0, size: number = 10) => {
   try {
     const response = await axios.get(USER_API_ENDPOINTS.CALL_LOGS, {
@@ -532,5 +539,14 @@ export const getInviteLink = async (conversationId: number) => {
   } catch (error: any) {
     const axiosError = error as AxiosError<ErrorResponse>;
     return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
+export const joinConversationByInvite = async (token: string) => {
+  try {
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.JOIN_VIA_INVITE_LINK(token));
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
   }
 };

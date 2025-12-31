@@ -76,11 +76,13 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="search-view" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="+not-found" />
+        <Stack.Screen name="invite/[inviteCode]" options={{ title: "Processing Invite" }} />
         <Stack.Screen name="group-conversation/select-participants" />
         <Stack.Screen name="group-conversation/configure" />
         <Stack.Screen name="settings/contact" />
         <Stack.Screen name="settings/invite" />
         <Stack.Screen name="settings/change-workspace" />
+        <Stack.Screen name="mentioned-messages-view" />
       </Stack>
     </>
   );

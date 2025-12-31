@@ -2,6 +2,7 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
@@ -20,6 +21,8 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.model.UserDetails;
@@ -528,6 +531,55 @@ public class MessageService {
     }
 
     /**
+     * Marks a message as unread by setting the user's last seen message to the previous message.
+     * If the target message is the first message in the conversation, sets last seen to null.
+     *
+     * @param conversationId The conversation ID
+     * @param loggedInUserId The logged-in user ID
+     * @param messageId The message ID to mark as unread
+     * @return ConversationReadInfo with updated read status
+     */
+    @Transactional
+    public ConversationReadInfo markMessageAsUnread(Long conversationId, Long loggedInUserId, Long messageId) {
+        ConversationParticipant participant = conversationUtilService
+            .getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        
+        Message targetMessage = messageRepository
+            .findByConversation_IdAndId(conversationId, messageId)
+            .orElseThrow(() -> new CustomBadRequestException("Message not found in this conversation"));
+
+        if (targetMessage.getSender().getId().equals(loggedInUserId)) {
+            throw new CustomBadRequestException("Cannot mark your own messages as unread");
+        }
+        
+        Optional<Message> previousMessage = messageRepository
+            .findPreviousMessage(conversationId, messageId, participant);
+        
+        ConversationReadStatus updatingStatus = conversationReadStatusRepository
+            .findByConversationIdAndUserId(conversationId, loggedInUserId)
+            .orElseGet(() -> {
+                ConversationReadStatus newStatus = new ConversationReadStatus();
+                newStatus.setUser(participant.getUser());
+                newStatus.setConversation(participant.getConversation());
+                return newStatus;
+            });
+        
+        updatingStatus.setMessage(previousMessage.orElse(null));
+        
+        try {
+            conversationReadStatusRepository.save(updatingStatus);
+        } catch (Exception exception) {
+            logger.error("failed to mark message {} as unread for user {}", messageId, loggedInUserId, exception);
+            throw new CustomBadRequestException("Failed to mark message as unread");
+        }
+        
+        return conversationReadStatusRepository.findConversationReadInfoByConversationIdAndUserId(
+            conversationId,
+            loggedInUserId
+        );
+    }
+
+    /**
      * Retrieves all message mentions by others for a specific user with pagination support.
      * <p>
      * This method queries the database for all messages where the specified user has been mentioned,
@@ -546,7 +598,7 @@ public class MessageService {
 
             String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
             if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                String signedImageUrl = conversationUtilService.getImageViewSignedUrl( MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM , imageIndexedName);
                 dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
             }
 

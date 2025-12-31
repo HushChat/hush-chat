@@ -11,8 +11,9 @@ import {
   exitGroupConversation,
   reportConversation,
   ReportReason,
+  joinConversationByInvite,
 } from "@/apis/conversation";
-import { blockUser, changePassword } from "@/apis/user";
+import { blockUser, changePassword, updateUserAvailabilityStatus } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { addMessageReaction, pinMessage } from "@/apis/message";
 import {
@@ -21,7 +22,11 @@ import {
   IMessage,
   IMessageReactionRequest,
 } from "@/types/chat/types";
-import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
+import {
+  conversationMessageQueryKeys,
+  conversationQueryKeys,
+  userQueryKeys,
+} from "@/constants/queryKeys";
 
 /**
  * Mutation factory for creating one-to-one conversations.
@@ -154,13 +159,22 @@ export const useReportConversationMutation = createMutationHook<{
   reason: ReportReason;
 }>(reportConversation);
 
-export const useChangePasswordQuery = createMutationHook<
+export const useChangePasswordMutation = createMutationHook<
   any,
   { currentPassword: string; newPassword: string }
->(async ({ currentPassword, newPassword }) => {
-  const result = await changePassword(currentPassword, newPassword);
-  if (result.error) {
-    throw new Error(result.error);
-  }
-  return result;
-});
+>(
+  (params: { currentPassword: string; newPassword: string }) =>
+    changePassword(params.currentPassword, params.newPassword),
+  () => () => [userQueryKeys.changePassword()] as string[][]
+);
+
+export const useJoinConversationByInviteMutation = createMutationHook<
+  IConversation,
+  { token: string }
+>(
+  (params: { token: string }) => joinConversationByInvite(params.token),
+  (keyParams: { token: string }) => () =>
+    [conversationQueryKeys.joinConversationByInvite(keyParams.token)] as string[][]
+);
+
+export const useUpdateAvailabilityStatusMutation = createMutationHook(updateUserAvailabilityStatus);

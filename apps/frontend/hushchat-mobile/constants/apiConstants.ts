@@ -80,6 +80,11 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
   GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
+  TOGGLE_NOTIFY_ONLY_ON_MENTIONS: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/notifications/mentions-only`,
+  JOIN_VIA_INVITE_LINK: (token: string) => `${CONVERSATION_API_BASE}/invite-link/${token}/join`,
+  MARK_MESSAGE_AS_UNREAD: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
 };
 
 export const USER_API_ENDPOINTS = {
@@ -92,12 +97,14 @@ export const USER_API_ENDPOINTS = {
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
   SAVE_TOKEN: `/notifications/device-token`,
   CHANGE_PASSWORD: `/users/change-password`,
+  CHANGE_AVAILABILITY_STATUS: `${USER_API_BASE}/availability`,
 };
 
 export const MESSAGE_API_ENDPOINTS = {
   REACTIONS: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/reactions`,
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
+  MENTIONED_MESSAGES: `${MESSAGE_API_BASE}/mentions`,
 };
 
 export const SETTINGS_API_ENDPOINTS = {
