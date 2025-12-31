@@ -104,7 +104,6 @@ export const MESSAGE_API_ENDPOINTS = {
   REACTIONS: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/reactions`,
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
-  MENTIONED_MESSAGES: `${MESSAGE_API_BASE}/mentions`,
 };
 
 export const SETTINGS_API_ENDPOINTS = {
