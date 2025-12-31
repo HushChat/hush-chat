@@ -1,16 +1,15 @@
 databaseChangeLog:
   - changeSet:
-      id: add_availability_status_to_chat_user
+      id: add_pinned_message_until_to_conversation
       author: ransilu
       tag: release-11.1
-      comment: "add availability_status to chat_user and set default to AVAILABLE"
+      comment: "add new pinned_message_until column to conversation table"
       changes:
         - addColumn:
-            tableName: chat_user
+            tableName: conversation
             columns:
               - column:
-                  name: availability_status
-                  type: VARCHAR(50)
-                  defaultValue: 'AVAILABLE'
+                  name: pinned_message_until
+                  type: timestamptz
                   constraints:
-                    nullable: false
+                    nullable: true
