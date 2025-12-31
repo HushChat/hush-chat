@@ -1,21 +1,31 @@
-import { ActivityIndicator, FlatList, View } from "react-native";
-import { IMentionedMessage } from "@/types/chat/types";
+import { ActivityIndicator, FlatList, TouchableOpacity, View } from "react-native";
+import { IConversation, IMentionedMessage, IMessage } from "@/types/chat/types";
 import { useGetAllMentionedMessages } from "@/query/useGetAllMentionedMessages";
 import { AppText } from "@/components/AppText";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
-import FormattedText from "@/components/FormattedText";
 import { formatDateTime } from "@/utils/commonUtils";
 import BackButton from "@/components/BackButton";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
 import { useCallback } from "react";
+import { CHAT_VIEW_PATH } from "@/constants/routes";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import FormattedText from "@/components/FormattedText";
 
 type TMentionedMessagesOverlay = {
   onClose?: () => void;
+  onMessageClicked?: (message: any) => void;
+  setSelectedConversation?: (conversation: IConversation | null) => void;
 };
 
-export default function MentionedMessageListView({ onClose }: TMentionedMessagesOverlay) {
+export default function MentionedMessageListView({
+  onClose,
+  onMessageClicked,
+  setSelectedConversation,
+}: TMentionedMessagesOverlay) {
   const router = useRouter();
+
+  const isMobileLayout = useIsMobileLayout();
 
   const {
     mentionedMessages,
@@ -30,6 +40,26 @@ export default function MentionedMessageListView({ onClose }: TMentionedMessages
       void fetchNextPage();
     }
   };
+
+  const handleMessagePress = useCallback(
+    (message: IMessage, conversation: IConversation) => {
+      if (isMobileLayout) {
+        router.push({
+          pathname: CHAT_VIEW_PATH,
+          params: {
+            conversationId: conversation.id,
+            messageId: message.id,
+          },
+        });
+      } else {
+        if (setSelectedConversation) {
+          setSelectedConversation(conversation);
+        }
+        onMessageClicked?.(message);
+      }
+    },
+    [isMobileLayout, onMessageClicked]
+  );
 
   const renderEmptyComponent = () => {
     if (isLoadingMentionedMessages) {
@@ -51,15 +81,20 @@ export default function MentionedMessageListView({ onClose }: TMentionedMessages
     const senderName = item.message.senderFirstName + " " + item.message.senderLastName;
 
     return (
-      <View className="flex-col ml-3 justify-center mb-4 p-1">
+      <TouchableOpacity
+        onPress={() => handleMessagePress(item.message, item.conversation)}
+        className="flex-col ml-3 justify-center mb-4 p-1 group"
+      >
         <View className="flex-row items-center gap-x-2">
-          <AppText className="font-bold">{item.conversation.name}</AppText>
+          <AppText className="font-bold text-base group-hover:text-[#6B4EFF]">
+            {item.conversation.name}
+          </AppText>
           <AppText className="text-gray-500 dark:text-gray-400">
             {formatDateTime(item.message.createdAt)}
           </AppText>
         </View>
         <AppText className="text-gray-500 dark:text-gray-400">
-          <AppText className="font-bold">{senderName}</AppText>
+          <AppText className="font-bold text-base group-hover:text-[#6B4EFF]">{senderName}</AppText>
           {" mentioned you"}
         </AppText>
         <View className="flex-row gap-x-2">
@@ -82,8 +117,8 @@ export default function MentionedMessageListView({ onClose }: TMentionedMessages
             />
           </View>
         </View>
-        <View className="h-[1px] bg-gray-200 dark:bg-gray-700 w-[90%] self-center mt-3" />
-      </View>
+        <View className="h-[1px] bg-gray-200 dark:bg-gray-700 group-hover:bg-[#6B4EFF] w-[90%] self-center mt-3" />
+      </TouchableOpacity>
     );
   }, []);
 

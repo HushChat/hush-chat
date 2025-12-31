@@ -218,7 +218,11 @@ export default function ChatInterfaceWeb({
               duration={{ enter: 240, exit: 200 }}
               easing={MotionEasing.pair}
             >
-              <MentionedMessageListView onClose={() => setShowMentionedMessages(false)} />
+              <MentionedMessageListView
+                onClose={() => setShowMentionedMessages(false)}
+                onMessageClicked={handleSearchMessageClick}
+                setSelectedConversation={setSelectedConversation}
+              />
             </MotionView>
           )}
         </View>
