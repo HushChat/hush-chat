@@ -31,6 +31,7 @@ export interface ReactionSummary {
 export enum MessageAttachmentTypeEnum {
   MEDIA = "MEDIA",
   DOCS = "DOCS",
+  GIF = "GIF",
 }
 
 export interface IMessageAttachment {
@@ -206,6 +207,7 @@ export interface IBasicMessage {
   senderFirstName: string | null;
   senderLastName: string | null;
   messageText: string;
+  messageAttachments?: IMessageAttachment[];
 }
 
 export interface ConversationAPIResponse {
@@ -315,7 +317,12 @@ export interface IActionConfig {
 
 export interface ConversationInputProps {
   conversationId: number;
-  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onSendMessage: (
+    message: string,
+    parentMessage?: IMessage,
+    files?: File[],
+    gifUrl?: string
+  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   onOpenDocumentPickerNative?: () => void;
@@ -379,4 +386,10 @@ export interface IMentionedMessage {
   message: IMessage;
   mentionedUser: TUser;
   conversation: IConversation;
+}
+
+export interface GifPickerProps {
+  visible: boolean;
+  onClose: () => void;
+  onGifSelect: (gifUrl: string) => void;
 }
