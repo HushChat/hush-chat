@@ -8,6 +8,7 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
+import { PLATFORM } from "@/constants/platformConstants";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
@@ -128,10 +129,10 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 
 const styles = StyleSheet.create({
   maxWidthAttachments: {
-    maxWidth: 305,
+    maxWidth: PLATFORM.IS_WEB ? 600 : 280,
   },
   maxWidthRegular: {
-    maxWidth: "100%",
+    maxWidth: PLATFORM.IS_WEB ? 600 : 280,
   },
   forwardedRight: {
     borderRightWidth: 2,
