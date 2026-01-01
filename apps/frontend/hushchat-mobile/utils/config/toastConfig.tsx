@@ -30,8 +30,8 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
 
   const { name, color } = TOAST_ICONS[type];
 
-  const primaryTextColor = isDark ? "#111827" : "#1F2937";
-  const secondaryTextColor = isDark ? "#9ca3af" : "#6B7280";
+  const primaryTextColor = isDark ? "#111827" : "#ffffff";
+  const secondaryTextColor = isDark ? "#9ca3af" : "#dae0eb";
 
   return (
     <GestureDetector gesture={gesture}>
