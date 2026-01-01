@@ -175,8 +175,8 @@ export default function useWebSocketConnection() {
             ...Array.from(encoder.encode(`${HEADER_WORKSPACE_ID}:${workspace}\n`)),
             ...Array.from(encoder.encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
             ...Array.from(encoder.encode(`${HEADER_DEVICE_TYPE}:${deviceType}\n`)),
-            ...Array.from(encoder.encode(`${HEADER_ACCEPT_VERSION}:1.2`)),
-            ...Array.from(encoder.encode(`${HEADER_HEART_BEAT}:0,0`)),
+            ...Array.from(encoder.encode(`${HEADER_ACCEPT_VERSION}:1.2\n`)),
+            ...Array.from(encoder.encode(`${HEADER_HEART_BEAT}:0,0\n`)),
             0x0a, // empty line
             0x00, // null terminator
           ];
