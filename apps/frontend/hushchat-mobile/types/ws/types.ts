@@ -17,9 +17,8 @@ export interface WebSocketMessage {
 
 export interface TypingIndicator {
   conversationId: number;
-  userId: string;
-  isTyping: boolean;
-  timestamp: string;
+  chatUserName: string;
+  typing: boolean;
 }
 
 export interface UserPresence {

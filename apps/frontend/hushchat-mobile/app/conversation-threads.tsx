@@ -493,6 +493,7 @@ const ConversationThreadScreen = ({
           refetchConversationMessages={refetchConversationMessages}
           isLoadingConversationMessages={isLoadingConversationMessages}
           webPressSearch={webSearchPress}
+          isGroupChat={isGroupChat}
         />
 
         <KeyboardAvoidingView

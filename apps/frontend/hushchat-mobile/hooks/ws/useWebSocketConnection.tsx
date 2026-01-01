@@ -39,6 +39,7 @@ const TOPICS = [
   { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
   { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
   { destination: WS_TOPICS.message.react, id: "sub-message-reaction" },
+  { destination: WS_TOPICS.message.typing, id: "sub-typing-status" },
 ] as const;
 
 const encoder = new TextEncoder();

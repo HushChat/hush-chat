@@ -46,10 +46,7 @@ public class TypingStatusWSService {
             UserViewDTO user = userService.findUserById(userTypingStatusUpsertDTO.getUserId(), userTypingStatusUpsertDTO.getWorkspaceId());
 
             for (WebSocketSessionInfoDAO info : webSocketSessionManager.getWebSocketSessionInfos().values()) {
-                if(info.getWsSessionId().equals(wsSessionId)){
-                    continue;
-                }
-                if (info.getOpenedConversation() == null) {
+                if(info.getWsSessionId().equals(wsSessionId) || info.getOpenedConversation() == null){
                     continue;
                 }
                 if (!userTypingStatusUpsertDTO.getConversationId().equals(info.getOpenedConversation())) {
