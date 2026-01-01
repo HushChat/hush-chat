@@ -25,6 +25,12 @@ interface IUseSendMessageHandlerParams {
     parentMessageId?: number | null
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
+  updateConversationMessagesCache: (message: IMessage) => void;
+  sendGifMessage: (
+    gifUrl: string,
+    messageText: string,
+    parentMessageId?: number | null
+  ) => Promise<IMessage>;
 }
 
 let tempMessageIdCounter = -1;
@@ -64,6 +70,38 @@ const createTempImageMessage = ({
   hasAttachment: true,
 });
 
+const createTempGifMessage = ({
+  gifUrl,
+  messageText,
+  conversationId,
+  senderId,
+}: {
+  gifUrl: string;
+  messageText: string;
+  conversationId: number;
+  senderId: number;
+}): IMessage => ({
+  id: generateTempMessageId(),
+  isForwarded: false,
+  senderId,
+  senderFirstName: "",
+  senderLastName: "",
+  messageText,
+  createdAt: new Date().toISOString(),
+  conversationId,
+  messageAttachments: [
+    {
+      fileUrl: gifUrl,
+      originalFileName: "tenor_gif.gif",
+      indexedFileName: gifUrl,
+      mimeType: "image/gif",
+      type: MessageAttachmentTypeEnum.GIF,
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+  hasAttachment: true,
+});
+
 export const useSendMessageHandler = ({
   currentConversationId,
   currentUserId,
@@ -72,6 +110,7 @@ export const useSendMessageHandler = ({
   sendMessage,
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
+  sendGifMessage,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
     useConversationMessagesQuery(currentConversationId);
@@ -110,11 +149,11 @@ export const useSendMessageHandler = ({
   );
 
   const handleSendMessage = useCallback(
-    async (message: string, parentMessage?: IMessage, files?: File[]) => {
+    async (message: string, parentMessage?: IMessage, files?: File[], gifUrl?: string) => {
       const trimmed = message?.trim() ?? "";
       const filesToSend = files || [];
 
-      if (!trimmed && filesToSend.length === 0) return;
+      if (!trimmed && filesToSend.length === 0 && !gifUrl) return;
 
       try {
         const validFiles = filesToSend.filter((f) => f instanceof File);
@@ -171,6 +210,22 @@ export const useSendMessageHandler = ({
             });
           }
 
+          setSelectedMessage(null);
+          return;
+        }
+
+        if (gifUrl) {
+          const tempGifMessage = createTempGifMessage({
+            gifUrl,
+            messageText: trimmed,
+            conversationId: currentConversationId,
+            senderId: Number(currentUserId),
+          });
+
+          updateConversationMessagesCache(tempGifMessage);
+          updateConversationsListCache(tempGifMessage);
+
+          await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
           setSelectedMessage(null);
           return;
         }

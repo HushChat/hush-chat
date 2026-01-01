@@ -19,6 +19,7 @@ import {
   MAX_IMAGE_SIZE_KB,
   MAX_VIDEO_SIZE_KB,
 } from "@/constants/mediaConstants";
+import { IMessage } from "@/types/chat/types";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -54,10 +55,11 @@ const sizeMap = {
   document: MAX_DOCUMENT_SIZE_KB,
 };
 
-type TAttachmentUploadRequest = {
+export type TAttachmentUploadRequest = {
   messageText: string;
-  fileName: string;
+  fileName?: string;
   parentMessageId?: number | null;
+  gifUrl?: string;
 };
 
 export interface IMessageWithSignedUrl {
@@ -243,6 +245,23 @@ export function useMessageAttachmentUploader(
     const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
 
     return extractSignedUrls(messagesWithSignedUrl);
+  };
+
+  const sendGifMessage = async (
+    gifUrl: string,
+    messageText: string = "",
+    parentMessageId?: number | null
+  ): Promise<IMessage> => {
+    const attachments: TAttachmentUploadRequest[] = [
+      {
+        messageText,
+        gifUrl,
+        parentMessageId,
+      },
+    ];
+
+    const response = await createMessagesWithAttachments(conversationId, attachments);
+    return response;
   };
 
   const hook = useNativePickerUpload(getSignedUrls);
@@ -432,5 +451,6 @@ export function useMessageAttachmentUploader(
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
     isUploading: isUploadingWebFiles,
+    sendGifMessage,
   };
 }

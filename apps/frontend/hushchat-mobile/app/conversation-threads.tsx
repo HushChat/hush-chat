@@ -139,9 +139,6 @@ const ConversationThreadScreen = ({
       updateConversation(currentConversationId, {
         unreadCount: data.data?.unreadCount || 0,
       });
-    },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
     }
   );
 
@@ -227,6 +224,7 @@ const ConversationThreadScreen = ({
     pickAndUploadDocuments,
     isUploading: isUploadingImages,
     error: uploadError,
+    sendGifMessage,
   } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
@@ -274,6 +272,8 @@ const ConversationThreadScreen = ({
     sendMessage,
     uploadFilesFromWebWithCaptions,
     handleCloseImagePreview,
+    updateConversationMessagesCache,
+    sendGifMessage,
   });
 
   const handleSendFilesFromPreview = useCallback(
