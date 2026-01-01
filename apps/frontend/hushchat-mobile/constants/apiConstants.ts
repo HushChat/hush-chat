@@ -17,6 +17,7 @@ export const MESSAGE_API_BASE = "/messages";
 export const SEARCH_API_BASE = "/search";
 export const WORKSPACES_API_BASE = "/workspaces";
 export const WORKSPACE_ADMIN_API_BASE = "/admin/workspace";
+export const GIF_API_BASE = "/tenor";
 
 export const WORKSPACE_ENDPOINTS = {
   GET: `${WORKSPACES_API_BASE}/my-workspaces`,
@@ -109,4 +110,9 @@ export const MESSAGE_API_ENDPOINTS = {
 
 export const SETTINGS_API_ENDPOINTS = {
   CONTACT_US: `${SETTINGS_API_BASE}/contact-us`,
+};
+
+export const GIF_API_ENDPOINTS = {
+  TRENDING: `${GIF_API_BASE}/featured`,
+  SEARCH: `${GIF_API_BASE}/search`,
 };
