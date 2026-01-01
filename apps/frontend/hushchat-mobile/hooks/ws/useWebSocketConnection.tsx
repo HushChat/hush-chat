@@ -281,7 +281,6 @@ export default function useWebSocketConnection() {
 
     const deviceType = getDeviceType();
     const deviceId = getDeviceId();
-
     return publishUserActivity(wsRef.current, { ...data, deviceType, deviceId });
   };
 

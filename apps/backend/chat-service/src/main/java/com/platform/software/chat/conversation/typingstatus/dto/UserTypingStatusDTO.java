@@ -1,12 +1,12 @@
 package com.platform.software.chat.conversation.typingstatus.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class UserTypingStatusDTO {
-    private String workspaceId;
+    private String chatUserName;
     private Long conversationId;
     private boolean typing;
-    private String deviceType;
-    private String deviceId;
 }
