@@ -283,14 +283,16 @@ public class WebSocketSessionManager {
     }
 
     public ChatUserStatus getUserChatStatus(String workspaceId, String email) {
-        String webSocketStoreKey = getSessionKey(workspaceId, email);
-        WebSocketSessionInfoDAO sessionInfo = webSocketSessionInfos.get(webSocketStoreKey);
+        List<WebSocketSessionInfoDAO> sessionInfo = getSessionsForUser(workspaceId, email);
 
-        if (sessionInfo == null) {
+        if (sessionInfo == null || sessionInfo.isEmpty()) {
             return ChatUserStatus.OFFLINE;
         }
 
-        if (UserStatusEnum.BUSY.equals(sessionInfo.getChatUserStatus())) {
+        boolean hasBusyStatus = sessionInfo.stream()
+                .anyMatch(session -> UserStatusEnum.BUSY.equals(session.getChatUserStatus()));
+
+        if (hasBusyStatus) {
             return ChatUserStatus.BUSY;
         }
 
