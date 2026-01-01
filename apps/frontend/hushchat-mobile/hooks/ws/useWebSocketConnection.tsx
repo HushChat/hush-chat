@@ -115,7 +115,7 @@ export const publishTypingStatus = (ws: WebSocket | null, data: TypingIndicatorW
 export default function useWebSocketConnection() {
   const { isAuthenticated } = useAuthStore();
   const {
-    user: { email },
+    user: { email, id },
   } = useUserStore();
   const wsRef = useRef<WebSocket | null>(null);
   const shouldStopRetrying = useRef(false);
@@ -296,13 +296,20 @@ export default function useWebSocketConnection() {
     const deviceType = getDeviceType();
     const deviceId = getDeviceId();
     const workspaceId = workspace;
+    const userId = id;
 
-    if (!workspaceId) {
-      logInfo("Cannot publish typing: workspaceId is missing");
+    if (!workspaceId || !userId) {
+      logInfo("Cannot publish typing: missing workspaceId or userId");
       return false;
     }
 
-    return publishTypingStatus(wsRef.current, { ...data, deviceType, deviceId, workspaceId });
+    return publishTypingStatus(wsRef.current, {
+      ...data,
+      userId,
+      deviceType,
+      deviceId,
+      workspaceId,
+    });
   };
 
   // return the connection status
