@@ -11,7 +11,7 @@ import classNames from "classnames";
 import { eventBus } from "@/services/eventBus";
 import { USER_EVENTS } from "@/constants/ws/webSocketEventKeys";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { ConversationInfo, IUserStatus } from "@/types/chat/types";
+import { chatUserStatus, ConversationInfo, DeviceType, IUserStatus } from "@/types/chat/types";
 import RefreshButton from "@/components/RefreshButton";
 
 interface ChatHeaderProps {
@@ -34,12 +34,17 @@ const ChatHeader = ({
   const isMobileLayout = useIsMobileLayout();
   const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
 
-  const [chatUserStatus, setChatUserStatus] = useState(conversationInfo.chatUserStatus);
-  const [deviceType, setDeviceType] = useState(conversationInfo.deviceType);
+  const [chatUserStatus, setChatUserStatus] = useState<chatUserStatus>();
+  const [deviceType, setDeviceType] = useState<DeviceType>();
 
   const handleProfileNavigate = useCallback(() => {
     handleConversationNavigation(onShowProfile, conversationInfo.conversationId, isMobileLayout);
-  }, [onShowProfile, conversationInfo.conversationId]);
+  }, [onShowProfile, conversationInfo.conversationId, isMobileLayout]);
+
+  useEffect(() => {
+    setChatUserStatus(conversationInfo.chatUserStatus);
+    setDeviceType(conversationInfo.deviceType);
+  }, [conversationInfo.chatUserStatus, conversationInfo.deviceType]);
 
   useEffect(() => {
     const handleStatusUpdate = (status: IUserStatus) => {
