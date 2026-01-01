@@ -93,13 +93,14 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 
             "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
           })}
-          style={
-            isForwardedMessage
+          style={{
+            maxWidth: PLATFORM.IS_WEB ? 600 : 280,
+            ...(isForwardedMessage
               ? isCurrentUser
                 ? { borderRightColor: "#60A5FA30" }
                 : { borderLeftColor: "#9CA3AF30" }
-              : undefined
-          }
+              : {}),
+          }}
         >
           {hasGifMedia && !message.isUnsend && (
             <View className={messageContent ? "mb-2" : ""}>
