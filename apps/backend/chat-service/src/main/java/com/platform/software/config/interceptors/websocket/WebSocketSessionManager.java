@@ -27,7 +27,7 @@ public class WebSocketSessionManager {
     private final Logger logger = LoggerFactory.getLogger(WebSocketSessionManager.class);
     private final UserService userService;
 
-    // Session key format: workspaceId:email -> ex: localhost:test@gmail.com
+    // Session key format: workspaceId:email -> ex: localhost:test@gmail.com:uuid
     @Getter
     private final Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos = new ConcurrentHashMap<>();
 
@@ -274,11 +274,6 @@ public class WebSocketSessionManager {
 
     private String getSessionKey(String tenantId, String email, String deviceId) {
         return String.format("%s:%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8), deviceId);
-    }
-
-    public boolean isUserConnected(String workspaceId, String email) {
-        List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
-        return sessions != null && !sessions.isEmpty();
     }
 
     public ChatUserStatus getUserChatStatus(String workspaceId, String email) {
