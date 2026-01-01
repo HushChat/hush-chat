@@ -354,7 +354,11 @@ public class ConversationService {
 
                     String imageIndexedName = messageViewDTO.getImageIndexedName();
                     if (imageIndexedName != null) {
-                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                                MediaSizeEnum.SMALL,
+                                imageIndexedName
+                        );
                         messageViewDTO.setSenderSignedImageUrl(signedUrl);
                     }
 
@@ -797,9 +801,9 @@ public class ConversationService {
         ConversationParticipantViewDTO leavingParticipant = getParticipantIfAllowedToRemoveAdminRole(userId, conversationId);
 
         try {
-            conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
-
             conversationEventService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
+
+            conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
         } catch (Exception e) {
             logger.error("user: %s cannot leave the conversation due to an error".formatted(userId), e);
             throw new CustomInternalServerErrorException("Failed to leave the conversation");
