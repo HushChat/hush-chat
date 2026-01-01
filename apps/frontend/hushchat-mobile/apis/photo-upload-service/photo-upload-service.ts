@@ -213,7 +213,6 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
-  const [createdMessages, setCreatedMessages] = useState<IMessageWithSignedUrl[]>([]);
 
   const getSignedUrls = async (
     files: LocalFile[],
@@ -227,10 +226,6 @@ export function useMessageAttachmentUploader(
     }));
 
     const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
-
-    if (Array.isArray(messagesWithSignedUrl)) {
-      setCreatedMessages(messagesWithSignedUrl);
-    }
 
     return extractSignedUrls(messagesWithSignedUrl);
   };
@@ -246,10 +241,6 @@ export function useMessageAttachmentUploader(
     }));
 
     const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
-
-    if (Array.isArray(messagesWithSignedUrl)) {
-      setCreatedMessages(messagesWithSignedUrl);
-    }
 
     return extractSignedUrls(messagesWithSignedUrl);
   };
@@ -441,6 +432,5 @@ export function useMessageAttachmentUploader(
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
     isUploading: isUploadingWebFiles,
-    createdMessages,
   };
 }

@@ -163,7 +163,7 @@ export function useConversationMessagesQuery(conversationId: number) {
   );
 
   const replaceTempMessage = useCallback(
-    (tempId: number, realId: number) => {
+    (temporaryMessageId: number, serverMessageId: number) => {
       queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
         queryKey,
         (oldData) => {
@@ -174,7 +174,7 @@ export function useConversationMessagesQuery(conversationId: number) {
             pages: oldData.pages.map((page) => ({
               ...page,
               content: page.content.map((msg) =>
-                msg.id === tempId ? { ...msg, id: realId } : msg
+                msg.id === temporaryMessageId ? { ...msg, id: serverMessageId } : msg
               ),
             })),
           };

@@ -35,13 +35,15 @@ const createTempImageMessage = ({
   messageText,
   conversationId,
   senderId,
+  tempId,
 }: {
   file: File;
   messageText: string;
   conversationId: number;
   senderId: number;
+  tempId: number;
 }): IMessage => ({
-  id: generateTempMessageId(),
+  id: tempId,
   isForwarded: false,
   senderId,
   senderFirstName: "",
@@ -119,17 +121,20 @@ export const useSendMessageHandler = ({
 
         if (validFiles.length > 0) {
           const renamedFiles = validFiles.map((file, index) => renameFile(file, index));
-          const tempIdMap: Record<string, number> = {}; // Map to track TempID -> FileName
+
+          const tempMessageMap = new Map<number, string>();
 
           renamedFiles.forEach((file) => {
+            const tempId = generateTempMessageId();
             const tempMsg = createTempImageMessage({
               file,
               messageText: trimmed,
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
+              tempId,
             });
 
-            tempIdMap[file.name] = tempMsg.id; // Store ID mapping
+            tempMessageMap.set(tempId, file.name);
             updateConversationMessagesCache(tempMsg);
           });
 
@@ -140,6 +145,7 @@ export const useSendMessageHandler = ({
               messageText: trimmed || `Sent ${renamedFiles.length} file(s)`,
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
+              tempId: generateTempMessageId(),
             })
           );
 
@@ -155,9 +161,11 @@ export const useSendMessageHandler = ({
           if (replaceTempMessage) {
             results.forEach((result) => {
               if (result.success && result.messageId && result.fileName) {
-                const tempId = tempIdMap[result.fileName];
-                if (tempId) {
-                  replaceTempMessage(tempId, result.messageId);
+                for (const [tempId, fileName] of tempMessageMap.entries()) {
+                  if (fileName === result.fileName) {
+                    replaceTempMessage(tempId, result.messageId);
+                    break;
+                  }
                 }
               }
             });
@@ -196,7 +204,7 @@ export const useSendMessageHandler = ({
       if (!filesWithCaptions || filesWithCaptions.length === 0) return;
 
       const parentMsgId = selectedMessage?.id ?? null;
-      const tempIdMap: Record<string, number> = {};
+      const tempMessageMap = new Map<number, string>();
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
@@ -207,14 +215,16 @@ export const useSendMessageHandler = ({
         );
 
         preparedFiles.forEach(({ file, caption }) => {
+          const tempId = generateTempMessageId();
           const tempMsg = createTempImageMessage({
             file,
             messageText: caption,
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
+            tempId,
           });
 
-          tempIdMap[file.name] = tempMsg.id;
+          tempMessageMap.set(tempId, file.name);
           updateConversationMessagesCache(tempMsg);
         });
 
@@ -225,6 +235,7 @@ export const useSendMessageHandler = ({
             messageText: lastItem.caption || `Sent ${preparedFiles.length} file(s)`,
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
+            tempId: generateTempMessageId(),
           })
         );
 
@@ -233,9 +244,11 @@ export const useSendMessageHandler = ({
         if (replaceTempMessage) {
           results.forEach((result) => {
             if (result.success && result.messageId && result.fileName) {
-              const tempId = tempIdMap[result.fileName];
-              if (tempId) {
-                replaceTempMessage(tempId, result.messageId);
+              for (const [tempId, fileName] of tempMessageMap.entries()) {
+                if (fileName === result.fileName) {
+                  replaceTempMessage(tempId, result.messageId);
+                  break;
+                }
               }
             }
           });
