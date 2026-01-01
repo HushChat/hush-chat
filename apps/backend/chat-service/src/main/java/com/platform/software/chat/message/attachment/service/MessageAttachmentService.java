@@ -18,12 +18,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class MessageAttachmentService {
     private static final Logger logger = LoggerFactory.getLogger(MessageAttachmentService.class);
+    private static final String TENOR_GIF_BASE_URL = "https://media.tenor.com";
+    private static final String GIF_FILE_PREFIX = "tenor_gif_";
+    private static final String GIF_FILE_EXTENSION = ".gif";
 
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
@@ -68,14 +72,15 @@ public class MessageAttachmentService {
      * @param message The message to attach the GIF to
      * @return The created MessageAttachment
      */
+    @Transactional
     public MessageAttachment createGifAttachment(String gifUrl, Message message) {
-        if (gifUrl == null || gifUrl.isEmpty()) {
-            throw new CustomBadRequestException("GIF URL cannot be empty");
+        if (!gifUrl.isEmpty() && !gifUrl.startsWith(TENOR_GIF_BASE_URL)) {
+            throw new CustomBadRequestException("Invalid Tenor GIF URL");
         }
 
         MessageAttachment gifAttachment = new MessageAttachment();
         gifAttachment.setMessage(message);
-        gifAttachment.setOriginalFileName("tenor_gif_" + System.currentTimeMillis() + ".gif");
+        gifAttachment.setOriginalFileName(GIF_FILE_PREFIX + UUID.randomUUID().toString() + GIF_FILE_EXTENSION);
         gifAttachment.setIndexedFileName(gifUrl);
         gifAttachment.setType(AttachmentTypeEnum.GIF);
 

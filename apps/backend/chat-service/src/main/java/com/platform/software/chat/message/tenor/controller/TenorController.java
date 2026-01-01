@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.platform.software.chat.message.tenor.dto.TenorApiResponseDto;
 import com.platform.software.chat.message.tenor.service.TenorService;
 
 @RestController
@@ -17,19 +18,17 @@ public class TenorController {
     private TenorService tenorService;
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchGifs(
+    public ResponseEntity<TenorApiResponseDto> searchGifs(
             @RequestParam String q,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false) String pos
-    ) {
+            @RequestParam(required = false) String pos) {
         return ResponseEntity.ok(tenorService.searchGifs(q, limit, pos));
     }
 
     @GetMapping("/featured")
-    public ResponseEntity<?> getFeaturedGifs(
+    public ResponseEntity<TenorApiResponseDto> getFeaturedGifs(
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false) String pos
-    ) {
+            @RequestParam(required = false) String pos) {
         return ResponseEntity.ok(tenorService.getFeaturedGifs(limit, pos));
     }
 }
