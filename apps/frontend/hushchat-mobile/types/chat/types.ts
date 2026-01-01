@@ -46,11 +46,12 @@ export interface IMessageAttachment {
 export enum MessageTypeEnum {
   TEXT = "TEXT",
   ATTACHMENT = "ATTACHMENT",
+  AUDIO = "AUDIO",
   SYSTEM_EVENT = "SYSTEM_EVENT",
 }
 
 export interface IMessage {
-  id: number;
+  id?: number;
   senderId: number;
   senderFirstName: string;
   senderLastName: string;
@@ -61,12 +62,12 @@ export interface IMessage {
   reactionSummary?: ReactionSummary;
   conversationId: number;
   parentMessage?: IMessage;
-  isForwarded: boolean;
+  isForwarded?: boolean;
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
   isReadByEveryone?: boolean;
-  messageType?: MessageTypeEnum;
+  messageType?: MessageTypeEnum | null;
   hasAttachment?: boolean;
 }
 
@@ -327,6 +328,7 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  updateConversationMessagesCache: (IMessage: any) => void;
 }
 
 export type TNavigationDirection = "prev" | "next";

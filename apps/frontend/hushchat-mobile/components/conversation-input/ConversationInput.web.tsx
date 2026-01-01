@@ -14,6 +14,7 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { FileInput } from "@/components/conversation-input/FileInput";
+import { RecordingDisplayBar } from "@/components/conversation-input/RecordingDisplayBar";
 
 const ConversationInput = ({
   conversationId,
@@ -27,6 +28,7 @@ const ConversationInput = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  updateConversationMessagesCache,
 }: ConversationInputProps) => {
   const input = useConversationInput({
     conversationId,
@@ -37,6 +39,7 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    updateConversationMessagesCache,
   });
 
   const handleKeyPress = useCallback(
@@ -70,6 +73,8 @@ const ConversationInput = ({
         />
       )}
 
+      {input.audio.isRecording && <RecordingDisplayBar audio={input.audio} />}
+
       <View
         className={classNames(
           "flex-row items-end p-4",
@@ -80,7 +85,7 @@ const ConversationInput = ({
         {!isControlledMode && (
           <AttachmentButton
             ref={input.addButtonRef}
-            disabled={disabled}
+            disabled={disabled || input.audio.isRecording}
             toggled={input.menuVisible}
             onPress={input.handleAddButtonPress}
           />
@@ -93,7 +98,7 @@ const ConversationInput = ({
                 ref={input.messageTextInputRef}
                 value={input.message}
                 placeholder={input.placeholder}
-                disabled={disabled}
+                disabled={disabled || input.audio.isRecording}
                 autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
@@ -109,8 +114,11 @@ const ConversationInput = ({
               {!hideSendButton && (
                 <SendButton
                   showSend={input.isValidMessage}
-                  isSending={isSending}
+                  isSending={isSending || input.audio.isRecordUploading}
+                  isRecording={input.audio.isRecording}
                   onPress={handleSendPress}
+                  onStartRecording={input.audio.handleStartRecording}
+                  onStopRecording={input.audio.handleStopRecording}
                 />
               )}
             </View>

@@ -7,6 +7,7 @@ import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
 import {
   LocalFile,
   SignedUrl,
+  SignedUrlResponse,
   UploadResult,
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
@@ -209,18 +210,25 @@ export function useMessageAttachmentUploader(
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const getSignedUrls = async (
-    files: LocalFile[],
+    conversationId: number,
     messageText: string = "",
-    parentMessageId?: number | null
-  ): Promise<SignedUrl[] | null> => {
+    files: LocalFile[]
+  ): Promise<SignedUrlResponse | null> => {
     const attachments: TAttachmentUploadRequest[] = files.map((file) => ({
       messageText,
       fileName: file.name,
-      parentMessageId,
     }));
 
     const response = await createMessagesWithAttachments(conversationId, attachments);
-    return extractSignedUrls(response);
+
+    const signedURLs = extractSignedUrls(response);
+
+    const newResponse: SignedUrlResponse = {
+      message: response,
+      signedURLs: signedURLs,
+    };
+
+    return newResponse;
   };
 
   const getSignedUrlsWithCaptions = async (
@@ -237,7 +245,7 @@ export function useMessageAttachmentUploader(
     return extractSignedUrls(response);
   };
 
-  const hook = useNativePickerUpload(getSignedUrls);
+  const hook = useNativePickerUpload(conversationId, getSignedUrls);
 
   const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
     const results = await hook.pickAndUpload(
