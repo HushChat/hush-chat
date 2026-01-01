@@ -1,5 +1,5 @@
-import { AppText } from "@/components/AppText";
-import { View, ScrollView, TextInput } from "react-native";
+import { AppText, AppTextInput } from "@/components/AppText";
+import { View, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useEffect } from "react";
 import { IWorkspaceUser } from "@/types/workspace-user/types";
@@ -43,7 +43,7 @@ const EditableField = ({
       <Ionicons name={icon} size={20} color="#9CA3AF" />
       <AppText className="text-sm text-gray-500 dark:text-gray-400 font-medium">{label}</AppText>
     </View>
-    <TextInput
+    <AppTextInput
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
