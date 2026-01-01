@@ -128,9 +128,12 @@ export const getUserProfile = async (userId: number) => {
 
 export const updateUserProfile = async (userId: number, userProfile: UpdateUserProfileInput) => {
   try {
-    const response = await axios.patch(ADMIN_WORKSPACE_ENDPOINTS.UPDATE_PROFILE(userId), userProfile);
+    const response = await axios.patch(
+      ADMIN_WORKSPACE_ENDPOINTS.UPDATE_PROFILE(userId),
+      userProfile
+    );
     return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
   }
-}
+};

@@ -129,10 +129,7 @@ export default function UserProfileScreen() {
           </TouchableOpacity>
         </View>
       ) : isEditMode ? (
-        <UserDetailsEdit
-          user={userProfile}
-          onDataChange={handleDataChange}
-        />
+        <UserDetailsEdit user={userProfile} onDataChange={handleDataChange} />
       ) : (
         <UserDetails user={userProfile} showCloseButton={false} />
       )}

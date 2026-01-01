@@ -52,15 +52,15 @@ const ConversationListItem = ({
     setShowOptions(false);
   }, []);
 
-   const handleViewProfile = useCallback(() => {
+  const handleViewProfile = useCallback(() => {
     setShowProfileModal(false);
-    
+
     if (PLATFORM.IS_WEB) {
       setShowUserDetails(true);
     } else {
       if (conversation.peerUserId !== undefined) {
         router.push(USER_PROFILE(conversation.peerUserId));
-    }
+      }
     }
   }, [conversation.peerUserId]);
 
