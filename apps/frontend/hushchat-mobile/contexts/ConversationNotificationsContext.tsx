@@ -66,9 +66,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     user: { id: loggedInUserId, email },
   } = useUserStore();
 
-  const conversationsQueryKey = conversationQueryKeys.allConversations(
-    Number(loggedInUserId),
-    criteria
+  const conversationsQueryKey = useMemo(
+    () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
+    [loggedInUserId, criteria]
   );
 
   /**
@@ -118,6 +118,8 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         isPinned: (conversation) => conversation.pinnedByLoggedInUser,
       }
     );
+
+    setNotificationConversation(null);
   }, [notificationConversation, queryClient, conversationsQueryKey]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
