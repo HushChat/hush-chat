@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from "@/constants/apiConstants";
+import { AUTH_API_ENDPOINTS, TOKEN_TYPE, VERSION_CHECK } from "@/constants/apiConstants";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 import { logError } from "@/utils/logger";
@@ -30,6 +30,7 @@ const PUBLIC_ENDPOINTS: string[] = [
   AUTH_API_ENDPOINTS.REGISTER,
   AUTH_API_ENDPOINTS.VERIFY_OTP,
   AUTH_API_ENDPOINTS.RESEND_OTP,
+  VERSION_CHECK,
 ];
 
 export const setAPIDefaults = () => {
