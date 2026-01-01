@@ -354,7 +354,11 @@ public class ConversationService {
 
                     String imageIndexedName = messageViewDTO.getImageIndexedName();
                     if (imageIndexedName != null) {
-                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
+                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                                MediaSizeEnum.SMALL,
+                                imageIndexedName
+                        );
                         messageViewDTO.setSenderSignedImageUrl(signedUrl);
                     }
 
