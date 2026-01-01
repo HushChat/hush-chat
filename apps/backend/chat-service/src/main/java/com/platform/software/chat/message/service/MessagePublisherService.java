@@ -52,7 +52,7 @@ public class MessagePublisherService {
      * @param workspaceId    the tenant id
      */
     @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, readOnly = true)
+    @Transactional(readOnly = true)
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId,
             String workspaceId) {
         ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
@@ -81,6 +81,10 @@ public class MessagePublisherService {
                 })
                 .toList();
         messageViewDTO.setConversationId(conversationId);
+
+        if (!attachmentDTOs.isEmpty()) {
+            messageViewDTO.setHasAttachment(true);
+        }
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
         conversationDTO.setMessages(List.of(messageViewDTO));
