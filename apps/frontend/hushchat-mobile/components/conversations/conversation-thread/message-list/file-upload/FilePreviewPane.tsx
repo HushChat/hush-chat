@@ -87,7 +87,7 @@ const FilePreviewPane = ({
 
     if (isPdfOrText && url) {
       return (
-        <View style={styles.iframeContainer}>
+        <View className="w-full h-full bg-white rounded-lg overflow-hidden border border-gray-200 relative">
           <iframe
             className="custom-scrollbar"
             src={`${url}#toolbar=0&navpanes=0`}
@@ -96,7 +96,7 @@ const FilePreviewPane = ({
             onLoad={() => setLoading(false)}
           />
           {loading && (
-            <View style={styles.loaderOverlay}>
+            <View className="absolute inset-0 justify-center items-center bg-white/80">
               <ActivityIndicator size="large" color={iconColor} />
             </View>
           )}
@@ -159,22 +159,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     objectFit: "contain",
-  },
-  iframeContainer: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "white",
-    borderRadius: 8,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    position: "relative",
-  },
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.8)",
   },
   inputContainer: {
     position: "relative",

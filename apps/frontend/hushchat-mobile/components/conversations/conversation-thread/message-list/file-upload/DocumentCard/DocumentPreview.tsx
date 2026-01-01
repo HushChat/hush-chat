@@ -9,8 +9,8 @@ import { AppText } from "@/components/AppText";
 import LoadingState from "@/components/LoadingState";
 import { IMessageAttachment } from "@/types/chat/types";
 import { openFileNative, downloadFileWeb } from "@/utils/messageUtils";
-import { useAppTheme } from "@/hooks/useAppTheme";
 import { PLATFORM } from "@/constants/platformConstants";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface IDocumentPreviewProps {
   visible: boolean;
@@ -23,24 +23,21 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   const [error, setError] = useState(false);
 
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useAppTheme();
+  const isDark = useAppTheme();
 
   const themeColors = {
-    primary: colors.tint || (isDark ? "#563dc4" : "#6B4EFF"),
-    icon: colors.icon || (isDark ? "#9ca3af" : "#6B7280"),
-    background: colors.background,
+    primary: isDark ? "#563dc4" : "#6B4EFF",
+    icon: isDark ? "#9ca3af" : "#6B7280",
     error: "#EF4444",
   };
 
   useEffect(() => {
-    if (visible) {
+    if (visible && attachment) {
       setLoading(true);
       setError(false);
 
       if (PLATFORM.IS_WEB) {
-        const timer = setTimeout(() => {
-          setLoading(false);
-        }, 1500);
+        const timer = setTimeout(() => setLoading(false), 1000);
         return () => clearTimeout(timer);
       }
     }
@@ -51,12 +48,11 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   const fileName = attachment.originalFileName || attachment.indexedFileName || "Document";
   const fileUrl = attachment.fileUrl;
   const fileExt = fileName.split(".").pop()?.toLowerCase() || "";
+  const componentKey = `${fileUrl}-${visible ? "open" : "closed"}`;
 
   const isOfficeDoc = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(fileExt);
   const isPdf = fileExt === "pdf";
-  const isWebDirectSupported = ["png", "jpg", "jpeg", "gif", "mp4", "webm", "txt", "json"].includes(
-    fileExt
-  );
+  const isWebNative = ["png", "jpg", "jpeg", "gif", "mp4", "webm", "txt", "json"].includes(fileExt);
 
   const handlePrimaryAction = async () => {
     if (!fileUrl) return;
@@ -76,14 +72,17 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     }
 
     if (isPdf) {
-      if (PLATFORM.IS_ANDROID || PLATFORM.IS_WEB) {
+      if (PLATFORM.IS_ANDROID) {
         return `https://docs.google.com/gview?embedded=true&url=${encodedUrl}`;
+      }
+      if (PLATFORM.IS_WEB) {
+        return `${fileUrl}#toolbar=0&navpanes=0`;
       }
       return fileUrl;
     }
 
     if (PLATFORM.IS_WEB) {
-      if (isWebDirectSupported) return fileUrl;
+      if (isWebNative) return fileUrl;
       return `https://docs.google.com/gview?embedded=true&url=${encodedUrl}`;
     }
 
@@ -96,7 +95,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     if (error || !viewerUrl) return renderFallbackUI();
 
     return (
-      <View className="flex-1 relative bg-white dark:bg-black w-full h-full">
+      <View className="flex-1 relative bg-background-light dark:bg-background-dark w-full h-full">
         {loading && (
           <View className="absolute inset-0 z-10 bg-background-light dark:bg-background-dark">
             <LoadingState />
@@ -105,6 +104,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
 
         {PLATFORM.IS_WEB ? (
           React.createElement("iframe", {
+            key: componentKey,
             src: viewerUrl,
             style: { width: "100%", height: "100%", border: "none" },
             onLoad: () => setLoading(false),
@@ -115,7 +115,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
           })
         ) : (
           <WebView
-            key={viewerUrl}
+            key={componentKey}
             source={{ uri: viewerUrl }}
             style={{ flex: 1, backgroundColor: "transparent" }}
             onLoadEnd={() => setLoading(false)}
@@ -175,7 +175,6 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
       <View
         style={{
           flex: 1,
-          backgroundColor: themeColors.background,
           paddingTop: PLATFORM.IS_WEB ? 0 : insets.top,
           paddingBottom: PLATFORM.IS_WEB ? 0 : insets.bottom,
         }}
