@@ -12,6 +12,7 @@ export const BuildConstantKeys = {
   FIREBASE_MESSAGING_SENDER_ID: "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
   FIREBASE_MEASUREMENT_ID: "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID",
   FIREBASE_VAPID: "EXPO_PUBLIC_FIREBASE_VAPID",
+  EMOJI_BASE_URL: "EXPO_PUBLIC_EMOJI_BASE_URL",
 } as const;
 
 export type BuildConstantKey = keyof typeof BuildConstantKeys;
@@ -31,6 +32,7 @@ const BuildConstant: Record<BuildConstantValueKey, string | undefined> = {
   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
   EXPO_PUBLIC_FIREBASE_VAPID: process.env.EXPO_PUBLIC_FIREBASE_VAPID,
+  EXPO_PUBLIC_EMOJI_BASE_URL: process.env.EXPO_PUBLIC_EMOJI_BASE_URL,
 };
 
 export function getBuildConstant(constKey: BuildConstantValueKey): string {

@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
 
@@ -15,6 +15,10 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { FileInput } from "@/components/conversation-input/FileInput";
 import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
+import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
+import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 
 const ConversationInput = ({
   conversationId,
@@ -30,6 +34,17 @@ const ConversationInput = ({
   hideSendButton = false,
 }: ConversationInputProps) => {
   const { publishTyping } = useWebSocketConnection();
+  const isControlledMode = controlledValue !== undefined;
+
+  const {
+    showEmojiPicker,
+    showGifPicker,
+    openEmojiPicker,
+    closeEmojiPicker,
+    openGifPicker,
+    closeGifPicker,
+  } = useEmojiGifPicker();
+
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -67,7 +82,19 @@ const ConversationInput = ({
     input.handleSend(input.message);
   }, [input.handleSend, input.message]);
 
-  const isControlledMode = controlledValue !== undefined;
+  const handleEmojiSelect = useCallback(
+    (emoji: string) => {
+      input.handleChangeText(input.message + emoji);
+    },
+    [input.handleChangeText, input.message]
+  );
+
+  const handleGifSelect = useCallback(
+    (gifUrl: string) => {
+      onSendMessage?.("", undefined, undefined, gifUrl);
+    },
+    [onSendMessage]
+  );
 
   return (
     <View>
@@ -80,23 +107,24 @@ const ConversationInput = ({
 
       <View
         className={classNames(
-          "flex-row items-end p-4",
-          "bg-background-light dark:bg-background-dark",
+          "p-4 bg-background-light dark:bg-background-dark",
           "border-gray-200 dark:border-gray-800"
         )}
       >
-        {!isControlledMode && (
-          <AttachmentButton
-            ref={input.addButtonRef}
-            disabled={disabled}
-            toggled={input.menuVisible}
-            onPress={input.handleAddButtonPress}
-          />
-        )}
+        <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
+          {!isControlledMode && (
+            <View className="mr-1">
+              <AttachmentButton
+                ref={input.addButtonRef}
+                disabled={disabled}
+                toggled={input.menuVisible}
+                onPress={input.handleAddButtonPress}
+              />
+            </View>
+          )}
 
-        <View className={classNames("flex-1", !isControlledMode && "mx-2")}>
-          <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
-            <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4">
+          <View className="flex-1 px-2 min-h-[40px] justify-center">
+            <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
               <MessageTextArea
                 ref={input.messageTextInputRef}
                 value={input.message}
@@ -114,15 +142,40 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
-              {!hideSendButton && (
+            </Animated.View>
+          </View>
+
+          <View className="flex-row gap-2 items-center ml-1">
+            <TouchableOpacity
+              onPress={openEmojiPicker}
+              className="p-1.5 justify-center items-center"
+              disabled={disabled}
+            >
+              <MaterialIcons
+                name="emoji-emotions"
+                size={22}
+                className="text-gray-500 dark:text-gray-400"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={openGifPicker}
+              className="p-1.5 justify-center items-center"
+              disabled={disabled}
+            >
+              <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
+            </TouchableOpacity>
+
+            {!hideSendButton && (
+              <View className="ml-1">
                 <SendButton
                   showSend={input.isValidMessage}
                   isSending={isSending}
                   onPress={handleSendPress}
                 />
-              )}
-            </View>
-          </Animated.View>
+              </View>
+            )}
+          </View>
         </View>
 
         {!isControlledMode && (
@@ -158,6 +211,18 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
+
+      <EmojiPickerComponent
+        visible={showEmojiPicker}
+        onClose={closeEmojiPicker}
+        onEmojiSelect={handleEmojiSelect}
+      />
+
+      <GifPickerComponent
+        visible={showGifPicker}
+        onClose={closeGifPicker}
+        onGifSelect={handleGifSelect}
+      />
     </View>
   );
 };

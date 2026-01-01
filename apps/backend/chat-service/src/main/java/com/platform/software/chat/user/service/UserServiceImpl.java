@@ -1,5 +1,7 @@
 package com.platform.software.chat.user.service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +11,7 @@ import java.util.stream.Collectors;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserInfoRepository;
@@ -19,6 +22,8 @@ import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.AWSconfig;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
@@ -36,6 +41,7 @@ import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -77,7 +83,7 @@ public class UserServiceImpl implements UserService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
     private final UserInfoRepository userInfoRepository;
-
+    private final WebSocketSessionManager webSocketSessionManager;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -90,10 +96,11 @@ public class UserServiceImpl implements UserService {
             ConversationRepository conversationRepository,
             UserUtilService userUtilService,
             AWSconfig awSconfig,
-            ChatNotificationRepository chatNotificationRepository, 
-            WorkspaceUserRepository workspaceUserRepository, 
+            ChatNotificationRepository chatNotificationRepository,
+            WorkspaceUserRepository workspaceUserRepository,
             WorkspaceRepository workspaceRepository,
-            UserInfoRepository userInfoRepository
+            UserInfoRepository userInfoRepository,
+            @Lazy WebSocketSessionManager webSocketSessionManager
     ) {
         this.userRepository = userRepository;
         this.cognitoService = cognitoService;
@@ -109,6 +116,7 @@ public class UserServiceImpl implements UserService {
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
         this.userInfoRepository = userInfoRepository;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     @Override
@@ -467,11 +475,65 @@ public class UserServiceImpl implements UserService {
         if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty()){
             userPublicProfile.setSignedImageUrl(
                     cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.SMALL,
                             userPublicProfile.getSignedImageUrl()
                     )
             );
         }
 
         return userPublicProfile;
+    }
+
+    /**
+     * Change the availability status of the authenticated user
+     * <p>
+     * This method retrieves the user, change their availability status as requested, persists the change,
+     * and evicts relevant cache entries to ensure data consistency.
+     * </p>
+     *
+     * @param authenticatedUser the authenticated user details containing the user ID
+     * @param status the status user requesting to have
+     * @return the updated {@link UserStatusEnum} after toggling
+     * @throws CustomInternalServerErrorException if the user status update fails during persistence
+     * @throws IllegalArgumentException if the user cannot be validated or found
+     */
+    @Transactional
+    public UserStatusEnum updateUserAvailability(UserDetails authenticatedUser, UserStatusEnum status) {
+        ChatUser user = validateAndGetUser(authenticatedUser.getId());
+
+        user.setAvailabilityStatus(status);
+
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            logger.error("failed to update user {} availability status", user.getId(), e);
+            throw new CustomInternalServerErrorException("Failed to Update Status");
+        }
+
+        String workspaceId = authenticatedUser.getWorkspaceId();
+
+        String tenantId = createSessionKey(workspaceId, user.getEmail());
+        if (UserStatusEnum.BUSY.equals(user.getAvailabilityStatus())) {
+            webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, user.getAvailabilityStatus());
+        } else {
+            webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, UserStatusEnum.ONLINE);
+        }
+
+        cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL+":" + user.getEmail()));
+        cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
+
+        return user.getAvailabilityStatus();
+    }
+
+    // todo - change cache configuration to work with enum type too.
+    @Cacheable(value = CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
+    public String getUserAvailabilityStatus(String email) {
+        ChatUser user = getUserByEmail(email);
+        return user.getAvailabilityStatus().getName();
+    }
+
+    private String createSessionKey(String tenantId, String email) {
+        return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 }

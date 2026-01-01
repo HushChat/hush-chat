@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
@@ -10,6 +10,10 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { SendButton } from "@/components/conversation-input/SendButton";
 import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
+import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
+import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 
 const ConversationInput = ({
   conversationId,
@@ -29,6 +33,15 @@ const ConversationInput = ({
 
   const isControlledMode = controlledValue !== undefined;
   const { publishTyping } = useWebSocketConnection();
+
+  const {
+    showEmojiPicker,
+    showGifPicker,
+    openEmojiPicker,
+    closeEmojiPicker,
+    openGifPicker,
+    closeGifPicker,
+  } = useEmojiGifPicker();
 
   const input = useConversationInput({
     conversationId,
@@ -102,22 +115,21 @@ const ConversationInput = ({
         />
       )}
 
-      <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
-        {!isControlledMode && (
-          <AttachmentButton
-            ref={input.addButtonRef}
-            disabled={disabled}
-            toggled={mobileMenuVisible}
-            onPress={handleAddButtonPress}
-          />
-        )}
+      <View className="p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-red-800">
+        <Animated.View className="overflow-hidden">
+          <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
+            {!isControlledMode && (
+              <View className="mr-1">
+                <AttachmentButton
+                  ref={input.addButtonRef}
+                  disabled={disabled}
+                  toggled={mobileMenuVisible}
+                  onPress={handleAddButtonPress}
+                />
+              </View>
+            )}
 
-        <View className={isControlledMode ? "flex-1" : "flex-1 mx-3"}>
-          <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
-            <View
-              className="flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-3"
-              style={[styles.inputContainer, hideSendButton && { paddingRight: 16 }]}
-            >
+            <View className="flex-1 px-2 min-h-[40px] justify-center">
               <MessageTextArea
                 ref={input.messageTextInputRef}
                 value={input.message}
@@ -135,9 +147,27 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
+            </View>
+
+            <View className="flex-row items-center ml-1">
+              <TouchableOpacity
+                onPress={openEmojiPicker}
+                className="p-1.5 justify-center items-center"
+                disabled={disabled}
+              >
+                <MaterialIcons name="emoji-emotions" size={22} color="#9CA3AF" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={openGifPicker}
+                className="p-1.5 justify-center items-center"
+                disabled={disabled}
+              >
+                <AntDesign name="gif" size={22} color="#9CA3AF" />
+              </TouchableOpacity>
 
               {!hideSendButton && (
-                <View className="mb-4">
+                <View className="ml-1">
                   <SendButton
                     showSend={input.isValidMessage}
                     isSending={isSending}
@@ -146,8 +176,8 @@ const ConversationInput = ({
                 </View>
               )}
             </View>
-          </Animated.View>
-        </View>
+          </View>
+        </Animated.View>
       </View>
 
       {!isControlledMode && (
@@ -166,15 +196,23 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
+      <EmojiPickerComponent
+        visible={showEmojiPicker}
+        onClose={closeEmojiPicker}
+        onEmojiSelect={(emoji) => {
+          input.handleChangeText(input.message + emoji);
+        }}
+      />
+
+      <GifPickerComponent
+        visible={showGifPicker}
+        onClose={closeGifPicker}
+        onGifSelect={(gifUrl) => {
+          onSendMessage?.("", undefined, undefined, gifUrl);
+        }}
+      />
     </View>
   );
 };
 
 export default ConversationInput;
-
-const styles = StyleSheet.create({
-  inputContainer: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-});
