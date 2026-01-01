@@ -16,6 +16,7 @@ import {
   copyToClipboard,
   findFirstUnreadMessageIndex,
   groupMessagesByDate,
+  hasGif,
 } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
@@ -270,6 +271,7 @@ const ConversationMessageList = ({
         <PinnedMessageBar
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
+          isGifUrl={hasGif(pinnedMessage)}
           onUnpin={() => togglePin(pinnedMessage)}
           onPress={handlePinnedMessageClick}
         />

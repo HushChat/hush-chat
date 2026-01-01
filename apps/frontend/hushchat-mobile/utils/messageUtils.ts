@@ -1,5 +1,10 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
-import { IMessage, IMessageAttachment } from "@/types/chat/types";
+import {
+  IBasicMessage,
+  IMessage,
+  IMessageAttachment,
+  MessageAttachmentTypeEnum,
+} from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
 import { Directory, Paths, File } from "expo-file-system";
@@ -222,4 +227,20 @@ export const openFileNative = async (fileUrl: string): Promise<void> => {
     console.error("Error opening file on native:", error);
     throw error;
   }
+};
+
+const getGifAttachment = (message?: IMessage | IBasicMessage): IMessageAttachment | undefined => {
+  if (!message?.messageAttachments) return undefined;
+
+  return message.messageAttachments.find(
+    (attachment) => attachment.type === MessageAttachmentTypeEnum.GIF
+  );
+};
+
+export const hasGif = (message?: IMessage | IBasicMessage): boolean => {
+  return !!getGifAttachment(message);
+};
+
+export const getGifUrl = (message?: IMessage | IBasicMessage): string | undefined => {
+  return getGifAttachment(message)?.indexedFileName;
 };
