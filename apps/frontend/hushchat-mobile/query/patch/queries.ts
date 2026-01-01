@@ -7,15 +7,16 @@ import {
   updateMessageRestrictions,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
-import { updateUser } from "@/apis/user";
+import { updateUser, updateUserProfile } from "@/apis/user";
 import {
   ConversationReadInfo,
   IConversation,
   TMessageForward,
   UpdateUserInput,
+  UpdateUserProfileInput,
 } from "@/types/chat/types";
 import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
-import { IUser } from "@/types/user/types";
+import { IUser, IUserProfile } from "@/types/user/types";
 import { forwardMessages, markMessageAsUnread, unsendMessage } from "@/apis/message";
 
 export const useArchiveConversationMutation = createMutationHook<void, number>(
@@ -82,4 +83,13 @@ export const useToggleNotifyOnlyOnMentionMutation = createMutationHook<
   ({ conversationId }) => toggleNotifyOnlyOnMention(conversationId),
   (keyParams: { userId: number; conversationId: number }) => () =>
     [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
+);
+
+export const useUpdateUserProfileMutation = createMutationHook<
+  IUserProfile,
+  UpdateUserProfileInput & { userId: number }
+>(
+  ({ userId, ...userProfile }) => updateUserProfile(userId, userProfile),
+  (keyParams: { userId: number }) => () =>
+    [userQueryKeys.chatUserProfile(keyParams.userId)] as string[][]
 );

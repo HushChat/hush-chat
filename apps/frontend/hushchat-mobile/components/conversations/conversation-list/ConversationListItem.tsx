@@ -11,6 +11,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { ProfileCardModal } from "@/components/ProfileCardModal";
 import { AppText } from "@/components/AppText";
 import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
+import UserDetailsModal from "@/components/settings/users/UserProfileModal";
+import { router } from "expo-router";
+import { USER_PROFILE } from "@/constants/routes";
 
 const ConversationListItem = ({
   conversation,
@@ -30,6 +33,7 @@ const ConversationListItem = ({
   const [showOptions, setShowOptions] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showUserDetails, setShowUserDetails] = useState(false);
 
   const chevronButtonRef = useRef<View>(null);
 
@@ -48,7 +52,20 @@ const ConversationListItem = ({
     setShowOptions(false);
   }, []);
 
+  const handleViewProfile = useCallback(() => {
+    setShowProfileModal(false);
+
+    if (PLATFORM.IS_WEB) {
+      setShowUserDetails(true);
+    } else {
+      if (conversation.peerUserId !== undefined) {
+        router.push(USER_PROFILE(conversation.peerUserId));
+      }
+    }
+  }, [conversation.peerUserId]);
+
   const secondaryText = conversation.isGroup ? "Group Chat" : "Private Chat";
+  const peerUserId = !conversation.isGroup ? conversation.peerUserId : null;
 
   return (
     <>
@@ -130,7 +147,16 @@ const ConversationListItem = ({
           isGroup: conversation.isGroup,
           username: secondaryText,
         }}
+        onViewProfile={!conversation.isGroup ? handleViewProfile : undefined}
       />
+
+      {peerUserId && showUserDetails && (
+        <UserDetailsModal
+          visible={showUserDetails}
+          onClose={() => setShowUserDetails(false)}
+          userId={peerUserId}
+        />
+      )}
     </>
   );
 };

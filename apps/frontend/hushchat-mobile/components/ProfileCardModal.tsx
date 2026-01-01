@@ -18,6 +18,7 @@ interface IProfileCardModalProps {
   data: TProfileCardData;
   onMessagePress?: () => void;
   onCallPress?: () => void;
+  onViewProfile?: () => void;
 }
 
 export const ProfileCardModal: React.FC<IProfileCardModalProps> = ({
@@ -26,6 +27,7 @@ export const ProfileCardModal: React.FC<IProfileCardModalProps> = ({
   data,
   onMessagePress,
   onCallPress,
+  onViewProfile,
 }) => {
   const isDark = useAppTheme();
   const iconColor = isDark ? "#F9FAFB" : "#374151";
@@ -58,6 +60,14 @@ export const ProfileCardModal: React.FC<IProfileCardModalProps> = ({
             >
               {data.username}
             </AppText>
+
+            {onViewProfile && !data.isGroup && (
+              <Pressable onPress={onViewProfile} className="mt-2">
+                <AppText className="text-primary-light dark:text-primary-dark text-sm font-medium">
+                  View Profile
+                </AppText>
+              </Pressable>
+            )}
           </View>
 
           {onMessagePress && (

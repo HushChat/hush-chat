@@ -54,5 +54,7 @@ public interface UserService {
     Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable, Long loggedInUserId, String searchKeyword);
 
     UserProfileDTO getUserProfile(Long id);
+
+    UserProfileDTO updateUserProfile(Long id, UserProfileUpdateDTO updateDTO);
 }
 

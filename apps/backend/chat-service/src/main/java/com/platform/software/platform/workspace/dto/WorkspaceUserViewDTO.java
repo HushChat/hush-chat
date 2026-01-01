@@ -21,4 +21,7 @@ public class WorkspaceUserViewDTO {
     private WorkspaceUserStatus status;
     private Long conversationId;
     private ChatUserStatus chatUserStatus;
+    private String contactNumber;
+    private String address;
+    private String designation;
 }

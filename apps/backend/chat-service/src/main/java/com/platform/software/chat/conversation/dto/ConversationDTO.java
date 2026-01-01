@@ -32,6 +32,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private DeviceType deviceType;
 
     private Long unreadCount;
+    private Long peerUserId;
 
     public ConversationDTO(Conversation conversation) {
         this.mapToSelf(conversation);

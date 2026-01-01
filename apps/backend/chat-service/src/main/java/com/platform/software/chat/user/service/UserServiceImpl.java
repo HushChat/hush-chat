@@ -10,6 +10,7 @@ import com.platform.software.chat.conversation.repository.ConversationRepository
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.entity.ChatUserInfo;
 import com.platform.software.chat.user.repository.UserInfoRepository;
 import com.platform.software.chat.user.repository.UserQueryRepository;
 import com.platform.software.common.dto.LoginDTO;
@@ -439,6 +440,13 @@ public class UserServiceImpl implements UserService {
         Map<String, ChatUser> chatUserMap = chatUsers.stream()
                 .collect(Collectors.toMap(ChatUser::getEmail, cu -> cu));
         
+        List<ChatUserInfo> chatUserInfos = userInfoRepository.findAllByChatUserIdIn(
+                chatUsers.stream().map(ChatUser::getId).collect(Collectors.toList())
+        );
+
+        Map<Long, ChatUserInfo> chatUserInfoMap = chatUserInfos.stream()
+                .collect(Collectors.toMap(cui -> cui.getChatUser().getId(), cui -> cui));
+    
         List<Long> targetUserIds = chatUsers.stream()
             .map(ChatUser::getId)
             .collect(Collectors.toList());
@@ -449,15 +457,21 @@ public class UserServiceImpl implements UserService {
         List<WorkspaceUserViewDTO> result = workspaceUsers.stream()
                 .map(wu -> {
                     ChatUser cu = chatUserMap.get(wu.getEmail());
+                    ChatUserInfo cui = cu != null ? chatUserInfoMap.get(cu.getId()) : null;
                     return WorkspaceUserViewDTO.builder()
                             .id(wu.getId())
                             .firstName(cu != null ? cu.getFirstName() : null)
                             .lastName(cu != null ? cu.getLastName() : null)
                             .username(cu != null ? cu.getUsername() : null)
                             .email(cu != null ? cu.getEmail() : wu.getEmail())
-                            .imageIndexedName(cu != null ? cu.getImageIndexedName() : null)
+                            .imageIndexedName(
+                                    cu.getImageIndexedName() != null ? cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                            cu.getImageIndexedName()) : null)
                             .status(wu.getStatus())
                             .conversationId(cu != null ? userToConversationMap.get(cu.getId()) : null)
+                            .contactNumber(cui != null ? cui.getContactNumber() : null)
+                            .address(cui != null ? cui.getAddress() : null)
+                            .designation(cui != null ? cui.getDesignation() : null)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -479,5 +493,61 @@ public class UserServiceImpl implements UserService {
         }
 
         return userPublicProfile;
+    }
+
+    @Override
+    public UserProfileDTO updateUserProfile(Long id, UserProfileUpdateDTO updateDTO) {
+        ChatUser chatUser = userRepository.findById(id).orElseThrow(() -> {
+            logger.error("invalid user id provided", id);
+            throw new CustomBadRequestException("Invalid user id provided!");
+        });
+        Optional<ChatUserInfo> chatUserInfoOpt = userInfoRepository.findByChatUserId(id);
+
+        chatUser.setFirstName(updateDTO.getFirstName());
+        chatUser.setLastName(updateDTO.getLastName());
+        chatUser.setEmail(updateDTO.getEmail());
+        chatUser.setUsername(updateDTO.getUsername());
+
+        ChatUserInfo chatUserInfo;
+        if(chatUserInfoOpt.isPresent()) {
+            chatUserInfo = chatUserInfoOpt.get();
+        } else {
+            chatUserInfo = new ChatUserInfo();
+        }
+
+        chatUserInfo.setAddress(updateDTO.getAddress());
+        chatUserInfo.setContactNumber(updateDTO.getContactNumber());
+        chatUserInfo.setDesignation(updateDTO.getDesignation());
+        chatUserInfo.setChatUser(chatUser);
+
+        ChatUserInfo updatedChatUserInfo;
+        try {
+            updatedChatUserInfo = userInfoRepository.save(chatUserInfo);
+        } catch (Exception e) {
+            logger.error("failed to update user profile {}", chatUserInfo, e);
+            throw new CustomInternalServerErrorException("Failed to update user profile!");
+        }
+
+        UserProfileDTO updatedUserProfileDTO = toUserProfileDTO(updatedChatUserInfo);
+        return updatedUserProfileDTO;
+    }
+
+    private UserProfileDTO toUserProfileDTO(ChatUserInfo info) {
+        ChatUser user = info.getChatUser();
+
+        return new UserProfileDTO(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getImageIndexedName() != null
+                        ? cloudPhotoHandlingService.getPhotoViewSignedURL(user.getImageIndexedName())
+                        : null,
+                info != null ? info.getContactNumber() : null,
+                info != null ? info.getAddress() : null,
+                info != null ? info.getDesignation() : null,
+                null
+        );
     }
 }

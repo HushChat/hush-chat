@@ -5,7 +5,7 @@ import {
 } from "@/constants/apiConstants";
 import axios from "axios";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
-import { DeviceToken } from "@/types/user/types";
+import { DeviceToken, UpdateUserProfileInput } from "@/types/user/types";
 import { getAllTokens } from "@/utils/authUtils";
 
 export const getUserInfo = async () => {
@@ -111,6 +111,27 @@ export const getAllWorkspaceUsers = async (
     const response = await axios.get(ADMIN_WORKSPACE_ENDPOINTS.GET_WORKSPACE_USERS, {
       params: { searchKeyword, page, size },
     });
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const getUserProfile = async (userId: number) => {
+  try {
+    const response = await axios.get(USER_API_ENDPOINTS.PROFILE(userId));
+    return response.data;
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const updateUserProfile = async (userId: number, userProfile: UpdateUserProfileInput) => {
+  try {
+    const response = await axios.patch(
+      ADMIN_WORKSPACE_ENDPOINTS.UPDATE_PROFILE(userId),
+      userProfile
+    );
     return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
