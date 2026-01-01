@@ -10,6 +10,7 @@ import { useState, useRef } from "react";
 import UserDetailsEdit, { EditedData } from "./UserDetailsEdit";
 import { ToastUtils } from "@/utils/toastUtils";
 import { UpdateUserProfileInput } from "@/types/user/types";
+import classNames from "classnames";
 
 interface UserDetailsModalProps {
   visible: boolean;
@@ -120,18 +121,20 @@ export default function UserDetailsModal({ visible, onClose, userId }: UserDetai
                 <TouchableOpacity
                   onPress={handleSave}
                   disabled={!hasChanges || updateProfileMutation.isPending}
-                  className={`px-4 py-2 rounded-lg ${
+                  className={classNames(
+                    "px-4 py-2 rounded-lg",
                     !hasChanges || updateProfileMutation.isPending
                       ? "bg-gray-300 dark:bg-gray-600"
                       : "bg-blue-500 dark:bg-blue-600"
-                  }`}
+                  )}
                 >
                   <AppText
-                    className={`font-semibold ${
+                    className={classNames(
+                      "font-semibold",
                       !hasChanges || updateProfileMutation.isPending
                         ? "text-gray-500 dark:text-gray-400"
                         : "text-white"
-                    }`}
+                    )}
                   >
                     {updateProfileMutation.isPending ? "Saving..." : "Save"}
                   </AppText>
