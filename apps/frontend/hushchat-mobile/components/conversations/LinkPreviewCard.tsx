@@ -4,12 +4,15 @@ import FormattedText from "@/components/FormattedText";
 import classNames from "classnames";
 import { TMessageUrlMetadata } from "@/types/chat/types";
 import { truncateCharacters } from "@/utils/messageUtils";
+import { TUser } from "@/types/user/types";
 
 interface LinkPreviewCardProps {
   messageText: string;
   messageUrlMetadata: TMessageUrlMetadata;
   isCurrentUser: boolean;
   isLoading: boolean;
+  mentions?: TUser[];
+  onMentionPress?: (username: string) => void;
 }
 
 export default function LinkPreviewCard({
@@ -17,6 +20,8 @@ export default function LinkPreviewCard({
   messageUrlMetadata,
   isCurrentUser,
   isLoading,
+  mentions,
+  onMentionPress,
 }: LinkPreviewCardProps) {
   const truncatedDescription = useMemo(() => {
     if (!messageUrlMetadata?.description) return "";
@@ -25,7 +30,7 @@ export default function LinkPreviewCard({
   }, [messageUrlMetadata]);
 
   return (
-    <TouchableOpacity activeOpacity={0.9} className=" rounded-md">
+    <TouchableOpacity activeOpacity={0.9} className=" rounded-md w-full">
       {isLoading ? (
         <View className="items-center justify-center p-16">
           <ActivityIndicator size="small" color="#6B7280" />
@@ -62,7 +67,12 @@ export default function LinkPreviewCard({
         </>
       )}
 
-      <FormattedText text={messageText} isCurrentUser={isCurrentUser} />
+      <FormattedText
+        text={messageText}
+        mentions={mentions}
+        isCurrentUser={isCurrentUser}
+        onMentionPress={onMentionPress}
+      />
     </TouchableOpacity>
   );
 }

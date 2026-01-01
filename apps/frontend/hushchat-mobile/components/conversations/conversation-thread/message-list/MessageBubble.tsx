@@ -125,22 +125,26 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
             </View>
           )}
 
-          {!message.isUnsend && !message.isIncludeUrlMetadata && messageContent ? (
-            <FormattedText
-              text={message.messageText}
-              mentions={message.mentions}
-              isCurrentUser={isCurrentUser}
-              onMentionPress={handleMentionPress}
-            />
-          ) : !message.isUnsend && message.isIncludeUrlMetadata && messageContent ? (
-            <LinkPreviewCard
-              messageText={message.messageText}
-              messageUrlMetadata={messageUrlMetadata}
-              isLoading={isMessageUrlMetadataLoading}
-              isCurrentUser={isCurrentUser}
-            />
-          ) : message.isUnsend ? (
+          {message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
+          ) : messageContent ? (
+            message.isIncludeUrlMetadata && messageUrlMetadata ? (
+              <LinkPreviewCard
+                messageText={message.messageText}
+                messageUrlMetadata={messageUrlMetadata}
+                isLoading={isMessageUrlMetadataLoading}
+                isCurrentUser={isCurrentUser}
+                mentions={message.mentions}
+                onMentionPress={handleMentionPress}
+              />
+            ) : (
+              <FormattedText
+                text={message.messageText}
+                mentions={message.mentions}
+                isCurrentUser={isCurrentUser}
+                onMentionPress={handleMentionPress}
+              />
+            )
           ) : null}
         </View>
       </View>

@@ -634,13 +634,15 @@ public class MessageService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new CustomBadRequestException("Message not found"));
 
+        String extractedUrl = null;
+
         MessageUrlMetadataDTO dto = new MessageUrlMetadataDTO();
         try {
             // We pretend to be whatsApp to get modified meta tags if pages have dynamic rendering depend on user agent
             // eg :- If you use a standard browser User-Agent, you might get the standard GitHub logo, title, description etc.
             String userAgent = "FacebookExternalHit/1.1";
 
-            String extractedUrl = CommonUtils.extractUrl(message.getMessageText());
+            extractedUrl = CommonUtils.extractUrl(message.getMessageText());
             if (extractedUrl == null) {
                 return null;
             }
@@ -682,8 +684,8 @@ public class MessageService {
             }
 
         } catch (IOException exception) {
-            logger.error("failed to extract domain", exception);
-            throw new CustomBadRequestException("Failed to fetch link preview");
+            logger.error("failed to extract domain for url: {}", extractedUrl, exception);
+            return null;
         }
 
         return dto;
