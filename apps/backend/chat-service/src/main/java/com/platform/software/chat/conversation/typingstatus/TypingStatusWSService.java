@@ -36,7 +36,7 @@ public class TypingStatusWSService {
     public void invokeUserIsTyping(UserTypingStatusUpsertDTO userTypingStatusUpsertDTO, String wsSessionId) {
 
         // Throttle typing invokes
-        if (!typingThrottle.shouldSend(wsSessionId) || !userTypingStatusUpsertDTO.isTyping()) {
+        if (!typingThrottle.shouldSend(wsSessionId, userTypingStatusUpsertDTO.getConversationId()) || !userTypingStatusUpsertDTO.isTyping()) {
             return;
         }
 
