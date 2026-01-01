@@ -13,7 +13,7 @@ import {
   ReportReason,
   joinConversationByInvite,
 } from "@/apis/conversation";
-import { blockUser, changePassword } from "@/apis/user";
+import { blockUser, changePassword, updateUserAvailabilityStatus } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { addMessageReaction, pinMessage } from "@/apis/message";
 import {
@@ -102,10 +102,10 @@ export const usePatchConversationQuery = createMutationHook<
 
 export const useSendMessageMutation = createMutationHook<
   IMessage,
-  { conversationId: number; message: string; parentMessageId?: number }
+  { conversationId: number; message: string; parentMessageId?: number; gifUrl?: string }
 >(
-  ({ conversationId, message, parentMessageId }) =>
-    sendMessageByConversationId(conversationId, message, parentMessageId),
+  ({ conversationId, message, parentMessageId, gifUrl }) =>
+    sendMessageByConversationId(conversationId, message, parentMessageId, gifUrl),
   (keyParams: { userId: number; conversationId: number; criteria: ConversationFilterCriteria }) =>
     () => {
       return [
@@ -176,3 +176,5 @@ export const useJoinConversationByInviteMutation = createMutationHook<
   (keyParams: { token: string }) => () =>
     [conversationQueryKeys.joinConversationByInvite(keyParams.token)] as string[][]
 );
+
+export const useUpdateAvailabilityStatusMutation = createMutationHook(updateUserAvailabilityStatus);
