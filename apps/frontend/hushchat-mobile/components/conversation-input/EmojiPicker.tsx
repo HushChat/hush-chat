@@ -107,6 +107,7 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+        className="custom-scrollbar"
       >
         {CATEGORIES.map((cat) => {
           const isActive = activeCategory === cat.id;

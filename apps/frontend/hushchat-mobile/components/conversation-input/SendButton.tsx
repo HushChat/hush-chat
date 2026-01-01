@@ -19,7 +19,7 @@ export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) =>
       <Ionicons
         name={showSend ? "send" : "mic-sharp"}
         size={ICON_SIZE}
-        className="!text-primary-light dark:!text-primary-dark"
+        className="!text-gray-500 dark:!text-gray-400"
       />
     </Pressable>
   );

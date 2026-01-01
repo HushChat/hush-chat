@@ -137,7 +137,7 @@ const ConversationInput = ({
             </Animated.View>
           </View>
 
-          <View className="flex-row items-center ml-1">
+          <View className="flex-row gap-2 items-center ml-1">
             <TouchableOpacity
               onPress={openEmojiPicker}
               className="p-1.5 justify-center items-center"
