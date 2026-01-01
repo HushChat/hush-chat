@@ -4,11 +4,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import classNames from "classnames";
-
 import { AppText } from "@/components/AppText";
 import LoadingState from "@/components/LoadingState";
 import { IMessageAttachment } from "@/types/chat/types";
 import { openFileNative, downloadFileWeb } from "@/utils/messageUtils";
+import { getDocumentViewerUrl } from "@/utils/filePreviewUtils";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -47,12 +47,10 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
 
   const fileName = attachment.originalFileName || attachment.indexedFileName || "Document";
   const fileUrl = attachment.fileUrl;
-  const fileExt = fileName.split(".").pop()?.toLowerCase() || "";
-  const componentKey = `${fileUrl}-${visible ? "open" : "closed"}`;
 
-  const isOfficeDoc = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(fileExt);
-  const isPdf = fileExt === "pdf";
-  const isWebNative = ["png", "jpg", "jpeg", "gif", "mp4", "webm", "txt", "json"].includes(fileExt);
+  const viewerUrl = getDocumentViewerUrl(fileUrl, fileName);
+
+  const componentKey = `${fileUrl}-${visible ? "open" : "closed"}`;
 
   const handlePrimaryAction = async () => {
     if (!fileUrl) return;
@@ -63,35 +61,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     }
   };
 
-  const getViewerUrl = () => {
-    if (!fileUrl) return "";
-    const encodedUrl = encodeURIComponent(fileUrl);
-
-    if (isOfficeDoc) {
-      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
-    }
-
-    if (isPdf) {
-      if (PLATFORM.IS_ANDROID) {
-        return `https://docs.google.com/gview?embedded=true&url=${encodedUrl}`;
-      }
-      if (PLATFORM.IS_WEB) {
-        return `${fileUrl}#toolbar=0&navpanes=0`;
-      }
-      return fileUrl;
-    }
-
-    if (PLATFORM.IS_WEB) {
-      if (isWebNative) return fileUrl;
-      return `https://docs.google.com/gview?embedded=true&url=${encodedUrl}`;
-    }
-
-    return fileUrl;
-  };
-
   const renderContent = () => {
-    const viewerUrl = getViewerUrl();
-
     if (error || !viewerUrl) return renderFallbackUI();
 
     return (
@@ -181,6 +151,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
         className="bg-background-light dark:bg-background-dark"
       >
         <View className="flex-1">
+          {/* Header */}
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-background-light dark:bg-background-dark">
             <View className="flex-1 mr-4">
               <AppText
