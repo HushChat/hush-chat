@@ -30,6 +30,9 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
 
   const { name, color } = TOAST_ICONS[type];
 
+  const primaryTextColor = isDark ? "#111827" : "#1F2937";
+  const secondaryTextColor = isDark ? "#9ca3af" : "#6B7280";
+
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View
@@ -41,19 +44,11 @@ function BaseToastContainer({ type, params }: BaseToastContainerProps) {
         <View className="flex-row items-center">
           <Ionicons name={name} size={26} color={color} style={styles.rightMargin} />
           <View style={styles.shrink}>
-            <AppText
-              className={`font-semibold text-base ${
-                isDark ? "text-text-primary-light" : "text-text-primary-dark"
-              }`}
-            >
+            <AppText className="font-bold text-base" style={{ color: primaryTextColor }}>
               {title}
             </AppText>
             {message && (
-              <AppText
-                className={`text-sm mt-1 ${
-                  isDark ? "text-text-secondary-light" : "text-text-secondary-dark"
-                }`}
-              >
+              <AppText className="text-sm mt-1" style={{ color: secondaryTextColor }}>
                 {message}
               </AppText>
             )}
