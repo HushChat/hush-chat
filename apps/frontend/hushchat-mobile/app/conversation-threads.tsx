@@ -32,7 +32,7 @@ import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/type
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
-import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
+import { useSetLastSeenMessageMutation, useEditMessageMutation } from "@/query/patch/queries";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
@@ -168,12 +168,50 @@ const ConversationThreadScreen = ({
   }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
   const isOnlyAdminsCanSendMessages =
     conversationAPIResponse?.isGroup && conversationAPIResponse?.onlyAdminsCanSendMessages;
 
   const isCurrentUserAdmin = conversationAPIResponse?.isCurrentUserAdmin;
+
+  const { mutate: editMessage, isPending: isEditingMessage } = useEditMessageMutation(
+    { userId: currentUserId, conversationId: currentConversationId },
+    () => {
+      setEditingMessage(null);
+      ToastUtils.success("Message edited");
+    },
+    (error) => {
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  );
+
+  const handleEditMessage = useCallback(
+    (messageId: number, newText: string) => {
+      const trimmedText = newText.trim();
+      if (!trimmedText) {
+        ToastUtils.error("Message cannot be empty");
+        return;
+      }
+
+      editMessage({
+        conversationId: currentConversationId,
+        messageId,
+        messageText: trimmedText,
+      });
+    },
+    [currentConversationId, editMessage]
+  );
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessage(null);
+  }, []);
+
+  const handleStartEdit = useCallback((message: IMessage) => {
+    setEditingMessage(message);
+    setSelectedMessage(null);
+  }, []);
 
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
@@ -281,6 +319,7 @@ const ConversationThreadScreen = ({
 
   useEffect(() => {
     setSelectedMessage(null);
+    setEditingMessage(null);
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
@@ -389,6 +428,7 @@ const ConversationThreadScreen = ({
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
+        onEditMessage={handleStartEdit}
       />
     );
   }, [
@@ -410,6 +450,7 @@ const ConversationThreadScreen = ({
     handleNavigateToMessage,
     targetMessageId,
     handleTargetMessageScrolled,
+    handleStartEdit,
   ]);
 
   const getDisabledMessageReason = useCallback(() => {
@@ -454,10 +495,13 @@ const ConversationThreadScreen = ({
         onOpenImagePickerNative={handleOpenImagePickerNative}
         onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
         disabled={isLoadingConversationMessages}
-        isSending={isSendingMessage || isUploadingImages}
+        isSending={isSendingMessage || isUploadingImages || isEditingMessage}
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        editingMessage={editingMessage}
+        onCancelEdit={handleCancelEdit}
+        onEditMessage={handleEditMessage}
       />
     );
   }, [
@@ -474,9 +518,13 @@ const ConversationThreadScreen = ({
     isLoadingConversationMessages,
     isSendingMessage,
     isUploadingImages,
+    isEditingMessage,
     selectedMessage,
     handleCancelReply,
     isGroupChat,
+    editingMessage,
+    handleCancelEdit,
+    handleEditMessage,
   ]);
 
   return (

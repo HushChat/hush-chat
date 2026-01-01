@@ -6,6 +6,7 @@ import classNames from "classnames";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import WebChatContextMenu from "@/components/WebContextMenu";
+import { EditPreview } from "@/components/conversation-input/EditPreview";
 
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
@@ -31,6 +32,9 @@ const ConversationInput = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  editingMessage,
+  onCancelEdit,
+  onEditMessage,
 }: ConversationInputProps) => {
   const isControlledMode = controlledValue !== undefined;
 
@@ -52,6 +56,9 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    editingMessage,
+    onCancelEdit,
+    onEditMessage,
   });
 
   const handleKeyPress = useCallback(
@@ -90,7 +97,11 @@ const ConversationInput = ({
 
   return (
     <View>
-      {input.replyToMessage && (
+      {input.isEditMode && input.editingMessage && (
+        <EditPreview message={input.editingMessage} onCancelEdit={input.handleCancelEdit} />
+      )}
+
+      {input.replyToMessage && !input.isEditMode && (
         <ReplyPreview
           replyToMessage={input.replyToMessage}
           onCancelReply={input.handleCancelReply}
@@ -104,7 +115,8 @@ const ConversationInput = ({
         )}
       >
         <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
-          {!isControlledMode && (
+          {/* Hide attachment button in edit mode */}
+          {!isControlledMode && !input.isEditMode && (
             <View className="mr-1">
               <AttachmentButton
                 ref={input.addButtonRef}
@@ -138,25 +150,29 @@ const ConversationInput = ({
           </View>
 
           <View className="flex-row gap-2 items-center ml-1">
-            <TouchableOpacity
-              onPress={openEmojiPicker}
-              className="p-1.5 justify-center items-center"
-              disabled={disabled}
-            >
-              <MaterialIcons
-                name="emoji-emotions"
-                size={22}
-                className="text-gray-500 dark:text-gray-400"
-              />
-            </TouchableOpacity>
+            {!input.isEditMode && (
+              <>
+                <TouchableOpacity
+                  onPress={openEmojiPicker}
+                  className="p-1.5 justify-center items-center"
+                  disabled={disabled}
+                >
+                  <MaterialIcons
+                    name="emoji-emotions"
+                    size={22}
+                    className="text-gray-500 dark:text-gray-400"
+                  />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={openGifPicker}
-              className="p-1.5 justify-center items-center"
-              disabled={disabled}
-            >
-              <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
-            </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={openGifPicker}
+                  className="p-1.5 justify-center items-center"
+                  disabled={disabled}
+                >
+                  <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
+                </TouchableOpacity>
+              </>
+            )}
 
             {!hideSendButton && (
               <View className="ml-1">
@@ -170,7 +186,7 @@ const ConversationInput = ({
           </View>
         </View>
 
-        {!isControlledMode && (
+        {!isControlledMode && !input.isEditMode && (
           <>
             <FileInput
               ref={input.fileInputRef}
@@ -186,7 +202,7 @@ const ConversationInput = ({
         )}
       </View>
 
-      {!isControlledMode && (
+      {!isControlledMode && !input.isEditMode && (
         <WebChatContextMenu
           visible={input.menuVisible}
           position={input.menuPosition}
@@ -204,17 +220,21 @@ const ConversationInput = ({
         />
       )}
 
-      <EmojiPickerComponent
-        visible={showEmojiPicker}
-        onClose={closeEmojiPicker}
-        onEmojiSelect={handleEmojiSelect}
-      />
+      {!input.isEditMode && (
+        <>
+          <EmojiPickerComponent
+            visible={showEmojiPicker}
+            onClose={closeEmojiPicker}
+            onEmojiSelect={handleEmojiSelect}
+          />
 
-      <GifPickerComponent
-        visible={showGifPicker}
-        onClose={closeGifPicker}
-        onGifSelect={handleGifSelect}
-      />
+          <GifPickerComponent
+            visible={showGifPicker}
+            onClose={closeGifPicker}
+            onGifSelect={handleGifSelect}
+          />
+        </>
+      )}
     </View>
   );
 };

@@ -334,6 +334,9 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  editingMessage?: IMessage | null;
+  onCancelEdit?: () => void;
+  onEditMessage?: (messageId: number, newText: string) => void;
 }
 
 export type TNavigationDirection = "prev" | "next";
