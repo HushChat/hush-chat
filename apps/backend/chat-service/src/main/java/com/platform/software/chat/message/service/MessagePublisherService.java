@@ -19,8 +19,6 @@ import com.platform.software.config.interceptors.websocket.WebSocketSessionManag
 import com.platform.software.config.workspace.WorkspaceContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
@@ -51,7 +49,6 @@ public class MessagePublisherService {
      * @param senderId       the sender id
      * @param workspaceId    the tenant id
      */
-    @Async
     @Transactional(readOnly = true)
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId,
             String workspaceId) {
