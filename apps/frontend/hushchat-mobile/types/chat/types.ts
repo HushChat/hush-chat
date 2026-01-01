@@ -68,6 +68,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isIncludeUrlMetadata: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -379,4 +380,11 @@ export interface IMentionedMessage {
   message: IMessage;
   mentionedUser: TUser;
   conversation: IConversation;
+}
+
+export interface TMessageUrlMetadata {
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  domain?: string;
 }

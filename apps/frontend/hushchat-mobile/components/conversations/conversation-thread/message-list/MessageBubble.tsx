@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Pressable, View, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,6 +8,9 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
+import { useMessageUrlMetadataQuery } from "@/query/useMessageUrlMetadataQuery";
+import { PLATFORM } from "@/constants/platformConstants";
+import LinkPreviewCard from "@/components/conversations/LinkPreviewCard";
 
 const COLORS = {
   FORWARDED_RIGHT_BORDER: "#60A5FA30",
@@ -52,7 +55,18 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
       : styles.forwardedLeft
     : null;
 
-  const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+  const bubbleMaxWidthStyle = useMemo(() => {
+    if (message.isIncludeUrlMetadata) {
+      return PLATFORM.IS_WEB ? styles.maxWidthWebForLink : styles.maxWidthRegular;
+    }
+
+    return hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+  }, [message]);
+
+  const { messageUrlMetadata, isMessageUrlMetadataLoading } = useMessageUrlMetadataQuery(
+    message.id,
+    message.isIncludeUrlMetadata
+  );
 
   const handleMentionPress = (username: string) => {
     if (!onMentionClick || !message.mentions) return;
@@ -100,7 +114,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
 
             "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasMedia && !messageContent),
+            "px-3 py-2": !(hasMedia && !messageContent && messageUrlMetadata),
+            "p-1": messageUrlMetadata,
           })}
           style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
         >
@@ -110,15 +125,26 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
             </View>
           )}
 
-          {!message.isUnsend && messageContent ? (
-            <FormattedText
-              text={message.messageText}
-              mentions={message.mentions}
-              isCurrentUser={isCurrentUser}
-              onMentionPress={handleMentionPress}
-            />
-          ) : message.isUnsend ? (
+          {message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
+          ) : messageContent ? (
+            message.isIncludeUrlMetadata && messageUrlMetadata ? (
+              <LinkPreviewCard
+                messageText={message.messageText}
+                messageUrlMetadata={messageUrlMetadata}
+                isLoading={isMessageUrlMetadataLoading}
+                isCurrentUser={isCurrentUser}
+                mentions={message.mentions}
+                onMentionPress={handleMentionPress}
+              />
+            ) : (
+              <FormattedText
+                text={message.messageText}
+                mentions={message.mentions}
+                isCurrentUser={isCurrentUser}
+                onMentionPress={handleMentionPress}
+              />
+            )
           ) : null}
         </View>
       </View>
@@ -132,6 +158,9 @@ const styles = StyleSheet.create({
   },
   maxWidthRegular: {
     maxWidth: "100%",
+  },
+  maxWidthWebForLink: {
+    maxWidth: "40%",
   },
   forwardedRight: {
     borderRightWidth: 2,
