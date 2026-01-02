@@ -32,7 +32,7 @@ import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/type
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
-import { useSetLastSeenMessageMutation, useEditMessageMutation } from "@/query/patch/queries";
+import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
@@ -43,6 +43,7 @@ import DragAndDropOverlay from "@/components/conversations/conversation-thread/m
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useMessageEdit } from "@/hooks/useMessageEdit";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -168,7 +169,6 @@ const ConversationThreadScreen = ({
   }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
-  const [editingMessage, setEditingMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
   const isOnlyAdminsCanSendMessages =
@@ -176,42 +176,19 @@ const ConversationThreadScreen = ({
 
   const isCurrentUserAdmin = conversationAPIResponse?.isCurrentUserAdmin;
 
-  const { mutate: editMessage, isPending: isEditingMessage } = useEditMessageMutation(
-    { userId: currentUserId, conversationId: currentConversationId },
-    () => {
-      setEditingMessage(null);
-      ToastUtils.success("Message edited");
+  const { editingMessage, isEditingMessage, handleStartEdit, handleCancelEdit, handleEditMessage } =
+    useMessageEdit({
+      userId: Number(currentUserId),
+      conversationId: currentConversationId,
+    });
+
+  const handleStartEditWithClearReply = useCallback(
+    (message: IMessage) => {
+      handleStartEdit(message);
+      setSelectedMessage(null);
     },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
+    [handleStartEdit]
   );
-
-  const handleEditMessage = useCallback(
-    (messageId: number, newText: string) => {
-      const trimmedText = newText.trim();
-      if (!trimmedText) {
-        ToastUtils.error("Message cannot be empty");
-        return;
-      }
-
-      editMessage({
-        conversationId: currentConversationId,
-        messageId,
-        messageText: trimmedText,
-      });
-    },
-    [currentConversationId, editMessage]
-  );
-
-  const handleCancelEdit = useCallback(() => {
-    setEditingMessage(null);
-  }, []);
-
-  const handleStartEdit = useCallback((message: IMessage) => {
-    setEditingMessage(message);
-    setSelectedMessage(null);
-  }, []);
 
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
@@ -319,7 +296,7 @@ const ConversationThreadScreen = ({
 
   useEffect(() => {
     setSelectedMessage(null);
-    setEditingMessage(null);
+    handleCancelEdit();
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
@@ -330,6 +307,7 @@ const ConversationThreadScreen = ({
     setSelectedMessageIds,
     handleCloseImagePreview,
     setIsMarkdownEnabled,
+    handleCancelEdit,
   ]);
 
   const handleBackPress = useCallback(() => {
@@ -428,7 +406,7 @@ const ConversationThreadScreen = ({
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
-        onEditMessage={handleStartEdit}
+        onEditMessage={handleStartEditWithClearReply}
       />
     );
   }, [
@@ -450,7 +428,7 @@ const ConversationThreadScreen = ({
     handleNavigateToMessage,
     targetMessageId,
     handleTargetMessageScrolled,
-    handleStartEdit,
+    handleStartEditWithClearReply,
   ]);
 
   const getDisabledMessageReason = useCallback(() => {
