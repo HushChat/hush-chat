@@ -7,7 +7,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
 import EmptyChatState from "@/components/conversations/conversation-thread/message-list/EmptyChatState";
-import LoadingState from "@/components/LoadingState";
 import DisabledMessageInput from "@/components/conversations/conversation-thread/composer/DisabledMessageInput";
 import FilePreviewOverlay, {
   FileWithCaption,
