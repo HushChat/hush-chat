@@ -3,11 +3,12 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
-import { SIZES } from "@/constants/mediaConstants";
+import { SIZES } from "@/constants/mediaConstants"; // or mediaConstants
+import { getFileType } from "@/utils/files/getFileType";
+import { isLocalPreviewSupported } from "@/utils/filePreviewUtils";
 import { AppText } from "@/components/AppText";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
-import { getFileType } from "@/utils/files/getFileType";
 
 type TFilePreviewPaneProps = {
   file: File;
@@ -40,9 +41,7 @@ const FilePreviewPane = ({
   const iconColor = isDark ? "#ffffff" : "#6B4EFF";
   const K = 1024;
 
-  const fileExt = file?.name.split(".").pop()?.toLowerCase() || "";
-
-  const isPdfOrText = ["pdf", "txt", "json", "xml"].includes(fileExt);
+  const isIframePreviewable = isLocalPreviewSupported(file?.name || "");
 
   useEffect(() => {
     if (!file) return;
@@ -50,7 +49,7 @@ const FilePreviewPane = ({
     const type = getFileType(file.name);
     setFileType(type);
 
-    if (isPdfOrText) {
+    if (isIframePreviewable) {
       setLoading(true);
     }
 
@@ -61,7 +60,7 @@ const FilePreviewPane = ({
       URL.revokeObjectURL(objUrl);
       setLoading(false);
     };
-  }, [file]);
+  }, [file, isIframePreviewable]);
 
   const prettySize = useMemo(() => {
     const bytes = file?.size ?? 0;
@@ -85,10 +84,11 @@ const FilePreviewPane = ({
       );
     }
 
-    if (isPdfOrText && url) {
+    if (isIframePreviewable && url) {
       return (
-        <View style={styles.iframeContainer}>
+        <View className="w-full h-full bg-white rounded-lg overflow-hidden border border-gray-200 relative">
           <iframe
+            key={url}
             className="custom-scrollbar"
             src={`${url}#toolbar=0&navpanes=0`}
             style={{ width: "100%", height: "100%", border: "none" }}
@@ -96,7 +96,7 @@ const FilePreviewPane = ({
             onLoad={() => setLoading(false)}
           />
           {loading && (
-            <View style={styles.loaderOverlay}>
+            <View className="absolute inset-0 justify-center items-center bg-white/80">
               <ActivityIndicator size="large" color={iconColor} />
             </View>
           )}
@@ -159,22 +159,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     objectFit: "contain",
-  },
-  iframeContainer: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "white",
-    borderRadius: 8,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    position: "relative",
-  },
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.8)",
   },
   inputContainer: {
     position: "relative",
