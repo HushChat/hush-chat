@@ -1,6 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1763020359236-1
+    id: 1765789712857-1
     author: modithamarasingha (generated)
     changes:
     - createTable:
@@ -16,6 +16,59 @@ databaseChangeLog:
             name: created_at
             type: TIMESTAMP WITHOUT TIME ZONE
         - column:
+            name: created_user_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: workspace_pkey
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated_user_id
+            type: BIGINT
+        - column:
+            name: description
+            type: TEXT
+        - column:
+            name: image_url
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: status
+            type: VARCHAR(255)
+        - column:
+            name: workspace_identifier
+            type: VARCHAR(255)
+        tableName: workspace
+- changeSet:
+    id: 1765789712857-2
+    author: modithamarasingha (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: deleted
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: created_user_id
+            type: BIGINT
+        - column:
             constraints:
               nullable: false
               primaryKey: true
@@ -27,6 +80,9 @@ databaseChangeLog:
               nullable: false
             name: updated_at
             type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated_user_id
+            type: BIGINT
         - column:
             constraints:
               nullable: false
@@ -43,60 +99,16 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
+            name: role
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
             name: status
             type: VARCHAR(255)
         tableName: workspace_user
 - changeSet:
-    id: 1763020359236-2
-    author: modithamarasingha (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: deleted
-            type: BOOLEAN
-        - column:
-            constraints:
-              nullable: false
-            name: created_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            constraints:
-              nullable: false
-              primaryKey: true
-              primaryKeyName: workspace_pkey
-            name: id
-            type: BIGINT
-        - column:
-            constraints:
-              nullable: false
-            name: updated_at
-            type: TIMESTAMP WITHOUT TIME ZONE
-        - column:
-            name: description
-            type: TEXT
-        - column:
-            name: image_url
-            type: VARCHAR(255)
-        - column:
-            name: name
-            type: VARCHAR(255)
-        - column:
-            name: workspace_identifier
-            type: VARCHAR(255)
-        tableName: workspace
-- changeSet:
-    id: 1763020359236-3
-    author: modithamarasingha (generated)
-    changes:
-    - addUniqueConstraint:
-        columnNames: email, workspace_id
-        constraintName: ukeeq4hgxwt33fqafd2lgiadjun
-        tableName: workspace_user
-- changeSet:
-    id: 1763020359236-4
+    id: 1765789712857-3
     author: modithamarasingha (generated)
     changes:
     - addUniqueConstraint:
@@ -104,7 +116,15 @@ databaseChangeLog:
         constraintName: uk82r1jg5llu0hiua4imf4ndmvm
         tableName: workspace
 - changeSet:
-    id: 1763020359236-5
+    id: 1765789712857-4
+    author: modithamarasingha (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: email, workspace_id
+        constraintName: ukeeq4hgxwt33fqafd2lgiadjun
+        tableName: workspace_user
+- changeSet:
+    id: 1765789712857-5
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -117,7 +137,7 @@ databaseChangeLog:
         sequenceName: workplace_generator
         startValue: 1
 - changeSet:
-    id: 1763020359236-6
+    id: 1765789712857-6
     author: modithamarasingha (generated)
     changes:
     - createSequence:
@@ -130,7 +150,7 @@ databaseChangeLog:
         sequenceName: workspace_user_generator
         startValue: 1
 - changeSet:
-    id: 1763020359236-7
+    id: 1765789712857-7
     author: modithamarasingha (generated)
     changes:
     - addForeignKeyConstraint:
