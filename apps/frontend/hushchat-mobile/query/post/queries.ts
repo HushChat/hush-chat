@@ -13,7 +13,7 @@ import {
   ReportReason,
   joinConversationByInvite,
 } from "@/apis/conversation";
-import { blockUser, changePassword } from "@/apis/user";
+import { blockUser, changePassword, updateUserAvailabilityStatus } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { addMessageReaction, pinMessage } from "@/apis/message";
 import {
@@ -22,7 +22,11 @@ import {
   IMessage,
   IMessageReactionRequest,
 } from "@/types/chat/types";
-import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
+import {
+  conversationMessageQueryKeys,
+  conversationQueryKeys,
+  userQueryKeys,
+} from "@/constants/queryKeys";
 
 /**
  * Mutation factory for creating one-to-one conversations.
@@ -52,13 +56,7 @@ export const useCreateOneToOneConversationMutation = createMutationHook<IConvers
 export const usePinMessageMutation = createMutationHook<
   IMessage,
   { conversationId: number; messageId: number; duration: string | null }
->(
-  pinMessage,
-  (keyParams: { userId: number; conversationId: number }) => () =>
-    [
-      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
-    ] as string[][]
-);
+>(pinMessage);
 
 export const useTogglePinConversationMutation = createMutationHook<void, number>(
   togglePinConversation,
@@ -98,10 +96,10 @@ export const usePatchConversationQuery = createMutationHook<
 
 export const useSendMessageMutation = createMutationHook<
   IMessage,
-  { conversationId: number; message: string; parentMessageId?: number }
+  { conversationId: number; message: string; parentMessageId?: number; gifUrl?: string }
 >(
-  ({ conversationId, message, parentMessageId }) =>
-    sendMessageByConversationId(conversationId, message, parentMessageId),
+  ({ conversationId, message, parentMessageId, gifUrl }) =>
+    sendMessageByConversationId(conversationId, message, parentMessageId, gifUrl),
   (keyParams: { userId: number; conversationId: number; criteria: ConversationFilterCriteria }) =>
     () => {
       return [
@@ -114,13 +112,7 @@ export const useSendMessageMutation = createMutationHook<
 export const useAddMessageReactionMutation = createMutationHook<
   void,
   { messageId: number; reaction: IMessageReactionRequest }
->(
-  ({ messageId, reaction }) => addMessageReaction(messageId, reaction),
-  (keyParams: { userId: number; conversationId: number }) => () =>
-    [
-      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
-    ] as string[][]
-);
+>(({ messageId, reaction }) => addMessageReaction(messageId, reaction));
 
 export const useBlockUserMutation = createMutationHook<void, number>(
   blockUser,
@@ -155,16 +147,14 @@ export const useReportConversationMutation = createMutationHook<{
   reason: ReportReason;
 }>(reportConversation);
 
-export const useChangePasswordQuery = createMutationHook<
+export const useChangePasswordMutation = createMutationHook<
   any,
   { currentPassword: string; newPassword: string }
->(async ({ currentPassword, newPassword }) => {
-  const result = await changePassword(currentPassword, newPassword);
-  if (result.error) {
-    throw new Error(result.error);
-  }
-  return result;
-});
+>(
+  (params: { currentPassword: string; newPassword: string }) =>
+    changePassword(params.currentPassword, params.newPassword),
+  () => () => [userQueryKeys.changePassword()] as string[][]
+);
 
 export const useJoinConversationByInviteMutation = createMutationHook<
   IConversation,
@@ -174,3 +164,5 @@ export const useJoinConversationByInviteMutation = createMutationHook<
   (keyParams: { token: string }) => () =>
     [conversationQueryKeys.joinConversationByInvite(keyParams.token)] as string[][]
 );
+
+export const useUpdateAvailabilityStatusMutation = createMutationHook(updateUserAvailabilityStatus);

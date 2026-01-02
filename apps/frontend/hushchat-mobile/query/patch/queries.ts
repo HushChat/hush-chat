@@ -1,6 +1,7 @@
 import {
   archiveConversationById,
   ConversationFilterCriteria,
+  editMessageById,
   setLastSeenMessageByConversationId,
   toggleConversationFavorite,
   toggleNotifyOnlyOnMention,
@@ -14,7 +15,11 @@ import {
   TMessageForward,
   UpdateUserInput,
 } from "@/types/chat/types";
-import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
+import {
+  conversationMessageQueryKeys,
+  conversationQueryKeys,
+  userQueryKeys,
+} from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
 import { forwardMessages, markMessageAsUnread, unsendMessage } from "@/apis/message";
 
@@ -88,4 +93,16 @@ export const useToggleNotifyOnlyOnMentionMutation = createMutationHook<
   ({ conversationId }) => toggleNotifyOnlyOnMention(conversationId),
   (keyParams: { userId: number; conversationId: number }) => () =>
     [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
+);
+
+export const useEditMessageMutation = createMutationHook<
+  void,
+  { conversationId: number; messageId: number; messageText: string }
+>(
+  ({ conversationId, messageId, messageText }) =>
+    editMessageById(conversationId, messageId, messageText),
+  (keyParams: { userId: number; conversationId: number }) => () =>
+    [
+      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
+    ] as string[][]
 );

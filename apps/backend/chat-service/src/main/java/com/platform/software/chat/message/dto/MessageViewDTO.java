@@ -28,6 +28,7 @@ public class MessageViewDTO {
     private BasicMessageDTO parentMessage;
     private Boolean isForwarded;
     private Boolean isUnsend;
+    private Boolean isEdited;
     private String senderSignedImageUrl;
     private String imageIndexedName;
     private Boolean isReadByEveryone;
@@ -71,6 +72,7 @@ public class MessageViewDTO {
         this.conversationId = message.getConversation().getId();
         this.isForwarded = message.getForwardedMessage() != null;
         this.isUnsend = message.getIsUnsend();
+        this.isEdited = message.getIsEdited();
         this.messageType = message.getMessageType();
         this.hasAttachment = message.getAttachments() != null 
             && !message.getAttachments().isEmpty();

@@ -34,6 +34,7 @@ export interface ReactionSummary {
 export enum MessageAttachmentTypeEnum {
   MEDIA = "MEDIA",
   DOCS = "DOCS",
+  GIF = "GIF",
 }
 
 export interface IMessageAttachment {
@@ -71,6 +72,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isEdited?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -103,6 +105,7 @@ export enum ConversationType {
   UNREAD = "UNREAD",
   GROUPS = "GROUPS",
   MUTED = "MUTED",
+  MENTIONED = "MENTIONED",
 }
 
 export interface oneToOneChatInfo {
@@ -208,6 +211,7 @@ export interface IBasicMessage {
   senderFirstName: string | null;
   senderLastName: string | null;
   messageText: string;
+  messageAttachments?: IMessageAttachment[];
 }
 
 export interface ConversationAPIResponse {
@@ -291,6 +295,7 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
+  AVAILABLE = "AVAILABLE",
 }
 
 export enum DeviceType {
@@ -301,6 +306,7 @@ export enum DeviceType {
 
 export interface IUserStatus {
   conversationId: number;
+  email: string;
   status: chatUserStatus;
   deviceType?: DeviceType;
 }
@@ -315,7 +321,12 @@ export interface IActionConfig {
 
 export interface ConversationInputProps {
   conversationId: number;
-  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onSendMessage: (
+    message: string,
+    parentMessage?: IMessage,
+    files?: File[],
+    gifUrl?: string
+  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   onOpenDocumentPickerNative?: () => void;
@@ -327,6 +338,10 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  editingMessage?: IMessage | null;
+  onCancelEdit?: () => void;
+  onEditMessage?: (messageId: number, newText: string) => void;
+  hideEmojiGifPickers?: boolean;
 }
 
 export type TNavigationDirection = "prev" | "next";
@@ -373,6 +388,19 @@ export const PIN_MESSAGE_OPTIONS = [
   { label: "7 days", value: "7d" },
   { label: "30 days", value: "30d" },
 ];
+
+export interface IMentionedMessage {
+  id: number;
+  message: IMessage;
+  mentionedUser: TUser;
+  conversation: IConversation;
+}
+
+export interface GifPickerProps {
+  visible: boolean;
+  onClose: () => void;
+  onGifSelect: (gifUrl: string) => void;
+}
 
 export enum GroupPermissionType {
   ONLY_ADMINS_CAN_SEND_MESSAGES = "onlyAdminsCanSendMessages",

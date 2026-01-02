@@ -12,7 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, groupMessagesByDate, hasGif } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -38,6 +38,7 @@ interface IMessagesListProps {
   targetMessageId?: number | null;
   onTargetMessageScrolled?: () => void;
   webMessageInfoPress?: (messageId: number) => void;
+  onEditMessage?: (message: IMessage) => void;
 }
 
 const ConversationMessageList = ({
@@ -55,6 +56,7 @@ const ConversationMessageList = ({
   targetMessageId,
   onTargetMessageScrolled,
   webMessageInfoPress,
+  onEditMessage,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -179,6 +181,7 @@ const ConversationMessageList = ({
         targetMessageId,
         webMessageInfoPress,
         markMessageAsUnread,
+        onEditMessage,
       }),
     [
       currentUserId,
@@ -199,6 +202,7 @@ const ConversationMessageList = ({
       targetMessageId,
       webMessageInfoPress,
       markMessageAsUnread,
+      onEditMessage,
     ]
   );
 
@@ -232,6 +236,10 @@ const ConversationMessageList = ({
             markMessageAsUnread(message);
             closeActions();
           }}
+          onEdit={(message) => {
+            onEditMessage?.(message);
+            closeActions();
+          }}
         />
       )}
 
@@ -239,6 +247,7 @@ const ConversationMessageList = ({
         <PinnedMessageBar
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
+          isGifUrl={hasGif(pinnedMessage)}
           onUnpin={() => togglePin(pinnedMessage)}
           onPress={handlePinnedMessageClick}
         />
