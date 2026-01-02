@@ -7,9 +7,8 @@ import classNames from "classnames";
 import { AppText } from "@/components/AppText";
 import LoadingState from "@/components/LoadingState";
 import { IMessageAttachment } from "@/types/chat/types";
-import { openFileNative, downloadFileWeb } from "@/utils/messageUtils";
+import { openFileNative } from "@/utils/messageUtils";
 import { getDocumentViewerUrl } from "@/utils/filePreviewUtils";
-import { PLATFORM } from "@/constants/platformConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface IDocumentPreviewProps {
@@ -35,11 +34,6 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     if (visible && attachment) {
       setLoading(true);
       setError(false);
-
-      if (PLATFORM.IS_WEB) {
-        const timer = setTimeout(() => setLoading(false), 1000);
-        return () => clearTimeout(timer);
-      }
     }
   }, [visible, attachment]);
 
@@ -47,18 +41,12 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
 
   const fileName = attachment.originalFileName || attachment.indexedFileName || "Document";
   const fileUrl = attachment.fileUrl;
-
   const viewerUrl = getDocumentViewerUrl(fileUrl, fileName);
-
   const componentKey = `${fileUrl}-${visible ? "open" : "closed"}`;
 
-  const handlePrimaryAction = async () => {
+  const handleOpenNative = async () => {
     if (!fileUrl) return;
-    if (PLATFORM.IS_WEB) {
-      await downloadFileWeb(fileUrl, fileName);
-    } else {
-      await openFileNative(fileUrl);
-    }
+    await openFileNative(fileUrl);
   };
 
   const renderContent = () => {
@@ -67,38 +55,24 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     return (
       <View className="flex-1 relative bg-background-light dark:bg-background-dark w-full h-full">
         {loading && (
-          <View className="absolute inset-0 z-10 bg-background-light dark:bg-background-dark">
+          <View className="absolute inset-0 z-10 bg-background-light dark:bg-background-dark items-center justify-center">
             <LoadingState />
           </View>
         )}
 
-        {PLATFORM.IS_WEB ? (
-          React.createElement("iframe", {
-            key: componentKey,
-            src: viewerUrl,
-            style: { width: "100%", height: "100%", border: "none" },
-            onLoad: () => setLoading(false),
-            onError: () => {
-              setLoading(false);
-              setError(true);
-            },
-          })
-        ) : (
-          <WebView
-            key={componentKey}
-            source={{ uri: viewerUrl }}
-            style={{ flex: 1, backgroundColor: "transparent" }}
-            onLoadEnd={() => setLoading(false)}
-            onError={() => {
-              setLoading(false);
-              setError(true);
-            }}
-            startInLoadingState={true}
-            renderLoading={() => <LoadingState />}
-            originWhitelist={["*"]}
-            scalesPageToFit={true}
-          />
-        )}
+        <WebView
+          key={componentKey}
+          source={{ uri: viewerUrl }}
+          style={{ flex: 1, backgroundColor: "transparent" }}
+          onLoadEnd={() => setLoading(false)}
+          onError={() => {
+            setLoading(false);
+            setError(true);
+          }}
+          startInLoadingState={false} // We handle loading state manually via state overlay
+          originWhitelist={["*"]}
+          scalesPageToFit={true}
+        />
       </View>
     );
   };
@@ -116,20 +90,16 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
         {error ? "Preview Failed" : "Preview Unavailable"}
       </AppText>
       <AppText className="text-sm text-center text-text-secondary-light dark:text-text-secondary-dark mb-6">
-        {PLATFORM.IS_WEB
-          ? "We could not display this file directly."
-          : "This file type cannot be viewed inside the app."}
+        This file type cannot be viewed inside the app.
       </AppText>
       <Pressable
-        onPress={handlePrimaryAction}
+        onPress={handleOpenNative}
         className={classNames(
           "bg-primary-light dark:bg-primary-dark",
           "px-6 py-3 rounded-full active:opacity-90 hover:opacity-90"
         )}
       >
-        <AppText className="text-white font-semibold">
-          {PLATFORM.IS_WEB ? "Download File" : "Open in External App"}
-        </AppText>
+        <AppText className="text-white font-semibold">Open in External App</AppText>
       </Pressable>
     </View>
   );
@@ -137,7 +107,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   return (
     <Modal
       visible={visible}
-      animationType={PLATFORM.IS_WEB ? "fade" : "slide"}
+      animationType="slide"
       onRequestClose={onClose}
       statusBarTranslucent
       transparent={false}
@@ -145,8 +115,8 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
       <View
         style={{
           flex: 1,
-          paddingTop: PLATFORM.IS_WEB ? 0 : insets.top,
-          paddingBottom: PLATFORM.IS_WEB ? 0 : insets.bottom,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
         }}
         className="bg-background-light dark:bg-background-dark"
       >
@@ -163,7 +133,7 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
             </View>
             <View className="flex-row gap-2">
               <Pressable
-                onPress={handlePrimaryAction}
+                onPress={handleOpenNative}
                 className="p-2 active:opacity-80 hover:opacity-70"
               >
                 <Ionicons name="download-outline" size={24} color={themeColors.primary} />
@@ -180,3 +150,5 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     </Modal>
   );
 };
+
+export default DocumentPreview;
