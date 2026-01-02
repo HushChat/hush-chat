@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
 import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
-import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
+import { MessageLabel } from "@/components/conversations/conversation-thread/composer/MessageLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -25,9 +25,10 @@ interface IMessageBubbleProps {
   onMentionClick?: (user: TUser) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
+  isMessageEdited?: boolean;
 }
 
-export const MessageBubble: React.FC<IMessageBubbleProps> = ({
+export const MessageBubble = ({
   message,
   isCurrentUser,
   hasText,
@@ -40,7 +41,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   onBubblePress,
   onMentionClick,
   style,
-}) => {
+  isMessageEdited,
+}: IMessageBubbleProps) => {
   const messageContent = message.messageText;
   const hasGifMedia = hasGif(message);
   const gifUrl = getGifUrl(message);
@@ -76,25 +78,36 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
         style={style}
       >
-        <ForwardedLabel isForwardedMessage={isForwardedMessage} isCurrentUser={isCurrentUser} />
+        <MessageLabel
+          isForwardedMessage={isForwardedMessage}
+          isCurrentUser={isCurrentUser}
+          isMessageEdited={isMessageEdited}
+        />
 
         <View
-          className={classNames("rounded-lg border-2", {
-            "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasMedia || hasGifMedia) && isCurrentUser,
-            "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
+          className={classNames(
+            "rounded-lg border-2",
+            {
+              "max-w-[310px]": hasMedia || hasGifMedia || hasAttachments,
+              "max-w-[600px]": PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+              "max-w-[280px]": !PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+            },
+            {
+              "bg-primary-light dark:bg-primary-dark rounded-tr-none":
+                (hasText || hasMedia || hasGifMedia) && isCurrentUser,
+              "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
+                (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
+              "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
 
-            "border-sky-500 dark:border-sky-400": selected && selectionMode,
-            "border-transparent": !(selected && selectionMode),
+              "border-sky-500 dark:border-sky-400": selected && selectionMode,
+              "border-transparent": !(selected && selectionMode),
 
-            "shadow-sm": isForwardedMessage,
+              "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
-          })}
+              "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
+            }
+          )}
           style={{
-            maxWidth: PLATFORM.IS_WEB ? 600 : 280,
             ...(isForwardedMessage
               ? isCurrentUser
                 ? { borderRightColor: "#60A5FA30" }

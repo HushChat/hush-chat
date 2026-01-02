@@ -124,7 +124,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             accessor.getSessionAttributes().put(GeneralConstants.DEVICE_TYPE, deviceType);
 
             // Use sessionKey as the principal identifier
-            Principal principal = () -> sessionKey;
+            Principal principal = () -> createUserPrinciple(workspaceId, email);
             accessor.setUser(principal);
 
             manageSession(sessionKey, accessor, user, workspaceId, email);
@@ -161,6 +161,10 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
 
     private String createSessionKey(String tenantId, String email, String deviceId) {
         return String.format("%s:%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8), deviceId);
+    }
+
+    private String createUserPrinciple(String tenantId, String email) {
+        return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 
     private void manageSession(String sessionKey, StompHeaderAccessor accessor, ChatUser user, String workspaceId, String email) {

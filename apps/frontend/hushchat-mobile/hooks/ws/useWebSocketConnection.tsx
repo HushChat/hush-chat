@@ -30,6 +30,7 @@ import {
   HEADER_HEART_BEAT,
   HEADER_WORKSPACE_ID,
 } from "@/constants/constants";
+
 import { getDeviceId } from "@/utils/deviceIdUtils";
 
 // Define topics to subscribe to
@@ -150,6 +151,8 @@ export default function useWebSocketConnection() {
         setConnectionStatus(WebSocketStatus.Connecting);
 
         const { idToken, workspace } = await getAllTokens();
+        const deviceId = await getDeviceId();
+
         if (idToken === null) {
           logInfo("aborting web socket connection due to missing token");
           shouldStopRetrying.current = true;
@@ -159,6 +162,13 @@ export default function useWebSocketConnection() {
 
         if (!validateToken(idToken)) {
           logInfo("aborting web socket connection due to invalid or expired token");
+          shouldStopRetrying.current = true;
+          setConnectionStatus(WebSocketStatus.Error);
+          return;
+        }
+
+        if (deviceId === null) {
+          logInfo("aborting web socket connection due to missing device ID");
           shouldStopRetrying.current = true;
           setConnectionStatus(WebSocketStatus.Error);
           return;
@@ -272,7 +282,7 @@ export default function useWebSocketConnection() {
     };
   }, [email, isAuthenticated]);
 
-  const publishActivity = (data: UserActivityWSSubscriptionData) => {
+  const publishActivity = async (data: UserActivityWSSubscriptionData) => {
     if (connectionStatus !== WebSocketStatus.Connected) {
       logInfo("Cannot publish activity: WebSocket not connected", {
         status: connectionStatus,
@@ -293,7 +303,7 @@ export default function useWebSocketConnection() {
       return false;
     }
     const { workspace } = await getAllTokens();
-    const deviceType = getDeviceType();
+    const deviceType = await getDeviceType();
     const deviceId = getDeviceId();
     const workspaceId = workspace;
     const userId = id;
