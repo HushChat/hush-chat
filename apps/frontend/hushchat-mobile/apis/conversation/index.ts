@@ -196,6 +196,23 @@ export const getMessagesAroundMessageId = async (
   }
 };
 
+export const editMessageById = async (
+  conversationId: number,
+  messageId: number,
+  messageText: string
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axios.put(
+      CONVERSATION_API_ENDPOINTS.EDIT_MESSAGE(conversationId, messageId),
+      { messageText }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const setLastSeenMessageByConversationId = async (
   messageId: number,
   conversationId: number

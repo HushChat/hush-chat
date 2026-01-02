@@ -13,6 +13,8 @@ import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.common.constants.WebSocketTopicConstants;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.common.model.MessageReactionActionEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
@@ -99,10 +101,14 @@ public class MessagePublisherService {
                     if (email == null)
                         return;
 
-                    ConversationDTO participantDTO = getConversationDTO(participant, conversationDTO);
-                    ConversationDTO payload = conversationUtilService.addSignedImageUrlToConversationDTO(
-                            participantDTO,
-                            participantDTO.getImageIndexedName());
+                    ConversationDTO payload = getConversationDTO(participant, conversationDTO);
+                    if (payload.getImageIndexedName() != null && !payload.getImageIndexedName().isBlank()) {
+                        payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE ,
+                                MediaSizeEnum.MEDIUM,
+                                payload.getImageIndexedName())
+                        );
+                    }
 
                     webSocketSessionManager.sendMessageToUser(
                             workspaceId,

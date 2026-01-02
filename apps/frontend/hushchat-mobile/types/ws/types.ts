@@ -57,6 +57,7 @@ export interface UserActivityWSSubscriptionData {
   visibleConversations: number[]; // list of conversations visible - mobile or web
   openedConversation: number | null; // indicates user's selected conversation, could be null
   deviceType?: DeviceType;
+  deviceId?: string;
 }
 
 export interface MessageUnsentPayload {
