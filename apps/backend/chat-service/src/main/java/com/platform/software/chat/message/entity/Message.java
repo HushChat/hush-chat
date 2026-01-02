@@ -62,4 +62,8 @@ public class Message extends AuditModel{
 
     @Enumerated(EnumType.STRING)
     private MessageTypeEnum messageType;
+
+    @NotNull
+    @Column(name = "is_edited", nullable = false)
+    private Boolean isEdited = false;
 }
