@@ -29,8 +29,6 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
     if (visible && attachment) {
       setLoading(true);
       setError(false);
-      const timer = setTimeout(() => setLoading(false), 1000);
-      return () => clearTimeout(timer);
     }
   }, [visible, attachment]);
 
