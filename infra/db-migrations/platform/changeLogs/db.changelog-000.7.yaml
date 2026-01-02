@@ -1,15 +1,16 @@
 databaseChangeLog:
   - changeSet:
-      id: add_pinned_message_until_to_conversation
-      author: ransilu
-      tag: release-7.1
-      comment: "add new pinned_message_until column to conversation table"
+      id: add_is_edited_to_messages
+      author: menuk
+      tag: release-7.0
+      comment: "add is_edited column to messages table to track edited messages"
       changes:
         - addColumn:
-            tableName: conversation
+            tableName: message
             columns:
               - column:
-                  name: pinned_message_until
-                  type: timestamptz
+                  name: is_edited
+                  type: BOOLEAN
+                  defaultValueBoolean: false
                   constraints:
-                    nullable: true
+                    nullable: false

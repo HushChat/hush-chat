@@ -6,6 +6,7 @@ import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
@@ -295,6 +296,12 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
                         if (isVisible) {
                                 MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
+                                List<MessageAttachmentDTO> attachmentDTOs =
+                                        latestMessage.getAttachments()
+                                                .stream()
+                                                .map(MessageAttachmentDTO::new)
+                                                .toList();
+                                messageViewDTO.setMessageAttachments(attachmentDTOs);
                                 dto.setMessages(List.of(messageViewDTO));
                                 return dto;
                         }

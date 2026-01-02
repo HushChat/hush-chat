@@ -18,6 +18,7 @@ import {
 import { ApiResponse } from "@/types/common/types";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import type { QueryKey } from "@tanstack/react-query";
+import { TAttachmentUploadRequest } from "@/apis/photo-upload-service/photo-upload-service";
 
 export interface ConversationFilterCriteria {
   isArchived?: boolean;
@@ -195,6 +196,23 @@ export const getMessagesAroundMessageId = async (
   }
 };
 
+export const editMessageById = async (
+  conversationId: number,
+  messageId: number,
+  messageText: string
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axios.put(
+      CONVERSATION_API_ENDPOINTS.EDIT_MESSAGE(conversationId, messageId),
+      { messageText }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const setLastSeenMessageByConversationId = async (
   messageId: number,
   conversationId: number
@@ -245,11 +263,7 @@ export const sendMessageByConversationIdFiles = async (
 
 export const createMessagesWithAttachments = async (
   conversationId: number,
-  attachments: {
-    messageText: string;
-    fileName: string;
-    parentMessageId?: number | null;
-  }[]
+  attachments: TAttachmentUploadRequest[]
 ) => {
   try {
     const response = await axios.post(

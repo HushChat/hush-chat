@@ -35,6 +35,8 @@ services:
       AWS_SES_FROM_MAIL: ${AWS_SES_FROM_MAIL}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       PUBLIC_API_KEY: ${PUBLIC_API_KEY}
+      TENOR_API_KEY: ${TENOR_API_KEY}
+      TENOR_API_BASE_URL: ${TENOR_API_BASE_URL}
     volumes:
       - ./infra/db-migrations/workspaces:/app/db-migrations
     networks:

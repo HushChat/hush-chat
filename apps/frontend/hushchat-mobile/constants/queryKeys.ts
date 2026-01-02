@@ -9,7 +9,9 @@ const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
 const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
 const CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY = "conversation-attachments";
 const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
+const MESSAGE_QUERY_BASE_KEY = "messages";
 const USER_QUERY_BASE_KEY = "users";
+const GIF_QUERY_BASE_KEY = "gifs";
 
 export const conversationQueryKeys = {
   metaDataById: (userId: number, conversationId: number) => [
@@ -84,10 +86,21 @@ export const conversationMessageQueryKeys = {
   messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
 };
 
+export const messageQueryKeys = {
+  mentionedMessages: [MESSAGE_QUERY_BASE_KEY, "mentioned-messages"],
+};
+
 export const userQueryKeys = {
   callLogs: (userId: number) => [USER_QUERY_BASE_KEY, CALL_LOGS, userId],
 
   userProfile: (userId: number) => [USER_QUERY_BASE_KEY, userId],
 
   userWorkspace: (userId: number) => [USER_QUERY_BASE_KEY, WORKSPACES, userId],
+
+  changePassword: () => [USER_QUERY_BASE_KEY, "change-password"],
+};
+
+export const gifQueryKeys = {
+  trendingGifs: (userId: number) => [GIF_QUERY_BASE_KEY, "trending", userId],
+  searchGifs: (userId: number, searchQuery: string) => [GIF_QUERY_BASE_KEY, userId, searchQuery],
 };

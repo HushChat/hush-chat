@@ -18,12 +18,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class MessageAttachmentService {
     private static final Logger logger = LoggerFactory.getLogger(MessageAttachmentService.class);
+    private static final String TENOR_GIF_BASE_URL = "https://media.tenor.com";
+    private static final String GIF_FILE_PREFIX = "tenor_gif_";
+    private static final String GIF_FILE_EXTENSION = ".gif";
 
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
@@ -61,6 +65,33 @@ public class MessageAttachmentService {
         return signedURLResponse;
     }
 
+    /**
+     * Create a GIF attachment without file upload
+     * 
+     * @param gifUrl The Tenor GIF URL
+     * @param message The message to attach the GIF to
+     * @return The created MessageAttachment
+     */
+    @Transactional
+    public MessageAttachment createGifAttachment(String gifUrl, Message message) {
+        if (!gifUrl.isEmpty() && !gifUrl.startsWith(TENOR_GIF_BASE_URL)) {
+            throw new CustomBadRequestException("Invalid Tenor GIF URL");
+        }
+
+        MessageAttachment gifAttachment = new MessageAttachment();
+        gifAttachment.setMessage(message);
+        gifAttachment.setOriginalFileName(GIF_FILE_PREFIX + UUID.randomUUID().toString() + GIF_FILE_EXTENSION);
+        gifAttachment.setIndexedFileName(gifUrl);
+        gifAttachment.setType(AttachmentTypeEnum.GIF);
+
+        try {
+            return messageAttachmentRepository.save(gifAttachment);
+        } catch (Exception exception) {
+            logger.error("failed to save GIF attachment for message {}", message.getId(), exception);
+            throw new CustomBadRequestException("Failed to save GIF attachment");
+        }
+    }
+
     private List<MessageAttachment> createMessageAttachments(List<SignedURLDTO> signedURLs, Message message) {
         return signedURLs.stream()
             .map(signedURL -> createMessageAttachment(signedURL, message))
@@ -96,9 +127,15 @@ public class MessageAttachmentService {
         Page<MessageAttachment> attachmentPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria, pageable);
         Page<MessageAttachmentDTO> attachmentDTOPage = attachmentPage.map(attachment -> {
             MessageAttachmentDTO attachmentDTO = new MessageAttachmentDTO(attachment);
-            String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
-            attachmentDTO.setFileUrl(fileViewSignedURL);
+
+            if (attachment.getType() == AttachmentTypeEnum.GIF) {
+                attachmentDTO.setFileUrl(attachment.getIndexedFileName());
+            } else {
+                String fileViewSignedURL = cloudPhotoHandlingService
+                    .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                attachmentDTO.setFileUrl(fileViewSignedURL);
+            }
+
             return attachmentDTO;
         });
         return attachmentDTOPage;
