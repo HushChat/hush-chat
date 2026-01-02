@@ -7,7 +7,7 @@ import {
 } from "@/apis/conversation";
 import { unblockUser } from "@/apis/user";
 import { removeMessageReaction } from "@/apis/message";
-import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
+import { conversationQueryKeys } from "@/constants/queryKeys";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 
 export const useDeleteConversationByIdMutation = createMutationHook<void, number>(
@@ -17,11 +17,7 @@ export const useDeleteConversationByIdMutation = createMutationHook<void, number
 );
 
 export const useRemoveMessageReactionMutation = createMutationHook<void, number>(
-  removeMessageReaction,
-  (keyParams: { userId: number; conversationId: number }) => () =>
-    [
-      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
-    ] as string[][]
+  removeMessageReaction
 );
 
 export const useUnblockUserMutation = createMutationHook<void, number>(

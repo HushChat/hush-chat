@@ -47,6 +47,7 @@ const ConversationForwardPanelBase = ({
               controlledValue={customText}
               onControlledValueChange={setCustomText}
               hideSendButton
+              hideEmojiGifPickers
             />
           </View>
         </View>
