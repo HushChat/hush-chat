@@ -62,6 +62,11 @@ export type TAttachmentUploadRequest = {
   gifUrl?: string;
 };
 
+export type TNativeFileWithCaption = {
+  file: LocalFile;
+  caption: string;
+};
+
 interface IMessageWithSignedUrl {
   id: number;
   signedUrl: {
@@ -258,6 +263,45 @@ export function useMessageAttachmentUploader(
 
   const hook = useNativePickerUpload(getSignedUrls);
 
+  const pickImagesAndVideos = async () => {
+    return await hook.pick({
+      source: "media",
+      mediaKind: "all",
+      multiple: true,
+      maxSizeKB: MAX_VIDEO_SIZE_KB,
+      allowedMimeTypes: ["image/*", "video/*"],
+      allowsEditing: false,
+    });
+  };
+
+  const pickDocuments = async () => {
+    return await hook.pick({
+      source: "document",
+      multiple: true,
+      maxSizeKB: MAX_DOCUMENT_SIZE_KB,
+      allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+    });
+  };
+
+  const uploadNativeFilesWithCaptions = async (
+    filesWithCaptions: TNativeFileWithCaption[]
+  ): Promise<UploadResult[]> => {
+    if (!filesWithCaptions || filesWithCaptions.length === 0) return [];
+
+    const results: UploadResult[] = [];
+
+    for (const item of filesWithCaptions) {
+      const result = await hook.upload([item.file], item.caption);
+      results.push(...result);
+    }
+
+    if (results.length > 0 && onUploadComplete) {
+      await onUploadComplete(results);
+    }
+
+    return results;
+  };
+
   const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
     const results = await hook.pickAndUpload(
       {
@@ -437,7 +481,10 @@ export function useMessageAttachmentUploader(
     pickAndUploadDocuments,
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
-    isUploading: isUploadingWebFiles,
+    isUploading: isUploadingWebFiles || hook.isUploading,
     sendGifMessage,
+    pickImagesAndVideos,
+    pickDocuments,
+    uploadNativeFilesWithCaptions,
   };
 }

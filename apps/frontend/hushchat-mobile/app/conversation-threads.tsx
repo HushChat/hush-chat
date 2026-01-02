@@ -8,9 +8,7 @@ import ConversationMessageList from "@/components/conversations/conversation-thr
 import EmptyChatState from "@/components/conversations/conversation-thread/message-list/EmptyChatState";
 import LoadingState from "@/components/LoadingState";
 import DisabledMessageInput from "@/components/conversations/conversation-thread/composer/DisabledMessageInput";
-import FilePreviewOverlay, {
-  FileWithCaption,
-} from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay";
+import FilePreviewOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay";
 import MessageForwardActionBar from "@/components/conversations/conversation-thread/composer/MessageForwardActionBar";
 import Alert from "@/components/Alert";
 
@@ -35,7 +33,10 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
-import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
+import {
+  useMessageAttachmentUploader,
+  TNativeFileWithCaption,
+} from "@/apis/photo-upload-service/photo-upload-service";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
@@ -229,40 +230,44 @@ const ConversationThreadScreen = ({
   });
 
   const {
-    pickAndUploadImagesAndVideos,
     uploadFilesFromWebWithCaptions,
-    pickAndUploadDocuments,
     isUploading: isUploadingImages,
-    error: uploadError,
     sendGifMessage,
+    pickImagesAndVideos,
+    pickDocuments,
+    uploadNativeFilesWithCaptions,
   } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadDocuments();
-
-      if (results?.some((r) => r.success)) {
+      const files = await pickDocuments();
+      if (files && files.length > 0) {
+        // Cast to any because Native returns LocalFile[] which the Native hook accepts,
+        // but Typescript might be confused by the Web File[] type definition in this shared file.
+        handleOpenImagePicker(files as any);
         setSelectedMessage(null);
-      } else if (uploadError) {
-        ToastUtils.error(uploadError);
       }
     } catch {
-      ToastUtils.error("Failed to pick or upload documents.");
+      ToastUtils.error("Failed to pick documents.");
     }
-  }, [pickAndUploadDocuments, setSelectedMessage, uploadError]);
+  }, [pickDocuments, handleOpenImagePicker, setSelectedMessage]);
 
+  // Updated Handler for Native Images (Pick -> Preview)
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadImagesAndVideos();
-      if (results?.some((r) => r.success)) {
+      const files = await pickImagesAndVideos();
+      if (files && files.length > 0) {
+        handleOpenImagePicker(files as any);
         setSelectedMessage(null);
-      } else if (uploadError) {
-        ToastUtils.error(uploadError);
       }
     } catch {
-      ToastUtils.error("Failed to pick or upload images.");
+      ToastUtils.error("Failed to pick images.");
     }
-  }, [pickAndUploadImagesAndVideos, setSelectedMessage, uploadError]);
+  }, [pickImagesAndVideos, handleOpenImagePicker, setSelectedMessage]);
+
+  const handleNativeAddMoreTrigger = useCallback(() => {
+    handleOpenImagePickerNative();
+  }, [handleOpenImagePickerNative]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
@@ -287,10 +292,17 @@ const ConversationThreadScreen = ({
   });
 
   const handleSendFilesFromPreview = useCallback(
-    async (filesWithCaptions: FileWithCaption[]) => {
-      await handleSendFilesWithCaptions(filesWithCaptions);
+    async (filesWithCaptions: any[]) => {
+      // Using any[] to support both FileWithCaption (Web) and NativeFileWithCaption (Native)
+      if (PLATFORM.IS_WEB) {
+        await handleSendFilesWithCaptions(filesWithCaptions);
+      } else {
+        // Native Upload Logic
+        await uploadNativeFilesWithCaptions(filesWithCaptions as TNativeFileWithCaption[]);
+        handleCloseImagePreview();
+      }
     },
-    [handleSendFilesWithCaptions]
+    [handleSendFilesWithCaptions, uploadNativeFilesWithCaptions, handleCloseImagePreview]
   );
 
   useEffect(() => {
@@ -536,11 +548,12 @@ const ConversationThreadScreen = ({
               <View className="flex-1">
                 {showImagePreview ? (
                   <FilePreviewOverlay
-                    files={selectedFiles}
+                    files={selectedFiles as any}
                     conversationId={currentConversationId}
                     onClose={handleCloseImagePreview}
                     onRemoveFile={handleRemoveFile}
                     onSendFiles={handleSendFilesFromPreview}
+                    onAddMoreTrigger={handleNativeAddMoreTrigger}
                     onFileSelect={handleAddMoreFiles}
                     isSending={isSendingMessage || isUploadingImages}
                     isGroupChat={isGroupChat}
