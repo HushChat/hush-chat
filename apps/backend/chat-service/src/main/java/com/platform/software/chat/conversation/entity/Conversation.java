@@ -28,6 +28,10 @@ public class Conversation extends AuditModel{
     private boolean deleted = false;
 
     @NotNull
+    @Column(name = "is_self_conversation")
+    private Boolean isSelfConversation = false;
+
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
     private ChatUser createdBy;
