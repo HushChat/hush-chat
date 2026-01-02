@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: add_is_edited_to_messages
       author: menuk
-      tag: release-7.0
+      tag: release-13.0
       comment: "add is_edited column to messages table to track edited messages"
       changes:
         - addColumn:
