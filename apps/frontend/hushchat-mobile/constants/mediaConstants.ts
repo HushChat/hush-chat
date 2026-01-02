@@ -12,6 +12,8 @@ export const ACCEPT_DOC_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ].join(",");
 
+export const ACCEPT_FILE_TYPES = [ACCEPT_IMAGE_TYPES, ACCEPT_DOC_TYPES].join(",");
+
 export const MAX_IMAGE_SIZE_KB = 5 * 1024; // 5MB
 export const MAX_VIDEO_SIZE_KB = 50 * 1024; // 50MB
 export const MAX_DOCUMENT_SIZE_KB = 25 * 1024; // 25MB
