@@ -338,6 +338,7 @@ export interface ConversationInputProps {
   editingMessage?: IMessage | null;
   onCancelEdit?: () => void;
   onEditMessage?: (messageId: number, newText: string) => void;
+  hideEmojiGifPickers?: boolean;
 }
 
 export type TNavigationDirection = "prev" | "next";

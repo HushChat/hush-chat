@@ -31,6 +31,7 @@ const ConversationInput = ({
   editingMessage,
   onCancelEdit,
   onEditMessage,
+  hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
@@ -153,7 +154,7 @@ const ConversationInput = ({
             </View>
 
             <View className="flex-row items-center ml-1">
-              {!input.isEditMode && (
+              {!input.isEditMode && !hideEmojiGifPickers && (
                 <>
                   <TouchableOpacity
                     onPress={openEmojiPicker}
@@ -204,7 +205,7 @@ const ConversationInput = ({
         />
       )}
 
-      {!input.isEditMode && (
+      {!input.isEditMode && !hideEmojiGifPickers && (
         <>
           <EmojiPickerComponent
             visible={showEmojiPicker}

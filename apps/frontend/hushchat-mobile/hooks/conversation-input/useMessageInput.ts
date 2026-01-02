@@ -28,16 +28,21 @@ export function useMessageInput({
   const persistentDraftStorageInstance = useMemo(() => StorageFactory.createStorage(), []);
 
   const [currentTypedMessage, setCurrentTypedMessage] = useState<string>("");
+  const messageRef = useRef("");
 
   const activeConversationIdRef = useRef(conversationId);
   activeConversationIdRef.current = conversationId;
 
   const persistDraftToStorage = useCallback(
-    (conversationIdentifier: number, messageContentToSave: string) => {
-      void persistentDraftStorageInstance.save(
-        getDraftKey(conversationIdentifier),
-        messageContentToSave
-      );
+    (conversationIdentifier: number) => {
+      const textToSave = messageRef.current;
+
+      if (!textToSave || textToSave.trim() === "") {
+        void persistentDraftStorageInstance.remove(getDraftKey(conversationIdentifier));
+        return;
+      }
+
+      void persistentDraftStorageInstance.save(getDraftKey(conversationIdentifier), textToSave);
     },
     [persistentDraftStorageInstance]
   );
@@ -60,6 +65,7 @@ export function useMessageInput({
 
         const recoveredDraftText = storedDraftText ?? "";
         setCurrentTypedMessage(recoveredDraftText);
+        messageRef.current = recoveredDraftText;
         onDraftLoaded?.(recoveredDraftText);
       } catch (error) {
         logInfo("Draft load attempt failed", error);
@@ -75,33 +81,36 @@ export function useMessageInput({
 
   useEffect(() => {
     setCurrentTypedMessage("");
-  }, [conversationId]);
+    messageRef.current = "";
+    persistDraftToStorageWithDelay.cancel();
+  }, [conversationId, persistDraftToStorageWithDelay]);
 
   useEffect(() => {
     return () => {
-      persistDraftToStorageWithDelay.flush?.();
       persistDraftToStorageWithDelay.cancel?.();
     };
   }, [persistDraftToStorageWithDelay]);
 
   const updateTypedMessageText = useCallback((incomingTextValue: string) => {
     setCurrentTypedMessage(incomingTextValue);
+    messageRef.current = incomingTextValue;
   }, []);
 
   const onMessageTextChangedByUser = useCallback(
     (newRawInputText: string) => {
-      const sanitizedTextForInput = newRawInputText;
-
-      setCurrentTypedMessage(sanitizedTextForInput);
-      persistDraftToStorageWithDelay(activeConversationIdRef.current, sanitizedTextForInput);
+      setCurrentTypedMessage(newRawInputText);
+      messageRef.current = newRawInputText;
+      persistDraftToStorageWithDelay(activeConversationIdRef.current);
     },
     [persistDraftToStorageWithDelay]
   );
 
   const clearMessageAndDeleteDraft = useCallback(() => {
+    persistDraftToStorageWithDelay.cancel();
     setCurrentTypedMessage("");
+    messageRef.current = "";
     void persistentDraftStorageInstance.remove(getDraftKey(activeConversationIdRef.current));
-  }, [persistentDraftStorageInstance]);
+  }, [persistentDraftStorageInstance, persistDraftToStorageWithDelay]);
 
   const flushPendingDraftWritesImmediately = useCallback(() => {
     persistDraftToStorageWithDelay.flush?.();
@@ -114,11 +123,11 @@ export function useMessageInput({
 
       if (!cleanedAndTrimmedMessage) return null;
 
-      flushPendingDraftWritesImmediately();
+      persistDraftToStorageWithDelay.cancel();
       clearMessageAndDeleteDraft();
       return cleanedAndTrimmedMessage;
     },
-    [currentTypedMessage, flushPendingDraftWritesImmediately, clearMessageAndDeleteDraft]
+    [currentTypedMessage, clearMessageAndDeleteDraft, persistDraftToStorageWithDelay]
   );
 
   const isMessageNonEmptyAndSendable = currentTypedMessage.trim().length > 0;

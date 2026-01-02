@@ -35,6 +35,7 @@ const ConversationInput = ({
   editingMessage,
   onCancelEdit,
   onEditMessage,
+  hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
   const isControlledMode = controlledValue !== undefined;
 
@@ -115,7 +116,6 @@ const ConversationInput = ({
         )}
       >
         <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
-          {/* Hide attachment button in edit mode */}
           {!isControlledMode && !input.isEditMode && (
             <View className="mr-1">
               <AttachmentButton
@@ -150,29 +150,30 @@ const ConversationInput = ({
           </View>
 
           <View className="flex-row gap-2 items-center ml-1">
-            {!input.isEditMode && (
-              <>
-                <TouchableOpacity
-                  onPress={openEmojiPicker}
-                  className="p-1.5 justify-center items-center"
-                  disabled={disabled}
-                >
-                  <MaterialIcons
-                    name="emoji-emotions"
-                    size={22}
-                    className="text-gray-500 dark:text-gray-400"
-                  />
-                </TouchableOpacity>
+            {!input.isEditMode &&
+              !hideEmojiGifPickers(
+                <>
+                  <TouchableOpacity
+                    onPress={openEmojiPicker}
+                    className="p-1.5 justify-center items-center"
+                    disabled={disabled}
+                  >
+                    <MaterialIcons
+                      name="emoji-emotions"
+                      size={22}
+                      className="text-gray-500 dark:text-gray-400"
+                    />
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={openGifPicker}
-                  className="p-1.5 justify-center items-center"
-                  disabled={disabled}
-                >
-                  <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
-                </TouchableOpacity>
-              </>
-            )}
+                  <TouchableOpacity
+                    onPress={openGifPicker}
+                    className="p-1.5 justify-center items-center"
+                    disabled={disabled}
+                  >
+                    <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
+                  </TouchableOpacity>
+                </>
+              )}
 
             {!hideSendButton && (
               <View className="ml-1">
@@ -220,7 +221,7 @@ const ConversationInput = ({
         />
       )}
 
-      {!input.isEditMode && (
+      {!input.isEditMode && !hideEmojiGifPickers && (
         <>
           <EmojiPickerComponent
             visible={showEmojiPicker}

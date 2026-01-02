@@ -85,22 +85,29 @@ export const MessageBubble = ({
         />
 
         <View
-          className={classNames("rounded-lg border-2", {
-            "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasMedia || hasGifMedia) && isCurrentUser,
-            "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
+          className={classNames(
+            "rounded-lg border-2",
+            {
+              "max-w-[310px]": hasMedia || hasGifMedia || hasAttachments,
+              "max-w-[600px]": PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+              "max-w-[280px]": !PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+            },
+            {
+              "bg-primary-light dark:bg-primary-dark rounded-tr-none":
+                (hasText || hasMedia || hasGifMedia) && isCurrentUser,
+              "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
+                (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
+              "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
 
-            "border-sky-500 dark:border-sky-400": selected && selectionMode,
-            "border-transparent": !(selected && selectionMode),
+              "border-sky-500 dark:border-sky-400": selected && selectionMode,
+              "border-transparent": !(selected && selectionMode),
 
-            "shadow-sm": isForwardedMessage,
+              "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
-          })}
+              "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
+            }
+          )}
           style={{
-            maxWidth: PLATFORM.IS_WEB ? 600 : 280,
             ...(isForwardedMessage
               ? isCurrentUser
                 ? { borderRightColor: "#60A5FA30" }
