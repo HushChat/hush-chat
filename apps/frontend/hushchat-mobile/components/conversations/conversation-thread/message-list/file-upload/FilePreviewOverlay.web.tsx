@@ -23,6 +23,7 @@ type TFilePreviewOverlayProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
+  onAddMoreTrigger?: () => void;
 };
 
 const FilePreviewOverlay = ({
