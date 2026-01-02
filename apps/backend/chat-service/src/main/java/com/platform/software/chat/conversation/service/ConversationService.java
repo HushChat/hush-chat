@@ -579,7 +579,7 @@ public class ConversationService {
 
         Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId, loggedInParticipant.getIsReadReceiptsEnabled());
     }
 
     /**
@@ -597,7 +597,7 @@ public class ConversationService {
 
         Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        return getMessageViewDTOs(messages, conversationId, loggedInUserId, loggedInParticipant.getIsReadReceiptsEnabled());
     }
 
     /**
@@ -608,11 +608,11 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId) {
+    private Page<MessageViewDTO> getMessageViewDTOs(Page<Message> messages, Long conversationId, Long loggedInUserId, boolean includeReadStatus) {
 
         Message lastSeenMessage = conversationReadStatusService.getLastSeenMessageOrNull(conversationId, loggedInUserId);
 
-        Long lastReadMessageId = getLastReadMessageIdByParticipants(conversationId, loggedInUserId);
+        Long lastReadMessageId = includeReadStatus ? getLastReadMessageIdByParticipants(conversationId, loggedInUserId) : null;
 
         List<Long> messageIds = extractMessageIds(messages);
 
@@ -1348,6 +1348,7 @@ public class ConversationService {
      */
     public ConversationMetaDataDTO getConversationMetaData(Long conversationId, Long userId) {
         ConversationMetaDataDTO conversationMetaDataDTO = conversationUtilService.getConversationMetaDataDTO(conversationId, userId);
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
         conversationMetaDataDTO.setIsActive(conversationRepository.getIsActiveByConversationIdAndUserId(conversationId, userId));
 
         if (!conversationMetaDataDTO.getIsGroup()) {
@@ -1376,14 +1377,15 @@ public class ConversationService {
                     directOtherMeta.getEmail()
             );
             conversationMetaDataDTO.setChatUserStatus(status);
+            conversationMetaDataDTO.setReadReceiptsEnabled(participant.getIsReadReceiptsEnabled());
 
         } else {
             String imageIndexedName = conversationMetaDataDTO.getImageIndexedName();
             String signedImageIndexedName = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.SMALL ,imageIndexedName);
             conversationMetaDataDTO.setSignedImageUrl(signedImageIndexedName);
-            ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
 
             conversationMetaDataDTO.setNotifyOnMentionsOnly(participant.getNotifyOnMentionsOnly());
+            conversationMetaDataDTO.setReadReceiptsEnabled(participant.getIsReadReceiptsEnabled());
 
             if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
                 conversationMetaDataDTO.setIsCurrentUserAdmin(true);
@@ -1643,6 +1645,21 @@ public class ConversationService {
     public boolean toggleNotifyMentionsOnly(Long conversationId, Long loggedInUserId) {
         ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
         participant.setNotifyOnMentionsOnly(!participant.getNotifyOnMentionsOnly());
+        conversationParticipantRepository.save(participant);
+        return participant.getNotifyOnMentionsOnly();
+    }
+
+    /**
+     * Toggles the read receipts setting in a conversation for a specific user.
+     *
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     * @return the updated isReadReceiptsEnabled status
+     */
+    @Transactional
+    public boolean toggleReadReceiptsEnabled(Long conversationId, Long loggedInUserId) {
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        participant.setIsReadReceiptsEnabled(!participant.getIsReadReceiptsEnabled());
         conversationParticipantRepository.save(participant);
         return participant.getNotifyOnMentionsOnly();
     }

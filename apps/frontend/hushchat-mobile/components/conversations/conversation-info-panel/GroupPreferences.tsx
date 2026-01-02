@@ -6,7 +6,10 @@ import ActionToggleItem from "@/components/conversations/conversation-info-panel
 import { MotionView } from "@/motion/MotionView";
 import { IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
-import { useToggleNotifyOnlyOnMentionMutation } from "@/query/patch/queries";
+import {
+  useToggleNotifyOnlyOnMentionMutation,
+  useToggleReadReceiptsMutation,
+} from "@/query/patch/queries";
 
 interface IGroupPreferencesProps {
   conversation: IConversation;
@@ -26,11 +29,21 @@ export default function GroupPreferences({
     conversation.notifyOnMentionsOnly
   );
 
+  const [readReceiptsEnabled, setReadReceiptsEnabled] = useState<boolean>(
+    conversation.readReceiptsEnabled
+  );
+
   useEffect(() => {
     setNotifyOnMentionsOnly(conversation.notifyOnMentionsOnly);
-  }, [conversation.notifyOnMentionsOnly]);
+    setReadReceiptsEnabled(conversation.readReceiptsEnabled);
+  }, [conversation.notifyOnMentionsOnly, conversation.readReceiptsEnabled]);
 
   const toggleNotifyOnlyOnMentionMutation = useToggleNotifyOnlyOnMentionMutation(
+    { userId: Number(user.id), conversationId: Number(conversation?.id) },
+    () => {}
+  );
+
+  const toggleReadReceiptsMutation = useToggleReadReceiptsMutation(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
     () => {}
   );
@@ -52,6 +65,23 @@ export default function GroupPreferences({
     );
   };
 
+  const handleToggleReadReceipts = (newValue: boolean) => {
+    if (!conversation?.id) return;
+
+    setReadReceiptsEnabled(newValue);
+
+    toggleReadReceiptsMutation.mutate(
+      {
+        conversationId: Number(conversation?.id),
+      },
+      {
+        onError: () => {
+          setReadReceiptsEnabled(!newValue);
+        },
+      }
+    );
+  };
+
   return (
     <MotionView
       visible={visible}
@@ -65,22 +95,37 @@ export default function GroupPreferences({
             <Ionicons name="arrow-back" size={22} color="#6B7280" />
           </TouchableOpacity>
           <AppText className="text-xl font-semibold text-gray-900 dark:text-white">
-            Group Preferences
+            Conversation Preferences
           </AppText>
         </View>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={true}>
-        <View className="mt-4">
+        {conversation?.isGroup && (
+          <View className="mt-4">
+            <AppText className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Notifications
+            </AppText>
+            <ActionToggleItem
+              icon="notifications-outline"
+              title="Mentions Only"
+              description="Receive notifications only when someone mentions you in this conversation."
+              value={notifyOnMentionsOnly}
+              onValueChange={handleToggleNotifyOnlyOnMentions}
+            />
+          </View>
+        )}
+
+        <View className="mt-6">
           <AppText className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Notifications
+            Privacy
           </AppText>
           <ActionToggleItem
-            icon="notifications-outline"
-            title="Mentions Only"
-            description="Receive notifications only when someone mentions you in this conversation."
-            value={notifyOnMentionsOnly}
-            onValueChange={handleToggleNotifyOnlyOnMentions}
+            icon="eye-outline"
+            title="Read receipts"
+            description="When turned off, you won’t see read receipts from others, and they won’t see yours."
+            value={readReceiptsEnabled}
+            onValueChange={handleToggleReadReceipts}
           />
         </View>
       </ScrollView>

@@ -54,4 +54,7 @@ public class ConversationParticipant extends AuditModel {
 
     @Column(name = "notify_on_mentions_only")
     private Boolean notifyOnMentionsOnly = false;
+
+    @Column(name = "is_read_receipts_enabled")
+    private Boolean isReadReceiptsEnabled = true;
 }

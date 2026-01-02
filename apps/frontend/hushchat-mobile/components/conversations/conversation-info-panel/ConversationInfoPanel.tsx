@@ -12,6 +12,7 @@ import GroupChatInfo from "@/components/conversations/conversation-info-panel/Gr
 import { AppText } from "@/components/AppText";
 import { PanelType } from "@/types/web-panel/types";
 import MediaAttachmentsView from "@/components/conversations/conversation-info-panel/MediaAttachmentsView";
+import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
 
 export interface ChatInfoScreenProps {
   conversationId: number;
@@ -38,7 +39,10 @@ export default function ConversationInfoPanel({
   } = useConversationByIdQuery(conversationId);
 
   const handleBack = () => {
-    if (currentPanel === PanelType.MEDIA_ATTACHMENTS) {
+    if (
+      currentPanel === PanelType.MEDIA_ATTACHMENTS ||
+      currentPanel === PanelType.GROUP_PREFERENCES
+    ) {
       setCurrentPanel(PanelType.PROFILE);
     } else {
       if (onClose) {
@@ -51,6 +55,10 @@ export default function ConversationInfoPanel({
 
   const handleShowMediaAttachments = () => {
     setCurrentPanel(PanelType.MEDIA_ATTACHMENTS);
+  };
+
+  const handleGroupPreferences = () => {
+    setCurrentPanel(PanelType.GROUP_PREFERENCES);
   };
 
   if (conversationAPILoading) {
@@ -89,6 +97,15 @@ export default function ConversationInfoPanel({
       case PanelType.MEDIA_ATTACHMENTS:
         return <MediaAttachmentsView conversationId={conversationId} onBack={handleBack} />;
 
+      case PanelType.GROUP_PREFERENCES:
+        return (
+          <GroupPreferences
+            conversation={conversationAPIResponse}
+            visible={true}
+            onClose={handleBack}
+          />
+        );
+
       case PanelType.PROFILE:
       default:
         return isGroup ? (
@@ -97,6 +114,7 @@ export default function ConversationInfoPanel({
             onBack={handleBack}
             setSelectedConversation={setSelectedConversation}
             onShowMediaAttachments={handleShowMediaAttachments}
+            onShowGroupPreferences={handleGroupPreferences}
           />
         ) : (
           <OneToOneChatInfo
@@ -104,6 +122,7 @@ export default function ConversationInfoPanel({
             onBack={handleBack}
             setSelectedConversation={setSelectedConversation}
             onShowMediaAttachments={handleShowMediaAttachments}
+            onShowGroupPreferences={handleGroupPreferences}
           />
         );
     }

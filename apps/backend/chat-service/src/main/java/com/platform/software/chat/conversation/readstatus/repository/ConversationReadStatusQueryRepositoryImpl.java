@@ -124,7 +124,9 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
             .on(qConversationReadStatus.conversation.id.eq(conversationId)
                 .and(qConversationReadStatus.user.id.eq(qParticipant.user.id)))
             .where(qParticipant.conversation.id.eq(conversationId)
-                .and(qParticipant.isActive.isTrue()))
+                .and(qParticipant.isActive.isTrue())
+                .and(qParticipant.isReadReceiptsEnabled.isTrue()))
+
             .fetch();
 
         Map<Long, Long> resultMap = new HashMap<>();
