@@ -3,9 +3,9 @@ import { Modal, View, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import classNames from "classnames";
 import { AppText } from "@/components/AppText";
 import LoadingState from "@/components/LoadingState";
+import { DocumentPreviewFallback } from "./DocumentPreviewFallback";
 import { IMessageAttachment } from "@/types/chat/types";
 import { openFileNative } from "@/utils/messageUtils";
 import { getDocumentViewerUrl } from "@/utils/filePreviewUtils";
@@ -27,7 +27,6 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   const themeColors = {
     primary: isDark ? "#563dc4" : "#6B4EFF",
     icon: isDark ? "#9ca3af" : "#6B7280",
-    error: "#EF4444",
   };
 
   useEffect(() => {
@@ -50,7 +49,16 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
   };
 
   const renderContent = () => {
-    if (error || !viewerUrl) return renderFallbackUI();
+    if (error || !viewerUrl) {
+      return (
+        <DocumentPreviewFallback
+          error={error}
+          message="This file type cannot be viewed inside the app."
+          actionLabel="Open in External App"
+          onAction={handleOpenNative}
+        />
+      );
+    }
 
     return (
       <View className="flex-1 relative bg-background-light dark:bg-background-dark w-full h-full">
@@ -69,40 +77,13 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
             setLoading(false);
             setError(true);
           }}
-          startInLoadingState={false} // We handle loading state manually via state overlay
+          startInLoadingState={false}
           originWhitelist={["*"]}
           scalesPageToFit={true}
         />
       </View>
     );
   };
-
-  const renderFallbackUI = () => (
-    <View className="flex-1 items-center justify-center p-6 bg-background-light dark:bg-background-dark">
-      <View className="w-24 h-24 bg-secondary-light dark:bg-secondary-dark rounded-3xl items-center justify-center mb-6">
-        <Ionicons
-          name="document-text"
-          size={48}
-          color={error ? themeColors.error : themeColors.primary}
-        />
-      </View>
-      <AppText className="text-lg text-center font-medium mb-2 text-text-primary-light dark:text-text-primary-dark">
-        {error ? "Preview Failed" : "Preview Unavailable"}
-      </AppText>
-      <AppText className="text-sm text-center text-text-secondary-light dark:text-text-secondary-dark mb-6">
-        This file type cannot be viewed inside the app.
-      </AppText>
-      <Pressable
-        onPress={handleOpenNative}
-        className={classNames(
-          "bg-primary-light dark:bg-primary-dark",
-          "px-6 py-3 rounded-full active:opacity-90 hover:opacity-90"
-        )}
-      >
-        <AppText className="text-white font-semibold">Open in External App</AppText>
-      </Pressable>
-    </View>
-  );
 
   return (
     <Modal
@@ -121,7 +102,6 @@ export const DocumentPreview = ({ visible, attachment, onClose }: IDocumentPrevi
         className="bg-background-light dark:bg-background-dark"
       >
         <View className="flex-1">
-          {/* Header */}
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-background-light dark:bg-background-dark">
             <View className="flex-1 mr-4">
               <AppText
