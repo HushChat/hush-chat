@@ -1,6 +1,8 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversation.readstatus.dto.MessageReadStatusWSResponseDTO;
+import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
@@ -28,16 +30,18 @@ import java.util.List;
 public class MessagePublisherService {
 
     private final ConversationUtilService conversationUtilService;
+    private final ConversationService conversationService;
     private final WebSocketSessionManager webSocketSessionManager;
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessagePublisherService(
-            ConversationUtilService conversationUtilService,
+            ConversationUtilService conversationUtilService, ConversationService conversationService,
             WebSocketSessionManager webSocketSessionManager,
             MessageAttachmentRepository messageAttachmentRepository,
             CloudPhotoHandlingService cloudPhotoHandlingService) {
         this.conversationUtilService = conversationUtilService;
+        this.conversationService = conversationService;
         this.webSocketSessionManager = webSocketSessionManager;
         this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
@@ -213,6 +217,42 @@ public class MessagePublisherService {
                         workspaceId,
                         email,
                         WebSocketTopicConstants.MESSAGE_REACTION,
+                        payload));
+    }
+
+    /**
+     * Notify conversation participants in real time when a message is marked as
+     * read/seen.
+     * <p>
+     * The user who marked the message as read (actor) is explicitly excluded from
+     * receiving the WebSocket event, as their UI state is already updated locally.
+     *
+     * @param workspaceId       the workspace (tenant) identifier
+     * @param conversationId    the conversation ID where the message was read
+     * @param actorUserId       the user ID who marked the message as read
+     * @param lastSeenMessageId the ID of the last seen/read message
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageReadStatusToParticipants(
+            String workspaceId,
+            Long conversationId,
+            Long actorUserId,
+            Long lastSeenMessageId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId,
+                actorUserId);
+
+        MessageReadStatusWSResponseDTO payload = new MessageReadStatusWSResponseDTO(conversationId, lastSeenMessageId);
+
+        participants.stream()
+                .filter(p -> p.getId() != null)
+                .map(ChatUser::getEmail)
+                .filter(email -> email != null && !email.isBlank())
+                .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                        workspaceId,
+                        email,
+                        WebSocketTopicConstants.MESSAGE_SEEN,
                         payload));
     }
 }

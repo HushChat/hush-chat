@@ -1,5 +1,6 @@
 package com.platform.software.chat.message.service;
 
+import com.platform.software.chat.conversation.readstatus.dto.MessageSeenEvent;
 import com.platform.software.chat.message.dto.MessageReactionEvent;
 import com.platform.software.chat.message.dto.MessageUnsentEvent;
 import com.platform.software.chat.message.dto.MessageCreatedEvent;
@@ -63,6 +64,17 @@ public class ChatEventListener {
                 event.getMessageId(),
                 event.getActorUserId(),
                 event.getWorkspaceId()
+        );
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onMessageSeen(MessageSeenEvent event) {
+        messagePublisherService.invokeMessageReadStatusToParticipants(
+                event.workspaceId(),
+                event.conversationId(),
+                event.actorUserId(),
+                event.lastSeenMessageId()
         );
     }
 }

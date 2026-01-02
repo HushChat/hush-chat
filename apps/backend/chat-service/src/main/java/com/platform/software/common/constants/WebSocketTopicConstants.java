@@ -33,4 +33,6 @@ public final class WebSocketTopicConstants {
     /** Message reaction event */
     public static final String MESSAGE_REACTION = "/topic/message-reaction/";
 
+    /** Message seen event */
+    public static final String MESSAGE_SEEN = "/topic/message-seen/";
 }
