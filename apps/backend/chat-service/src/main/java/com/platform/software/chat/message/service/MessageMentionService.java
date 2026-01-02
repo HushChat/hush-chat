@@ -32,7 +32,6 @@ public class MessageMentionService {
     private final MessageMentionRepository messageMentionRepository;
     private final ConversationUtilService conversationUtilService;
 
-
     public MessageMentionService(
             UserRepository userRepository,
             MessageMentionRepository messageMentionRepository,
@@ -72,6 +71,8 @@ public class MessageMentionService {
             logger.error("cannot save message mentions for message: {}", savedMessage, e);
             throw new CustomInternalServerErrorException("Cannot save message mentions");
         }
+
+        appendMessageMentions(List.of(messageViewDTO));
     }
 
     public List<ChatUser> getMentionedUsersByUsernames(String messageText) {
