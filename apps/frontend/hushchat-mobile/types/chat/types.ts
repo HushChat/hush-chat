@@ -334,6 +334,7 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  hideEmojiGifPickers?: boolean;
 }
 
 export type TNavigationDirection = "prev" | "next";
