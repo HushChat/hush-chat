@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import { EditPreview } from "@/components/conversation-input/EditPreview";
@@ -9,11 +9,10 @@ import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
-import { SendButton } from "@/components/conversation-input/SendButton";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
+import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 
 const ConversationInput = ({
   conversationId,
@@ -153,37 +152,17 @@ const ConversationInput = ({
               />
             </View>
 
-            <View className="flex-row items-center ml-1">
-              {!input.isEditMode && !hideEmojiGifPickers && (
-                <>
-                  <TouchableOpacity
-                    onPress={openEmojiPicker}
-                    className="p-1.5 justify-center items-center"
-                    disabled={disabled}
-                  >
-                    <MaterialIcons name="emoji-emotions" size={22} color="#9CA3AF" />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={openGifPicker}
-                    className="p-1.5 justify-center items-center"
-                    disabled={disabled}
-                  >
-                    <AntDesign name="gif" size={22} color="#9CA3AF" />
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {!hideSendButton && (
-                <View className="ml-1">
-                  <SendButton
-                    showSend={input.isValidMessage}
-                    isSending={isSending}
-                    onPress={handleSendButtonPress}
-                  />
-                </View>
-              )}
-            </View>
+            <ConversationInputActions
+              isEditMode={input.isEditMode}
+              hideEmojiGifPickers={hideEmojiGifPickers}
+              hideSendButton={hideSendButton}
+              disabled={disabled}
+              isValidMessage={input.isValidMessage}
+              isSending={isSending}
+              onOpenEmojiPicker={openEmojiPicker}
+              onOpenGifPicker={openGifPicker}
+              onSendPress={handleSendButtonPress}
+            />
           </View>
         </Animated.View>
       </View>
