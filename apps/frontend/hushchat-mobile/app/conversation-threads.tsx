@@ -6,7 +6,6 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
 import EmptyChatState from "@/components/conversations/conversation-thread/message-list/EmptyChatState";
-import LoadingState from "@/components/LoadingState";
 import DisabledMessageInput from "@/components/conversations/conversation-thread/composer/DisabledMessageInput";
 import FilePreviewOverlay, {
   FileWithCaption,
@@ -369,9 +368,7 @@ const ConversationThreadScreen = ({
   );
 
   const renderContent = useCallback(() => {
-    if (conversationAPILoading || isLoadingConversationMessages) {
-      return <LoadingState />;
-    }
+    const isInitialLoading = conversationAPILoading || isLoadingConversationMessages;
 
     if (conversationAPIError || conversationMessagesError) {
       return (
@@ -385,7 +382,7 @@ const ConversationThreadScreen = ({
         />
       );
     }
-    if (conversationMessages.length === 0) {
+    if (conversationMessages.length === 0 && !isInitialLoading) {
       return <EmptyChatState />;
     }
     return (
