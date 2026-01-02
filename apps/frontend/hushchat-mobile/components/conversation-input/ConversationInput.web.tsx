@@ -18,6 +18,9 @@ import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicke
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
+import { DOC_EXTENSIONS } from "@/constants/mediaConstants";
+
+const DOCUMENT_ACCEPT = DOC_EXTENSIONS.map((ext) => `.${ext}`).join(",");
 
 const ConversationInput = ({
   conversationId,
@@ -176,11 +179,13 @@ const ConversationInput = ({
               ref={input.fileInputRef}
               onChange={input.handleFileChange}
               accept="image/*,video/*"
+              multiple
             />
             <FileInput
               ref={input.documentInputRef}
               onChange={input.handleDocumentChange}
-              accept={".pdf,.doc,.docx,.xls,.xlsx,.txt"}
+              accept={DOCUMENT_ACCEPT}
+              multiple
             />
           </>
         )}
