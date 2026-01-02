@@ -45,31 +45,28 @@ const ParentMessagePreview = memo<ParentMessagePreviewProps>(
         activeOpacity={onNavigateToMessage ? DEFAULT_ACTIVE_OPACITY : 1}
         onPress={handlePress}
         disabled={!onNavigateToMessage}
+        className={classNames(
+          "max-w-[75%] border-l-4 px-3 py-2 rounded-md mb-2",
+          isCurrentUser
+            ? "self-end border-primary-light bg-secondary-light dark:border-primary-dark dark:bg-secondary-dark"
+            : "self-start border-primary-dark bg-secondary-light dark:border-primary-light dark:bg-secondary-dark"
+        )}
       >
-        <View
+        <AppText
           className={classNames(
-            "max-w-[75%] border-l-4 px-3 py-2 rounded-md mb-2",
+            "text-xs font-semibold mb-1",
             isCurrentUser
-              ? "self-end border-primary-light bg-secondary-light dark:border-primary-dark dark:bg-secondary-dark"
-              : "self-start border-primary-dark bg-secondary-light dark:border-primary-light dark:bg-secondary-dark"
+              ? "text-primary-light text-right"
+              : "text-primary-dark dark:text-primary-light text-left"
           )}
         >
-          <AppText
-            className={classNames(
-              "text-xs font-semibold mb-1",
-              isCurrentUser
-                ? "text-primary-light text-right"
-                : "text-primary-dark dark:text-primary-light text-left"
-            )}
-          >
-            {getHeaderLabel()}
-          </AppText>
+          {getHeaderLabel()}
+        </AppText>
 
-          <View className="flex-row items-center justify-between gap-x-3">
-            <ParentMessageTextPreview message={parentMessage} isCurrentUser={isCurrentUser} />
+        <View className="flex-row items-center justify-between gap-x-3">
+          <ParentMessageTextPreview message={parentMessage} isCurrentUser={isCurrentUser} />
 
-            {showMediaPreview && <AttachmentPreview attachment={attachment} />}
-          </View>
+          {showMediaPreview && <AttachmentPreview attachment={attachment} />}
         </View>
       </TouchableOpacity>
     );
