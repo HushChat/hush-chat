@@ -18,6 +18,7 @@ export interface ConversationsMultiSelectProps {
   onChange: (nextSelected: TConversation[]) => void;
   searchPlaceholder?: string;
   sourceConversationId?: number;
+  autoFocusSearch?: boolean;
 }
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -42,6 +43,7 @@ export const ConversationsMultiSelect = ({
   onChange,
   searchPlaceholder = "Search conversations...",
   sourceConversationId,
+  autoFocusSearch,
 }: ConversationsMultiSelectProps) => {
   const [searchText, setSearchText] = useState("");
   const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS).trim();
@@ -68,6 +70,7 @@ export const ConversationsMultiSelect = ({
       onChange={onChange}
       searchText={searchText}
       setSearchText={setSearchText}
+      autoFocusSearch={autoFocusSearch}
       searchPlaceholder={searchPlaceholder}
       queryResult={{
         pages: debouncedSearch ? searchResults : conversationsPages,

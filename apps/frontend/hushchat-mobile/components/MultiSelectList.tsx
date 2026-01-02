@@ -1,4 +1,4 @@
-import React, { ReactElement, useCallback, useMemo } from "react";
+import React, { ReactElement, useCallback, useEffect, useMemo, useRef } from "react";
 import { View, ActivityIndicator, TouchableOpacity, FlatList, ListRenderItem } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
@@ -15,6 +15,7 @@ export interface MultiSelectListProps<T, TPages = unknown> {
   extractData: (pages?: TPages) => T[];
   renderItemRow: (item: T, isSelected: boolean, toggle: (i: T) => void) => ReactElement;
   renderChip: (item: T, remove: (i: T) => void) => ReactElement;
+  autoFocusSearch?: boolean;
 }
 
 export function MultiSelectList<T>({
@@ -28,13 +29,27 @@ export function MultiSelectList<T>({
   extractData,
   renderItemRow,
   renderChip,
+  autoFocusSearch = false,
 }: MultiSelectListProps<T>) {
+  const searchInputRef = useRef<any>(null);
+
   const { pages, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     queryResult;
 
   const allItems = useMemo(() => extractData(pages), [pages, extractData]);
 
   const selectedIds = useMemo(() => new Set(selected.map(getKey)), [selected, getKey]);
+
+  useEffect(() => {
+    if (autoFocusSearch) {
+      const timer = setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        }
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocusSearch]);
 
   const handleToggle = useCallback(
     (item: T) => {
@@ -88,6 +103,7 @@ export function MultiSelectList<T>({
         <View className="flex-row items-center rounded-lg px-3 py-2.5">
           <Ionicons name="search" size={18} color="#9CA3AF" />
           <AppTextInput
+            ref={searchInputRef}
             value={searchText}
             onChangeText={setSearchText}
             placeholder={searchPlaceholder}

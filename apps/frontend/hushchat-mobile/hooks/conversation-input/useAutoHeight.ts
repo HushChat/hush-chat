@@ -99,16 +99,31 @@ export function useAutoHeight({
 
   const updateHeightForClearedText = useCallback(
     (textValue: string) => {
-      if (textValue.trim().length > 0) return;
+      if (textValue.trim().length === 0) {
+        setCurrentInputHeight(minimumInputHeight);
 
-      setCurrentInputHeight(minimumInputHeight);
+        animatedHeightValue.value = withTiming(minimumInputHeight, {
+          duration: RESIZE_ANIM_MS,
+          easing: ANIM_EASING,
+        });
+        return;
+      }
 
-      animatedHeightValue.value = withTiming(minimumInputHeight, {
+      const lineCount = textValue.split("\n").length;
+      const calculatedHeight = lineHeight * lineCount + verticalPadding;
+      const nextHeight = Math.max(
+        minimumInputHeight,
+        Math.min(maximumInputHeight, calculatedHeight)
+      );
+
+      setCurrentInputHeight(nextHeight);
+
+      animatedHeightValue.value = withTiming(nextHeight, {
         duration: RESIZE_ANIM_MS,
         easing: ANIM_EASING,
       });
     },
-    [minimumInputHeight, animatedHeightValue]
+    [minimumInputHeight, maximumInputHeight, lineHeight, verticalPadding, animatedHeightValue]
   );
 
   return {

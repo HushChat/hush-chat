@@ -89,13 +89,14 @@ const MessageTextArea = forwardRef<TextInput, IMessageTextAreaProps>(
         multiline
         scrollEnabled
         autoFocus={autoFocus}
+        submitBehavior={PLATFORM.IS_WEB ? "submit" : "newline"}
+        returnKeyType={PLATFORM.IS_WEB ? "send" : "default"}
         value={value}
         onChangeText={onChangeText}
         onContentSizeChange={onContentSizeChange}
         onSelectionChange={onSelectionChange}
         onKeyPress={onKeyPress}
         onSubmitEditing={onSubmitEditing}
-        returnKeyType="send"
         enablesReturnKeyAutomatically
       />
     );
