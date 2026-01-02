@@ -25,7 +25,6 @@ import { SwipeableMessageRow } from "@/gestures/components/SwipeableMessageRow";
 import { useAddMessageReactionMutation } from "@/query/post/queries";
 import { useRemoveMessageReactionMutation } from "@/query/delete/queries";
 import { ToastUtils } from "@/utils/toastUtils";
-import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -97,7 +96,6 @@ export const ConversationMessageItem = ({
   onMessageLongPress,
   onCloseAllOverlays,
   onMessagePin,
-  selectedConversationId,
   onUnsendMessage,
   onViewReactions,
   showSenderAvatar,
@@ -132,9 +130,6 @@ export const ConversationMessageItem = ({
     message.reactionSummary || { counts: {}, currentUserReaction: "" }
   );
   const reactedByCurrentUser = reactionSummary?.currentUserReaction || "";
-  const {
-    user: { id: userId },
-  } = useUserStore();
   const { selectionMode } = useConversationStore();
 
   const messageContent = message.messageText;
@@ -333,7 +328,7 @@ export const ConversationMessageItem = ({
   );
 
   const addReaction = useAddMessageReactionMutation(
-    { userId: Number(userId), conversationId: selectedConversationId },
+    undefined,
     () => {
       if (message.id) {
         queryClient.invalidateQueries({
@@ -347,7 +342,7 @@ export const ConversationMessageItem = ({
   );
 
   const removeReaction = useRemoveMessageReactionMutation(
-    { userId: Number(userId), conversationId: selectedConversationId },
+    undefined,
     () => {
       if (message.id) {
         queryClient.invalidateQueries({

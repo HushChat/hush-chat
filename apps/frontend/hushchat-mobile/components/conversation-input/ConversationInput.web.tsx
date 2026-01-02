@@ -31,6 +31,7 @@ const ConversationInput = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
   const isControlledMode = controlledValue !== undefined;
 
@@ -138,25 +139,29 @@ const ConversationInput = ({
           </View>
 
           <View className="flex-row gap-2 items-center ml-1">
-            <TouchableOpacity
-              onPress={openEmojiPicker}
-              className="p-1.5 justify-center items-center"
-              disabled={disabled}
-            >
-              <MaterialIcons
-                name="emoji-emotions"
-                size={22}
-                className="text-gray-500 dark:text-gray-400"
-              />
-            </TouchableOpacity>
+            {!hideEmojiGifPickers && (
+              <>
+                <TouchableOpacity
+                  onPress={openEmojiPicker}
+                  className="p-1.5 justify-center items-center"
+                  disabled={disabled}
+                >
+                  <MaterialIcons
+                    name="emoji-emotions"
+                    size={22}
+                    className="text-gray-500 dark:text-gray-400"
+                  />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={openGifPicker}
-              className="p-1.5 justify-center items-center"
-              disabled={disabled}
-            >
-              <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
-            </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={openGifPicker}
+                  className="p-1.5 justify-center items-center"
+                  disabled={disabled}
+                >
+                  <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
+                </TouchableOpacity>
+              </>
+            )}
 
             {!hideSendButton && (
               <View className="ml-1">
@@ -204,17 +209,21 @@ const ConversationInput = ({
         />
       )}
 
-      <EmojiPickerComponent
-        visible={showEmojiPicker}
-        onClose={closeEmojiPicker}
-        onEmojiSelect={handleEmojiSelect}
-      />
+      {!hideEmojiGifPickers && (
+        <>
+          <EmojiPickerComponent
+            visible={showEmojiPicker}
+            onClose={closeEmojiPicker}
+            onEmojiSelect={handleEmojiSelect}
+          />
 
-      <GifPickerComponent
-        visible={showGifPicker}
-        onClose={closeGifPicker}
-        onGifSelect={handleGifSelect}
-      />
+          <GifPickerComponent
+            visible={showGifPicker}
+            onClose={closeGifPicker}
+            onGifSelect={handleGifSelect}
+          />
+        </>
+      )}
     </View>
   );
 };
