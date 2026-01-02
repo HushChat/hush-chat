@@ -74,4 +74,4 @@ export const ConversationInputActions = memo(
   }
 );
 
-ConversationInputActions.displayName = "ConversationInputAction";
+ConversationInputActions.displayName = "ConversationInputActions";
