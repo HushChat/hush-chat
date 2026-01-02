@@ -27,13 +27,36 @@ export enum UploadType {
 }
 
 export const MAX_IMAGE_KB = 1024 * 5;
+
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   "text/plain",
+  "text/csv",
+  "text/html",
+  "text/xml",
+  "application/xml",
+  "text/markdown",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/x-rar-compressed",
+  "application/x-7z-compressed",
+  "application/x-tar",
+  "application/gzip",
+  "application/json",
+  "application/javascript",
+  "text/javascript",
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+
   "application/octet-stream",
   "*/*",
 ];
@@ -47,6 +70,16 @@ const ALLOWED_VIDEO_TYPES = [
   "video/x-msvideo",
   "video/x-matroska",
   "video/x-m4v",
+];
+
+const ARCHIVE_TYPES = [
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/x-rar-compressed",
+  "application/x-7z-compressed",
+  "application/x-tar",
+  "application/gzip",
+  "application/x-compressed",
 ];
 
 const sizeMap = {
@@ -83,6 +116,46 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
       }));
   }
   return [];
+};
+
+const getFileCategory = (mimeType: string): "image" | "video" | "document" => {
+  if (ALLOWED_IMAGE_TYPES.some((type) => mimeType === type || mimeType.startsWith("image/"))) {
+    return "image";
+  }
+  if (ALLOWED_VIDEO_TYPES.some((type) => mimeType === type || mimeType.startsWith("video/"))) {
+    return "video";
+  }
+  return "document";
+};
+
+const getFileExtension = (fileName: string): string => {
+  const parts = fileName.split(".");
+  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+};
+
+const isValidFileType = (mimeType: string, fileName: string): boolean => {
+  if (ALLOWED_DOCUMENT_TYPES.includes(mimeType)) {
+    return true;
+  }
+
+  if (ALLOWED_IMAGE_TYPES.some((type) => mimeType === type || mimeType.startsWith("image/"))) {
+    return true;
+  }
+  if (ALLOWED_VIDEO_TYPES.some((type) => mimeType === type || mimeType.startsWith("video/"))) {
+    return true;
+  }
+
+  const ext = getFileExtension(fileName);
+  const archiveExtensions = ["zip", "rar", "7z", "tar", "gz", "tgz"];
+  if (archiveExtensions.includes(ext)) {
+    return true;
+  }
+
+  if (ARCHIVE_TYPES.includes(mimeType)) {
+    return true;
+  }
+
+  return false;
 };
 
 export const pickAndUploadImage = async (
@@ -317,30 +390,19 @@ export function useMessageAttachmentUploader(
 
     for (const { file, caption } of filesWithCaptions) {
       const fileType = file.type || "";
-      const isImage = ALLOWED_IMAGE_TYPES.some(
-        (type) => fileType === type || fileType.startsWith("image/")
-      );
-      const isVideo = ALLOWED_VIDEO_TYPES.some(
-        (type) => fileType === type || fileType.startsWith("video/")
-      );
-      const isDocument = ALLOWED_DOCUMENT_TYPES.includes(fileType);
+      const fileName = file.name || "";
 
-      if (!isImage && !isVideo && !isDocument) {
+      if (!isValidFileType(fileType, fileName)) {
         skipped.push({
           success: false,
           fileName: file.name,
-          error: `Unsupported file type: ${fileType || "unknown"}`,
+          error: `Unsupported file type: ${fileType || getFileExtension(fileName) || "unknown"}`,
         });
         continue;
       }
 
-      const getMaxSize = () => {
-        if (isImage) return sizeMap.image;
-        if (isVideo) return sizeMap.video;
-        return sizeMap.document;
-      };
-
-      const maxSize = getMaxSize();
+      const category = getFileCategory(fileType);
+      const maxSize = sizeMap[category];
       const fileSizeKB = file.size / 1024;
 
       if (fileSizeKB > maxSize) {
