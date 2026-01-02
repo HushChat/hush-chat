@@ -85,6 +85,48 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
   return [];
 };
 
+/**
+ * Helper to retry a PUT request to S3
+ */
+export const uploadWithRetry = async (
+  url: string,
+  blob: Blob,
+  fileType: string,
+  maxRetries = 3
+) => {
+  let lastError: any;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        body: blob,
+        headers: {
+          "Content-Type": fileType,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("URL_EXPIRED");
+        }
+        throw new Error(`Upload failed with status ${response.status}`);
+      }
+
+      return response;
+    } catch (error: any) {
+      lastError = error;
+      console.log(`Upload attempt ${attempt} failed. Retrying...`);
+
+      if (attempt < maxRetries && error.message !== "URL_EXPIRED") {
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+      } else {
+        throw lastError;
+      }
+    }
+  }
+};
+
 export const pickAndUploadImage = async (
   id: string,
   fetchData: () => void,
@@ -139,13 +181,7 @@ export const pickAndUploadImage = async (
 
 export const uploadImageToSignedUrl = async (fileUri: string, signedUrl: string) => {
   const blob = await (await fetch(fileUri)).blob();
-  await fetch(signedUrl, {
-    method: "PUT",
-    body: blob,
-    headers: {
-      "Content-Type": blob.type,
-    },
-  });
+  return await uploadWithRetry(signedUrl, blob, blob.type);
 };
 
 export const getImageSignedUrl = async (
@@ -383,13 +419,11 @@ export function useMessageAttachmentUploader(
 
         try {
           const blob = await (await fetch(file.uri)).blob();
-          await fetch(signed.url, {
-            method: "PUT",
-            body: blob,
-            headers: {
-              "Content-Type": file.type || blob.type || "application/octet-stream",
-            },
-          });
+          await uploadWithRetry(
+            signed.url,
+            blob,
+            file.type || blob.type || "application/octet-stream"
+          );
           results.push({ success: true, fileName: file.name, signed });
         } catch (e: any) {
           results.push({
@@ -431,12 +465,27 @@ export function useMessageAttachmentUploader(
     return uploadFilesFromWebWithCaptions(filesWithCaptions);
   };
 
+  const retryUpload = async (file: File, signedUrl: string): Promise<UploadResult> => {
+    try {
+      await uploadWithRetry(signedUrl, file, file.type || "application/octet-stream");
+      return { success: true, fileName: file.name, signed: { url: signedUrl } as any };
+    } catch (e: any) {
+      return {
+        success: false,
+        fileName: file.name,
+        error: e?.message ?? "Retry failed",
+        signed: { url: signedUrl } as any,
+      };
+    }
+  };
+
   return {
     ...hook,
     pickAndUploadImagesAndVideos,
     pickAndUploadDocuments,
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
+    retryUpload,
     isUploading: isUploadingWebFiles,
     sendGifMessage,
   };
