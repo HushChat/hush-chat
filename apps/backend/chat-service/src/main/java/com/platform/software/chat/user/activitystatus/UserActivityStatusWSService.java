@@ -53,11 +53,13 @@ public class UserActivityStatusWSService {
         DeviceType device = DeviceType.valueOf(deviceType);
 
         for (Map.Entry<String, Set<Long>> entry : matchingSessionKeysWithConversations.entrySet()) {
-            String workspaceIdAndEmail = entry.getKey();
+            String key = entry.getKey();
+            String[] parts = key.split(":");
+            String userPrinciple = parts[0] + ":" + parts[1];
 
             if (!entry.getValue().isEmpty()) {
                 template.convertAndSendToUser(
-                    workspaceIdAndEmail,
+                    userPrinciple,
                     WebSocketTopicConstants.ONLINE_STATUS,
                     new UserStatusDTO(entry.getValue().stream().findFirst().get(), email, status, device)
                 );

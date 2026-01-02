@@ -184,37 +184,27 @@ public class WebSocketSessionManager {
     }
 
     /**
-     * Send message to a specific user using encoded email
-     */
-    public void sendMessageToUser(String sessionKey, String path, Object payload) {
-        try {
-            template.convertAndSendToUser(sessionKey ,path, payload);
-        } catch (Exception e) {
-            logger.warn("failed to send message to user", e);
-        }
-    }
-
-    /**
      * Send message to a specific user by tenant ID and email
      */
     public void sendMessageToUser(String workspaceId, String email, String path, Object payload) {
         try {
             String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
 
-            List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
+            String userPrinciple = createUserPrinciple(workspaceId, email);
 
-            if (!sessions.isEmpty()) {
-                for (WebSocketSessionInfoDAO sessionInfo : sessions) {
-                    template.convertAndSendToUser(sessionInfo.getWsSessionId(), path, payload);
-                    logger.debug("message sent to user: {} at path: {}", email, path + encodedEmail);
-                }
-            } else {
-                logger.debug("no active session found for user {} in workspace {}", email, workspaceId);
-            }
+            template.convertAndSendToUser(userPrinciple, path, payload);
+            logger.debug("message sent to user: {} at path: {}", email, path + encodedEmail);
 
         } catch (Exception e) {
             logger.warn("failed to send message to user {} at tenant {}", email, workspaceId, e);
         }
+    }
+
+    /**
+     * Create user principle string
+     */
+    private String createUserPrinciple(String tenantId, String email) {
+        return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 
     /**
