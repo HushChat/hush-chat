@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQueryClient } from "@tanstack/react-query";
 
 import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
@@ -74,7 +73,6 @@ const ConversationThreadScreen = ({
   const {
     user: { id: currentUserId, email },
   } = useUserStore();
-  const queryClient = useQueryClient();
   const { publishActivity } = useWebSocket();
 
   const dropZoneRef = useRef<View>(null);
@@ -122,6 +120,7 @@ const ConversationThreadScreen = ({
     invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
+    updateConversationsListCache,
     targetMessageId,
     clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId);
@@ -270,7 +269,7 @@ const ConversationThreadScreen = ({
     (newMessage) => {
       setSelectedMessage(null);
       updateConversationMessagesCache(newMessage);
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      updateConversationsListCache(newMessage);
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
