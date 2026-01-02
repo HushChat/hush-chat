@@ -353,11 +353,6 @@ const ConversationThreadScreen = ({
 
   const renderContent = useCallback(() => {
     const isInitialLoading = conversationAPILoading || isLoadingConversationMessages;
-    const hasMessages = conversationMessages.length > 0;
-
-    if (isInitialLoading && !hasMessages) {
-      return <View className="flex-1" />;
-    }
 
     if (conversationAPIError || conversationMessagesError) {
       return (
@@ -371,7 +366,7 @@ const ConversationThreadScreen = ({
         />
       );
     }
-    if (conversationMessages.length === 0) {
+    if (conversationMessages.length === 0 && !isInitialLoading) {
       return <EmptyChatState />;
     }
     return (
