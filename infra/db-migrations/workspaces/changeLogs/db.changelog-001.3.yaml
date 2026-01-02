@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: add_group_permission_fields_to_conversation
       author: wenura
-      tag: release-11.1
+      tag: release-13.1
       changes:
         - addColumn:
             tableName: conversation
