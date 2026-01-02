@@ -56,13 +56,7 @@ export const useCreateOneToOneConversationMutation = createMutationHook<IConvers
 export const usePinMessageMutation = createMutationHook<
   IMessage,
   { conversationId: number; messageId: number; duration: string | null }
->(
-  pinMessage,
-  (keyParams: { userId: number; conversationId: number }) => () =>
-    [
-      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
-    ] as string[][]
-);
+>(pinMessage);
 
 export const useTogglePinConversationMutation = createMutationHook<void, number>(
   togglePinConversation,
@@ -118,13 +112,7 @@ export const useSendMessageMutation = createMutationHook<
 export const useAddMessageReactionMutation = createMutationHook<
   void,
   { messageId: number; reaction: IMessageReactionRequest }
->(
-  ({ messageId, reaction }) => addMessageReaction(messageId, reaction),
-  (keyParams: { userId: number; conversationId: number }) => () =>
-    [
-      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
-    ] as string[][]
-);
+>(({ messageId, reaction }) => addMessageReaction(messageId, reaction));
 
 export const useBlockUserMutation = createMutationHook<void, number>(
   blockUser,
