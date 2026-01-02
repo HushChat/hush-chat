@@ -16,6 +16,7 @@ public class UserViewDTO {
     private String lastName;
     private String username;
     private String email;
+    private String imageIndexedName;
     private String signedImageUrl;
     private String workspaceName;
     private WorkspaceUserRole workspaceRole;
@@ -27,6 +28,7 @@ public class UserViewDTO {
         this.setLastName(user.getLastName());
         this.setEmail(user.getEmail());
         this.setUsername(user.getUsername());
+        this.setImageIndexedName(user.getImageIndexedName());
         this.setSignedImageUrl(user.getSignedImageUrl());
         this.setStatus(user.getAvailabilityStatus());
     }
