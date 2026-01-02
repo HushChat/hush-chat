@@ -1,6 +1,7 @@
 import { AsyncStorageProvider } from "@/utils/storage/asyncStorageProvider";
 import * as Crypto from "expo-crypto";
 import { DEVICE_ID_KEY } from "@/constants/constants";
+import { logError } from "@/utils/logger";
 
 const storageProvider = new AsyncStorageProvider();
 let cachedDeviceId: string | null = null;
@@ -17,10 +18,15 @@ export const initializeDeviceId = async (): Promise<void> => {
       cachedDeviceId = newDeviceId;
     }
   } catch {
-    cachedDeviceId = Crypto.randomUUID();
+    logError("Error initializing device ID");
+    throw new Error("Failed to initialize device ID");
   }
 };
 
-export const getDeviceId = (): string => {
-  return cachedDeviceId || Crypto.randomUUID();
+export const getDeviceId = async (): Promise<string> => {
+  if (!cachedDeviceId) {
+    await initializeDeviceId();
+  }
+
+  return cachedDeviceId!;
 };
