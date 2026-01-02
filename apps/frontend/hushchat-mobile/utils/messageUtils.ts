@@ -127,6 +127,19 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
   }
 };
 
+export const findFirstUnreadMessageIndex = (
+  messages: readonly IMessage[],
+  lastSeenMessageId: number | null
+): number => {
+  if (!lastSeenMessageId) return -1;
+
+  const lastSeenIndex = messages.findIndex((msg) => msg.id === lastSeenMessageId);
+
+  if (lastSeenIndex === -1 || lastSeenIndex === 0) return -1;
+
+  return lastSeenIndex - 1;
+};
+
 export const downloadFileNative = async (attachment: IMessageAttachment): Promise<void> => {
   if (!PLATFORM.IS_WEB) {
     const fileUrl = attachment.fileUrl;

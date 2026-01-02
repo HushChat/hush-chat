@@ -12,7 +12,12 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { copyToClipboard, groupMessagesByDate, hasGif } from "@/utils/messageUtils";
+import {
+  copyToClipboard,
+  findFirstUnreadMessageIndex,
+  groupMessagesByDate,
+  hasGif,
+} from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -21,6 +26,7 @@ import { createRenderMessage } from "@/components/conversations/conversation-thr
 import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
 import { useRouter } from "expo-router";
 import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
+import { UnreadMessageSection } from "@/components/UnreadMessageSection";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -38,6 +44,7 @@ interface IMessagesListProps {
   targetMessageId?: number | null;
   onTargetMessageScrolled?: () => void;
   webMessageInfoPress?: (messageId: number) => void;
+  lastSeenMessageId?: number | null;
 }
 
 const ConversationMessageList = ({
@@ -55,6 +62,7 @@ const ConversationMessageList = ({
   targetMessageId,
   onTargetMessageScrolled,
   webMessageInfoPress,
+  lastSeenMessageId,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -85,6 +93,14 @@ const ConversationMessageList = ({
   const groupedSections = useMemo(() => {
     return groupMessagesByDate(messages);
   }, [messages]);
+
+  const firstUnreadMessageIndex = useMemo(() => {
+    if (messages.length > 0 && messages[0]?.senderId === currentUserId) {
+      return -1;
+    }
+
+    return findFirstUnreadMessageIndex(messages, lastSeenMessageId ?? null);
+  }, [messages, lastSeenMessageId, currentUserId]);
 
   const handlePinnedMessageClick = useCallback(() => {
     if (onNavigateToMessage && pinnedMessage) {
@@ -202,6 +218,22 @@ const ConversationMessageList = ({
     ]
   );
 
+  const renderMessageWithDivider = useCallback(
+    (info: any) => {
+      const messageIndex = messages.findIndex((msg) => msg.id === info.item.id);
+      const isFirstUnread = messageIndex === firstUnreadMessageIndex;
+      const unreadCount = firstUnreadMessageIndex + 1;
+
+      return (
+        <>
+          {renderMessage(info)}
+          {isFirstUnread && <UnreadMessageSection count={unreadCount} />}
+        </>
+      );
+    },
+    [renderMessage, messages, firstUnreadMessageIndex]
+  );
+
   const renderLoadingFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
     return (
@@ -252,7 +284,7 @@ const ConversationMessageList = ({
           const fallbackKey = `temp-${item.conversationId}-${index}`;
           return (item.id ?? fallbackKey).toString();
         }}
-        renderItem={renderMessage}
+        renderItem={renderMessageWithDivider}
         renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
         showsVerticalScrollIndicator={false}
