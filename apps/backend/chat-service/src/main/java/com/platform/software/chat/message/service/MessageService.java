@@ -117,7 +117,6 @@ public class MessageService {
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
 
-
         if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
             MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
             List<MessageAttachmentDTO> enrichedMessageAttachmentDTOts = messageUtilService.enrichParentMessageAttachmentsWithSignedUrl(List.of(attachmentDTO));
