@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: add_is_self_conversation_to_conversation
       author: wenura
-      tag: release-11.1
+      tag: release-13.1
       changes:
         - addColumn:
             tableName: conversation
