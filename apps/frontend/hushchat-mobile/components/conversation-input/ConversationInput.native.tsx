@@ -27,6 +27,7 @@ const ConversationInput = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
@@ -142,21 +143,25 @@ const ConversationInput = ({
             </View>
 
             <View className="flex-row items-center ml-1">
-              <TouchableOpacity
-                onPress={openEmojiPicker}
-                className="p-1.5 justify-center items-center"
-                disabled={disabled}
-              >
-                <MaterialIcons name="emoji-emotions" size={22} color="#9CA3AF" />
-              </TouchableOpacity>
+              {!hideEmojiGifPickers && (
+                <>
+                  <TouchableOpacity
+                    onPress={openEmojiPicker}
+                    className="p-1.5 justify-center items-center"
+                    disabled={disabled}
+                  >
+                    <MaterialIcons name="emoji-emotions" size={22} color="#9CA3AF" />
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={openGifPicker}
-                className="p-1.5 justify-center items-center"
-                disabled={disabled}
-              >
-                <AntDesign name="gif" size={22} color="#9CA3AF" />
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={openGifPicker}
+                    className="p-1.5 justify-center items-center"
+                    disabled={disabled}
+                  >
+                    <AntDesign name="gif" size={22} color="#9CA3AF" />
+                  </TouchableOpacity>
+                </>
+              )}
 
               {!hideSendButton && (
                 <View className="ml-1">
@@ -188,21 +193,25 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
-      <EmojiPickerComponent
-        visible={showEmojiPicker}
-        onClose={closeEmojiPicker}
-        onEmojiSelect={(emoji) => {
-          input.handleChangeText(input.message + emoji);
-        }}
-      />
+      {!hideEmojiGifPickers && (
+        <>
+          <EmojiPickerComponent
+            visible={showEmojiPicker}
+            onClose={closeEmojiPicker}
+            onEmojiSelect={(emoji) => {
+              input.handleChangeText(input.message + emoji);
+            }}
+          />
 
-      <GifPickerComponent
-        visible={showGifPicker}
-        onClose={closeGifPicker}
-        onGifSelect={(gifUrl) => {
-          onSendMessage?.("", undefined, undefined, gifUrl);
-        }}
-      />
+          <GifPickerComponent
+            visible={showGifPicker}
+            onClose={closeGifPicker}
+            onGifSelect={(gifUrl) => {
+              onSendMessage?.("", undefined, undefined, gifUrl);
+            }}
+          />
+        </>
+      )}
     </View>
   );
 };
