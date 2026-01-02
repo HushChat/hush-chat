@@ -123,6 +123,7 @@ export const WebGroupCreation = ({
               selectedUsers={selectedUsers}
               onChange={setSelectedUsers}
               searchPlaceholder="Add participants…"
+              autoFocusSearch={true}
             />
           </View>
 

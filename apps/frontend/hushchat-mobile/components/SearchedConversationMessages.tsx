@@ -144,6 +144,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
                 value={inputValue}
                 placeholder="Search messages..."
                 onClear={handleSearchQueryClear}
+                autoFocus
               />
 
               <TouchableOpacity
@@ -165,6 +166,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
             value={inputValue}
             placeholder={`Search in ${conversationName || "conversation"}`}
             onClear={handleSearchQueryClear}
+            autoFocus
           />
         )}
       </View>
