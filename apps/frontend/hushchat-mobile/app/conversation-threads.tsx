@@ -353,8 +353,11 @@ const ConversationThreadScreen = ({
   );
 
   const renderContent = useCallback(() => {
-    if (conversationAPILoading || isLoadingConversationMessages) {
-      return <LoadingState />;
+    const isInitialLoading = conversationAPILoading || isLoadingConversationMessages;
+    const hasMessages = conversationMessages.length > 0;
+
+    if (isInitialLoading && !hasMessages) {
+      return <View className="flex-1" />;
     }
 
     if (conversationAPIError || conversationMessagesError) {
