@@ -525,22 +525,20 @@ public class MessageService {
     public void unsendMessage(Long loggedInUserId, Long messageId) {
         Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId)
                 .orElseThrow(() -> new CustomBadRequestException(
-                        "Message not found, not owned by you, or you don’t have permission to delete it"
-                ));
+                        "Message not found, not owned by you, or you don’t have permission to delete it"));
 
-        if (message.getCreatedAt().before(Date.from(Instant.now().minus(24, ChronoUnit.HOURS)))) {
-            throw new CustomBadRequestException("You can only delete a message within 24 hours of sending it");
+        if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
+            throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");
         }
 
         message.setIsUnsend(true);
         messageRepository.save(message);
 
         eventPublisher.publishEvent(new MessageUnsentEvent(
-            WorkspaceContext.getCurrentWorkspace(),
-            message.getConversation().getId(),
-            message.getId(),
-            loggedInUserId
-        ));
+                WorkspaceContext.getCurrentWorkspace(),
+                message.getConversation().getId(),
+                message.getId(),
+                loggedInUserId));
     }
 
     /**
