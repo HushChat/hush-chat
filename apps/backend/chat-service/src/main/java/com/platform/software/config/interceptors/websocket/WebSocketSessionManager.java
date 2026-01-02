@@ -131,17 +131,15 @@ public class WebSocketSessionManager {
      * Updates the user status in the session cache and notifies active peers.
      */
     public void updateStatusAndNotify(String workspaceId, String email, UserStatusEnum status, DeviceType deviceType) {
-        String userId = getSessionKey(workspaceId, email);
-        Optional<WebSocketSessionInfoDAO>  session = getValidSession(userId);
+        List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
 
-        if (session.isPresent()) {
-            WebSocketSessionInfoDAO existingSession = session.get();
-            existingSession.setChatUserStatus(status);
-            existingSession.setUpdatedTime(ZonedDateTime.now());
+        for (WebSocketSessionInfoDAO session : sessions) {
+            session.setChatUserStatus(status);
+            session.setUpdatedTime(ZonedDateTime.now());
 
             UserStatusEnum normalizedStatus = normalizeStatus(status);
 
-            String device = existingSession.getDeviceType().getName();
+            String device = session.getDeviceType().getName();
             if (deviceType != null) {
                 device = deviceType.getName();
             }
