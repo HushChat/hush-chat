@@ -76,6 +76,7 @@ interface MessageItemProps {
   targetMessageId?: number | null;
   webMessageInfoPress?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
+  onEditMessage?: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -104,6 +105,7 @@ export const ConversationMessageItem = ({
   targetMessageId,
   webMessageInfoPress,
   onMarkMessageAsUnread,
+  onEditMessage,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -134,9 +136,12 @@ export const ConversationMessageItem = ({
 
   const messageContent = message.messageText;
   const isForwardedMessage = message.isForwarded;
+  const isMessageEdited = message.isEdited;
   const hasText = !!messageContent;
   const isGroupChat = conversationAPIResponse?.isGroup;
   const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
+  const isAttachmentOnly = message.messageType === MessageTypeEnum.ATTACHMENT;
+  const canEdit = isCurrentUser && !message.isUnsend && hasText && !isAttachmentOnly;
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
@@ -238,6 +243,7 @@ export const ConversationMessageItem = ({
         action: () => onStartSelectionWith(Number(message.id)),
       },
     ];
+
     if (isCurrentUser && !message.isUnsend) {
       options.push({
         id: 4,
@@ -246,33 +252,45 @@ export const ConversationMessageItem = ({
         action: () => onUnsendMessage(message),
       });
 
-      if (isCurrentUser && !message.isUnsend) {
+      options.push({
+        id: 5,
+        name: "Message Info",
+        iconName: "information-circle-outline",
+        action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+      });
+
+      if (canEdit) {
         options.push({
-          id: 4,
-          name: "Message Info",
-          iconName: "information-circle-outline",
-          action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+          id: 6,
+          name: "Edit Message",
+          iconName: "pencil" as keyof typeof Ionicons.glyphMap,
+          action: () => onEditMessage?.(message),
         });
       }
     }
 
     if (!isCurrentUser && !message.isUnsend) {
       options.push({
-        id: 5,
+        id: 7,
         name: "Mark as Unread",
         iconName: "mail-unread-outline" as keyof typeof Ionicons.glyphMap,
         action: () => onMarkMessageAsUnread(message),
       });
     }
+
     return options;
   }, [
     message,
     isThisMessagePinned,
     isCurrentUser,
+    canEdit,
     onMessagePin,
     onStartSelectionWith,
     onUnsendMessage,
+    onEditMessage,
     isSystemEvent,
+    webMessageInfoPress,
+    onMarkMessageAsUnread,
   ]);
 
   const handleLongPress = useCallback(
@@ -504,6 +522,7 @@ export const ConversationMessageItem = ({
                   attachments={attachments}
                   onBubblePress={handleBubblePress}
                   onMentionClick={handleMentionClick}
+                  isMessageEdited={isMessageEdited}
                 />
               </MessageHighlightWrapper>
             </View>
