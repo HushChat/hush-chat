@@ -69,6 +69,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isEdited?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -334,6 +335,10 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  editingMessage?: IMessage | null;
+  onCancelEdit?: () => void;
+  onEditMessage?: (messageId: number, newText: string) => void;
+  hideEmojiGifPickers?: boolean;
 }
 
 export type TNavigationDirection = "prev" | "next";

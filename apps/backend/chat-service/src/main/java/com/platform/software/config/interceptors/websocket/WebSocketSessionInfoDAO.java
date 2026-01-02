@@ -17,6 +17,8 @@ import java.util.Set;
 public class WebSocketSessionInfoDAO {
     private String stompSessionId;
 
+    private String wsSessionId; // underlying websocket session id
+
     @Builder.Default
     private Map<String, Object> sessionAttributes = new HashMap<>();
 

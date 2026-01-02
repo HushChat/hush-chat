@@ -43,6 +43,7 @@ import DragAndDropOverlay from "@/components/conversations/conversation-thread/m
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useMessageEdit } from "@/hooks/useMessageEdit";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -179,6 +180,20 @@ const ConversationThreadScreen = ({
 
   const isCurrentUserAdmin = conversationAPIResponse?.isCurrentUserAdmin;
 
+  const { editingMessage, isEditingMessage, handleStartEdit, handleCancelEdit, handleEditMessage } =
+    useMessageEdit({
+      userId: Number(currentUserId),
+      conversationId: currentConversationId,
+    });
+
+  const handleStartEditWithClearReply = useCallback(
+    (message: IMessage) => {
+      handleStartEdit(message);
+      setSelectedMessage(null);
+    },
+    [handleStartEdit]
+  );
+
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
       if (loadMessageWindow) {
@@ -285,6 +300,7 @@ const ConversationThreadScreen = ({
 
   useEffect(() => {
     setSelectedMessage(null);
+    handleCancelEdit();
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
@@ -295,6 +311,7 @@ const ConversationThreadScreen = ({
     setSelectedMessageIds,
     handleCloseImagePreview,
     setIsMarkdownEnabled,
+    handleCancelEdit,
   ]);
 
   const handleBackPress = useCallback(() => {
@@ -393,6 +410,7 @@ const ConversationThreadScreen = ({
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
+        onEditMessage={handleStartEditWithClearReply}
       />
     );
   }, [
@@ -414,6 +432,7 @@ const ConversationThreadScreen = ({
     handleNavigateToMessage,
     targetMessageId,
     handleTargetMessageScrolled,
+    handleStartEditWithClearReply,
   ]);
 
   const getDisabledMessageReason = useCallback(() => {
@@ -458,10 +477,13 @@ const ConversationThreadScreen = ({
         onOpenImagePickerNative={handleOpenImagePickerNative}
         onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
         disabled={isLoadingConversationMessages}
-        isSending={isSendingMessage || isUploadingImages}
+        isSending={isSendingMessage || isUploadingImages || isEditingMessage}
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        editingMessage={editingMessage}
+        onCancelEdit={handleCancelEdit}
+        onEditMessage={handleEditMessage}
       />
     );
   }, [
@@ -478,9 +500,13 @@ const ConversationThreadScreen = ({
     isLoadingConversationMessages,
     isSendingMessage,
     isUploadingImages,
+    isEditingMessage,
     selectedMessage,
     handleCancelReply,
     isGroupChat,
+    editingMessage,
+    handleCancelEdit,
+    handleEditMessage,
   ]);
 
   return (
