@@ -14,7 +14,7 @@ export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewCon
   if (!lastMessage) return "No Messages Yet";
   const isGif = hasGif(lastMessage);
 
-  if (lastMessage.hasAttachment && !isGif) {
+  if (!lastMessage.isUnsend && lastMessage.hasAttachment && !isGif) {
     return (
       <View className="flex-row items-center gap-1">
         <View style={styles.attachmentIcon}>
