@@ -12,8 +12,6 @@ import LoadingState from "@/components/LoadingState";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
 import { Ionicons } from "@expo/vector-icons";
-import AvailabilitySection from "@/components/profile/components/AvailabilitySection";
-import { chatUserStatus } from "@/types/chat/types";
 
 const SCROLL_CONTENT_PADDING_BOTTOM = 40;
 
@@ -129,8 +127,6 @@ export const ProfileForm = () => {
           />
 
           <ProfileField label="Email" value={user.email} />
-
-          <AvailabilitySection status={user.status ?? chatUserStatus.OFFLINE} />
 
           <PasswordSection
             formValues={formValues}

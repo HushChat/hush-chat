@@ -5,9 +5,7 @@ import com.platform.software.chat.user.activitystatus.UserActivityStatusWSServic
 import com.platform.software.chat.user.activitystatus.dto.UserActivityWSSubscriptionData;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.entity.ChatUserStatus;
-import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.constants.GeneralConstants;
-import com.platform.software.config.workspace.WorkspaceContext;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class WebSocketSessionManager {
     private final Logger logger = LoggerFactory.getLogger(WebSocketSessionManager.class);
-    private final UserService userService;
 
     // Session key format: workspaceId:email -> ex: localhost:test@gmail.com
     @Getter
@@ -33,27 +30,21 @@ public class WebSocketSessionManager {
     private final SimpMessagingTemplate template;
     private final UserActivityStatusWSService userActivityStatusWSService;
 
-    public WebSocketSessionManager(
-            SimpMessagingTemplate template,
-            UserActivityStatusWSService userActivityStatusWSService,
-            UserService userService
-    ) {
+    public WebSocketSessionManager(SimpMessagingTemplate template, UserActivityStatusWSService userActivityStatusWSService) {
         this.template = template;
         this.userActivityStatusWSService = userActivityStatusWSService;
-        this.userService = userService;
     }
 
     /**
      * Register session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor, String workspaceId, String email, String deviceType, UserStatusEnum userStatus) {
+    public void registerSessionFromStomp(String userId, StompHeaderAccessor accessor, String workspaceId, String email, String deviceType) {
         DeviceType device = DeviceType.fromString(deviceType);
 
         WebSocketSessionInfoDAO webSocketSessionInfoDAO = WebSocketSessionInfoDAO.builder()
                 .stompSessionId(accessor.getSessionId())
                 .sessionAttributes(new HashMap<>(accessor.getSessionAttributes()))
                 .deviceType(device)
-                .chatUserStatus(userStatus)
                 .connectedTime(ZonedDateTime.now())
                 .createdTime(ZonedDateTime.now())
                 .disconnectedTime(null)
@@ -61,33 +52,22 @@ public class WebSocketSessionManager {
 
         webSocketSessionInfos.put(userId, webSocketSessionInfoDAO);
 
-        UserStatusEnum normalizedStatus = normalizeStatus(userStatus);
-        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, deviceType);
-
+        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, deviceType);
         logger.info("registered stomp session for user: {}", userId);
     }
 
     /**
      * re connecting session using STOMP header accessor (new method for ChannelInterceptor)
      */
-    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email, String deviceType, UserStatusEnum userStatus) {
+    public void reconnectingSessionFromStomp(String userId, String workspaceId, String email, String deviceType) {
         Optional<WebSocketSessionInfoDAO> session = getValidSession(userId);
         if (session.isPresent()) {
             WebSocketSessionInfoDAO existingSession = session.get();
 
-            String device = existingSession.getDeviceType().getName();
-            if (deviceType != null) {
-                device = deviceType;
-            }
-
-            existingSession.setDeviceType(DeviceType.fromString(device));
             existingSession.setDisconnectedTime(null);
-            existingSession.setChatUserStatus(userStatus);
             webSocketSessionInfos.put(userId, existingSession);
 
-            UserStatusEnum normalizedStatus = normalizeStatus(userStatus);
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, device);
-
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.ONLINE, deviceType);
             logger.debug("session re connected for user: {}", userId);
         }
     }
@@ -98,30 +78,15 @@ public class WebSocketSessionManager {
         if (session.isPresent()) {
             WebSocketSessionInfoDAO existingSession = session.get();
 
-            WorkspaceContext.setCurrentWorkspace(subscriptionData.getWorkspaceId());
-            String userStatusString = userService.getUserAvailabilityStatus(subscriptionData.getEmail());
-            UserStatusEnum userStatusEnum = UserStatusEnum.fromString(userStatusString);
-
             if (subscriptionData.getVisibleConversations() != null) {
                 existingSession.setVisibleConversations(subscriptionData.getVisibleConversations());
             }
 
-            DeviceType device = existingSession.getDeviceType();
-            if (subscriptionData.getDeviceType() != null) {
-                device = DeviceType.fromString(subscriptionData.getDeviceType());
-            }
+            DeviceType device = DeviceType.fromString(subscriptionData.getDeviceType());
 
             existingSession.setOpenedConversation(subscriptionData.getOpenedConversation());
             existingSession.setDisconnectedTime(null);
             existingSession.setDeviceType(device);
-
-            if (userStatusEnum.equals(UserStatusEnum.BUSY)) {
-                existingSession.setChatUserStatus(userStatusEnum);
-            } else {
-                existingSession.setChatUserStatus(UserStatusEnum.ONLINE);
-            }
-
-
             webSocketSessionInfos.put(userId, existingSession);
         }
     }
@@ -257,18 +222,9 @@ public class WebSocketSessionManager {
     }
 
     public ChatUserStatus getUserChatStatus(String workspaceId, String email) {
-        String webSocketStoreKey = getSessionKey(workspaceId, email);
-        WebSocketSessionInfoDAO sessionInfo = webSocketSessionInfos.get(webSocketStoreKey);
-
-        if (sessionInfo == null) {
-            return ChatUserStatus.OFFLINE;
-        }
-
-        if (UserStatusEnum.BUSY.equals(sessionInfo.getChatUserStatus())) {
-            return ChatUserStatus.BUSY;
-        }
-
-        return ChatUserStatus.ONLINE;
+        return isUserConnected(workspaceId, email)
+            ? ChatUserStatus.ONLINE
+            : ChatUserStatus.OFFLINE;
     }
 
     /**
@@ -289,13 +245,5 @@ public class WebSocketSessionManager {
             return sessionInfo.getDeviceType();
         }
         return null;
-    }
-
-    /**
-     * Normalizes the user status: Only BUSY and ONLINE are treated as active statuses.
-     * If the status is not BUSY, it defaults to ONLINE, since this use in register and reconnecting session
-     */
-    private UserStatusEnum normalizeStatus(UserStatusEnum status) {
-        return UserStatusEnum.BUSY.equals(status) ? UserStatusEnum.BUSY : UserStatusEnum.ONLINE;
     }
 }

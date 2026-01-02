@@ -2,7 +2,7 @@ import * as yup from "yup";
 import type { Asserts } from "yup";
 import { passwordRules } from "@/utils/passwordRules";
 import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
-import { chatUserStatus, DeviceType } from "@/types/chat/types";
+import { DeviceType } from "@/types/chat/types";
 
 export const UserSchema = yup.object({
   id: yup.number().nullable().notRequired(),
@@ -18,11 +18,6 @@ export const UserSchema = yup.object({
     .nullable()
     .notRequired(),
   deviceType: yup.mixed<DeviceType>().oneOf(Object.values(DeviceType)).nullable().notRequired(),
-  status: yup
-    .mixed<chatUserStatus>()
-    .oneOf(Object.values(chatUserStatus))
-    .default(chatUserStatus.OFFLINE)
-    .required(),
 });
 
 export const RegisterUser = yup.object({

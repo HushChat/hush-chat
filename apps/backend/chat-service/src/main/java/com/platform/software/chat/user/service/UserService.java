@@ -2,11 +2,9 @@ package com.platform.software.chat.user.service;
 
 import java.util.List;
 
-import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.common.dto.LoginDTO;
-import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,9 +54,5 @@ public interface UserService {
     Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable);
 
     UserProfileDTO getUserProfile(Long id);
-
-    UserStatusEnum updateUserAvailability(UserDetails authenticatedUser, UserStatusEnum status);
-
-    String getUserAvailabilityStatus(String email);
 }
 

@@ -59,7 +59,7 @@ public class UserActivityStatusWSService {
                 template.convertAndSendToUser(
                     workspaceIdAndEmail,
                     WebSocketTopicConstants.ONLINE_STATUS,
-                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), email, status, device)
+                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status, device)
                 );
             }
         }

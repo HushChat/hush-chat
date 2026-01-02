@@ -63,7 +63,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
-    user: { id: loggedInUserId, email },
+    user: { id: loggedInUserId },
   } = useUserStore();
 
   const conversationsQueryKey = useMemo(
@@ -427,10 +427,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     }
 
     if (conversation == null) return;
-
-    if (userStatus.email === email) {
-      return;
-    }
 
     const mergedConversation = {
       ...conversation,

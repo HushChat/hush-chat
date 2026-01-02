@@ -34,8 +34,7 @@
     "lastName": "Fernando",
     "email": "john@chat.com",
     "active": true,
-    "deleted": false,
-    "availabilityStatus": "BUSY"
+    "deleted": false
   },
   {
     "id": 5,

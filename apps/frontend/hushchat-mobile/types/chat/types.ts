@@ -291,7 +291,6 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
-  AVAILABLE = "AVAILABLE",
 }
 
 export enum DeviceType {
@@ -302,7 +301,6 @@ export enum DeviceType {
 
 export interface IUserStatus {
   conversationId: number;
-  email: string;
   status: chatUserStatus;
   deviceType?: DeviceType;
 }
