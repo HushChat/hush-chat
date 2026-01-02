@@ -141,6 +141,7 @@ export const ConversationMessageItem = ({
 
   const messageContent = message.messageText;
   const isForwardedMessage = message.isForwarded;
+  const isMessageEdited = message.isEdited;
   const hasText = !!messageContent;
   const isGroupChat = conversationAPIResponse?.isGroup;
   const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
@@ -526,6 +527,7 @@ export const ConversationMessageItem = ({
                   attachments={attachments}
                   onBubblePress={handleBubblePress}
                   onMentionClick={handleMentionClick}
+                  isMessageEdited={isMessageEdited}
                 />
               </MessageHighlightWrapper>
             </View>
