@@ -81,6 +81,7 @@ export default function ConversationScreen({ initialConversationId }: IConversat
         workspaceId: workspace as string,
         email,
         visibleConversations: conversationIds,
+        openedConversation: selectedConversation?.id,
       } as UserActivityWSSubscriptionData);
     };
 

@@ -14,6 +14,7 @@ import { useConversationInput } from "@/hooks/conversation-input/useConversation
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { FileInput } from "@/components/conversation-input/FileInput";
+import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
@@ -36,6 +37,7 @@ const ConversationInput = ({
   onEditMessage,
   hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
+  const { publishTyping } = useWebSocketConnection();
   const isControlledMode = controlledValue !== undefined;
 
   const {
@@ -56,6 +58,12 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    onTypingStatusChange: (isTyping, convId) => {
+      publishTyping({
+        conversationId: convId,
+        typing: isTyping,
+      });
+    },
     editingMessage,
     onCancelEdit,
     onEditMessage,

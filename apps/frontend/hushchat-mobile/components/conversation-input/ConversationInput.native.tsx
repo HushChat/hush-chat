@@ -9,6 +9,8 @@ import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
+import { SendButton } from "@/components/conversation-input/SendButton";
+import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
@@ -35,6 +37,7 @@ const ConversationInput = ({
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
   const isControlledMode = controlledValue !== undefined;
+  const { publishTyping } = useWebSocketConnection();
 
   const {
     showEmojiPicker,
@@ -54,6 +57,12 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    onTypingStatusChange: (isTyping, convId) => {
+      publishTyping({
+        conversationId: convId,
+        typing: isTyping,
+      });
+    },
     editingMessage,
     onCancelEdit,
     onEditMessage,

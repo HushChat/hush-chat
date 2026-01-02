@@ -17,9 +17,8 @@ export interface WebSocketMessage {
 
 export interface TypingIndicator {
   conversationId: number;
-  userId: string;
-  isTyping: boolean;
-  timestamp: string;
+  chatUserName: string;
+  typing: boolean;
 }
 
 export interface UserPresence {
@@ -56,6 +55,15 @@ export interface UserActivityWSSubscriptionData {
   email: string;
   visibleConversations: number[]; // list of conversations visible - mobile or web
   openedConversation: number | null; // indicates user's selected conversation, could be null
+  deviceType?: DeviceType;
+  deviceId?: string;
+}
+
+export interface TypingIndicatorWSData {
+  userId?: number;
+  workspaceId?: string;
+  conversationId: number;
+  typing: boolean; // true = started typing, false = stopped
   deviceType?: DeviceType;
   deviceId?: string;
 }

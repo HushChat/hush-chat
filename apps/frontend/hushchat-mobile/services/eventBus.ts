@@ -97,6 +97,10 @@ export const emitMessageReaction = (data: MessageReactionPayload) => {
   eventBus.emit(CONVERSATION_EVENTS.MESSAGE_REACTION, data);
 };
 
+export const emitUserTyping = (typingIndicator: TypingIndicator) => {
+  eventBus.emit(CONVERSATION_EVENTS.TYPING, typingIndicator);
+};
+
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {
 //   const timestamp = new Date().toISOString();
 //
