@@ -30,18 +30,16 @@ import java.util.List;
 public class MessagePublisherService {
 
     private final ConversationUtilService conversationUtilService;
-    private final ConversationService conversationService;
     private final WebSocketSessionManager webSocketSessionManager;
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessagePublisherService(
-            ConversationUtilService conversationUtilService, ConversationService conversationService,
+            ConversationUtilService conversationUtilService,
             WebSocketSessionManager webSocketSessionManager,
             MessageAttachmentRepository messageAttachmentRepository,
             CloudPhotoHandlingService cloudPhotoHandlingService) {
         this.conversationUtilService = conversationUtilService;
-        this.conversationService = conversationService;
         this.webSocketSessionManager = webSocketSessionManager;
         this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
