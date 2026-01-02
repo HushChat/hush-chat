@@ -19,6 +19,9 @@ export interface IConversation {
   unreadCount: number;
   chatUserStatus: chatUserStatus;
   onlyAdminsCanSendMessages: boolean;
+  onlyAdminsCanAddParticipants: boolean;
+  onlyAdminsCanEditGroupInfo: boolean;
+  isCurrentUserAdmin?: boolean;
   notifyOnMentionsOnly: boolean;
   deviceType?: DeviceType;
 }
@@ -397,4 +400,10 @@ export interface GifPickerProps {
   visible: boolean;
   onClose: () => void;
   onGifSelect: (gifUrl: string) => void;
+}
+
+export enum GroupPermissionType {
+  ONLY_ADMINS_CAN_SEND_MESSAGES = "onlyAdminsCanSendMessages",
+  ONLY_ADMINS_CAN_ADD_PARTICIPANTS = "onlyAdminsCanAddParticipants",
+  ONLY_ADMINS_CAN_EDIT_GROUP_INFO = "onlyAdminsCanEditGroupInfo",
 }

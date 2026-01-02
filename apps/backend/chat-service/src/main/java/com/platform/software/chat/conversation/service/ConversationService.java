@@ -53,7 +53,6 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -63,7 +62,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
 
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -95,6 +93,7 @@ public class ConversationService {
     private final MessageUtilService messageUtilService;
     private final ApplicationEventPublisher eventPublisher;
     private final ConversationInviteLinkRepository conversationInviteLinkRepository;
+    private final ConversationPermissionGuard conversationPermissionGuard;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -834,9 +833,11 @@ public class ConversationService {
 
         ValidationUtils.validate(joinRequest);
 
-        ConversationParticipant adminParticipant =
-                conversationUtilService.getLoggedInUserIfAdminAndValidConversation(initiatorUserId, conversationId);
-        Conversation conversation = adminParticipant.getConversation();
+        ConversationParticipant initiatorParticipant = conversationUtilService
+                .getConversationParticipantOrThrow(conversationId, initiatorUserId);
+        Conversation conversation = initiatorParticipant.getConversation();
+
+        conversationPermissionGuard.validateAddParticipantsAccess(conversation, initiatorParticipant);
 
         List<ConversationParticipant> existingParticipants =
                 findDuplicateParticipants(conversationId, joinRequest);
@@ -969,12 +970,15 @@ public class ConversationService {
      * @param groupConversationDTO the DTO containing new group information
      * @return a ConversationDTO with updated group information
      */
-    public ConversationDTO updateGroupInfo(Long adminUserId, Long conversationId, GroupConversationUpsertDTO groupConversationDTO) {
+    public ConversationDTO updateGroupInfo(Long userId, Long conversationId, GroupConversationUpsertDTO groupConversationDTO) {
         if (StringUtils.isEmpty(groupConversationDTO.getName())) {
             throw new CustomBadRequestException("Group name cannot be empty!");
         }
-        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
-        Conversation conversation = adminParticipant.getConversation();
+        ConversationParticipant userParticipant = conversationUtilService
+            .getConversationParticipantOrThrow(conversationId, userId);
+        Conversation conversation = userParticipant.getConversation();
+
+        conversationPermissionGuard.validateEditGroupInfoAccess(conversation, userParticipant);
 
         String newName = groupConversationDTO.getName().trim();
         boolean isGroupNameChanged = !newName.equals(conversation.getName());
@@ -983,26 +987,22 @@ public class ConversationService {
         conversation.setName(newName);
         conversation.setDescription(groupConversationDTO.getDescription());
 
-        if (groupConversationDTO.getOnlyAdminsCanSendMessages() != null) {
-            conversation.setOnlyAdminsCanSendMessages(groupConversationDTO.getOnlyAdminsCanSendMessages());
-        }
-
         try {
             conversationRepository.save(conversation);
-            setGroupUpdateChangeEvents(adminUserId, isGroupNameChanged, conversation, isGroupDescriptionChanged);
+            setGroupUpdateChangeEvents(userId, isGroupNameChanged, conversation, isGroupDescriptionChanged);
 
             cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
 
             eventPublisher.publishEvent(new ConversationUpdateEvent(
                     WorkspaceContext.getCurrentWorkspace(),
-                    adminUserId,
+                    userId,
                     conversation
             ));
 
             return buildConversationDTO(conversation);
         } catch (Exception e) {
             logger.error("failed to update group info for conversationId: {} by user id: {}",
-                    conversationId, adminUserId, e);
+                    conversationId, userId, e);
             throw new CustomInternalServerErrorException("Failed to update group name!");
         }
     }
@@ -1024,34 +1024,61 @@ public class ConversationService {
     }
 
     /**
-     * Updates the onlyAdminsCanSendMessages permission setting for a group conversation.
-     * This setting restricts message sending to admin participants only when enabled.
-     * Only admin participants are authorized to modify this setting.
+     * Updates group permissions for message sending, adding participants, and editing group info.
+     * Only admin participants are authorized to modify these settings.
+     * 
      * @param adminUserId id of requesting user (must be admin)
      * @param conversationId id of conversation
-     * @param conversationPermissionUpdateDTO the DTO containing the new permission setting
+     * @param permissionsUpdateDTO the DTO containing the new permission settings
      * @return ConversationDTO the updated conversation data
      */
     @Transactional
-    public ConversationDTO updateOnlyAdminsCanSendMessages(Long adminUserId, Long conversationId, ConversationPermissionsUpdateDTO conversationPermissionUpdateDTO) {
-        ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
+    public ConversationDTO updateGroupPermissions(
+            Long adminUserId, 
+            Long conversationId, 
+            ConversationPermissionsUpdateDTO permissionsUpdateDTO) {
+        
+        ConversationParticipant adminParticipant = conversationUtilService
+                .getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
         Conversation conversation = adminParticipant.getConversation();
 
-        if (conversation.getOnlyAdminsCanSendMessages() != null && 
-            conversation.getOnlyAdminsCanSendMessages().equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages())) {
+        boolean isUpdated = false;
+
+        if (permissionsUpdateDTO.getOnlyAdminsCanSendMessages() != null && 
+            !permissionsUpdateDTO.getOnlyAdminsCanSendMessages()
+                .equals(conversation.getOnlyAdminsCanSendMessages())) {
+            conversation.setOnlyAdminsCanSendMessages(Boolean.TRUE.equals(permissionsUpdateDTO.getOnlyAdminsCanSendMessages()));
+            isUpdated = true;
+        }
+
+        if (permissionsUpdateDTO.getOnlyAdminsCanAddParticipants() != null && 
+            !permissionsUpdateDTO.getOnlyAdminsCanAddParticipants()
+                .equals(conversation.getOnlyAdminsCanAddParticipants())) {
+            conversation.setOnlyAdminsCanAddParticipants(Boolean.TRUE.equals(permissionsUpdateDTO.getOnlyAdminsCanAddParticipants()));
+            isUpdated = true;
+        }
+
+        if (permissionsUpdateDTO.getOnlyAdminsCanEditGroupInfo() != null && 
+            !permissionsUpdateDTO.getOnlyAdminsCanEditGroupInfo()
+                .equals(conversation.getOnlyAdminsCanEditGroupInfo())) {
+            conversation.setOnlyAdminsCanEditGroupInfo(Boolean.TRUE.equals(permissionsUpdateDTO.getOnlyAdminsCanEditGroupInfo()));
+            isUpdated = true;
+        }
+
+        if (!isUpdated) {
             return buildConversationDTO(conversation);
         }
 
-        conversation.setOnlyAdminsCanSendMessages(Boolean.TRUE.equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages()));
-
         try {
             conversationRepository.save(conversation);
-            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId()));
+            cacheService.evictByLastPartsForCurrentWorkspace(
+                List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversation.getId())
+            );
             return buildConversationDTO(conversation);
         } catch (Exception e) {
-            logger.error("failed to update onlyAdminsCanSendMessages for conversationId: {} by user id: {}",
+            logger.error("failed to update group permissions for conversationId: {} by user id: {}",
                     conversationId, adminUserId, e);
-            throw new CustomInternalServerErrorException("Failed to update conversation permission setting");
+            throw new CustomInternalServerErrorException("Failed to update conversation permission settings");
         }
     }
 

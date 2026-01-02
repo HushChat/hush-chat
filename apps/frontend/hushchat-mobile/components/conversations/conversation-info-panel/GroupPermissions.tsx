@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { AppText } from "@/components/AppText";
 import ActionToggleItem from "@/components/conversations/conversation-info-panel/common/ActionToggleItem";
 import { MotionView } from "@/motion/MotionView";
-import { IConversation } from "@/types/chat/types";
+import { GroupPermissionType, IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useUpdateMessageRestrictionsMutation } from "@/query/patch/queries";
 
@@ -25,27 +25,39 @@ export default function GroupPermissions({
   const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState<boolean>(
     conversation.onlyAdminsCanSendMessages
   );
-  const [membersCanEditGroupInfo, setMembersCanEditGroupInfo] = useState(true);
-  const [membersCanAddParticipants, setMembersCanAddParticipants] = useState(true);
+  const [onlyAdminsCanAddParticipants, setOnlyAdminsCanAddParticipants] = useState<boolean>(
+    conversation.onlyAdminsCanAddParticipants
+  );
+  const [onlyAdminsCanEditGroupInfo, setOnlyAdminsCanEditGroupInfo] = useState<boolean>(
+    conversation.onlyAdminsCanEditGroupInfo
+  );
 
-  const updateOnlyAdminCanSendMessage = useUpdateMessageRestrictionsMutation(
+  const updatePermissions = useUpdateMessageRestrictionsMutation(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
     () => {}
   );
 
-  const handleToggleOnlyAdmins = (newValue: boolean) => {
+  const handleTogglePermission = (permissionType: GroupPermissionType, newValue: boolean) => {
     if (!conversation?.id) return;
 
-    setOnlyAdminsCanSendMessages(newValue);
+    const setters = {
+      onlyAdminsCanSendMessages: setOnlyAdminsCanSendMessages,
+      onlyAdminsCanAddParticipants: setOnlyAdminsCanAddParticipants,
+      onlyAdminsCanEditGroupInfo: setOnlyAdminsCanEditGroupInfo,
+    };
 
-    updateOnlyAdminCanSendMessage.mutate(
+    setters[permissionType](newValue);
+
+    updatePermissions.mutate(
       {
-        conversationId: Number(conversation?.id),
-        onlyAdminsCanSendMessages: newValue,
+        conversationId: Number(conversation.id),
+        permissions: {
+          [permissionType]: newValue,
+        },
       },
       {
         onError: () => {
-          setOnlyAdminsCanSendMessages(!newValue);
+          setters[permissionType](!newValue);
         },
       }
     );
@@ -79,7 +91,9 @@ export default function GroupPermissions({
             title="Only admins can send messages"
             description="When enabled, only group admins will be able to send messages. Members can only read."
             value={onlyAdminsCanSendMessages}
-            onValueChange={handleToggleOnlyAdmins}
+            onValueChange={(value) =>
+              handleTogglePermission(GroupPermissionType.ONLY_ADMINS_CAN_SEND_MESSAGES, value)
+            }
           />
         </View>
 
@@ -89,17 +103,21 @@ export default function GroupPermissions({
           </AppText>
           <ActionToggleItem
             icon="create-outline"
-            title="Members can edit group info"
-            description="Allow all members to change group name, description, and photo."
-            value={membersCanEditGroupInfo}
-            onValueChange={setMembersCanEditGroupInfo}
+            title="Only admins can edit group info"
+            description="When enabled, only group admins will be able to change the group name, description, and photo."
+            value={onlyAdminsCanEditGroupInfo}
+            onValueChange={(value) =>
+              handleTogglePermission(GroupPermissionType.ONLY_ADMINS_CAN_EDIT_GROUP_INFO, value)
+            }
           />
           <ActionToggleItem
             icon="person-add-outline"
-            title="Members can add participants"
-            description="Allow all members to add new participants to the group."
-            value={membersCanAddParticipants}
-            onValueChange={setMembersCanAddParticipants}
+            title="Only admins can add participants"
+            description="When enabled, only group admins will be able to add new members to the group."
+            value={onlyAdminsCanAddParticipants}
+            onValueChange={(value) =>
+              handleTogglePermission(GroupPermissionType.ONLY_ADMINS_CAN_ADD_PARTICIPANTS, value)
+            }
           />
         </View>
       </ScrollView>
