@@ -16,7 +16,7 @@ import { useToggleMuteConversationMutation } from "@/query/post/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import ActionList from "@/components/conversations/conversation-info-panel/common/ActionList";
-import { IActionConfig } from "@/types/chat/types";
+import { IActionConfig, IConversation } from "@/types/chat/types";
 import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
 
 type TChatInfoActionProps = {
@@ -25,8 +25,9 @@ type TChatInfoActionProps = {
   isPinned: boolean;
   isMuted: boolean;
   onBack: () => void;
-  setSelectedConversation?: (conversation: null) => void;
+  setSelectedConversation?: (conversation: IConversation | null) => void;
   onShowMediaAttachments?: () => void;
+  onSelectCommonGroups?: () => void;
 };
 
 export default function ChatInfoCommonAction({
@@ -37,6 +38,7 @@ export default function ChatInfoCommonAction({
   onBack,
   setSelectedConversation = () => {},
   onShowMediaAttachments,
+  onSelectCommonGroups,
 }: TChatInfoActionProps) {
   const { openModal, closeModal } = useModalContext();
   const { selectedConversationType } = useConversationStore();
@@ -145,6 +147,15 @@ export default function ChatInfoCommonAction({
         icon: isPinned ? "pin-outline" : "pin",
         onPress: togglePin,
       },
+      ...(onSelectCommonGroups
+        ? [
+            {
+              label: "Common groups",
+              icon: "people-circle-outline" as const,
+              onPress: onSelectCommonGroups,
+            },
+          ]
+        : []),
       {
         label: isFavorite ? "Remove from Favorites" : "Add to Favorites",
         icon: isFavorite ? "heart" : "heart-outline",
