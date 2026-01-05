@@ -34,23 +34,29 @@ const ChatHeader = ({
   const isMobileLayout = useIsMobileLayout();
   const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
 
-  const [chatUserStatus, setChatUserStatus] = useState<chatUserStatus>();
-  const [deviceType, setDeviceType] = useState<DeviceType>();
+  const [userPresence, setUserPresence] = useState<{
+    status: chatUserStatus;
+    deviceType: DeviceType;
+  } | null>(null);
+
+  const currentStatus = userPresence?.status ?? conversationInfo.chatUserStatus;
+  const currentDevice = userPresence?.deviceType ?? conversationInfo.deviceType;
 
   const handleProfileNavigate = useCallback(() => {
     handleConversationNavigation(onShowProfile, conversationInfo.conversationId, isMobileLayout);
   }, [onShowProfile, conversationInfo.conversationId, isMobileLayout]);
 
   useEffect(() => {
-    setChatUserStatus(conversationInfo.chatUserStatus);
-    setDeviceType(conversationInfo.deviceType);
-  }, [conversationInfo.chatUserStatus, conversationInfo.deviceType]);
-
-  useEffect(() => {
     const handleStatusUpdate = (status: IUserStatus) => {
-      if (status.conversationId === conversationInfo.conversationId) {
-        setChatUserStatus(status.status);
-        setDeviceType(status.deviceType);
+      if (
+        status.conversationId === conversationInfo.conversationId &&
+        status.status &&
+        status.deviceType
+      ) {
+        setUserPresence({
+          status: status.status,
+          deviceType: status.deviceType,
+        });
       }
     };
 
@@ -85,8 +91,8 @@ const ChatHeader = ({
               size={AvatarSize.small}
               imageUrl={conversationInfo.signedImageUrl}
               showOnlineStatus={true}
-              userStatus={chatUserStatus}
-              deviceType={deviceType}
+              userStatus={currentStatus}
+              deviceType={currentDevice}
             />
             <AppText
               className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark flex-1"
