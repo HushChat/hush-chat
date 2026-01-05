@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.MessageUnsentWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
@@ -74,10 +75,14 @@ public class MessagePublisherService {
                 .map(attachment -> {
                     MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO(attachment);
 
-                    String fileViewSignedURL = cloudPhotoHandlingService
-                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                        if (attachment.getType() == AttachmentTypeEnum.GIF) {
+                                messageAttachmentDTO.setFileUrl(attachment.getIndexedFileName());
+                        } else {
+                                String fileViewSignedURL = cloudPhotoHandlingService
+                                                .getPhotoViewSignedURL(attachment.getIndexedFileName());
 
-                    messageAttachmentDTO.setFileUrl(fileViewSignedURL);
+                                messageAttachmentDTO.setFileUrl(fileViewSignedURL);
+                        }
 
                     return messageAttachmentDTO;
                 })
