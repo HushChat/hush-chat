@@ -484,7 +484,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
             delete rest[key];
             return rest;
           });
-        }, 3000);
+        }, 4500);
       }
     };
 
