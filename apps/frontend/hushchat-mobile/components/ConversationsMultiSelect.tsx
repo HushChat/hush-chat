@@ -98,6 +98,7 @@ export const ConversationsMultiSelect = ({
           subtitle={getSubText(conversation)}
           isSelected={isSelected}
           onToggle={() => toggle(conversation)}
+          imageUrl={conversation.signedImageUrl}
         />
       )}
       renderChip={(conversation, remove) => (
