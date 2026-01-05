@@ -3,25 +3,29 @@ import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
-import { emitNewMessage, emitUserStatus } from "@/services/eventBus";
-import { IConversation, IUserStatus } from "@/types/chat/types";
 import {
   CONNECTED_RESPONSE,
   ERROR_RESPONSE,
-  MESSAGE_RECEIVED_TOPIC,
   MESSAGE_RESPONSE,
-  ONLINE_STATUS_TOPIC,
   RETRY_TIME_MS,
 } from "@/constants/wsConstants";
 import { UserActivityWSSubscriptionData, WebSocketStatus } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
+import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
+import { WS_TOPICS } from "@/constants/ws/wsTopics";
+import { getDeviceType } from "@/utils/commonUtils";
+import { DEVICE_ID_KEY } from "@/constants/constants";
+import { getDeviceId } from "@/utils/deviceIdUtils";
 
 // Define topics to subscribe to
 const TOPICS = [
-  { destination: MESSAGE_RECEIVED_TOPIC, id: "sub-messages" },
-  { destination: ONLINE_STATUS_TOPIC, id: "sub-online-status" },
-];
+  { destination: WS_TOPICS.message.received, id: "sub-message-received" },
+  { destination: WS_TOPICS.user.onlineStatus, id: "sub-online-status" },
+  { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
+  { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
+  { destination: WS_TOPICS.message.react, id: "sub-message-reaction" },
+] as const;
 
 export const publishUserActivity = (
   ws: WebSocket | null,
@@ -35,9 +39,14 @@ export const publishUserActivity = (
   try {
     const body = JSON.stringify(data);
 
+    const currentDeviceType = data.deviceType;
+    const deviceId = data.deviceId;
+
     const sendFrameBytes = [
       ...Array.from(new TextEncoder().encode("SEND\n")),
       ...Array.from(new TextEncoder().encode("destination:/app/subscribed-conversations\n")),
+      ...Array.from(new TextEncoder().encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
+      ...Array.from(new TextEncoder().encode(`Device-Type:${currentDeviceType}\n`)),
       ...Array.from(new TextEncoder().encode(`content-length:${body.length}\n`)),
       ...Array.from(new TextEncoder().encode("content-type:application/json\n")),
       0x0a, // empty line
@@ -52,27 +61,6 @@ export const publishUserActivity = (
   } catch (error) {
     logInfo("Error publishing user activity:", error);
     return false;
-  }
-};
-
-// Handle different message types based on topic
-const handleMessageByTopic = (topic: string, body: string) => {
-  try {
-    if (topic.includes(MESSAGE_RECEIVED_TOPIC)) {
-      // Handle message received
-      const wsMessageWithConversation = JSON.parse(body) as IConversation;
-      if (wsMessageWithConversation.messages?.length !== 0) {
-        emitNewMessage(wsMessageWithConversation);
-      }
-    } else if (topic.includes(ONLINE_STATUS_TOPIC)) {
-      // Handle online status update
-      const onlineStatusData = JSON.parse(body) as IUserStatus;
-      emitUserStatus(onlineStatusData);
-    } else {
-      logDebug("Received message from unknown topic:", topic);
-    }
-  } catch (error) {
-    logInfo("Error parsing message from topic:", topic, error);
   }
 };
 
@@ -99,6 +87,8 @@ export default function useWebSocketConnection() {
 
     const mainServiceWsBaseUrl = getWSBaseURL();
 
+    const deviceType = getDeviceType();
+
     const fetchAndSubscribe = async () => {
       if (shouldStopRetrying.current || isCancelled) {
         logInfo("Stopping WebSocket connection attempts due to authentication failure");
@@ -110,6 +100,8 @@ export default function useWebSocketConnection() {
         setConnectionStatus(WebSocketStatus.Connecting);
 
         const { idToken, workspace } = await getAllTokens();
+        const deviceId = await getDeviceId();
+
         if (idToken === null) {
           logInfo("aborting web socket connection due to missing token");
           shouldStopRetrying.current = true;
@@ -119,6 +111,13 @@ export default function useWebSocketConnection() {
 
         if (!validateToken(idToken)) {
           logInfo("aborting web socket connection due to invalid or expired token");
+          shouldStopRetrying.current = true;
+          setConnectionStatus(WebSocketStatus.Error);
+          return;
+        }
+
+        if (deviceId === null) {
+          logInfo("aborting web socket connection due to missing device ID");
           shouldStopRetrying.current = true;
           setConnectionStatus(WebSocketStatus.Error);
           return;
@@ -134,6 +133,8 @@ export default function useWebSocketConnection() {
             ...Array.from(new TextEncoder().encode("CONNECT\n")),
             ...Array.from(new TextEncoder().encode(`Authorization:Bearer ${idToken}\n`)),
             ...Array.from(new TextEncoder().encode(`Workspace-Id:${workspace}\n`)),
+            ...Array.from(new TextEncoder().encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
+            ...Array.from(new TextEncoder().encode(`Device-Type:${deviceType}\n`)),
             ...Array.from(new TextEncoder().encode("accept-version:1.2\n")),
             ...Array.from(new TextEncoder().encode("heart-beat:0,0\n")),
             0x0a, // empty line
@@ -153,7 +154,7 @@ export default function useWebSocketConnection() {
 
             // Subscribe to all topics
             TOPICS.forEach((topic) => {
-              subscribeToTopic(ws, topic.destination, email, topic.id);
+              subscribeToTopic(ws, topic.destination, topic.id, deviceType);
             });
           } else if (event.data.startsWith(ERROR_RESPONSE)) {
             logInfo("STOMP error:", event.data);
@@ -230,14 +231,18 @@ export default function useWebSocketConnection() {
     };
   }, [email, isAuthenticated]);
 
-  const publishActivity = (data: UserActivityWSSubscriptionData) => {
+  const publishActivity = async (data: UserActivityWSSubscriptionData) => {
     if (connectionStatus !== WebSocketStatus.Connected) {
       logInfo("Cannot publish activity: WebSocket not connected", {
         status: connectionStatus,
       });
       return false;
     }
-    return publishUserActivity(wsRef.current, data);
+
+    const deviceType = getDeviceType();
+    const deviceId = await getDeviceId();
+
+    return publishUserActivity(wsRef.current, { ...data, deviceType, deviceId });
   };
 
   // return the connection status

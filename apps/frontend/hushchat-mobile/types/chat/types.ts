@@ -18,6 +18,9 @@ export interface IConversation {
   archivedByLoggedInUser: boolean;
   unreadCount: number;
   chatUserStatus: chatUserStatus;
+  onlyAdminsCanSendMessages: boolean;
+  notifyOnMentionsOnly: boolean;
+  deviceType?: DeviceType;
 }
 
 export interface ReactionSummary {
@@ -26,8 +29,9 @@ export interface ReactionSummary {
 }
 
 export enum MessageAttachmentTypeEnum {
-  IMAGE = "IMAGE",
-  DOCUMENT = "DOCUMENT",
+  MEDIA = "MEDIA",
+  DOCS = "DOCS",
+  GIF = "GIF",
 }
 
 export interface IMessageAttachment {
@@ -37,6 +41,7 @@ export interface IMessageAttachment {
   indexedFileName: string;
   fileUrl: string;
   type: MessageAttachmentTypeEnum;
+  updatedAt: string;
 }
 
 export enum MessageTypeEnum {
@@ -64,6 +69,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isEdited?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -96,6 +102,7 @@ export enum ConversationType {
   UNREAD = "UNREAD",
   GROUPS = "GROUPS",
   MUTED = "MUTED",
+  MENTIONED = "MENTIONED",
 }
 
 export interface oneToOneChatInfo {
@@ -190,12 +197,18 @@ export interface GroupProfile {
   active: boolean;
 }
 
+export interface InviteLink {
+  inviteUrl: string;
+  expiresAt: string;
+}
+
 export interface IBasicMessage {
   id: number;
   senderId: number;
   senderFirstName: string | null;
   senderLastName: string | null;
   messageText: string;
+  messageAttachments?: IMessageAttachment[];
 }
 
 export interface ConversationAPIResponse {
@@ -279,11 +292,20 @@ export enum chatUserStatus {
   OFFLINE = "OFFLINE",
   AWAY = "AWAY",
   BUSY = "BUSY",
+  AVAILABLE = "AVAILABLE",
+}
+
+export enum DeviceType {
+  WEB = "WEB",
+  MOBILE = "MOBILE",
+  UNKNOWN = "UNKNOWN",
 }
 
 export interface IUserStatus {
   conversationId: number;
+  email: string;
   status: chatUserStatus;
+  deviceType?: DeviceType;
 }
 
 export interface IActionConfig {
@@ -296,7 +318,12 @@ export interface IActionConfig {
 
 export interface ConversationInputProps {
   conversationId: number;
-  onSendMessage: (message: string, parentMessage?: IMessage, files?: File[]) => void;
+  onSendMessage: (
+    message: string,
+    parentMessage?: IMessage,
+    files?: File[],
+    gifUrl?: string
+  ) => void;
   onOpenImagePicker?: (files: File[]) => void;
   onOpenImagePickerNative?: () => void;
   onOpenDocumentPickerNative?: () => void;
@@ -308,22 +335,66 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  editingMessage?: IMessage | null;
+  onCancelEdit?: () => void;
+  onEditMessage?: (messageId: number, newText: string) => void;
+  hideEmojiGifPickers?: boolean;
 }
 
-export interface ConversationInputConfig {
-  minLines: number;
-  maxLines: number;
-  lineHeight: number;
-  verticalPadding: number;
-  placeholder: string;
-  autoFocus: boolean;
+export type TNavigationDirection = "prev" | "next";
+
+export interface IThumbnailItemProps {
+  attachment: IMessageAttachment;
+  index: number;
+  isActive: boolean;
+  thumbnailUri?: string;
+  onPress: (index: number) => void;
 }
 
-export const DEFAULT_CONFIG: ConversationInputConfig = {
-  minLines: 1,
-  maxLines: 6,
-  lineHeight: 22,
-  verticalPadding: 12,
-  placeholder: "Type a message...",
-  autoFocus: false,
-};
+export interface IThumbnailStripBaseProps {
+  attachments: IMessageAttachment[];
+  currentIndex: number;
+  thumbnails: Record<number, string>;
+  onSelectIndex: (index: number) => void;
+}
+
+export interface IConfirmDialogProps {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export interface IMediaViewerBaseProps {
+  attachment: IMessageAttachment | undefined;
+  isVideo: boolean;
+}
+
+export interface IUseVideoThumbnailsOptions {
+  windowSize?: number;
+  quality?: number;
+  captureTime?: number;
+}
+
+export interface IConfirmDialogState {
+  visible: boolean;
+  existingFileUri: string | null;
+}
+
+export const PIN_MESSAGE_OPTIONS = [
+  { label: "1 day", value: "1d" },
+  { label: "7 days", value: "7d" },
+  { label: "30 days", value: "30d" },
+];
+
+export interface IMentionedMessage {
+  id: number;
+  message: IMessage;
+  mentionedUser: TUser;
+  conversation: IConversation;
+}
+
+export interface GifPickerProps {
+  visible: boolean;
+  onClose: () => void;
+  onGifSelect: (gifUrl: string) => void;
+}

@@ -33,4 +33,6 @@ public interface ConversationQueryRepository {
 
     Page<ConversationAdminViewDTO> findAllGroupConversationsAdminView(Pageable pageable);
 
+    long clearExpiredPinnedMessageFromConversation(Long conversationId);
+
 }

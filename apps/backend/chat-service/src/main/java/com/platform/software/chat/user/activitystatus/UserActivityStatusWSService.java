@@ -1,8 +1,10 @@
 package com.platform.software.chat.user.activitystatus;
 
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusDTO;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
+import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionInfoDAO;
 import com.platform.software.config.workspace.WorkspaceContext;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,8 @@ public class UserActivityStatusWSService {
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final SimpMessagingTemplate template;
 
-    private final String ONLINE_STATUS_INVOKE_PATH = "/topic/online-status";
-
     @Async
-    public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status) {
+    public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status, String deviceType) {
         WorkspaceContext.setCurrentWorkspace(workspaceId);
 
         // TODO: cache, must be sure about the cache evict
@@ -50,13 +50,18 @@ public class UserActivityStatusWSService {
             .filter(Objects::nonNull)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        DeviceType device = DeviceType.valueOf(deviceType);
+
         for (Map.Entry<String, Set<Long>> entry : matchingSessionKeysWithConversations.entrySet()) {
-            String[] workspaceIdAndEmail = entry.getKey().split(":");
+            String key = entry.getKey();
+            String[] parts = key.split(":");
+            String userPrinciple = parts[0] + ":" + parts[1];
 
             if (!entry.getValue().isEmpty()) {
-                template.convertAndSend(
-                    "%s/%s".formatted(ONLINE_STATUS_INVOKE_PATH, workspaceIdAndEmail[1]),
-                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), status)
+                template.convertAndSendToUser(
+                    userPrinciple,
+                    WebSocketTopicConstants.ONLINE_STATUS,
+                    new UserStatusDTO(entry.getValue().stream().findFirst().get(), email, status, device)
                 );
             }
         }

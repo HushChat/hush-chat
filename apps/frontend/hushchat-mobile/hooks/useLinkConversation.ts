@@ -32,14 +32,14 @@ export function useLinkConversation({
       (conversation) => conversation.id === initialConversationId
     );
 
+    hasInitialized.current = true;
+
     if (!conversation) {
       onConversationFound({
         id: initialConversationId,
       } as IConversation);
       return;
     }
-
-    hasInitialized.current = true;
 
     if (PLATFORM.IS_WEB) {
       onConversationFound(conversation);

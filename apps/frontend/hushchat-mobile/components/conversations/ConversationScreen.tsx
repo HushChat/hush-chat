@@ -101,8 +101,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   });
 
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
-    setSelectedConversation(conversation);
-
     if (PLATFORM.IS_WEB) {
       if (conversation) {
         router.replace(CONVERSATION(conversation.id));
@@ -117,11 +115,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
       key: ConversationType.ALL,
       label: "All",
       isActive: selectedConversationType === ConversationType.ALL,
-    },
-    {
-      key: ConversationType.UNREAD,
-      label: "Unread",
-      isActive: selectedConversationType === ConversationType.UNREAD,
     },
     {
       key: ConversationType.FAVORITES,

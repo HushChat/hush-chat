@@ -9,7 +9,9 @@ interface AttachmentPreviewProps {
 export const AttachmentPreview = ({ attachment }: AttachmentPreviewProps) => {
   if (!attachment || !attachment.fileUrl) return null;
 
-  const isDocument = attachment.type === MessageAttachmentTypeEnum.DOCUMENT;
+  const isDocument = attachment?.type === MessageAttachmentTypeEnum.DOCS;
+  const isGif = attachment.type === MessageAttachmentTypeEnum.GIF;
+  const imageUri = isGif ? attachment.indexedFileName : attachment.fileUrl;
 
   if (isDocument) {
     const extension = attachment.originalFileName?.split(".").pop() || "DOC";
@@ -25,7 +27,7 @@ export const AttachmentPreview = ({ attachment }: AttachmentPreviewProps) => {
 
   return (
     <Image
-      source={{ uri: attachment.fileUrl }}
+      source={{ uri: imageUri }}
       className="w-12 h-12 rounded-md bg-gray-200 dark:bg-gray-700"
       resizeMode="cover"
     />

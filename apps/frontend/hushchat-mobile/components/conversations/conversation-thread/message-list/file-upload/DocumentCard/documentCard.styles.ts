@@ -10,7 +10,6 @@ export const staticStyles = StyleSheet.create({
   documentCardRow: {
     flexDirection: "row",
     alignItems: "center",
-    // Do NOT add width: "100%" here, let the content define the width
   },
   documentIconContainer: {
     width: 40,

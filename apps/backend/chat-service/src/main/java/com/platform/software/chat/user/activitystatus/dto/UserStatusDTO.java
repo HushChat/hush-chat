@@ -1,5 +1,6 @@
 package com.platform.software.chat.user.activitystatus.dto;
 
+import com.platform.software.chat.notification.entity.DeviceType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,5 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserStatusDTO {
     private Long conversationId;
+    private String email;
     private UserStatusEnum status;
+    private DeviceType deviceType;
 }

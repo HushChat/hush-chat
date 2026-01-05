@@ -1,7 +1,13 @@
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import axios, { AxiosError } from "axios";
-import { IConversation, IGroupConversation, IMessage, IMessageView } from "@/types/chat/types";
+import {
+  IConversation,
+  IGroupConversation,
+  IMessage,
+  IMessageView,
+  MessageAttachmentTypeEnum,
+} from "@/types/chat/types";
 import {
   CONVERSATION_API_ENDPOINTS,
   SEARCH_API_BASE,
@@ -12,6 +18,7 @@ import {
 import { ApiResponse } from "@/types/common/types";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import type { QueryKey } from "@tanstack/react-query";
+import { TAttachmentUploadRequest } from "@/apis/photo-upload-service/photo-upload-service";
 
 export interface ConversationFilterCriteria {
   isArchived?: boolean;
@@ -56,6 +63,10 @@ export type ReportReason = "SPAM" | "HARASSMENT" | "INAPPROPRIATE_CONTENT" | "OT
 export interface ReportConversationParams {
   conversationId: number;
   reason: ReportReason;
+}
+
+export interface AttachmentFilterCriteria {
+  type: MessageAttachmentTypeEnum;
 }
 
 export const getAllConversations = async (
@@ -110,6 +121,24 @@ export const updateConversationById = async (
   const response = await axios.patch(
     CONVERSATION_API_ENDPOINTS.UPDATE_CONVERSATION(conversationId),
     { name, description }
+  );
+  return { data: response.data };
+};
+
+export const updateMessageRestrictions = async (
+  conversationId: number,
+  onlyAdminsCanSendMessages: boolean
+) => {
+  const response = await axios.patch(
+    `${CONVERSATION_API_ENDPOINTS.UPDATE_MESSAGE_RESTRICTIONS(conversationId)}`,
+    { onlyAdminsCanSendMessages }
+  );
+  return { data: response.data };
+};
+
+export const toggleNotifyOnlyOnMention = async (conversationId: number) => {
+  const response = await axios.patch(
+    `${CONVERSATION_API_ENDPOINTS.TOGGLE_NOTIFY_ONLY_ON_MENTIONS(conversationId)}`
   );
   return { data: response.data };
 };
@@ -169,6 +198,23 @@ export const getMessagesAroundMessageId = async (
   }
 };
 
+export const editMessageById = async (
+  conversationId: number,
+  messageId: number,
+  messageText: string
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axios.put(
+      CONVERSATION_API_ENDPOINTS.EDIT_MESSAGE(conversationId, messageId),
+      { messageText }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const setLastSeenMessageByConversationId = async (
   messageId: number,
   conversationId: number
@@ -214,6 +260,23 @@ export const sendMessageByConversationIdFiles = async (
     return response.data;
   } catch (error) {
     ToastUtils.error("Failed to send message:" + error);
+  }
+};
+
+export const createMessagesWithAttachments = async (
+  conversationId: number,
+  attachments: TAttachmentUploadRequest[]
+) => {
+  try {
+    const response = await axios.post(
+      CONVERSATION_API_ENDPOINTS.REQUEST_ATTACHMENT_UPLOAD_URL(conversationId),
+      attachments
+    );
+
+    return response.data;
+  } catch (error) {
+    ToastUtils.error("Unable to request attachment upload URL: " + error);
+    throw error;
   }
 };
 
@@ -450,6 +513,54 @@ export const sendInviteToWorkspace = async (email: string) => {
     const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, {
       email: email,
     });
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const getConversationAttachments = async (
+  conversationId: number,
+  criteria: AttachmentFilterCriteria,
+  page: number,
+  size: number
+) => {
+  try {
+    const response = await axios.get(
+      CONVERSATION_API_ENDPOINTS.GET_CONVERSATION_ATTACHMENTS(conversationId),
+      {
+        params: { ...criteria, page, size },
+      }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
+export const ResetInviteLink = async (conversationId: number) => {
+  try {
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.RESET_INVITE_LINK(conversationId));
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+};
+
+export const getInviteLink = async (conversationId: number) => {
+  try {
+    const response = await axios.get(CONVERSATION_API_ENDPOINTS.GET_INVITE_LINK(conversationId));
+    return response.data;
+  } catch (error: any) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
+export const joinConversationByInvite = async (token: string) => {
+  try {
+    const response = await axios.post(CONVERSATION_API_ENDPOINTS.JOIN_VIA_INVITE_LINK(token));
     return { data: response.data };
   } catch (error: any) {
     return { error: error.response?.data?.error || error.message };

@@ -8,6 +8,7 @@
     "start:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile start",
     "start:backend": "mvn -f apps/backend/chat-service/pom.xml spring-boot:run",
     "build:backend": "mvn -f apps/backend/chat-service/pom.xml clean package -DskipTests",
+    "build:backend:prod": "mvn -f apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=prod -DskipTests",
     "test:backend": "mvn -f apps/backend/chat-service/pom.xml test",
     "clean:backend": "mvn -f apps/backend/chat-service/pom.xml clean",
     "android:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile android",
@@ -23,7 +24,13 @@
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "format": "prettier --write . && eslint . --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "docker:build:staging": "docker compose -f docker-compose.staging.yml build --no-cache",
+    "docker:build:prod": "docker compose -f docker-compose.yml build --no-cache",
+    "docker:restart:staging": "docker compose -f docker-compose.staging.yml down && docker compose -f docker-compose.staging.yml up -d",
+    "docker:restart:prod": "docker compose -f docker-compose.yml down && docker compose -f docker-compose.yml up -d",
+    "deploy:staging": "yarn build:backend:prod && yarn docker:build:staging && yarn docker:restart:staging",
+    "deploy:prod": "yarn build:backend:prod && yarn docker:build:prod && yarn docker:restart:prod"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

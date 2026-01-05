@@ -9,6 +9,7 @@ export const EMPTY_SET = new Set<number>();
 export const WORKSPACE = "workspace";
 export const X_TENANT = "X-Tenant";
 export const X_UUID_HEADER = "x-Uuid";
+export const DEVICE_ID_KEY = "Device-Id";
 
 export const TITLES = {
   ARCHIVE_CHAT: (conversationType: ConversationType) =>
@@ -23,3 +24,5 @@ export const TITLES = {
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";
+
+export const SOUND_ENABLED_KEY = "sound_enabled";

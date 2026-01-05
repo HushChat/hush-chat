@@ -1,8 +1,8 @@
 import { PLATFORM } from "@/constants/platformConstants";
 import { CHAT_VIEW_PATH, CONVERSATION_DETAIL } from "@/constants/routes";
-import { IConversation } from "@/types/chat/types";
+import { DeviceType, IConversation } from "@/types/chat/types";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
-import { isSameDay } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { Href, router } from "expo-router";
 import { KeyboardEvent, useCallback } from "react";
 import { ColorSchemeName, TextInputKeyPressEvent } from "react-native";
@@ -12,6 +12,17 @@ export type KeyEvent = KeyboardEvent | TextInputKeyPressEvent;
 const getDateOnly = (daysAgo: number = 0): Date => {
   const date = new Date();
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() - daysAgo);
+};
+
+// input - iso string
+// output - dec 5, 2025 11.00 AM
+const formatDateTime = (isoString: string): string => {
+  if (!isoString) return "";
+
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return "";
+
+  return format(date, "MMM d, yyyy h.mm a");
 };
 
 const getLastMessageTime = (isoString: string): string => {
@@ -193,6 +204,20 @@ const getPaginationConfig = <T extends { id: any }>() => {
   };
 };
 
+const capitalizeFirstLetter = (word: string): string => {
+  if (!word) return "";
+
+  const trimmed = word.trim();
+  if (!trimmed) return "";
+
+  return trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase();
+};
+
+const getDeviceType = (): DeviceType => {
+  if (PLATFORM.IS_WEB) return DeviceType.WEB;
+  return DeviceType.MOBILE;
+};
+
 export {
   getLastMessageTime,
   getNavigationTheme,
@@ -207,4 +232,7 @@ export {
   getPaginationConfig,
   shouldUseMobileUI,
   navigateBackOrFallback,
+  capitalizeFirstLetter,
+  getDeviceType,
+  formatDateTime,
 };

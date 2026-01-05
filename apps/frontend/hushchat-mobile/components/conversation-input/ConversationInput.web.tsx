@@ -2,16 +2,22 @@ import React, { memo, useCallback } from "react";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
+
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import WebChatContextMenu from "@/components/WebContextMenu";
-import { RIGHT_ICON_GUTTER } from "@/constants/composerConstants";
+import { EditPreview } from "@/components/conversation-input/EditPreview";
+
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
+
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
-import { SendButton } from "@/components/conversation-input/SendButton";
 import { FileInput } from "@/components/conversation-input/FileInput";
+import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
+import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
+import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
+import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 
 const ConversationInput = ({
   conversationId,
@@ -25,7 +31,22 @@ const ConversationInput = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  editingMessage,
+  onCancelEdit,
+  onEditMessage,
+  hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
+  const isControlledMode = controlledValue !== undefined;
+
+  const {
+    showEmojiPicker,
+    showGifPicker,
+    openEmojiPicker,
+    closeEmojiPicker,
+    openGifPicker,
+    closeGifPicker,
+  } = useEmojiGifPicker();
+
   const input = useConversationInput({
     conversationId,
     onSendMessage,
@@ -35,6 +56,9 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    editingMessage,
+    onCancelEdit,
+    onEditMessage,
   });
 
   const handleKeyPress = useCallback(
@@ -57,11 +81,27 @@ const ConversationInput = ({
     input.handleSend(input.message);
   }, [input.handleSend, input.message]);
 
-  const isControlledMode = controlledValue !== undefined;
+  const handleEmojiSelect = useCallback(
+    (emoji: string) => {
+      input.handleChangeText(input.message + emoji);
+    },
+    [input.handleChangeText, input.message]
+  );
+
+  const handleGifSelect = useCallback(
+    (gifUrl: string) => {
+      onSendMessage?.("", undefined, undefined, gifUrl);
+    },
+    [onSendMessage]
+  );
 
   return (
     <View>
-      {input.replyToMessage && (
+      {input.isEditMode && input.editingMessage && (
+        <EditPreview message={input.editingMessage} onCancelEdit={input.handleCancelEdit} />
+      )}
+
+      {input.replyToMessage && !input.isEditMode && (
         <ReplyPreview
           replyToMessage={input.replyToMessage}
           onCancelReply={input.handleCancelReply}
@@ -70,26 +110,24 @@ const ConversationInput = ({
 
       <View
         className={classNames(
-          "flex-row items-end p-4",
-          "bg-background-light dark:bg-background-dark",
+          "p-4 bg-background-light dark:bg-background-dark",
           "border-gray-200 dark:border-gray-800"
         )}
       >
-        {!isControlledMode && (
-          <AttachmentButton
-            ref={input.addButtonRef}
-            disabled={disabled}
-            toggled={input.menuVisible}
-            onPress={input.handleAddButtonPress}
-          />
-        )}
+        <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
+          {!isControlledMode && !input.isEditMode && (
+            <View className="mr-1">
+              <AttachmentButton
+                ref={input.addButtonRef}
+                disabled={disabled}
+                toggled={input.menuVisible}
+                onPress={input.handleAddButtonPress}
+              />
+            </View>
+          )}
 
-        <View className={classNames("flex-1", !isControlledMode && "mx-4")}>
-          <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
-            <View
-              className="relative flex-row flex-end rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-4"
-              style={{ paddingRight: hideSendButton ? 16 : RIGHT_ICON_GUTTER }}
-            >
+          <View className="flex-1 px-2 min-h-[40px] justify-center">
+            <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
               <MessageTextArea
                 ref={input.messageTextInputRef}
                 value={input.message}
@@ -107,24 +145,28 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
+            </Animated.View>
+          </View>
 
-              {!hideSendButton && (
-                <SendButton
-                  showSend={input.isValidMessage}
-                  isSending={isSending}
-                  onPress={handleSendPress}
-                />
-              )}
-            </View>
-          </Animated.View>
+          <ConversationInputActions
+            isEditMode={input.isEditMode}
+            hideEmojiGifPickers={hideEmojiGifPickers}
+            hideSendButton={hideSendButton}
+            disabled={disabled}
+            isValidMessage={input.isValidMessage}
+            isSending={isSending}
+            onOpenEmojiPicker={openEmojiPicker}
+            onOpenGifPicker={openGifPicker}
+            onSendPress={handleSendPress}
+          />
         </View>
 
-        {!isControlledMode && (
+        {!isControlledMode && !input.isEditMode && (
           <>
             <FileInput
               ref={input.fileInputRef}
               onChange={input.handleFileChange}
-              accept="image/*"
+              accept="image/*,video/*"
             />
             <FileInput
               ref={input.documentInputRef}
@@ -135,7 +177,7 @@ const ConversationInput = ({
         )}
       </View>
 
-      {!isControlledMode && (
+      {!isControlledMode && !input.isEditMode && (
         <WebChatContextMenu
           visible={input.menuVisible}
           position={input.menuPosition}
@@ -151,6 +193,22 @@ const ConversationInput = ({
           mentionQuery={input.mentionQuery}
           onSelect={input.handleSelectMention}
         />
+      )}
+
+      {!input.isEditMode && !hideEmojiGifPickers && (
+        <>
+          <EmojiPickerComponent
+            visible={showEmojiPicker}
+            onClose={closeEmojiPicker}
+            onEmojiSelect={handleEmojiSelect}
+          />
+
+          <GifPickerComponent
+            visible={showGifPicker}
+            onClose={closeGifPicker}
+            onGifSelect={handleGifSelect}
+          />
+        </>
       )}
     </View>
   );
