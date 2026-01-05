@@ -17,6 +17,7 @@ import { WS_TOPICS } from "@/constants/ws/wsTopics";
 import { getDeviceType } from "@/utils/commonUtils";
 import { DEVICE_ID_KEY } from "@/constants/constants";
 import { getDeviceId } from "@/utils/deviceIdUtils";
+import { useLogout } from "@/hooks/useLogout";
 
 // Define topics to subscribe to
 const TOPICS = [
@@ -25,6 +26,7 @@ const TOPICS = [
   { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
   { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
   { destination: WS_TOPICS.message.react, id: "sub-message-reaction" },
+  { destination: WS_TOPICS.user.forceLogout, id: "sub-user-force-logout" },
 ] as const;
 
 export const publishUserActivity = (
@@ -71,6 +73,7 @@ export default function useWebSocketConnection() {
   } = useUserStore();
   const wsRef = useRef<WebSocket | null>(null);
   const shouldStopRetrying = useRef(false);
+  const { handleLogout } = useLogout();
 
   const [connectionStatus, setConnectionStatus] = useState<WebSocketStatus>(
     WebSocketStatus.Disconnected
@@ -182,7 +185,7 @@ export default function useWebSocketConnection() {
                 .replace(/\0$/, "");
 
               // Route message to appropriate handler based on topic
-              handleMessageByTopic(topic, body);
+              handleMessageByTopic(topic, body, handleLogout);
             }
           }
         };

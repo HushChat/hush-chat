@@ -4,8 +4,11 @@ import com.platform.software.chat.user.dto.UserResetPasswordDTO;
 import com.platform.software.chat.user.entity.AccountAdminSecurityAction;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
+import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.common.service.security.CognitoService;
 import com.platform.software.common.service.security.PasswordResetDTO;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,7 @@ public class SecurityActionService {
     private final CognitoService cognitoService;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final WebSocketSessionManager webSocketSessionManager;
 
     @Transactional
     public void changePassword(String loggedInUserEmail, UserResetPasswordDTO userResetPasswordDTO) {
@@ -32,6 +36,8 @@ public class SecurityActionService {
         );
 
         cognitoService.signOutUser(user.getEmail());
+
+        dispatchForceLogout(user.getEmail(), WorkspaceContext.getCurrentWorkspace());
     }
 
     private ChatUser updateUserWithSecurityAction(String loggedInUserEmail) {
@@ -51,5 +57,14 @@ public class SecurityActionService {
         ChatUser user = updateUserWithSecurityAction(passwordResetDTO.getEmail());
         cognitoService.confirmForgotPassword(passwordResetDTO);
         cognitoService.signOutUser(user.getEmail());
+    }
+
+    private void dispatchForceLogout(String email, String workspaceId) {
+        webSocketSessionManager.sendMessageToUser(
+            workspaceId,
+            email,
+            WebSocketTopicConstants.FORCE_LOGOUT_INVOKE,
+            "force logout user"
+        );
     }
 }
