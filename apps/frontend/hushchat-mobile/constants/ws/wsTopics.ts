@@ -9,6 +9,7 @@ export const WS_TOPICS = {
   },
   user: {
     onlineStatus: "/topic/online-status/",
+    forceLogout: "/topic/force-logout/",
   },
 } as const;
 

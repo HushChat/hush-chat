@@ -51,4 +51,7 @@ public class ChatUser extends AuditModel{
 
     @Enumerated(EnumType.STRING)
     private UserStatusEnum availabilityStatus = UserStatusEnum.AVAILABLE;
+
+    @Enumerated(EnumType.STRING)
+    private AccountAdminSecurityAction securityAction;
 }

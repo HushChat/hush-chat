@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from "@/constants/apiConstants";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
@@ -77,6 +77,43 @@ export const setupAuthorizationHeader = () => {
       return config;
     },
     async (error: AxiosError) => Promise.reject(error)
+  );
+};
+
+export const setupResponseInterceptor = (): void => {
+  axios.interceptors.response.use(
+    (response: AxiosResponse) => {
+      return response;
+    },
+    (error: AxiosError<any>) => {
+      const status = error.response?.status;
+      const uniqueId = error.config?.headers?.[X_UUID_HEADER];
+      const url = error.config?.url;
+
+      // Extract message from backend response
+      const message =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "An error occurred";
+
+      // Emit custom event for security-related status codes
+      if (status) {
+        window.dispatchEvent(
+          new CustomEvent("api-security-action", {
+            detail: {
+              status,
+              message,
+              action: error.response?.data?.action || null,
+              url,
+              uniqueId,
+            },
+          })
+        );
+      }
+
+      return Promise.reject(error);
+    }
   );
 };
 

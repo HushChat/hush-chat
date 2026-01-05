@@ -317,4 +317,45 @@ public class CognitoService {
             throw new CustomBadRequestException("Failed to resend the confirmation code!");
         }
     }
+
+    public void signOutUser(String email) {
+        ListUsersRequest listUsersRequest = ListUsersRequest.builder()
+            .userPoolId(awsCognitoConfig.getUserPoolId())
+            .filter("email = \"%s\"".formatted(email))
+            .limit(1)
+            .build();
+
+        ListUsersResponse response;
+        try {
+            response = cognitoClient.listUsers(listUsersRequest);
+        } catch (Exception e) {
+            logger.error("cannot invoke logout, error: {}", e.getMessage());
+            throw new IllegalArgumentException("request failed! cannot invoke logout.");
+        }
+
+        List<UserType> users = response.users().stream()
+            .filter(user -> user.attributes().stream()
+                .anyMatch(attr -> "email".equals(attr.name()) && email.equals(attr.value())))
+            .toList();
+
+        if (users.isEmpty()) {
+            logger.error("cannot invoke logout, User with the specified email: {} not found.", email);
+            throw new IllegalArgumentException("User with the specified email not found.");
+        }
+
+        UserType userType = users.getFirst();
+        String username = userType.username();
+
+        try {
+            // Sign out the user
+            AdminUserGlobalSignOutRequest signOutRequest = AdminUserGlobalSignOutRequest.builder()
+                .userPoolId(awsCognitoConfig.getUserPoolId())
+                .username(username)
+                .build();
+
+            cognitoClient.adminUserGlobalSignOut(signOutRequest);
+        } catch (Exception e) {
+            throw new RuntimeException("Error signing out user: " + e.getMessage(), e);
+        }
+    }
 }

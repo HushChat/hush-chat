@@ -33,4 +33,6 @@ public final class WebSocketTopicConstants {
     /** Message reaction event */
     public static final String MESSAGE_REACTION = "/topic/message-reaction/";
 
+    public static final String FORCE_LOGOUT_INVOKE = "/topic/force-logout/";
+
 }

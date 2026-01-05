@@ -37,6 +37,11 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
     const conversation = JSON.parse(body) as IConversation;
     emitConversationCreated(conversation);
   },
+
+  [WS_TOPICS.user.forceLogout]: (body) => {
+    const conversation = JSON.parse(body) as IConversation;
+    emitConversationCreated(conversation);
+  },
 };
 
 const normalizeTopic = (topic: string): string => {
@@ -47,9 +52,18 @@ const normalizeTopic = (topic: string): string => {
   return topic;
 };
 
-export const handleMessageByTopic = (topic: string, body: string) => {
+export const handleMessageByTopic = async (
+  topic: string,
+  body: string,
+  handleLogout: () => Promise<void>
+) => {
   try {
     const normalizedTopic = normalizeTopic(topic);
+
+    if (normalizedTopic === WS_TOPICS.user.forceLogout) {
+      await handleLogout();
+      return;
+    }
 
     const handler = WS_TOPIC_HANDLERS[normalizedTopic as keyof typeof WS_TOPIC_HANDLERS];
 
