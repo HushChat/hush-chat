@@ -529,8 +529,11 @@ const ConversationThreadScreen = ({
           <ImageBackground
             source={Images.chatBackground}
             className="flex-1"
+            resizeMode="cover"
             imageStyle={{
               opacity: isDark ? CHAT_BG_OPACITY_DARK : CHAT_BG_OPACITY_LIGHT,
+              width: "100%",
+              height: "100%",
             }}
           >
             <View className="flex-1">
