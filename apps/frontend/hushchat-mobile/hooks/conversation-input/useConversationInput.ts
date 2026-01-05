@@ -91,7 +91,7 @@ export function useConversationInput({
     1500, // Stop typing after 1.5s idle
     15 // Minimum 15 characters
   );
-  
+
   useEffect(() => {
     if (editingMessage) {
       if (isControlledMode) {
