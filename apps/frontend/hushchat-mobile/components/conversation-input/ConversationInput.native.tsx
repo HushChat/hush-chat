@@ -9,11 +9,11 @@ import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
-import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const ConversationInput = ({
   conversationId,
@@ -36,7 +36,7 @@ const ConversationInput = ({
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
   const isControlledMode = controlledValue !== undefined;
-  const { publishTyping } = useWebSocketConnection();
+  const { publishTyping } = useWebSocket();
 
   const {
     showEmojiPicker,

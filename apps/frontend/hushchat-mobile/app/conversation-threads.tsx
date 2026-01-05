@@ -91,7 +91,7 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const publishUserActivity = async () => {
       const { workspace } = await getAllTokens();
-      publishActivity({
+      await publishActivity({
         workspaceId: workspace as string,
         email,
         openedConversation: currentConversationId,

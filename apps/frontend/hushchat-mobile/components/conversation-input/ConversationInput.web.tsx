@@ -14,11 +14,11 @@ import { useConversationInput } from "@/hooks/conversation-input/useConversation
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { FileInput } from "@/components/conversation-input/FileInput";
-import useWebSocketConnection from "@/hooks/ws/useWebSocketConnection";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const ConversationInput = ({
   conversationId,
@@ -37,7 +37,7 @@ const ConversationInput = ({
   onEditMessage,
   hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
-  const { publishTyping } = useWebSocketConnection();
+  const { publishTyping } = useWebSocket();
   const isControlledMode = controlledValue !== undefined;
 
   const {
