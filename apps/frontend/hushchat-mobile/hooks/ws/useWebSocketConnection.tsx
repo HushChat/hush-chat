@@ -138,7 +138,6 @@ export default function useWebSocketConnection() {
     const mainServiceWsBaseUrl = getWSBaseURL();
 
     const deviceType = getDeviceType();
-    const deviceId = getDeviceId();
 
     const fetchAndSubscribe = async () => {
       if (shouldStopRetrying.current || isCancelled) {
@@ -291,7 +290,7 @@ export default function useWebSocketConnection() {
     }
 
     const deviceType = getDeviceType();
-    const deviceId = getDeviceId();
+    const deviceId = await getDeviceId();
     return publishUserActivity(wsRef.current, { ...data, deviceType, deviceId });
   };
 
@@ -303,8 +302,8 @@ export default function useWebSocketConnection() {
       return false;
     }
     const { workspace } = await getAllTokens();
-    const deviceType = await getDeviceType();
-    const deviceId = getDeviceId();
+    const deviceType = getDeviceType();
+    const deviceId = await getDeviceId();
     const workspaceId = workspace;
     const userId = id;
 
