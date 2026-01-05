@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQueryClient } from "@tanstack/react-query";
 
 import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
@@ -43,6 +42,7 @@ import DragAndDropOverlay from "@/components/conversations/conversation-thread/m
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useMessageEdit } from "@/hooks/useMessageEdit";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -73,7 +73,6 @@ const ConversationThreadScreen = ({
   const {
     user: { id: currentUserId, email },
   } = useUserStore();
-  const queryClient = useQueryClient();
   const { publishActivity } = useWebSocket();
 
   const dropZoneRef = useRef<View>(null);
@@ -121,6 +120,7 @@ const ConversationThreadScreen = ({
     invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
+    updateConversationsListCache,
     targetMessageId,
     clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId);
@@ -173,6 +173,20 @@ const ConversationThreadScreen = ({
     conversationAPIResponse?.isGroup && conversationAPIResponse?.onlyAdminsCanSendMessages;
 
   const isCurrentUserAdmin = conversationAPIResponse?.isCurrentUserAdmin;
+
+  const { editingMessage, isEditingMessage, handleStartEdit, handleCancelEdit, handleEditMessage } =
+    useMessageEdit({
+      userId: Number(currentUserId),
+      conversationId: currentConversationId,
+    });
+
+  const handleStartEditWithClearReply = useCallback(
+    (message: IMessage) => {
+      handleStartEdit(message);
+      setSelectedMessage(null);
+    },
+    [handleStartEdit]
+  );
 
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
@@ -254,7 +268,7 @@ const ConversationThreadScreen = ({
     (newMessage) => {
       setSelectedMessage(null);
       updateConversationMessagesCache(newMessage);
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      updateConversationsListCache(newMessage);
 
       if (newMessage.id && typeof newMessage.id === "number") {
         setLastSeenMessageForConversation({
@@ -287,6 +301,7 @@ const ConversationThreadScreen = ({
 
   useEffect(() => {
     setSelectedMessage(null);
+    handleCancelEdit();
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
@@ -297,6 +312,7 @@ const ConversationThreadScreen = ({
     setSelectedMessageIds,
     handleCloseImagePreview,
     setIsMarkdownEnabled,
+    handleCancelEdit,
   ]);
 
   const handleBackPress = useCallback(() => {
@@ -396,6 +412,7 @@ const ConversationThreadScreen = ({
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
         lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
+        onEditMessage={handleStartEditWithClearReply}
       />
     );
   }, [
@@ -418,6 +435,7 @@ const ConversationThreadScreen = ({
     targetMessageId,
     handleTargetMessageScrolled,
     lastSeenMessageInfo,
+    handleStartEditWithClearReply,
   ]);
 
   const getDisabledMessageReason = useCallback(() => {
@@ -462,10 +480,13 @@ const ConversationThreadScreen = ({
         onOpenImagePickerNative={handleOpenImagePickerNative}
         onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
         disabled={isLoadingConversationMessages}
-        isSending={isSendingMessage || isUploadingImages}
+        isSending={isSendingMessage || isUploadingImages || isEditingMessage}
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        editingMessage={editingMessage}
+        onCancelEdit={handleCancelEdit}
+        onEditMessage={handleEditMessage}
       />
     );
   }, [
@@ -482,9 +503,13 @@ const ConversationThreadScreen = ({
     isLoadingConversationMessages,
     isSendingMessage,
     isUploadingImages,
+    isEditingMessage,
     selectedMessage,
     handleCancelReply,
     isGroupChat,
+    editingMessage,
+    handleCancelEdit,
+    handleEditMessage,
   ]);
 
   return (
@@ -511,8 +536,11 @@ const ConversationThreadScreen = ({
           <ImageBackground
             source={Images.chatBackground}
             className="flex-1"
+            resizeMode="cover"
             imageStyle={{
               opacity: isDark ? CHAT_BG_OPACITY_DARK : CHAT_BG_OPACITY_LIGHT,
+              width: "100%",
+              height: "100%",
             }}
           >
             <View className="flex-1">

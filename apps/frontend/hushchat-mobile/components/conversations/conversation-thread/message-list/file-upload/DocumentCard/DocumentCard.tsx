@@ -19,9 +19,10 @@ import { downloadFileWeb, openFileNative } from "@/utils/messageUtils";
 type TDocumentCardProps = {
   attachment: IMessageAttachment;
   isCurrentUser: boolean;
+  onPreview?: () => void;
 };
 
-export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) => {
+export const DocumentCard = ({ attachment, isCurrentUser, onPreview }: TDocumentCardProps) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -43,6 +44,11 @@ export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) 
   const handleDocumentPress = async () => {
     const fileUrl = attachment.fileUrl;
     const fileName = attachment.originalFileName || attachment.indexedFileName;
+
+    if (onPreview) {
+      onPreview();
+      return;
+    }
 
     if (!fileUrl) {
       ToastUtils.error("File URL not available");
@@ -78,10 +84,6 @@ export const DocumentCard = ({ attachment, isCurrentUser }: TDocumentCardProps) 
             {attachment.originalFileName || "Document"}
           </AppText>
           <AppText style={dynamicStyles.documentSubtitle(textSecondary)}>{label} Document</AppText>
-        </View>
-
-        <View style={staticStyles.documentDownloadContainer}>
-          <Ionicons name="download-outline" size={16} color={color} />
         </View>
       </View>
     </TouchableOpacity>

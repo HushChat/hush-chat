@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
 import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
-import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
+import { MessageLabel } from "@/components/conversations/conversation-thread/composer/MessageLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -25,9 +25,10 @@ interface IMessageBubbleProps {
   onMentionClick?: (user: TUser) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
+  isMessageEdited?: boolean;
 }
 
-export const MessageBubble: React.FC<IMessageBubbleProps> = ({
+export const MessageBubble = ({
   message,
   isCurrentUser,
   hasText,
@@ -40,7 +41,8 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
   onBubblePress,
   onMentionClick,
   style,
-}) => {
+  isMessageEdited,
+}: IMessageBubbleProps) => {
   const messageContent = message.messageText;
   const hasGifMedia = hasGif(message);
   const gifUrl = getGifUrl(message);
@@ -76,7 +78,11 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
         style={style}
       >
-        <ForwardedLabel isForwardedMessage={isForwardedMessage} isCurrentUser={isCurrentUser} />
+        <MessageLabel
+          isForwardedMessage={isForwardedMessage}
+          isCurrentUser={isCurrentUser}
+          isMessageEdited={isMessageEdited}
+        />
 
         <View
           className={classNames(
