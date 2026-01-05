@@ -103,7 +103,7 @@ export const uploadBlobToS3 = async (fileUri: string, signedUrl: string, fileTyp
   });
 
   if (!response.ok) {
-    const errorText = await response.text(); // Get S3 error message if available
+    const errorText = await response.text(); // Get S3 error message if available as we need to handle signedUrl expiration as well
     throw new Error(`S3 Upload Failed: ${response.status} ${response.statusText} - ${errorText}`);
   }
 };
@@ -119,8 +119,7 @@ export const retryS3Upload = async (localUri: string, signedUrl: string, fileTyp
       },
     });
     return response.ok;
-  } catch (error) {
-    console.error("Retry failed:", error);
+  } catch {
     return false;
   }
 };
