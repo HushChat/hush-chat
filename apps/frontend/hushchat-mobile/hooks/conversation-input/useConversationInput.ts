@@ -134,15 +134,17 @@ export function useConversationInput({
       } else {
         messageInputController.onMessageTextChangedByUser(newTypedText);
       }
+
       mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
-      autoHeightController.updateHeightForClearedText(newTypedText);
+
+      autoHeightController.updateHeightForTextChange(newTypedText);
     },
     [
       isControlledMode,
       onControlledValueChange,
       messageInputController.onMessageTextChangedByUser,
       mentionsController.evaluateMentionQueryFromInput,
-      autoHeightController.updateHeightForClearedText,
+      autoHeightController.updateHeightForTextChange,
     ]
   );
 
