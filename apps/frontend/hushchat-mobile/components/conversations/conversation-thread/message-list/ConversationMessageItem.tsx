@@ -123,7 +123,7 @@ export const ConversationMessageItem = ({
     x: 0,
     y: 0,
   });
-  const [showProfilPreviewModal, setShowProfilePreviewModal] = useState(false);
+  const [showProfilePreviewModal, setShowProfilePreviewModal] = useState(false);
   const [selectedPreviewUser, setSelectedPreviewUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
@@ -564,7 +564,7 @@ export const ConversationMessageItem = ({
             />
 
             <MentionProfileModal
-              visible={showProfilPreviewModal}
+              visible={showProfilePreviewModal}
               user={selectedPreviewUser}
               onClose={() => {
                 setShowProfilePreviewModal(false);
