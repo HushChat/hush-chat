@@ -161,10 +161,12 @@ export const useSendMessageHandler = ({
         if (validFiles.length > 0) {
           const renamedFiles = validFiles.map((file, index) => renameFile(file, index));
 
-          const tempMessageMap = new Map<number, string>();
+          const tempMessageIds: number[] = [];
 
           renamedFiles.forEach((file) => {
             const tempId = generateTempMessageId();
+            tempMessageIds.push(tempId);
+
             const tempMsg = createTempImageMessage({
               file,
               messageText: trimmed,
@@ -173,7 +175,6 @@ export const useSendMessageHandler = ({
               tempId,
             });
 
-            tempMessageMap.set(tempId, file.name);
             updateConversationMessagesCache(tempMsg);
           });
 
@@ -198,14 +199,10 @@ export const useSendMessageHandler = ({
           const results = await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMsgId);
 
           if (replaceTempMessage) {
-            results.forEach((result) => {
-              if (result.success && result.messageId && result.fileName) {
-                for (const [tempId, fileName] of tempMessageMap.entries()) {
-                  if (fileName === result.fileName) {
-                    replaceTempMessage(tempId, result.messageId);
-                    break;
-                  }
-                }
+            results.forEach((result, index) => {
+              if (result.success && result.messageId && index < tempMessageIds.length) {
+                const tempId = tempMessageIds[index];
+                replaceTempMessage(tempId, result.messageId);
               }
             });
           }
@@ -259,7 +256,7 @@ export const useSendMessageHandler = ({
       if (!filesWithCaptions || filesWithCaptions.length === 0) return;
 
       const parentMsgId = selectedMessage?.id ?? null;
-      const tempMessageMap = new Map<number, string>();
+      const tempMessageIds: number[] = [];
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
@@ -271,6 +268,8 @@ export const useSendMessageHandler = ({
 
         preparedFiles.forEach(({ file, caption }) => {
           const tempId = generateTempMessageId();
+          tempMessageIds.push(tempId);
+
           const tempMsg = createTempImageMessage({
             file,
             messageText: caption,
@@ -279,7 +278,6 @@ export const useSendMessageHandler = ({
             tempId,
           });
 
-          tempMessageMap.set(tempId, file.name);
           updateConversationMessagesCache(tempMsg);
         });
 
@@ -297,14 +295,10 @@ export const useSendMessageHandler = ({
         const results = await uploadFilesFromWebWithCaptions(preparedFiles, parentMsgId);
 
         if (replaceTempMessage) {
-          results.forEach((result) => {
-            if (result.success && result.messageId && result.fileName) {
-              for (const [tempId, fileName] of tempMessageMap.entries()) {
-                if (fileName === result.fileName) {
-                  replaceTempMessage(tempId, result.messageId);
-                  break;
-                }
-              }
+          results.forEach((result, index) => {
+            if (result.success && result.messageId && index < tempMessageIds.length) {
+              const tempId = tempMessageIds[index];
+              replaceTempMessage(tempId, result.messageId);
             }
           });
         }
