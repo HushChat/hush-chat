@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class MessageAttachmentService {
     private static final Logger logger = LoggerFactory.getLogger(MessageAttachmentService.class);
-    private static final String TENOR_GIF_BASE_URL = "https://media.tenor.com";
+    private static final String TENOR_GIF_URL_KEY = "tenor.com";
     private static final String GIF_FILE_PREFIX = "tenor_gif_";
     private static final String GIF_FILE_EXTENSION = ".gif";
 
@@ -74,7 +74,7 @@ public class MessageAttachmentService {
      */
     @Transactional
     public MessageAttachment createGifAttachment(String gifUrl, Message message) {
-        if (!gifUrl.isEmpty() && !gifUrl.startsWith(TENOR_GIF_BASE_URL)) {
+        if (!gifUrl.isEmpty() && !gifUrl.contains(TENOR_GIF_URL_KEY)) {
             throw new CustomBadRequestException("Invalid Tenor GIF URL");
         }
 
