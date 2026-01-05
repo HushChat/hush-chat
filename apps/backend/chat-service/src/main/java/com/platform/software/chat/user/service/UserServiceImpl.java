@@ -156,8 +156,6 @@ public class UserServiceImpl implements UserService {
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
 
-        getUserByEmail(email);
-
         try {
             LoginResponseDTO loginResponseDTO = cognitoService.authenticateUser(email, loginDTO.getPassword());
 
