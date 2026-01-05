@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo } from "react";
+import React, { forwardRef, useMemo, useEffect, useRef } from "react";
 import {
   TextInput,
   TextInputContentSizeChangeEvent,
@@ -55,6 +55,9 @@ const MessageTextArea = forwardRef<TextInput, IMessageTextAreaProps>(
     },
     ref
   ) => {
+    const measureRef = useRef<HTMLDivElement>(null);
+    const textInputRef = useRef<TextInput>(null);
+
     const computedInputStyle = useMemo(
       () => ({
         minHeight,
@@ -75,30 +78,71 @@ const MessageTextArea = forwardRef<TextInput, IMessageTextAreaProps>(
       [minHeight, maxHeight, inputHeight, lineHeight, verticalPadding]
     );
 
+    useEffect(() => {
+      if (PLATFORM.IS_WEB && measureRef.current) {
+        const height = measureRef.current.scrollHeight;
+        onContentSizeChange({
+          nativeEvent: {
+            contentSize: { width: 0, height },
+          },
+        } as TextInputContentSizeChangeEvent);
+      }
+    }, [value, onContentSizeChange]);
+
     return (
-      <AppTextInput
-        ref={ref}
-        className={classNames(
-          "flex-1 text-base text-text-primary-light dark:text-text-primary-dark",
-          PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-2"
+      <>
+        <AppTextInput
+          ref={(instance) => {
+            textInputRef.current = instance;
+            if (typeof ref === "function") {
+              ref(instance);
+            } else if (ref) {
+              ref.current = instance;
+            }
+          }}
+          className={classNames(
+            "flex-1 text-base text-text-primary-light dark:text-text-primary-dark",
+            PLATFORM.IS_WEB ? "py-4 custom-scrollbar" : "py-2"
+          )}
+          style={computedInputStyle}
+          placeholder={placeholder}
+          placeholderTextColor={COLOR_PLACEHOLDER}
+          editable={!disabled}
+          multiline
+          scrollEnabled
+          autoFocus={autoFocus}
+          submitBehavior={PLATFORM.IS_WEB ? "submit" : "newline"}
+          returnKeyType={PLATFORM.IS_WEB ? "send" : "default"}
+          value={value}
+          onChangeText={onChangeText}
+          onContentSizeChange={onContentSizeChange}
+          onSelectionChange={onSelectionChange}
+          onKeyPress={onKeyPress}
+          onSubmitEditing={onSubmitEditing}
+          enablesReturnKeyAutomatically
+        />
+
+        {PLATFORM.IS_WEB && (
+          <div
+            ref={measureRef}
+            style={{
+              position: "absolute",
+              visibility: "hidden",
+              pointerEvents: "none",
+              whiteSpace: "pre-wrap",
+              wordWrap: "break-word",
+              fontSize: INPUT_FONT_SIZE,
+              fontFamily: "Poppins-Regular",
+              lineHeight: `${lineHeight + WEB_LINE_HEIGHT_ADJUST}px`,
+              padding: `${verticalPadding}px ${INPUT_PADDING_RIGHT_PX}px ${verticalPadding}px 0`,
+              width: "100%",
+              maxWidth: "100%",
+            }}
+          >
+            {value || " "}
+          </div>
         )}
-        style={computedInputStyle}
-        placeholder={placeholder}
-        placeholderTextColor={COLOR_PLACEHOLDER}
-        editable={!disabled}
-        multiline
-        scrollEnabled
-        autoFocus={autoFocus}
-        submitBehavior={PLATFORM.IS_WEB ? "submit" : "newline"}
-        returnKeyType={PLATFORM.IS_WEB ? "send" : "default"}
-        value={value}
-        onChangeText={onChangeText}
-        onContentSizeChange={onContentSizeChange}
-        onSelectionChange={onSelectionChange}
-        onKeyPress={onKeyPress}
-        onSubmitEditing={onSubmitEditing}
-        enablesReturnKeyAutomatically
-      />
+      </>
     );
   }
 );
