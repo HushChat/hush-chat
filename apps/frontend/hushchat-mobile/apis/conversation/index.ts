@@ -222,6 +222,9 @@ export const setLastSeenMessageByConversationId = async (
       CONVERSATION_API_ENDPOINTS.SET_LAST_SEEN_MESSAGE(conversationId),
       {
         messageId,
+      },
+      {
+        skipErrorToast: true,
       }
     );
     return { data: response.data };
@@ -234,7 +237,10 @@ export const setLastSeenMessageByConversationId = async (
 export const getLastSeenMessageByConversationId = async (conversationId: number) => {
   try {
     const response = await axios.get(
-      CONVERSATION_API_ENDPOINTS.GET_LAST_SEEN_MESSAGE(conversationId)
+      CONVERSATION_API_ENDPOINTS.GET_LAST_SEEN_MESSAGE(conversationId),
+      {
+        skipErrorToast: true,
+      }
     );
     return response.data;
   } catch (error: unknown) {
