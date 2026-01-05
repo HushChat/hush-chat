@@ -26,6 +26,13 @@ export enum UploadType {
   GROUP = "group",
 }
 
+export interface FailedUploadData {
+  fileUri: string;
+  signedUrl: string;
+  fileType: string;
+  fileName: string;
+}
+
 export const MAX_IMAGE_KB = 1024 * 5;
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
@@ -85,45 +92,36 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
   return [];
 };
 
-/**
- * Helper to retry a PUT request to S3
- */
-export const uploadWithRetry = async (
-  url: string,
-  blob: Blob,
-  fileType: string,
-  maxRetries = 3
-) => {
-  let lastError: any;
+export const uploadBlobToS3 = async (fileUri: string, signedUrl: string, fileType: string) => {
+  const blob = await (await fetch(fileUri)).blob();
+  const response = await fetch(signedUrl, {
+    method: "PUT",
+    body: blob,
+    headers: {
+      "Content-Type": fileType || blob.type || "application/octet-stream",
+    },
+  });
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await fetch(url, {
-        method: "PUT",
-        body: blob,
-        headers: {
-          "Content-Type": fileType,
-        },
-      });
+  if (!response.ok) {
+    const errorText = await response.text(); // Get S3 error message if available
+    throw new Error(`S3 Upload Failed: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+};
 
-      if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error("URL_EXPIRED");
-        }
-        throw new Error(`Upload failed with status ${response.status}`);
-      }
-
-      return response;
-    } catch (error: any) {
-      lastError = error;
-      console.log(`Upload attempt ${attempt} failed. Retrying...`);
-
-      if (attempt < maxRetries && error.message !== "URL_EXPIRED") {
-        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-      } else {
-        throw lastError;
-      }
-    }
+export const retryS3Upload = async (localUri: string, signedUrl: string, fileType: string) => {
+  try {
+    const blob = await (await fetch(localUri)).blob();
+    const response = await fetch(signedUrl, {
+      method: "PUT",
+      body: blob,
+      headers: {
+        "Content-Type": fileType || "application/octet-stream",
+      },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Retry failed:", error);
+    return false;
   }
 };
 
@@ -181,7 +179,13 @@ export const pickAndUploadImage = async (
 
 export const uploadImageToSignedUrl = async (fileUri: string, signedUrl: string) => {
   const blob = await (await fetch(fileUri)).blob();
-  return await uploadWithRetry(signedUrl, blob, blob.type);
+  await fetch(signedUrl, {
+    method: "PUT",
+    body: blob,
+    headers: {
+      "Content-Type": blob.type,
+    },
+  });
 };
 
 export const getImageSignedUrl = async (
@@ -418,12 +422,8 @@ export function useMessageAttachmentUploader(
         }
 
         try {
-          const blob = await (await fetch(file.uri)).blob();
-          await uploadWithRetry(
-            signed.url,
-            blob,
-            file.type || blob.type || "application/octet-stream"
-          );
+          await uploadBlobToS3(file.uri, signed.url, file.type || "application/octet-stream");
+
           results.push({ success: true, fileName: file.name, signed });
         } catch (e: any) {
           results.push({
@@ -465,28 +465,14 @@ export function useMessageAttachmentUploader(
     return uploadFilesFromWebWithCaptions(filesWithCaptions);
   };
 
-  const retryUpload = async (file: File, signedUrl: string): Promise<UploadResult> => {
-    try {
-      await uploadWithRetry(signedUrl, file, file.type || "application/octet-stream");
-      return { success: true, fileName: file.name, signed: { url: signedUrl } as any };
-    } catch (e: any) {
-      return {
-        success: false,
-        fileName: file.name,
-        error: e?.message ?? "Retry failed",
-        signed: { url: signedUrl } as any,
-      };
-    }
-  };
-
   return {
     ...hook,
     pickAndUploadImagesAndVideos,
     pickAndUploadDocuments,
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
-    retryUpload,
     isUploading: isUploadingWebFiles,
     sendGifMessage,
+    retryS3Upload,
   };
 }

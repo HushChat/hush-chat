@@ -8,6 +8,7 @@ import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
 import { getFileType } from "@/utils/files/getFileType";
 import { ToastUtils } from "@/utils/toastUtils";
+import { FailedUploadData } from "@/apis/photo-upload-service/photo-upload-service";
 
 export type TFileWithCaption = {
   file: File;
@@ -31,6 +32,7 @@ interface IUseSendMessageHandlerParams {
     messageText: string,
     parentMessageId?: number | null
   ) => Promise<IMessage>;
+  setFailedUploads: React.Dispatch<React.SetStateAction<Record<number, FailedUploadData>>>;
 }
 
 let tempMessageIdCounter = -1;
@@ -109,6 +111,7 @@ export const useSendMessageHandler = ({
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
   sendGifMessage,
+  setFailedUploads,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache } =
     useConversationMessagesQuery(currentConversationId);
@@ -242,15 +245,17 @@ export const useSendMessageHandler = ({
           })
         );
 
+        const tempMessagesWithIds: { msg: IMessage; file: File }[] = [];
+
         preparedFiles.forEach(({ file, caption }) => {
-          updateConversationMessagesCache(
-            createTempImageMessage({
-              file,
-              messageText: caption,
-              conversationId: currentConversationId,
-              senderId: Number(currentUserId),
-            })
-          );
+          const tempMsg = createTempImageMessage({
+            file,
+            messageText: caption,
+            conversationId: currentConversationId,
+            senderId: Number(currentUserId),
+          });
+          tempMessagesWithIds.push({ msg: tempMsg, file });
+          updateConversationMessagesCache(tempMsg);
         });
 
         const lastItem = preparedFiles[preparedFiles.length - 1];
@@ -267,6 +272,23 @@ export const useSendMessageHandler = ({
           preparedFiles,
           selectedMessage?.id ?? null
         );
+
+        results.forEach((result, index) => {
+          if (!result.success && result.signed?.url) {
+            const associatedMsgId = tempMessagesWithIds[index].msg.id;
+            const associatedFile = tempMessagesWithIds[index].file;
+
+            setFailedUploads((prev) => ({
+              ...prev,
+              [associatedMsgId]: {
+                fileUri: URL.createObjectURL(associatedFile),
+                signedUrl: result.signed!.url,
+                fileType: associatedFile.type,
+                fileName: associatedFile.name,
+              },
+            }));
+          }
+        });
 
         const failedCount = results.filter((r) => !r.success).length;
         if (failedCount > 0) {

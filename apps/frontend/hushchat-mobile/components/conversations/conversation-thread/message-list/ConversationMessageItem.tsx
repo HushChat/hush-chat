@@ -5,7 +5,7 @@
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GestureResponderEvent, View, StyleSheet } from "react-native";
+import { GestureResponderEvent, View, StyleSheet, Pressable } from "react-native";
 import { format } from "date-fns";
 import {
   ConversationAPIResponse,
@@ -77,6 +77,8 @@ interface MessageItemProps {
   webMessageInfoPress?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
   onEditMessage?: (message: IMessage) => void;
+  isFailed?: boolean;
+  onRetry?: () => void;
 }
 
 const REMOVE_ONE = 1;
@@ -106,6 +108,8 @@ export const ConversationMessageItem = ({
   webMessageInfoPress,
   onMarkMessageAsUnread,
   onEditMessage,
+  isFailed,
+  onRetry,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -504,27 +508,34 @@ export const ConversationMessageItem = ({
             />
 
             {renderParentMessage()}
-
             <View className={isCurrentUser ? "self-end" : "self-start"}>
-              <MessageHighlightWrapper
-                isHighlighted={message.id === targetMessageId}
-                glowColor="#3B82F6"
-              >
-                <MessageBubble
-                  message={message}
-                  isCurrentUser={isCurrentUser}
-                  hasText={hasText}
-                  hasAttachments={hasAttachments}
-                  hasMedia={hasMedia}
-                  selected={selected}
-                  selectionMode={selectionMode}
-                  isForwardedMessage={isForwardedMessage}
-                  attachments={attachments}
-                  onBubblePress={handleBubblePress}
-                  onMentionClick={handleMentionClick}
-                  isMessageEdited={isMessageEdited}
-                />
-              </MessageHighlightWrapper>
+              <View className="flex-row items-center gap-x-2">
+                {isFailed && (
+                  <Pressable onPress={onRetry} className="mr-2 p-1 bg-red-100 rounded-full">
+                    <Ionicons name="refresh" size={20} color="red" />
+                  </Pressable>
+                )}
+
+                <MessageHighlightWrapper
+                  isHighlighted={message.id === targetMessageId}
+                  glowColor="#3B82F6"
+                >
+                  <MessageBubble
+                    message={message}
+                    isCurrentUser={isCurrentUser}
+                    hasText={hasText}
+                    hasAttachments={hasAttachments}
+                    hasMedia={hasMedia}
+                    selected={selected}
+                    selectionMode={selectionMode}
+                    isForwardedMessage={isForwardedMessage}
+                    attachments={attachments}
+                    onBubblePress={handleBubblePress}
+                    onMentionClick={handleMentionClick}
+                    isMessageEdited={isMessageEdited}
+                  />
+                </MessageHighlightWrapper>
+              </View>
             </View>
 
             <MessageReactions

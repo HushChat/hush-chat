@@ -36,7 +36,11 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
-import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
+import {
+  FailedUploadData,
+  uploadBlobToS3,
+  useMessageAttachmentUploader,
+} from "@/apis/photo-upload-service/photo-upload-service";
 import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
@@ -76,6 +80,7 @@ const ConversationThreadScreen = ({
   } = useUserStore();
   const queryClient = useQueryClient();
   const { publishActivity } = useWebSocket();
+  const [failedUploads, setFailedUploads] = useState<Record<number, FailedUploadData>>({});
 
   const dropZoneRef = useRef<View>(null);
 
@@ -285,6 +290,7 @@ const ConversationThreadScreen = ({
     handleCloseImagePreview,
     updateConversationMessagesCache,
     sendGifMessage,
+    setFailedUploads,
   });
 
   const handleSendFilesFromPreview = useCallback(
@@ -344,6 +350,29 @@ const ConversationThreadScreen = ({
       });
     }
   }, [selectedMessageIds, webForwardPress]);
+
+  const handleRetryUpload = useCallback(
+    async (messageId: number) => {
+      const data = failedUploads[messageId];
+
+      if (!data) return;
+
+      try {
+        await uploadBlobToS3(data.fileUri, data.signedUrl, data.fileType);
+
+        setFailedUploads((prev) => {
+          const newState = { ...prev };
+          delete newState[messageId];
+          return newState;
+        });
+
+        ToastUtils.success("Retry successful");
+      } catch {
+        ToastUtils.error("Retry failed");
+      }
+    },
+    [failedUploads]
+  );
 
   const conversationMessages = useMemo(
     () => conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [],
@@ -407,6 +436,8 @@ const ConversationThreadScreen = ({
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
         onEditMessage={handleStartEditWithClearReply}
+        failedUploads={failedUploads}
+        onRetryUpload={handleRetryUpload}
       />
     );
   }, [
@@ -429,6 +460,7 @@ const ConversationThreadScreen = ({
     targetMessageId,
     handleTargetMessageScrolled,
     handleStartEditWithClearReply,
+    failedUploads,
   ]);
 
   const getDisabledMessageReason = useCallback(() => {

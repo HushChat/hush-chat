@@ -3,6 +3,7 @@ import { SectionListData } from "react-native";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
 import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
 import { shouldShowSenderAvatar, shouldShowSenderName } from "@/utils/messageUtils";
+import { FailedUploadData } from "@/apis/photo-upload-service/photo-upload-service";
 
 interface IRenderMessageParams {
   currentUserId: number | null | undefined;
@@ -24,6 +25,8 @@ interface IRenderMessageParams {
   webMessageInfoPress?: (messageId: number) => void;
   markMessageAsUnread: (msg: IMessage) => void;
   onEditMessage?: (msg: IMessage) => void;
+  failedUploads: Record<number, FailedUploadData>;
+  onRetryUpload: (messageId: number) => void;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -56,10 +59,13 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       webMessageInfoPress,
       markMessageAsUnread,
       onEditMessage,
+      failedUploads,
+      onRetryUpload,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
     const isSelected = selectedMessageIds.has(Number(item.id));
+    const isFailed = !!failedUploads[item.id];
 
     const showSenderAvatar = shouldShowSenderAvatar(
       section.data,
@@ -99,6 +105,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         webMessageInfoPress={webMessageInfoPress}
         onMarkMessageAsUnread={markMessageAsUnread}
         onEditMessage={onEditMessage}
+        isFailed={isFailed}
+        onRetry={() => onRetryUpload(item.id)}
       />
     );
   };

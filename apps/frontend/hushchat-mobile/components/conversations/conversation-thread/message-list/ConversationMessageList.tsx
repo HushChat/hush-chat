@@ -21,6 +21,7 @@ import { createRenderMessage } from "@/components/conversations/conversation-thr
 import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
 import { useRouter } from "expo-router";
 import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
+import { FailedUploadData } from "@/apis/photo-upload-service/photo-upload-service";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -39,6 +40,8 @@ interface IMessagesListProps {
   onTargetMessageScrolled?: () => void;
   webMessageInfoPress?: (messageId: number) => void;
   onEditMessage?: (message: IMessage) => void;
+  failedUploads: Record<number, FailedUploadData>;
+  onRetryUpload: (messageId: number) => void;
 }
 
 const ConversationMessageList = ({
@@ -57,6 +60,8 @@ const ConversationMessageList = ({
   onTargetMessageScrolled,
   webMessageInfoPress,
   onEditMessage,
+  failedUploads,
+  onRetryUpload,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -182,6 +187,8 @@ const ConversationMessageList = ({
         webMessageInfoPress,
         markMessageAsUnread,
         onEditMessage,
+        failedUploads,
+        onRetryUpload,
       }),
     [
       currentUserId,
@@ -203,6 +210,8 @@ const ConversationMessageList = ({
       webMessageInfoPress,
       markMessageAsUnread,
       onEditMessage,
+      failedUploads,
+      onRetryUpload,
     ]
   );
 
@@ -282,6 +291,7 @@ const ConversationMessageList = ({
           hasMoreNewer,
           isFetchingNewer,
           targetMessageId,
+          failedUploads,
         }}
       />
       {reactionsModal.visible && (
