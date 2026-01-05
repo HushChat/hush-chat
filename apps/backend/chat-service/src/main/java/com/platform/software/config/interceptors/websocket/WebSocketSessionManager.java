@@ -226,23 +226,6 @@ public class WebSocketSessionManager {
 
 
     /**
-     * Get all ws sessions for a specific user in a workspace
-     */
-    public List<WebSocketSessionInfoDAO> getSessionsForUser(
-            String workspaceId,
-            String email
-    ) {
-        String keyPrefix = String.format("%s:%s:", workspaceId, URLEncoder.encode(email, StandardCharsets.UTF_8));
-
-        return webSocketSessionInfos.entrySet()
-                .stream()
-                .filter(entry -> entry.getKey().startsWith(keyPrefix))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
-    }
-
-
-    /**
      * Get session information by STOMP session ID
      */
     public Optional<WebSocketSessionInfoDAO> getSessionByStompId(String stompSessionId) {
@@ -282,11 +265,6 @@ public class WebSocketSessionManager {
 
     private String getSessionKey(String tenantId, String email, String deviceId) {
         return String.format("%s:%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8), deviceId);
-    }
-
-    public boolean isUserConnected(String workspaceId, String email) {
-        List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
-        return sessions != null && !sessions.isEmpty();
     }
 
     public ChatUserStatus getUserChatStatus(String workspaceId, String email) {

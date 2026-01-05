@@ -56,8 +56,12 @@ public class TypingStatusWSService {
                         .startsWith(userTypingStatusUpsertDTO.getWorkspaceId() + ":")) {
                     continue;
                 }
+
+                String[] parts = info.getWsSessionId().split(":");
+                String userPrinciple = parts[0] + ":" + parts[1];
+
                 template.convertAndSendToUser(
-                        info.getWsSessionId(),
+                        userPrinciple,
                         WebSocketTopicConstants.TYPING_STATUS,
                         new UserTypingStatusDTO(
                                 user.getFirstName(),
