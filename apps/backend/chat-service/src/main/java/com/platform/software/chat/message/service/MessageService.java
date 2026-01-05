@@ -9,7 +9,9 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
+import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.Message;
@@ -64,6 +66,7 @@ public class MessageService {
     private final MessageUtilService messageUtilService;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final MessageMentionRepository messageMentionRepository;
+    private final MessageAttachmentRepository messageAttachmentRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -217,10 +220,13 @@ public class MessageService {
         Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
-        MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+        MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(),
+                savedMessage);
+
+        messageViewDTO.setMessageAttachments(getEnrichedAttachments(savedMessage.getId()));
+
         messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-        );
+                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace());
         return signedURLResponseDTO;
     }
 
@@ -255,6 +261,9 @@ public class MessageService {
                 );
                 messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
             }
+
+            List<MessageAttachmentDTO> attachmentDTOs = getEnrichedAttachments(savedMessage.getId());
+            messageViewDTO.setMessageAttachments(attachmentDTOs);
 
             createdMessages.add(messageViewDTO);
 
@@ -616,5 +625,20 @@ public class MessageService {
         });
 
         return messageMentionDTOPages;
+    }
+
+    private List<MessageAttachmentDTO> getEnrichedAttachments(Long messageId) {
+        return messageAttachmentRepository.findByMessageId(messageId)
+                .stream()
+                .map(attachment -> {
+                    MessageAttachmentDTO dto = new MessageAttachmentDTO(attachment);
+                    if (attachment.getType() == AttachmentTypeEnum.GIF) {
+                        dto.setFileUrl(attachment.getIndexedFileName());
+                    } else {
+                        dto.setFileUrl(
+                                cloudPhotoHandlingService.getPhotoViewSignedURL(attachment.getIndexedFileName()));
+                    }
+                    return dto;
+                }).toList();
     }
 }

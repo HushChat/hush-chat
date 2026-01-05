@@ -3,9 +3,6 @@ package com.platform.software.chat.message.service;
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
-import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
-import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
-import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.MessageUnsentWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
@@ -32,17 +29,14 @@ public class MessagePublisherService {
 
     private final ConversationUtilService conversationUtilService;
     private final WebSocketSessionManager webSocketSessionManager;
-    private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessagePublisherService(
             ConversationUtilService conversationUtilService,
             WebSocketSessionManager webSocketSessionManager,
-            MessageAttachmentRepository messageAttachmentRepository,
             CloudPhotoHandlingService cloudPhotoHandlingService) {
         this.conversationUtilService = conversationUtilService;
         this.webSocketSessionManager = webSocketSessionManager;
-        this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
     }
 
@@ -69,26 +63,12 @@ public class MessagePublisherService {
         // sender for non group conversations
         UserUtilService.setConversationNameForNonGroup(senderId, conversationDTO, true);
 
-        // TODO: This is a quick fix, refactor this later
-        List<MessageAttachmentDTO> attachmentDTOs = messageAttachmentRepository.findByMessageId(messageViewDTO.getId())
-                .stream()
-                .map(attachment -> {
-                    MessageAttachmentDTO messageAttachmentDTO = new MessageAttachmentDTO(attachment);
-
-                        if (attachment.getType() == AttachmentTypeEnum.GIF) {
-                                messageAttachmentDTO.setFileUrl(attachment.getIndexedFileName());
-                        } else {
-                                String fileViewSignedURL = cloudPhotoHandlingService
-                                                .getPhotoViewSignedURL(attachment.getIndexedFileName());
-
-                                messageAttachmentDTO.setFileUrl(fileViewSignedURL);
-                        }
-
-                    return messageAttachmentDTO;
-                })
-                .toList();
         messageViewDTO.setConversationId(conversationId);
-        messageViewDTO.setMessageAttachments(attachmentDTOs);
+
+        if (messageViewDTO.getMessageAttachments() != null
+                        && !messageViewDTO.getMessageAttachments().isEmpty()) {
+                messageViewDTO.setHasAttachment(true);
+        }
 
         conversationDTO.setMessages(List.of(messageViewDTO));
 
