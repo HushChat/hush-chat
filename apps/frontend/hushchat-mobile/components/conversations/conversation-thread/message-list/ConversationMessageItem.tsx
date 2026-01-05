@@ -445,7 +445,7 @@ export const ConversationMessageItem = ({
   }, []);
 
   const handleNamePress = useCallback(() => {
-    if (!message.senderId || message.senderId === Number(currentUserId)) return;
+    if (!message.senderId || String(message.senderId) === currentUserId) return;
 
     const senderAsUser: TUser = {
       id: Number(message.senderId),
