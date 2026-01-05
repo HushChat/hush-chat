@@ -76,7 +76,7 @@ const ChatHeader = ({
 
               <TypingIndicator
                 conversationId={conversationInfo.conversationId}
-                showText={isGroupChat}
+                isGroupChat={isGroupChat}
               />
             </View>
           </TouchableOpacity>

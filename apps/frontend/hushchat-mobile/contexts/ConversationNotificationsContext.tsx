@@ -27,7 +27,6 @@ import {
   MessageReactionActionEnum,
   MessageReactionPayload,
   MessageUnsentPayload,
-  TypingIndicator,
 } from "@/types/ws/types";
 
 const PAGE_SIZE = 20;
@@ -45,8 +44,6 @@ interface ConversationNotificationsContextValue {
   notificationConversation: IConversation | null;
   clearNotificationConversation: () => void;
   updateConversation: (conversationId: string | number, updates: Partial<IConversation>) => void;
-  typingUsers: Record<string, TypingIndicator>;
-  getTypingUsersForConversation: (conversationId: string | number) => TypingIndicator[];
 }
 
 const ConversationNotificationsContext = createContext<
@@ -62,10 +59,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
-
-  // Typing indicators state
-  const [typingUsers, setTypingUsers] = useState<Record<string, TypingIndicator>>({});
-
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
@@ -456,62 +449,12 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     );
   }, [userStatus, queryClient, conversationsQueryKey]);
-
-  /**
-   * Typing indicator listener
-   */
-  useEffect(() => {
-    const handleTypingIndicator = (typingIndicator: TypingIndicator) => {
-      const { chatUserName, conversationId, typing } = typingIndicator;
-
-      const key = `${conversationId}-${chatUserName}`;
-
-      setTypingUsers((prev) => {
-        if (typing) {
-          return { ...prev, [key]: typingIndicator };
-        }
-
-        const updated = { ...prev };
-        delete updated[key];
-        return updated;
-      });
-
-      // Auto-clear typing indicator after 2 seconds of inactivity
-      if (typing) {
-        setTimeout(() => {
-          setTypingUsers((prev) => {
-            const rest = { ...prev };
-            delete rest[key];
-            return rest;
-          });
-        }, 4500);
-      }
-    };
-
-    eventBus.on(CONVERSATION_EVENTS.TYPING, handleTypingIndicator);
-
-    return () => {
-      eventBus.off(CONVERSATION_EVENTS.TYPING, handleTypingIndicator);
-    };
-  }, []);
-
-  const getTypingUsersForConversation = useCallback(
-    (conversationId: string | number) => {
-      return Object.values(typingUsers).filter(
-        (indicator) => Number(indicator.conversationId) === Number(conversationId)
-      );
-    },
-    [typingUsers]
-  );
-
   return (
     <ConversationNotificationsContext.Provider
       value={{
         notificationConversation,
         clearNotificationConversation,
         updateConversation,
-        typingUsers,
-        getTypingUsersForConversation,
       }}
     >
       {children}

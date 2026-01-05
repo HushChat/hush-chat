@@ -8,7 +8,7 @@ import { useMessageInput } from "@/hooks/conversation-input/useMessageInput";
 import { useMentions } from "@/hooks/conversation-input/useMentions";
 import { useReplyHandler } from "@/hooks/conversation-input/useReplyHandler";
 import { useFilePicker } from "@/hooks/conversation-input/useFilePicker";
-import { useTypingIndicator } from "@/hooks/conversation-input/useTypingIndicator";
+import { useTypingActivity } from "@/hooks/conversation-input/useTypingActivity";
 
 type TConversationInputOptions = Pick<
   ConversationInputProps,
@@ -84,13 +84,9 @@ export function useConversationInput({
   const latestMessageTextRef = useRef(currentMessage);
   latestMessageTextRef.current = currentMessage;
 
-  const typingIndicator = useTypingIndicator(
-    (typing: any) => {
-      onTypingStatusChange?.(typing, conversationId);
-    },
-    1500, // Stop typing after 1.5s idle
-    15 // Minimum 15 characters
-  );
+  const typingActivity = useTypingActivity((typing: boolean) => {
+    onTypingStatusChange?.(typing, conversationId);
+  });
 
   useEffect(() => {
     if (editingMessage) {
@@ -148,7 +144,7 @@ export function useConversationInput({
       mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
       autoHeightController.updateHeightForClearedText(newTypedText);
 
-      typingIndicator.onType(newTypedText.length);
+      typingActivity.handleInputActivity(newTypedText.length);
     },
     [
       isControlledMode,
@@ -156,7 +152,7 @@ export function useConversationInput({
       messageInputController.onMessageTextChangedByUser,
       mentionsController.evaluateMentionQueryFromInput,
       autoHeightController.updateHeightForClearedText,
-      typingIndicator.onType,
+      typingActivity.handleInputActivity,
     ]
   );
 
@@ -232,7 +228,7 @@ export function useConversationInput({
         replyManagerRef.current.cancelReplyMode();
       }
 
-      typingIndicator.stopTyping();
+      typingActivity.stopTyping();
 
       requestAnimationFrame(() => messageTextInputRef.current?.focus());
     },
@@ -244,7 +240,7 @@ export function useConversationInput({
       autoHeightController.animateHeightResetToMinimum,
       mentionsController.clearActiveMentionQuery,
       mentionsController.clearValidMentions,
-      typingIndicator.stopTyping,
+      typingActivity.stopTyping,
     ]
   );
 
