@@ -14,6 +14,10 @@ export default () => ({
     owner: process.env.EAS_PROJECT_OWNER,
     ios: {
       supportsTablet: true,
+      infoPlist: {
+        NSFaceIDUsageDescription:
+          "We use Face ID to provide quick and secure login to your account.",
+      },
       associatedDomains: ["applinks:app.gethush.chat"],
     },
     android: {
@@ -36,6 +40,7 @@ export default () => ({
         },
       ],
       package: "com.hush.chat",
+      permissions: ["USE_BIOMETRIC", "USE_FINGERPRINT"],
       // versionCode: 2,
       // useNextNotificationsApi: true,
       // googleServicesFile: path.resolve(__dirname, 'google-services.json'),
@@ -51,6 +56,8 @@ export default () => ({
     },
     plugins: [
       "expo-router",
+      "expo-secure-store",
+      "expo-local-authentication",
       [
         "expo-splash-screen",
         {

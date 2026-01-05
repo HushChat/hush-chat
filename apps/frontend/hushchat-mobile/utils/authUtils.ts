@@ -75,15 +75,21 @@ export async function saveTokens(
 }
 
 /**
- * Clears all authentication tokens (ID, access, refresh) from storage.
+ * Clears authentication tokens.
+ * @param keepRefresh - If true, the refresh token is preserved to allow PIN login.
  */
-export async function clearTokens(): Promise<void> {
-  await Promise.all([
+export async function clearTokens(keepRefresh: boolean = false): Promise<void> {
+  const promises = [
     storage.remove(USER_TOKEN_KEY),
     storage.remove(ACCESS_TOKEN_KEY),
-    storage.remove(REFRESH_TOKEN_KEY),
     storage.remove(WORKSPACE),
-  ]);
+  ];
+
+  if (!keepRefresh) {
+    promises.push(storage.remove(REFRESH_TOKEN_KEY));
+  }
+
+  await Promise.all(promises);
 }
 
 /**
