@@ -1,5 +1,5 @@
 import React from "react";
-import { GestureResponderEvent, View } from "react-native";
+import { GestureResponderEvent, View, Pressable } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
@@ -18,6 +18,7 @@ interface IMessageHeaderProps {
   isRead?: boolean;
   onOpenPicker: () => void;
   onOpenMenu: (event: GestureResponderEvent) => void;
+  onClickSendernName?: () => void;
 }
 
 export const MessageHeader: React.FC<IMessageHeaderProps> = ({
@@ -33,6 +34,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   isRead = false,
   onOpenPicker,
   onOpenMenu,
+  onClickSendernName,
 }) => {
   return (
     <View
@@ -54,9 +56,11 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
       )}
 
       {isGroupChat && showSenderName && (
-        <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
-          {isCurrentUser ? "You" : senderName}
-        </AppText>
+        <Pressable onPress={onClickSendernName}>
+          <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
+            {isCurrentUser ? "You" : senderName}
+          </AppText>
+        </Pressable>
       )}
 
       <View className="flex-row items-center gap-1">
