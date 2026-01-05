@@ -1,18 +1,18 @@
 import React, { useCallback, useState } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
+import { EditPreview } from "@/components/conversation-input/EditPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
-import { SendButton } from "@/components/conversation-input/SendButton";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
+import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 
 const ConversationInput = ({
   conversationId,
@@ -27,6 +27,10 @@ const ConversationInput = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  editingMessage,
+  onCancelEdit,
+  onEditMessage,
+  hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
@@ -50,6 +54,9 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    editingMessage,
+    onCancelEdit,
+    onEditMessage,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -100,7 +107,11 @@ const ConversationInput = ({
 
   return (
     <View>
-      {input.replyToMessage && (
+      {input.isEditMode && input.editingMessage && (
+        <EditPreview message={input.editingMessage} onCancelEdit={input.handleCancelEdit} />
+      )}
+
+      {input.replyToMessage && !input.isEditMode && (
         <ReplyPreview
           replyToMessage={input.replyToMessage}
           onCancelReply={input.handleCancelReply}
@@ -110,7 +121,7 @@ const ConversationInput = ({
       <View className="p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-red-800">
         <Animated.View className="overflow-hidden">
           <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
-            {!isControlledMode && (
+            {!isControlledMode && !input.isEditMode && (
               <View className="mr-1">
                 <AttachmentButton
                   ref={input.addButtonRef}
@@ -141,38 +152,22 @@ const ConversationInput = ({
               />
             </View>
 
-            <View className="flex-row items-center ml-1">
-              <TouchableOpacity
-                onPress={openEmojiPicker}
-                className="p-1.5 justify-center items-center"
-                disabled={disabled}
-              >
-                <MaterialIcons name="emoji-emotions" size={22} color="#9CA3AF" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={openGifPicker}
-                className="p-1.5 justify-center items-center"
-                disabled={disabled}
-              >
-                <AntDesign name="gif" size={22} color="#9CA3AF" />
-              </TouchableOpacity>
-
-              {!hideSendButton && (
-                <View className="ml-1">
-                  <SendButton
-                    showSend={input.isValidMessage}
-                    isSending={isSending}
-                    onPress={handleSendButtonPress}
-                  />
-                </View>
-              )}
-            </View>
+            <ConversationInputActions
+              isEditMode={input.isEditMode}
+              hideEmojiGifPickers={hideEmojiGifPickers}
+              hideSendButton={hideSendButton}
+              disabled={disabled}
+              isValidMessage={input.isValidMessage}
+              isSending={isSending}
+              onOpenEmojiPicker={openEmojiPicker}
+              onOpenGifPicker={openGifPicker}
+              onSendPress={handleSendButtonPress}
+            />
           </View>
         </Animated.View>
       </View>
 
-      {!isControlledMode && (
+      {!isControlledMode && !input.isEditMode && (
         <MobileAttachmentModal
           visible={mobileMenuVisible}
           onClose={handleCloseMobileMenu}
@@ -188,21 +183,26 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
-      <EmojiPickerComponent
-        visible={showEmojiPicker}
-        onClose={closeEmojiPicker}
-        onEmojiSelect={(emoji) => {
-          input.handleChangeText(input.message + emoji);
-        }}
-      />
 
-      <GifPickerComponent
-        visible={showGifPicker}
-        onClose={closeGifPicker}
-        onGifSelect={(gifUrl) => {
-          onSendMessage?.("", undefined, undefined, gifUrl);
-        }}
-      />
+      {!input.isEditMode && !hideEmojiGifPickers && (
+        <>
+          <EmojiPickerComponent
+            visible={showEmojiPicker}
+            onClose={closeEmojiPicker}
+            onEmojiSelect={(emoji) => {
+              input.handleChangeText(input.message + emoji);
+            }}
+          />
+
+          <GifPickerComponent
+            visible={showGifPicker}
+            onClose={closeGifPicker}
+            onGifSelect={(gifUrl) => {
+              onSendMessage?.("", undefined, undefined, gifUrl);
+            }}
+          />
+        </>
+      )}
     </View>
   );
 };
