@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, StyleSheet, Dimensions, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { AppText } from "@/components/AppText";
@@ -7,7 +7,6 @@ import ConversationInput from "@/components/conversation-input/ConversationInput
 import { VideoPlayer } from "./ImageGrid/VideoPlayer";
 import { LocalFile } from "@/hooks/useNativePickerUpload";
 import { colorScheme } from "nativewind";
-import { PLATFORM } from "@/constants/platformConstants";
 
 type TFilePreviewPaneProps = {
   file: LocalFile;
@@ -58,32 +57,38 @@ const FilePreviewPane = ({
   if (!file) return null;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={PLATFORM.IS_IOS ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-    >
-      <View style={styles.previewContainer}>
+    <View className="flex-1 w-full">
+      {/* Preview Container */}
+      <View className="flex-1 justify-center items-center px-4 py-5 bg-background-light dark:bg-background-dark">
         {isImage ? (
-          <Image source={{ uri: file.uri }} style={styles.media} contentFit="contain" />
+          <Image
+            source={{ uri: file.uri }}
+            className="w-full h-full max-h-[500px]"
+            style={{ width: SCREEN_WIDTH - 32 }}
+            contentFit="contain"
+          />
         ) : isVideo ? (
-          <VideoPlayer uri={file.uri} style={styles.media} />
+          <View className="w-full h-full max-h-[500px] bg-black rounded-xl overflow-hidden">
+            <VideoPlayer uri={file.uri} style={{ width: "100%", height: "100%" }} />
+          </View>
         ) : (
-          <View style={styles.docPreview}>
+          <View className="items-center justify-center p-8 rounded-2xl max-w-[85%] bg-secondary-light/20 dark:bg-secondary-dark/30">
             <Ionicons name="document-text" size={80} color={iconColor} />
-            <AppText className="mt-4 text-lg text-center text-text-primary-light dark:text-text-primary-dark">
+            <AppText className="mt-4 text-lg text-center font-medium text-text-primary-light dark:text-text-primary-dark">
               {file.name}
             </AppText>
-            <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+            <AppText className="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">
               {file.size ? (file.size / 1024 / 1024).toFixed(2) : "?"} MB
             </AppText>
           </View>
         )}
       </View>
 
-      <View style={styles.childrenWrapper}>{children}</View>
+      {/* Thumbnail Strip (Injected via children) */}
+      {children && <View className="bg-black/5 dark:bg-black/20 pb-0">{children}</View>}
 
-      <View style={styles.inputWrapper}>
+      {/* Caption Input */}
+      <View className="px-2 pt-2 pb-2 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
         <ConversationInput
           conversationId={conversationId}
           onSendMessage={onSendFiles}
@@ -95,41 +100,11 @@ const FilePreviewPane = ({
           controlledValue={caption}
           onControlledValueChange={onCaptionChange}
           hideAttachmentBtn={true}
-          hideSendButton={false}
+          hideSendButton={true}
         />
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
 export default FilePreviewPane;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  previewContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  media: {
-    width: SCREEN_WIDTH,
-    height: "100%",
-  },
-  docPreview: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 12,
-  },
-  childrenWrapper: {
-    paddingBottom: 4,
-  },
-  inputWrapper: {
-    paddingHorizontal: 4,
-    paddingBottom: 4,
-  },
-});

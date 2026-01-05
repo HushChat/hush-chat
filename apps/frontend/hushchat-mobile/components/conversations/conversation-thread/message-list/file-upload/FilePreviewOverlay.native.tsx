@@ -1,17 +1,27 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colorScheme } from "nativewind";
+import classNames from "classnames";
 
 import { AppText } from "@/components/AppText";
 import { LocalFile } from "@/hooks/useNativePickerUpload";
 import { ToastUtils } from "@/utils/toastUtils";
 import { MAX_FILES } from "@/utils/fileValidation";
 
-// Import the new component
 import FilePreviewPane from "./FilePreviewPane";
+import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 
 export type NativeFileWithCaption = {
   file: LocalFile;
@@ -29,7 +39,6 @@ type TFilePreviewOverlayProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
-  onFileSelect?: any;
 };
 
 const THUMB_SIZE = 60;
@@ -50,7 +59,6 @@ const FilePreviewOverlay = ({
   const [captions, setCaptions] = useState<Map<number, string>>(new Map());
   const isDark = colorScheme.get() === "dark";
 
-  // 1. Get exact insets
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -72,6 +80,24 @@ const FilePreviewOverlay = ({
     [selectedIndex]
   );
 
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      setCaptions((prev) => {
+        const newCaptions = new Map<number, string>();
+        prev.forEach((caption, key) => {
+          if (key < index) {
+            newCaptions.set(key, caption);
+          } else if (key > index) {
+            newCaptions.set(key - 1, caption);
+          }
+        });
+        return newCaptions;
+      });
+      onRemoveFile(index);
+    },
+    [onRemoveFile]
+  );
+
   const handleSend = useCallback(() => {
     const filesWithCaptions = files.map((file, index) => ({
       file,
@@ -81,6 +107,19 @@ const FilePreviewOverlay = ({
     setCaptions(new Map());
   }, [files, captions, onSendFiles]);
 
+  const handleClose = useCallback(() => {
+    setCaptions(new Map());
+    onClose();
+  }, [onClose]);
+
+  const handleAddMore = useCallback(() => {
+    if (files.length >= MAX_FILES) {
+      ToastUtils.error(`Maximum ${MAX_FILES} files allowed.`);
+    } else {
+      onAddMoreTrigger?.();
+    }
+  }, [files.length, onAddMoreTrigger]);
+
   const renderThumbnail = (file: LocalFile, index: number) => {
     const isSelected = index === selectedIndex;
     const isVid = file.type && file.type.startsWith("video");
@@ -89,16 +128,23 @@ const FilePreviewOverlay = ({
       <TouchableOpacity
         key={`${file.uri}-${index}`}
         onPress={() => setSelectedIndex(index)}
-        style={[styles.thumbnailWrapper, isSelected && { borderColor: "#6B4EFF", borderWidth: 2 }]}
+        className={classNames(
+          "mr-2 rounded-lg overflow-hidden relative border-2",
+          isSelected ? "border-[#6B4EFF]" : "border-transparent"
+        )}
+        style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
       >
         {isVid ? (
-          <View style={styles.videoPlaceholder}>
+          <View className="w-full h-full bg-[#1a1a1a] justify-center items-center">
             <Ionicons name="videocam" size={20} color="white" />
           </View>
         ) : (
-          <Image source={{ uri: file.uri }} style={styles.thumbnail} contentFit="cover" />
+          <Image source={{ uri: file.uri }} className="w-full h-full" contentFit="cover" />
         )}
-        <TouchableOpacity style={styles.removeBtn} onPress={() => onRemoveFile(index)}>
+        <TouchableOpacity
+          className="absolute top-0.5 right-0.5 bg-black/60 rounded-full"
+          onPress={() => handleRemoveFile(index)}
+        >
           <Ionicons name="close-circle" size={18} color="white" />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -109,126 +155,102 @@ const FilePreviewOverlay = ({
 
   return (
     <Modal visible={files.length > 0} animationType="slide" onRequestClose={onClose}>
-      {/* 2. Use a View instead of SafeAreaView and apply insets manually */}
-      <View
-        style={[
-          styles.container,
-          { paddingBottom: insets.bottom }, // Handle bottom safe area
-        ]}
-      >
-        {/* Header */}
+      <View className="flex-1 bg-background-light dark:bg-background-dark">
+        {/* Header - Fixed at top */}
         <View
-          style={[
-            styles.header,
-            // 3. Apply top inset + extra 10px spacing
-            { paddingTop: insets.top + 10 },
-          ]}
+          style={{ paddingTop: insets.top + 10 }}
+          className="flex-row justify-between items-center px-4 pb-3 border-b border-black/10 dark:border-white/10 bg-background-light dark:bg-background-dark z-10"
         >
-          <TouchableOpacity onPress={onClose} style={styles.closeHeaderBtn}>
+          <TouchableOpacity onPress={handleClose} className="p-1">
             <Ionicons name="close" size={28} color={isDark ? "white" : "black"} />
           </TouchableOpacity>
-          <AppText className="text-lg font-bold text-text-primary-light dark:text-text-primary-dark">
-            Preview {files.length > 1 ? `(${selectedIndex + 1}/${files.length})` : ""}
+          <AppText
+            className="text-base font-semibold text-text-primary-light dark:text-text-primary-dark max-w-[70%]"
+            numberOfLines={1}
+          >
+            {currentFile.name || `File ${selectedIndex + 1}`}
           </AppText>
-          <View style={{ width: 28 }} />
+          <View className="flex-row items-center">
+            {files.length > 1 && (
+              <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark mr-2">
+                {selectedIndex + 1}/{files.length}
+              </AppText>
+            )}
+          </View>
         </View>
 
-        {/* Main Pane */}
-        <FilePreviewPane
-          file={currentFile}
-          conversationId={conversationId}
-          caption={captions.get(selectedIndex) || ""}
-          onCaptionChange={handleCaptionChange}
-          onSendFiles={handleSend}
-          isSending={isSending}
-          isGroupChat={isGroupChat}
-          replyToMessage={replyToMessage}
-          onCancelReply={onCancelReply}
+        {/* Keyboard Avoiding Content Wrapper */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={0}
         >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.thumbnailList}
-          >
-            <TouchableOpacity
-              style={styles.addMoreBtn}
-              onPress={() => {
-                if (files.length >= MAX_FILES) {
-                  ToastUtils.error("Max files reached");
-                } else {
-                  onAddMoreTrigger?.();
-                }
-              }}
-            >
-              <Ionicons name="add" size={24} color={isDark ? "white" : "black"} />
-            </TouchableOpacity>
-            {files.map(renderThumbnail)}
-          </ScrollView>
-        </FilePreviewPane>
+          {/* Main Preview Area - Tapping dismisses keyboard */}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View className="flex-1">
+              <FilePreviewPane
+                file={currentFile}
+                conversationId={conversationId}
+                caption={captions.get(selectedIndex) || ""}
+                onCaptionChange={handleCaptionChange}
+                onSendFiles={handleSend}
+                isSending={isSending}
+                isGroupChat={isGroupChat}
+                replyToMessage={replyToMessage}
+                onCancelReply={onCancelReply}
+              >
+                {/* Thumbnails passed as children to sit just above Input */}
+                {files.length > 0 && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      alignItems: "center",
+                    }}
+                    style={{ maxHeight: 90 }}
+                  >
+                    <TouchableOpacity
+                      className={classNames(
+                        "justify-center items-center mr-2 border rounded-lg",
+                        isDark
+                          ? "bg-white/10 border-white/20"
+                          : "bg-[#6B4EFF]/10 border-[#6B4EFF]/30"
+                      )}
+                      style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
+                      onPress={handleAddMore}
+                      disabled={files.length >= MAX_FILES}
+                    >
+                      <Ionicons
+                        name="add"
+                        size={24}
+                        color={files.length >= MAX_FILES ? "#9ca3af" : isDark ? "white" : "#6B4EFF"}
+                      />
+                    </TouchableOpacity>
+                    {files.map(renderThumbnail)}
+                  </ScrollView>
+                )}
+              </FilePreviewPane>
+            </View>
+          </TouchableWithoutFeedback>
+
+          {/* Footer - Pushed up by KeyboardAvoidingView */}
+          <View style={{ paddingBottom: insets.bottom }}>
+            <PreviewFooter
+              isSending={isSending}
+              isAtLimit={files.length >= MAX_FILES}
+              hasFiles={files.length > 0}
+              onAddMore={handleAddMore}
+              onClose={handleClose}
+              onSend={handleSend}
+              fileCount={files.length}
+            />
+          </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
 };
 
 export default FilePreviewOverlay;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 10, // Added slight bottom padding to header
-    backgroundColor: "transparent",
-  },
-  closeHeaderBtn: {
-    padding: 4,
-  },
-  thumbnailList: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-  },
-  thumbnailWrapper: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    marginRight: 8,
-    borderRadius: 8,
-    overflow: "hidden",
-    position: "relative",
-  },
-  thumbnail: {
-    width: "100%",
-    height: "100%",
-  },
-  videoPlaceholder: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#000",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  removeBtn: {
-    position: "absolute",
-    top: 2,
-    right: 2,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    borderRadius: 10,
-  },
-  addMoreBtn: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: 8,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
-  },
-});
