@@ -1,14 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  TouchableOpacity,
-  ScrollView,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  TouchableWithoutFeedback,
-} from "react-native";
+import { View, TouchableOpacity, ScrollView, Modal, Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +11,9 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { MAX_FILES } from "@/utils/fileValidation";
 
 import FilePreviewPane from "./FilePreviewPane";
-import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
+import PreviewFooter from "./PreviewFooter";
+import { PLATFORM } from "@/constants/platformConstants";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export type NativeFileWithCaption = {
   file: LocalFile;
@@ -38,9 +31,11 @@ type TFilePreviewOverlayProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
+  onFileSelect?: any;
 };
 
-const THUMB_SIZE = 60;
+const THUMB_SIZE = 64;
+const HEADER_HEIGHT = 60;
 
 const FilePreviewOverlay = ({
   files,
@@ -58,18 +53,23 @@ const FilePreviewOverlay = ({
   const [captions, setCaptions] = useState<Map<number, string>>(new Map());
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+  const isDark = useAppTheme();
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showEvent = PLATFORM.IS_IOS ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = PLATFORM.IS_IOS ? "keyboardWillHide" : "keyboardDidHide";
 
-    const showListener = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
-    const hideListener = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+    const showSubscription = Keyboard.addListener(showEvent, () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      setKeyboardVisible(false);
+    });
 
     return () => {
-      showListener.remove();
-      hideListener.remove();
+      showSubscription.remove();
+      hideSubscription.remove();
     };
   }, []);
 
@@ -142,22 +142,26 @@ const FilePreviewOverlay = ({
         onPress={() => setSelectedIndex(index)}
         className={classNames(
           "mr-2 rounded-lg overflow-hidden relative border-2",
-          isSelected ? "border-[#6B4EFF]" : "border-transparent"
+          isSelected ? "border-primary-light dark:border-primary-dark" : "border-transparent"
         )}
         style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
       >
         {isVid ? (
-          <View className="w-full h-full bg-[#1a1a1a] justify-center items-center">
+          <View className="w-full h-full bg-gray-900 justify-center items-center">
             <Ionicons name="videocam" size={20} color="white" />
           </View>
         ) : (
-          <Image source={{ uri: file.uri }} className="w-full h-full" contentFit="cover" />
+          <Image
+            source={{ uri: file.uri }}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+          />
         )}
         <TouchableOpacity
-          className="absolute top-0.5 right-0.5 bg-black/60 rounded-full"
+          className="absolute top-0.5 right-0.5 bg-black/50 rounded-full p-0.5"
           onPress={() => handleRemoveFile(index)}
         >
-          <Ionicons name="close-circle" size={18} color="white" />
+          <Ionicons name="close" size={14} color="white" />
         </TouchableOpacity>
       </TouchableOpacity>
     );
@@ -165,78 +169,103 @@ const FilePreviewOverlay = ({
 
   if (!currentFile) return null;
 
+  const headerOffset = insets.top + HEADER_HEIGHT;
+
   return (
     <Modal visible={files.length > 0} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-background-light dark:bg-background-dark">
-        {/* HEADER */}
+      <View
+        className="flex-1 bg-background-light dark:bg-background-dark"
+        style={{ paddingBottom: 0 }}
+      >
         <View
-          style={{ paddingTop: insets.top + 10 }}
-          className="flex-row justify-between items-center px-4 pb-3 border-b border-black/10 dark:border-white/10 bg-background-light dark:bg-background-dark z-10"
+          className="flex-row items-center px-4 border-b border-gray-100 dark:border-gray-800 bg-background-light dark:bg-background-dark z-10"
+          style={{ paddingTop: insets.top, height: headerOffset }}
         >
-          <AppText
-            className="text-base font-semibold text-text-primary-light dark:text-text-primary-dark max-w-[80%]"
-            numberOfLines={1}
+          <TouchableOpacity
+            onPress={handleClose}
+            className="p-2 -ml-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800"
           >
-            {currentFile.name || `File ${selectedIndex + 1}`}
-          </AppText>
-          <View className="flex-row items-center">
+            <Ionicons name="close" size={28} color={isDark ? "white" : "black"} />
+          </TouchableOpacity>
+
+          <View className="flex-1 mx-2">
+            <AppText
+              numberOfLines={1}
+              ellipsizeMode="middle"
+              className="text-lg font-bold text-center text-text-primary-light dark:text-text-primary-dark"
+            >
+              {currentFile.name}
+            </AppText>
             {files.length > 1 && (
-              <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark font-medium">
-                {selectedIndex + 1}/{files.length}
+              <AppText className="text-xs text-center text-text-secondary-light dark:text-text-secondary-dark">
+                {selectedIndex + 1} of {files.length}
               </AppText>
             )}
           </View>
+          <View style={{ width: 32 }} />
         </View>
 
-        {/* KEYBOARD HANDLING WRAPPER */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={{ flex: 1, justifyContent: "space-between" }}>
-              {/* CONTENT AREA: Takes all available space */}
-              <View style={{ flex: 1, overflow: "hidden" }}>
-                <FilePreviewPane
-                  file={currentFile}
-                  conversationId={conversationId}
-                  caption={captions.get(selectedIndex) || ""}
-                  onCaptionChange={handleCaptionChange}
-                  onSendFiles={handleSend}
-                  isSending={isSending}
-                  isGroupChat={isGroupChat}
-                  replyToMessage={replyToMessage}
-                  onCancelReply={onCancelReply}
-                >
-                  {/* THUMBNAILS (Passed as children) */}
-                  {files.length > 0 && (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{ paddingHorizontal: 16, alignItems: "center" }}
-                      style={{ maxHeight: 70, flexGrow: 0 }}
-                    >
-                      {files.map(renderThumbnail)}
-                    </ScrollView>
+        <View className="flex-1">
+          <FilePreviewPane
+            file={currentFile}
+            conversationId={conversationId}
+            caption={captions.get(selectedIndex) || ""}
+            onCaptionChange={handleCaptionChange}
+            onSendFiles={handleSend}
+            isSending={isSending}
+            isGroupChat={isGroupChat}
+            replyToMessage={replyToMessage}
+            onCancelReply={onCancelReply}
+            keyboardOffset={headerOffset}
+          >
+            {files.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                }}
+                className="max-h-24 bg-background-light/95 dark:bg-background-dark/95"
+                keyboardShouldPersistTaps="handled"
+              >
+                <TouchableOpacity
+                  onPress={handleAddMore}
+                  disabled={files.length >= MAX_FILES}
+                  className={classNames(
+                    "justify-center items-center mr-2 rounded-lg border border-dashed",
+                    files.length >= MAX_FILES
+                      ? "border-gray-300 bg-gray-50"
+                      : "border-primary-light/40 bg-primary-light/10 dark:border-primary-dark/40 dark:bg-primary-dark/10"
                   )}
-                </FilePreviewPane>
-              </View>
+                  style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
+                >
+                  <Ionicons
+                    name="add"
+                    size={28}
+                    color={files.length >= MAX_FILES ? "#9ca3af" : isDark ? "white" : "#6B4EFF"}
+                  />
+                </TouchableOpacity>
+                {files.map(renderThumbnail)}
+              </ScrollView>
+            )}
+          </FilePreviewPane>
+        </View>
 
-              {/* FOOTER: Zero padding if keyboard is open */}
-              <View style={{ paddingBottom: isKeyboardVisible ? 0 : insets.bottom }}>
-                <PreviewFooter
-                  isSending={isSending}
-                  isAtLimit={files.length >= MAX_FILES}
-                  hasFiles={files.length > 0}
-                  onAddMore={handleAddMore}
-                  onClose={handleClose}
-                  onSend={handleSend}
-                  fileCount={files.length}
-                />
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+        <View
+          style={{ opacity: isKeyboardVisible ? 0 : 1 }}
+          pointerEvents={isKeyboardVisible ? "none" : "auto"}
+        >
+          <PreviewFooter
+            isSending={isSending}
+            isAtLimit={files.length >= MAX_FILES}
+            hasFiles={files.length > 0}
+            onClose={handleClose}
+            onSend={handleSend}
+            fileCount={files.length}
+          />
+        </View>
       </View>
     </Modal>
   );
