@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, Dimensions } from "react-native";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { AppText } from "@/components/AppText";
@@ -20,8 +20,6 @@ type TFilePreviewPaneProps = {
   onCancelReply?: () => void;
   children?: React.ReactNode;
 };
-
-const SCREEN_WIDTH = Dimensions.get("window").width;
 
 const FilePreviewPane = ({
   file,
@@ -58,17 +56,16 @@ const FilePreviewPane = ({
 
   return (
     <View className="flex-1 w-full">
-      {/* Preview Container */}
-      <View className="flex-1 justify-center items-center px-4 py-5 bg-background-light dark:bg-background-dark">
+      {/* MEDIA PREVIEW CONTAINER - This takes all available space */}
+      <View className="flex-1 justify-center items-center px-4 bg-background-light dark:bg-background-dark overflow-hidden">
         {isImage ? (
           <Image
             source={{ uri: file.uri }}
-            className="w-full h-full max-h-[500px]"
-            style={{ width: SCREEN_WIDTH - 32 }}
+            style={{ width: "100%", height: "100%" }}
             contentFit="contain"
           />
         ) : isVideo ? (
-          <View className="w-full h-full max-h-[500px] bg-black rounded-xl overflow-hidden">
+          <View className="w-full h-full bg-black rounded-xl overflow-hidden">
             <VideoPlayer uri={file.uri} style={{ width: "100%", height: "100%" }} />
           </View>
         ) : (
@@ -84,24 +81,26 @@ const FilePreviewPane = ({
         )}
       </View>
 
-      {/* Thumbnail Strip (Injected via children) */}
-      {children && <View className="bg-black/5 dark:bg-black/20 pb-0">{children}</View>}
+      {/* THUMBNAILS (Injected via children) */}
+      <View className="bg-background-light dark:bg-background-dark">
+        {children && <View className="py-2 bg-black/5 dark:bg-black/20">{children}</View>}
 
-      {/* Caption Input */}
-      <View className="px-2 pt-2 pb-2 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
-        <ConversationInput
-          conversationId={conversationId}
-          onSendMessage={onSendFiles}
-          disabled={isSending}
-          isSending={isSending}
-          isGroupChat={isGroupChat}
-          replyToMessage={replyToMessage}
-          onCancelReply={onCancelReply}
-          controlledValue={caption}
-          onControlledValueChange={onCaptionChange}
-          hideAttachmentBtn={true}
-          hideSendButton={true}
-        />
+        {/* CAPTION INPUT */}
+        <View className="px-2 pt-2 pb-2 border-t border-gray-200 dark:border-gray-800">
+          <ConversationInput
+            conversationId={conversationId}
+            onSendMessage={onSendFiles}
+            disabled={isSending}
+            isSending={isSending}
+            isGroupChat={isGroupChat}
+            replyToMessage={replyToMessage}
+            onCancelReply={onCancelReply}
+            controlledValue={caption}
+            onControlledValueChange={onCaptionChange}
+            hideAttachmentBtn={true}
+            hideSendButton={true}
+          />
+        </View>
       </View>
     </View>
   );
