@@ -153,8 +153,10 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId);
 
         whereConditions = whereConditions.and(
-                qMessage.isNotNull().or(qConversation.isGroup.eq(true))
-        );
+                        qMessage.isNotNull()
+                                        .or(qConversation.isGroup.eq(true))
+                                        .or(qConversation.isGroup.eq(false).and(
+                                                        qConversationParticipant.isDeleted.isFalse())));
 
         if (isGroup) {
                 whereConditions = whereConditions.and(qConversation.isGroup.eq(isGroup));
@@ -285,7 +287,10 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         }
                     }
 
-                    return dto.getIsGroup() ? dto : null;
+                        return (dto.getIsGroup() || (participantEntity != null
+                                        && Boolean.FALSE.equals(participantEntity.getIsDeleted())))
+                                                        ? dto
+                                                        : null;
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

@@ -174,10 +174,13 @@ public class ConversationService {
      * @return a ConversationDTO with the created conversation data
      */
     @Transactional
-    public ConversationDTO createOneToOneConversation(ConversationUpsertDTO conversationUpsertDTO, Long loggedInUserId) {
-        Optional<ConversationDTO> existingConversation = sendIfConversationAlreadyExists(conversationUpsertDTO, loggedInUserId);
+    public ConversationDTO createOneToOneConversation(ConversationUpsertDTO conversationUpsertDTO,
+            Long loggedInUserId) {
+        Optional<ConversationDTO> existingConversation = sendIfConversationAlreadyExists(conversationUpsertDTO,
+                loggedInUserId);
         if (existingConversation.isPresent()) {
-            return existingConversation.get();
+            reactivateConversationForUser(existingConversation.get().getId(), loggedInUserId);
+            return getConversationDetails(existingConversation.get().getId(), loggedInUserId);
         }
         if (userService.isInteractionBlockedBetween(loggedInUserId, conversationUpsertDTO.getTargetUserId())) {
             logger.warn("user {} attempted to start a conversation with blocked user {}",
@@ -185,7 +188,8 @@ public class ConversationService {
             throw new CustomBadRequestException("Cannot start a conversation with this user!");
         }
 
-        Conversation conversation = createConversation(loggedInUserId, List.of(conversationUpsertDTO.getTargetUserId(), loggedInUserId), false);
+        Conversation conversation = createConversation(loggedInUserId,
+                List.of(conversationUpsertDTO.getTargetUserId(), loggedInUserId), false);
 
         return saveConversationAndBuildDTO(conversation);
     }
@@ -308,7 +312,7 @@ public class ConversationService {
      * @return a ConversationDTO containing conversation details
      */
     public ConversationDTO getConversationDetails(Long conversationId, Long userId) {
-
+        reactivateConversationForUser(conversationId, userId);
         return conversationParticipantRepository
                 .findConversationByUserIdAndConversationId(userId, conversationId)
                 .orElseThrow(() -> new CustomBadRequestException(
@@ -564,6 +568,7 @@ public class ConversationService {
 
         return true;
     }
+    
     /**
      * Retrieves messages from a specific conversation with pagination.
      * Each message includes seen status and reaction summary with current user's reaction types.
@@ -901,8 +906,6 @@ public class ConversationService {
 
         return new ParticipantProcessingResult(existingUserIds, reactivated);
     }
-
-
 
     /**
      * Creates a ConversationParticipant entity for a user in a conversation.
@@ -1244,7 +1247,6 @@ public class ConversationService {
         return dto;
     }
 
-
     @Transactional
     public boolean togglePinConversation(Long conversationId, Long loggedInUserId) {
         long updatedCount = participantCommandRepository.togglePinned(conversationId, loggedInUserId);
@@ -1312,7 +1314,6 @@ public class ConversationService {
         return conversationRepository.getChatSummaryForUser(userId);
     }
 
-
     /**
      * Deletes a conversation participant.
      *
@@ -1336,6 +1337,30 @@ public class ConversationService {
         } catch (Exception e) {
             logger.error("Failed to delete conversation participant for userId: {} in conversationId: {}", userId, conversationId, e);
             throw new CustomBadRequestException("Failed to delete conversation participant");
+        }
+    }
+
+    /**
+     * Reactivates a conversation participant by resetting the deletion status.
+     *
+     * @param conversationId the ID of the conversation
+     * @param userId         the ID of the user
+     */
+    @Transactional
+    public void reactivateConversationForUser(Long conversationId, Long userId) {
+        ConversationParticipant participant = conversationUtilService.getConversationParticipantOrThrow(conversationId,
+                userId);
+
+        if (Boolean.TRUE.equals(participant.getIsDeleted())) {
+            try {
+                participant.setIsDeleted(false);
+                conversationParticipantRepository.save(participant);
+                cacheService.evictByLastPartsForCurrentWorkspace(
+                        List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversationId));
+            } catch (Exception e) {
+                logger.error("failed to reactivate conversation participant for userId: {} in conversationId: {}",
+                        userId, conversationId, e);
+            }
         }
     }
 

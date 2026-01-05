@@ -123,15 +123,6 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     public Optional<ConversationDTO> findConversationById(Long conversationId) {
         QConversationParticipant cp = QConversationParticipant.conversationParticipant;
 
-        // TODO: Temporary fix - reset all isDeleted flags to false when recreating an existing conversation.
-        // Proper solution: Add a deleted_at timestamp column in the database,
-        // ensuring messages sent between deletion and rejoin are excluded when fetching messages.
-        queryFactory.update(cp)
-                .set(cp.isDeleted, false)
-                .where(cp.conversation.id.eq(conversationId)
-                        .and(cp.isDeleted.isTrue()))
-                .execute();
-
         List<Tuple> results = queryFactory
             .select(cp, qConversation, qUser)
             .from(cp)
