@@ -3,6 +3,7 @@ import { View, ActivityIndicator, TouchableOpacity, FlatList, ListRenderItem } f
 import { Ionicons } from "@expo/vector-icons";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 import { AppText, AppTextInput } from "@/components/AppText";
+import { TextInput } from "react-native-gesture-handler";
 
 export interface MultiSelectListProps<T, TPages = unknown> {
   selected: T[];
@@ -18,6 +19,8 @@ export interface MultiSelectListProps<T, TPages = unknown> {
   autoFocusSearch?: boolean;
 }
 
+const SEARCH_AUTOFOCUS_DELAY_MS = 350;
+
 export function MultiSelectList<T>({
   selected,
   onChange,
@@ -31,7 +34,7 @@ export function MultiSelectList<T>({
   renderChip,
   autoFocusSearch = false,
 }: MultiSelectListProps<T>) {
-  const searchInputRef = useRef<any>(null);
+  const searchInputRef = useRef<TextInput>(null);
 
   const { pages, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     queryResult;
@@ -46,7 +49,7 @@ export function MultiSelectList<T>({
         if (searchInputRef.current) {
           searchInputRef.current.focus();
         }
-      }, 350);
+      }, SEARCH_AUTOFOCUS_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [autoFocusSearch]);
