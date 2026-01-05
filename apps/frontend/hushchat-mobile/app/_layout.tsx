@@ -19,6 +19,7 @@ import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { useSecurityActionHandler } from "@/hooks/auth/useSecurityActionHandler";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
@@ -60,6 +61,7 @@ export default function RootLayout() {
 function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boolean }) {
   const segments = useSegments();
   const inAuthGroup = segments[0] === "(auth)";
+  useSecurityActionHandler();
 
   return (
     <>

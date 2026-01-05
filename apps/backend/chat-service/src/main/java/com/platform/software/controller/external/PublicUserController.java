@@ -1,5 +1,6 @@
 package com.platform.software.controller.external;
 
+import com.platform.software.chat.user.service.SecurityActionService;
 import com.platform.software.common.dto.LoginDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +22,16 @@ public class PublicUserController {
 
     private final UserService userService;
     private final CognitoService cognitoService;
+    private final SecurityActionService securityActionService;
 
     public PublicUserController(
             UserService userService,
-            CognitoService cognitoService
+            CognitoService cognitoService,
+            SecurityActionService securityActionService
     ) {
         this.userService = userService;
         this.cognitoService = cognitoService;
+        this.securityActionService = securityActionService;
     }
 
     @ApiOperation(value = "Create a new user in idp", response = UserDTO.class)
@@ -84,7 +88,7 @@ public class PublicUserController {
     @ApiOperation(value = "confirm forgot password", response = HttpStatus.class)
     @PostMapping("auth/confirm-forgot-password")
     public ResponseEntity<HttpStatus> confirmForgotPassword(@RequestBody PasswordResetDTO passwordResetDTO) {
-        cognitoService.confirmForgotPassword(passwordResetDTO);
+        securityActionService.confirmForgotPassword(passwordResetDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

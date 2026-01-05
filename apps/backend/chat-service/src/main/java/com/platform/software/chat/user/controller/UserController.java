@@ -3,6 +3,7 @@ package com.platform.software.chat.user.controller;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 
+import com.platform.software.chat.user.service.SecurityActionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -28,15 +29,17 @@ public class UserController {
     private final UserService userService;
     private final CallLogService callLogService;
     private final CognitoService cognitoService;
+    private final SecurityActionService securityActionService;
 
     public UserController(
         UserService userService, 
         CallLogService callLogService,
-        CognitoService cognitoService
-        ) {
+        CognitoService cognitoService,
+        SecurityActionService securityActionService) {
         this.userService = userService;
         this.callLogService = callLogService;
         this.cognitoService = cognitoService;
+        this.securityActionService = securityActionService;
     }
 
     /**
@@ -185,13 +188,10 @@ public class UserController {
     @ApiOperation(value = "change password", response = HttpStatus.class)
     @PostMapping("change-password")
     public ResponseEntity<HttpStatus> changePassword(
+        @AuthenticatedUser UserDetails authenticatedUser,
         @RequestBody UserResetPasswordDTO userResetPasswordDTO
     ) {
-        cognitoService.changePassword(
-            userResetPasswordDTO.getAccessToken(),
-            userResetPasswordDTO.getOldPassword(),
-            userResetPasswordDTO.getNewPassword()
-        );
+        securityActionService.changePassword(authenticatedUser.getEmail(), userResetPasswordDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

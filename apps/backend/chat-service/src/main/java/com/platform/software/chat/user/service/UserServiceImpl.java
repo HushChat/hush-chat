@@ -13,6 +13,7 @@ import com.platform.software.chat.conversation.repository.ConversationRepository
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
+import com.platform.software.chat.user.entity.AccountAdminSecurityAction;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserInfoRepository;
 import com.platform.software.chat.user.repository.UserQueryRepository;
@@ -156,21 +157,32 @@ public class UserServiceImpl implements UserService {
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
 
-        getUserByEmail(email);
+        ChatUser user = getUserByEmail(email);
 
         try {
             LoginResponseDTO loginResponseDTO = cognitoService.authenticateUser(email, loginDTO.getPassword());
+
+            resetSecurityActions(user);
 
             List<Workspace> workspaces = workspaceUserService.getAllWorkspaces(email);
             loginResponseDTO.setWorkspaces(workspaces);
             return loginResponseDTO;
         } catch (AwsServiceException awsServiceException) {
-            if(awsServiceException.awsErrorDetails().errorCode().equals(USER_NOT_CONFIRMED)){
+            if (awsServiceException.awsErrorDetails().errorCode().equals(USER_NOT_CONFIRMED)) {
                 throw new CustomCognitoServerErrorException("Please confirm your account.");
             }
             throw new CustomCognitoServerErrorException(awsServiceException.awsErrorDetails().errorMessage());
         } catch (Exception exception) {
             throw new CustomCognitoServerErrorException("Login failed");
+        }
+    }
+
+    private void resetSecurityActions(ChatUser user) {
+        boolean shouldCustomerSecurityActionsReset = user.getSecurityAction() != null &&
+            !user.getSecurityAction().equals(AccountAdminSecurityAction.ACCOUNT_INACTIVE);
+        if (shouldCustomerSecurityActionsReset) {
+            user.setSecurityAction(null);
+            userRepository.save(user);
         }
     }
 

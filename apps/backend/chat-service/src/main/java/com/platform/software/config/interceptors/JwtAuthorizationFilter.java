@@ -159,6 +159,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             UserDetails userDetails;
             try {
                 ChatUser user = userService.getUserByEmail(email);
+
+                if (user.getSecurityAction() != null) {
+                    ErrorResponseHandler.sendErrorResponse(response, HttpStatus.PRECONDITION_FAILED, user.getSecurityAction().getUserMessage());
+                    return;
+                }
+
                 userDetails = new UserDetails(
                     user.getId(), email, UserTypeEnum.valueOf(userType), WorkspaceContext.getCurrentWorkspace(),
                     workspaceUser != null ? workspaceUser.getRole() : null

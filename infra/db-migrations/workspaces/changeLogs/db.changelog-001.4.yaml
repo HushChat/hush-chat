@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: add security action column for chat_user
+      author: ishan
+      tag: release-14.1
+      changes:
+        - addColumn:
+            tableName: chat_user
+            columns:
+              - column:
+                  name: security_action
+                  type: VARCHAR(50)

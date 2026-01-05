@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth/authStore";
 import { useUserStore } from "@/store/user/useUserStore";
-import { setAPIDefaults, setupAuthorizationHeader } from "@/utils/apiUtils";
+import {
+  setAPIDefaults,
+  setupAuthorizationHeader,
+  setupResponseInterceptor,
+} from "@/utils/apiUtils";
 import { setupGlobalErrorHandling } from "@/utils/apiErrorUtils";
 import { NotificationFactory } from "@/utils/notifications/NotificationFactory";
 import { sendTokenToBackend } from "@/apis/user";
@@ -19,6 +23,7 @@ export function useAppInitialization(fontsLoaded: boolean) {
   useEffect(() => {
     setAPIDefaults();
     setupAuthorizationHeader();
+    setupResponseInterceptor();
     setupGlobalErrorHandling();
     initializeDeviceId();
   }, []);
