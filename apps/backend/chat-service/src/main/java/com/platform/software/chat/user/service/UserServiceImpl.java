@@ -1,7 +1,5 @@
 package com.platform.software.chat.user.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +20,6 @@ import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.AWSconfig;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
-import com.platform.software.config.interceptors.websocket.WebSocketSessionInfoDAO;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
@@ -155,8 +152,6 @@ public class UserServiceImpl implements UserService {
         
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
-
-        getUserByEmail(email);
 
         try {
             LoginResponseDTO loginResponseDTO = cognitoService.authenticateUser(email, loginDTO.getPassword());
@@ -515,18 +510,14 @@ public class UserServiceImpl implements UserService {
             throw new CustomInternalServerErrorException("Failed to Update Status");
         }
 
-        String workspaceId = authenticatedUser.getWorkspaceId();
+        String workspaceId = WorkspaceContext.getCurrentWorkspace();
 
-        List<WebSocketSessionInfoDAO> sessions = webSocketSessionManager.getSessionsForUser(workspaceId, user.getEmail());
-
-        for (WebSocketSessionInfoDAO session : sessions) {
-            String tenantId = session.getWsSessionId();
-            if (UserStatusEnum.BUSY.equals(user.getAvailabilityStatus())) {
-                webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, user.getAvailabilityStatus());
-            } else {
-                webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, UserStatusEnum.ONLINE);
-            }
-        }
+        webSocketSessionManager.updateStatusAndNotify(
+                workspaceId,
+                user.getEmail(),
+                status,
+                null
+        );
 
         cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL+":" + user.getEmail()));
         cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
