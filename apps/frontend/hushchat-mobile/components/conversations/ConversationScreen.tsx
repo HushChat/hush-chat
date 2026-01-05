@@ -118,11 +118,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
       isActive: selectedConversationType === ConversationType.ALL,
     },
     {
-      key: ConversationType.UNREAD,
-      label: "Unread",
-      isActive: selectedConversationType === ConversationType.UNREAD,
-    },
-    {
       key: ConversationType.FAVORITES,
       label: "Favorites",
       isActive: selectedConversationType === ConversationType.FAVORITES,
