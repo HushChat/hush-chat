@@ -26,6 +26,13 @@ export enum UploadType {
   GROUP = "group",
 }
 
+export interface FailedUploadData {
+  fileUri: string;
+  signedUrl: string;
+  fileType: string;
+  fileName: string;
+}
+
 export const MAX_IMAGE_KB = 1024 * 5;
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
@@ -83,6 +90,38 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
       }));
   }
   return [];
+};
+
+export const uploadBlobToS3 = async (fileUri: string, signedUrl: string, fileType: string) => {
+  const blob = await (await fetch(fileUri)).blob();
+  const response = await fetch(signedUrl, {
+    method: "PUT",
+    body: blob,
+    headers: {
+      "Content-Type": fileType || blob.type || "application/octet-stream",
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text(); // Get S3 error message if available as we need to handle signedUrl expiration as well
+    throw new Error(`S3 Upload Failed: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+};
+
+export const retryS3Upload = async (localUri: string, signedUrl: string, fileType: string) => {
+  try {
+    const blob = await (await fetch(localUri)).blob();
+    const response = await fetch(signedUrl, {
+      method: "PUT",
+      body: blob,
+      headers: {
+        "Content-Type": fileType || "application/octet-stream",
+      },
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 };
 
 export const pickAndUploadImage = async (
@@ -382,14 +421,8 @@ export function useMessageAttachmentUploader(
         }
 
         try {
-          const blob = await (await fetch(file.uri)).blob();
-          await fetch(signed.url, {
-            method: "PUT",
-            body: blob,
-            headers: {
-              "Content-Type": file.type || blob.type || "application/octet-stream",
-            },
-          });
+          await uploadBlobToS3(file.uri, signed.url, file.type || "application/octet-stream");
+
           results.push({ success: true, fileName: file.name, signed });
         } catch (e: any) {
           results.push({
@@ -439,5 +472,6 @@ export function useMessageAttachmentUploader(
     uploadFilesFromWebWithCaptions,
     isUploading: isUploadingWebFiles,
     sendGifMessage,
+    retryS3Upload,
   };
 }

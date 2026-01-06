@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { TouchableOpacity, View, ImageStyle, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,6 +41,7 @@ export const MediaItem = ({
   showOverlay = false,
   remainingCount = 0,
 }: IMediaItemProps) => {
+  const [hasError, setHasError] = useState(false);
   const fileName = attachment.originalFileName || attachment.indexedFileName || "";
   const fileType = getFileType(fileName);
   const isVideo = fileType === "video";
@@ -66,12 +67,23 @@ export const MediaItem = ({
       accessibilityLabel={isVideo ? "Video" : "Image"}
       accessibilityRole="button"
     >
-      <Image
-        source={{ uri: imageSource }}
-        style={style}
-        contentFit="cover"
-        cachePolicy="memory-disk"
-      />
+      {hasError ? (
+        <View className="flex-row p-1">
+          <AppText className="text-red-500 dark:text-red-500 font-semibold">
+            Failed to load image
+          </AppText>
+        </View>
+      ) : (
+        <Image
+          source={{ uri: imageSource }}
+          style={style}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          onError={() => {
+            setHasError(true);
+          }}
+        />
+      )}
 
       {isVideo && <VideoPlayOverlay />}
 
