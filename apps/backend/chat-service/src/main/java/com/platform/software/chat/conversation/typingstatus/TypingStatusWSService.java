@@ -36,7 +36,9 @@ public class TypingStatusWSService {
     }
 
     @Async
-    public void invokeUserIsTyping(UserTypingStatusUpsertDTO userTypingStatusUpsertDTO, String wsSessionId, Map<String, Object> sessionAttrs) {
+    public void invokeUserIsTyping(UserTypingStatusUpsertDTO userTypingStatusUpsertDTO, Map<String, Object> sessionAttrs) {
+
+        String wsSessionId = (String) sessionAttrs.get(GeneralConstants.USER_ID_ATTR);
 
         // Throttle typing invokes
         if (!typingThrottle.shouldSend(wsSessionId, userTypingStatusUpsertDTO.getConversationId()) || !userTypingStatusUpsertDTO.isTyping()) {
