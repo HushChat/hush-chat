@@ -68,7 +68,7 @@ public class MessageUtilService {
                     senderUserId, recipientId, conversation.getId());
 
                 // TODO: Replace with CustomBusinessRuleException once we standardize business rule violations
-                throw new CustomBadRequestException("Cannot interact with blocked conversations");
+                throw new CustomBadRequestException("Something went wrong!");
             }
         } else {
             boolean isActive = conversationRepository.getIsActiveByConversationIdAndUserId(conversation.getId(), senderUserId);
