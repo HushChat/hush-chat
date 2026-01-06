@@ -72,9 +72,7 @@ const ConversationInput = ({
   const handleKeyPress = useCallback(
     (event: any) => {
       input.specialCharHandler(event);
-      if (!hideSendButton) {
-        input.enterSubmitHandler(event);
-      }
+      input.enterSubmitHandler(event);
     },
     [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
   );

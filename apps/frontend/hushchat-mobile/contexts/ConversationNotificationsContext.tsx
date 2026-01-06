@@ -99,6 +99,12 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     const mergedConversation = {
       ...notificationConversation,
+
+      name: matchedNotification?.name ?? notificationConversation.name,
+      isGroup: matchedNotification?.isGroup ?? notificationConversation.isGroup,
+      signedImageUrl:
+        matchedNotification?.signedImageUrl ?? notificationConversation.signedImageUrl,
+
       chatUserStatus: matchedNotification?.chatUserStatus,
       unreadCount: updatedUnreadCount,
       deviceType: matchedNotification?.deviceType,

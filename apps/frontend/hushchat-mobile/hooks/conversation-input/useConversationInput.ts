@@ -141,9 +141,11 @@ export function useConversationInput({
       } else {
         messageInputController.onMessageTextChangedByUser(newTypedText);
       }
-      mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
-      autoHeightController.updateHeightForClearedText(newTypedText);
 
+      mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
+
+      autoHeightController.updateHeightForTextChange(newTypedText);
+      
       typingActivity.handleInputActivity(newTypedText.length);
     },
     [
@@ -151,7 +153,7 @@ export function useConversationInput({
       onControlledValueChange,
       messageInputController.onMessageTextChangedByUser,
       mentionsController.evaluateMentionQueryFromInput,
-      autoHeightController.updateHeightForClearedText,
+      autoHeightController.updateHeightForTextChange,
       typingActivity.handleInputActivity,
     ]
   );
