@@ -1,17 +1,16 @@
 package com.platform.software.chat.message.service;
 
+import com.platform.software.chat.conversation.dto.ConversationEventCreated;
 import com.platform.software.chat.conversation.dto.ConversationEventType;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
 import com.platform.software.chat.conversation.service.ConversationEventMessageService;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
-import com.platform.software.chat.message.dto.MessageCreatedEvent;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
-import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomInternalServerErrorException;
@@ -86,12 +85,11 @@ public class ConversationEventService {
         MessageViewDTO messageViewDTO = new MessageViewDTO(event.getMessage());
         conversationEventMessageService.setEventMessageText(event, messageViewDTO, actorUserId, true);
 
-        eventPublisher.publishEvent(new MessageCreatedEvent(
+        eventPublisher.publishEvent(new ConversationEventCreated(
                 WorkspaceContext.getCurrentWorkspace(),
                 conversationId,
                 messageViewDTO,
-                actorUserId,
-                event.getMessage()
+                actorUserId
         ));
 
         return event;

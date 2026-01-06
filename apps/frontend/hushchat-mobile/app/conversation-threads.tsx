@@ -91,7 +91,7 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const publishUserActivity = async () => {
       const { workspace } = await getAllTokens();
-      publishActivity({
+      await publishActivity({
         workspaceId: workspace as string,
         email,
         openedConversation: currentConversationId,
@@ -518,6 +518,7 @@ const ConversationThreadScreen = ({
           refetchConversationMessages={refetchConversationMessages}
           isLoadingConversationMessages={isLoadingConversationMessages}
           webPressSearch={webSearchPress}
+          isGroupChat={isGroupChat}
         />
 
         <KeyboardAvoidingView
