@@ -47,6 +47,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QMessage qMessage = QMessage.message;
     private static final QMessage qMessage2 = QMessage.message;
     private final WebSocketSessionManager webSocketSessionManager;
+    private static final QUserBlock qUserBlock = QUserBlock.userBlock;
 
     public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory, @Lazy WebSocketSessionManager webSocketSessionManager) {
         this.jpaQueryFactory = jpaQueryFactory;
@@ -182,6 +183,26 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                         .from(qMessage2)
                                         .where(qMessage2.conversation.eq(qConversation)))))
                 .where(whereConditions);
+        
+
+        List<Tuple> blockingRelationships = jpaQueryFactory
+                .select(qUserBlock.blocker.id, qUserBlock.blocked.id)
+                .from(qUserBlock)
+                .where(qUserBlock.blocker.id.eq(userId).or(qUserBlock.blocked.id.eq(userId)))
+                .fetch();
+
+        Set<Long> restrictedUserIds = new HashSet<>();
+
+        for (Tuple t : blockingRelationships) {
+            Long blockerId = t.get(qUserBlock.blocker.id);
+            Long blockedId = t.get(qUserBlock.blocked.id);
+
+            if (userId.equals(blockerId)) {
+                restrictedUserIds.add(blockedId);
+            } else {
+                restrictedUserIds.add(blockerId);
+            }
+        }
 
         boolean isValidSearchKey = StringUtils.hasText(conversationFilterCriteria.getSearchKeyword());
         if (isValidSearchKey) {
@@ -246,22 +267,32 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         }
 
                         if (needOtherParticipant && otherParticipant != null) {
-                            if (otherParticipant.getUser().getFirstName() != null && otherParticipant.getUser().getLastName() != null) {
+                            if (otherParticipant.getUser().getFirstName() != null
+                                    && otherParticipant.getUser().getLastName() != null) {
                                 String name = otherParticipant.getUser().getFirstName() + " " + otherParticipant.getUser().getLastName();
-                                String imageIndexedName = otherParticipant.getUser().getImageIndexedName();
+                                
                                 dto.setName(name);
-                                dto.setImageIndexedName(imageIndexedName);
 
-                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
+                                Long otherUserId = otherParticipant.getUser().getId();
+
+                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(
+                                        WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail());
 
                                 DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
                                         WorkspaceContext.getCurrentWorkspace(),
-                                        otherParticipant.getUser().getEmail()
-                                );
+                                        otherParticipant.getUser().getEmail());
 
-                                dto.setChatUserStatus(status);
-                                dto.setDeviceType(deviceType);
+
+                                if (restrictedUserIds.contains(otherUserId)) {
+                                    dto.setImageIndexedName(null);
+                                    dto.setChatUserStatus(ChatUserStatus.OFFLINE);
+                                    dto.setDeviceType(null);
+                                } else {
+                                    dto.setImageIndexedName(otherParticipant.getUser().getImageIndexedName());
+                                    dto.setChatUserStatus(status);
+                                    dto.setDeviceType(deviceType);
+                                }
                             }
                         }
                     }
