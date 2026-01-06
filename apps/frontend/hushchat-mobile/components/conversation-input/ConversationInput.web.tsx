@@ -15,9 +15,9 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { FileInput } from "@/components/conversation-input/FileInput";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
-import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 
 const ConversationInput = ({
   conversationId,
@@ -201,7 +201,7 @@ const ConversationInput = ({
             onEmojiSelect={handleEmojiSelect}
           />
 
-          <GifPickerComponent
+          <GifPicker
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={handleGifSelect}
