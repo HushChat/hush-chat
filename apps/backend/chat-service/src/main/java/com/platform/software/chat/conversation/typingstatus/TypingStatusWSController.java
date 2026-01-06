@@ -21,10 +21,9 @@ public class TypingStatusWSController {
     @MessageMapping("/typing")
     public void handleTypingIndicator(
             UserTypingStatusUpsertDTO userTypingStatusUpsertDTO,
-            Principal principal,
             @Header(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES)
             Map<String, Object> sessionAttrs
     ) {
-        typingStatusWSService.invokeUserIsTyping(userTypingStatusUpsertDTO, principal.getName(), sessionAttrs);
+        typingStatusWSService.invokeUserIsTyping(userTypingStatusUpsertDTO, sessionAttrs);
     }
 }
