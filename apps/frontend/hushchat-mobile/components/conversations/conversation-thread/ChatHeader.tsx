@@ -1,16 +1,18 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
-import RefreshButton from "@/components/RefreshButton";
+import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
 import { handleConversationNavigation } from "@/utils/commonUtils";
-import { ConversationInfo } from "@/types/chat/types";
-import { AppText } from "@/components/AppText";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
 import classNames from "classnames";
+import { eventBus } from "@/services/eventBus";
+import { USER_EVENTS } from "@/constants/ws/webSocketEventKeys";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { chatUserStatus, ConversationInfo, DeviceType, IUserStatus } from "@/types/chat/types";
+import RefreshButton from "@/components/RefreshButton";
 
 interface ChatHeaderProps {
   conversationInfo: ConversationInfo;
@@ -32,9 +34,38 @@ const ChatHeader = ({
   const isMobileLayout = useIsMobileLayout();
   const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
 
+  const [userPresence, setUserPresence] = useState<{
+    status: chatUserStatus;
+    deviceType: DeviceType;
+  } | null>(null);
+
+  const currentStatus = userPresence?.status ?? conversationInfo.chatUserStatus;
+  const currentDevice = userPresence?.deviceType ?? conversationInfo.deviceType;
+
   const handleProfileNavigate = useCallback(() => {
     handleConversationNavigation(onShowProfile, conversationInfo.conversationId, isMobileLayout);
-  }, [onShowProfile, conversationInfo.conversationId]);
+  }, [onShowProfile, conversationInfo.conversationId, isMobileLayout]);
+
+  useEffect(() => {
+    const handleStatusUpdate = (status: IUserStatus) => {
+      if (
+        status.conversationId === conversationInfo.conversationId &&
+        status.status &&
+        status.deviceType
+      ) {
+        setUserPresence({
+          status: status.status,
+          deviceType: status.deviceType,
+        });
+      }
+    };
+
+    eventBus.on(USER_EVENTS.PRESENCE, handleStatusUpdate);
+
+    return () => {
+      eventBus.off(USER_EVENTS.PRESENCE, handleStatusUpdate);
+    };
+  }, [conversationInfo.conversationId]);
 
   return (
     <View className="bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
@@ -60,7 +91,8 @@ const ChatHeader = ({
               size={AvatarSize.small}
               imageUrl={conversationInfo.signedImageUrl}
               showOnlineStatus={true}
-              userStatus={conversationInfo.chatUserStatus}
+              userStatus={currentStatus}
+              deviceType={currentDevice}
             />
             <AppText
               className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark flex-1"

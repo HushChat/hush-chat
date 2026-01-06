@@ -69,7 +69,7 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
-    public Page<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
+    public MessageWindowPage<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
@@ -116,7 +116,6 @@ public class MessageService {
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
-
 
         if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
             MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
@@ -240,6 +239,8 @@ public class MessageService {
         Long loggedInUserId
     ) {
         List<MessageViewDTO> createdMessages = new ArrayList<>();
+        String currentWorkspace = WorkspaceContext.getCurrentWorkspace();
+
         for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
             Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
             MessageViewDTO messageViewDTO = getMessageViewDTO(
@@ -259,9 +260,13 @@ public class MessageService {
 
             createdMessages.add(messageViewDTO);
 
-            messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-            );
+            eventPublisher.publishEvent(new MessageCreatedEvent(
+                    currentWorkspace,
+                    conversationId,
+                    messageViewDTO,
+                    loggedInUserId,
+                    savedMessage
+            ));
         }
 
         return createdMessages;
@@ -525,22 +530,20 @@ public class MessageService {
     public void unsendMessage(Long loggedInUserId, Long messageId) {
         Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId)
                 .orElseThrow(() -> new CustomBadRequestException(
-                        "Message not found, not owned by you, or you don’t have permission to delete it"
-                ));
+                        "Message not found, not owned by you, or you don’t have permission to delete it"));
 
-        if (message.getCreatedAt().before(Date.from(Instant.now().minus(24, ChronoUnit.HOURS)))) {
-            throw new CustomBadRequestException("You can only delete a message within 24 hours of sending it");
+        if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
+            throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");
         }
 
         message.setIsUnsend(true);
         messageRepository.save(message);
 
         eventPublisher.publishEvent(new MessageUnsentEvent(
-            WorkspaceContext.getCurrentWorkspace(),
-            message.getConversation().getId(),
-            message.getId(),
-            loggedInUserId
-        ));
+                WorkspaceContext.getCurrentWorkspace(),
+                message.getConversation().getId(),
+                message.getId(),
+                loggedInUserId));
     }
 
     /**
