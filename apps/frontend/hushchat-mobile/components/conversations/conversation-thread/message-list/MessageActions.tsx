@@ -13,6 +13,9 @@ interface IMessageActionsProps {
   onOpenMenu: (event: GestureResponderEvent) => void;
   currentUserId: string;
   isCurrentUser?: boolean;
+  showReaction?: boolean;
+  showMenu?: boolean;
+  showCopy?: boolean;
 }
 
 export const MessageActions: React.FC<IMessageActionsProps> = ({
@@ -23,6 +26,9 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
   onOpenMenu,
   currentUserId,
   isCurrentUser,
+  showReaction = true,
+  showMenu = true,
+  showCopy = true,
 }) => {
   if (!PLATFORM.IS_WEB || messageIsUnsend) return null;
 
@@ -42,21 +48,28 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
 
   return (
     <View className="flex-row items-center">
-      {!isCurrentUser && <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>}
+      {showCopy && !isCurrentUser && (
+        <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>
+      )}
+      {showReaction && (
+        <MessageAction onPress={onOpenPicker} disabled={!currentUserId || selectionMode}>
+          <View className="p-1 rounded items-center justify-center">
+            <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
+          </View>
+        </MessageAction>
+      )}
 
-      <MessageAction onPress={onOpenPicker} disabled={!currentUserId || selectionMode}>
-        <View className="p-1 rounded items-center justify-center">
-          <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
-        </View>
-      </MessageAction>
+      {showCopy && isCurrentUser && (
+        <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>
+      )}
 
-      {isCurrentUser && <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>}
-
-      <MessageAction onPress={onOpenMenu} disabled={selectionMode} style={{ marginLeft: 6 }}>
-        <View className="p-1 rounded items-center justify-center">
-          <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
-        </View>
-      </MessageAction>
+      {showMenu && (
+        <MessageAction onPress={onOpenMenu} disabled={selectionMode} style={{ marginLeft: 6 }}>
+          <View className="p-1 rounded items-center justify-center">
+            <Ionicons name="chevron-down-outline" size={16} color="#9CA3AF" />
+          </View>
+        </MessageAction>
+      )}
     </View>
   );
 };

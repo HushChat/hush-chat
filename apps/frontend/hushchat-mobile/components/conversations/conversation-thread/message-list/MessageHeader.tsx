@@ -52,6 +52,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
           onOpenMenu={onOpenMenu}
           currentUserId={currentUserId}
           isCurrentUser={isCurrentUser}
+          showReaction={false}
         />
       )}
 
@@ -82,6 +83,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
           onOpenMenu={onOpenMenu}
           currentUserId={currentUserId}
           isCurrentUser={isCurrentUser}
+          showReaction={false}
         />
       )}
     </View>

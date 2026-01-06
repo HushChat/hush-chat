@@ -7,6 +7,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureResponderEvent, View, StyleSheet } from "react-native";
 import { format } from "date-fns";
+import classNames from "classnames";
 import {
   ConversationAPIResponse,
   IMessage,
@@ -34,6 +35,7 @@ import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
+import { MessageActions } from "@/components/conversations/conversation-thread/message-list/MessageActions";
 import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
@@ -527,7 +529,25 @@ export const ConversationMessageItem = ({
 
             {renderParentMessage()}
 
-            <View className={isCurrentUser ? "self-end" : "self-start"}>
+            <View
+              className={classNames(
+                "flex-row items-center gap-2",
+                isCurrentUser ? "self-end" : "self-start"
+              )}
+            >
+              {isCurrentUser && (
+                <MessageActions
+                  messageText={message.messageText}
+                  messageIsUnsend={message.isUnsend}
+                  selectionMode={selectionMode}
+                  onOpenPicker={handleOpenPicker}
+                  onOpenMenu={openWebMenuAtEvent}
+                  currentUserId={currentUserId}
+                  isCurrentUser={isCurrentUser}
+                  showMenu={false}
+                  showCopy={false}
+                />
+              )}
               <MessageHighlightWrapper
                 isHighlighted={message.id === targetMessageId}
                 glowColor="#3B82F6"
@@ -547,6 +567,19 @@ export const ConversationMessageItem = ({
                   isMessageEdited={isMessageEdited}
                 />
               </MessageHighlightWrapper>
+              {!isCurrentUser && (
+                <MessageActions
+                  messageText={message.messageText}
+                  messageIsUnsend={message.isUnsend}
+                  selectionMode={selectionMode}
+                  onOpenPicker={handleOpenPicker}
+                  onOpenMenu={openWebMenuAtEvent}
+                  currentUserId={currentUserId}
+                  isCurrentUser={isCurrentUser}
+                  showMenu={false}
+                  showCopy={false}
+                />
+              )}
             </View>
 
             <MessageReactions
