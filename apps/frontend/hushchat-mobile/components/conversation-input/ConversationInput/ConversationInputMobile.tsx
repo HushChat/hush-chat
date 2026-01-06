@@ -10,12 +10,12 @@ import { useConversationInput } from "@/hooks/conversation-input/useConversation
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
-import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
-const ConversationInput = ({
+const ConversationInputMobile = ({
   conversationId,
   onSendMessage,
   onOpenImagePickerNative,
@@ -202,7 +202,7 @@ const ConversationInput = ({
             }}
           />
 
-          <GifPickerComponent
+          <GifPicker
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={(gifUrl) => {
@@ -215,4 +215,4 @@ const ConversationInput = ({
   );
 };
 
-export default ConversationInput;
+export default ConversationInputMobile;

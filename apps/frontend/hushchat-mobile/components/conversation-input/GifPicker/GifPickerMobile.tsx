@@ -11,7 +11,7 @@ import { GifPickerProps } from "@/types/chat/types";
 import { TenorGif } from "@/services/gifService";
 import LoadingState from "@/components/LoadingState";
 
-export const GifPickerComponent: React.FC<GifPickerProps> = ({ visible, onClose, onGifSelect }) => {
+export const GifPickerMobile = ({ visible, onClose, onGifSelect }: GifPickerProps) => {
   const { width } = useWindowDimensions();
   const numColumns = width >= 600 ? 3 : 2;
 
