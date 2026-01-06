@@ -1,5 +1,6 @@
 package com.platform.software.chat.message.service;
 
+import com.platform.software.chat.conversation.dto.ConversationEventCreated;
 import com.platform.software.chat.conversation.dto.ConversationEventType;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
@@ -86,12 +87,11 @@ public class ConversationEventService {
         MessageViewDTO messageViewDTO = new MessageViewDTO(event.getMessage());
         conversationEventMessageService.setEventMessageText(event, messageViewDTO, actorUserId, true);
 
-        eventPublisher.publishEvent(new MessageCreatedEvent(
+        eventPublisher.publishEvent(new ConversationEventCreated(
                 WorkspaceContext.getCurrentWorkspace(),
                 conversationId,
                 messageViewDTO,
-                actorUserId,
-                event.getMessage()
+                actorUserId
         ));
 
         return event;
