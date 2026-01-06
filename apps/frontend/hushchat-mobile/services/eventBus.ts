@@ -5,6 +5,7 @@ import {
   NotificationPayload,
   MessageUnsentPayload,
   MessageReactionPayload,
+  MessageRead,
 } from "@/types/ws/types";
 import { IConversation, IUserStatus } from "@/types/chat/types";
 import {
@@ -30,11 +31,7 @@ export type WebSocketEvents = {
     messageWithConversation: IConversation;
   };
   [CONVERSATION_EVENTS.TYPING]: TypingIndicator;
-  [CONVERSATION_EVENTS.MESSAGE_READ]: {
-    conversationId: number;
-    messageIds: string[];
-    userId: string;
-  };
+  [CONVERSATION_EVENTS.MESSAGE_READ]: MessageRead;
   [CONVERSATION_EVENTS.MESSAGE_DELIVERED]: {
     conversationId: number;
     messageIds: string[];
@@ -99,6 +96,10 @@ export const emitMessageReaction = (data: MessageReactionPayload) => {
 
 export const emitUserTyping = (typingIndicator: TypingIndicator) => {
   eventBus.emit(CONVERSATION_EVENTS.TYPING, typingIndicator);
+};
+
+export const emitMessageRead = (readStatus: MessageRead) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_READ, readStatus);
 };
 
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {

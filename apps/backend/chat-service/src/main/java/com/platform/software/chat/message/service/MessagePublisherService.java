@@ -2,7 +2,6 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.readstatus.dto.MessageReadStatusWSResponseDTO;
-import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
@@ -257,7 +256,7 @@ public class MessagePublisherService {
                 .forEach(email -> webSocketSessionManager.sendMessageToUser(
                         workspaceId,
                         email,
-                        WebSocketTopicConstants.MESSAGE_SEEN,
+                        WebSocketTopicConstants.MESSAGE_READ,
                         payload));
     }
 }
