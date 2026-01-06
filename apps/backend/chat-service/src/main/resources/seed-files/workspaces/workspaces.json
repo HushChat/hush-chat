@@ -1,8 +1,8 @@
 [
   {
     "id": 1,
-    "name": "localhost",
-    "description": "localhost workspace",
+    "name": "HushChat",
+    "description": "hushChat workspace",
     "workspaceIdentifier": "localhost",
     "status": "ACTIVE"
   }
