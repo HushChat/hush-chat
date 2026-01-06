@@ -6,6 +6,7 @@ export const useMessageUrlMetadataQuery = (messageId: number, isIncludeUrlMetada
   const {
     data: messageUrlMetadata,
     isLoading: isMessageUrlMetadataLoading,
+    isFetching: isMessageUrlMetadataFetching,
     error: messageUrlMetadataError,
   } = useQuery({
     queryKey: conversationMessageQueryKeys.messageUrlMetadata(messageId),
@@ -13,5 +14,10 @@ export const useMessageUrlMetadataQuery = (messageId: number, isIncludeUrlMetada
     enabled: isIncludeUrlMetadata,
   });
 
-  return { messageUrlMetadata, isMessageUrlMetadataLoading, messageUrlMetadataError };
+  return {
+    messageUrlMetadata,
+    isMessageUrlMetadataLoading,
+    messageUrlMetadataError,
+    isMessageUrlMetadataFetching,
+  };
 };

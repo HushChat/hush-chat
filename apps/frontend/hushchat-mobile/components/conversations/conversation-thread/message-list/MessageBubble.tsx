@@ -55,7 +55,7 @@ export const MessageBubble = ({
     return hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
   }, [message]);
 
-  const { messageUrlMetadata, isMessageUrlMetadataLoading } = useMessageUrlMetadataQuery(
+  const { messageUrlMetadata, isMessageUrlMetadataFetching } = useMessageUrlMetadataQuery(
     message.id,
     message.isIncludeUrlMetadata
   );
@@ -162,7 +162,7 @@ export const MessageBubble = ({
               <LinkPreviewCard
                 messageText={message.messageText}
                 messageUrlMetadata={messageUrlMetadata}
-                isLoading={isMessageUrlMetadataLoading}
+                isFetching={isMessageUrlMetadataFetching}
                 isCurrentUser={isCurrentUser}
                 mentions={message.mentions}
                 onMentionPress={handleMentionPress}

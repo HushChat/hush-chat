@@ -10,7 +10,7 @@ interface LinkPreviewCardProps {
   messageText: string;
   messageUrlMetadata: TMessageUrlMetadata;
   isCurrentUser: boolean;
-  isLoading: boolean;
+  isFetching: boolean;
   mentions?: TUser[];
   onMentionPress?: (username: string) => void;
 }
@@ -19,7 +19,7 @@ export default function LinkPreviewCard({
   messageText,
   messageUrlMetadata,
   isCurrentUser,
-  isLoading,
+  isFetching,
   mentions,
   onMentionPress,
 }: LinkPreviewCardProps) {
@@ -31,7 +31,7 @@ export default function LinkPreviewCard({
 
   return (
     <TouchableOpacity activeOpacity={0.9} className=" rounded-md w-full">
-      {isLoading ? (
+      {isFetching ? (
         <View className="items-center justify-center p-16">
           <ActivityIndicator size="small" color="#6B7280" />
         </View>
