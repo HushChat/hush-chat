@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.typingstatus.dto.UserTypingStatus
 import com.platform.software.chat.conversation.typingstatus.dto.UserTypingStatusUpsertDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.service.UserServiceImpl;
+import com.platform.software.common.constants.GeneralConstants;
 import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionInfoDAO;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 
 @Service
@@ -33,17 +36,19 @@ public class TypingStatusWSService {
     }
 
     @Async
-    public void invokeUserIsTyping(UserTypingStatusUpsertDTO userTypingStatusUpsertDTO, String wsSessionId) {
+    public void invokeUserIsTyping(UserTypingStatusUpsertDTO userTypingStatusUpsertDTO, String wsSessionId, Map<String, Object> sessionAttrs) {
 
         // Throttle typing invokes
         if (!typingThrottle.shouldSend(wsSessionId, userTypingStatusUpsertDTO.getConversationId()) || !userTypingStatusUpsertDTO.isTyping()) {
             return;
         }
 
-        try {
-            WorkspaceContext.setCurrentWorkspace(userTypingStatusUpsertDTO.getWorkspaceId());
+        String workspaceId = (String) sessionAttrs.get(GeneralConstants.WORKSPACE_ID);
 
-            UserViewDTO user = userService.findUserById(userTypingStatusUpsertDTO.getUserId(), userTypingStatusUpsertDTO.getWorkspaceId());
+        try {
+            WorkspaceContext.setCurrentWorkspace(workspaceId);
+
+            UserViewDTO user = userService.findUserById(userTypingStatusUpsertDTO.getUserId(), workspaceId);
 
             for (WebSocketSessionInfoDAO info : webSocketSessionManager.getWebSocketSessionInfos().values()) {
                 if(info.getWsSessionId().equals(wsSessionId) || info.getOpenedConversation() == null){
@@ -53,7 +58,7 @@ public class TypingStatusWSService {
                     continue;
                 }
                 if (!info.getWsSessionId()
-                        .startsWith(userTypingStatusUpsertDTO.getWorkspaceId() + ":")) {
+                        .startsWith(workspaceId + ":")) {
                     continue;
                 }
 

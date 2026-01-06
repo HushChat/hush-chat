@@ -29,6 +29,8 @@ export const TITLES = {
   DELETE_CHAT: "Delete chat",
   PIN_CONVERSATION: "Pin Conversation",
   UNPIN_CONVERSATION: "Unpin Conversation",
+  USER_ACTIVITY: "user activity",
+  TYPING_ACTIVITY: "typing activity",
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";

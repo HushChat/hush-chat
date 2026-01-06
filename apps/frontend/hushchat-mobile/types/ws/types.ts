@@ -61,11 +61,8 @@ export interface UserActivityWSSubscriptionData {
 
 export interface TypingIndicatorWSData {
   userId?: number;
-  workspaceId?: string;
   conversationId: number;
   typing: boolean; // true = started typing, false = stopped
-  deviceType?: DeviceType;
-  deviceId?: string;
 }
 
 export interface MessageUnsentPayload {

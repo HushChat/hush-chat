@@ -29,9 +29,11 @@ import {
   HEADER_DEVICE_TYPE,
   HEADER_HEART_BEAT,
   HEADER_WORKSPACE_ID,
+  TITLES,
 } from "@/constants/constants";
 
 import { getDeviceId } from "@/utils/deviceIdUtils";
+import { WS_DESTINATIONS } from "@/constants/apiConstants";
 
 // Define topics to subscribe to
 const TOPICS = [
@@ -107,11 +109,16 @@ export const publishUserActivity = (
   ws: WebSocket | null,
   data: UserActivityWSSubscriptionData
 ): boolean => {
-  return publishToWebSocket(ws, "/app/subscribed-conversations", data, "user activity");
+  return publishToWebSocket(
+    ws,
+    WS_DESTINATIONS.SUBSCRIBED_CONVERSATIONS,
+    data,
+    TITLES.USER_ACTIVITY
+  );
 };
 
 export const publishTypingStatus = (ws: WebSocket | null, data: TypingIndicatorWSData): boolean => {
-  return publishToWebSocket(ws, "/app/typing", data, "typing activity");
+  return publishToWebSocket(ws, WS_DESTINATIONS.TYPING, data, TITLES.TYPING_ACTIVITY);
 };
 
 export default function useWebSocketConnection() {
@@ -301,13 +308,10 @@ export default function useWebSocketConnection() {
       });
       return false;
     }
-    const { workspace } = await getAllTokens();
-    const deviceType = getDeviceType();
-    const deviceId = await getDeviceId();
-    const workspaceId = workspace;
+
     const userId = id;
 
-    if (!workspaceId || !userId) {
+    if (!userId) {
       logInfo("Cannot publish typing: missing workspaceId or userId");
       return false;
     }
@@ -315,9 +319,6 @@ export default function useWebSocketConnection() {
     return publishTypingStatus(wsRef.current, {
       ...data,
       userId,
-      deviceType,
-      deviceId,
-      workspaceId,
     });
   };
 

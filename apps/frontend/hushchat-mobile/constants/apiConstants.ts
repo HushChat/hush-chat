@@ -118,3 +118,8 @@ export const GIF_API_ENDPOINTS = {
   TRENDING: `${GIF_API_BASE}/featured`,
   SEARCH: `${GIF_API_BASE}/search`,
 };
+
+export const WS_DESTINATIONS = {
+  SUBSCRIBED_CONVERSATIONS: "/app/subscribed-conversations",
+  TYPING: "/app/typing",
+};
