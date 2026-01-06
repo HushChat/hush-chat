@@ -6,6 +6,7 @@ import FileList from "./FileList";
 import FilePreviewPane from "./FilePreviewPane";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
 import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
+import { usePasteHandler } from "@/hooks/usePasteHandler";
 
 export type FileWithCaption = {
   file: File;
@@ -63,6 +64,18 @@ const FilePreviewOverlay = ({
       setSelectedIndex(Math.max(0, files.length - 1));
     }
   }, [files.length, selectedIndex]);
+
+  const handlePasteFilesInPreview = useCallback(
+    (newFiles: File[]) => {
+      onFileSelect(newFiles);
+    },
+    [onFileSelect]
+  );
+
+  usePasteHandler({
+    enabled: true,
+    onPasteFiles: handlePasteFilesInPreview,
+  });
 
   const handleCaptionChange = useCallback(
     (text: string) => {
