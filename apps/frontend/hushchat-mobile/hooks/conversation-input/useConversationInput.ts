@@ -145,7 +145,7 @@ export function useConversationInput({
       mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
 
       autoHeightController.updateHeightForTextChange(newTypedText);
-      
+
       typingActivity.handleInputActivity(newTypedText.length);
     },
     [
