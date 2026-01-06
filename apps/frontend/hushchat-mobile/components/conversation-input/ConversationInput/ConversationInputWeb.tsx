@@ -20,7 +20,7 @@ import { ConversationInputActions } from "@/components/conversation-input/Conver
 import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
-const ConversationInput = ({
+const ConversationInputWeb = ({
   conversationId,
   onSendMessage,
   onOpenImagePicker,
@@ -220,4 +220,4 @@ const ConversationInput = ({
   );
 };
 
-export default memo(ConversationInput);
+export default memo(ConversationInputWeb);

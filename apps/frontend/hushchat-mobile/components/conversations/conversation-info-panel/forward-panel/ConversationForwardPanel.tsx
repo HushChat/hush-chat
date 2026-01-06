@@ -4,7 +4,7 @@ import { ConversationsMultiSelect, TConversation } from "@/components/Conversati
 import { PLATFORM } from "@/constants/platformConstants";
 import { ForwardPanelFooter } from "@/components/conversations/conversation-info-panel/forward-panel/ForwardPanelFooter";
 import { AppText } from "@/components/AppText";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 
 export interface ConversationForwardPanelBaseProps {
   onClose: () => void;

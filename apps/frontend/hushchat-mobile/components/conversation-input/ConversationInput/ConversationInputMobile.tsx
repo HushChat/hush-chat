@@ -15,7 +15,7 @@ import { ConversationInputActions } from "@/components/conversation-input/Conver
 import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
-const ConversationInput = ({
+const ConversationInputMobile = ({
   conversationId,
   onSendMessage,
   onOpenImagePickerNative,
@@ -215,4 +215,4 @@ const ConversationInput = ({
   );
 };
 
-export default ConversationInput;
+export default ConversationInputMobile;
