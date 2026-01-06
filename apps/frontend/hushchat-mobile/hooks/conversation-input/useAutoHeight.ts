@@ -40,7 +40,6 @@ export function useAutoHeight({
   lineHeight,
   verticalPadding,
 }: TAutoHeightOptions): IAutoHeightReturn {
-  const isResettingRef = useRef<boolean>(false);
   const minimumInputHeight = useMemo(() => {
     const rawHeight = lineHeight * minLines + verticalPadding;
     return PLATFORM.IS_WEB ? Math.max(rawHeight, WEB_MIN_CONTAINER_PX) : rawHeight;
@@ -59,6 +58,7 @@ export function useAutoHeight({
   const [currentInputHeight, setCurrentInputHeight] = useState<number>(initialHeightValue);
   const animatedHeightValue = useSharedValue(initialHeightValue);
   const contentSizeRef = useRef<number>(initialHeightValue);
+  const isResettingRef = useRef<boolean>(false);
 
   const animatedHeightStyle: AnimatedStyle<ViewStyle> = useAnimatedStyle(() => ({
     height: animatedHeightValue.value,
