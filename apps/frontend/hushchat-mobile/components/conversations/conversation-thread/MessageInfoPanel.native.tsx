@@ -51,7 +51,7 @@ export default function MessageInfoPanel({ conversationId, messageId }: MessageI
 
   const renderParticipant = ({ item }: { item: TUser }) => (
     <View className="flex-row items-center px-4 py-3">
-      {!item.signedImageUrl ? (
+      {item.signedImageUrl ? (
         <Image
           source={{ uri: item.signedImageUrl }}
           style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2 }}

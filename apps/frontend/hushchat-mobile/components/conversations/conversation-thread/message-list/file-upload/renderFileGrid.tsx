@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { IMessageAttachment } from "@/types/chat/types";
 import { View, ViewStyle } from "react-native";
 import { DocumentCard } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard";
 import { ImageGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid";
 import { useFileGrid } from "@/hooks/conversation-thread/useFileGrid";
 import MediaPreview from "@/components/conversations/conversation-thread/composer/image-preview/MediaPreview";
+import { DocumentPreview } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/DocumentPreview";
 
 const GRID_CONFIG = {
   MAX_WIDTH: 280,
@@ -14,7 +16,6 @@ const dynamicStyles = {
     maxWidth: GRID_CONFIG.MAX_WIDTH,
     alignSelf: isCurrentUser ? "flex-end" : "flex-start",
   }),
-
   documentSpacing: (hasMultipleDocs: boolean, hasMedia: boolean): ViewStyle => ({
     marginBottom: hasMultipleDocs || hasMedia ? 8 : 0,
   }),
@@ -27,6 +28,9 @@ const RenderFileGrid = ({
   attachments: IMessageAttachment[];
   isCurrentUser: boolean;
 }) => {
+  const [docPreviewVisible, setDocPreviewVisible] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState<IMessageAttachment | null>(null);
+
   const {
     mediaItems,
     documents,
@@ -38,6 +42,16 @@ const RenderFileGrid = ({
     hasDocuments,
   } = useFileGrid(attachments);
 
+  const handleOpenDocPreview = (doc: IMessageAttachment) => {
+    setSelectedDoc(doc);
+    setDocPreviewVisible(true);
+  };
+
+  const handleCloseDocPreview = () => {
+    setDocPreviewVisible(false);
+    setSelectedDoc(null);
+  };
+
   if (!hasMedia && !hasDocuments) return null;
 
   return (
@@ -48,7 +62,11 @@ const RenderFileGrid = ({
             key={doc.id || `doc-${index}`}
             style={dynamicStyles.documentSpacing(documents.length > 1, hasMedia)}
           >
-            <DocumentCard attachment={doc} isCurrentUser={isCurrentUser} />
+            <DocumentCard
+              attachment={doc}
+              isCurrentUser={isCurrentUser}
+              onPreview={() => handleOpenDocPreview(doc)}
+            />
           </View>
         ))}
 
@@ -64,6 +82,12 @@ const RenderFileGrid = ({
         images={mediaItems}
         initialIndex={selectedImageIndex}
         onClose={closePreview}
+      />
+
+      <DocumentPreview
+        visible={docPreviewVisible}
+        attachment={selectedDoc}
+        onClose={handleCloseDocPreview}
       />
     </>
   );

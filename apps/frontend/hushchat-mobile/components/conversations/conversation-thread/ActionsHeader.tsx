@@ -2,7 +2,12 @@ import React, { useCallback, useMemo } from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_HIT_SLOP } from "@/constants/ui";
-import { IMessage, ConversationAPIResponse, PIN_MESSAGE_OPTIONS } from "@/types/chat/types";
+import {
+  IMessage,
+  ConversationAPIResponse,
+  PIN_MESSAGE_OPTIONS,
+  MessageTypeEnum,
+} from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { AppText } from "@/components/AppText";
 import HeaderAction from "@/components/conversations/conversation-info-panel/common/HeaderAction";
@@ -22,6 +27,7 @@ interface ActionsHeaderProps {
   onCopy: (m: IMessage) => void;
   onSelectMessageInfo?: (c: ConversationAPIResponse, m: IMessage) => void;
   onMarkAsUnread: (m: IMessage) => void;
+  onEdit?: (m: IMessage) => void;
 }
 
 const ActionsHeader = ({
@@ -34,11 +40,16 @@ const ActionsHeader = ({
   onCopy,
   onSelectMessageInfo,
   onMarkAsUnread,
+  onEdit,
 }: ActionsHeaderProps) => {
   const { user } = useUserStore();
   const { openModal, closeModal } = useModalContext();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
   const currentUserIsSender = user?.id === message?.senderId;
+
+  const isAttachmentOnly = message?.messageType === MessageTypeEnum.ATTACHMENT;
+  const hasText = !!message?.messageText;
+  const canEdit = currentUserIsSender && !message?.isUnsend && hasText && !isAttachmentOnly;
 
   const documentAttachments = useMemo(() => {
     if (!message?.messageAttachments) return [];
@@ -89,6 +100,12 @@ const ActionsHeader = ({
     }
   }, [documentAttachments]);
 
+  const handleEdit = useCallback(() => {
+    if (canEdit && onEdit) {
+      onEdit(message);
+    }
+  }, [canEdit, onEdit, message]);
+
   return (
     <View className="absolute bottom-full !z-50 w-full bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
       <View className="flex-row items-center justify-between">
@@ -127,6 +144,8 @@ const ActionsHeader = ({
           {!message.isUnsend && message.messageText && (
             <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
           )}
+
+          {canEdit && onEdit && <HeaderAction iconName="pencil-outline" onPress={handleEdit} />}
 
           {message.senderId === Number(user.id) && !message.isUnsend && (
             <HeaderAction iconName="trash-outline" onPress={() => onUnsend(message)} />

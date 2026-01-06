@@ -47,6 +47,7 @@ const ConversationForwardPanelBase = ({
               controlledValue={customText}
               onControlledValueChange={setCustomText}
               hideSendButton
+              hideEmojiGifPickers
             />
           </View>
         </View>
@@ -58,6 +59,7 @@ const ConversationForwardPanelBase = ({
           onChange={setSelectedConversations}
           searchPlaceholder="Search conversations to forward…"
           sourceConversationId={sourceConversationId}
+          autoFocusSearch={true}
         />
       </View>
 

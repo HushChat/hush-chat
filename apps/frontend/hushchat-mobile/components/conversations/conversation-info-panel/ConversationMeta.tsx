@@ -7,6 +7,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { IMessage } from "@/types/chat/types";
 import { RefObject } from "react";
 import { LastMessagePreviewContent } from "@/components/LastMessagePreviewContent";
+import { hasGif } from "@/utils/messageUtils";
 
 interface Props {
   lastMessage: IMessage | undefined;
@@ -24,19 +25,45 @@ const ConversationMeta = ({
   onChevronPress,
 }: Props) => {
   const messageContent = LastMessagePreviewContent({ lastMessage });
+  const isGif = hasGif(lastMessage);
 
-  return (
-    <View className="flex-row items-center gap-x-2 flex-1">
-      {typeof messageContent === "string" ? (
+  const renderMessagePreview = () => {
+    if (isGif) {
+      return (
+        <View className="flex-row items-center gap-1 flex-1">
+          <MaterialIcons
+            name="gif"
+            size={20}
+            className="text-gray-600 dark:text-text-secondary-dark"
+            color="#4B5563"
+          />
+          <AppText
+            className="text-gray-600 dark:text-text-secondary-dark text-sm"
+            numberOfLines={1}
+          >
+            GIF
+          </AppText>
+        </View>
+      );
+    }
+
+    if (typeof messageContent === "string") {
+      return (
         <AppText
           className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
           numberOfLines={1}
         >
           {messageContent}
         </AppText>
-      ) : (
-        <View className="flex-1">{messageContent}</View>
-      )}
+      );
+    }
+
+    return <View className="flex-1">{messageContent}</View>;
+  };
+
+  return (
+    <View className="flex-row items-center gap-x-2 flex-1">
+      {renderMessagePreview()}
 
       {muted && <MaterialIcons name="notifications-off" size={14} color="#9CA3AF" />}
 

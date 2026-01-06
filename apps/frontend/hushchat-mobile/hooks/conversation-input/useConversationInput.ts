@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from "react";
+import { useCallback, useRef, useMemo, useEffect } from "react";
 import { TextInput, TextInputSelectionChangeEvent } from "react-native";
 import { useEnterSubmit } from "@/utils/commonUtils";
 import { useSpecialCharHandler } from "@/hooks/useSpecialCharHandler";
@@ -20,6 +20,9 @@ type TConversationInputOptions = Pick<
   | "onCancelReply"
   | "controlledValue"
   | "onControlledValueChange"
+  | "editingMessage"
+  | "onCancelEdit"
+  | "onEditMessage"
 >;
 
 export function useConversationInput({
@@ -32,21 +35,32 @@ export function useConversationInput({
   onCancelReply,
   controlledValue,
   onControlledValueChange,
+  editingMessage,
+  onCancelEdit,
+  onEditMessage,
 }: TConversationInputOptions) {
   const messageTextInputRef = useRef<TextInput>(null);
   const defaultPlaceholderText = "Type a message...";
+  const editPlaceholderText = "Edit message...";
   const minLines = 1;
   const maxLines = 6;
   const lineHeight = 22;
   const verticalPadding = 12;
 
   const isControlledMode = controlledValue !== undefined;
+  const isEditMode = !!editingMessage;
 
   const inputDisabledStatusRef = useRef(disabled);
   inputDisabledStatusRef.current = disabled;
 
   const sendMessageCallbackRef = useRef(onSendMessage);
   sendMessageCallbackRef.current = onSendMessage;
+
+  const editMessageCallbackRef = useRef(onEditMessage);
+  editMessageCallbackRef.current = onEditMessage;
+
+  const editingMessageRef = useRef(editingMessage);
+  editingMessageRef.current = editingMessage;
 
   const autoHeightController = useAutoHeight({
     minLines,
@@ -66,6 +80,29 @@ export function useConversationInput({
 
   const latestMessageTextRef = useRef(currentMessage);
   latestMessageTextRef.current = currentMessage;
+
+  useEffect(() => {
+    if (editingMessage) {
+      if (isControlledMode) {
+        onControlledValueChange?.(editingMessage.messageText);
+      } else {
+        messageInputController.updateTypedMessageText(editingMessage.messageText);
+      }
+      setTimeout(() => {
+        messageTextInputRef.current?.focus();
+      }, 100);
+    }
+  }, [editingMessage?.id]);
+
+  useEffect(() => {
+    if (!editingMessage && editingMessageRef.current) {
+      if (isControlledMode) {
+        onControlledValueChange?.("");
+      } else {
+        messageInputController.updateTypedMessageText("");
+      }
+    }
+  }, [editingMessage]);
 
   const mentionsController = useMentions({
     textInputRef: messageTextInputRef,
@@ -97,15 +134,17 @@ export function useConversationInput({
       } else {
         messageInputController.onMessageTextChangedByUser(newTypedText);
       }
+
       mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
-      autoHeightController.updateHeightForClearedText(newTypedText);
+
+      autoHeightController.updateHeightForTextChange(newTypedText);
     },
     [
       isControlledMode,
       onControlledValueChange,
       messageInputController.onMessageTextChangedByUser,
       mentionsController.evaluateMentionQueryFromInput,
-      autoHeightController.updateHeightForClearedText,
+      autoHeightController.updateHeightForTextChange,
     ]
   );
 
@@ -116,10 +155,42 @@ export function useConversationInput({
     [mentionsController.updateCursorIndex]
   );
 
-  const handleSendFinalProcessedMessage = useCallback(
+  const handleCancelEditMode = useCallback(() => {
+    if (isControlledMode) {
+      onControlledValueChange?.("");
+    } else {
+      messageInputController.updateTypedMessageText("");
+    }
+    autoHeightController.animateHeightResetToMinimum();
+    onCancelEdit?.();
+  }, [
+    isControlledMode,
+    onControlledValueChange,
+    messageInputController.updateTypedMessageText,
+    autoHeightController.animateHeightResetToMinimum,
+    onCancelEdit,
+  ]);
+
+  const handleSendOrEdit = useCallback(
     (overrideMessageText?: string) => {
       const messageToProcess = overrideMessageText ?? currentMessage;
       const processedMessage = messageToProcess.trim();
+
+      if (editingMessageRef.current) {
+        if (!processedMessage) {
+          return;
+        }
+
+        editMessageCallbackRef.current?.(editingMessageRef.current.id, processedMessage);
+
+        if (!isControlledMode) {
+          messageInputController.updateTypedMessageText("");
+        }
+
+        autoHeightController.animateHeightResetToMinimum();
+        requestAnimationFrame(() => messageTextInputRef.current?.focus());
+        return;
+      }
 
       if (!processedMessage || inputDisabledStatusRef.current) {
         if (isControlledMode) {
@@ -155,6 +226,7 @@ export function useConversationInput({
       currentMessage,
       isControlledMode,
       messageInputController.clearMessageAndDeleteDraft,
+      messageInputController.updateTypedMessageText,
       autoHeightController.animateHeightResetToMinimum,
       mentionsController.clearActiveMentionQuery,
       mentionsController.clearValidMentions,
@@ -182,8 +254,8 @@ export function useConversationInput({
     ]
   );
 
-  const stableSendHandlerRef = useRef(handleSendFinalProcessedMessage);
-  stableSendHandlerRef.current = handleSendFinalProcessedMessage;
+  const stableSendHandlerRef = useRef(handleSendOrEdit);
+  stableSendHandlerRef.current = handleSendOrEdit;
 
   const keyboardEnterToSendHandler = useEnterSubmit(() => {
     stableSendHandlerRef.current(latestMessageTextRef.current);
@@ -195,10 +267,12 @@ export function useConversationInput({
     { handlers: { "@": mentionsController.manuallyTriggerMentionPicker } }
   );
 
-  const resolvedPlaceholderText = useMemo(
-    () => replyManager.generateReplyAwarePlaceholder(defaultPlaceholderText),
-    [replyManager.generateReplyAwarePlaceholder, defaultPlaceholderText]
-  );
+  const resolvedPlaceholderText = useMemo(() => {
+    if (isEditMode) {
+      return editPlaceholderText;
+    }
+    return replyManager.generateReplyAwarePlaceholder(defaultPlaceholderText);
+  }, [isEditMode, replyManager.generateReplyAwarePlaceholder, defaultPlaceholderText]);
 
   const handleSendButtonPress = useCallback(() => {
     stableSendHandlerRef.current(latestMessageTextRef.current);
@@ -211,6 +285,10 @@ export function useConversationInput({
 
     message: currentMessage,
     isValidMessage,
+
+    isEditMode,
+    editingMessage,
+    handleCancelEdit: handleCancelEditMode,
 
     inputHeight: autoHeightController.currentInputHeight,
     minHeight: autoHeightController.minimumInputHeight,
@@ -241,7 +319,7 @@ export function useConversationInput({
 
     handleChangeText: handleMessageTextChangedByUser,
     handleSelectionChange: handleInputCursorSelectionChanged,
-    handleSend: handleSendFinalProcessedMessage,
+    handleSend: handleSendOrEdit,
     enterSubmitHandler: keyboardEnterToSendHandler,
     specialCharHandler: specialCharacterInputController,
     handleSendButtonPress,

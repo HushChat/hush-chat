@@ -1,14 +1,18 @@
 import React, { useCallback, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
+import { EditPreview } from "@/components/conversation-input/EditPreview";
 import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
 import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
-import { SendButton } from "@/components/conversation-input/SendButton";
+import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
+import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
+import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
+import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 
 const ConversationInput = ({
   conversationId,
@@ -23,10 +27,23 @@ const ConversationInput = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  editingMessage,
+  onCancelEdit,
+  onEditMessage,
+  hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
   const isControlledMode = controlledValue !== undefined;
+
+  const {
+    showEmojiPicker,
+    showGifPicker,
+    openEmojiPicker,
+    closeEmojiPicker,
+    openGifPicker,
+    closeGifPicker,
+  } = useEmojiGifPicker();
 
   const input = useConversationInput({
     conversationId,
@@ -37,6 +54,9 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    editingMessage,
+    onCancelEdit,
+    onEditMessage,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -87,29 +107,32 @@ const ConversationInput = ({
 
   return (
     <View>
-      {input.replyToMessage && (
+      {input.isEditMode && input.editingMessage && (
+        <EditPreview message={input.editingMessage} onCancelEdit={input.handleCancelEdit} />
+      )}
+
+      {input.replyToMessage && !input.isEditMode && (
         <ReplyPreview
           replyToMessage={input.replyToMessage}
           onCancelReply={input.handleCancelReply}
         />
       )}
 
-      <View className="flex-row items-end p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-gray-800">
-        {!isControlledMode && (
-          <AttachmentButton
-            ref={input.addButtonRef}
-            disabled={disabled}
-            toggled={mobileMenuVisible}
-            onPress={handleAddButtonPress}
-          />
-        )}
+      <View className="p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-red-800">
+        <Animated.View className="overflow-hidden">
+          <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
+            {!isControlledMode && !input.isEditMode && (
+              <View className="mr-1">
+                <AttachmentButton
+                  ref={input.addButtonRef}
+                  disabled={disabled}
+                  toggled={mobileMenuVisible}
+                  onPress={handleAddButtonPress}
+                />
+              </View>
+            )}
 
-        <View className={isControlledMode ? "flex-1" : "flex-1 mx-3"}>
-          <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
-            <View
-              className="flex-row rounded-3xl bg-gray-300/30 dark:bg-secondary-dark px-3"
-              style={[styles.inputContainer, hideSendButton && { paddingRight: 16 }]}
-            >
+            <View className="flex-1 px-2 min-h-[40px] justify-center">
               <MessageTextArea
                 ref={input.messageTextInputRef}
                 value={input.message}
@@ -127,22 +150,24 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
-
-              {!hideSendButton && (
-                <View className="mb-4">
-                  <SendButton
-                    showSend={input.isValidMessage}
-                    isSending={isSending}
-                    onPress={handleSendButtonPress}
-                  />
-                </View>
-              )}
             </View>
-          </Animated.View>
-        </View>
+
+            <ConversationInputActions
+              isEditMode={input.isEditMode}
+              hideEmojiGifPickers={hideEmojiGifPickers}
+              hideSendButton={hideSendButton}
+              disabled={disabled}
+              isValidMessage={input.isValidMessage}
+              isSending={isSending}
+              onOpenEmojiPicker={openEmojiPicker}
+              onOpenGifPicker={openGifPicker}
+              onSendPress={handleSendButtonPress}
+            />
+          </View>
+        </Animated.View>
       </View>
 
-      {!isControlledMode && (
+      {!isControlledMode && !input.isEditMode && (
         <MobileAttachmentModal
           visible={mobileMenuVisible}
           onClose={handleCloseMobileMenu}
@@ -158,15 +183,28 @@ const ConversationInput = ({
           onSelect={input.handleSelectMention}
         />
       )}
+
+      {!input.isEditMode && !hideEmojiGifPickers && (
+        <>
+          <EmojiPickerComponent
+            visible={showEmojiPicker}
+            onClose={closeEmojiPicker}
+            onEmojiSelect={(emoji) => {
+              input.handleChangeText(input.message + emoji);
+            }}
+          />
+
+          <GifPickerComponent
+            visible={showGifPicker}
+            onClose={closeGifPicker}
+            onGifSelect={(gifUrl) => {
+              onSendMessage?.("", undefined, undefined, gifUrl);
+            }}
+          />
+        </>
+      )}
     </View>
   );
 };
 
 export default ConversationInput;
-
-const styles = StyleSheet.create({
-  inputContainer: {
-    position: "relative",
-    alignItems: "flex-end",
-  },
-});

@@ -32,7 +32,10 @@ export function useConversationMessagesQuery(conversationId: number) {
   );
 
   useEffect(() => {
-    if (previousConversationId.current !== conversationId) {
+    if (
+      previousConversationId.current !== null &&
+      previousConversationId.current !== conversationId
+    ) {
       queryClient.removeQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);

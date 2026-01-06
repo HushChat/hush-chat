@@ -1,8 +1,14 @@
 import { format, isToday, isYesterday, parseISO } from "date-fns";
-import { IMessage, IMessageAttachment } from "@/types/chat/types";
+import {
+  IBasicMessage,
+  IMessage,
+  IMessageAttachment,
+  MessageAttachmentTypeEnum,
+  MessageTypeEnum,
+} from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
-import { Directory, Paths, File } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Linking } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -56,6 +62,18 @@ function getDateTitle(date: Date): string {
   return format(date, "MMM dd, yyyy");
 }
 
+const getNextUserMessage = (
+  allMessages: readonly IMessage[],
+  startIndex: number
+): IMessage | undefined => {
+  for (let i = startIndex + 1; i < allMessages.length; i++) {
+    if (allMessages[i].messageType !== MessageTypeEnum.SYSTEM_EVENT) {
+      return allMessages[i];
+    }
+  }
+  return undefined;
+};
+
 export const shouldShowSenderAvatar = (
   allMessages: readonly IMessage[],
   index: number,
@@ -63,18 +81,15 @@ export const shouldShowSenderAvatar = (
   isCurrentUser: boolean
 ): boolean => {
   if (!isGroupChat) return false;
-
   if (isCurrentUser) return false;
 
   const current = allMessages[index];
-  const next = allMessages[index + 1];
+  if (!current || current.messageType === MessageTypeEnum.SYSTEM_EVENT) return false;
 
-  if (!current) return false;
+  const next = getNextUserMessage(allMessages, index);
   if (!next) return true;
 
-  const sameSender = current.senderId === next.senderId;
-
-  return !sameSender;
+  return current.senderId !== next.senderId;
 };
 
 export const shouldShowSenderName = (
@@ -85,14 +100,12 @@ export const shouldShowSenderName = (
   if (!isGroupChat) return false;
 
   const current = allMessages[index];
-  const next = allMessages[index + 1];
+  if (!current || current.messageType === "SYSTEM_EVENT") return false;
 
-  if (!current) return false;
+  const next = getNextUserMessage(allMessages, index);
   if (!next) return true;
 
-  const sameSender = current.senderId === next.senderId;
-
-  return !sameSender;
+  return current.senderId !== next.senderId;
 };
 
 export const copyToClipboard = async (text: string | undefined): Promise<void> => {
@@ -209,6 +222,22 @@ export const openFileNative = async (fileUrl: string): Promise<void> => {
     console.error("Error opening file on native:", error);
     throw error;
   }
+};
+
+const getGifAttachment = (message?: IMessage | IBasicMessage): IMessageAttachment | undefined => {
+  if (!message?.messageAttachments) return undefined;
+
+  return message.messageAttachments.find(
+    (attachment) => attachment.type === MessageAttachmentTypeEnum.GIF
+  );
+};
+
+export const hasGif = (message?: IMessage | IBasicMessage): boolean => {
+  return !!getGifAttachment(message);
+};
+
+export const getGifUrl = (message?: IMessage | IBasicMessage): string | undefined => {
+  return getGifAttachment(message)?.indexedFileName;
 };
 
 // Helper function to truncate text based on character count
