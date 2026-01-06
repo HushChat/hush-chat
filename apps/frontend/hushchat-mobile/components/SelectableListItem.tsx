@@ -9,7 +9,7 @@ import { AppText } from "@/components/AppText";
 interface SelectableListItemProps {
   title: string;
   subtitle?: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
   isSelected: boolean;
   onToggle: () => void;
 }
