@@ -159,6 +159,10 @@ public class MessageService {
 
         Message message = getMessageBySender(userId, conversationId, messageId);
 
+        if (message.getForwardedMessage() != null) {
+            throw new CustomBadRequestException("Cannot edit a forwarded message!");
+        }
+
         if (message.getMessageText().equals(messageDTO.getMessageText())) {
             return;
         }

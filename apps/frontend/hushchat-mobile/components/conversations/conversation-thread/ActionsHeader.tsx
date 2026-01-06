@@ -45,6 +45,7 @@ const ActionsHeader = ({
   const { user } = useUserStore();
   const { openModal, closeModal } = useModalContext();
   const isPinned = conversation?.pinnedMessage?.id === message?.id;
+  const isForwardedMessage = message.isForwarded;
   const currentUserIsSender = user?.id === message?.senderId;
 
   const isAttachmentOnly = message?.messageType === MessageTypeEnum.ATTACHMENT;
@@ -145,7 +146,9 @@ const ActionsHeader = ({
             <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
           )}
 
-          {canEdit && onEdit && <HeaderAction iconName="pencil-outline" onPress={handleEdit} />}
+          {canEdit && !isForwardedMessage && onEdit && (
+            <HeaderAction iconName="pencil-outline" onPress={handleEdit} />
+          )}
 
           {message.senderId === Number(user.id) && !message.isUnsend && (
             <HeaderAction iconName="trash-outline" onPress={() => onUnsend(message)} />
