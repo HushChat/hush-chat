@@ -59,7 +59,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
-
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
@@ -456,7 +455,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     );
   }, [userStatus, queryClient, conversationsQueryKey]);
-
   return (
     <ConversationNotificationsContext.Provider
       value={{

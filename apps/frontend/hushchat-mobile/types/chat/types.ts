@@ -340,6 +340,7 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
   editingMessage?: IMessage | null;
   onCancelEdit?: () => void;
   onEditMessage?: (messageId: number, newText: string) => void;

@@ -18,6 +18,7 @@ import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicke
 import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const ConversationInput = ({
   conversationId,
@@ -36,6 +37,7 @@ const ConversationInput = ({
   onEditMessage,
   hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
+  const { publishTyping } = useWebSocket();
   const isControlledMode = controlledValue !== undefined;
 
   const {
@@ -56,6 +58,12 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    onTypingStatusChange: (isTyping, convId) => {
+      publishTyping({
+        conversationId: convId,
+        typing: isTyping,
+      });
+    },
     editingMessage,
     onCancelEdit,
     onEditMessage,
