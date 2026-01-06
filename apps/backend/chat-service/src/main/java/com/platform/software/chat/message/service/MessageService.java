@@ -20,6 +20,7 @@ import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserBlockRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.model.MediaSizeEnum;
@@ -64,6 +65,7 @@ public class MessageService {
     private final MessageUtilService messageUtilService;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final MessageMentionRepository messageMentionRepository;
+    private final UserBlockRepository userBlockRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -158,6 +160,7 @@ public class MessageService {
         }
 
         Message message = getMessageBySender(userId, conversationId, messageId);
+        Conversation conversation = message.getConversation();
 
         if (message.getForwardedMessage() != null) {
             throw new CustomBadRequestException("Cannot edit a forwarded message!");
@@ -165,6 +168,13 @@ public class MessageService {
 
         if (message.getMessageText().equals(messageDTO.getMessageText())) {
             return;
+        }
+
+        if (!conversation.getIsGroup()) {
+            boolean isBlocked = userBlockRepository.existsBlockBetweenUsers(conversationId);
+            if (isBlocked) {
+                throw new CustomBadRequestException("Something went wrong!");
+            }
         }
 
         message.setMessageText(messageDTO.getMessageText());
