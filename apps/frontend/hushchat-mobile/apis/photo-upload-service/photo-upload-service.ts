@@ -10,7 +10,7 @@ import {
   UploadResult,
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
-import { createMessagesWithAttachments } from "@/apis/conversation";
+import { createMessagesWithAttachments, publishMessageEvents } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useState } from "react";
@@ -80,6 +80,7 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
         originalFileName: item.signedUrl.originalFileName,
         url: item.signedUrl.url,
         indexedFileName: item.signedUrl.indexedFileName,
+        messageId: item.id,
       }));
   }
   return [];
@@ -256,7 +257,11 @@ export function useMessageAttachmentUploader(
     return response;
   };
 
-  const hook = useNativePickerUpload(getSignedUrls);
+  const handleUploadSuccess = async (messageIds: number[]) => {
+    await publishMessageEvents(conversationId, messageIds);
+  };
+
+  const hook = useNativePickerUpload(getSignedUrls, handleUploadSuccess);
 
   const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
     const results = await hook.pickAndUpload(
@@ -368,6 +373,8 @@ export function useMessageAttachmentUploader(
       }
 
       const results: UploadResult[] = [];
+      const successfulMessageIds: number[] = [];
+
       for (let i = 0; i < validFiles.length; i++) {
         const { file } = validFiles[i];
         const signed = signedUrls[i];
@@ -391,6 +398,10 @@ export function useMessageAttachmentUploader(
             },
           });
           results.push({ success: true, fileName: file.name, signed });
+
+          if (signed.messageId) {
+            successfulMessageIds.push(signed.messageId);
+          }
         } catch (e: any) {
           results.push({
             success: false,
@@ -399,6 +410,10 @@ export function useMessageAttachmentUploader(
             signed,
           });
         }
+      }
+
+      if (successfulMessageIds.length > 0) {
+        await publishMessageEvents(conversationId, successfulMessageIds);
       }
 
       const allResults = [...results, ...skipped];

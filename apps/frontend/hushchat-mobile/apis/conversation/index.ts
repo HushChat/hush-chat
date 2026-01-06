@@ -286,6 +286,13 @@ export const createMessagesWithAttachments = async (
   }
 };
 
+export const publishMessageEvents = async (
+  conversationId: number,
+  messageIds: number[]
+): Promise<void> => {
+  await axios.post(CONVERSATION_API_ENDPOINTS.PUBLISH_MESSAGES(conversationId), messageIds);
+};
+
 export const toggleConversationFavorite = async (conversationId: string) => {
   try {
     const response = await axios.patch(
