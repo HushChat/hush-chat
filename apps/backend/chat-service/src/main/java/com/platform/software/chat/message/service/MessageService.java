@@ -239,6 +239,8 @@ public class MessageService {
         Long loggedInUserId
     ) {
         List<MessageViewDTO> createdMessages = new ArrayList<>();
+        String currentWorkspace = WorkspaceContext.getCurrentWorkspace();
+
         for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
             Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
             MessageViewDTO messageViewDTO = getMessageViewDTO(
@@ -258,9 +260,13 @@ public class MessageService {
 
             createdMessages.add(messageViewDTO);
 
-            messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-            );
+            eventPublisher.publishEvent(new MessageCreatedEvent(
+                    currentWorkspace,
+                    conversationId,
+                    messageViewDTO,
+                    loggedInUserId,
+                    savedMessage
+            ));
         }
 
         return createdMessages;

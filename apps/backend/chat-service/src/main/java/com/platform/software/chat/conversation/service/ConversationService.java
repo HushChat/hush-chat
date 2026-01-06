@@ -25,6 +25,7 @@ import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.message.service.MessageUtilService;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -50,7 +51,6 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -59,8 +59,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
-
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -1374,6 +1372,12 @@ public class ConversationService {
                     WorkspaceContext.getCurrentWorkspace(),
                     directOtherMeta.getEmail()
             );
+
+            DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    directOtherMeta.getEmail());
+                    
+            conversationMetaDataDTO.setDeviceType(deviceType);
             conversationMetaDataDTO.setChatUserStatus(status);
 
         } else {
