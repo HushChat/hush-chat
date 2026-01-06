@@ -8,6 +8,7 @@ import { handleConversationNavigation } from "@/utils/commonUtils";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
 import classNames from "classnames";
+import { TypingIndicator } from "@/components/conversations/conversation-thread/TypingIndicator";
 import { eventBus } from "@/services/eventBus";
 import { USER_EVENTS } from "@/constants/ws/webSocketEventKeys";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
@@ -21,6 +22,7 @@ interface ChatHeaderProps {
   refetchConversationMessages: () => void;
   isLoadingConversationMessages: boolean;
   webPressSearch?: () => void;
+  isGroupChat: boolean;
 }
 
 const ChatHeader = ({
@@ -30,6 +32,7 @@ const ChatHeader = ({
   refetchConversationMessages,
   isLoadingConversationMessages,
   webPressSearch,
+  isGroupChat,
 }: ChatHeaderProps) => {
   const isMobileLayout = useIsMobileLayout();
   const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
@@ -94,13 +97,22 @@ const ChatHeader = ({
               userStatus={currentStatus}
               deviceType={currentDevice}
             />
-            <AppText
-              className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark flex-1"
-              numberOfLines={1}
-            >
-              {conversationInfo.conversationName}
-            </AppText>
+
+            <View className="flex-1">
+              <AppText
+                className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark"
+                numberOfLines={1}
+              >
+                {conversationInfo.conversationName}
+              </AppText>
+
+              <TypingIndicator
+                conversationId={conversationInfo.conversationId}
+                isGroupChat={isGroupChat}
+              />
+            </View>
           </TouchableOpacity>
+
           <View className={classNames(!isMobileLayout && "mr-3")}>
             <MarkdownToggle enabled={isMarkdownEnabled} onToggle={toggleMarkdown} />
           </View>

@@ -10,6 +10,14 @@ export const WORKSPACE = "workspace";
 export const X_TENANT = "X-Tenant";
 export const X_UUID_HEADER = "x-Uuid";
 export const DEVICE_ID_KEY = "Device-Id";
+export const HEADER_DESTINATION = "destination";
+export const HEADER_DEVICE_TYPE = "Device-Type";
+export const HEADER_CONTENT_LENGTH = "content-length";
+export const HEADER_CONTENT_TYPE = "content-type";
+export const HEADER_AUTHORIZATION = "Authorization";
+export const HEADER_WORKSPACE_ID = "Workspace-Id";
+export const HEADER_HEART_BEAT = "heart-beat";
+export const HEADER_ACCEPT_VERSION = "accept-version";
 
 export const TITLES = {
   ARCHIVE_CHAT: (conversationType: ConversationType) =>
@@ -21,6 +29,8 @@ export const TITLES = {
   DELETE_CHAT: "Delete chat",
   PIN_CONVERSATION: "Pin Conversation",
   UNPIN_CONVERSATION: "Unpin Conversation",
+  USER_ACTIVITY: "user activity",
+  TYPING_ACTIVITY: "typing activity",
 };
 
 export const USER_NOT_CONFIRMED_ERROR = "Please confirm your account.";

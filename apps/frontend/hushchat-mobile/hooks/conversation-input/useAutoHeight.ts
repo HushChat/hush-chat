@@ -10,7 +10,6 @@ import { PLATFORM } from "@/constants/platformConstants";
 import {
   ANIM_EASING,
   RESIZE_ANIM_MS,
-  RESET_ANIM_MS,
   WEB_MAX_CONTAINER_PX,
   WEB_MIN_CONTAINER_PX,
 } from "@/constants/composerConstants";
@@ -58,6 +57,7 @@ export function useAutoHeight({
   const [currentInputHeight, setCurrentInputHeight] = useState<number>(initialHeightValue);
   const animatedHeightValue = useSharedValue(initialHeightValue);
   const contentSizeRef = useRef<number>(initialHeightValue);
+  const isResettingRef = useRef<boolean>(false);
 
   const animatedHeightStyle: AnimatedStyle<ViewStyle> = useAnimatedStyle(() => ({
     height: animatedHeightValue.value,
@@ -80,6 +80,8 @@ export function useAutoHeight({
 
   const handleTextContainerSizeChange = useCallback(
     (event: TextInputContentSizeChangeEvent) => {
+      if (isResettingRef.current) return;
+
       const rawMeasuredHeight = Math.ceil(event.nativeEvent.contentSize.height);
       updateHeight(rawMeasuredHeight);
     },
@@ -97,17 +99,15 @@ export function useAutoHeight({
 
   const animateHeightResetToMinimum = useCallback(
     (onComplete?: () => void) => {
-      animatedHeightValue.value = withTiming(minimumInputHeight, {
-        duration: RESET_ANIM_MS,
-        easing: ANIM_EASING,
-      });
+      isResettingRef.current = true;
+
+      animatedHeightValue.value = minimumInputHeight;
 
       setCurrentInputHeight(minimumInputHeight);
       contentSizeRef.current = minimumInputHeight;
 
-      if (onComplete) {
-        setTimeout(onComplete, RESET_ANIM_MS);
-      }
+      isResettingRef.current = false;
+      onComplete?.();
     },
     [minimumInputHeight, animatedHeightValue]
   );
