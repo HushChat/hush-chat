@@ -35,4 +35,8 @@ public final class WebSocketTopicConstants {
 
     /** Message seen event */
     public static final String MESSAGE_SEEN = "/topic/message-seen/";
+  
+    /** Typing event */
+    public static final String TYPING_STATUS = "/topic/typing-status/";
+
 }

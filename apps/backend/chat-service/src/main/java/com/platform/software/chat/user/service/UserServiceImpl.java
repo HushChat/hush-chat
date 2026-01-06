@@ -1,7 +1,5 @@
 package com.platform.software.chat.user.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -155,8 +153,6 @@ public class UserServiceImpl implements UserService {
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
 
-        getUserByEmail(email);
-
         try {
             LoginResponseDTO loginResponseDTO = cognitoService.authenticateUser(email, loginDTO.getPassword());
 
@@ -203,17 +199,20 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    @Cacheable(value = CacheNames.FIND_USER_BY_ID, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
+    /**
+     * Retrieves detailed user information by user ID within a specific workspace context.
+     *
+     * @param id the unique identifier of the user to retrieve
+     * @param workspaceIdentifier the identifier of the workspace to fetch user role information from
+     * @return a {@link UserViewDTO} containing the user's details, signed profile image URL,
+     *         workspace name (if available in current context), and workspace role
+     * @see UserViewDTO
+     * @see WorkspaceContext#getCurrentWorkspace()
+     */
     @Override
     public UserViewDTO findUserById(Long id, String workspaceIdentifier) {
-        ChatUser user = userRepository.findById(id)
-        .orElseThrow(() -> {
-            logger.warn("invalid user id {} provided", id);
-            return new CustomBadRequestException("user does not exist!");
-        });
-        
-        UserViewDTO userViewDTO = new UserViewDTO(user);
-        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.MEDIUM));
+        UserViewDTO userViewDTO = userUtilService.getUserViewDTO(id);
+        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(userViewDTO.getImageIndexedName(), MediaSizeEnum.MEDIUM));
         
         String currentWorkspaceIdentifier = WorkspaceContext.getCurrentWorkspace();
 
@@ -223,7 +222,7 @@ public class UserServiceImpl implements UserService {
                     userViewDTO.setWorkspaceName(workspace.getName());
                 });
         }
-        WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(user.getEmail(), workspaceIdentifier);
+        WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(userViewDTO.getEmail(), workspaceIdentifier);
         userViewDTO.setWorkspaceRole(workspaceUser.getRole());
         return userViewDTO;
     }
@@ -511,14 +510,14 @@ public class UserServiceImpl implements UserService {
             throw new CustomInternalServerErrorException("Failed to Update Status");
         }
 
-        String workspaceId = authenticatedUser.getWorkspaceId();
+        String workspaceId = WorkspaceContext.getCurrentWorkspace();
 
-        String tenantId = createSessionKey(workspaceId, user.getEmail());
-        if (UserStatusEnum.BUSY.equals(user.getAvailabilityStatus())) {
-            webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, user.getAvailabilityStatus());
-        } else {
-            webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, UserStatusEnum.ONLINE);
-        }
+        webSocketSessionManager.updateStatusAndNotify(
+                workspaceId,
+                user.getEmail(),
+                status,
+                null
+        );
 
         cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL+":" + user.getEmail()));
         cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
@@ -531,9 +530,5 @@ public class UserServiceImpl implements UserService {
     public String getUserAvailabilityStatus(String email) {
         ChatUser user = getUserByEmail(email);
         return user.getAvailabilityStatus().getName();
-    }
-
-    private String createSessionKey(String tenantId, String email) {
-        return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 }

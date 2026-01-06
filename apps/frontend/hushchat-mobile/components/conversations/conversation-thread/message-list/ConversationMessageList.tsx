@@ -38,6 +38,7 @@ interface IMessagesListProps {
   targetMessageId?: number | null;
   onTargetMessageScrolled?: () => void;
   webMessageInfoPress?: (messageId: number) => void;
+  onEditMessage?: (message: IMessage) => void;
 }
 
 const ConversationMessageList = ({
@@ -55,6 +56,7 @@ const ConversationMessageList = ({
   targetMessageId,
   onTargetMessageScrolled,
   webMessageInfoPress,
+  onEditMessage,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -179,6 +181,7 @@ const ConversationMessageList = ({
         targetMessageId,
         webMessageInfoPress,
         markMessageAsUnread,
+        onEditMessage,
       }),
     [
       currentUserId,
@@ -199,6 +202,7 @@ const ConversationMessageList = ({
       targetMessageId,
       webMessageInfoPress,
       markMessageAsUnread,
+      onEditMessage,
     ]
   );
 
@@ -230,6 +234,10 @@ const ConversationMessageList = ({
           }
           onMarkAsUnread={(message) => {
             markMessageAsUnread(message);
+            closeActions();
+          }}
+          onEdit={(message) => {
+            onEditMessage?.(message);
             closeActions();
           }}
         />

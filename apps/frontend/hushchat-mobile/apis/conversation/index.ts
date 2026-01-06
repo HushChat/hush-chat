@@ -32,6 +32,8 @@ export interface CursorPaginatedResponse<T> {
   size?: number;
   number?: number;
   last?: boolean;
+  hasMoreBefore?: boolean;
+  hasMoreAfter?: boolean;
 }
 
 export type CursorQueryFnType<T> = (params: {
@@ -196,6 +198,23 @@ export const getMessagesAroundMessageId = async (
   }
 };
 
+export const editMessageById = async (
+  conversationId: number,
+  messageId: number,
+  messageText: string
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axios.put(
+      CONVERSATION_API_ENDPOINTS.EDIT_MESSAGE(conversationId, messageId),
+      { messageText }
+    );
+    return { data: response.data };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const setLastSeenMessageByConversationId = async (
   messageId: number,
   conversationId: number
@@ -205,6 +224,9 @@ export const setLastSeenMessageByConversationId = async (
       CONVERSATION_API_ENDPOINTS.SET_LAST_SEEN_MESSAGE(conversationId),
       {
         messageId,
+      },
+      {
+        skipErrorToast: true,
       }
     );
     return { data: response.data };
@@ -217,7 +239,10 @@ export const setLastSeenMessageByConversationId = async (
 export const getLastSeenMessageByConversationId = async (conversationId: number) => {
   try {
     const response = await axios.get(
-      CONVERSATION_API_ENDPOINTS.GET_LAST_SEEN_MESSAGE(conversationId)
+      CONVERSATION_API_ENDPOINTS.GET_LAST_SEEN_MESSAGE(conversationId),
+      {
+        skipErrorToast: true,
+      }
     );
     return response.data;
   } catch (error: unknown) {

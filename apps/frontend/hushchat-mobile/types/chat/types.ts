@@ -69,6 +69,7 @@ export interface IMessage {
   isReadByEveryone?: boolean;
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
+  isEdited?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -253,11 +254,16 @@ export interface TMessageForward {
   customText: string;
 }
 
+export interface TMessageForwardResponse {
+  forwardedTo: number[];
+}
+
 export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
   signedImageUrl: string;
   chatUserStatus?: chatUserStatus;
+  deviceType?: DeviceType;
 }
 
 export type TPickerState = {
@@ -334,6 +340,11 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
+  editingMessage?: IMessage | null;
+  onCancelEdit?: () => void;
+  onEditMessage?: (messageId: number, newText: string) => void;
+  hideEmojiGifPickers?: boolean;
 }
 
 export type TNavigationDirection = "prev" | "next";
