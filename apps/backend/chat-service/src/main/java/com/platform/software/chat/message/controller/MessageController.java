@@ -55,12 +55,15 @@ public class MessageController {
      */
     @ApiOperation(value = "forward messages to conversations")
     @PutMapping("forward")
-    public ResponseEntity<Void> forwardMessages(
+    public ResponseEntity<MessageForwardResponseDTO> forwardMessages(
             @AuthenticatedUser UserDetails userDetails,
             @RequestBody MessageForwardRequestDTO messageForwardRequestDTO
     ) {
-        messageService.forwardMessages(userDetails.getId(), messageForwardRequestDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
+        MessageForwardResponseDTO response = messageService.forwardMessages(
+                userDetails.getId(),
+                messageForwardRequestDTO
+        );
+        return ResponseEntity.ok(response);
     }
 
     /**

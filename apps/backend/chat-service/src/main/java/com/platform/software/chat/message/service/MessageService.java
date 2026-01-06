@@ -291,7 +291,7 @@ public class MessageService {
      * @param messageForwardRequestDTO the DTO containing forwarding details
      */
     @Transactional
-    public void forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
+    public MessageForwardResponseDTO forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
         ValidationUtils.validate(messageForwardRequestDTO);
 
         // validating logged user has access to the forwarding message
@@ -321,6 +321,8 @@ public class MessageService {
                 .toList();
 
         ChatUser loggedInUser = userService.getUserOrThrow(loggedInUserId);
+        
+        List<Long> forwardedConversations = new ArrayList<>(List.of());
 
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
@@ -363,7 +365,10 @@ public class MessageService {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
             }
+            forwardedConversations.add(targetConversation.getId());
         }
+
+        return new MessageForwardResponseDTO(forwardedConversations);
     }
 
     /**

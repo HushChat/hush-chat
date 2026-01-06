@@ -8,6 +8,7 @@ import { useUserStore } from "@/store/user/useUserStore";
 import { getCriteria } from "@/utils/conversationUtils";
 import { router } from "expo-router";
 import { CONVERSATION } from "@/constants/routes";
+import { TMessageForwardResponse } from "@/types/chat/types";
 
 export const useForwardMessageHandler = (onSuccess?: () => void) => {
   const { selectedMessageIds, setSelectionMode, setSelectedMessageIds, selectedConversationType } =
@@ -31,12 +32,12 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
       userId: userId,
       criteria: criteria,
     },
-    () => {
+    (data: TMessageForwardResponse) => {
       resetSelection();
       onSuccess?.();
-      if (selectedConversations.length > 0) {
-        const lastConversation = selectedConversations[selectedConversations.length - 1];
-        router.replace(CONVERSATION(lastConversation.id));
+      if (data.forwardedTo.length > 0) {
+        const lastConversationId = data.forwardedTo[data.forwardedTo.length - 1];
+        router.replace(CONVERSATION(lastConversationId));
       }
     },
     () => {
