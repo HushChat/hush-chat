@@ -10,7 +10,6 @@ import { PLATFORM } from "@/constants/platformConstants";
 import {
   ANIM_EASING,
   RESIZE_ANIM_MS,
-  RESET_ANIM_MS,
   WEB_MAX_CONTAINER_PX,
   WEB_MIN_CONTAINER_PX,
 } from "@/constants/composerConstants";
