@@ -102,18 +102,13 @@ export function useAutoHeight({
     (onComplete?: () => void) => {
       isResettingRef.current = true;
 
-      animatedHeightValue.value = withTiming(minimumInputHeight, {
-        duration: RESET_ANIM_MS,
-        easing: ANIM_EASING,
-      });
+      animatedHeightValue.value = minimumInputHeight;
 
       setCurrentInputHeight(minimumInputHeight);
       contentSizeRef.current = minimumInputHeight;
 
-      setTimeout(() => {
-        isResettingRef.current = false;
-        onComplete?.();
-      }, RESET_ANIM_MS);
+      isResettingRef.current = false;
+      onComplete?.();
     },
     [minimumInputHeight, animatedHeightValue]
   );
