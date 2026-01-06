@@ -43,7 +43,7 @@ public class ChatEventListener {
         messagePublisherService.invokeNewMessageToParticipants(
                 event.conversationId(),
                 event.messageViewDTO(),
-                event.userId(),
+                event.actorUserId(),
                 event.workspaceId()
         );
     }
