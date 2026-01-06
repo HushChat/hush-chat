@@ -14,6 +14,7 @@ type ReactionPickerProps = {
   onSelect: (type: ReactionType) => void;
   isCurrentUser: boolean;
   onRequestClose?: () => void;
+  style?: any;
 };
 
 const EMOJIS: ReactionType[] = [
@@ -32,6 +33,7 @@ const ReactionPicker = memo(
     onSelect,
     isCurrentUser,
     onRequestClose,
+    style,
   }: ReactionPickerProps) => {
     const rootRef = useRef<View | null>(null);
     useOutsideClick(rootRef, () => onRequestClose?.(), visible);
@@ -73,7 +75,7 @@ const ReactionPicker = memo(
     const alignmentStyle = isCurrentUser ? styles.alignEnd : styles.alignStart;
 
     return (
-      <View pointerEvents="box-none" style={[styles.overlay, alignmentStyle]}>
+      <View pointerEvents="box-none" style={[styles.overlay, alignmentStyle, style]}>
         <MotionView
           visible={visible}
           from={{ opacity: 0, scale: 0.8 }}
@@ -103,16 +105,14 @@ export default ReactionPicker;
 const styles = StyleSheet.create({
   overlay: {
     position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
+    zIndex: 1000,
   },
   alignEnd: {
+    right: 0,
     alignItems: "flex-end",
   },
   alignStart: {
+    left: 0,
     alignItems: "flex-start",
   },
 });

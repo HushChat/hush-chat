@@ -36,6 +36,7 @@ import { MessageHeader } from "@/components/conversations/conversation-thread/me
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { MessageActions } from "@/components/conversations/conversation-thread/message-list/MessageActions";
+import ReactionPicker from "@/components/conversations/conversation-thread/message-list/reaction/ReactionPicker";
 import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
 import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
@@ -530,71 +531,76 @@ export const ConversationMessageItem = ({
             {renderParentMessage()}
 
             <View
-              className={classNames(
-                "flex-row items-center gap-2",
-                isCurrentUser ? "self-end" : "self-start"
-              )}
+              className={classNames("flex-col", {
+                "items-end": isCurrentUser,
+                "items-start": !isCurrentUser,
+              })}
             >
-              {isCurrentUser && (
-                <MessageActions
-                  messageText={message.messageText}
-                  messageIsUnsend={message.isUnsend}
-                  selectionMode={selectionMode}
-                  onOpenPicker={handleOpenPicker}
-                  onOpenMenu={openWebMenuAtEvent}
-                  currentUserId={currentUserId}
-                  isCurrentUser={isCurrentUser}
-                  showMenu={false}
-                  showCopy={false}
-                />
-              )}
-              <MessageHighlightWrapper
-                isHighlighted={message.id === targetMessageId}
-                glowColor="#3B82F6"
+              <View
+                className={classNames("flex-row items-center gap-2", {
+                  "flex-row-reverse": isCurrentUser,
+                })}
               >
-                <MessageBubble
-                  message={message}
-                  isCurrentUser={isCurrentUser}
-                  hasText={hasText}
-                  hasAttachments={hasAttachments}
-                  hasMedia={hasMedia}
-                  selected={selected}
-                  selectionMode={selectionMode}
-                  isForwardedMessage={isForwardedMessage}
-                  attachments={attachments}
-                  onBubblePress={handleBubblePress}
-                  onMentionClick={handleMentionClick}
-                  isMessageEdited={isMessageEdited}
-                />
-              </MessageHighlightWrapper>
-              {!isCurrentUser && (
-                <MessageActions
-                  messageText={message.messageText}
-                  messageIsUnsend={message.isUnsend}
-                  selectionMode={selectionMode}
-                  onOpenPicker={handleOpenPicker}
-                  onOpenMenu={openWebMenuAtEvent}
-                  currentUserId={currentUserId}
-                  isCurrentUser={isCurrentUser}
-                  showMenu={false}
-                  showCopy={false}
-                />
-              )}
-            </View>
+                <View style={{ flexShrink: 1 }}>
+                  <MessageHighlightWrapper
+                    isHighlighted={message.id === targetMessageId}
+                    glowColor="#3B82F6"
+                  >
+                    <MessageBubble
+                      message={message}
+                      isCurrentUser={isCurrentUser}
+                      hasText={hasText}
+                      hasAttachments={hasAttachments}
+                      hasMedia={hasMedia}
+                      selected={selected}
+                      selectionMode={selectionMode}
+                      isForwardedMessage={isForwardedMessage}
+                      attachments={attachments}
+                      onBubblePress={handleBubblePress}
+                      onMentionClick={handleMentionClick}
+                      isMessageEdited={isMessageEdited}
+                    />
+                  </MessageHighlightWrapper>
+                </View>
 
-            <MessageReactions
-              message={message}
-              isCurrentUser={isCurrentUser}
-              isPickerOpen={isPickerOpen}
-              conversationIsBlocked={conversationAPIResponse?.isBlocked ?? false}
-              selectionMode={selectionMode}
-              reactedByCurrentUser={reactedByCurrentUser}
-              reactionSummary={reactionSummary}
-              hasReactions={hasReactions}
-              onSelectReaction={handleSelectReaction}
-              onCloseAllOverlays={onCloseAllOverlays}
-              onViewReactions={handleViewReactions}
-            />
+                <View style={{ position: "relative" }}>
+                  <MessageActions
+                    messageText={message.messageText}
+                    messageIsUnsend={message.isUnsend}
+                    selectionMode={selectionMode}
+                    onOpenPicker={handleOpenPicker}
+                    onOpenMenu={openWebMenuAtEvent}
+                    currentUserId={currentUserId}
+                    isCurrentUser={isCurrentUser}
+                    showMenu={false}
+                    showCopy={false}
+                  />
+                  <ReactionPicker
+                    visible={
+                      isPickerOpen &&
+                      !(conversationAPIResponse?.isBlocked ?? false) &&
+                      !selectionMode
+                    }
+                    reactedByCurrentUser={reactedByCurrentUser}
+                    onSelect={handleSelectReaction}
+                    isCurrentUser={isCurrentUser}
+                    onRequestClose={onCloseAllOverlays}
+                    style={{
+                      bottom: 30,
+                      ...(isCurrentUser ? { right: 0 } : { left: 0 }),
+                    }}
+                  />
+                </View>
+              </View>
+
+              <MessageReactions
+                message={message}
+                isCurrentUser={isCurrentUser}
+                reactionSummary={reactionSummary}
+                hasReactions={hasReactions}
+                onViewReactions={handleViewReactions}
+              />
+            </View>
 
             <MentionProfileModal
               visible={showProfilePreviewModal}
