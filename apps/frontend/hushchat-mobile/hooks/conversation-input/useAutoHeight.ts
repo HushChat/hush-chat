@@ -40,6 +40,7 @@ export function useAutoHeight({
   lineHeight,
   verticalPadding,
 }: TAutoHeightOptions): IAutoHeightReturn {
+  const isResettingRef = useRef<boolean>(false);
   const minimumInputHeight = useMemo(() => {
     const rawHeight = lineHeight * minLines + verticalPadding;
     return PLATFORM.IS_WEB ? Math.max(rawHeight, WEB_MIN_CONTAINER_PX) : rawHeight;
@@ -80,6 +81,8 @@ export function useAutoHeight({
 
   const handleTextContainerSizeChange = useCallback(
     (event: TextInputContentSizeChangeEvent) => {
+      if (isResettingRef.current) return;
+
       const rawMeasuredHeight = Math.ceil(event.nativeEvent.contentSize.height);
       updateHeight(rawMeasuredHeight);
     },
@@ -97,6 +100,8 @@ export function useAutoHeight({
 
   const animateHeightResetToMinimum = useCallback(
     (onComplete?: () => void) => {
+      isResettingRef.current = true;
+
       animatedHeightValue.value = withTiming(minimumInputHeight, {
         duration: RESET_ANIM_MS,
         easing: ANIM_EASING,
@@ -105,9 +110,10 @@ export function useAutoHeight({
       setCurrentInputHeight(minimumInputHeight);
       contentSizeRef.current = minimumInputHeight;
 
-      if (onComplete) {
-        setTimeout(onComplete, RESET_ANIM_MS);
-      }
+      setTimeout(() => {
+        isResettingRef.current = false;
+        onComplete?.();
+      }, RESET_ANIM_MS);
     },
     [minimumInputHeight, animatedHeightValue]
   );
