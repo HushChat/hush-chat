@@ -434,7 +434,7 @@ public class ConversationService {
 
             if (conversationEventMap.containsKey(msg.getId())) {
                 ConversationEvent event = conversationEventMap.get(msg.getId());
-                conversationEventMessageService.setEventMessageText(event, msg, loggedInUserId);
+                conversationEventMessageService.setEventMessageText(event, msg, loggedInUserId, false);
             }
         }
     }
@@ -631,7 +631,7 @@ public class ConversationService {
 
                 if (conversationEventMap.containsKey(dto.getId())) {
                     ConversationEvent event = conversationEventMap.get(dto.getId());
-                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId);
+                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId, false);
                 }
 
                 boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
