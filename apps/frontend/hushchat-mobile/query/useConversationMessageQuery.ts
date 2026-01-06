@@ -131,37 +131,44 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const updateConversationsListCache = useCallback(
     (newMessage: IMessage) => {
+      let found = false;
+      const listQueryKey = ["conversations", userId];
+
       queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
-        { queryKey: ["conversations", userId] },
+        { queryKey: listQueryKey },
         (oldData) => {
           if (!oldData) return oldData;
 
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => {
-              const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
+          const updatedPages = oldData.pages.map((page) => {
+            const conversationId = newMessage.conversationId;
+            const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
 
-              if (conversationIndex === -1) return page;
+            if (conversationIndex === -1) return page;
+            found = true;
 
-              const updatedConversation: IConversation = {
-                ...page.content[conversationIndex],
-                messages: [newMessage],
-              };
+            const updatedConversation: IConversation = {
+              ...page.content[conversationIndex],
+              messages: [newMessage],
+            };
 
-              const newContent = [
-                updatedConversation,
-                ...page.content.filter((c) => c.id !== conversationId),
-              ];
+            const newContent = [
+              updatedConversation,
+              ...page.content.filter((c) => c.id !== conversationId),
+            ];
 
-              return { ...page, content: newContent };
-            }),
-          };
+            return { ...page, content: newContent };
+          });
+
+          return { ...oldData, pages: updatedPages };
         }
       );
-    },
-    [queryClient, conversationId, userId]
-  );
 
+      if (!found) {
+        queryClient.invalidateQueries({ queryKey: listQueryKey });
+      }
+    },
+    [queryClient, userId]
+  );
   const { lastMessage } = useConversationMessages(conversationId);
 
   useEffect(() => {
