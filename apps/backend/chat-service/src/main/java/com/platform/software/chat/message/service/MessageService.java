@@ -24,6 +24,7 @@ import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
+import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
@@ -250,12 +251,18 @@ public class MessageService {
             );
             if (messageDTO.isGifAttachment()) {
                 messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+            } else if (StringUtils.hasText(messageDTO.getIndexedFileName())) {
+                MessageAttachment attachment = messageAttachmentService.createMessageAttachment(
+                        new SignedURLDTO(null, messageDTO.getFileName(), messageDTO.getIndexedFileName()),
+                        savedMessage);
+                messageAttachmentService.saveAttachment(attachment);
             } else {
                 SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(
-                    messageDTO.getFileName(), 
-                    savedMessage
-                );
-                messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+                        messageDTO.getDocUploadRequestDTO(),
+                        savedMessage);
+                if (signedURLResponseDTO.getSignedURLs() != null && !signedURLResponseDTO.getSignedURLs().isEmpty()) {
+                    messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+                }
             }
 
             createdMessages.add(messageViewDTO);
@@ -265,14 +272,35 @@ public class MessageService {
                     conversationId,
                     messageViewDTO,
                     loggedInUserId,
-                    savedMessage
-            ));
+                    savedMessage));
         }
 
         return createdMessages;
     }
 
-    /* * Creates a MessageViewDTO from the saved message and sets the sender ID and parent message ID.
+    public List<MessageViewDTO> getSignedURLsForAttachments(
+            List<MessageWithAttachmentUpsertDTO> messageDTOs,
+            Long conversationId,
+            Long loggedInUserId) {
+        List<MessageViewDTO> responses = new ArrayList<>();
+
+        for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
+            SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.generateSignedURLs(
+                    messageDTO.getDocUploadRequestDTO(),
+                    conversationId);
+            MessageViewDTO response = new MessageViewDTO();
+            if (signedURLResponseDTO.getSignedURLs() != null && !signedURLResponseDTO.getSignedURLs().isEmpty()) {
+                response.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+            }
+            responses.add(response);
+        }
+
+        return responses;
+    }
+
+    /*
+     * * Creates a MessageViewDTO from the saved message and sets the sender ID and
+     * parent message ID.
      *
      * @param loggedInUserId the ID of the logged-in user
      * @param parentMessageId the ID of the parent message if this is a reply (optional)

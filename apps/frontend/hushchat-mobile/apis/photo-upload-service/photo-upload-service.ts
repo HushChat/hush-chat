@@ -10,7 +10,7 @@ import {
   UploadResult,
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
-import { createMessagesWithAttachments } from "@/apis/conversation";
+import { createMessagesWithAttachments, finalizeAttachmentMessages } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useState } from "react";
@@ -60,6 +60,7 @@ export type TAttachmentUploadRequest = {
   fileName?: string;
   parentMessageId?: number | null;
   gifUrl?: string;
+  indexedFileName?: string;
 };
 
 interface IMessageWithSignedUrl {
@@ -252,7 +253,7 @@ export function useMessageAttachmentUploader(
       },
     ];
 
-    const response = await createMessagesWithAttachments(conversationId, attachments);
+    const response = await finalizeAttachmentMessages(conversationId, attachments);
     return response;
   };
 
@@ -271,8 +272,26 @@ export function useMessageAttachmentUploader(
       messageText
     );
 
-    if (results && onUploadComplete) {
-      await onUploadComplete(results);
+    if (results && results.length > 0) {
+      const successful = results.filter((r) => r.success && r.signed);
+      if (successful.length > 0) {
+        const finalizeRequests: (TAttachmentUploadRequest & { indexedFileName: string })[] =
+          successful.map((r) => ({
+            messageText,
+            fileName: r.fileName,
+            indexedFileName: r.signed!.indexedFileName!,
+          }));
+
+        try {
+          await finalizeAttachmentMessages(conversationId, finalizeRequests);
+        } catch (error) {
+          logWarn("Failed to finalize messages after upload:", error);
+        }
+      }
+
+      if (onUploadComplete) {
+        await onUploadComplete(results);
+      }
     }
 
     return results;
@@ -289,8 +308,26 @@ export function useMessageAttachmentUploader(
       messageText
     );
 
-    if (results && onUploadComplete) {
-      await onUploadComplete(results);
+    if (results && results.length > 0) {
+      const successful = results.filter((r) => r.success && r.signed);
+      if (successful.length > 0) {
+        const finalizeRequests: (TAttachmentUploadRequest & { indexedFileName: string })[] =
+          successful.map((r) => ({
+            messageText,
+            fileName: r.fileName,
+            indexedFileName: r.signed!.indexedFileName!,
+          }));
+
+        try {
+          await finalizeAttachmentMessages(conversationId, finalizeRequests);
+        } catch (error) {
+          logWarn("Failed to finalize messages after upload:", error);
+        }
+      }
+
+      if (onUploadComplete) {
+        await onUploadComplete(results);
+      }
     }
 
     return results;
@@ -402,6 +439,26 @@ export function useMessageAttachmentUploader(
       }
 
       const allResults = [...results, ...skipped];
+
+      const successful = results.filter((r) => r.success && r.signed);
+      if (successful.length > 0) {
+        const finalizeRequests: (TAttachmentUploadRequest & { indexedFileName: string })[] =
+          successful.map((r) => {
+            const fileWithCaption = validFiles.find((vf) => vf.file.name === r.fileName);
+            return {
+              messageText: fileWithCaption?.caption || "",
+              fileName: r.fileName,
+              indexedFileName: r.signed!.indexedFileName!,
+              parentMessageId,
+            };
+          });
+
+        try {
+          await finalizeAttachmentMessages(conversationId, finalizeRequests);
+        } catch (error) {
+          logWarn("Failed to finalize web messages after upload:", error);
+        }
+      }
 
       if (onUploadComplete) {
         await onUploadComplete(allResults);

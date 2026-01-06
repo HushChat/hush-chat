@@ -12,6 +12,7 @@ public class MessageWithAttachmentUpsertDTO {
     private String fileName;
     private Long parentMessageId;
     private String gifUrl;
+    private String indexedFileName;
     private AttachmentTypeEnum attachmentType;
 
     public MessageUpsertDTO getMessageUpsertDTO() {
@@ -23,7 +24,7 @@ public class MessageWithAttachmentUpsertDTO {
         return messageUpsertDTO;
     }
 
-    public DocUploadRequestDTO getFileName() {
+    public DocUploadRequestDTO getDocUploadRequestDTO() {
         DocUploadRequestDTO uploadRequestDTO = new DocUploadRequestDTO();
         uploadRequestDTO.setFileNames(List.of(fileName));
         uploadRequestDTO.setIsGroup(false);

@@ -33,9 +33,8 @@ public class MessageAttachmentService {
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
 
     public MessageAttachmentService(
-        MessageAttachmentRepository messageAttachmentRepository,
-        CloudPhotoHandlingService cloudPhotoHandlingService
-    ) {
+            MessageAttachmentRepository messageAttachmentRepository,
+            CloudPhotoHandlingService cloudPhotoHandlingService) {
         this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
     }
@@ -51,10 +50,12 @@ public class MessageAttachmentService {
         }
 
         SignedURLResponseDTO signedURLResponse = cloudPhotoHandlingService
-            .generateSignedURLForMessageAttachmentsUpload(files, savedMessage.getId());
+                .generateSignedURLForMessageAttachmentsUpload(files, savedMessage.getId());
 
-        if (signedURLResponse != null && signedURLResponse.getSignedURLs() != null && !signedURLResponse.getSignedURLs().isEmpty()) {
-            List<MessageAttachment> messageAttachments = createMessageAttachments(signedURLResponse.getSignedURLs(), savedMessage);
+        if (signedURLResponse != null && signedURLResponse.getSignedURLs() != null
+                && !signedURLResponse.getSignedURLs().isEmpty()) {
+            List<MessageAttachment> messageAttachments = createMessageAttachments(signedURLResponse.getSignedURLs(),
+                    savedMessage);
             try {
                 messageAttachmentRepository.saveAll(messageAttachments);
             } catch (Exception exception) {
@@ -66,9 +67,26 @@ public class MessageAttachmentService {
     }
 
     /**
+     * Generate signed URLs for message attachments without creating attachment
+     * records.
+     *
+     * @param files          Array of files to upload
+     * @param conversationId The conversation ID
+     * @return SignedURLResponseDTO containing the signed URLs
+     */
+    public SignedURLResponseDTO generateSignedURLs(DocUploadRequestDTO files, Long conversationId) {
+        if (files == null || files.getFileNames().isEmpty()) {
+            return new SignedURLResponseDTO();
+        }
+
+        return cloudPhotoHandlingService
+                .generateSignedURLForMessageAttachmentsUpload(files, conversationId);
+    }
+
+    /**
      * Create a GIF attachment without file upload
      * 
-     * @param gifUrl The Tenor GIF URL
+     * @param gifUrl  The Tenor GIF URL
      * @param message The message to attach the GIF to
      * @return The created MessageAttachment
      */
@@ -94,11 +112,11 @@ public class MessageAttachmentService {
 
     private List<MessageAttachment> createMessageAttachments(List<SignedURLDTO> signedURLs, Message message) {
         return signedURLs.stream()
-            .map(signedURL -> createMessageAttachment(signedURL, message))
-            .collect(Collectors.toList());
+                .map(signedURL -> createMessageAttachment(signedURL, message))
+                .collect(Collectors.toList());
     }
 
-    private MessageAttachment createMessageAttachment(SignedURLDTO signedURL, Message message) {
+    public MessageAttachment createMessageAttachment(SignedURLDTO signedURL, Message message) {
         MessageAttachment messageAttachment = new MessageAttachment();
         messageAttachment.setMessage(message);
         messageAttachment.setOriginalFileName(signedURL.getOriginalFileName());
@@ -111,20 +129,35 @@ public class MessageAttachmentService {
         if (fileName == null || !fileName.contains(".")) {
             return AttachmentTypeEnum.OTHER;
         }
-        
+
         String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
-        
-        if (Constants.IMAGE_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.IMAGE;
-        if (Constants.VIDEO_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.VIDEO;
-        if (Constants.AUDIO_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.AUDIO;
-        if (Constants.DOCUMENT_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.DOCUMENT;
-        
+
+        if (Constants.IMAGE_EXTENSIONS.contains(extension))
+            return AttachmentTypeEnum.IMAGE;
+        if (Constants.VIDEO_EXTENSIONS.contains(extension))
+            return AttachmentTypeEnum.VIDEO;
+        if (Constants.AUDIO_EXTENSIONS.contains(extension))
+            return AttachmentTypeEnum.AUDIO;
+        if (Constants.DOCUMENT_EXTENSIONS.contains(extension))
+            return AttachmentTypeEnum.DOCUMENT;
+
         return AttachmentTypeEnum.OTHER;
     }
 
-    public Page<MessageAttachmentDTO> getAttachments(Long conversationId, AttachmentFilterCriteria attachmentFilterCriteria, Pageable pageable) {
+    public void saveAttachment(MessageAttachment attachment) {
+        try {
+            messageAttachmentRepository.save(attachment);
+        } catch (Exception exception) {
+            logger.error("failed to save message attachment {}", attachment, exception);
+            throw new CustomBadRequestException("Failed to save file");
+        }
+    }
+
+    public Page<MessageAttachmentDTO> getAttachments(Long conversationId,
+            AttachmentFilterCriteria attachmentFilterCriteria, Pageable pageable) {
         attachmentFilterCriteria.setConversationId(conversationId);
-        Page<MessageAttachment> attachmentPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria, pageable);
+        Page<MessageAttachment> attachmentPage = messageAttachmentRepository.filterAttachments(attachmentFilterCriteria,
+                pageable);
         Page<MessageAttachmentDTO> attachmentDTOPage = attachmentPage.map(attachment -> {
             MessageAttachmentDTO attachmentDTO = new MessageAttachmentDTO(attachment);
 
@@ -132,7 +165,7 @@ public class MessageAttachmentService {
                 attachmentDTO.setFileUrl(attachment.getIndexedFileName());
             } else {
                 String fileViewSignedURL = cloudPhotoHandlingService
-                    .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
                 attachmentDTO.setFileUrl(fileViewSignedURL);
             }
 

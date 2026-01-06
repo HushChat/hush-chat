@@ -286,6 +286,23 @@ export const createMessagesWithAttachments = async (
   }
 };
 
+export const finalizeAttachmentMessages = async (
+  conversationId: number,
+  attachments: TAttachmentUploadRequest[]
+) => {
+  try {
+    const response = await axios.post(
+      CONVERSATION_API_ENDPOINTS.FINALIZE_ATTACHMENT_MESSAGE(conversationId),
+      attachments
+    );
+
+    return response.data;
+  } catch (error) {
+    ToastUtils.error("Unable to finalize attachment message: " + error);
+    throw error;
+  }
+};
+
 export const toggleConversationFavorite = async (conversationId: string) => {
   try {
     const response = await axios.patch(
