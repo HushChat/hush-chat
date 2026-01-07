@@ -58,7 +58,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
-    allowForwardPagination: inMessageWindowView,
+    allowForwardPagination: true,
   });
 
   const loadMessageWindow = useCallback(

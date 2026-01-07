@@ -568,13 +568,42 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId){
-        ConversationParticipant loggedInParticipant =
-                conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
+    public MessageWindowPage<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId,
+            Long loggedInUserId) {
+        ConversationParticipant loggedInParticipant = conversationUtilService
+                .getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
+        if (idBasedPageRequest.getAfterId() == null && idBasedPageRequest.getBeforeId() == null) {
+            ConversationReadInfo readInfo = conversationReadStatusRepository
+                    .findConversationReadInfoByConversationIdAndUserId(conversationId, loggedInUserId);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+            if (readInfo != null && readInfo.getUnreadCount() != null && readInfo.getUnreadCount() > 20) {
+                Long lastSeenId = conversationReadStatusRepository
+                        .findLastSeenMessageIdByConversationIdAndUserId(conversationId, loggedInUserId).orElse(0L);
+                idBasedPageRequest.setAfterId(lastSeenId);
+            }
+        }
+
+        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId,
+                loggedInParticipant);
+
+        Page<MessageViewDTO> messageViewDTOs = getMessageViewDTOs(messages, conversationId, loggedInUserId);
+
+        boolean hasMoreBefore = false;
+        boolean hasMoreAfter = false;
+
+        if (idBasedPageRequest.getAfterId() != null) {
+            hasMoreAfter = messageViewDTOs.hasNext();
+            hasMoreBefore = idBasedPageRequest.getAfterId() > 0;
+        } else if (idBasedPageRequest.getBeforeId() != null) {
+            hasMoreBefore = messageViewDTOs.hasNext();
+            hasMoreAfter = true;
+        } else {
+            hasMoreBefore = messageViewDTOs.hasNext();
+            hasMoreAfter = false;
+        }
+
+        return MessageWindowPage.from(messageViewDTOs, hasMoreBefore, hasMoreAfter);
     }
 
     /**
