@@ -230,7 +230,7 @@ export default function ChatInterfaceWeb({
           visible={true}
           from={{ width: screenWidth }}
           to={{ width: threadWidth }}
-          duration={300}
+          duration={screenWidth < 1024 ? 0 : 300}
           easing="decelerate"
           className="bg-background-light dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800"
           style={styles.threadMotion}
