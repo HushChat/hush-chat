@@ -4,11 +4,12 @@ import { PLATFORM } from "@/constants/platformConstants";
 type UsePasteHandlerOptions = {
   enabled: boolean;
   onPasteFiles: (files: File[]) => void;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
 };
 
-export function usePasteHandler({ enabled, onPasteFiles }: UsePasteHandlerOptions) {
+export function usePasteHandler({ enabled, onPasteFiles, inputRef }: UsePasteHandlerOptions) {
   useEffect(() => {
-    if (!PLATFORM.IS_WEB || !enabled) return;
+    if (!PLATFORM.IS_WEB || !enabled || !inputRef?.current) return;
 
     const handlePaste = (event: ClipboardEvent) => {
       const items = event.clipboardData?.items;
@@ -33,7 +34,8 @@ export function usePasteHandler({ enabled, onPasteFiles }: UsePasteHandlerOption
       }
     };
 
-    document.addEventListener("paste", handlePaste);
-    return () => document.removeEventListener("paste", handlePaste);
-  }, [enabled, onPasteFiles]);
+    const inputElement = inputRef.current;
+    inputElement?.addEventListener("paste", handlePaste);
+    return () => inputElement?.removeEventListener("paste", handlePaste);
+  }, [enabled, onPasteFiles, inputRef]);
 }

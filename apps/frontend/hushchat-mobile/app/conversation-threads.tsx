@@ -77,6 +77,7 @@ const ConversationThreadScreen = ({
   const { publishActivity } = useWebSocket();
 
   const dropZoneRef = useRef<View>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     selectionMode,
@@ -266,6 +267,7 @@ const ConversationThreadScreen = ({
 
   usePasteHandler({
     enabled: !selectionMode && !showImagePreview && !getDisabledMessageReason(),
+    inputRef: messageInputRef,
     onPasteFiles: handlePasteFiles,
   });
 
@@ -484,6 +486,7 @@ const ConversationThreadScreen = ({
 
     return (
       <ConversationInput
+        ref={messageInputRef}
         conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
         onOpenImagePicker={handleOpenImagePicker}

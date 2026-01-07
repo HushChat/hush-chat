@@ -41,6 +41,7 @@ const FilePreviewOverlay = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [captions, setCaptions] = useState<Map<number, string>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const captionInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setCaptions((prev) => {
@@ -75,6 +76,7 @@ const FilePreviewOverlay = ({
   usePasteHandler({
     enabled: true,
     onPasteFiles: handlePasteFilesInPreview,
+    inputRef: captionInputRef,
   });
 
   const handleCaptionChange = useCallback(
@@ -166,6 +168,7 @@ const FilePreviewOverlay = ({
           isGroupChat={isGroupChat}
           replyToMessage={replyToMessage}
           onCancelReply={onCancelReply}
+          inputRef={captionInputRef}
         />
       </View>
 
