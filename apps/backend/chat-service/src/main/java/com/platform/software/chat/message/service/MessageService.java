@@ -69,7 +69,7 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
-    public Page<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
+    public MessageWindowPage<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
@@ -239,6 +239,8 @@ public class MessageService {
         Long loggedInUserId
     ) {
         List<MessageViewDTO> createdMessages = new ArrayList<>();
+        String currentWorkspace = WorkspaceContext.getCurrentWorkspace();
+
         for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
             Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
             MessageViewDTO messageViewDTO = getMessageViewDTO(
@@ -258,9 +260,13 @@ public class MessageService {
 
             createdMessages.add(messageViewDTO);
 
-            messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-            );
+            eventPublisher.publishEvent(new MessageCreatedEvent(
+                    currentWorkspace,
+                    conversationId,
+                    messageViewDTO,
+                    loggedInUserId,
+                    savedMessage
+            ));
         }
 
         return createdMessages;
@@ -285,7 +291,7 @@ public class MessageService {
      * @param messageForwardRequestDTO the DTO containing forwarding details
      */
     @Transactional
-    public void forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
+    public MessageForwardResponseDTO forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
         ValidationUtils.validate(messageForwardRequestDTO);
 
         // validating logged user has access to the forwarding message
@@ -315,6 +321,8 @@ public class MessageService {
                 .toList();
 
         ChatUser loggedInUser = userService.getUserOrThrow(loggedInUserId);
+        
+        List<Long> forwardedConversations = new ArrayList<>(List.of());
 
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
@@ -357,7 +365,10 @@ public class MessageService {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
             }
+            forwardedConversations.add(targetConversation.getId());
         }
+
+        return new MessageForwardResponseDTO(forwardedConversations);
     }
 
     /**

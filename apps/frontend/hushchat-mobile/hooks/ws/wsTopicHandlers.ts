@@ -5,9 +5,10 @@ import {
   emitMessageUnsent,
   emitNewMessage,
   emitUserStatus,
+  emitUserTyping,
 } from "@/services/eventBus";
 import { IConversation, IUserStatus } from "@/types/chat/types";
-import { MessageReactionPayload, MessageUnsentPayload } from "@/types/ws/types";
+import { MessageReactionPayload, MessageUnsentPayload, TypingIndicator } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 
 export type TopicHandler = (body: string) => void;
@@ -36,6 +37,11 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
   [WS_TOPICS.conversation.created]: (body) => {
     const conversation = JSON.parse(body) as IConversation;
     emitConversationCreated(conversation);
+  },
+
+  [WS_TOPICS.message.typing]: (body) => {
+    const typingStatus = JSON.parse(body) as TypingIndicator;
+    emitUserTyping(typingStatus);
   },
 };
 

@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
+import com.platform.software.chat.message.dto.MessageWindowPage;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
@@ -38,6 +39,11 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     private static final QChatUser sender = QChatUser.chatUser;
 
     private final JPAQueryFactory queryFactory;
+
+    private enum Direction {
+        BEFORE,
+        AFTER
+    }
 
     public MessageQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.queryFactory = jpaQueryFactory;
@@ -174,7 +180,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
      * @param participant    the participant requesting the message window, used for visibility filters
      * @return a page containing the window of messages around the given message ID
      */
-    public Page<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long messageId, ConversationParticipant participant) {
+    public MessageWindowPage<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long messageId, ConversationParticipant participant) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
         int windowSize = 10;
@@ -204,7 +210,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                 .fetchOne();
 
         if (targetMessage == null) {
-            return Page.empty();
+            return new MessageWindowPage<>(Collections.emptyList(), PageRequest.of(0, windowSize * 2 + 1), 0, false, false);
         }
 
         List<Message> before = baseQuery.clone()
@@ -219,6 +225,12 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                 .limit(windowSize)
                 .fetch();
 
+        Long lastBeforeId = getOldestFetchedMessageIdOrFallback(before, targetMessage.getId());
+        Long lastAfterId  = getOldestFetchedMessageIdOrFallback(after, targetMessage.getId());
+
+        boolean hasMoreBefore = existsMessageInDirection(baseQuery, lastBeforeId, Direction.BEFORE);
+        boolean hasMoreAfter = existsMessageInDirection(baseQuery, lastAfterId, Direction.AFTER);
+
         Collections.reverse(after);
         List<Message> messages = new ArrayList<>(after);
         messages.add(targetMessage);
@@ -226,7 +238,23 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
 
-        return new PageImpl<>(messages, pageable, messages.size());
+        return new MessageWindowPage<>(messages, pageable, messages.size(), hasMoreBefore, hasMoreAfter);
+    }
+
+    private Long getOldestFetchedMessageIdOrFallback(List<Message> messages, Long fallbackId) {
+        return messages.isEmpty() ? fallbackId : messages.getLast().getId();
+    }
+
+    private boolean existsMessageInDirection(JPAQuery<Message> baseQuery, Long id, Direction direction) {
+        JPAQuery<Message> query = baseQuery.clone();
+
+        if (direction == Direction.BEFORE) {
+            query.where(message.id.lt(id)).orderBy(message.id.desc());
+        } else {
+            query.where(message.id.gt(id)).orderBy(message.id.asc());
+        }
+
+        return query.limit(1).fetchFirst() != null;
     }
 
     @Override

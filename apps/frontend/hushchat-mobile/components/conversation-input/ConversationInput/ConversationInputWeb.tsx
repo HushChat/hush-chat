@@ -15,11 +15,12 @@ import { AttachmentButton } from "@/components/conversation-input/AttachmentButt
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { FileInput } from "@/components/conversation-input/FileInput";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
-import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
-const ConversationInput = ({
+const ConversationInputWeb = ({
   conversationId,
   onSendMessage,
   onOpenImagePicker,
@@ -36,6 +37,7 @@ const ConversationInput = ({
   onEditMessage,
   hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
+  const { publishTyping } = useWebSocket();
   const isControlledMode = controlledValue !== undefined;
 
   const {
@@ -56,6 +58,12 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    onTypingStatusChange: (isTyping, convId) => {
+      publishTyping({
+        conversationId: convId,
+        typing: isTyping,
+      });
+    },
     editingMessage,
     onCancelEdit,
     onEditMessage,
@@ -64,9 +72,7 @@ const ConversationInput = ({
   const handleKeyPress = useCallback(
     (event: any) => {
       input.specialCharHandler(event);
-      if (!hideSendButton) {
-        input.enterSubmitHandler(event);
-      }
+      input.enterSubmitHandler(event);
     },
     [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
   );
@@ -203,7 +209,7 @@ const ConversationInput = ({
             onEmojiSelect={handleEmojiSelect}
           />
 
-          <GifPickerComponent
+          <GifPicker
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={handleGifSelect}
@@ -214,4 +220,4 @@ const ConversationInput = ({
   );
 };
 
-export default memo(ConversationInput);
+export default memo(ConversationInputWeb);

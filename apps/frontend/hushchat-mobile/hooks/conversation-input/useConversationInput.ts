@@ -8,6 +8,7 @@ import { useMessageInput } from "@/hooks/conversation-input/useMessageInput";
 import { useMentions } from "@/hooks/conversation-input/useMentions";
 import { useReplyHandler } from "@/hooks/conversation-input/useReplyHandler";
 import { useFilePicker } from "@/hooks/conversation-input/useFilePicker";
+import { useTypingActivity } from "@/hooks/conversation-input/useTypingActivity";
 
 type TConversationInputOptions = Pick<
   ConversationInputProps,
@@ -20,6 +21,7 @@ type TConversationInputOptions = Pick<
   | "onCancelReply"
   | "controlledValue"
   | "onControlledValueChange"
+  | "onTypingStatusChange"
   | "editingMessage"
   | "onCancelEdit"
   | "onEditMessage"
@@ -35,6 +37,7 @@ export function useConversationInput({
   onCancelReply,
   controlledValue,
   onControlledValueChange,
+  onTypingStatusChange,
   editingMessage,
   onCancelEdit,
   onEditMessage,
@@ -80,6 +83,10 @@ export function useConversationInput({
 
   const latestMessageTextRef = useRef(currentMessage);
   latestMessageTextRef.current = currentMessage;
+
+  const typingActivity = useTypingActivity((typing: boolean) => {
+    onTypingStatusChange?.(typing, conversationId);
+  });
 
   useEffect(() => {
     if (editingMessage) {
@@ -134,15 +141,20 @@ export function useConversationInput({
       } else {
         messageInputController.onMessageTextChangedByUser(newTypedText);
       }
+
       mentionsController.evaluateMentionQueryFromInput(newTypedText, cursorLocationRef.current);
-      autoHeightController.updateHeightForClearedText(newTypedText);
+
+      autoHeightController.updateHeightForTextChange(newTypedText);
+
+      typingActivity.handleInputActivity(newTypedText.length);
     },
     [
       isControlledMode,
       onControlledValueChange,
       messageInputController.onMessageTextChangedByUser,
       mentionsController.evaluateMentionQueryFromInput,
-      autoHeightController.updateHeightForClearedText,
+      autoHeightController.updateHeightForTextChange,
+      typingActivity.handleInputActivity,
     ]
   );
 
@@ -218,6 +230,8 @@ export function useConversationInput({
         replyManagerRef.current.cancelReplyMode();
       }
 
+      typingActivity.stopTyping();
+
       requestAnimationFrame(() => messageTextInputRef.current?.focus());
     },
     [
@@ -228,6 +242,7 @@ export function useConversationInput({
       autoHeightController.animateHeightResetToMinimum,
       mentionsController.clearActiveMentionQuery,
       mentionsController.clearValidMentions,
+      typingActivity.stopTyping,
     ]
   );
 
