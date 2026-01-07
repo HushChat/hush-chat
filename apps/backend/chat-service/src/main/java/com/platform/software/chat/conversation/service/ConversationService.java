@@ -1527,7 +1527,7 @@ public class ConversationService {
                 signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
                         MediaPathEnum.RESIZED_PROFILE_PICTURE,
                         MediaSizeEnum.SMALL,
-                        user.getImageIndexedName()
+                        imageIndexName
                 );
             }
             UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
