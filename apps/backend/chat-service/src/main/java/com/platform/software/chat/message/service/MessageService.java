@@ -170,12 +170,7 @@ public class MessageService {
             return;
         }
 
-        if (!conversation.getIsGroup()) {
-            boolean isBlocked = userBlockRepository.existsBlockBetweenUsers(conversationId);
-            if (isBlocked) {
-                throw new CustomBadRequestException("Something went wrong!");
-            }
-        }
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
         message.setMessageText(messageDTO.getMessageText());
         message.setIsEdited(true);
@@ -551,13 +546,8 @@ public class MessageService {
                 .orElseThrow(() -> new CustomBadRequestException(
                         "Message not found, not owned by you, or you don’t have permission to delete it"));
 
-          Conversation conversation = message.getConversation();
-        if (!conversation.getIsGroup()) {
-            boolean isBlocked = userBlockRepository.existsBlockBetweenUsers(conversation.getId());
-            if (isBlocked) {
-                throw new CustomBadRequestException("Something went wrong!");
-            }
-        }
+        Conversation conversation = message.getConversation();
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
         if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
             throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");

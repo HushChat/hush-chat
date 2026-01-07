@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import { useEditMessageMutation } from "@/query/patch/queries";
-import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 import { IMessage } from "@/types/chat/types";
 
@@ -29,8 +28,8 @@ export function useMessageEdit({
       setEditingMessage(null);
       ToastUtils.success("Message edited");
     },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
+    (error: any) => {
+      ToastUtils.error(error?.message ?? "Something went wrong");
     }
   );
 
