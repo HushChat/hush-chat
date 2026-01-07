@@ -87,12 +87,18 @@ export const getAllConversations = async (
 
 export const getConversationMessagesByCursor = async (
   conversationId: number,
-  { beforeId, afterId, size = 20 }: { beforeId?: number; afterId?: number; size?: number }
+  {
+    beforeId,
+    afterId,
+    size = 20,
+    jumpToUnread,
+  }: { beforeId?: number; afterId?: number; size?: number; jumpToUnread?: boolean }
 ) => {
   try {
-    const params: Record<string, number> = { size };
+    const params: Record<string, number | boolean> = { size };
     if (beforeId) params.beforeId = beforeId;
     if (afterId) params.afterId = afterId;
+    if (jumpToUnread) params.jumpToUnread = jumpToUnread;
 
     const response = await axios.get(CONVERSATION_API_ENDPOINTS.MESSAGES(conversationId), {
       params,

@@ -109,12 +109,13 @@ public class ConversationMessageController {
      */
     @ApiOperation(value = "get messages from a conversation", response = MessageViewDTO.class)
     @GetMapping("")
-    public ResponseEntity<MessageWindowPage<MessageViewDTO>> getMessages(
+    public ResponseEntity<Page<MessageViewDTO>> getMessages(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails,
+            @RequestParam(required = false, defaultValue = "false") boolean jumpToUnread,
             IdBasedPageRequest idBasedPageRequest
     ) {
-        MessageWindowPage<MessageViewDTO> messages = conversationService.getMessages(idBasedPageRequest, conversationId, userDetails.getId());
+        Page<MessageViewDTO> messages = conversationService.getMessages(idBasedPageRequest, conversationId, userDetails.getId(), jumpToUnread);
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 

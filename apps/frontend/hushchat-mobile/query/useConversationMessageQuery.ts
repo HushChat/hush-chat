@@ -34,7 +34,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
-      queryClient.removeQueries({ queryKey });
+      // queryClient.removeQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
@@ -55,7 +55,15 @@ export function useConversationMessagesQuery(conversationId: number) {
     refetch,
   } = usePaginatedQueryWithCursor<IMessage>({
     queryKey,
-    queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
+    queryFn: (params) => {
+      // If no beforeId or afterId is present, this is the initial fetch.
+      // We want to jump to unread messages in that case.
+      const isInitialFetch = !params.beforeId && !params.afterId;
+      return getConversationMessagesByCursor(conversationId, {
+        ...params,
+        jumpToUnread: isInitialFetch,
+      });
+    },
     pageSize: PAGE_SIZE,
     enabled: !!conversationId,
     allowForwardPagination: true,
