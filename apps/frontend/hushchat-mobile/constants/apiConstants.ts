@@ -17,6 +17,7 @@ export const MESSAGE_API_BASE = "/messages";
 export const SEARCH_API_BASE = "/search";
 export const WORKSPACES_API_BASE = "/workspaces";
 export const ADMIN_WORKSPACES_API_BASE = "/admin/workspace";
+export const GIF_API_BASE = "/tenor";
 
 export const WORKSPACE_ENDPOINTS = {
   GET: `${WORKSPACES_API_BASE}/my-workspaces`,
@@ -36,6 +37,8 @@ export const CONVERSATION_API_ENDPOINTS = {
   GET_BY_ID: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/meta`,
   MESSAGES: (conversationId: number) => `${CONVERSATION_API_BASE}/${conversationId}/messages`,
   GET_MESSAGE_BY_ID: (conversationId: number, messageId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}`,
+  EDIT_MESSAGE: (conversationId: number, messageId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}`,
   SIGNED_URLS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/upload-signed-url`,
@@ -101,14 +104,26 @@ export const USER_API_ENDPOINTS = {
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
   SAVE_TOKEN: `/notifications/device-token`,
   CHANGE_PASSWORD: `/users/change-password`,
+  CHANGE_AVAILABILITY_STATUS: `${USER_API_BASE}/availability`,
 };
 
 export const MESSAGE_API_ENDPOINTS = {
   REACTIONS: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/reactions`,
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
+  MENTIONED_MESSAGES: `${MESSAGE_API_BASE}/mentions`,
 };
 
 export const SETTINGS_API_ENDPOINTS = {
   CONTACT_US: `${SETTINGS_API_BASE}/contact-us`,
+};
+
+export const GIF_API_ENDPOINTS = {
+  TRENDING: `${GIF_API_BASE}/featured`,
+  SEARCH: `${GIF_API_BASE}/search`,
+};
+
+export const WS_DESTINATIONS = {
+  SUBSCRIBED_CONVERSATIONS: "/app/subscribed-conversations",
+  TYPING: "/app/typing",
 };

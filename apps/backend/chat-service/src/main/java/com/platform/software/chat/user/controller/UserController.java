@@ -1,5 +1,6 @@
 package com.platform.software.chat.user.controller;
 
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 
 import org.springframework.data.domain.Page;
@@ -200,5 +201,24 @@ public class UserController {
             @PathVariable Long id
     ){
         return ResponseEntity.ok(userService.getUserProfile(id));
+    }
+
+    /**
+     * Updates the availability status of the currently authenticated user.
+     * <p>
+     * This endpoint allows an authenticated user to toggle or change their current availability status.
+     * The operation delegates the update to {@code userService.updateUserAvailability(UserDetails)},
+     * which returns the updated {@link UserStatusEnum}.
+     * </p>
+     *
+     * @param authenticatedUser the currently authenticated user obtained from the security context,
+     *                          injected via {@link AuthenticatedUser}
+     * @return a {@link ResponseEntity} containing the updated {@link UserStatusEnum} and an HTTP 200 (OK) status
+     */
+    @ApiOperation(value = "Change user availability status", response = UserStatusEnum.class)
+    @PatchMapping("availability")
+    public ResponseEntity<UserStatusEnum> updateUserAvailability(@AuthenticatedUser UserDetails authenticatedUser, @RequestParam UserStatusEnum status) {
+        UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser, status);
+        return new ResponseEntity<>(userStatusEnum, HttpStatus.OK);
     }
 }

@@ -55,12 +55,15 @@ public class MessageController {
      */
     @ApiOperation(value = "forward messages to conversations")
     @PutMapping("forward")
-    public ResponseEntity<Void> forwardMessages(
+    public ResponseEntity<MessageForwardResponseDTO> forwardMessages(
             @AuthenticatedUser UserDetails userDetails,
             @RequestBody MessageForwardRequestDTO messageForwardRequestDTO
     ) {
-        messageService.forwardMessages(userDetails.getId(), messageForwardRequestDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
+        MessageForwardResponseDTO response = messageService.forwardMessages(
+                userDetails.getId(),
+                messageForwardRequestDTO
+        );
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -207,7 +210,7 @@ public class MessageController {
      */
     @ApiOperation(value = "get all user message mentions by others")
     @GetMapping("/mentions")
-    public ResponseEntity<Page<MessageMentionDTO>> getAllUserMessageMentions(
+    public ResponseEntity<Page<MessageMentionDTO>> getMentionsByOthersForUser(
             @AuthenticatedUser UserDetails authenticatedUser,
             Pageable pageable
     ) {

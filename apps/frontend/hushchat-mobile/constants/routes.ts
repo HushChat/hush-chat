@@ -17,6 +17,7 @@ export const CALL_LOGS_PATH = "/(tabs)/call-history";
 export const PROFILE_PATH = "/(tabs)/profile";
 export const FORWARD_PATH = "/conversations/forward-panel";
 export const GROUP_CONVERSATION_SELECT_PARTICIPANTS = "/group-conversation/select-participants";
+export const MENTIONED_MESSAGES = "/mentioned-messages-view";
 export const SETTINGS_CONTACT = "/settings/contact";
 export const SETTINGS_INVITE = "/settings/invite";
 export const SETTINGS_WORKSPACE = "/settings/change-workspace";

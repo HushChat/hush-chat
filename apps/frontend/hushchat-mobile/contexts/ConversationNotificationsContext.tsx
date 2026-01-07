@@ -59,16 +59,15 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
-
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
-    user: { id: loggedInUserId },
+    user: { id: loggedInUserId, email },
   } = useUserStore();
 
-  const conversationsQueryKey = conversationQueryKeys.allConversations(
-    Number(loggedInUserId),
-    criteria
+  const conversationsQueryKey = useMemo(
+    () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
+    [loggedInUserId, criteria]
   );
 
   /**
@@ -100,6 +99,12 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     const mergedConversation = {
       ...notificationConversation,
+
+      name: matchedNotification?.name ?? notificationConversation.name,
+      isGroup: matchedNotification?.isGroup ?? notificationConversation.isGroup,
+      signedImageUrl:
+        matchedNotification?.signedImageUrl ?? notificationConversation.signedImageUrl,
+
       chatUserStatus: matchedNotification?.chatUserStatus,
       unreadCount: updatedUnreadCount,
       deviceType: matchedNotification?.deviceType,
@@ -118,6 +123,8 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         isPinned: (conversation) => conversation.pinnedByLoggedInUser,
       }
     );
+
+    setNotificationConversation(null);
   }, [notificationConversation, queryClient, conversationsQueryKey]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
@@ -426,6 +433,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     if (conversation == null) return;
 
+    if (userStatus.email === email) {
+      return;
+    }
+
     const mergedConversation = {
       ...conversation,
       chatUserStatus: userStatus.status,
@@ -444,7 +455,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     );
   }, [userStatus, queryClient, conversationsQueryKey]);
-
   return (
     <ConversationNotificationsContext.Provider
       value={{

@@ -21,6 +21,8 @@ import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.model.UserDetails;
@@ -67,7 +69,7 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
-    public Page<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
+    public MessageWindowPage<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
@@ -90,6 +92,7 @@ public class MessageService {
                     copy.setMessage(newMessage);
                     copy.setOriginalFileName(a.getOriginalFileName());
                     copy.setIndexedFileName(a.getIndexedFileName());
+                    copy.setType(a.getType());
                     return copy;
                 })
                 .collect(Collectors.toList());
@@ -113,7 +116,6 @@ public class MessageService {
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
-
 
         if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
             MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
@@ -162,6 +164,7 @@ public class MessageService {
         }
 
         message.setMessageText(messageDTO.getMessageText());
+        message.setIsEdited(true);
         MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
@@ -236,17 +239,34 @@ public class MessageService {
         Long loggedInUserId
     ) {
         List<MessageViewDTO> createdMessages = new ArrayList<>();
+        String currentWorkspace = WorkspaceContext.getCurrentWorkspace();
+
         for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
             Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
-            SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFileName(), savedMessage);
+            MessageViewDTO messageViewDTO = getMessageViewDTO(
+                loggedInUserId, 
+                messageDTO.getParentMessageId(), 
+                savedMessage
+            );
+            if (messageDTO.isGifAttachment()) {
+                messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+            } else {
+                SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(
+                    messageDTO.getFileName(), 
+                    savedMessage
+                );
+                messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+            }
 
-            MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
-            messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
             createdMessages.add(messageViewDTO);
 
-            messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-            );
+            eventPublisher.publishEvent(new MessageCreatedEvent(
+                    currentWorkspace,
+                    conversationId,
+                    messageViewDTO,
+                    loggedInUserId,
+                    savedMessage
+            ));
         }
 
         return createdMessages;
@@ -271,7 +291,7 @@ public class MessageService {
      * @param messageForwardRequestDTO the DTO containing forwarding details
      */
     @Transactional
-    public void forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
+    public MessageForwardResponseDTO forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
         ValidationUtils.validate(messageForwardRequestDTO);
 
         // validating logged user has access to the forwarding message
@@ -301,6 +321,8 @@ public class MessageService {
                 .toList();
 
         ChatUser loggedInUser = userService.getUserOrThrow(loggedInUserId);
+        
+        List<Long> forwardedConversations = new ArrayList<>(List.of());
 
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
@@ -343,7 +365,10 @@ public class MessageService {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
             }
+            forwardedConversations.add(targetConversation.getId());
         }
+
+        return new MessageForwardResponseDTO(forwardedConversations);
     }
 
     /**
@@ -510,51 +535,20 @@ public class MessageService {
     public void unsendMessage(Long loggedInUserId, Long messageId) {
         Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId)
                 .orElseThrow(() -> new CustomBadRequestException(
-                        "Message not found, not owned by you, or you don’t have permission to delete it"
-                ));
+                        "Message not found, not owned by you, or you don’t have permission to delete it"));
 
-        if (message.getCreatedAt().before(Date.from(Instant.now().minus(24, ChronoUnit.HOURS)))) {
-            throw new CustomBadRequestException("You can only delete a message within 24 hours of sending it");
+        if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
+            throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");
         }
 
         message.setIsUnsend(true);
         messageRepository.save(message);
 
         eventPublisher.publishEvent(new MessageUnsentEvent(
-            WorkspaceContext.getCurrentWorkspace(),
-            message.getConversation().getId(),
-            message.getId(),
-            loggedInUserId
-        ));
-    }
-
-    /**
-     * Retrieves all message mentions by others for a specific user with pagination support.
-     * <p>
-     * This method queries the database for all messages where the specified user has been mentioned,
-     * converts the entities to DTOs, and returns them in a paginated format.
-     * </p>
-     *
-     * @param userDetails the user whose message mentions are being retrieved
-     * @param pageable pagination and sorting information (page number, size, sort order)
-     * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
-     */
-    public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
-        Page<MessageMention> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
-
-        Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
-            MessageMentionDTO dto = new MessageMentionDTO(messageMention);
-
-            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
-            if (imageIndexedName != null) {
-                String signedImageUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
-                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
-            }
-
-            return dto;
-        });
-
-        return messageMentionDTOPages;
+                WorkspaceContext.getCurrentWorkspace(),
+                message.getConversation().getId(),
+                message.getId(),
+                loggedInUserId));
     }
 
     /**
@@ -604,5 +598,34 @@ public class MessageService {
             conversationId,
             loggedInUserId
         );
+    }
+
+    /**
+     * Retrieves all message mentions by others for a specific user with pagination support.
+     * <p>
+     * This method queries the database for all messages where the specified user has been mentioned,
+     * converts the entities to DTOs, and returns them in a paginated format.
+     * </p>
+     *
+     * @param userDetails the user whose message mentions are being retrieved
+     * @param pageable pagination and sorting information (page number, size, sort order)
+     * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
+     */
+    public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
+        Page<MessageMention> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
+
+        Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
+            MessageMentionDTO dto = new MessageMentionDTO(messageMention);
+
+            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
+            if (imageIndexedName != null) {
+                String signedImageUrl = conversationUtilService.getImageViewSignedUrl( MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM , imageIndexedName);
+                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
+            }
+
+            return dto;
+        });
+
+        return messageMentionDTOPages;
     }
 }

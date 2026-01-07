@@ -18,6 +18,8 @@ import ConversationForwardPanelWeb from "@/components/conversations/conversation
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
 import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel";
+import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
+import { MotionEasing } from "@/motion/easing";
 
 export default function ChatInterfaceWeb({
   chatItemList,
@@ -38,6 +40,7 @@ export default function ChatInterfaceWeb({
 
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showMentionedMessages, setShowMentionedMessages] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);
   const [selectedMessageId, setSelectedMessageId] = useState<number>(0);
@@ -157,6 +160,7 @@ export default function ChatInterfaceWeb({
             onRefresh={conversationsRefetch}
             isLoading={conversationsLoading}
             onCreateGroup={() => setShowCreateGroup(true)}
+            onOpenMentionedMessages={() => setShowMentionedMessages(true)}
           />
 
           {selectedConversationType === ConversationType.ALL && (
@@ -201,6 +205,24 @@ export default function ChatInterfaceWeb({
               }}
               setSelectedConversation={setSelectedConversation}
             />
+          )}
+
+          {showMentionedMessages && (
+            <MotionView
+              visible={showMentionedMessages}
+              className="flex-1 absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondar"
+              delay={40}
+              from={{ opacity: 0, translateX: screenWidth }}
+              to={{ opacity: 1, translateX: 0 }}
+              duration={{ enter: 240, exit: 200 }}
+              easing={MotionEasing.pair}
+            >
+              <MentionedMessageListView
+                onClose={() => setShowMentionedMessages(false)}
+                onMessageClicked={handleSearchMessageClick}
+                setSelectedConversation={setSelectedConversation}
+              />
+            </MotionView>
           )}
         </View>
 
