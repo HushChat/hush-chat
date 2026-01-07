@@ -32,7 +32,7 @@ import { useMessageReadListener } from "@/hooks/useMessageReadListener";
 
 const PAGE_SIZE = 20;
 
-interface PaginatedResult<T> {
+export interface PaginatedResult<T> {
   content: T[];
   last?: boolean;
   totalElements?: number;
@@ -66,6 +66,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     user: { id: loggedInUserId, email },
   } = useUserStore();
 
+  /**
+   * Message read listener to update read status in messages
+   */
   useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
 
   const conversationsQueryKey = useMemo(
