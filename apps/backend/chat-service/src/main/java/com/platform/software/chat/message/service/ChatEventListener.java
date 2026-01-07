@@ -1,6 +1,7 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationEventCreated;
+import com.platform.software.chat.message.dto.MessagePinEvent;
 import com.platform.software.chat.message.dto.MessageReactionEvent;
 import com.platform.software.chat.message.dto.MessageUnsentEvent;
 import com.platform.software.chat.message.dto.MessageCreatedEvent;
@@ -75,6 +76,17 @@ public class ChatEventListener {
                 event.getMessageId(),
                 event.getActorUserId(),
                 event.getWorkspaceId()
+        );
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onMessagePin(MessagePinEvent event){
+        messagePublisherService.invokeMessagePinToParticipants(
+                event.workspace(),
+                event.conversationId(),
+                event.pinnedMessage(),
+                event.actorUserId()
         );
     }
 }

@@ -5,9 +5,8 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
-import com.platform.software.chat.message.dto.MessageUnsentWSResponseDTO;
-import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
-import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.dto.*;
+import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.ReactionTypeEnum;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.notification.entity.DeviceType;
@@ -187,7 +186,6 @@ public class MessagePublisherService {
      *                             null on removal
      * @param previousReactionType the previous reaction type before the action, if
      *                             any
-     * @param action               the reaction action type (ADD, UPDATE, REMOVE)
      * @param workspaceId          the workspace (tenant) identifier
      */
     @Async
@@ -221,5 +219,49 @@ public class MessagePublisherService {
                         email,
                         WebSocketTopicConstants.MESSAGE_REACTION,
                         payload));
+    }
+
+    /**
+     * Notify conversation participants in real time when a message is pinned.
+     * <p>
+     * The user who initiated the pin action (actor) is explicitly excluded
+     * from receiving the WebSocket event, as their UI state is already updated
+     * locally.
+     *
+     * @param conversationId the conversation ID where the message was pinned
+     * @param pinnedMessage  the pinned message entity
+     * @param actorUserId    the user ID who initiated the pin action
+     * @param workspaceId    the workspace (tenant) identifier
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessagePinToParticipants(
+            String workspaceId,
+            Long conversationId,
+            Message pinnedMessage,
+            Long actorUserId
+    ) {
+        MessagePinWSResponseDTO payload = new MessagePinWSResponseDTO();
+        payload.setConversationId(conversationId);
+
+        if (pinnedMessage == null){
+            payload.setPinnedMessage(null);
+        } else {
+            BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
+            payload.setPinnedMessage(pinnedMessageDTO);
+        }
+
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId, actorUserId);
+
+        participants.stream()
+                .filter(p -> p.getId() != null)
+                .map(ChatUser::getEmail)
+                .filter(email -> email != null && !email.isBlank())
+                .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                        workspaceId,
+                        email,
+                        WebSocketTopicConstants.MESSAGE_PINNED,
+                        payload
+                ));
     }
 }
