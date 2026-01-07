@@ -168,7 +168,7 @@ export function useConversationMessagesQuery(conversationId: number) {
         queryClient.invalidateQueries({ queryKey: listQueryKey });
       }
     },
-    [queryClient, userId]
+    [queryClient, conversationId, userId]
   );
 
   const { lastMessage } = useConversationMessages(conversationId);
