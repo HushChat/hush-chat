@@ -1520,12 +1520,16 @@ public class ConversationService {
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
 
         return users.map(user -> {
-            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
-                    MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                    MediaSizeEnum.SMALL,
-                    user.getImageIndexedName()
-            );
+            String signedUrl = null;
+            String imageIndexName = user.getImageIndexedName();
 
+            if (imageIndexName != null) {
+                signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                        MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                        MediaSizeEnum.SMALL,
+                        imageIndexName
+                );
+            }
             UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
             userBasicViewDTO.setSignedImageUrl(signedUrl);
             return userBasicViewDTO;
