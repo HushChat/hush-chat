@@ -9,12 +9,9 @@ export function useAppHotkeys() {
     () => [
       {
         key: "k",
-        ctrl: true, // This will match both Ctrl+K (Windows/Linux) and Cmd+K (Mac)
+        ctrl: true, // Will match both Ctrl+K (Windows/Linux) and Cmd+K (Mac)
         handler: focusSearch,
       },
-      // Add more hotkeys here as needed:
-      // { key: "n", ctrl: true, handler: createNewChat },
-      // { key: "/", handler: focusSearch }, // Slack-style
     ],
     [focusSearch]
   );

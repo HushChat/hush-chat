@@ -35,7 +35,6 @@ const SearchBar = ({
 
   const inputRef = externalRef || internalRef;
 
-  // Register this search input for global hotkey focus
   useEffect(() => {
     registerSearchInput(inputRef);
   }, [inputRef, registerSearchInput]);

@@ -6,7 +6,7 @@ type HotkeyHandler = () => void;
 type HotkeyConfig = {
   key: string;
   ctrl?: boolean;
-  meta?: boolean; // For Mac Cmd key
+  meta?: boolean;
   shift?: boolean;
   alt?: boolean;
   handler: HotkeyHandler;
@@ -21,7 +21,7 @@ type UseGlobalHotkeysProps = {
 export function useGlobalHotkeys({ hotkeys, enabled = true }: UseGlobalHotkeysProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Skip if user is typing in an input/textarea (except for our specific hotkeys)
+      // Skip if user is typing in an input/textarea
       const target = e.target as HTMLElement;
       const isInputFocused =
         target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
@@ -31,12 +31,9 @@ export function useGlobalHotkeys({ hotkeys, enabled = true }: UseGlobalHotkeysPr
         const ctrlMatches = hotkey.ctrl ? e.ctrlKey || e.metaKey : !e.ctrlKey && !e.metaKey;
         const shiftMatches = hotkey.shift ? e.shiftKey : !e.shiftKey;
         const altMatches = hotkey.alt ? e.altKey : !e.altKey;
-
-        // For Ctrl+K style hotkeys, we want them to work even when input is focused
         const isModifierHotkey = hotkey.ctrl || hotkey.meta;
 
         if (keyMatches && ctrlMatches && shiftMatches && altMatches) {
-          // Skip if input is focused and it's not a modifier hotkey
           if (isInputFocused && !isModifierHotkey) {
             continue;
           }
