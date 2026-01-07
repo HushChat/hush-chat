@@ -1,5 +1,6 @@
 package com.platform.software.chat.user.repository;
 
+import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
@@ -23,6 +24,8 @@ public class UserBlockQueryRepositoryImpl implements UserBlockQueryRepository {
 
     private static final QUserBlock userBlock = QUserBlock.userBlock;
     private static final QChatUser blockedUser = new QChatUser("blockedUser");
+    private static final QConversationParticipant cpBlocker = new QConversationParticipant("cpBlocker");
+    private static final QConversationParticipant cpBlocked = new QConversationParticipant("cpBlocked");
 
     @Override
     public Page<UserViewDTO> getBlockedUsersById(Pageable pageable, Long blockerId) {
@@ -64,5 +67,22 @@ public class UserBlockQueryRepositoryImpl implements UserBlockQueryRepository {
                         .and(userBlock.blocked.id.eq(blockedId)))
                 .select(Expressions.ONE)
                 .fetchFirst() != null;
+    }
+
+    
+    @Override
+    public Boolean existsBlockBetweenUsers(Long conversationId) {
+        Integer result = new JPAQuery<>(entityManager)
+                .select(Expressions.ONE)
+                .from(userBlock)
+                .innerJoin(cpBlocker)
+                    .on(userBlock.blocker.id.eq(cpBlocker.user.id))
+                .innerJoin(cpBlocked)
+                    .on(userBlock.blocked.id.eq(cpBlocked.user.id))
+                .where(cpBlocker.conversation.id.eq(conversationId)
+                        .and(cpBlocked.conversation.id.eq(conversationId)))
+                .fetchFirst();
+
+        return result != null;
     }
 }
