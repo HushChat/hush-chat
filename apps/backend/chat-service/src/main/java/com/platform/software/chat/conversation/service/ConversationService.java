@@ -1140,7 +1140,7 @@ public class ConversationService {
             eventPublisher.publishEvent(new MessagePinEvent(
                     WorkspaceContext.getCurrentWorkspace(),
                     conversationId,
-                    isPinningAction ? message : null,
+                    isPinningAction ? new BasicMessageDTO(message) : null,
                     userId
             ));
 

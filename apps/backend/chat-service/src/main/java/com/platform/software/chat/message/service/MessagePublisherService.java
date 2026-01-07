@@ -275,18 +275,13 @@ public class MessagePublisherService {
     public void invokeMessagePinToParticipants(
             String workspaceId,
             Long conversationId,
-            Message pinnedMessage,
+            BasicMessageDTO pinnedMessage,
             Long actorUserId
     ) {
         MessagePinWSResponseDTO payload = new MessagePinWSResponseDTO();
         payload.setConversationId(conversationId);
 
-        if (pinnedMessage == null){
-            payload.setPinnedMessage(null);
-        } else {
-            BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
-            payload.setPinnedMessage(pinnedMessageDTO);
-        }
+        payload.setPinnedMessage(pinnedMessage);
 
         List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId, actorUserId);
 
