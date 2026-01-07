@@ -28,7 +28,7 @@ export interface MessageReadPayload {
 
 export interface MessagePinnedPayload {
   conversationId: number;
-  pinnedMessage: number;
+  pinnedMessage?: any;
 }
 
 export interface UserPresence {

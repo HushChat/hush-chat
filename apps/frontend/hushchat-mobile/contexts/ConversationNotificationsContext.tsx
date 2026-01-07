@@ -29,6 +29,7 @@ import {
   MessageUnsentPayload,
 } from "@/types/ws/types";
 import { useMessageReadListener } from "@/hooks/useMessageReadListener";
+import { useMessagePinnedListener } from "@/hooks/useMessagePinnedListener";
 
 const PAGE_SIZE = 20;
 
@@ -70,6 +71,11 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
    * Message read listener to update read status in messages
    */
   useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
+
+  /**
+   * Message pinned listener to update pinned message in conversation metadata
+   */
+  useMessagePinnedListener({ loggedInUserId: Number(loggedInUserId) });
 
   const conversationsQueryKey = useMemo(
     () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
