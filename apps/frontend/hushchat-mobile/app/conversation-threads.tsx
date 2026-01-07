@@ -269,13 +269,6 @@ const ConversationThreadScreen = ({
       setSelectedMessage(null);
       updateConversationMessagesCache(newMessage);
       updateConversationsListCache(newMessage);
-
-      if (newMessage.id && typeof newMessage.id === "number") {
-        setLastSeenMessageForConversation({
-          messageId: newMessage.id,
-          conversationId: currentConversationId,
-        });
-      }
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );

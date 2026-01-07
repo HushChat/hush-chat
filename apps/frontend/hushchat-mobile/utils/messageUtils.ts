@@ -18,6 +18,11 @@ interface IGroupedMessages {
   data: IMessage[];
 }
 
+interface IUnreadMeta {
+  messageId: number;
+  count: number;
+}
+
 export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMessages[] => {
   if (!messages || messages.length === 0) return [];
 
@@ -135,17 +140,38 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
   }
 };
 
-export const findFirstUnreadMessageIndex = (
+export const getUnreadMeta = (
   messages: readonly IMessage[],
-  lastSeenMessageId: number | null
-): number => {
-  if (!lastSeenMessageId) return -1;
+  lastSeenMessageId: number | null,
+  currentUserId?: number
+): IUnreadMeta | null => {
+  if (!messages.length) return null;
+
+  if (messages[0]?.senderId === currentUserId) {
+    return null;
+  }
+
+  if (!lastSeenMessageId) {
+    return null;
+  }
 
   const lastSeenIndex = messages.findIndex((msg) => msg.id === lastSeenMessageId);
 
-  if (lastSeenIndex === -1 || lastSeenIndex === 0) return -1;
+  if (lastSeenIndex <= 0) {
+    return null;
+  }
 
-  return lastSeenIndex - 1;
+  const firstUnreadIndex = lastSeenIndex - 1;
+  const firstUnreadMessage = messages[firstUnreadIndex];
+
+  if (!firstUnreadMessage?.id) {
+    return null;
+  }
+
+  return {
+    messageId: firstUnreadMessage.id,
+    count: firstUnreadIndex + 1,
+  };
 };
 
 export const downloadFileNative = async (attachment: IMessageAttachment): Promise<void> => {

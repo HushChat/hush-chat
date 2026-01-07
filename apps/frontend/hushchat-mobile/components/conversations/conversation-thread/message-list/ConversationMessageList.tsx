@@ -4,7 +4,7 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, SectionList, View } from "react-native";
+import { ActivityIndicator, SectionList, SectionListRenderItemInfo, View } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
@@ -12,12 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import {
-  copyToClipboard,
-  findFirstUnreadMessageIndex,
-  groupMessagesByDate,
-  hasGif,
-} from "@/utils/messageUtils";
+import { copyToClipboard, getUnreadMeta, groupMessagesByDate, hasGif } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -96,13 +91,10 @@ const ConversationMessageList = ({
     return groupMessagesByDate(messages);
   }, [messages]);
 
-  const firstUnreadMessageIndex = useMemo(() => {
-    if (messages.length > 0 && messages[0]?.senderId === currentUserId) {
-      return -1;
-    }
-
-    return findFirstUnreadMessageIndex(messages, lastSeenMessageId ?? null);
-  }, [messages, lastSeenMessageId, currentUserId]);
+  const unreadMeta = useMemo(
+    () => getUnreadMeta(messages, lastSeenMessageId ?? null, Number(currentUserId)),
+    [messages, lastSeenMessageId, currentUserId]
+  );
 
   const handlePinnedMessageClick = useCallback(() => {
     if (onNavigateToMessage && pinnedMessage) {
@@ -223,19 +215,17 @@ const ConversationMessageList = ({
   );
 
   const renderMessageWithDivider = useCallback(
-    (info: any) => {
-      const messageIndex = messages.findIndex((msg) => msg.id === info.item.id);
-      const isFirstUnread = messageIndex === firstUnreadMessageIndex;
-      const unreadCount = firstUnreadMessageIndex + 1;
+    (info: SectionListRenderItemInfo<IMessage>) => {
+      const isFirstUnread = unreadMeta?.messageId === info.item.id;
 
       return (
         <>
           {renderMessage(info)}
-          {isFirstUnread && <UnreadMessageSection count={unreadCount} />}
+          {isFirstUnread && <UnreadMessageSection count={unreadMeta.count} />}
         </>
       );
     },
-    [renderMessage, messages, firstUnreadMessageIndex]
+    [renderMessage, unreadMeta]
   );
 
   const renderLoadingFooter = useCallback(() => {
