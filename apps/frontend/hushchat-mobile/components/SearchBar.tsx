@@ -1,8 +1,10 @@
+import { useEffect, useRef } from "react";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, TextInput, View, StyleSheet } from "react-native";
 import { AppTextInput } from "./AppText";
+import { useSearchFocus } from "@/contexts/SearchFocusContext";
 
 const COLORS = {
   BORDER_TRANSPARENT: "transparent",
@@ -20,7 +22,7 @@ interface SearchBarProps {
 }
 
 const SearchBar = ({
-  inputRef,
+  inputRef: externalRef,
   value,
   onChangeText,
   placeholder = "Search...",
@@ -28,6 +30,15 @@ const SearchBar = ({
   autoFocus = false,
 }: SearchBarProps) => {
   const { isDark } = useAppTheme();
+  const internalRef = useRef<TextInput>(null);
+  const { registerSearchInput } = useSearchFocus();
+
+  const inputRef = externalRef || internalRef;
+
+  // Register this search input for global hotkey focus
+  useEffect(() => {
+    registerSearchInput(inputRef);
+  }, [inputRef, registerSearchInput]);
 
   return (
     <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-full px-3 flex-1">
