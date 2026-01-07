@@ -25,6 +25,7 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
+          cache: 'maven'
 
       - name: Set up Node.js + Install dependencies
         uses: ./.github/actions/setup-node-yarn-install
