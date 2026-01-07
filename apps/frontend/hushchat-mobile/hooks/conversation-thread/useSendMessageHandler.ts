@@ -31,6 +31,7 @@ interface IUseSendMessageHandlerParams {
     messageText: string,
     parentMessageId?: number | null
   ) => Promise<IMessage>;
+  loadMessageWindow: (messageId: number) => Promise<void>;
 }
 
 let tempMessageIdCounter = -1;
@@ -111,6 +112,7 @@ export const useSendMessageHandler = ({
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
   sendGifMessage,
+  loadMessageWindow,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
     useConversationMessagesQuery(currentConversationId);
@@ -207,6 +209,11 @@ export const useSendMessageHandler = ({
             });
           }
 
+          const lastSuccessfulResult = results.reverse().find((r) => r.success && r.messageId);
+          if (lastSuccessfulResult?.messageId && loadMessageWindow) {
+            loadMessageWindow(lastSuccessfulResult.messageId!);
+          }
+
           setSelectedMessage(null);
           return;
         }
@@ -222,7 +229,12 @@ export const useSendMessageHandler = ({
           updateConversationMessagesCache(tempGifMessage);
           updateConversationsListCache(tempGifMessage);
 
-          await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
+          const sentGifMessage = await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
+
+          if (sentGifMessage?.id) {
+            loadMessageWindow(sentGifMessage.id);
+          }
+
           setSelectedMessage(null);
           return;
         }

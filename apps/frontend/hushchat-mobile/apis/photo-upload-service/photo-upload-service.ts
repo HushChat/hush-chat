@@ -261,7 +261,7 @@ export function useMessageAttachmentUploader(
     ];
 
     const response = await createMessagesWithAttachments(conversationId, attachments);
-    return response;
+    return response[0];
   };
 
   const hook = useNativePickerUpload(getSignedUrls);

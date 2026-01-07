@@ -286,26 +286,44 @@ const ConversationThreadScreen = ({
 
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
+
+        const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
+
+        if (lastSuccessful?.signed?.messageId && loadMessageWindow) {
+          loadMessageWindow(lastSuccessful?.signed?.messageId!);
+        }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
     } catch {
       ToastUtils.error("Failed to pick or upload documents.");
     }
-  }, [pickAndUploadDocuments, setSelectedMessage, uploadError]);
+  }, [pickAndUploadDocuments, setSelectedMessage, uploadError, hasPreviousPage, fetchPreviousPage]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImagesAndVideos();
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
+
+        const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
+
+        if (lastSuccessful?.signed?.messageId && loadMessageWindow) {
+          loadMessageWindow(lastSuccessful?.signed?.messageId!);
+        }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickAndUploadImagesAndVideos, setSelectedMessage, uploadError]);
+  }, [
+    pickAndUploadImagesAndVideos,
+    setSelectedMessage,
+    uploadError,
+    hasPreviousPage,
+    fetchPreviousPage,
+  ]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
@@ -313,6 +331,10 @@ const ConversationThreadScreen = ({
       setSelectedMessage(null);
       updateConversationMessagesCache(newMessage);
       updateConversationsListCache(newMessage);
+
+      if (newMessage.id && loadMessageWindow) {
+        loadMessageWindow(newMessage.id);
+      }
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
@@ -327,13 +349,14 @@ const ConversationThreadScreen = ({
     handleCloseImagePreview,
     updateConversationMessagesCache,
     sendGifMessage,
+    loadMessageWindow,
   });
 
   const handleSendFilesFromPreview = useCallback(
     async (filesWithCaptions: FileWithCaption[]) => {
       await handleSendFilesWithCaptions(filesWithCaptions);
     },
-    [handleSendFilesWithCaptions]
+    [handleSendFilesWithCaptions, hasPreviousPage, fetchPreviousPage]
   );
 
   useEffect(() => {
