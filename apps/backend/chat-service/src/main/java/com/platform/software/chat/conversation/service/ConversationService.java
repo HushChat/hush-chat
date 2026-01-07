@@ -681,7 +681,7 @@ public class ConversationService {
      * @return the smallest last-read message ID among other participants, or {@code null}
      *         if no other participants have read statuses recorded or if any participant has null
      */
-    private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
+    public Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
         // read statuses of every participant, with their user id and last read message id
         Map<Long, Long> userReadStatuses =
             new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
