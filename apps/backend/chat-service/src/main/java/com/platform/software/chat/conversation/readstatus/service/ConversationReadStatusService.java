@@ -2,15 +2,18 @@ package com.platform.software.chat.conversation.readstatus.service;
 
 import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.dto.MessageLastSeenRequestDTO;
+import com.platform.software.chat.conversation.readstatus.dto.MessageSeenEvent;
 import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.service.MessageUtilService;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +24,17 @@ public class ConversationReadStatusService {
     private final ConversationReadStatusRepository conversationReadStatusRepository;
     private final ConversationUtilService conversationUtilService;
     private final MessageUtilService messageUtilService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ConversationReadStatusService(
-        ConversationReadStatusRepository conversationReadStatusRepository,
-        ConversationUtilService conversationUtilService,
-        MessageUtilService messageUtilService
+            ConversationReadStatusRepository conversationReadStatusRepository,
+            ConversationUtilService conversationUtilService,
+            MessageUtilService messageUtilService, ApplicationEventPublisher eventPublisher
     ) {
         this.conversationReadStatusRepository = conversationReadStatusRepository;
         this.conversationUtilService = conversationUtilService;
         this.messageUtilService = messageUtilService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -59,6 +64,15 @@ public class ConversationReadStatusService {
 
         try {
             conversationReadStatusRepository.save(updatingStatus);
+
+            if (!message.getConversation().getIsGroup()) {
+                eventPublisher.publishEvent(new MessageSeenEvent(
+                        WorkspaceContext.getCurrentWorkspace(),
+                        conversationId,
+                        loggedInUserId,
+                        messageLastSeenRequestDTO.getMessageId()
+                ));
+            }
         } catch (Exception exception) {
             logger.error("failed set message as read: {}", messageLastSeenRequestDTO.getMessageId(), exception);
             throw new CustomBadRequestException("Failed to mark as read");
