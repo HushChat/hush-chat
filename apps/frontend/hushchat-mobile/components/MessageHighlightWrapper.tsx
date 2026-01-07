@@ -38,7 +38,6 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
     }
 
     cancelAnimation(opacity);
-    // Instant appear, stay visible, then fade out
     opacity.value = withSequence(
       withTiming(HIGHLIGHT_CONFIG.MAX_OPACITY, { duration: 100 }),
       withDelay(
@@ -54,7 +53,6 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
     };
   });
 
-  // For web
   if (PLATFORM.IS_WEB) {
     return (
       <View style={styles.container}>
@@ -65,7 +63,7 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
               backgroundColor: highlightColor,
               left: -120,
               right: -12,
-              width: "100vw" as any, // Type assertion for web-only CSS
+              width: "100vw" as any,
             },
             overlayAnimatedStyle,
           ]}
@@ -76,7 +74,6 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
     );
   }
 
-  // For native (iOS/Android)
   return (
     <View style={styles.container}>
       <Animated.View
