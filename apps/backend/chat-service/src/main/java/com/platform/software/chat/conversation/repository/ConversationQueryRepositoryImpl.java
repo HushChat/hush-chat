@@ -299,18 +299,24 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
                     if (latestMessage != null) {
                         boolean isVisible = CommonUtils.isMessageVisible(
-                                latestMessage.getCreatedAt(), 
+                                latestMessage.getCreatedAt(),
                                 participantEntity != null ? participantEntity.getLastDeletedTime() : null
                         );
 
                         if (isVisible) {
                                 MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
-                                List<MessageAttachmentDTO> attachmentDTOs =
-                                        latestMessage.getAttachments()
-                                                .stream()
-                                                .map(MessageAttachmentDTO::new)
-                                                .toList();
-                                messageViewDTO.setMessageAttachments(attachmentDTOs);
+
+                                if (!messageViewDTO.getIsUnsend()) {
+                                    List<MessageAttachmentDTO> attachmentDTOs =
+                                            latestMessage.getAttachments()
+                                                    .stream()
+                                                    .map(MessageAttachmentDTO::new)
+                                                    .toList();
+                                    messageViewDTO.setMessageAttachments(attachmentDTOs);
+                                } else {
+                                    messageViewDTO.setMessageAttachments(new ArrayList<>());
+                                }
+
                                 dto.setMessages(List.of(messageViewDTO));
                                 return dto;
                         }
