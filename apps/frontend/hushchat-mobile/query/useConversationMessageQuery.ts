@@ -144,6 +144,7 @@ export function useConversationMessagesQuery(conversationId: number) {
             const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
 
             if (conversationIndex === -1) return page;
+
             found = true;
 
             const updatedConversation: IConversation = {
@@ -169,6 +170,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     },
     [queryClient, userId]
   );
+
   const { lastMessage } = useConversationMessages(conversationId);
 
   useEffect(() => {
