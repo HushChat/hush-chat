@@ -3,12 +3,12 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
-import { SIZES } from "@/constants/mediaConstants"; // or mediaConstants
+import { SIZES } from "@/constants/mediaConstants";
 import { getFileType } from "@/utils/files/getFileType";
 import { isLocalPreviewSupported } from "@/utils/filePreviewUtils";
 import { AppText } from "@/components/AppText";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 
 type TFilePreviewPaneProps = {
   file: File;
