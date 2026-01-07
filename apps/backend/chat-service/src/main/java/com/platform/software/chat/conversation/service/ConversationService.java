@@ -434,7 +434,7 @@ public class ConversationService {
 
             if (conversationEventMap.containsKey(msg.getId())) {
                 ConversationEvent event = conversationEventMap.get(msg.getId());
-                conversationEventMessageService.setEventMessageText(event, msg, loggedInUserId);
+                conversationEventMessageService.setEventMessageText(event, msg, loggedInUserId, false);
             }
         }
     }
@@ -631,7 +631,7 @@ public class ConversationService {
 
                 if (conversationEventMap.containsKey(dto.getId())) {
                     ConversationEvent event = conversationEventMap.get(dto.getId());
-                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId);
+                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId, false);
                 }
 
                 boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
@@ -681,7 +681,7 @@ public class ConversationService {
      * @return the smallest last-read message ID among other participants, or {@code null}
      *         if no other participants have read statuses recorded or if any participant has null
      */
-    private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
+    public Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
         // read statuses of every participant, with their user id and last read message id
         Map<Long, Long> userReadStatuses =
             new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
@@ -1520,12 +1520,16 @@ public class ConversationService {
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
 
         return users.map(user -> {
-            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
-                    MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                    MediaSizeEnum.SMALL,
-                    user.getImageIndexedName()
-            );
+            String signedUrl = null;
+            String imageIndexName = user.getImageIndexedName();
 
+            if (imageIndexName != null) {
+                signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                        MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                        MediaSizeEnum.SMALL,
+                        imageIndexName
+                );
+            }
             UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
             userBasicViewDTO.setSignedImageUrl(signedUrl);
             return userBasicViewDTO;

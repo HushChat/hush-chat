@@ -10,11 +10,12 @@ import { useConversationInput } from "@/hooks/conversation-input/useConversation
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
-import { GifPickerComponent } from "@/components/conversation-input/GifPicker.native";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
-const ConversationInput = ({
+const ConversationInputMobile = ({
   conversationId,
   onSendMessage,
   onOpenImagePickerNative,
@@ -35,6 +36,7 @@ const ConversationInput = ({
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
 
   const isControlledMode = controlledValue !== undefined;
+  const { publishTyping } = useWebSocket();
 
   const {
     showEmojiPicker,
@@ -54,6 +56,12 @@ const ConversationInput = ({
     onCancelReply,
     controlledValue,
     onControlledValueChange,
+    onTypingStatusChange: (isTyping, convId) => {
+      publishTyping({
+        conversationId: convId,
+        typing: isTyping,
+      });
+    },
     editingMessage,
     onCancelEdit,
     onEditMessage,
@@ -194,7 +202,7 @@ const ConversationInput = ({
             }}
           />
 
-          <GifPickerComponent
+          <GifPicker
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={(gifUrl) => {
@@ -207,4 +215,4 @@ const ConversationInput = ({
   );
 };
 
-export default ConversationInput;
+export default ConversationInputMobile;
