@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   View,
   TouchableOpacity,
@@ -11,6 +11,10 @@ import { ParticipantRow } from "@/components/conversations/ParticipantsRow";
 import { Ionicons } from "@expo/vector-icons";
 import { useConversationParticipantQuery } from "@/query/useConversationParticipantQuery";
 import { ConversationParticipant } from "@/types/chat/types";
+import { AppText } from "@/components/AppText";
+import { MotionView } from "@/motion/MotionView";
+import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import { TUser } from "@/types/user/types";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
 import { ToastUtils } from "@/utils/toastUtils";
@@ -19,8 +23,11 @@ import {
   useRemoveConversationParticipantMutation,
   useUpdateConversationParticipantRoleMutation,
 } from "@/query/delete/queries";
-import { AppText } from "@/components/AppText";
-import { MotionView } from "@/motion/MotionView";
+import { useMutation } from "@tanstack/react-query";
+import { createOneToOneConversation } from "@/apis/conversation";
+import { router } from "expo-router";
+import { CONVERSATION } from "@/constants/routes";
+import { useUserStore } from "@/store/user/useUserStore";
 
 interface AllParticipantsProps {
   conversationId: number;
@@ -38,6 +45,36 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
     () => pages?.pages?.flatMap((page) => (page.content as ConversationParticipant[]) || []) || [],
     [pages]
   );
+
+  const [showProfilePreviewModal, setShowProfilePreviewModal] = useState(false);
+  const [selectedPreviewUser, setSelectedPreviewUser] = useState<TUser | null>(null);
+  const { user: currentUser } = useUserStore();
+
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        router.push(CONVERSATION(result.data.id));
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessageMentionedUser = useCallback(
+    (user: TUser) => {
+      if (String(currentUser.id) === String(user.id)) return;
+
+      setShowProfilePreviewModal(false);
+      createConversation(user.id);
+    },
+    [createConversation, currentUser.id]
+  );
+
+  const handleParticipantPress = useCallback((participant: ConversationParticipant) => {
+    setSelectedPreviewUser(participant.user);
+    setShowProfilePreviewModal(true);
+  }, []);
 
   const { openModal, closeModal } = useModalContext();
   const { conversationInfo } = useGroupConversationInfoQuery(conversationId);
@@ -118,46 +155,60 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
   );
 
   return (
-    <MotionView
-      visible={visible}
-      className="absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondary-dark"
-      from={{ translateX: screenWidth, opacity: 0 }}
-      to={{ translateX: 0, opacity: 1 }}
-    >
-      <View className="flex-row justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark">
-        <AppText className="text-xl font-semibold text-gray-900 dark:text-white">
-          All Participants
-        </AppText>
-        <TouchableOpacity onPress={onClose} className="p-2">
-          <Ionicons name="close-outline" size={22} color="#6B7280" />
-        </TouchableOpacity>
-      </View>
+    <>
+      <MotionView
+        visible={visible}
+        className="absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondary-dark"
+        from={{ translateX: screenWidth, opacity: 0 }}
+        to={{ translateX: 0, opacity: 1 }}
+      >
+        <View className="flex-row justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark">
+          <AppText className="text-xl font-semibold text-gray-900 dark:text-white">
+            All Participants
+          </AppText>
+          <TouchableOpacity onPress={onClose} className="p-2">
+            <Ionicons name="close-outline" size={22} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
 
-      <FlatList
-        data={allParticipants}
-        renderItem={({ item }) => (
-          <ParticipantRow
-            participant={item}
-            showMenu={conversationInfo?.admin}
-            onRemove={removeParticipant}
-            onToggleRole={updateConversationParticipantRole}
-          />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isLoading || isFetchingNextPage ? (
-            <View className="py-4">
-              <ActivityIndicator size="small" />
-            </View>
-          ) : null
-        }
-        showsVerticalScrollIndicator
-        className="flex-1 bg-background-light dark:bg-background-dark custom-scrollbar"
-        contentContainerStyle={styles.listContentContainer}
-      />
-    </MotionView>
+        <FlatList
+          data={allParticipants}
+          renderItem={({ item }) => (
+            <ParticipantRow
+              participant={item}
+              showMenu={conversationInfo?.admin}
+              onRemove={removeParticipant}
+              onToggleRole={updateConversationParticipantRole}
+              onPress={handleParticipantPress}
+            />
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isLoading || isFetchingNextPage ? (
+              <View className="py-4">
+                <ActivityIndicator size="small" />
+              </View>
+            ) : null
+          }
+          showsVerticalScrollIndicator
+          className="flex-1 bg-background-light dark:bg-background-dark custom-scrollbar"
+          contentContainerStyle={styles.listContentContainer}
+        />
+      </MotionView>
+      {showProfilePreviewModal && (
+        <MentionProfileModal
+          visible={showProfilePreviewModal}
+          user={selectedPreviewUser}
+          onClose={() => {
+            setShowProfilePreviewModal(false);
+            setSelectedPreviewUser(null);
+          }}
+          onMessagePress={handleMessageMentionedUser}
+        />
+      )}
+    </>
   );
 };
 
