@@ -1,4 +1,9 @@
 import { QueryClient } from "@tanstack/react-query";
+import { AppState, AppStateStatus } from "react-native";
+import {
+  CONVERSATION_MESSAGE_QUERY_BASE_KEY,
+  CONVERSATION_QUERY_BASE_KEY,
+} from "@/constants/queryKeys";
 
 let client: QueryClient | null = null;
 
@@ -13,6 +18,13 @@ export const createQueryClient = () => {
         },
         mutations: { retry: false },
       },
+    });
+
+    AppState.addEventListener("change", (status: AppStateStatus) => {
+      if (status === "active") {
+        client?.invalidateQueries({ queryKey: [CONVERSATION_QUERY_BASE_KEY] });
+        client?.invalidateQueries({ queryKey: [CONVERSATION_MESSAGE_QUERY_BASE_KEY] });
+      }
     });
   }
   return client;
