@@ -15,4 +15,5 @@ public class GeneralConstants {
 
     public static final String WORKSPACE_ID = "workspaceId";
     public static final String DEVICE_TYPE = "deviceType";
+    public static final String DEVICE_ID = "deviceId";
 }

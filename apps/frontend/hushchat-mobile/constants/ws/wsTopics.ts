@@ -6,6 +6,8 @@ export const WS_TOPICS = {
     received: "/topic/message-received/",
     unsent: "/topic/message-unsent/",
     react: "/topic/message-reaction/",
+    typing: "/topic/typing-status/",
+    read: "/topic/message-read/",
   },
   user: {
     onlineStatus: "/topic/online-status/",

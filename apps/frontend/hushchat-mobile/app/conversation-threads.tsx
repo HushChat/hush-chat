@@ -36,13 +36,13 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -91,7 +91,7 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const publishUserActivity = async () => {
       const { workspace } = await getAllTokens();
-      publishActivity({
+      await publishActivity({
         workspaceId: workspace as string,
         email,
         openedConversation: currentConversationId,
@@ -145,24 +145,19 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
-    if (
-      currentConversationId &&
-      messages.length > 0 &&
-      lastSeenMessageInfo?.lastSeenMessageId !== undefined
-    ) {
+    if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
       const firstMessage = messages[0];
 
       if (!firstMessage.id || typeof firstMessage.id !== "number") {
         return;
       }
 
-      if (firstMessage.senderId === currentUserId) {
-        return;
-      }
+      const shouldUpdate =
+        lastSeenMessageInfo.lastSeenMessageId === null ||
+        lastSeenMessageInfo.lastSeenMessageId === undefined ||
+        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
-      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
-
-      if (!isFirstMessageLastSeen) {
+      if (shouldUpdate) {
         setLastSeenMessageForConversation({
           messageId: firstMessage.id,
           conversationId: currentConversationId,
@@ -409,6 +404,7 @@ const ConversationThreadScreen = ({
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
+        lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
         onEditMessage={handleStartEditWithClearReply}
       />
     );
@@ -431,6 +427,7 @@ const ConversationThreadScreen = ({
     handleNavigateToMessage,
     targetMessageId,
     handleTargetMessageScrolled,
+    lastSeenMessageInfo,
     handleStartEditWithClearReply,
   ]);
 
@@ -522,6 +519,7 @@ const ConversationThreadScreen = ({
           refetchConversationMessages={refetchConversationMessages}
           isLoadingConversationMessages={isLoadingConversationMessages}
           webPressSearch={webSearchPress}
+          isGroupChat={isGroupChat}
         />
 
         <KeyboardAvoidingView
