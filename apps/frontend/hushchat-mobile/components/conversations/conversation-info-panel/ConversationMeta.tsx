@@ -28,6 +28,10 @@ const ConversationMeta = ({
   const isGif = hasGif(lastMessage);
 
   const renderMessagePreview = () => {
+    if (lastMessage?.isUnsend) {
+      return <View className="flex-1">{messageContent}</View>;
+    }
+
     if (isGif) {
       return (
         <View className="flex-row items-center gap-1 flex-1">
