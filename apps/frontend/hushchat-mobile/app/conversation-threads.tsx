@@ -290,7 +290,7 @@ const ConversationThreadScreen = ({
         const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
 
         if (lastSuccessful?.signed?.messageId && loadMessageWindow) {
-          loadMessageWindow(lastSuccessful?.signed?.messageId!);
+          loadMessageWindow(lastSuccessful.signed.messageId);
         }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
@@ -309,7 +309,7 @@ const ConversationThreadScreen = ({
         const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
 
         if (lastSuccessful?.signed?.messageId && loadMessageWindow) {
-          loadMessageWindow(lastSuccessful?.signed?.messageId!);
+          loadMessageWindow(lastSuccessful.signed.messageId);
         }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
