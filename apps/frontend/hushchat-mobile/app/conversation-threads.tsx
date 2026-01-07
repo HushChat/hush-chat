@@ -146,20 +146,19 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
-    if (
-      currentConversationId &&
-      messages.length > 0 &&
-      lastSeenMessageInfo?.lastSeenMessageId !== undefined
-    ) {
+    if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
       const firstMessage = messages[0];
 
       if (!firstMessage.id || typeof firstMessage.id !== "number") {
         return;
       }
 
-      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
+      const shouldUpdate =
+        lastSeenMessageInfo.lastSeenMessageId === null ||
+        lastSeenMessageInfo.lastSeenMessageId === undefined ||
+        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
-      if (!isFirstMessageLastSeen) {
+      if (shouldUpdate) {
         setLastSeenMessageForConversation({
           messageId: firstMessage.id,
           conversationId: currentConversationId,
@@ -447,6 +446,7 @@ const ConversationThreadScreen = ({
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
+        lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
         onEditMessage={handleStartEditWithClearReply}
       />
     );
@@ -469,6 +469,7 @@ const ConversationThreadScreen = ({
     handleNavigateToMessage,
     targetMessageId,
     handleTargetMessageScrolled,
+    lastSeenMessageInfo,
     handleStartEditWithClearReply,
   ]);
 

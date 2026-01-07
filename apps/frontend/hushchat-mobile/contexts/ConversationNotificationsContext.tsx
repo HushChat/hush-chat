@@ -28,6 +28,7 @@ import {
   MessageReactionPayload,
   MessageUnsentPayload,
 } from "@/types/ws/types";
+import { useMessageReadListener } from "@/hooks/useMessageReadListener";
 
 const PAGE_SIZE = 20;
 
@@ -64,6 +65,8 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const {
     user: { id: loggedInUserId, email },
   } = useUserStore();
+
+  useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
 
   const conversationsQueryKey = useMemo(
     () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
@@ -307,6 +310,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, [queryClient, conversationsQueryKey, loggedInUserId]);
 
+  /**
+   * Message reaction listener
+   */
   useEffect(() => {
     const handleMessageReaction = (payload: MessageReactionPayload) => {
       const { conversationId, messageId } = payload;
