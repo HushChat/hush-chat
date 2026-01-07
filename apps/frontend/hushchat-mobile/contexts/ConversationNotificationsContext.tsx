@@ -9,7 +9,7 @@ import {
 } from "react";
 import { eventBus } from "@/services/eventBus";
 import { IConversation, IMessage, IUserStatus } from "@/types/chat/types";
-import { playMessageSound } from "@/utils/playSound";
+import { playMessageSound, SoundType } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
 import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
@@ -151,7 +151,13 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         setNotificationConversation(conversation);
 
         if (!conversation.mutedByLoggedInUser) {
-          void playMessageSound();
+          const messages = conversation.messages || [];
+          const lastMessage = messages[messages.length - 1];
+          const isMentioned = lastMessage?.mentions?.some(
+            (user) => Number(user.id) === Number(loggedInUserId)
+          );
+
+          void playMessageSound(false, isMentioned ? SoundType.MENTION : SoundType.NORMAL);
         }
       }
     };
