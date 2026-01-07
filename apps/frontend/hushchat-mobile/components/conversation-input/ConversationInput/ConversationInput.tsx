@@ -1,24 +1,23 @@
+import { forwardRef } from "react";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 import ConversationInputMobile from "@/components/conversation-input/ConversationInput/ConversationInputMobile";
 import ConversationInputWeb from "@/components/conversation-input/ConversationInput/ConversationInputWeb";
 import { ConversationInputProps } from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
 
-const INTERFACE_COMPONENTS = {
-  mobile: ConversationInputMobile,
-  web: ConversationInputWeb,
-} as const;
+const ConversationInput = forwardRef<HTMLTextAreaElement | null, ConversationInputProps>(
+  (props, ref) => {
+    const isMobileLayout = useIsMobileLayout();
+    const mobileSelected = !PLATFORM.IS_WEB || isMobileLayout;
 
-type InterfaceComponent = (typeof INTERFACE_COMPONENTS)[keyof typeof INTERFACE_COMPONENTS];
+    if (mobileSelected) {
+      return <ConversationInputMobile {...props} />;
+    }
 
-export default function ConversationInput(props: ConversationInputProps) {
-  const isMobileLayout = useIsMobileLayout();
+    return <ConversationInputWeb {...props} ref={ref} />;
+  }
+);
 
-  const mobileSelected = !PLATFORM.IS_WEB || isMobileLayout;
+ConversationInput.displayName = "ConversationInput";
 
-  const SelectedComponent: InterfaceComponent = mobileSelected
-    ? INTERFACE_COMPONENTS.mobile
-    : INTERFACE_COMPONENTS.web;
-
-  return <SelectedComponent {...props} />;
-}
+export default ConversationInput;
