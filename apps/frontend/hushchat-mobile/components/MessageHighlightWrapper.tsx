@@ -1,135 +1,113 @@
 import { PLATFORM } from "@/constants/platformConstants";
 import React, { useEffect } from "react";
+import { StyleSheet, View, Dimensions } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withRepeat,
   withSequence,
   withTiming,
-  interpolate,
-  Easing,
   cancelAnimation,
 } from "react-native-reanimated";
 
 const HIGHLIGHT_CONFIG = {
-  INITIAL_DELAY: 300,
-  PULSE_COUNT: 2,
-  ANIMATION_DURATION: 400,
-  SCALE_AMOUNT: 1.02,
-  GLOW_OPACITY: 0.2,
-  GLOW_SPREAD: 8,
+  STAY_DURATION: 2000,
+  FADE_OUT_DURATION: 500,
+  MAX_OPACITY: 0.35,
 } as const;
+
+const DEFAULT_HIGHLIGHT_COLOR = "#563dc4";
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface IHighlightWrapperProps {
   isHighlighted: boolean;
   children: React.ReactNode;
-  glowColor?: string;
+  highlightColor?: string;
 }
 
 export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
   isHighlighted,
   children,
-  glowColor = "#3B82F6",
+  highlightColor = DEFAULT_HIGHLIGHT_COLOR,
 }) => {
-  const progress = useSharedValue(0);
-  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
     if (!isHighlighted) {
-      cancelAnimation(progress);
-      cancelAnimation(scale);
-      progress.value = 0;
-      scale.value = 1;
       return;
     }
 
-    progress.value = withDelay(
-      HIGHLIGHT_CONFIG.INITIAL_DELAY,
-      withRepeat(
-        withSequence(
-          withTiming(1, {
-            duration: HIGHLIGHT_CONFIG.ANIMATION_DURATION,
-            easing: Easing.inOut(Easing.ease),
-          }),
-          withTiming(0, {
-            duration: HIGHLIGHT_CONFIG.ANIMATION_DURATION,
-            easing: Easing.inOut(Easing.ease),
-          })
-        ),
-        HIGHLIGHT_CONFIG.PULSE_COUNT,
-        false
-      )
-    );
-
-    scale.value = withDelay(
-      HIGHLIGHT_CONFIG.INITIAL_DELAY,
-      withRepeat(
-        withSequence(
-          withTiming(HIGHLIGHT_CONFIG.SCALE_AMOUNT, {
-            duration: HIGHLIGHT_CONFIG.ANIMATION_DURATION,
-            easing: Easing.out(Easing.quad),
-          }),
-          withTiming(1, {
-            duration: HIGHLIGHT_CONFIG.ANIMATION_DURATION,
-            easing: Easing.out(Easing.quad),
-          })
-        ),
-        HIGHLIGHT_CONFIG.PULSE_COUNT,
-        false
+    cancelAnimation(opacity);
+    // Instant appear, stay visible, then fade out
+    opacity.value = withSequence(
+      withTiming(HIGHLIGHT_CONFIG.MAX_OPACITY, { duration: 100 }),
+      withDelay(
+        HIGHLIGHT_CONFIG.STAY_DURATION,
+        withTiming(0, { duration: HIGHLIGHT_CONFIG.FADE_OUT_DURATION })
       )
     );
   }, [isHighlighted]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    if (PLATFORM.IS_WEB) {
-      const shadowSize = interpolate(progress.value, [0, 1], [0, 20]);
-      return {
-        transform: [{ scale: scale.value }],
-        boxShadow: `0px 0px ${shadowSize}px ${glowColor}`,
-      };
-    }
-
+  const overlayAnimatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ scale: scale.value }],
-      opacity: interpolate(progress.value, [0, 1], [1, 0.95]),
+      opacity: opacity.value,
     };
   });
 
-  const glowStyle = useAnimatedStyle(() => {
-    if (PLATFORM.IS_WEB) return {};
-
-    const glowOpacity = interpolate(progress.value, [0, 1], [0, HIGHLIGHT_CONFIG.GLOW_OPACITY]);
-    const glowScale = interpolate(progress.value, [0, 1], [0.98, 1.05]);
-
-    return {
-      opacity: glowOpacity,
-      transform: [{ scale: glowScale }],
-    };
-  });
-
-  if (!PLATFORM.IS_WEB) {
+  // For web
+  if (PLATFORM.IS_WEB) {
     return (
-      <Animated.View style={{ position: "relative" }}>
+      <View style={styles.container}>
         <Animated.View
           style={[
+            styles.highlightOverlay,
             {
-              position: "absolute",
-              top: -HIGHLIGHT_CONFIG.GLOW_SPREAD,
-              left: -HIGHLIGHT_CONFIG.GLOW_SPREAD,
-              right: -HIGHLIGHT_CONFIG.GLOW_SPREAD,
-              bottom: -HIGHLIGHT_CONFIG.GLOW_SPREAD,
-              backgroundColor: glowColor,
-              borderRadius: 16,
-              zIndex: -1,
+              backgroundColor: highlightColor,
+              left: -120,
+              right: -12,
+              width: "100vw" as any, // Type assertion for web-only CSS
             },
-            glowStyle,
+            overlayAnimatedStyle,
           ]}
+          pointerEvents="none"
         />
-        <Animated.View style={animatedStyle}>{children}</Animated.View>
-      </Animated.View>
+        {children}
+      </View>
     );
   }
 
-  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
+  // For native (iOS/Android)
+  return (
+    <View style={styles.container}>
+      <Animated.View
+        style={[
+          styles.highlightOverlay,
+          {
+            backgroundColor: highlightColor,
+            position: "absolute",
+            top: -8,
+            bottom: -8,
+            left: -SCREEN_WIDTH,
+            right: -SCREEN_WIDTH,
+          },
+          overlayAnimatedStyle,
+        ]}
+        pointerEvents="none"
+      />
+      {children}
+    </View>
+  );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    position: "relative",
+  },
+  highlightOverlay: {
+    position: "absolute",
+    top: -8,
+    bottom: -8,
+    borderRadius: 0,
+    zIndex: -1,
+  },
+});

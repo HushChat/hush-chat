@@ -528,10 +528,7 @@ export const ConversationMessageItem = ({
             {renderParentMessage()}
 
             <View className={isCurrentUser ? "self-end" : "self-start"}>
-              <MessageHighlightWrapper
-                isHighlighted={message.id === targetMessageId}
-                glowColor="#3B82F6"
-              >
+              <MessageHighlightWrapper isHighlighted={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
                   isCurrentUser={isCurrentUser}
