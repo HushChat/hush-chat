@@ -800,7 +800,12 @@ public class ConversationService {
         try {
             conversationEventService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
 
-            conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
+            ConversationParticipantRoleEnum newRole = leavingParticipant.getRole();
+            if (leavingParticipant.getRole().equals(ConversationParticipantRoleEnum.ADMIN)) {
+                newRole = ConversationParticipantRoleEnum.MEMBER;
+            }
+
+            conversationParticipantRepository.updateParticipantStatusAndRole(leavingParticipant.getId(), false, newRole);
         } catch (Exception e) {
             logger.error("user: %s cannot leave the conversation due to an error".formatted(userId), e);
             throw new CustomInternalServerErrorException("Failed to leave the conversation");
@@ -1425,8 +1430,16 @@ public class ConversationService {
         long chatUserIdToRemove = conversationParticipantRepository
                 .chatUserIdByConversationParticipantId(participantIdToRemove);
 
+        ConversationParticipant targetParticipant = conversationUtilService
+                .getConversationParticipantOrThrow(conversationId, participantIdToRemove);
+
+        ConversationParticipantRoleEnum targetParticipantNewRole = targetParticipant.getRole();
+        if (targetParticipant.getRole().equals(ConversationParticipantRoleEnum.ADMIN)) {
+            targetParticipantNewRole = ConversationParticipantRoleEnum.MEMBER;
+        }
+
         try {
-            conversationParticipantRepository.updateIsActiveById(participantIdToRemove, false);
+            conversationParticipantRepository.updateParticipantStatusAndRole(participantIdToRemove, false, targetParticipantNewRole);
 
             conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(chatUserIdToRemove), ConversationEventType.USER_REMOVED);
         } catch (Exception e) {

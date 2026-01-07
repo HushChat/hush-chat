@@ -138,7 +138,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
           return {
             ...oldData,
-            pages: oldData.pages.map((page) => {
+            pages: oldData?.pages?.map((page) => {
               const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
 
               if (conversationIndex === -1) return page;
