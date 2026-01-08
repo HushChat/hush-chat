@@ -1,5 +1,5 @@
 // hooks/hotkeys/HotkeyProvider.tsx
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { PLATFORM } from "@/constants/platformConstants";
 import { commandHandlers } from "./commandHandlers";
 import { normalizeKeyCombo, normalizeHotkeyDefinition, isInputElement } from "./hotkeyUtils";
@@ -10,12 +10,6 @@ type HotkeyEntry = {
   command: CommandId;
   allowInInput: boolean;
 };
-
-type HotkeyContextType = {
-  // For future scoped hotkeys
-};
-
-const HotkeyContext = createContext<HotkeyContextType | null>(null);
 
 export function HotkeyProvider({ children }: { children: React.ReactNode }) {
   const hotkeyMapRef = useRef<Map<string, HotkeyEntry>>(new Map());
@@ -62,21 +56,5 @@ export function HotkeyProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  if (!PLATFORM.IS_WEB) {
-    return <>{children}</>;
-  }
-
-  return (
-    <HotkeyContext.Provider value={{}}>
-      {children}
-    </HotkeyContext.Provider>
-  );
-}
-
-export function useHotkeyContext() {
-  const context = useContext(HotkeyContext);
-  if (!context) {
-    throw new Error("useHotkeyContext must be used within HotkeyProvider");
-  }
-  return context;
+  return <>{children}</>;
 }
