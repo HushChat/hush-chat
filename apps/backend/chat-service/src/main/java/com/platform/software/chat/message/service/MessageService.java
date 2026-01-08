@@ -20,11 +20,9 @@ import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
-import com.platform.software.chat.user.repository.UserBlockRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.model.MediaSizeEnum;
-import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
@@ -63,9 +61,7 @@ public class MessageService {
     private final MessageHistoryRepository messageHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
-    private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final MessageMentionRepository messageMentionRepository;
-    private final UserBlockRepository userBlockRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -179,6 +175,14 @@ public class MessageService {
         try {
             messageRepository.save(message);
             messageHistoryRepository.save(newMessageHistory);
+
+            MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+
+            eventPublisher.publishEvent(new MessageUpdatedEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversationId,
+                    messageViewDTO,
+                    messageViewDTO.getSenderId()));
         } catch (Exception e) {
             logger.error("failed to save message edit history", e);
             throw new CustomBadRequestException("Failed to save message changes");

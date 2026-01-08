@@ -415,6 +415,90 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   }, []);
 
   /**
+   * Message updated listener
+   */
+  useEffect(() => {
+    const handleMessageUpdated = (updatedMessage: IMessage) => {
+      if (!updatedMessage?.id || !updatedMessage?.conversationId) return;
+
+      const { conversationId, id: messageId } = updatedMessage;
+
+      const threadKey = conversationMessageQueryKeys.messages(
+        Number(loggedInUserId),
+        conversationId
+      );
+
+      const root = Array.isArray(threadKey) ? threadKey[0] : threadKey;
+
+      queryClient.setQueriesData(
+        {
+          predicate: (q) => {
+            const key = q.queryKey as any[];
+            if (!Array.isArray(key)) return false;
+            if (key[0] !== root) return false;
+            return key.some((k) => Number(k) === Number(conversationId));
+          },
+        },
+        (old: any) => {
+          if (!old?.pages) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page: PaginatedResult<IMessage>) => ({
+              ...page,
+              content: (page?.content ?? []).map((msg) => {
+                if (msg.id === messageId) {
+                  return { ...msg, ...updatedMessage, isEdited: true };
+                }
+                return msg;
+              }),
+            })),
+          };
+        }
+      );
+
+      // Update conversation list cache if it shows the last message
+      queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
+        conversationsQueryKey,
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              content: page.content.map((conv) => {
+                if (conv.id !== conversationId) return conv;
+
+                const messages = conv.messages ?? [];
+                if (messages.length === 0) return conv;
+
+                const lastMsg = messages[messages.length - 1];
+                if (lastMsg?.id === messageId) {
+                  const newMessages = [...messages];
+                  newMessages[messages.length - 1] = {
+                    ...lastMsg,
+                    ...updatedMessage,
+                    isEdited: true,
+                  };
+                  return { ...conv, messages: newMessages };
+                }
+
+                return conv;
+              }),
+            })),
+          };
+        }
+      );
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.MESSAGE_UPDATED, handleMessageUpdated);
+    return () => {
+      eventBus.off(CONVERSATION_EVENTS.MESSAGE_UPDATED, handleMessageUpdated);
+    };
+  }, [queryClient, loggedInUserId, conversationsQueryKey]);
+
+  /**
    * Apply presence changes into cache
    */
   useEffect(() => {
