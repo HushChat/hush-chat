@@ -20,7 +20,7 @@ import {
   MAX_VIDEO_SIZE_KB,
 } from "@/constants/mediaConstants";
 import { IMessage } from "@/types/chat/types";
-import { validateFileSize } from "@/utils/files/getFileType";
+import { getFileType } from "@/utils/files/getFileType";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -28,6 +28,12 @@ export enum UploadType {
 }
 
 export const MAX_IMAGE_KB = 1024 * 5;
+
+const sizeMap = {
+  image: MAX_IMAGE_SIZE_KB,
+  video: MAX_VIDEO_SIZE_KB,
+  document: MAX_DOCUMENT_SIZE_KB,
+};
 
 export type TAttachmentUploadRequest = {
   messageText: string;
@@ -298,13 +304,16 @@ export function useMessageAttachmentUploader(
     const skipped: UploadResult[] = [];
 
     for (const { file, caption } of filesWithCaptions) {
-      const validation = validateFileSize(file.size, file.type, file.name);
+      const category = getFileType(file.type, file.name);
 
-      if (!validation.isValid) {
+      const maxSize = sizeMap[category];
+      const fileSizeKB = file.size / 1024;
+
+      if (fileSizeKB > maxSize) {
         skipped.push({
           success: false,
           fileName: file.name,
-          error: validation.error || "Invalid file",
+          error: `File too large (> ${maxSize / 1024} MB)`,
         });
         continue;
       }
@@ -340,11 +349,14 @@ export function useMessageAttachmentUploader(
 
         try {
           const blob = await (await fetch(file.uri)).blob();
+
+          const contentType = file.type || blob.type || "application/octet-stream";
+
           await fetch(signed.url, {
             method: "PUT",
             body: blob,
             headers: {
-              "Content-Type": file.type || blob.type || "application/octet-stream",
+              "Content-Type": contentType,
             },
           });
           results.push({
