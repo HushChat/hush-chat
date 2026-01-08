@@ -16,6 +16,7 @@ type TChatHeaderMenuProps = {
   isLoading: boolean;
   onCreateGroup?: () => void | Promise<void>;
   onOpenMentionedMessages: () => void | Promise<void>;
+  onLogout: () => void | Promise<void>;
   selectedConversationType: ConversationType;
   setSelectedConversationType: (newConversationType: ConversationType) => void;
 };
@@ -25,6 +26,7 @@ export const ConversationHeader = ({
   isLoading,
   onCreateGroup,
   onOpenMentionedMessages,
+  onLogout,
   selectedConversationType,
   setSelectedConversationType,
 }: TChatHeaderMenuProps) => {
@@ -49,12 +51,21 @@ export const ConversationHeader = ({
         if (onOpenMentionedMessages) return onOpenMentionedMessages();
       },
     },
+    {
+      id: 3,
+      name: "Logout",
+      iconName: "log-out-outline",
+      action: () => {
+        if (onLogout) return onLogout();
+      },
+    },
   ];
 
   const handleKebabPress = (e: GestureResponderEvent) => openAtEvent(e);
 
   const handleOptionSelect = async (action: () => void | Promise<void>) => {
     await action();
+    close();
   };
 
   return (
