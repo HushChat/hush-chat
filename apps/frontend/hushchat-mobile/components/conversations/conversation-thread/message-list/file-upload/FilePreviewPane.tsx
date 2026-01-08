@@ -74,12 +74,10 @@ const FilePreviewPane = ({
   if (!file) return null;
 
   const renderPreviewContent = () => {
-    // 1. Show Image Preview
     if (fileType === "image") {
       return <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />;
     }
 
-    // 2. Show Video Player
     if (fileType === "video") {
       return (
         <View style={styles.videoContainer}>
@@ -88,7 +86,6 @@ const FilePreviewPane = ({
       );
     }
 
-    // 3. Iframe Preview (PDFs etc, if supported)
     if (isIframePreviewable && url) {
       return (
         <View className="w-full h-full bg-white rounded-lg overflow-hidden border border-gray-200 relative">
@@ -109,7 +106,6 @@ const FilePreviewPane = ({
       );
     }
 
-    // 4. Generic Document Fallback (Jar, Exe, Zip, Unknowns)
     return (
       <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
         <Ionicons name="document-text-outline" size={64} color={iconColor} />
