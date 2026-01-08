@@ -15,6 +15,7 @@ interface Props {
   unreadCount: number;
   chevronButtonRef: RefObject<View | null>;
   onChevronPress: (e: GestureResponderEvent) => void;
+  isGroup?: boolean;
 }
 
 const ConversationMeta = ({
@@ -23,8 +24,9 @@ const ConversationMeta = ({
   unreadCount,
   chevronButtonRef,
   onChevronPress,
+  isGroup,
 }: Props) => {
-  const messageContent = LastMessagePreviewContent({ lastMessage });
+  const messageContent = LastMessagePreviewContent({ lastMessage, isGroup });
   const isGif = hasGif(lastMessage);
 
   const renderMessagePreview = () => {

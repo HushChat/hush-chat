@@ -4,13 +4,18 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
 import type { IMessage } from "@/types/chat/types";
+import { MessageTypeEnum } from "@/types/chat/types";
 import { hasGif } from "@/utils/messageUtils";
 
 interface LastMessagePreviewContentProps {
   lastMessage: IMessage | undefined;
+  isGroup?: boolean;
 }
 
-export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewContentProps) => {
+export const LastMessagePreviewContent = ({
+  lastMessage,
+  isGroup,
+}: LastMessagePreviewContentProps) => {
   if (!lastMessage) return "No Messages Yet";
   const isGif = hasGif(lastMessage);
 
@@ -29,6 +34,10 @@ export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewCon
 
   if (lastMessage.isUnsend) {
     return <LastMessagePreview unsendMessage={lastMessage} />;
+  }
+
+  if (isGroup && lastMessage.messageType !== MessageTypeEnum.SYSTEM_EVENT) {
+    return `${lastMessage.senderFirstName}: ${lastMessage.messageText}`;
   }
 
   return lastMessage.messageText;
