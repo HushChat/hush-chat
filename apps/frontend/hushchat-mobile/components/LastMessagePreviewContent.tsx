@@ -3,8 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
-import type { IMessage } from "@/types/chat/types";
-import { MessageTypeEnum } from "@/types/chat/types";
+import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
 import { hasGif } from "@/utils/messageUtils";
 
 interface LastMessagePreviewContentProps {
