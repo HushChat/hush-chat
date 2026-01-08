@@ -30,6 +30,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     Logger logger = LoggerFactory.getLogger(WebSocketAuthorizationInterceptor.class);
@@ -77,10 +78,11 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         String bearerToken = extractHeaderValue(accessor, GeneralConstants.AUTHORIZATION_HEADER);
         String workspaceId = extractHeaderValue(accessor, GeneralConstants.WORKSPACE_ID_HEADER);
         String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
+        String deviceId = extractHeaderValue(accessor, GeneralConstants.DEVICE_ID_HEADER);
 
         if (deviceType == null) deviceType = "UNKNOWN";
 
-        if (bearerToken == null || workspaceId == null) {
+        if (bearerToken == null || workspaceId == null || deviceId == null) {
             logger.error("web socket cannot authorize: missing required parameters.");
             throw new CustomForbiddenException("Missing required authentication parameters");
         }
@@ -113,16 +115,17 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             WorkspaceContext.setCurrentWorkspace(workspaceId);
             ChatUser user = userService.getUserByEmail(email);
 
-            String sessionKey = createSessionKey(workspaceId, email);
+            String sessionKey = createSessionKey(workspaceId, email, deviceId);
 
             // Store session information in STOMP session attributes
             accessor.getSessionAttributes().put(GeneralConstants.USER_ID_ATTR, sessionKey);
             accessor.getSessionAttributes().put(Constants.JWT_CLAIM_EMAIL, email);
             accessor.getSessionAttributes().put(GeneralConstants.WORKSPACE_ID, workspaceId);
             accessor.getSessionAttributes().put(GeneralConstants.DEVICE_TYPE, deviceType);
+            accessor.getSessionAttributes().put(GeneralConstants.DEVICE_ID, deviceId);
 
             // Use sessionKey as the principal identifier
-            Principal principal = () -> sessionKey;
+            Principal principal = () -> createUserPrinciple(workspaceId, email);
             accessor.setUser(principal);
 
             manageSession(sessionKey, accessor, user, workspaceId, email);
@@ -157,7 +160,11 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         }
     }
 
-    private String createSessionKey(String tenantId, String email) {
+    private String createSessionKey(String tenantId, String email, String deviceId) {
+        return String.format("%s:%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8), deviceId);
+    }
+
+    private String createUserPrinciple(String tenantId, String email) {
         return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 
@@ -167,9 +174,9 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
         String deviceType = extractHeaderValue(accessor, GeneralConstants.DEVICE_TYPE_HEADER);
 
         if (existingSession == null) {
-            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType);
+            sessionManager.registerSessionFromStomp(sessionKey, accessor, workspaceId, email, deviceType, user.getAvailabilityStatus());
         } else {
-            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType);
+            sessionManager.reconnectingSessionFromStomp(sessionKey, workspaceId, email, deviceType, user.getAvailabilityStatus());
         }
     }
 

@@ -19,6 +19,7 @@ import {
   MAX_IMAGE_SIZE_KB,
   MAX_VIDEO_SIZE_KB,
 } from "@/constants/mediaConstants";
+import { IMessage } from "@/types/chat/types";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -54,14 +55,19 @@ const sizeMap = {
   document: MAX_DOCUMENT_SIZE_KB,
 };
 
-type TAttachmentUploadRequest = {
+export type TAttachmentUploadRequest = {
   messageText: string;
-  fileName: string;
+  fileName?: string;
   parentMessageId?: number | null;
+  gifUrl?: string;
 };
 
-interface IMessageWithSignedUrl {
+export interface IMessageWithSignedUrl {
   id: number;
+  messageText?: string;
+  senderId?: number;
+  conversationId?: number;
+  createdAt?: string;
   signedUrl: {
     originalFileName: string;
     indexedFileName: string;
@@ -78,6 +84,7 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
         originalFileName: item.signedUrl.originalFileName,
         url: item.signedUrl.url,
         indexedFileName: item.signedUrl.indexedFileName,
+        messageId: item.id,
       }));
   }
   return [];
@@ -208,6 +215,7 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
+
   const getSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
@@ -219,8 +227,9 @@ export function useMessageAttachmentUploader(
       parentMessageId,
     }));
 
-    const response = await createMessagesWithAttachments(conversationId, attachments);
-    return extractSignedUrls(response);
+    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
+
+    return extractSignedUrls(messagesWithSignedUrl);
   };
 
   const getSignedUrlsWithCaptions = async (
@@ -233,8 +242,26 @@ export function useMessageAttachmentUploader(
       parentMessageId,
     }));
 
+    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
+
+    return extractSignedUrls(messagesWithSignedUrl);
+  };
+
+  const sendGifMessage = async (
+    gifUrl: string,
+    messageText: string = "",
+    parentMessageId?: number | null
+  ): Promise<IMessage> => {
+    const attachments: TAttachmentUploadRequest[] = [
+      {
+        messageText,
+        gifUrl,
+        parentMessageId,
+      },
+    ];
+
     const response = await createMessagesWithAttachments(conversationId, attachments);
-    return extractSignedUrls(response);
+    return response;
   };
 
   const hook = useNativePickerUpload(getSignedUrls);
@@ -371,7 +398,12 @@ export function useMessageAttachmentUploader(
               "Content-Type": file.type || blob.type || "application/octet-stream",
             },
           });
-          results.push({ success: true, fileName: file.name, signed });
+          results.push({
+            success: true,
+            fileName: file.name,
+            signed,
+            messageId: signed.messageId,
+          });
         } catch (e: any) {
           results.push({
             success: false,
@@ -419,5 +451,6 @@ export function useMessageAttachmentUploader(
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
     isUploading: isUploadingWebFiles,
+    sendGifMessage,
   };
 }

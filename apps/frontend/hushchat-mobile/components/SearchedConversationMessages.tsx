@@ -63,7 +63,8 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
   const handleMessagePress = useCallback(
     (message: any) => {
       if (isMobileLayout) {
-        router.push({
+        router.dismiss(2);
+        router.replace({
           pathname: CHAT_VIEW_PATH,
           params: {
             conversationId,
@@ -144,6 +145,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
                 value={inputValue}
                 placeholder="Search messages..."
                 onClear={handleSearchQueryClear}
+                autoFocus
               />
 
               <TouchableOpacity
@@ -165,6 +167,7 @@ const SearchedConversationMessages: React.FC<WebSearchedConversationMessages> = 
             value={inputValue}
             placeholder={`Search in ${conversationName || "conversation"}`}
             onClear={handleSearchQueryClear}
+            autoFocus
           />
         )}
       </View>

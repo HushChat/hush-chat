@@ -9,7 +9,7 @@ import {
 } from "react";
 import { eventBus } from "@/services/eventBus";
 import { IConversation, IMessage, IUserStatus } from "@/types/chat/types";
-import { playMessageSound } from "@/utils/playSound";
+import { playMessageSound, SoundType } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
 import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
@@ -28,6 +28,7 @@ import {
   MessageReactionPayload,
   MessageUnsentPayload,
 } from "@/types/ws/types";
+import { useMessageReadListener } from "@/hooks/useMessageReadListener";
 
 const PAGE_SIZE = 20;
 
@@ -59,16 +60,17 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
-
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
-    user: { id: loggedInUserId },
+    user: { id: loggedInUserId, email },
   } = useUserStore();
 
-  const conversationsQueryKey = conversationQueryKeys.allConversations(
-    Number(loggedInUserId),
-    criteria
+  useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
+
+  const conversationsQueryKey = useMemo(
+    () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
+    [loggedInUserId, criteria]
   );
 
   /**
@@ -100,6 +102,12 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     const mergedConversation = {
       ...notificationConversation,
+
+      name: matchedNotification?.name ?? notificationConversation.name,
+      isGroup: matchedNotification?.isGroup ?? notificationConversation.isGroup,
+      signedImageUrl:
+        matchedNotification?.signedImageUrl ?? notificationConversation.signedImageUrl,
+
       chatUserStatus: matchedNotification?.chatUserStatus,
       unreadCount: updatedUnreadCount,
       deviceType: matchedNotification?.deviceType,
@@ -118,6 +126,8 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         isPinned: (conversation) => conversation.pinnedByLoggedInUser,
       }
     );
+
+    setNotificationConversation(null);
   }, [notificationConversation, queryClient, conversationsQueryKey]);
 
   const updateConversation = (conversationId: string | number, updates: Partial<IConversation>) => {
@@ -141,7 +151,13 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         setNotificationConversation(conversation);
 
         if (!conversation.mutedByLoggedInUser) {
-          void playMessageSound();
+          const messages = conversation.messages || [];
+          const lastMessage = messages[messages.length - 1];
+          const isMentioned = lastMessage?.mentions?.some(
+            (user) => Number(user.id) === Number(loggedInUserId)
+          );
+
+          void playMessageSound(isMentioned ? SoundType.MENTION : SoundType.NORMAL);
         }
       }
     };
@@ -300,6 +316,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, [queryClient, conversationsQueryKey, loggedInUserId]);
 
+  /**
+   * Message reaction listener
+   */
   useEffect(() => {
     const handleMessageReaction = (payload: MessageReactionPayload) => {
       const { conversationId, messageId } = payload;
@@ -426,6 +445,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     if (conversation == null) return;
 
+    if (userStatus.email === email) {
+      return;
+    }
+
     const mergedConversation = {
       ...conversation,
       chatUserStatus: userStatus.status,
@@ -444,7 +467,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     );
   }, [userStatus, queryClient, conversationsQueryKey]);
-
   return (
     <ConversationNotificationsContext.Provider
       value={{

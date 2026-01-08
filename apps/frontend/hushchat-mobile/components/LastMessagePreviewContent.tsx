@@ -4,6 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
 import type { IMessage } from "@/types/chat/types";
+import { hasGif } from "@/utils/messageUtils";
 
 interface LastMessagePreviewContentProps {
   lastMessage: IMessage | undefined;
@@ -11,8 +12,9 @@ interface LastMessagePreviewContentProps {
 
 export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewContentProps) => {
   if (!lastMessage) return "No Messages Yet";
+  const isGif = hasGif(lastMessage);
 
-  if (lastMessage.hasAttachment) {
+  if (!lastMessage.isUnsend && lastMessage.hasAttachment && !isGif) {
     return (
       <View className="flex-row items-center gap-1">
         <View style={styles.attachmentIcon}>

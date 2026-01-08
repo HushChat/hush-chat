@@ -4,7 +4,7 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, SectionList, View } from "react-native";
+import { ActivityIndicator, SectionList, SectionListRenderItemInfo, View } from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
@@ -12,7 +12,7 @@ import { PinnedMessageBar } from "@/components/PinnedMessageBar";
 import { PLATFORM } from "@/constants/platformConstants";
 import MessageReactionsModal from "@/components/conversations/conversation-thread/message-list/reaction/MessageReactionsModal";
 import { DateSection } from "@/components/DateSection";
-import { copyToClipboard, groupMessagesByDate } from "@/utils/messageUtils";
+import { copyToClipboard, getUnreadMeta, groupMessagesByDate, hasGif } from "@/utils/messageUtils";
 import { useMessageSelection } from "@/hooks/conversation-thread/useMessageSelection";
 import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReactions";
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
@@ -21,6 +21,7 @@ import { createRenderMessage } from "@/components/conversations/conversation-thr
 import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
 import { useRouter } from "expo-router";
 import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
+import { UnreadMessageSection } from "@/components/UnreadMessageSection";
 
 interface IMessagesListProps {
   messages: IMessage[];
@@ -38,6 +39,8 @@ interface IMessagesListProps {
   targetMessageId?: number | null;
   onTargetMessageScrolled?: () => void;
   webMessageInfoPress?: (messageId: number) => void;
+  lastSeenMessageId?: number | null;
+  onEditMessage?: (message: IMessage) => void;
 }
 
 const ConversationMessageList = ({
@@ -55,6 +58,8 @@ const ConversationMessageList = ({
   targetMessageId,
   onTargetMessageScrolled,
   webMessageInfoPress,
+  lastSeenMessageId,
+  onEditMessage,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -85,6 +90,11 @@ const ConversationMessageList = ({
   const groupedSections = useMemo(() => {
     return groupMessagesByDate(messages);
   }, [messages]);
+
+  const unreadMeta = useMemo(
+    () => getUnreadMeta(messages, lastSeenMessageId ?? null, Number(currentUserId)),
+    [messages, lastSeenMessageId, currentUserId]
+  );
 
   const handlePinnedMessageClick = useCallback(() => {
     if (onNavigateToMessage && pinnedMessage) {
@@ -179,6 +189,7 @@ const ConversationMessageList = ({
         targetMessageId,
         webMessageInfoPress,
         markMessageAsUnread,
+        onEditMessage,
       }),
     [
       currentUserId,
@@ -199,7 +210,22 @@ const ConversationMessageList = ({
       targetMessageId,
       webMessageInfoPress,
       markMessageAsUnread,
+      onEditMessage,
     ]
+  );
+
+  const renderMessageWithDivider = useCallback(
+    (info: SectionListRenderItemInfo<IMessage>) => {
+      const isFirstUnread = unreadMeta?.messageId === info.item.id;
+
+      return (
+        <>
+          {renderMessage(info)}
+          {isFirstUnread && <UnreadMessageSection count={unreadMeta.count} />}
+        </>
+      );
+    },
+    [renderMessage, unreadMeta]
   );
 
   const renderLoadingFooter = useCallback(() => {
@@ -232,6 +258,10 @@ const ConversationMessageList = ({
             markMessageAsUnread(message);
             closeActions();
           }}
+          onEdit={(message) => {
+            onEditMessage?.(message);
+            closeActions();
+          }}
         />
       )}
 
@@ -239,6 +269,7 @@ const ConversationMessageList = ({
         <PinnedMessageBar
           senderName={`${pinnedMessage?.senderFirstName || ""} ${pinnedMessage?.senderLastName || ""}`.trim()}
           messageText={pinnedMessage?.messageText || ""}
+          isGifUrl={hasGif(pinnedMessage)}
           onUnpin={() => togglePin(pinnedMessage)}
           onPress={handlePinnedMessageClick}
         />
@@ -251,7 +282,7 @@ const ConversationMessageList = ({
           const fallbackKey = `temp-${item.conversationId}-${index}`;
           return (item.id ?? fallbackKey).toString();
         }}
-        renderItem={renderMessage}
+        renderItem={renderMessageWithDivider}
         renderSectionFooter={({ section }) => <DateSection title={section.title} />}
         inverted
         showsVerticalScrollIndicator={false}

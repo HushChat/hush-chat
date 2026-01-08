@@ -1,13 +1,13 @@
 package com.platform.software.chat.user.entity;
 
 import com.platform.software.chat.message.entity.FavouriteMessage;
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.common.model.AuditModel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Where;
 
 import java.util.Set;
 
@@ -48,4 +48,7 @@ public class ChatUser extends AuditModel{
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<FavouriteMessage> favouriteMessages;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatusEnum availabilityStatus = UserStatusEnum.AVAILABLE;
 }

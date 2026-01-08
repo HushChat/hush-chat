@@ -12,6 +12,4 @@ public class RateLimiterUtils {
     public static boolean isPublicRoute(String requestURI) {
         return PUBLIC_ROUTES.stream().anyMatch(requestURI::contains);
     }
-
-
 }

@@ -6,11 +6,14 @@ import com.platform.software.chat.conversation.service.ConversationPermissionGua
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
+import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserBlockRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.exception.CustomBadRequestException;
@@ -35,6 +38,7 @@ public class MessageUtilService {
     private final MessageRepository messageRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final ConversationPermissionGuard conversationPermissionGuard;
+    private final UserBlockRepository userBlockRepository;
 
     /**
      * Retrieves the recipient ID for a one-to-one conversation.
@@ -66,7 +70,7 @@ public class MessageUtilService {
                     senderUserId, recipientId, conversation.getId());
 
                 // TODO: Replace with CustomBusinessRuleException once we standardize business rule violations
-                throw new CustomBadRequestException("Cannot interact with blocked conversations");
+                throw new CustomBadRequestException("Something went wrong!");
             }
         } else {
             boolean isActive = conversationRepository.getIsActiveByConversationIdAndUserId(conversation.getId(), senderUserId);
@@ -154,5 +158,25 @@ public class MessageUtilService {
         }
 
         return  attachmentDTOsWithSignedUrl;
+    }
+
+    /**
+     * Verifies if an interaction is restricted due to a block between users in 1-to-1 conversations.
+     * <p>
+     * This method checks if the provided conversation is a direct message (non-group).
+     * If so, it queries the {@code userBlockRepository} to determine if either participant
+     * has blocked the other.
+     * </p>
+     * * @param conversation the {@link Conversation} to check for block restrictions.
+     * @throws CustomBadRequestException if the conversation is 1-to-1 and a block exists
+     * between the participants.
+     */
+    public void checkInteractionRestrictionBetweenOneToOneConversation(Conversation conversation) {
+        if (!conversation.getIsGroup()) {
+            boolean isBlocked = userBlockRepository.existsBlockBetweenUsers(conversation.getId());
+            if (isBlocked) {
+                throw new CustomBadRequestException("Something went wrong!");
+            }
+        }
     }
 }

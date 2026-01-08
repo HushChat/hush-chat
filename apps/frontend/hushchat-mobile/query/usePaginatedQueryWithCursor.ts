@@ -70,11 +70,13 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
     getNextPageParam: (lastLoadedPage) => {
       if (!lastLoadedPage?.content?.length) return undefined;
 
-      const currentPageMessages = lastLoadedPage.content;
-      const hasInsufficientMessagesToPaginate = currentPageMessages.length < pageSize;
-      if (hasInsufficientMessagesToPaginate) return undefined;
+      if ("hasMoreBefore" in lastLoadedPage) {
+        if (lastLoadedPage.hasMoreBefore === false) return undefined;
+      } else {
+        if (lastLoadedPage.content.length < pageSize) return undefined;
+      }
 
-      const oldestMessageInCurrentPage = currentPageMessages[currentPageMessages.length - 1];
+      const oldestMessageInCurrentPage = lastLoadedPage.content[lastLoadedPage.content.length - 1];
       if (!oldestMessageInCurrentPage) return undefined;
 
       return {
@@ -87,11 +89,14 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
       if (!allowForwardPagination) return undefined;
       if (!firstLoadedPage?.content?.length) return undefined;
 
-      const currentPageMessages = firstLoadedPage.content;
-      const hasInsufficientMessagesToPaginate = currentPageMessages.length < pageSize;
-      if (hasInsufficientMessagesToPaginate) return undefined;
+      if ("hasMoreAfter" in firstLoadedPage) {
+        if (firstLoadedPage.hasMoreAfter === false) return undefined;
+      } else {
+        const hasInsufficientMessagesToPaginate = firstLoadedPage.content.length < pageSize;
+        if (hasInsufficientMessagesToPaginate) return undefined;
+      }
 
-      const newestMessageInCurrentPage = currentPageMessages[0];
+      const newestMessageInCurrentPage = firstLoadedPage.content[0];
       if (!newestMessageInCurrentPage) return undefined;
 
       return {

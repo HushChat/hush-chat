@@ -13,6 +13,7 @@ import type { IMessage, IConversation } from "@/types/chat/types";
 import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
+import { separatePinnedItems } from "@/query/config/appendToOffsetPaginatedCache";
 
 const PAGE_SIZE = 20;
 
@@ -33,7 +34,7 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
-      queryClient.removeQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
@@ -148,10 +149,19 @@ export function useConversationMessagesQuery(conversationId: number) {
                 messages: [newMessage],
               };
 
-              const newContent = [
-                updatedConversation,
-                ...page.content.filter((c) => c.id !== conversationId),
-              ];
+              const otherConversations = page.content.filter((c) => c.id !== conversationId);
+              const { pinned, unpinned } = separatePinnedItems(
+                otherConversations,
+                (c) => c.pinnedByLoggedInUser
+              );
+
+              let newContent: IConversation[];
+
+              if (updatedConversation.pinnedByLoggedInUser) {
+                newContent = [updatedConversation, ...pinned, ...unpinned];
+              } else {
+                newContent = [...pinned, updatedConversation, ...unpinned];
+              }
 
               return { ...page, content: newContent };
             }),
@@ -160,6 +170,28 @@ export function useConversationMessagesQuery(conversationId: number) {
       );
     },
     [queryClient, conversationId, userId]
+  );
+
+  const replaceTempMessage = useCallback(
+    (temporaryMessageId: number, serverMessageId: number) => {
+      queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+        queryKey,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              content: page.content.map((msg) =>
+                msg.id === temporaryMessageId ? { ...msg, id: serverMessageId } : msg
+              ),
+            })),
+          };
+        }
+      );
+    },
+    [queryClient, queryKey]
   );
 
   const { lastMessage } = useConversationMessages(conversationId);
@@ -184,6 +216,7 @@ export function useConversationMessagesQuery(conversationId: number) {
     invalidateQuery,
     updateConversationMessagesCache,
     updateConversationsListCache,
+    replaceTempMessage,
     loadMessageWindow,
     inMessageWindowView,
     targetMessageId,

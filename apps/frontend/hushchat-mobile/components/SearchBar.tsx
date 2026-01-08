@@ -16,6 +16,7 @@ interface SearchBarProps {
   onChangeText: (text: string) => void;
   placeholder?: string;
   onClear?: () => void;
+  autoFocus?: boolean;
 }
 
 const SearchBar = ({
@@ -24,6 +25,7 @@ const SearchBar = ({
   onChangeText,
   placeholder = "Search...",
   onClear,
+  autoFocus = false,
 }: SearchBarProps) => {
   const { isDark } = useAppTheme();
 
@@ -45,6 +47,7 @@ const SearchBar = ({
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="search"
+        autoFocus={autoFocus}
         // Additional iOS-specific props to remove focus styling
         {...(PLATFORM.IS_IOS && {
           clearButtonMode: "never",
