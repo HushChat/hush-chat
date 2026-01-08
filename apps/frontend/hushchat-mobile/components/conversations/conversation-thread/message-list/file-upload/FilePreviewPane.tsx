@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
 import { SIZES } from "@/constants/mediaConstants";
-// Make sure this path matches where you saved the new utility
 import { getFileType } from "@/utils/files/getFileType";
 import { isLocalPreviewSupported } from "@/utils/filePreviewUtils";
 import { AppText } from "@/components/AppText";
