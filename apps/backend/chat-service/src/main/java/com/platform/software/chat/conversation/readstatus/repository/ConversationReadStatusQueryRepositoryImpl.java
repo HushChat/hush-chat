@@ -12,6 +12,7 @@ import com.platform.software.chat.user.entity.QChatUser;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
@@ -62,24 +63,30 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
 
     @Override
     public ConversationReadInfo findConversationReadInfoByConversationIdAndUserId(
-        Long conversationId, Long userId) {
+            Long conversationId, Long userId) {
 
         return queryFactory
-            .select(Projections.constructor(
-                ConversationReadInfo.class,
-                qConversationReadStatus.message.id,
-                qMessage.id.count()
-            ))
-            .from(qMessage)
-            .leftJoin(qConversationReadStatus)
-            .on(qConversationReadStatus.conversation.id.eq(conversationId)
-                .and(qConversationReadStatus.user.id.eq(userId)))
-            .where(qMessage.conversation.id.eq(conversationId)
-                .and(qMessage.isUnsend.isFalse())
-                .and(qConversationReadStatus.message.id.isNull()
-                    .or(qMessage.id.gt(qConversationReadStatus.message.id))))
-            .groupBy(qConversationReadStatus.message.id)
-            .fetchOne();
+                .select(Projections.constructor(
+                        ConversationReadInfo.class,
+                        qConversationReadStatus.message.id,
+
+                        new CaseBuilder()
+                                .when(qConversationReadStatus.message.id.isNull()
+                                        .or(qMessage.id.gt(qConversationReadStatus.message.id)))
+                                .then(1L)
+                                .otherwise(0L)
+                                .sum()
+                ))
+                .from(qMessage)
+                .leftJoin(qConversationReadStatus)
+                .on(qConversationReadStatus.conversation.id.eq(conversationId)
+                        .and(qConversationReadStatus.user.id.eq(userId)))
+
+                .where(qMessage.conversation.id.eq(conversationId)
+                        .and(qMessage.isUnsend.isFalse()))
+
+                .groupBy(qConversationReadStatus.message.id)
+                .fetchOne();
     }
 
     private JPAQuery<ConversationUnreadCount> buildUnreadCountQuery(Long userId) {
