@@ -1,7 +1,4 @@
-export { HotkeyProvider, useHotkeyContext } from "./HotkeyProvider";
-export { Commands, type CommandId } from "./commands";
-export { useScopedHotkey } from "./useScopedHotkey";
+export { HotkeyProvider } from "./HotkeyProvider";
 export { useRegisterSearch } from "./useRegisterSearch";
-export { useRegisterChatInput } from "./useRegisterChatInput";
-export { useRegisterShortcutsHelp } from "./useRegisterShortcutsHelp";
-export { hotkeyDefinitions, getHotkeysForHelp, type HotkeyDefinition } from "./hotkeyDefinitions";
+export { Commands } from "./commands";
+export { hotkeyDefinitions, type HotkeyDefinition } from "./hotkeyDefinitions";

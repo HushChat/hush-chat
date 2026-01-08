@@ -1,19 +1,10 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+// hooks/hotkeys/HotkeyProvider.tsx
+import React, { createContext, useContext, useEffect, useRef } from "react";
 import { PLATFORM } from "@/constants/platformConstants";
-import { CommandId } from "./commands";
 import { commandHandlers } from "./commandHandlers";
-import {
-  normalizeKeyCombo,
-  normalizeHotkeyDefinition,
-  isInputElement,
-} from "./hotkeyUtils";
-import { globalHotkeyDefinitions, HotkeyDefinition } from "./hotkeyDefinitions";
+import { normalizeKeyCombo, normalizeHotkeyDefinition, isInputElement } from "./hotkeyUtils";
+import { globalHotkeyDefinitions } from "./hotkeyDefinitions";
+import { CommandId } from "./commands";
 
 type HotkeyEntry = {
   command: CommandId;
@@ -21,8 +12,7 @@ type HotkeyEntry = {
 };
 
 type HotkeyContextType = {
-  registerHotkey: (definition: HotkeyDefinition) => () => void;
-  executeCommand: (command: CommandId) => void;
+  // For future scoped hotkeys
 };
 
 const HotkeyContext = createContext<HotkeyContextType | null>(null);
@@ -41,13 +31,6 @@ export function HotkeyProvider({ children }: { children: React.ReactNode }) {
         allowInInput: definition.allowInInput ?? false,
       });
     });
-
-    return () => {
-      globalHotkeyDefinitions.forEach((definition) => {
-        const normalizedKey = normalizeHotkeyDefinition(definition.keys);
-        hotkeyMapRef.current.delete(normalizedKey);
-      });
-    };
   }, []);
 
   // Single keydown listener
@@ -79,41 +62,12 @@ export function HotkeyProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const registerHotkey = useCallback((definition: HotkeyDefinition) => {
-    const normalizedKey = normalizeHotkeyDefinition(definition.keys);
-
-    hotkeyMapRef.current.set(normalizedKey, {
-      command: definition.command,
-      allowInInput: definition.allowInInput ?? false,
-    });
-
-    return () => {
-      hotkeyMapRef.current.delete(normalizedKey);
-    };
-  }, []);
-
-  const executeCommand = useCallback((command: CommandId) => {
-    const handler = commandHandlers[command];
-    if (handler) {
-      handler();
-    }
-  }, []);
-
   if (!PLATFORM.IS_WEB) {
-    return (
-      <HotkeyContext.Provider
-        value={{
-          registerHotkey: () => () => {},
-          executeCommand: () => {},
-        }}
-      >
-        {children}
-      </HotkeyContext.Provider>
-    );
+    return <>{children}</>;
   }
 
   return (
-    <HotkeyContext.Provider value={{ registerHotkey, executeCommand }}>
+    <HotkeyContext.Provider value={{}}>
       {children}
     </HotkeyContext.Provider>
   );
