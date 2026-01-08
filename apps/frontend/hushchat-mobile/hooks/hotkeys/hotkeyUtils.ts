@@ -24,16 +24,9 @@ export function isInputElement(target: EventTarget | null): boolean {
   if (!target || !(target instanceof HTMLElement)) return false;
 
   const tagName = target.tagName.toLowerCase();
-  return (
-    tagName === "input" ||
-    tagName === "textarea" ||
-    target.isContentEditable
-  );
+  return tagName === "input" || tagName === "textarea" || target.isContentEditable;
 }
 
 export function normalizeHotkeyDefinition(hotkey: string): string {
-  return hotkey
-    .toLowerCase()
-    .replace("ctrl", "mod")
-    .replace("cmd", "mod")
+  return hotkey.toLowerCase().replace("ctrl", "mod").replace("cmd", "mod");
 }

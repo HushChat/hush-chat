@@ -20,5 +20,5 @@ export const commandHandlers: Record<CommandId, CommandHandler> = {
       return true;
     }
     return false;
-  }
+  },
 };
