@@ -12,120 +12,31 @@ import {
 import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
 import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
-import { WS_TOPICS, WS_URL_PATH } from "@/constants/ws/wsTopics";
+import { TOPICS, WS_URL_PATH } from "@/constants/ws/wsTopics";
 import { getDeviceType } from "@/utils/commonUtils";
 import {
   DEVICE_ID_KEY,
   HEADER_ACCEPT_VERSION,
   HEADER_AUTHORIZATION,
-  HEADER_CONTENT_LENGTH,
-  HEADER_CONTENT_TYPE,
-  HEADER_DESTINATION,
   HEADER_DEVICE_TYPE,
   HEADER_HEART_BEAT,
   HEADER_WORKSPACE_ID,
-  TITLES,
 } from "@/constants/constants";
 
 import { getDeviceId } from "@/utils/deviceIdUtils";
-import { WS_DESTINATIONS } from "@/constants/apiConstants";
 import { useAppVisibility } from "@/hooks/useAppVisibility";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { HEARTBEAT_INTERVAL, useHeartbeat } from "@/hooks/ws/wsHeartbeat";
+import { publishTypingStatus, publishUserActivity } from "@/hooks/ws/wsPublisher";
 
-// Define topics to subscribe to
-const TOPICS = [
-  { destination: WS_TOPICS.message.received, id: "sub-message-received" },
-  { destination: WS_TOPICS.user.onlineStatus, id: "sub-online-status" },
-  { destination: WS_TOPICS.conversation.created, id: "sub-conversation-created" },
-  { destination: WS_TOPICS.message.unsent, id: "sub-message-unsent" },
-  { destination: WS_TOPICS.message.react, id: "sub-message-reaction" },
-  { destination: WS_TOPICS.message.typing, id: "sub-typing-status" },
-  { destination: WS_TOPICS.message.read, id: "sub-message-read" },
-] as const;
-
-// All time constants in milliseconds
 const INITIAL_RETRY_DELAY = 1000;
 const MAX_RETRY_DELAY = 30000;
 const RETRY_MULTIPLIER = 1.5;
 const MAX_RECONNECT_ATTEMPTS = 50;
 
-const HEARTBEAT_INTERVAL = 30000;
-const MISSED_HEARTBEAT_THRESHOLD = 2;
-
-// Debounce delay for connection attempts
 const CONNECTION_DEBOUNCE_DELAY = 500;
 
 const encoder = new TextEncoder();
-
-// check if WebSocket can publish
-const canPublish = (ws: WebSocket | null, action: string): boolean => {
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
-    logInfo(`WebSocket not connected, cannot publish ${action}`);
-    return false;
-  }
-  return true;
-};
-
-// build STOMP SEND frames
-const buildStompSendFrame = (
-  destination: string,
-  body: string,
-  deviceType: string,
-  deviceId: string
-): Uint8Array => {
-  const sendFrameBytes = [
-    ...Array.from(encoder.encode("SEND\n")),
-    ...Array.from(encoder.encode(`${HEADER_DESTINATION}:${destination}\n`)),
-    ...Array.from(encoder.encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
-    ...Array.from(encoder.encode(`${HEADER_DEVICE_TYPE}:${deviceType}\n`)),
-    ...Array.from(encoder.encode(`${HEADER_CONTENT_LENGTH}:${body.length}\n`)),
-    ...Array.from(encoder.encode(`${HEADER_CONTENT_TYPE}:application/json\n`)),
-    0x0a,
-    ...Array.from(encoder.encode(body)),
-    0x00,
-  ];
-
-  return new Uint8Array(sendFrameBytes);
-};
-
-// Generic publish function
-const publishToWebSocket = (
-  ws: WebSocket | null,
-  destination: string,
-  data: UserActivityWSSubscriptionData | TypingIndicatorWSData,
-  action: string
-): boolean => {
-  if (!canPublish(ws, action)) {
-    return false;
-  }
-
-  try {
-    const body = JSON.stringify(data);
-    const deviceType = (data as any).deviceType ?? getDeviceType();
-    const deviceId = (data as any).deviceId ?? getDeviceId();
-    ws!.send(buildStompSendFrame(destination, body, deviceType, deviceId).buffer);
-    return true;
-  } catch (error) {
-    logInfo(`Error publishing ${action}:`, error);
-    return false;
-  }
-};
-
-export const publishUserActivity = (
-  ws: WebSocket | null,
-  data: UserActivityWSSubscriptionData
-): boolean => {
-  return publishToWebSocket(
-    ws,
-    WS_DESTINATIONS.SUBSCRIBED_CONVERSATIONS,
-    data,
-    TITLES.USER_ACTIVITY
-  );
-};
-
-export const publishTypingStatus = (ws: WebSocket | null, data: TypingIndicatorWSData): boolean => {
-  return publishToWebSocket(ws, WS_DESTINATIONS.TYPING, data, TITLES.TYPING_ACTIVITY);
-};
 
 export default function useWebSocketConnection() {
   const { isAuthenticated, isWorkspaceSelected } = useAuthStore();
@@ -134,6 +45,7 @@ export default function useWebSocketConnection() {
   const {
     user: { email, id },
   } = useUserStore();
+  const { startHeartbeat, stopHeartbeat, updateLastMessageTime } = useHeartbeat();
 
   // WebSocket reference
   const wsRef = useRef<WebSocket | null>(null);
@@ -147,13 +59,9 @@ export default function useWebSocketConnection() {
   const reconnectAttemptsRef = useRef(0);
 
   // Timer references
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const connectionDebounceRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Heartbeat
-  const lastMessageTimeRef = useRef<number>(Date.now());
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Track previous visibility/network states
   const prevAppActiveRef = useRef<boolean>(isAppActive);
@@ -182,67 +90,11 @@ export default function useWebSocketConnection() {
       clearInterval(heartbeatIntervalRef.current);
       heartbeatIntervalRef.current = null;
     }
-    if (heartbeatTimeoutRef.current) {
-      clearTimeout(heartbeatTimeoutRef.current);
-      heartbeatTimeoutRef.current = null;
-    }
     if (connectionDebounceRef.current) {
       clearTimeout(connectionDebounceRef.current);
       connectionDebounceRef.current = null;
     }
   }, []);
-
-  const stopHeartbeat = useCallback(() => {
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
-      heartbeatIntervalRef.current = null;
-    }
-    if (heartbeatTimeoutRef.current) {
-      clearTimeout(heartbeatTimeoutRef.current);
-      heartbeatTimeoutRef.current = null;
-    }
-  }, []);
-
-  const sendHeartbeat = useCallback((ws: WebSocket) => {
-    if (ws.readyState === WebSocket.OPEN) {
-      try {
-        const timeSinceLastMessage = Date.now() - lastMessageTimeRef.current;
-        const timeoutThreshold = HEARTBEAT_INTERVAL * (MISSED_HEARTBEAT_THRESHOLD + 1);
-
-        if (timeSinceLastMessage > timeoutThreshold) {
-          logInfo(
-            `No messages received for ${timeSinceLastMessage}ms (threshold: ${timeoutThreshold}ms), reconnecting...`
-          );
-          ws.close(4000, "Heartbeat timeout - no messages received");
-          return;
-        }
-
-        const pingFrame = new Uint8Array([
-          ...Array.from(encoder.encode("SEND\n")),
-          ...Array.from(encoder.encode(`${HEADER_DESTINATION}:${WS_DESTINATIONS.HEARTBEAT}\n`)),
-          0x0a,
-          0x00,
-        ]);
-        ws.send(pingFrame.buffer);
-        logDebug("Heartbeat sent");
-      } catch (error) {
-        logInfo("Error sending heartbeat:", error);
-      }
-    }
-  }, []);
-
-  const startHeartbeat = useCallback(
-    (ws: WebSocket) => {
-      stopHeartbeat();
-
-      heartbeatIntervalRef.current = setInterval(() => {
-        sendHeartbeat(ws);
-      }, HEARTBEAT_INTERVAL);
-
-      logDebug("Heartbeat started");
-    },
-    [sendHeartbeat, stopHeartbeat]
-  );
 
   const closeExistingConnection = useCallback(() => {
     if (wsRef.current) {
@@ -334,7 +186,7 @@ export default function useWebSocketConnection() {
 
       ws.onopen = () => {
         logInfo("WebSocket connection opened");
-        lastMessageTimeRef.current = Date.now();
+        updateLastMessageTime();
 
         const connectFrameBytes = [
           ...Array.from(encoder.encode("CONNECT\n")),
@@ -355,7 +207,7 @@ export default function useWebSocketConnection() {
       };
 
       ws.onmessage = (event) => {
-        lastMessageTimeRef.current = Date.now();
+        updateLastMessageTime();
         logDebug("Received message:", event.data.substring(0, 100));
 
         if (event.data.startsWith(CONNECTED_RESPONSE)) {
@@ -644,24 +496,9 @@ export default function useWebSocketConnection() {
     [connectionStatus, id]
   );
 
-  // Manual reconnect
-  const reconnect = useCallback(() => {
-    logInfo("Manual reconnection triggered");
-    shouldStopRetryingRef.current = false;
-    reconnectAttemptsRef.current = 0;
-    isConnectingRef.current = false;
-    clearAllTimers();
-    closeExistingConnection();
-
-    setTimeout(() => {
-      connectWebSocket();
-    }, 100);
-  }, [connectWebSocket, clearAllTimers, closeExistingConnection]);
-
   return {
     connectionStatus,
     publishActivity,
     publishTyping,
-    reconnect,
   };
 }
