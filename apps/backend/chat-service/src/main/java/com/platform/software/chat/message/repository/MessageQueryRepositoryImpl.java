@@ -9,7 +9,6 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -85,13 +84,11 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                                 .and(m.sender.id.eq(loggedInUserId))
                                 .and(c.deleted.eq(false))
                                 .and(cp.isDeleted.eq(false))
-                                .and(cp.isActive.eq(true))
-                )
+                                .and(cp.isActive.eq(true)))
                 .fetchOne();
 
         return Optional.ofNullable(result);
     }
-
 
     @Nullable
     private String generateTSVector(Message message) {
@@ -123,32 +120,25 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
-            .and(message.sender.isNotNull())
-            .and(message.conversation.deleted.eq(false));
+                .and(message.sender.isNotNull())
+                .and(message.conversation.deleted.eq(false));
 
-        if(!participant.getIsActive()) {
+        if (!participant.getIsActive()) {
             conditions = conditions.and(message.createdAt.before(Date.from(participant.getInactiveFrom().toInstant())));
         }
 
-        if(participant.getLastDeletedTime() != null) {
-            conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
+        if (participant.getLastDeletedTime() != null) {
+            conditions = conditions
+                    .and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
-        Long total = queryFactory
-            .select(message.id.countDistinct())
-            .from(message)
-            .innerJoin(message.conversation, conversation)
-            .innerJoin(message.sender, sender)
-            .where(conditions)
-            .fetchOne();
-
         JPAQuery<Message> query = queryFactory
-            .selectDistinct(message)
-            .from(message)
-            .leftJoin(message.attachments, messageAttachment).fetchJoin()
-            .innerJoin(message.conversation, conversation).fetchJoin()
-            .innerJoin(message.sender, sender).fetchJoin()
-            .limit(idBasedPageRequest.getSize());
+                .selectDistinct(message)
+                .from(message)
+                .leftJoin(message.attachments, messageAttachment).fetchJoin()
+                .innerJoin(message.conversation, conversation).fetchJoin()
+                .innerJoin(message.sender, sender).fetchJoin()
+                .limit(idBasedPageRequest.getSize() + 1);
 
         // Add cursor-based pagination conditions
         if (idBasedPageRequest.getAfterId() != null) {
@@ -163,13 +153,21 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         query.where(conditions);
         List<Message> messages = query.fetch();
+
+        boolean hasNext = messages.size() > idBasedPageRequest.getSize();
+        if (hasNext) {
+            messages.remove(messages.size() - 1);
+        }
+
         if (idBasedPageRequest.getAfterId() != null) {
             messages = messages.reversed(); // if the query fetches with after id, it will fetch asc order, so for the frontend display, it has to be revered
         }
 
         Pageable pageable = PageRequest.of(0, idBasedPageRequest.getSize().intValue());
 
-        return new PageImpl<>(messages, pageable, total != null ? total : 0L);
+        long total = hasNext ? (long) messages.size() + 1 : (long) messages.size();
+
+        return new PageImpl<>(messages, pageable, total);
     }
 
     /**
@@ -274,23 +272,48 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     }
 
     @Override
-    public Optional<Message> findPreviousMessage(Long conversationId, Long messageId, ConversationParticipant participant) {
+    public Optional<Message> findPreviousMessage(Long conversationId, Long messageId,
+            ConversationParticipant participant) {
         QMessage message = QMessage.message;
-    
+
         Date deletedAt = Optional.ofNullable(participant.getLastDeletedTime())
                 .map(zdt -> Date.from(zdt.toInstant()))
                 .orElse(null);
-        
+
         return Optional.ofNullable(
-            queryFactory.selectFrom(message)
-                .where(
-                    message.conversation.id.eq(conversationId),
-                    message.id.lt(messageId),
-                    message.isUnsend.isFalse(),
-                    deletedAt != null ? message.createdAt.after(deletedAt) : null
-                )
-                .orderBy(message.id.desc())
-                .fetchFirst()
-        );
+                queryFactory.selectFrom(message)
+                        .where(
+                                message.conversation.id.eq(conversationId),
+                                message.id.lt(messageId),
+                                message.isUnsend.isFalse(),
+                                deletedAt != null ? message.createdAt.after(deletedAt) : null)
+                        .orderBy(message.id.desc())
+                        .fetchFirst());
+    }
+
+    @Override
+    public boolean hasMessagesBefore(Long conversationId, Long messageId, ConversationParticipant participant) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+
+        BooleanExpression conditions = message.conversation.id.eq(conversationId)
+                .and(message.id.loe(messageId))
+                .and(message.conversation.deleted.eq(false));
+
+        if (!participant.getIsActive()) {
+            conditions = conditions.and(message.createdAt.before(Date.from(participant.getInactiveFrom().toInstant())));
+        }
+
+        if (participant.getLastDeletedTime() != null) {
+            conditions = conditions
+                    .and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
+        }
+
+        Integer fetchOne = queryFactory
+                .selectOne()
+                .from(message)
+                .where(conditions)
+                .fetchFirst();
+
+        return fetchOne != null;
     }
 }

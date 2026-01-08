@@ -20,4 +20,7 @@ public interface MessageQueryRepository {
     Optional<Message> findByIdWithSenderAndConversation(Long messageId);
 
     Optional<Message> findPreviousMessage(Long conversationId, Long messageId, ConversationParticipant participant);
+
+    boolean hasMessagesBefore(Long conversationId, Long messageId, ConversationParticipant participant);
+
 }

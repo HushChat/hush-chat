@@ -23,6 +23,7 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.service.ConversationEventService;
 import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
+import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.message.service.MessageUtilService;
 import com.platform.software.chat.notification.entity.DeviceType;
@@ -90,6 +91,7 @@ public class ConversationService {
     private final MessageUtilService messageUtilService;
     private final ApplicationEventPublisher eventPublisher;
     private final ConversationInviteLinkRepository conversationInviteLinkRepository;
+    private final MessageRepository messageRepository;
 
     /**
      * Builds a ConversationDTO from a Conversation entity.
@@ -600,7 +602,7 @@ public class ConversationService {
 
         if (idBasedPageRequest.getAfterId() != null) {
             hasMoreAfter = messageViewDTOs.hasNext();
-            hasMoreBefore = idBasedPageRequest.getAfterId() > 0;
+            hasMoreBefore = messageRepository.hasMessagesBefore(conversationId, idBasedPageRequest.getAfterId(), loggedInParticipant);
         } else if (idBasedPageRequest.getBeforeId() != null) {
             hasMoreBefore = messageViewDTOs.hasNext();
             hasMoreAfter = true;
