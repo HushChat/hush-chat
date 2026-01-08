@@ -572,3 +572,18 @@ export const joinConversationByInvite = async (token: string) => {
     return { error: error.response?.data?.error || error.message };
   }
 };
+
+export const getCommonGroups = async (
+  conversationId: number,
+  page: number = 0,
+  size: number = 20
+) => {
+  try {
+    const response = await axios.get(CONVERSATION_API_ENDPOINTS.GET_COMMON_GROUPS(conversationId), {
+      params: { page, size },
+    });
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.error || error.message };
+  }
+};

@@ -580,4 +580,27 @@ public class ConversationController {
     ) {
         return ResponseEntity.ok(conversationService.toggleNotifyMentionsOnly(conversationId, userDetails.getId()));
     }
+
+    /**
+     * Get common group conversations shared between the authenticated user and another specific user.
+     *
+     * @param conversationId the ID of the user conversation to check for shared groups
+     * @param userDetails    the authenticated user details who made the request
+     * @param pageable       pagination information
+     * @return ResponseEntity containing a Page of ConversationViewDTOs representing the shared groups
+     */
+    @ApiOperation(value = "Get common group conversation shared with another user", response = ConversationViewDTO.class)
+    @GetMapping("{conversationId}/common-groups")
+    public ResponseEntity<Page<ConversationViewDTO>> getCommonGroups(
+            @PathVariable Long conversationId,
+            @AuthenticatedUser UserDetails userDetails,
+            Pageable pageable
+    ) {
+        Page<ConversationViewDTO> commonGroupConversations = conversationService.getCommonConversationGroupsBetweenTwoUsers(
+                userDetails.getId(),
+                conversationId,
+                pageable
+        );
+        return new ResponseEntity<>(commonGroupConversations, HttpStatus.OK);
+    }
 }

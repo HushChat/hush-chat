@@ -526,4 +526,41 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .where(qConversation.id.eq(conversationId))
                 .execute();
     }
+
+    @Override
+    public Page<Conversation> findCommonGroupsBetweenUsers(Long userOneId, Long userTwoId, Pageable pageable) {
+        QConversationParticipant qParticipant1 = new QConversationParticipant("p1");
+        QConversationParticipant qParticipant2 = new QConversationParticipant("p2");
+
+        JPAQuery<Conversation> query = jpaQueryFactory
+                .selectFrom(qConversation)
+                .where(
+                        qConversation.isGroup.isTrue()
+                                .and(qConversation.deleted.isFalse())
+                                .and(JPAExpressions.selectOne()
+                                        .from(qParticipant1)
+                                        .where(qParticipant1.conversation.eq(qConversation)
+                                                .and(qParticipant1.user.id.eq(userOneId))
+                                                .and(qParticipant1.isActive.isTrue())
+                                                .and(qParticipant1.isDeleted.isFalse()))
+                                        .exists())
+                                .and(JPAExpressions.selectOne()
+                                        .from(qParticipant2)
+                                        .where(qParticipant2.conversation.eq(qConversation)
+                                                .and(qParticipant2.user.id.eq(userTwoId))
+                                                .and(qParticipant2.isActive.isTrue())
+                                                .and(qParticipant2.isDeleted.isFalse()))
+                                        .exists())
+                );
+
+        long totalCount = Optional.ofNullable(query.clone().select(qConversation.count()).fetchOne()).orElse(0L);
+
+        List<Conversation> results = query
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .orderBy(qConversation.name.asc())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, totalCount);
+    }
 }

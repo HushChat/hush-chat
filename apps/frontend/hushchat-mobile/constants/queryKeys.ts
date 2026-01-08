@@ -6,6 +6,7 @@ const WORKSPACES = "workspaces";
 
 const CONVERSATION_QUERY_BASE_KEY = "conversations";
 const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
+const CONVERSATION_INFO_QUERY_BASE_KEY = "conversation-info";
 const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
 const CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY = "conversation-attachments";
 const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
@@ -74,6 +75,12 @@ export const conversationQueryKeys = {
     criteria: AttachmentFilterCriteria,
     pageSize: number
   ) => [CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY, conversationId, criteria, pageSize],
+
+  commonGroupInfo: (conversationId: number) => [
+    CONVERSATION_INFO_QUERY_BASE_KEY,
+    conversationId,
+    "common-group",
+  ],
 };
 
 export const conversationMessageQueryKeys = {

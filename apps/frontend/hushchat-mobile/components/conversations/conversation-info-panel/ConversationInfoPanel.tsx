@@ -12,12 +12,13 @@ import GroupChatInfo from "@/components/conversations/conversation-info-panel/Gr
 import { AppText } from "@/components/AppText";
 import { PanelType } from "@/types/web-panel/types";
 import MediaAttachmentsView from "@/components/conversations/conversation-info-panel/MediaAttachmentsView";
+import { IConversation } from "@/types/chat/types";
 
 export interface ChatInfoScreenProps {
   conversationId: number;
   onClose?: () => void;
   isWebView?: boolean;
-  setSelectedConversation?: (conversation: null) => void;
+  setSelectedConversation?: (conversation: IConversation | null) => void;
 }
 
 export default function ConversationInfoPanel({

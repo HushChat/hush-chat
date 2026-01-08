@@ -1651,4 +1651,44 @@ public class ConversationService {
         conversationParticipantRepository.save(participant);
         return participant.getNotifyOnMentionsOnly();
     }
+
+    /**
+     * Retrieves a paginated list of shared group conversations between the logged-in user
+     * and the peer from a specific one-to-one conversation.
+     * <p>
+     * This method first resolves the other participant's identity from the provided 1:1
+     * {@code conversationId}. It then fetches all group conversations where both the
+     * requester and the resolved peer are active members. Each group in the result set
+     * is enriched with a temporary signed URL for its profile icon.
+     * </p>
+     *
+     * @param loggedInUserId the ID of the currently authenticated user
+     * @param conversationId the ID of the one-to-one conversation used to identify the target user
+     * @param pageable       pagination and sorting information
+     * @return a {@link Page} of {@link ConversationViewDTO} containing the shared group details and signed icons
+     * @throws CustomBadRequestException if the conversationId is invalid, not a one-to-one chat,
+     * or if the logged-in user is not a participant
+     */
+    public Page<ConversationViewDTO> getCommonConversationGroupsBetweenTwoUsers(Long loggedInUserId, Long conversationId,  Pageable pageable) {
+        DirectOtherMetaDTO meta = conversationRepository
+                .findDirectOtherMeta(conversationId, loggedInUserId)
+                .orElseThrow(() -> new CustomBadRequestException("Target conversation is not a valid one-to-one chat."));
+
+        Page<Conversation> commonGroups = conversationRepository.findCommonGroupsBetweenUsers(
+                loggedInUserId,
+                meta.getOtherUserId(),
+                pageable
+        );
+
+        Page<ConversationViewDTO> conversationViewDTOs = commonGroups
+                .map(conversation -> {
+                    ConversationViewDTO dto = new ConversationViewDTO(conversation);
+
+                    String signedUrl = conversationUtilService.getImageViewSignedUrl( MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.MEDIUM ,conversation.getImageIndexedName());
+                    dto.setSignedImageUrl(signedUrl);
+                    return dto;
+                });
+
+        return conversationViewDTOs;
+    }
 }
