@@ -1,6 +1,6 @@
 import { PLATFORM } from "@/constants/platformConstants";
 import React, { useEffect } from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
+import { View, Dimensions } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,24 +16,21 @@ const HIGHLIGHT_CONFIG = {
   MAX_OPACITY: 0.35,
 } as const;
 
-const DEFAULT_HIGHLIGHT_COLOR = "#563dc4";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface IHighlightWrapperProps {
-  isHighlighted: boolean;
+  shouldHighlight: boolean;
   children: React.ReactNode;
-  highlightColor?: string;
 }
 
 export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
-  isHighlighted,
+  shouldHighlight,
   children,
-  highlightColor = DEFAULT_HIGHLIGHT_COLOR,
 }) => {
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    if (!isHighlighted) {
+    if (!shouldHighlight) {
       return;
     }
 
@@ -45,7 +42,7 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
         withTiming(0, { duration: HIGHLIGHT_CONFIG.FADE_OUT_DURATION })
       )
     );
-  }, [isHighlighted]);
+  }, [shouldHighlight]);
 
   const overlayAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -55,15 +52,18 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
 
   if (PLATFORM.IS_WEB) {
     return (
-      <View style={styles.container}>
+      <View className="relative">
         <Animated.View
+          className="absolute inset-y-0 -z-10 bg-primary-light dark:bg-primary-dark"
           style={[
-            styles.highlightOverlay,
             {
-              backgroundColor: highlightColor,
-              left: -120,
-              right: -12,
+              // left: -120,
+              // right: -12,
+              left: "auto",
+              right: "auto",
               width: "100vw" as any,
+              top: -8,
+              bottom: -8,
             },
             overlayAnimatedStyle,
           ]}
@@ -75,15 +75,11 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
   }
 
   return (
-    <View style={styles.container}>
+    <View className="relative">
       <Animated.View
+        className="absolute -top-2 -bottom-2 -z-10 bg-primary-light dark:bg-primary-dark"
         style={[
-          styles.highlightOverlay,
           {
-            backgroundColor: highlightColor,
-            position: "absolute",
-            top: -8,
-            bottom: -8,
             left: -SCREEN_WIDTH,
             right: -SCREEN_WIDTH,
           },
@@ -95,16 +91,3 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: "relative",
-  },
-  highlightOverlay: {
-    position: "absolute",
-    top: -8,
-    bottom: -8,
-    borderRadius: 0,
-    zIndex: -1,
-  },
-});
