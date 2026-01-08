@@ -20,6 +20,7 @@ import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserBlockRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.model.MediaSizeEnum;
@@ -64,6 +65,7 @@ public class MessageService {
     private final MessageUtilService messageUtilService;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final MessageMentionRepository messageMentionRepository;
+    private final UserBlockRepository userBlockRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -158,10 +160,17 @@ public class MessageService {
         }
 
         Message message = getMessageBySender(userId, conversationId, messageId);
+        Conversation conversation = message.getConversation();
+
+        if (message.getForwardedMessage() != null) {
+            throw new CustomBadRequestException("Cannot edit a forwarded message!");
+        }
 
         if (message.getMessageText().equals(messageDTO.getMessageText())) {
             return;
         }
+
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
         message.setMessageText(messageDTO.getMessageText());
         message.setIsEdited(true);
@@ -536,6 +545,9 @@ public class MessageService {
         Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId)
                 .orElseThrow(() -> new CustomBadRequestException(
                         "Message not found, not owned by you, or you don’t have permission to delete it"));
+
+        Conversation conversation = message.getConversation();
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
         if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
             throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");
