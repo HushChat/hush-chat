@@ -9,7 +9,7 @@ import {
 } from "react";
 import { eventBus } from "@/services/eventBus";
 import { IConversation, IMessage, IUserStatus } from "@/types/chat/types";
-import { playMessageSound } from "@/utils/playSound";
+import { playMessageSound, SoundType } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
 import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
@@ -28,6 +28,7 @@ import {
   MessageReactionPayload,
   MessageUnsentPayload,
 } from "@/types/ws/types";
+import { useMessageReadListener } from "@/hooks/useMessageReadListener";
 
 const PAGE_SIZE = 20;
 
@@ -64,6 +65,8 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   const {
     user: { id: loggedInUserId, email },
   } = useUserStore();
+
+  useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
 
   const conversationsQueryKey = useMemo(
     () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
@@ -148,7 +151,13 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         setNotificationConversation(conversation);
 
         if (!conversation.mutedByLoggedInUser) {
-          void playMessageSound();
+          const messages = conversation.messages || [];
+          const lastMessage = messages[messages.length - 1];
+          const isMentioned = lastMessage?.mentions?.some(
+            (user) => Number(user.id) === Number(loggedInUserId)
+          );
+
+          void playMessageSound(isMentioned ? SoundType.MENTION : SoundType.NORMAL);
         }
       }
     };
@@ -307,6 +316,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, [queryClient, conversationsQueryKey, loggedInUserId]);
 
+  /**
+   * Message reaction listener
+   */
   useEffect(() => {
     const handleMessageReaction = (payload: MessageReactionPayload) => {
       const { conversationId, messageId } = payload;

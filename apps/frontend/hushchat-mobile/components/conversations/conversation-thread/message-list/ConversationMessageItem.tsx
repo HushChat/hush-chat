@@ -259,7 +259,7 @@ export const ConversationMessageItem = ({
         action: () => webMessageInfoPress && webMessageInfoPress(message.id),
       });
 
-      if (canEdit) {
+      if (canEdit && !isForwardedMessage) {
         options.push({
           id: 6,
           name: "Edit Message",
