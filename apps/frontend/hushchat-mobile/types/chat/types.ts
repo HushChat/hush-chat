@@ -254,6 +254,10 @@ export interface TMessageForward {
   customText: string;
 }
 
+export interface TMessageForwardResponse {
+  forwardedTo: number[];
+}
+
 export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
@@ -336,6 +340,7 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
   editingMessage?: IMessage | null;
   onCancelEdit?: () => void;
   onEditMessage?: (messageId: number, newText: string) => void;
