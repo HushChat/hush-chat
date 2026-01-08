@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
 import { SIZES } from "@/constants/mediaConstants";
+// Make sure this path matches where you saved the new utility
 import { getFileType } from "@/utils/files/getFileType";
 import { isLocalPreviewSupported } from "@/utils/filePreviewUtils";
 import { AppText } from "@/components/AppText";
@@ -36,7 +37,7 @@ const FilePreviewPane = ({
   inputRef,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState<"image" | "document" | "video" | "unsupported">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video">("document");
   const [loading, setLoading] = useState(false);
 
   const isDark = colorScheme.get() === "dark";
@@ -48,7 +49,7 @@ const FilePreviewPane = ({
   useEffect(() => {
     if (!file) return;
 
-    const type = getFileType(file.name);
+    const type = getFileType(file.type, file.name);
     setFileType(type);
 
     if (isIframePreviewable) {
@@ -74,10 +75,12 @@ const FilePreviewPane = ({
   if (!file) return null;
 
   const renderPreviewContent = () => {
+    // 1. Show Image Preview
     if (fileType === "image") {
       return <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />;
     }
 
+    // 2. Show Video Player
     if (fileType === "video") {
       return (
         <View style={styles.videoContainer}>
@@ -86,6 +89,7 @@ const FilePreviewPane = ({
       );
     }
 
+    // 3. Iframe Preview (PDFs etc, if supported)
     if (isIframePreviewable && url) {
       return (
         <View className="w-full h-full bg-white rounded-lg overflow-hidden border border-gray-200 relative">
@@ -106,6 +110,7 @@ const FilePreviewPane = ({
       );
     }
 
+    // 4. Generic Document Fallback (Jar, Exe, Zip, Unknowns)
     return (
       <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
         <Ionicons name="document-text-outline" size={64} color={iconColor} />

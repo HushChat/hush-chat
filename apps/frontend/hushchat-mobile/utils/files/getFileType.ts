@@ -1,15 +1,31 @@
-import { DOC_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
+export type FileType = "image" | "video" | "document";
 
-export type FileType = "image" | "video" | "document" | "unsupported";
+/**
+ * Determines file type based on MIME type (primary) or file extension (fallback)
+ * @param mimeType - The MIME type of the file (e.g., "image/jpeg")
+ * @param fileName - The file name with extension (used as fallback)
+ * @returns FileType - "image", "video", or "document"
+ */
+export const getFileType = (mimeType?: string, fileName?: string): FileType => {
+  if (mimeType) {
+    if (mimeType.startsWith("image/")) return "image";
+    if (mimeType.startsWith("video/")) return "video";
+    return "document";
+  }
 
-export const getFileType = (fileName: string): FileType => {
-  const ext = fileName.split(".").pop()?.toLowerCase();
+  if (fileName) {
+    const ext = fileName.split(".").pop()?.toLowerCase();
+    if (!ext) return "document";
 
-  if (!ext) return "unsupported";
+    if (["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico", "heic", "heif"].includes(ext)) {
+      return "image";
+    }
 
-  if (IMAGE_EXTENSIONS.includes(ext)) return "image";
-  if (VIDEO_EXTENSIONS.includes(ext)) return "video";
-  if (DOC_EXTENSIONS.includes(ext)) return "document";
-
-  return "unsupported";
+    if (
+      ["mp4", "mov", "webm", "avi", "mkv", "m4v", "mpeg", "3gpp", "flv", "wmv", "ogv"].includes(ext)
+    ) {
+      return "video";
+    }
+  }
+  return "document";
 };
