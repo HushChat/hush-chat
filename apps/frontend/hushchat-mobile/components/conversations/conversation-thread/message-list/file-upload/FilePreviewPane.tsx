@@ -20,6 +20,7 @@ type TFilePreviewPaneProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
 };
 
 const FilePreviewPane = ({
@@ -32,6 +33,7 @@ const FilePreviewPane = ({
   isGroupChat = false,
   replyToMessage,
   onCancelReply,
+  inputRef,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
   const [fileType, setFileType] = useState<"image" | "document" | "video" | "unsupported">("image");
@@ -123,6 +125,7 @@ const FilePreviewPane = ({
 
       <View style={styles.inputContainer}>
         <ConversationInput
+          ref={inputRef}
           conversationId={conversationId}
           onSendMessage={onSendFiles}
           disabled={isSending}

@@ -70,11 +70,13 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
     getNextPageParam: (lastLoadedPage) => {
       if (!lastLoadedPage?.content?.length) return undefined;
 
-      const currentPageMessages = lastLoadedPage.content;
-      const hasInsufficientMessagesToPaginate = currentPageMessages.length < pageSize;
-      if (hasInsufficientMessagesToPaginate) return undefined;
+      if ("hasMoreBefore" in lastLoadedPage) {
+        if (lastLoadedPage.hasMoreBefore === false) return undefined;
+      } else {
+        if (lastLoadedPage.content.length < pageSize) return undefined;
+      }
 
-      const oldestMessageInCurrentPage = currentPageMessages[currentPageMessages.length - 1];
+      const oldestMessageInCurrentPage = lastLoadedPage.content[lastLoadedPage.content.length - 1];
       if (!oldestMessageInCurrentPage) return undefined;
 
       return {
