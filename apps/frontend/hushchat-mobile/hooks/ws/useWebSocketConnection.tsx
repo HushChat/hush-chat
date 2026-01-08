@@ -128,7 +128,7 @@ export const publishTypingStatus = (ws: WebSocket | null, data: TypingIndicatorW
 };
 
 export default function useWebSocketConnection() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isWorkspaceSelected } = useAuthStore();
   const isAppActive = useAppVisibility();
   const isNetworkConnected = useNetworkStatus();
   const {
@@ -152,10 +152,10 @@ export default function useWebSocketConnection() {
   const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const connectionDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Heartbeat tracking
+  // Heartbeat
   const lastMessageTimeRef = useRef<number>(Date.now());
 
-  // Track previous visibility/network state
+  // Track previous visibility/network states
   const prevAppActiveRef = useRef<boolean>(isAppActive);
   const prevNetworkConnectedRef = useRef<boolean>(isNetworkConnected);
 
@@ -173,7 +173,6 @@ export default function useWebSocketConnection() {
     return Math.floor(baseDelay + jitter);
   }, []);
 
-  // Clear all timers
   const clearAllTimers = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -193,7 +192,7 @@ export default function useWebSocketConnection() {
     }
   }, []);
 
-  // Stop heartbeat mechanism
+  // Stop heartbeat
   const stopHeartbeat = useCallback(() => {
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
@@ -205,7 +204,7 @@ export default function useWebSocketConnection() {
     }
   }, []);
 
-  // Send heartbeat ping
+  // Send heartbeat
   const sendHeartbeat = useCallback((ws: WebSocket) => {
     if (ws.readyState === WebSocket.OPEN) {
       try {
@@ -234,7 +233,7 @@ export default function useWebSocketConnection() {
     }
   }, []);
 
-  // Start heartbeat mechanism
+  // Start heartbeat
   const startHeartbeat = useCallback(
     (ws: WebSocket) => {
       stopHeartbeat();
@@ -267,8 +266,8 @@ export default function useWebSocketConnection() {
       logDebug("Cannot connect:  shouldStopRetrying is true");
       return false;
     }
-    if (!isAuthenticated) {
-      logDebug("Cannot connect: not authenticated");
+    if (!isAuthenticated || !isWorkspaceSelected) {
+      logDebug("Cannot connect: not authenticated or workspace not selected");
       return false;
     }
     if (isConnectingRef.current) {
@@ -276,7 +275,7 @@ export default function useWebSocketConnection() {
       return false;
     }
     return true;
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isWorkspaceSelected]);
 
   // Main connection function
   const connectWebSocket = useCallback(async () => {
@@ -341,7 +340,6 @@ export default function useWebSocketConnection() {
         logInfo("WebSocket connection opened");
         lastMessageTimeRef.current = Date.now();
 
-        // FIXED: No space after colon in heart-beat header
         const connectFrameBytes = [
           ...Array.from(encoder.encode("CONNECT\n")),
           ...Array.from(encoder.encode(`${HEADER_AUTHORIZATION}:Bearer ${idToken}\n`)),
@@ -523,7 +521,7 @@ export default function useWebSocketConnection() {
     }
   }, [isAppActive, isAuthenticated, connectionStatus, connectWebSocket]);
 
-  // Handle online/offline events
+  // Handle online/offline
   useEffect(() => {
     const wasOffline = !prevNetworkConnectedRef.current;
     const isNowOnline = isNetworkConnected;
