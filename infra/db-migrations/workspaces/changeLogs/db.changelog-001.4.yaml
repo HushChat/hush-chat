@@ -2,7 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: enable_pg_trgm_extension
       author: wenura
-      tag: release-11.1
+      tag: release-14.1
       comment: "Enable PostgreSQL trigram extension for efficient pattern matching"
       changes:
         - sql:
@@ -14,7 +14,7 @@ databaseChangeLog:
   - changeSet:
       id: create_trigram_index_on_message_text
       author: wenura
-      tag: release-11.2
+      tag: release-14.2
       comment: "Create GIN trigram index on message_text for faster ILIKE searches"
       changes:
         - sql:
@@ -26,7 +26,7 @@ databaseChangeLog:
   - changeSet:
       id: set_trigram_similarity_threshold
       author: wenura
-      tag: release-11.3
+      tag: release-14.3
       comment: "Set trigram similarity threshold for fuzzy matching"
       changes:
         - sql:
