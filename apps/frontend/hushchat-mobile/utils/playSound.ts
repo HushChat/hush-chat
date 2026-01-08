@@ -11,28 +11,55 @@ export enum SoundType {
 let messageSound: AudioPlayer | null = null;
 let mentionSound: AudioPlayer | null = null;
 
-export const loadMessageSound = async () => {
-  if (!messageSound) {
-    const audioSource = require("@/assets/sounds/message-pop.mp3");
-    messageSound = createAudioPlayer(audioSource);
-  }
-  if (!mentionSound) {
-    const audioSource = require("@/assets/sounds/message-mention-pop.mp3");
-    mentionSound = createAudioPlayer(audioSource);
-  }
+let loadingPromise: Promise<void> | null = null;
+let isSoundEnabled: boolean = true;
+let isSettingsLoaded = false;
+
+export const setCachedSoundEnabled = (enabled: boolean) => {
+  isSoundEnabled = enabled;
+  isSettingsLoaded = true;
 };
 
-export const playMessageSound = async (
-  isConversationMuted = false,
-  type: SoundType = SoundType.NORMAL
-) => {
+export const loadMessageSound = () => {
+  if (loadingPromise) return loadingPromise;
+
+  loadingPromise = (async () => {
+    try {
+      if (!messageSound) {
+        const audioSource = require("@/assets/sounds/message-pop.mp3");
+        messageSound = createAudioPlayer(audioSource);
+      }
+      if (!mentionSound) {
+        const audioSource = require("@/assets/sounds/message-mention-pop.mp3");
+        mentionSound = createAudioPlayer(audioSource);
+      }
+
+      if (!isSettingsLoaded) {
+        const soundEnabled = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
+        if (!isSettingsLoaded) {
+          isSoundEnabled = soundEnabled !== "false";
+          isSettingsLoaded = true;
+        }
+      }
+    } catch (error) {
+      logError("Failed to load message sounds", error);
+    } finally {
+      loadingPromise = null;
+    }
+  })();
+
+  return loadingPromise;
+};
+
+export const playMessageSound = async (type: SoundType) => {
   try {
-    const soundEnabled = await AsyncStorage.getItem(SOUND_ENABLED_KEY);
-    if (soundEnabled === "false" || isConversationMuted) {
-      return;
+    if (!messageSound || !mentionSound) {
+      await loadMessageSound();
     }
 
-    if (!messageSound || !mentionSound) await loadMessageSound();
+    if (!isSoundEnabled) {
+      return;
+    }
 
     const soundToPlay = type === SoundType.MENTION ? mentionSound : messageSound;
 

@@ -157,7 +157,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
             (user) => Number(user.id) === Number(loggedInUserId)
           );
 
-          void playMessageSound(false, isMentioned ? SoundType.MENTION : SoundType.NORMAL);
+          void playMessageSound(isMentioned ? SoundType.MENTION : SoundType.NORMAL);
         }
       }
     };
