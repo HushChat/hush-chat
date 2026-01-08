@@ -18,16 +18,17 @@ import { ConversationNotificationsProvider } from "@/contexts/ConversationNotifi
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
-import { SearchFocusProvider } from "@/contexts/SearchFocusContext";
-import { useAppHotkeys } from "@/hooks/useAppHotkeys";
+// import { SearchFocusProvider } from "@/contexts/SearchFocusContext";
+// import { useAppHotkeys } from "@/hooks/useAppHotkeys";
+import { HotkeyProvider } from "@/hooks/hotkeys";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
 
-function AppHotkeysSetup() {
-  useAppHotkeys();
-  return null;
-}
+// function AppHotkeysSetup() {
+//   useAppHotkeys();
+//   return null;
+// }
 
 export default function RootLayout() {
   const { colorScheme } = useAppTheme();
@@ -39,8 +40,7 @@ export default function RootLayout() {
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
 
   return (
-    <SearchFocusProvider>
-      <AppHotkeysSetup />
+    <HotkeyProvider>
       <GestureHandlerRootView>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
@@ -61,7 +61,7 @@ export default function RootLayout() {
           </QueryClientProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
-    </SearchFocusProvider>
+    </HotkeyProvider>
   );
 }
 
