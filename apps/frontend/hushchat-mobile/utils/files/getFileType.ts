@@ -1,3 +1,4 @@
+import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
 export type FileType = "image" | "video" | "document";
 
 /**
@@ -17,13 +18,11 @@ export const getFileType = (mimeType?: string, fileName?: string): FileType => {
     const ext = fileName.split(".").pop()?.toLowerCase();
     if (!ext) return "document";
 
-    if (["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico", "heic", "heif"].includes(ext)) {
+    if (IMAGE_EXTENSIONS.includes(ext)) {
       return "image";
     }
 
-    if (
-      ["mp4", "mov", "webm", "avi", "mkv", "m4v", "mpeg", "3gpp", "flv", "wmv", "ogv"].includes(ext)
-    ) {
+    if (VIDEO_EXTENSIONS.includes(ext)) {
       return "video";
     }
   }
