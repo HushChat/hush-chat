@@ -192,7 +192,6 @@ export default function useWebSocketConnection() {
     }
   }, []);
 
-  // Stop heartbeat
   const stopHeartbeat = useCallback(() => {
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
@@ -204,7 +203,6 @@ export default function useWebSocketConnection() {
     }
   }, []);
 
-  // Send heartbeat
   const sendHeartbeat = useCallback((ws: WebSocket) => {
     if (ws.readyState === WebSocket.OPEN) {
       try {
@@ -233,7 +231,6 @@ export default function useWebSocketConnection() {
     }
   }, []);
 
-  // Start heartbeat
   const startHeartbeat = useCallback(
     (ws: WebSocket) => {
       stopHeartbeat();
@@ -247,7 +244,6 @@ export default function useWebSocketConnection() {
     [sendHeartbeat, stopHeartbeat]
   );
 
-  // Close existing WebSocket connection
   const closeExistingConnection = useCallback(() => {
     if (wsRef.current) {
       isIntentionalCloseRef.current = true;
@@ -419,7 +415,6 @@ export default function useWebSocketConnection() {
         stopHeartbeat();
         isConnectingRef.current = false;
 
-        // Don't reconnect if it was an intentional close
         if (isIntentionalCloseRef.current) {
           logInfo("WebSocket closed intentionally, not reconnecting");
           return;
@@ -432,7 +427,7 @@ export default function useWebSocketConnection() {
           return;
         }
 
-        // Attempt reconnection with exponential backoff
+        // Attempt reconnection
         if (!shouldStopRetryingRef.current && isAuthenticated) {
           reconnectAttemptsRef.current++;
 
