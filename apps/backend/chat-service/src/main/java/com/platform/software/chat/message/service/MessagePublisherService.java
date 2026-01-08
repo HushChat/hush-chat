@@ -87,6 +87,10 @@ public class MessagePublisherService {
         }
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
+        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                MediaSizeEnum.SMALL, messageViewDTO.getImageIndexedName());
+        messageViewDTO.setSenderSignedImageUrl(signedUrl);
+
         conversationDTO.setMessages(List.of(messageViewDTO));
 
         DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
