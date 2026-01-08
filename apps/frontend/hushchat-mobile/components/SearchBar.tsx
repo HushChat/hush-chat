@@ -30,7 +30,8 @@ const SearchBar = ({
   autoFocus = false,
 }: SearchBarProps) => {
   const { isDark } = useAppTheme();
-  const inputRef = useRef<TextInput>(null);
+  const internalRef = useRef<TextInput>(null);
+  const inputRef = externalRef || internalRef;
 
   useRegisterSearch(inputRef);
 

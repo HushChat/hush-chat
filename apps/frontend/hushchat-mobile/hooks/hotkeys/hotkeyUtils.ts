@@ -11,7 +11,7 @@ export function normalizeKeyCombo(event: KeyboardEvent): string {
     parts.push("alt");
   }
 
-  let key = event.key.toLowerCase();
+  const key = event.key.toLowerCase();
 
   if (!["control", "meta", "shift", "alt"].includes(key)) {
     parts.push(key);
