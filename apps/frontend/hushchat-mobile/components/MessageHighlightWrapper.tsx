@@ -105,7 +105,7 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
           // ]}
           pointerEvents="none"
         >
-        <View style={{ opacity: 0, paddingVertical: 8 }}>{children}</View>
+          <View style={{ opacity: 0, paddingVertical: 8 }}>{children}</View>
         </Animated.View>
         {children}
       </View>
