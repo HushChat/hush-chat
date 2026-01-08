@@ -34,6 +34,7 @@ public class MessageViewDTO {
     private Boolean isReadByEveryone;
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
+    private Boolean isIncludeUrlMetadata = false;
 
     private SignedURLDTO signedUrl;
 
@@ -74,7 +75,7 @@ public class MessageViewDTO {
         this.isUnsend = message.getIsUnsend();
         this.isEdited = message.getIsEdited();
         this.messageType = message.getMessageType();
-        this.hasAttachment = message.getAttachments() != null 
+        this.hasAttachment = message.getAttachments() != null
             && !message.getAttachments().isEmpty();
 
         if (message.getIsUnsend()) {
