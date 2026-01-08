@@ -1,7 +1,5 @@
 package com.platform.software.chat.user.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -154,8 +152,6 @@ public class UserServiceImpl implements UserService {
         
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
-
-        getUserByEmail(email);
 
         try {
             LoginResponseDTO loginResponseDTO = cognitoService.authenticateUser(email, loginDTO.getPassword());
@@ -514,14 +510,14 @@ public class UserServiceImpl implements UserService {
             throw new CustomInternalServerErrorException("Failed to Update Status");
         }
 
-        String workspaceId = authenticatedUser.getWorkspaceId();
+        String workspaceId = WorkspaceContext.getCurrentWorkspace();
 
-        String tenantId = createSessionKey(workspaceId, user.getEmail());
-        if (UserStatusEnum.BUSY.equals(user.getAvailabilityStatus())) {
-            webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, user.getAvailabilityStatus());
-        } else {
-            webSocketSessionManager.reconnectingSessionFromStomp(tenantId, workspaceId, user.getEmail(), null, UserStatusEnum.ONLINE);
-        }
+        webSocketSessionManager.updateStatusAndNotify(
+                workspaceId,
+                user.getEmail(),
+                status,
+                null
+        );
 
         cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL+":" + user.getEmail()));
         cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
@@ -534,9 +530,5 @@ public class UserServiceImpl implements UserService {
     public String getUserAvailabilityStatus(String email) {
         ChatUser user = getUserByEmail(email);
         return user.getAvailabilityStatus().getName();
-    }
-
-    private String createSessionKey(String tenantId, String email) {
-        return String.format("%s:%s", tenantId, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 }

@@ -95,8 +95,12 @@ export type TAttachmentUploadRequest = {
   gifUrl?: string;
 };
 
-interface IMessageWithSignedUrl {
+export interface IMessageWithSignedUrl {
   id: number;
+  messageText?: string;
+  senderId?: number;
+  conversationId?: number;
+  createdAt?: string;
   signedUrl: {
     originalFileName: string;
     indexedFileName: string;
@@ -113,6 +117,7 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
         originalFileName: item.signedUrl.originalFileName,
         url: item.signedUrl.url,
         indexedFileName: item.signedUrl.indexedFileName,
+        messageId: item.id,
       }));
   }
   return [];
@@ -283,6 +288,7 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
+
   const getSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
@@ -294,8 +300,9 @@ export function useMessageAttachmentUploader(
       parentMessageId,
     }));
 
-    const response = await createMessagesWithAttachments(conversationId, attachments);
-    return extractSignedUrls(response);
+    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
+
+    return extractSignedUrls(messagesWithSignedUrl);
   };
 
   const getSignedUrlsWithCaptions = async (
@@ -308,8 +315,9 @@ export function useMessageAttachmentUploader(
       parentMessageId,
     }));
 
-    const response = await createMessagesWithAttachments(conversationId, attachments);
-    return extractSignedUrls(response);
+    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
+
+    return extractSignedUrls(messagesWithSignedUrl);
   };
 
   const sendGifMessage = async (
@@ -452,7 +460,12 @@ export function useMessageAttachmentUploader(
               "Content-Type": file.type || blob.type || "application/octet-stream",
             },
           });
-          results.push({ success: true, fileName: file.name, signed });
+          results.push({
+            success: true,
+            fileName: file.name,
+            signed,
+            messageId: signed.messageId,
+          });
         } catch (e: any) {
           results.push({
             success: false,

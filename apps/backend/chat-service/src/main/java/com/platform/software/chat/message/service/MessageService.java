@@ -20,6 +20,7 @@ import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserBlockRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.model.MediaSizeEnum;
@@ -64,12 +65,13 @@ public class MessageService {
     private final MessageUtilService messageUtilService;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final MessageMentionRepository messageMentionRepository;
+    private final UserBlockRepository userBlockRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
-    public Page<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
+    public MessageWindowPage<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
@@ -117,7 +119,6 @@ public class MessageService {
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
 
-
         if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
             MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
             List<MessageAttachmentDTO> enrichedMessageAttachmentDTOts = messageUtilService.enrichParentMessageAttachmentsWithSignedUrl(List.of(attachmentDTO));
@@ -159,12 +160,20 @@ public class MessageService {
         }
 
         Message message = getMessageBySender(userId, conversationId, messageId);
+        Conversation conversation = message.getConversation();
+
+        if (message.getForwardedMessage() != null) {
+            throw new CustomBadRequestException("Cannot edit a forwarded message!");
+        }
 
         if (message.getMessageText().equals(messageDTO.getMessageText())) {
             return;
         }
 
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
+
         message.setMessageText(messageDTO.getMessageText());
+        message.setIsEdited(true);
         MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
@@ -239,6 +248,8 @@ public class MessageService {
         Long loggedInUserId
     ) {
         List<MessageViewDTO> createdMessages = new ArrayList<>();
+        String currentWorkspace = WorkspaceContext.getCurrentWorkspace();
+
         for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
             Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO.getMessageUpsertDTO(), MessageTypeEnum.ATTACHMENT);
             MessageViewDTO messageViewDTO = getMessageViewDTO(
@@ -258,9 +269,13 @@ public class MessageService {
 
             createdMessages.add(messageViewDTO);
 
-            messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
-            );
+            eventPublisher.publishEvent(new MessageCreatedEvent(
+                    currentWorkspace,
+                    conversationId,
+                    messageViewDTO,
+                    loggedInUserId,
+                    savedMessage
+            ));
         }
 
         return createdMessages;
@@ -285,7 +300,7 @@ public class MessageService {
      * @param messageForwardRequestDTO the DTO containing forwarding details
      */
     @Transactional
-    public void forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
+    public MessageForwardResponseDTO forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
         ValidationUtils.validate(messageForwardRequestDTO);
 
         // validating logged user has access to the forwarding message
@@ -315,6 +330,8 @@ public class MessageService {
                 .toList();
 
         ChatUser loggedInUser = userService.getUserOrThrow(loggedInUserId);
+        
+        List<Long> forwardedConversations = new ArrayList<>(List.of());
 
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
@@ -357,7 +374,10 @@ public class MessageService {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
             }
+            forwardedConversations.add(targetConversation.getId());
         }
+
+        return new MessageForwardResponseDTO(forwardedConversations);
     }
 
     /**
@@ -524,22 +544,23 @@ public class MessageService {
     public void unsendMessage(Long loggedInUserId, Long messageId) {
         Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId)
                 .orElseThrow(() -> new CustomBadRequestException(
-                        "Message not found, not owned by you, or you don’t have permission to delete it"
-                ));
+                        "Message not found, not owned by you, or you don’t have permission to delete it"));
 
-        if (message.getCreatedAt().before(Date.from(Instant.now().minus(24, ChronoUnit.HOURS)))) {
-            throw new CustomBadRequestException("You can only delete a message within 24 hours of sending it");
+        Conversation conversation = message.getConversation();
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
+
+        if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
+            throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");
         }
 
         message.setIsUnsend(true);
         messageRepository.save(message);
 
         eventPublisher.publishEvent(new MessageUnsentEvent(
-            WorkspaceContext.getCurrentWorkspace(),
-            message.getConversation().getId(),
-            message.getId(),
-            loggedInUserId
-        ));
+                WorkspaceContext.getCurrentWorkspace(),
+                message.getConversation().getId(),
+                message.getId(),
+                loggedInUserId));
     }
 
     /**

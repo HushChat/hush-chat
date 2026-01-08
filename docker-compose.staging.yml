@@ -37,6 +37,8 @@ services:
       PUBLIC_API_KEY: ${PUBLIC_API_KEY}
       TENOR_API_KEY: ${TENOR_API_KEY}
       TENOR_API_BASE_URL: ${TENOR_API_BASE_URL}
+      RATE_LIMITING_ENABLED: ${RATE_LIMITING_ENABLED}
+      RATE_LIMITING_REQUESTS_PER_MINUTE: ${RATE_LIMITING_REQUESTS_PER_MINUTE}
     volumes:
       - ./infra/db-migrations/workspaces:/app/db-migrations
     networks:

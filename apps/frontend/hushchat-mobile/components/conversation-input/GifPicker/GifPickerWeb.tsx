@@ -18,7 +18,7 @@ import {
 import { GifPickerProps } from "@/types/chat/types";
 import LoadingState from "@/components/LoadingState";
 
-export const GifPickerComponent: React.FC<GifPickerProps> = (props) => {
+export const GifPickerWeb = (props: GifPickerProps) => {
   const { visible } = props;
   const {
     searchQuery,

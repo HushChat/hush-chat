@@ -28,6 +28,7 @@ import {
   MessageReactionPayload,
   MessageUnsentPayload,
 } from "@/types/ws/types";
+import { useMessageReadListener } from "@/hooks/useMessageReadListener";
 
 const PAGE_SIZE = 20;
 
@@ -59,12 +60,13 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
   // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
-
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
     user: { id: loggedInUserId, email },
   } = useUserStore();
+
+  useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
 
   const conversationsQueryKey = useMemo(
     () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
@@ -100,6 +102,12 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
 
     const mergedConversation = {
       ...notificationConversation,
+
+      name: matchedNotification?.name ?? notificationConversation.name,
+      isGroup: matchedNotification?.isGroup ?? notificationConversation.isGroup,
+      signedImageUrl:
+        matchedNotification?.signedImageUrl ?? notificationConversation.signedImageUrl,
+
       chatUserStatus: matchedNotification?.chatUserStatus,
       unreadCount: updatedUnreadCount,
       deviceType: matchedNotification?.deviceType,
@@ -302,6 +310,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, [queryClient, conversationsQueryKey, loggedInUserId]);
 
+  /**
+   * Message reaction listener
+   */
   useEffect(() => {
     const handleMessageReaction = (payload: MessageReactionPayload) => {
       const { conversationId, messageId } = payload;
@@ -450,7 +461,6 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     );
   }, [userStatus, queryClient, conversationsQueryKey]);
-
   return (
     <ConversationNotificationsContext.Provider
       value={{

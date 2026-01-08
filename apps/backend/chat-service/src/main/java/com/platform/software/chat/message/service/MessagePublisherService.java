@@ -1,6 +1,7 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversation.readstatus.dto.MessageReadStatusWSResponseDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
@@ -13,14 +14,14 @@ import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.service.UserUtilService;
 import com.platform.software.common.constants.WebSocketTopicConstants;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.common.model.MessageReactionActionEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.workspace.WorkspaceContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
@@ -51,8 +52,7 @@ public class MessagePublisherService {
      * @param senderId       the sender id
      * @param workspaceId    the tenant id
      */
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, readOnly = true)
+    @Transactional(readOnly = true)
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId,
             String workspaceId) {
         ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
@@ -81,6 +81,10 @@ public class MessagePublisherService {
                 })
                 .toList();
         messageViewDTO.setConversationId(conversationId);
+
+        if (!attachmentDTOs.isEmpty()) {
+            messageViewDTO.setHasAttachment(true);
+        }
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
         conversationDTO.setMessages(List.of(messageViewDTO));
@@ -99,10 +103,14 @@ public class MessagePublisherService {
                     if (email == null)
                         return;
 
-                    ConversationDTO participantDTO = getConversationDTO(participant, conversationDTO);
-                    ConversationDTO payload = conversationUtilService.addSignedImageUrlToConversationDTO(
-                            participantDTO,
-                            participantDTO.getImageIndexedName());
+                    ConversationDTO payload = getConversationDTO(participant, conversationDTO);
+                    if (payload.getImageIndexedName() != null && !payload.getImageIndexedName().isBlank()) {
+                        payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE ,
+                                MediaSizeEnum.MEDIUM,
+                                payload.getImageIndexedName())
+                        );
+                    }
 
                     webSocketSessionManager.sendMessageToUser(
                             workspaceId,
@@ -213,6 +221,42 @@ public class MessagePublisherService {
                         workspaceId,
                         email,
                         WebSocketTopicConstants.MESSAGE_REACTION,
+                        payload));
+    }
+
+    /**
+     * Notify conversation participants in real time when a message is marked as
+     * read/seen.
+     * <p>
+     * The user who marked the message as read (actor) is explicitly excluded from
+     * receiving the WebSocket event, as their UI state is already updated locally.
+     *
+     * @param workspaceId       the workspace (tenant) identifier
+     * @param conversationId    the conversation ID where the message was read
+     * @param actorUserId       the user ID who marked the message as read
+     * @param lastSeenMessageId the ID of the last seen/read message
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageReadStatusToParticipants(
+            String workspaceId,
+            Long conversationId,
+            Long actorUserId,
+            Long lastSeenMessageId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId,
+                actorUserId);
+
+        MessageReadStatusWSResponseDTO payload = new MessageReadStatusWSResponseDTO(conversationId, lastSeenMessageId);
+
+        participants.stream()
+                .filter(p -> p.getId() != null)
+                .map(ChatUser::getEmail)
+                .filter(email -> email != null && !email.isBlank())
+                .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                        workspaceId,
+                        email,
+                        WebSocketTopicConstants.MESSAGE_READ,
                         payload));
     }
 }
