@@ -12,7 +12,7 @@ import {
 import { logDebug, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
 import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
-import { WS_TOPICS } from "@/constants/ws/wsTopics";
+import { WS_TOPICS, WS_URL_PATH } from "@/constants/ws/wsTopics";
 import { getDeviceType } from "@/utils/commonUtils";
 import {
   DEVICE_ID_KEY,
@@ -221,7 +221,7 @@ export default function useWebSocketConnection() {
 
         const pingFrame = new Uint8Array([
           ...Array.from(encoder.encode("SEND\n")),
-          ...Array.from(encoder.encode(`${HEADER_DESTINATION}:/app/heartbeat\n`)),
+          ...Array.from(encoder.encode(`${HEADER_DESTINATION}:${WS_DESTINATIONS.HEARTBEAT}\n`)),
           0x0a,
           0x00,
         ]);
@@ -331,7 +331,7 @@ export default function useWebSocketConnection() {
         return;
       }
 
-      const wsUrl = `${getWSBaseURL()}/ws-message-subscription`;
+      const wsUrl = `${getWSBaseURL()}${WS_URL_PATH}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       isIntentionalCloseRef.current = false;

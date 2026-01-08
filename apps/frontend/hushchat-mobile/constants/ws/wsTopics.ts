@@ -1,3 +1,5 @@
+export const WS_URL_PATH = "/ws-message-subscription";
+
 export const WS_TOPICS = {
   conversation: {
     created: "/topic/conversation-created/",
