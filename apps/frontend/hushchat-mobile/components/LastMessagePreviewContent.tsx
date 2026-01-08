@@ -10,11 +10,13 @@ import { hasGif } from "@/utils/messageUtils";
 interface LastMessagePreviewContentProps {
   lastMessage: IMessage | undefined;
   isGroup?: boolean;
+  currentUserId?: number | null;
 }
 
 export const LastMessagePreviewContent = ({
   lastMessage,
   isGroup,
+  currentUserId,
 }: LastMessagePreviewContentProps) => {
   if (!lastMessage) return "No Messages Yet";
   const isGif = hasGif(lastMessage);
@@ -37,7 +39,9 @@ export const LastMessagePreviewContent = ({
   }
 
   if (isGroup && lastMessage.messageType !== MessageTypeEnum.SYSTEM_EVENT) {
-    return `${lastMessage.senderFirstName}: ${lastMessage.messageText}`;
+    const senderName =
+      currentUserId && lastMessage.senderId === currentUserId ? "You" : lastMessage.senderFirstName;
+    return `${senderName}: ${lastMessage.messageText}`;
   }
 
   return lastMessage.messageText;
