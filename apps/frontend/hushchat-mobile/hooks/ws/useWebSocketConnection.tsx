@@ -54,7 +54,7 @@ const MAX_RECONNECT_ATTEMPTS = 50;
 const HEARTBEAT_INTERVAL = 30000;
 const MISSED_HEARTBEAT_THRESHOLD = 2;
 
-// Debounce delay for connection attempts triggered by visibility/network changes
+// Debounce delay for connection attempts
 const CONNECTION_DEBOUNCE_DELAY = 500;
 
 const encoder = new TextEncoder();
@@ -157,7 +157,7 @@ export default function useWebSocketConnection() {
   // Heartbeat tracking
   const lastMessageTimeRef = useRef<number>(Date.now());
 
-  // Track previous visibility/network state to avoid duplicate triggers
+  // Track previous visibility/network state
   const prevAppActiveRef = useRef<boolean>(isAppActive);
   const prevNetworkConnectedRef = useRef<boolean>(isNetworkConnected);
 
@@ -165,7 +165,7 @@ export default function useWebSocketConnection() {
     WebSocketStatus.Disconnected
   );
 
-  // Calculate retry delay with jitter to prevent thundering herd
+  // Calculate retry delay
   const getRetryDelay = useCallback(() => {
     const baseDelay = Math.min(
       INITIAL_RETRY_DELAY * Math.pow(RETRY_MULTIPLIER, reconnectAttemptsRef.current),
@@ -224,7 +224,7 @@ export default function useWebSocketConnection() {
 
         const pingFrame = new Uint8Array([
           ...Array.from(encoder.encode("SEND\n")),
-          ...Array.from(encoder.encode(`${HEADER_DESTINATION}: /app/heartbeat\n`)),
+          ...Array.from(encoder.encode(`${HEADER_DESTINATION}:/app/heartbeat\n`)),
           0x0a,
           0x00,
         ]);
@@ -653,7 +653,7 @@ export default function useWebSocketConnection() {
     [connectionStatus, id]
   );
 
-  // Manual reconnect - resets shouldStopRetrying
+  // Manual reconnect
   const reconnect = useCallback(() => {
     logInfo("Manual reconnection triggered");
     shouldStopRetryingRef.current = false;
