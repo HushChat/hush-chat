@@ -55,20 +55,58 @@ export const MessageHighlightWrapper: React.FC<IHighlightWrapperProps> = ({
       <View className="relative">
         <Animated.View
           className="absolute inset-y-0 -z-10 bg-primary-light dark:bg-primary-dark"
+          // style={[
+          //   {
+          //     // left: -120,
+          //     // right: -12,
+          //     top: -8,
+          //     bottom: -8,
+          //     left: 0,
+          //     right: 0,
+          //     width: "100vw" as any,
+          //     // transform: [{ translateX: "-50%" }],
+          //   },
+          //   overlayAnimatedStyle,
+          // ]}
+          // style={[
+          //   {
+          //     top: -8,
+          //     bottom: -8,
+          //     left: 0,
+          //     right: 0,
+          //     marginLeft: "calc(-50vw + 50%)",
+          //     marginRight: "calc(-50vw + 50%)",
+          //     width: "100vw",
+          //   } as any,
+          //   overlayAnimatedStyle,
+          // ]}
           style={[
             {
-              // left: -120,
-              // right: -12,
-              left: "auto",
-              right: "auto",
-              width: "100vw" as any,
-              top: -8,
-              bottom: -8,
+              position: "fixed" as any,
+              top: "auto",
+              bottom: "auto",
+              left: 0,
+              right: 0,
+              height: "auto",
+              marginTop: -8,
+              marginBottom: -8,
+              minHeight: 50,
             },
             overlayAnimatedStyle,
           ]}
+          // style={[
+          //   {
+          //     top: -8,
+          //     bottom: -8,
+          //     width: "100vw",
+          //     left: "calc(-50vw + 50%)",
+          //   } as any,
+          //   overlayAnimatedStyle,
+          // ]}
           pointerEvents="none"
-        />
+        >
+        <View style={{ opacity: 0, paddingVertical: 8 }}>{children}</View>
+        </Animated.View>
         {children}
       </View>
     );
