@@ -351,7 +351,7 @@ public class ConversationService {
 
                     String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
                             MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                            MediaSizeEnum.SMALL,
+                            MediaSizeEnum.MEDIUM,
                             imageIndexedName
                     );
                     messageViewDTO.setSenderSignedImageUrl(signedUrl);
