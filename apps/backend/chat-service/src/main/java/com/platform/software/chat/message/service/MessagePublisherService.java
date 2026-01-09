@@ -87,6 +87,12 @@ public class MessagePublisherService {
         }
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
+        if (messageViewDTO.getImageIndexedName() != null) {
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                    MediaSizeEnum.SMALL, messageViewDTO.getImageIndexedName());
+            messageViewDTO.setSenderSignedImageUrl(signedUrl);
+        }
+
         conversationDTO.setMessages(List.of(messageViewDTO));
 
         DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
@@ -104,13 +110,12 @@ public class MessagePublisherService {
                         return;
 
                     ConversationDTO payload = getConversationDTO(participant, conversationDTO);
-                    if (payload.getImageIndexedName() != null && !payload.getImageIndexedName().isBlank()) {
-                        payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
-                                payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE ,
-                                MediaSizeEnum.MEDIUM,
-                                payload.getImageIndexedName())
-                        );
-                    }
+
+                    payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.MEDIUM,
+                            payload.getImageIndexedName())
+                    );
 
                     webSocketSessionManager.sendMessageToUser(
                             workspaceId,
