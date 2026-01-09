@@ -252,12 +252,10 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       const { conversationId, messageId } = payload;
 
       // Update conversation list cache
-      queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
-        conversationsQueryKey,
+      queryClient.setQueriesData<InfiniteData<PaginatedResult<IConversation>>>(
+        { queryKey: ["conversations", loggedInUserId] },
         (old: InfiniteData<PaginatedResult<IConversation>> | undefined) => {
           if (!old) return old;
-
-          const { conversationId, messageId } = payload;
 
           return {
             ...old,
@@ -269,16 +267,17 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
                 const messages: IMessage[] = conv.messages ?? ([] as IMessage[]);
                 if (messages.length === 0) return conv;
 
-                const lastIndex = messages.length - 1;
-                const lastMessage = messages[lastIndex];
-
-                if (lastMessage?.id !== messageId) return conv;
+                // Check if the unsent message is in the messages array (usually just the last message)
+                const messageIndex = messages.findIndex((m) => m.id === messageId);
+                if (messageIndex === -1) return conv;
 
                 const nextMessages = [...messages];
-                nextMessages[lastIndex] = markMessageAsUnsent(lastMessage);
+                nextMessages[messageIndex] = markMessageAsUnsent(messages[messageIndex]);
+
                 return {
                   ...conv,
                   messages: nextMessages,
+                  unreadCount: Math.max(0, (conv.unreadCount || 0) - 1),
                 };
               }),
             })),

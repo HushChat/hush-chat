@@ -12,6 +12,11 @@ interface LastMessagePreviewContentProps {
 
 export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewContentProps) => {
   if (!lastMessage) return "No Messages Yet";
+
+  if (lastMessage.isUnsend) {
+    return <LastMessagePreview unsendMessage={lastMessage} />;
+  }
+
   const isGif = hasGif(lastMessage);
 
   if (!lastMessage.isUnsend && lastMessage.hasAttachment && !isGif) {
@@ -25,10 +30,6 @@ export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewCon
         </AppText>
       </View>
     );
-  }
-
-  if (lastMessage.isUnsend) {
-    return <LastMessagePreview unsendMessage={lastMessage} />;
   }
 
   return lastMessage.messageText;

@@ -226,6 +226,8 @@ public class MessageService {
         Message savedMessage = messageUtilService.createTextMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.ATTACHMENT);
         SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(messageDTO.getFiles(), savedMessage);
 
+        setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
+
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
         messagePublisherService.invokeNewMessageToParticipants(
                 conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
@@ -268,6 +270,8 @@ public class MessageService {
             }
 
             createdMessages.add(messageViewDTO);
+
+            setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
 
             eventPublisher.publishEvent(new MessageCreatedEvent(
                     currentWorkspace,
@@ -555,6 +559,18 @@ public class MessageService {
 
         message.setIsUnsend(true);
         messageRepository.save(message);
+
+        List<ConversationParticipant> participants = conversationParticipantRepository.findByConversationIdAndConversationDeletedFalseAndIsActiveTrue(message.getConversation().getId());
+        for (ConversationParticipant participant : participants) {
+            ConversationReadStatus status = conversationReadStatusRepository
+                .findByConversationIdAndUserId(message.getConversation().getId(), participant.getUser().getId())
+                .orElse(null);
+            if (status != null && status.getMessage() != null && status.getMessage().getId().equals(message.getId())) {
+                Optional<Message> previousMessage = messageRepository
+                    .findPreviousMessage(message.getConversation().getId(), message.getId(), participant);
+                setLastSeenMessageForMessageSentUser(message.getConversation(), previousMessage.orElse(null), participant.getUser());
+            }
+        }
 
         eventPublisher.publishEvent(new MessageUnsentEvent(
                 WorkspaceContext.getCurrentWorkspace(),
