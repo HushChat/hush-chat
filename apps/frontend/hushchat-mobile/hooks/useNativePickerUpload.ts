@@ -26,16 +26,17 @@ export type LocalFile = {
 
 export type SignedUrl = {
   originalFileName: string;
+  indexedFileName: string;
   url: string;
-  indexedFileName?: string;
   messageId?: number;
 };
 
 export type UploadResult = {
-  fileName: string;
   success: boolean;
+  fileName: string;
   error?: string;
   signed?: SignedUrl | null;
+  messageId?: number;
 };
 
 type State = {

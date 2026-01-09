@@ -36,13 +36,14 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { usePasteHandler } from "@/hooks/usePasteHandler";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -76,6 +77,7 @@ const ConversationThreadScreen = ({
   const { publishActivity } = useWebSocket();
 
   const dropZoneRef = useRef<View>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     selectionMode,
@@ -145,20 +147,19 @@ const ConversationThreadScreen = ({
   useEffect(() => {
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
-    if (
-      currentConversationId &&
-      messages.length > 0 &&
-      lastSeenMessageInfo?.lastSeenMessageId !== undefined
-    ) {
+    if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
       const firstMessage = messages[0];
 
       if (!firstMessage.id || typeof firstMessage.id !== "number") {
         return;
       }
 
-      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
+      const shouldUpdate =
+        lastSeenMessageInfo.lastSeenMessageId === null ||
+        lastSeenMessageInfo.lastSeenMessageId === undefined ||
+        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
-      if (!isFirstMessageLastSeen) {
+      if (shouldUpdate) {
         setLastSeenMessageForConversation({
           messageId: firstMessage.id,
           conversationId: currentConversationId,
@@ -226,6 +227,48 @@ const ConversationThreadScreen = ({
         handleAddMoreFiles(files);
       }
     },
+  });
+
+  const handlePasteFiles = useCallback(
+    (files: File[]) => {
+      if (selectedFiles.length === 0) {
+        handleOpenImagePicker(files);
+      } else {
+        handleAddMoreFiles(files);
+      }
+    },
+    [selectedFiles.length, handleOpenImagePicker, handleAddMoreFiles]
+  );
+
+  const getDisabledMessageReason = useCallback(() => {
+    const isBlocked = conversationAPIResponse?.isBlocked === true;
+    const isInactive = conversationAPIResponse?.isActive === false;
+    const isMessageRestricted = Boolean(isOnlyAdminsCanSendMessages) && !isCurrentUserAdmin;
+
+    if (isInactive) {
+      return "You can't send messages to this group because you are no longer a member.";
+    }
+
+    if (isBlocked) {
+      return "You can't send messages because this conversation is blocked.";
+    }
+
+    if (isMessageRestricted) {
+      return "Only admins are allowed to send messages in this group.";
+    }
+
+    return null;
+  }, [
+    conversationAPIResponse?.isBlocked,
+    conversationAPIResponse?.isActive,
+    isOnlyAdminsCanSendMessages,
+    isCurrentUserAdmin,
+  ]);
+
+  usePasteHandler({
+    enabled: !selectionMode && !showImagePreview && !getDisabledMessageReason(),
+    inputRef: messageInputRef,
+    onPasteFiles: handlePasteFiles,
   });
 
   const {
@@ -405,6 +448,7 @@ const ConversationThreadScreen = ({
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
+        lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
         onEditMessage={handleStartEditWithClearReply}
       />
     );
@@ -427,32 +471,8 @@ const ConversationThreadScreen = ({
     handleNavigateToMessage,
     targetMessageId,
     handleTargetMessageScrolled,
+    lastSeenMessageInfo,
     handleStartEditWithClearReply,
-  ]);
-
-  const getDisabledMessageReason = useCallback(() => {
-    const isBlocked = conversationAPIResponse?.isBlocked === true;
-    const isInactive = conversationAPIResponse?.isActive === false;
-    const isMessageRestricted = Boolean(isOnlyAdminsCanSendMessages) && !isCurrentUserAdmin;
-
-    if (isInactive) {
-      return "You can't send messages to this group because you are no longer a member.";
-    }
-
-    if (isBlocked) {
-      return "You can't send messages because this conversation is blocked.";
-    }
-
-    if (isMessageRestricted) {
-      return "Only admins are allowed to send messages in this group.";
-    }
-
-    return null;
-  }, [
-    conversationAPIResponse?.isBlocked,
-    conversationAPIResponse?.isActive,
-    isOnlyAdminsCanSendMessages,
-    isCurrentUserAdmin,
   ]);
 
   const renderTextInput = useCallback(() => {
@@ -466,6 +486,7 @@ const ConversationThreadScreen = ({
 
     return (
       <ConversationInput
+        ref={messageInputRef}
         conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
         onOpenImagePicker={handleOpenImagePicker}

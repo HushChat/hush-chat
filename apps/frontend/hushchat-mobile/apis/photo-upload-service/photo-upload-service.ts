@@ -62,8 +62,12 @@ export type TAttachmentUploadRequest = {
   gifUrl?: string;
 };
 
-interface IMessageWithSignedUrl {
+export interface IMessageWithSignedUrl {
   id: number;
+  messageText?: string;
+  senderId?: number;
+  conversationId?: number;
+  createdAt?: string;
   signedUrl: {
     originalFileName: string;
     indexedFileName: string;
@@ -211,6 +215,7 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
+
   const getSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
@@ -222,8 +227,9 @@ export function useMessageAttachmentUploader(
       parentMessageId,
     }));
 
-    const response = await createMessagesWithAttachments(conversationId, attachments);
-    return extractSignedUrls(response);
+    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
+
+    return extractSignedUrls(messagesWithSignedUrl);
   };
 
   const getSignedUrlsWithCaptions = async (
@@ -236,8 +242,9 @@ export function useMessageAttachmentUploader(
       parentMessageId,
     }));
 
-    const response = await createMessagesWithAttachments(conversationId, attachments);
-    return extractSignedUrls(response);
+    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
+
+    return extractSignedUrls(messagesWithSignedUrl);
   };
 
   const sendGifMessage = async (
@@ -397,7 +404,12 @@ export function useMessageAttachmentUploader(
               "Content-Type": file.type || blob.type || "application/octet-stream",
             },
           });
-          results.push({ success: true, fileName: file.name, signed });
+          results.push({
+            success: true,
+            fileName: file.name,
+            signed,
+            messageId: signed.messageId,
+          });
 
           if (signed.messageId) {
             successfulMessageIds.push(signed.messageId);

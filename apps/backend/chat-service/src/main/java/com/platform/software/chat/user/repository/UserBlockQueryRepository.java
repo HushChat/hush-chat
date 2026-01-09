@@ -8,4 +8,6 @@ public interface UserBlockQueryRepository {
     Page<UserViewDTO> getBlockedUsersById (Pageable pageable, Long blockerId);
 
     boolean isUserBlocked(Long blockerId, Long blockedId);
+
+     Boolean existsBlockBetweenUsers(Long conversationId);
 }

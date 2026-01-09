@@ -1,29 +1,25 @@
-import React, { memo, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
-import classNames from "classnames";
-
 import ReplyPreview from "@/components/conversations/conversation-thread/message-list/ReplyPreview";
-import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
-import WebChatContextMenu from "@/components/WebContextMenu";
 import { EditPreview } from "@/components/conversation-input/EditPreview";
-
+import MentionSuggestions from "@/components/conversations/conversation-thread/mentions/MentionSuggestions";
+import MobileAttachmentModal from "@/components/conversations/MobileAttachmentModal";
 import { ConversationInputProps } from "@/types/chat/types";
 import { useConversationInput } from "@/hooks/conversation-input/useConversationInput";
-
 import { AttachmentButton } from "@/components/conversation-input/AttachmentButton";
 import { MessageTextArea } from "@/components/conversation-input/MessageTextArea";
-import { FileInput } from "@/components/conversation-input/FileInput";
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
-import { GifPickerComponent } from "@/components/conversation-input/GifPicker.web";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
-const ConversationInput = ({
+const ConversationInputMobile = ({
   conversationId,
   onSendMessage,
-  onOpenImagePicker,
+  onOpenImagePickerNative,
+  onOpenDocumentPickerNative,
   disabled = false,
   isSending = false,
   replyToMessage,
@@ -37,8 +33,10 @@ const ConversationInput = ({
   onEditMessage,
   hideEmojiGifPickers = false,
 }: ConversationInputProps) => {
-  const { publishTyping } = useWebSocket();
+  const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+
   const isControlledMode = controlledValue !== undefined;
+  const { publishTyping } = useWebSocket();
 
   const {
     showEmojiPicker,
@@ -52,7 +50,7 @@ const ConversationInput = ({
   const input = useConversationInput({
     conversationId,
     onSendMessage,
-    onOpenImagePicker,
+    onOpenImagePickerNative,
     disabled,
     replyToMessage,
     onCancelReply,
@@ -69,36 +67,50 @@ const ConversationInput = ({
     onEditMessage,
   });
 
-  const handleKeyPress = useCallback(
-    (event: any) => {
-      input.specialCharHandler(event);
-      input.enterSubmitHandler(event);
-    },
-    [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
-  );
+  const handleAddButtonPress = useCallback(() => {
+    setMobileMenuVisible(true);
+  }, []);
+
+  const handleCloseMobileMenu = useCallback(() => {
+    setMobileMenuVisible(false);
+  }, []);
+
+  const handleMediaPickerSelect = useCallback(() => {
+    setMobileMenuVisible(false);
+
+    setTimeout(() => {
+      onOpenImagePickerNative?.();
+    }, 500);
+  }, [onOpenImagePickerNative]);
+
+  const handleDocumentPickerSelect = useCallback(() => {
+    setMobileMenuVisible(false);
+
+    setTimeout(() => {
+      onOpenDocumentPickerNative?.();
+    }, 800);
+  }, [onOpenDocumentPickerNative]);
+
+  const handleSendButtonPress = useCallback(() => {
+    if (!hideSendButton) {
+      input.handleSend();
+    }
+  }, [input.handleSend, hideSendButton]);
 
   const handleSubmitEditing = useCallback(() => {
     if (!hideSendButton) {
-      input.handleSend(input.message);
+      input.handleSend();
     }
-  }, [input.handleSend, input.message, hideSendButton]);
+  }, [input.handleSend, hideSendButton]);
 
-  const handleSendPress = useCallback(() => {
-    input.handleSend(input.message);
-  }, [input.handleSend, input.message]);
-
-  const handleEmojiSelect = useCallback(
-    (emoji: string) => {
-      input.handleChangeText(input.message + emoji);
+  const handleKeyPress = useCallback(
+    (e: any) => {
+      input.specialCharHandler(e);
+      if (!hideSendButton) {
+        input.enterSubmitHandler(e);
+      }
     },
-    [input.handleChangeText, input.message]
-  );
-
-  const handleGifSelect = useCallback(
-    (gifUrl: string) => {
-      onSendMessage?.("", undefined, undefined, gifUrl);
-    },
-    [onSendMessage]
+    [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
   );
 
   return (
@@ -114,26 +126,21 @@ const ConversationInput = ({
         />
       )}
 
-      <View
-        className={classNames(
-          "p-4 bg-background-light dark:bg-background-dark",
-          "border-gray-200 dark:border-gray-800"
-        )}
-      >
-        <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
-          {!isControlledMode && !input.isEditMode && (
-            <View className="mr-1">
-              <AttachmentButton
-                ref={input.addButtonRef}
-                disabled={disabled}
-                toggled={input.menuVisible}
-                onPress={input.handleAddButtonPress}
-              />
-            </View>
-          )}
+      <View className="p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-red-800">
+        <Animated.View className="overflow-hidden">
+          <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
+            {!isControlledMode && !input.isEditMode && (
+              <View className="mr-1">
+                <AttachmentButton
+                  ref={input.addButtonRef}
+                  disabled={disabled}
+                  toggled={mobileMenuVisible}
+                  onPress={handleAddButtonPress}
+                />
+              </View>
+            )}
 
-          <View className="flex-1 px-2 min-h-[40px] justify-center">
-            <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
+            <View className="flex-1 px-2 min-h-[40px] justify-center">
               <MessageTextArea
                 ref={input.messageTextInputRef}
                 value={input.message}
@@ -151,45 +158,29 @@ const ConversationInput = ({
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
               />
-            </Animated.View>
+            </View>
+
+            <ConversationInputActions
+              isEditMode={input.isEditMode}
+              hideEmojiGifPickers={hideEmojiGifPickers}
+              hideSendButton={hideSendButton}
+              disabled={disabled}
+              isValidMessage={input.isValidMessage}
+              isSending={isSending}
+              onOpenEmojiPicker={openEmojiPicker}
+              onOpenGifPicker={openGifPicker}
+              onSendPress={handleSendButtonPress}
+            />
           </View>
-
-          <ConversationInputActions
-            isEditMode={input.isEditMode}
-            hideEmojiGifPickers={hideEmojiGifPickers}
-            hideSendButton={hideSendButton}
-            disabled={disabled}
-            isValidMessage={input.isValidMessage}
-            isSending={isSending}
-            onOpenEmojiPicker={openEmojiPicker}
-            onOpenGifPicker={openGifPicker}
-            onSendPress={handleSendPress}
-          />
-        </View>
-
-        {!isControlledMode && !input.isEditMode && (
-          <>
-            <FileInput
-              ref={input.fileInputRef}
-              onChange={input.handleFileChange}
-              accept="image/*,video/*"
-            />
-            <FileInput
-              ref={input.documentInputRef}
-              onChange={input.handleDocumentChange}
-              accept={".pdf,.doc,.docx,.xls,.xlsx,.txt"}
-            />
-          </>
-        )}
+        </Animated.View>
       </View>
 
       {!isControlledMode && !input.isEditMode && (
-        <WebChatContextMenu
-          visible={input.menuVisible}
-          position={input.menuPosition}
-          onClose={input.closeMenu}
-          options={input.menuOptions}
-          onOptionSelect={input.handleMenuOptionSelect}
+        <MobileAttachmentModal
+          visible={mobileMenuVisible}
+          onClose={handleCloseMobileMenu}
+          onOpenMediaPicker={handleMediaPickerSelect}
+          onOpenDocumentPicker={handleDocumentPickerSelect}
         />
       )}
 
@@ -206,13 +197,17 @@ const ConversationInput = ({
           <EmojiPickerComponent
             visible={showEmojiPicker}
             onClose={closeEmojiPicker}
-            onEmojiSelect={handleEmojiSelect}
+            onEmojiSelect={(emoji) => {
+              input.handleChangeText(input.message + emoji);
+            }}
           />
 
-          <GifPickerComponent
+          <GifPicker
             visible={showGifPicker}
             onClose={closeGifPicker}
-            onGifSelect={handleGifSelect}
+            onGifSelect={(gifUrl) => {
+              onSendMessage?.("", undefined, undefined, gifUrl);
+            }}
           />
         </>
       )}
@@ -220,4 +215,4 @@ const ConversationInput = ({
   );
 };
 
-export default memo(ConversationInput);
+export default ConversationInputMobile;

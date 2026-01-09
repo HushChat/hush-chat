@@ -348,14 +348,13 @@ public class ConversationService {
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
 
                     String imageIndexedName = messageViewDTO.getImageIndexedName();
-                    if (imageIndexedName != null) {
-                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
-                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                                MediaSizeEnum.SMALL,
-                                imageIndexedName
-                        );
-                        messageViewDTO.setSenderSignedImageUrl(signedUrl);
-                    }
+
+                    String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.SMALL,
+                            imageIndexedName
+                    );
+                    messageViewDTO.setSenderSignedImageUrl(signedUrl);
 
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
@@ -463,11 +462,10 @@ public class ConversationService {
             UserViewDTO user = new UserViewDTO(participant.getUser());
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
-            if (imageIndexedName != null) {
-                String signedImageUrl =
-                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
-                user.setSignedImageUrl(signedImageUrl);
-            }
+
+            String signedImageUrl =
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
+            user.setSignedImageUrl(signedImageUrl);
 
             participantViewDTO.setUser(user);
             return participantViewDTO;
@@ -681,7 +679,7 @@ public class ConversationService {
      * @return the smallest last-read message ID among other participants, or {@code null}
      *         if no other participants have read statuses recorded or if any participant has null
      */
-    private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
+    public Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
         // read statuses of every participant, with their user id and last read message id
         Map<Long, Long> userReadStatuses =
             new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
@@ -1520,10 +1518,12 @@ public class ConversationService {
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
 
         return users.map(user -> {
+            String imageIndexName = user.getImageIndexedName();
+
             String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
                     MediaPathEnum.RESIZED_PROFILE_PICTURE,
                     MediaSizeEnum.SMALL,
-                    user.getImageIndexedName()
+                    imageIndexName
             );
 
             UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);

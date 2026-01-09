@@ -254,6 +254,10 @@ export interface TMessageForward {
   customText: string;
 }
 
+export interface TMessageForwardResponse {
+  forwardedTo: number[];
+}
+
 export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
