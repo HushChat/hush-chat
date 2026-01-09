@@ -16,9 +16,9 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
-
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { HotkeyProvider } from "@/hooks/hotkeys";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
@@ -33,26 +33,28 @@ export default function RootLayout() {
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
 
   return (
-    <GestureHandlerRootView>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider value={getNavigationTheme(colorScheme)}>
-            <WebSocketProvider>
-              <ConversationNotificationsProvider>
-                <ModalProvider>
-                  <Gate ready={appReady} isAuthenticated={isAuthenticated} />
-                  <Toast
-                    config={toastConfig}
-                    topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
-                  />
-                  <StatusBar style="auto" />
-                </ModalProvider>
-              </ConversationNotificationsProvider>
-            </WebSocketProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <HotkeyProvider>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider value={getNavigationTheme(colorScheme)}>
+              <WebSocketProvider>
+                <ConversationNotificationsProvider>
+                  <ModalProvider>
+                    <Gate ready={appReady} isAuthenticated={isAuthenticated} />
+                    <Toast
+                      config={toastConfig}
+                      topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                    />
+                    <StatusBar style="auto" />
+                  </ModalProvider>
+                </ConversationNotificationsProvider>
+              </WebSocketProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </HotkeyProvider>
   );
 }
 
