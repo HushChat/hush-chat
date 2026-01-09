@@ -116,7 +116,8 @@ async function putToSignedUrl(file: LocalFile, signedUrl: string): Promise<void>
  * You inject how to get signed URLs (per your endpoint), we handle the rest.
  */
 export function useNativePickerUpload(
-  getSignedUrls: (files: LocalFile[], messageText?: string) => Promise<SignedUrl[] | null>
+  getSignedUrls: (files: LocalFile[], messageText?: string) => Promise<SignedUrl[] | null>,
+  onUploadSuccess?: (messageIds: number[]) => Promise<void>
 ) {
   const [state, setState] = useState<State>({
     isPicking: false,
@@ -243,6 +244,8 @@ export function useNativePickerUpload(
         if (!signed || signed.length === 0) throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];
+        const successfulMessageIds: number[] = [];
+
         for (let i = 0; i < files.length; i++) {
           if (abortRef.current) throw new Error("Upload cancelled");
           const f = files[i];
@@ -258,6 +261,10 @@ export function useNativePickerUpload(
             try {
               await putToSignedUrl(f, s.url);
               results.push({ success: true, fileName: f.name, signed: s });
+
+              if (s.messageId) {
+                successfulMessageIds.push(s.messageId);
+              }
             } catch (e: any) {
               results.push({
                 success: false,
@@ -275,6 +282,10 @@ export function useNativePickerUpload(
           // tiny yield to keep UI snappy
           await new Promise((r) => setTimeout(r, 8));
         }
+        if (successfulMessageIds.length > 0 && onUploadSuccess) {
+          await onUploadSuccess(successfulMessageIds);
+        }
+
         return results;
       } catch (err: any) {
         const msg = err?.message ?? "Upload failed";

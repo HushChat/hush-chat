@@ -3,7 +3,8 @@ import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
-import { useConversationMessages } from "@/hooks/useWebSocketEvents";
+import { eventBus } from "@/services/eventBus";
+import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
 import {
   CursorPaginatedResponse,
   getConversationMessagesByCursor,
@@ -204,13 +205,29 @@ export function useConversationMessagesQuery(conversationId: number) {
     [queryClient, queryKey]
   );
 
-  const { lastMessage } = useConversationMessages(conversationId);
-
   useEffect(() => {
-    if (!lastMessage) return;
-    updateConversationMessagesCache(lastMessage);
-    updateConversationsListCache(lastMessage);
-  }, [lastMessage, updateConversationMessagesCache, updateConversationsListCache]);
+    const handleNewMessage = ({
+      conversationId: msgConversationId,
+      messageWithConversation,
+    }: {
+      conversationId: number;
+      messageWithConversation: IConversation;
+    }) => {
+      if (msgConversationId === conversationId) {
+        const messages = messageWithConversation.messages || [];
+        messages.forEach((msg) => {
+          updateConversationMessagesCache(msg);
+          updateConversationsListCache(msg);
+        });
+      }
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
+
+    return () => {
+      eventBus.off(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
+    };
+  }, [conversationId, updateConversationMessagesCache, updateConversationsListCache]);
 
   return {
     pages,

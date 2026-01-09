@@ -100,6 +100,25 @@ public class ConversationMessageController {
     }
 
     /**
+     * Publishes message events for the specified message IDs in a conversation after attachment uploads.
+     *
+     * @param conversationId the ID of the conversation
+     * @param messageIds the list of message IDs for which to publish events
+     * @param userDetails the authenticated user details
+     * @return ResponseEntity with no content (HTTP 200 OK)
+     */
+    @ApiOperation(value = "Publish message events after attachment upload")
+    @PostMapping("/publish-messages")
+    public ResponseEntity<Void> publishMessageEvents(
+        @PathVariable Long conversationId,
+        @RequestBody List<Long> messageIds,
+        @AuthenticatedUser UserDetails userDetails
+    ) {
+        messageService.publishMessageEvents(messageIds, conversationId, userDetails.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Get messages from a specific conversation.
      *
      * @param conversationId the ID of the conversation
