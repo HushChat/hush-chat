@@ -13,16 +13,16 @@ import org.hibernate.annotations.OnDeleteAction;
 @Setter
 @Getter
 @Table(uniqueConstraints = @UniqueConstraint(name = "uk_favourite_message_user_message", columnNames = {"user_id", "message_id"}),
-    indexes = {
-            @Index(
-                    name = "idx_fav_user",
-                    columnList = "user_id"
-            ),
-            @Index(
-                    name = "idx_fav_message",
-                    columnList = "message_id"
-            )
-})
+        indexes = {
+                @Index(
+                        name = "idx_fav_user",
+                        columnList = "user_id"
+                ),
+                @Index(
+                        name = "idx_fav_message",
+                        columnList = "message_id"
+                )
+        })
 public class FavouriteMessage extends AuditModel {
     @Id
     @GeneratedValue(generator = "favourite_message_generator")

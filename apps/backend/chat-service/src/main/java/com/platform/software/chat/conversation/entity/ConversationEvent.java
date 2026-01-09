@@ -13,20 +13,20 @@ import lombok.Setter;
 @Setter
 @Getter
 @Table(
-    indexes = {
-            @Index(
-                    name = "idx_ce_actor",
-                    columnList = "actor_user_id"
-            ),
-            @Index(
-                    name = "idx_ce_target",
-                    columnList = "target_user_id"
-            ),
-            @Index(
-                    name = "idx_ce_message",
-                    columnList = "message_id"
-            )
-    }
+        indexes = {
+                @Index(
+                        name = "idx_ce_actor",
+                        columnList = "actor_user_id"
+                ),
+                @Index(
+                        name = "idx_ce_target",
+                        columnList = "target_user_id"
+                ),
+                @Index(
+                        name = "idx_ce_message",
+                        columnList = "message_id"
+                )
+        }
 )
 public class ConversationEvent extends AuditModel {
     @Id

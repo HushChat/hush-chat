@@ -12,16 +12,16 @@ import org.hibernate.annotations.OnDeleteAction;
 @Setter
 @Getter
 @Table(uniqueConstraints = @UniqueConstraint(name = "uk_user_block_blocker_blocked", columnNames = {"blocker_id", "blocked_id"}),
-    indexes = {
-            @Index(
-                    name = "idx_user_block_blocker",
-                    columnList = "blocker_id"
-            ),
-            @Index(
-                    name = "idx_user_block_blocked",
-                    columnList = "blocked_id"
-            )
-    }
+        indexes = {
+                @Index(
+                        name = "idx_user_block_blocker",
+                        columnList = "blocker_id"
+                ),
+                @Index(
+                        name = "idx_user_block_blocked",
+                        columnList = "blocked_id"
+                )
+        }
 )
 public class UserBlock extends AuditModel {
     @Id
