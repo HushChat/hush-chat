@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useEditMessageMutation } from "@/query/patch/queries";
 import { ToastUtils } from "@/utils/toastUtils";
 import { IMessage } from "@/types/chat/types";
+import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 
 interface IUseMessageEditOptions {
   userId: number;
@@ -21,12 +22,13 @@ export function useMessageEdit({
   conversationId,
 }: IUseMessageEditOptions): IUseMessageEditReturn {
   const [editingMessage, setEditingMessage] = useState<IMessage | null>(null);
+  const { updateConversationsListCache } = useConversationMessagesQuery(conversationId);
 
   const { mutate: editMessage, isPending: isEditingMessage } = useEditMessageMutation(
     { userId, conversationId },
-    () => {
+    (newMessage: IMessage) => {
       setEditingMessage(null);
-      ToastUtils.success("Message edited");
+      updateConversationsListCache(newMessage);
     },
     (error: any) => {
       ToastUtils.error(error?.message ?? "Something went wrong");

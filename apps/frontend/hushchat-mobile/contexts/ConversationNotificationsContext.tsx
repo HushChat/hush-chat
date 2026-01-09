@@ -434,36 +434,21 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         conversationId
       );
 
-      const root = Array.isArray(threadKey) ? threadKey[0] : threadKey;
+      queryClient.setQueryData<InfiniteData<PaginatedResult<IMessage>>>(threadKey, (old) => {
+        if (!old) return old;
 
-      queryClient.setQueriesData(
-        {
-          predicate: (q) => {
-            const key = q.queryKey as any[];
-            if (!Array.isArray(key)) return false;
-            if (key[0] !== root) return false;
-            return key.some((k) => Number(k) === Number(conversationId));
-          },
-        },
-        (old: any) => {
-          if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            content: page.content.map((msg) =>
+              msg.id === messageId ? { ...msg, ...updatedMessage, isEdited: true } : msg
+            ),
+          })),
+        };
+      });
 
-          return {
-            ...old,
-            pages: old.pages.map((page: PaginatedResult<IMessage>) => ({
-              ...page,
-              content: (page?.content ?? []).map((msg) => {
-                if (msg.id === messageId) {
-                  return { ...msg, ...updatedMessage, isEdited: true };
-                }
-                return msg;
-              }),
-            })),
-          };
-        }
-      );
-
-      // Update conversation list cache if it shows the last message
+      // 2. Update conversation list cache if it shows the last message
       queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
         conversationsQueryKey,
         (old) => {
@@ -479,18 +464,19 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
                 const messages = conv.messages ?? [];
                 if (messages.length === 0) return conv;
 
-                const lastMsg = messages[messages.length - 1];
-                if (lastMsg?.id === messageId) {
-                  const newMessages = [...messages];
-                  newMessages[messages.length - 1] = {
-                    ...lastMsg,
-                    ...updatedMessage,
-                    isEdited: true,
-                  };
-                  return { ...conv, messages: newMessages };
-                }
+                const lastIndex = messages.length - 1;
+                const lastMessage = messages[lastIndex];
 
-                return conv;
+                if (lastMessage?.id !== messageId) return conv;
+
+                const updatedMessages = [...messages];
+                updatedMessages[lastIndex] = {
+                  ...lastMessage,
+                  ...updatedMessage,
+                  isEdited: true,
+                };
+
+                return { ...conv, messages: updatedMessages };
               }),
             })),
           };

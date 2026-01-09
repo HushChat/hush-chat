@@ -143,9 +143,10 @@ public class MessageService {
      * @param conversationId the conversation id
      * @param messageId      the message id
      * @param messageDTO     the message dto
+     * @return the updated message view dto
      */
     @Transactional
-    public void editMessage(
+    public MessageViewDTO editMessage(
         Long userId,
         Long conversationId,
         Long messageId,
@@ -163,7 +164,7 @@ public class MessageService {
         }
 
         if (message.getMessageText().equals(messageDTO.getMessageText())) {
-            return;
+            return new MessageViewDTO(message);
         }
 
         messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
@@ -173,16 +174,18 @@ public class MessageService {
         MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
-            messageRepository.save(message);
+            Message updatedMessage = messageRepository.save(message);
             messageHistoryRepository.save(newMessageHistory);
 
-            MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+            MessageViewDTO messageViewDTO = new MessageViewDTO(updatedMessage);
 
             eventPublisher.publishEvent(new MessageUpdatedEvent(
                     WorkspaceContext.getCurrentWorkspace(),
                     conversationId,
                     messageViewDTO,
                     messageViewDTO.getSenderId()));
+
+            return messageViewDTO;
         } catch (Exception e) {
             logger.error("failed to save message edit history", e);
             throw new CustomBadRequestException("Failed to save message changes");
