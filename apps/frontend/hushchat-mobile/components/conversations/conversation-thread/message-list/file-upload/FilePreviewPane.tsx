@@ -36,7 +36,7 @@ const FilePreviewPane = ({
   inputRef,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState<"image" | "document" | "video" | "unsupported">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video">("document");
   const [loading, setLoading] = useState(false);
 
   const isDark = colorScheme.get() === "dark";
@@ -48,7 +48,7 @@ const FilePreviewPane = ({
   useEffect(() => {
     if (!file) return;
 
-    const type = getFileType(file.name);
+    const type = getFileType(file.type, file.name);
     setFileType(type);
 
     if (isIframePreviewable) {

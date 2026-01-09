@@ -1,7 +1,4 @@
 import {
-  DOC_EXTENSIONS,
-  IMAGE_EXTENSIONS,
-  VIDEO_EXTENSIONS,
   MAX_IMAGE_SIZE_KB,
   MAX_VIDEO_SIZE_KB,
   MAX_DOCUMENT_SIZE_KB,
@@ -10,7 +7,6 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { getFileType } from "@/utils/files/getFileType";
 
 export const MAX_FILES = 10;
-export const ALLOWED_EXTENSIONS = [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, ...DOC_EXTENSIONS];
 
 const formatFileSize = (sizeKB: number) =>
   sizeKB >= 1024 ? `${(sizeKB / 1024).toFixed(2)} MB` : `${sizeKB.toFixed(2)} KB`;
@@ -31,20 +27,8 @@ export const validateFiles = (
 
   fileArray.forEach((file) => {
     const fileErrors: string[] = [];
-    const extension = file.name.split(".").pop()?.toLowerCase() || "";
     const fileType = getFileType(file.name);
     const sizeKB = file.size / 1024;
-
-    if (fileType === "unsupported" || !ALLOWED_EXTENSIONS.includes(extension)) {
-      fileErrors.push(
-        `"${file.name}" is not supported. Allowed: images (${IMAGE_EXTENSIONS.join(
-          ", "
-        )}), videos (${VIDEO_EXTENSIONS.join(", ")}), documents (${DOC_EXTENSIONS.join(", ")})`
-      );
-      errors.push(...fileErrors);
-      return;
-    }
-
     let maxSize: number;
 
     switch (fileType) {
@@ -54,7 +38,7 @@ export const validateFiles = (
       case "video":
         maxSize = MAX_VIDEO_SIZE_KB;
         break;
-      case "document":
+      default:
         maxSize = MAX_DOCUMENT_SIZE_KB;
         break;
     }

@@ -4,16 +4,17 @@ import { StyleSheet } from "react-native";
 interface IFileInputProps {
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   accept?: string;
+  multiple?: boolean;
 }
 
 export const FileInput = forwardRef<HTMLInputElement, IFileInputProps>(
-  ({ onChange, accept = "*/*" }, ref) => {
+  ({ onChange, accept = "*/*", multiple = true }, ref) => {
     return (
       <input
         ref={ref}
         type="file"
         accept={accept}
-        multiple
+        multiple={multiple}
         style={styles.input}
         onChange={onChange}
       />
