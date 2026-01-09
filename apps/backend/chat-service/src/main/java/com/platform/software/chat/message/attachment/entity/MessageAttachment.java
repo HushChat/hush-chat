@@ -12,6 +12,14 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @Setter
 @Getter
+@Table(
+        indexes = {
+                @Index(
+                        name = "idx_attachment_message",
+                        columnList = "message_id"
+                )
+        }
+)
 public class MessageAttachment extends AuditModel {
     @Id
     @GeneratedValue(generator = "message_attachment_generator")

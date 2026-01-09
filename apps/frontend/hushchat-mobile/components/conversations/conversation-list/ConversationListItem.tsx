@@ -104,6 +104,7 @@ const ConversationListItem = ({
               unreadCount={conversation.unreadCount}
               chevronButtonRef={chevronButtonRef}
               onChevronPress={handleOptionsPress}
+              isGroup={conversation.isGroup}
             />
           </View>
         </View>
