@@ -4,16 +4,8 @@ import { eventBus } from "@/services/eventBus";
 import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { IMessage } from "@/types/chat/types";
-import { MessageRead } from "@/types/ws/types";
-
-interface PaginatedResult<T> {
-  content: T[];
-  last?: boolean;
-  totalElements?: number;
-  totalPages?: number;
-  number?: number;
-  size?: number;
-}
+import { MessageReadPayload } from "@/types/ws/types";
+import { PaginatedResult } from "@/contexts/ConversationNotificationsContext";
 
 interface UseMessageReadListenerProps {
   loggedInUserId: number;
@@ -27,7 +19,7 @@ export const useMessageReadListener = ({ loggedInUserId }: UseMessageReadListene
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const handleMessageRead = (payload: MessageRead) => {
+    const handleMessageRead = (payload: MessageReadPayload) => {
       const { conversationId, lastSeenMessageId } = payload;
 
       const applyReadStatus = (msg: IMessage): IMessage => {

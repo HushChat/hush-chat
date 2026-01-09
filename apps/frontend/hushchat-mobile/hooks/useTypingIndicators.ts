@@ -1,15 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
 import { eventBus } from "@/services/eventBus";
 import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
-import { TypingIndicator } from "@/types/ws/types";
+import { TypingIndicatorPayload } from "@/types/ws/types";
 
 const TYPING_TIMEOUT = 4500; // 4.5 seconds
 
 export const useTypingIndicators = () => {
-  const [typingUsers, setTypingUsers] = useState<Record<string, TypingIndicator>>({});
+  const [typingUsers, setTypingUsers] = useState<Record<string, TypingIndicatorPayload>>({});
 
   useEffect(() => {
-    const handleTypingIndicator = (typingIndicator: TypingIndicator) => {
+    const handleTypingIndicator = (typingIndicator: TypingIndicatorPayload) => {
       const { chatUserName, conversationId, typing } = typingIndicator;
       const key = `${conversationId}-${chatUserName}`;
 

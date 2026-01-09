@@ -8,6 +8,7 @@ export const WS_TOPICS = {
     react: "/topic/message-reaction/",
     typing: "/topic/typing-status/",
     read: "/topic/message-read/",
+    pinned: "/topic/message-pinned/",
   },
   user: {
     onlineStatus: "/topic/online-status/",
