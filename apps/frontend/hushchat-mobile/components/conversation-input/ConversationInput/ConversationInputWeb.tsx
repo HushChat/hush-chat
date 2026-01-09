@@ -1,5 +1,5 @@
-import React, { memo, useCallback, forwardRef } from "react";
-import { View } from "react-native";
+import React, { memo, useCallback, forwardRef, useState } from "react";
+import { View, ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
 import classNames from "classnames";
 
@@ -19,6 +19,8 @@ import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useResizeHandle } from "@/hooks/useResizeHandler";
+import { PLATFORM } from "@/constants/platformConstants";
 
 const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputProps>(
   (
@@ -43,6 +45,7 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
   ) => {
     const { publishTyping } = useWebSocket();
     const isControlledMode = controlledValue !== undefined;
+    const [isNearTopBorder, setIsNearTopBorder] = useState<boolean>(false);
 
     const {
       showEmojiPicker,
@@ -72,6 +75,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       onCancelEdit,
       onEditMessage,
     });
+
+    const resize = useResizeHandle(input.handleManualResize);
 
     const handleKeyPress = useCallback(
       (event: any) => {
@@ -105,6 +110,49 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       [onSendMessage]
     );
 
+    const handleMouseMove = useCallback(
+      (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!PLATFORM.IS_WEB || resize.isDragging) return;
+
+        const target = e.currentTarget;
+        if (!target) return;
+
+        const rect = target.getBoundingClientRect();
+        const distanceFromTop = e.clientY - rect.top;
+
+        setIsNearTopBorder(distanceFromTop <= 16);
+      },
+      [resize.isDragging]
+    );
+
+    const handleMouseLeave = useCallback(() => {
+      if (!PLATFORM.IS_WEB) return;
+      setIsNearTopBorder(false);
+    }, []);
+
+    const handleMouseDown = useCallback(
+      (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!PLATFORM.IS_WEB) return;
+
+        const target = e.currentTarget;
+        if (!target) return;
+
+        const rect = target.getBoundingClientRect();
+        const distanceFromTop = e.clientY - rect.top;
+
+        if (distanceFromTop <= 16) {
+          resize.handleMouseDown(e);
+        }
+      },
+      [resize.handleMouseDown]
+    );
+
+    const containerStyle: ViewStyle = PLATFORM.IS_WEB
+      ? ({
+          cursor: (resize.isDragging || isNearTopBorder ? "ns-resize" : "default") as any,
+        } as ViewStyle)
+      : {};
+
     return (
       <View>
         {input.isEditMode && input.editingMessage && (
@@ -123,6 +171,23 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
             "p-4 bg-background-light dark:bg-background-dark",
             "border-gray-200 dark:border-gray-800"
           )}
+          style={containerStyle}
+          {...(PLATFORM.IS_WEB && {
+            onMouseMove: handleMouseMove,
+            onMouseLeave: handleMouseLeave,
+            onMouseDown: handleMouseDown,
+            onTouchStart: (e: any) => {
+              const target = e.currentTarget;
+              if (!target || e.touches.length === 0) return;
+
+              const rect = target.getBoundingClientRect();
+              const distanceFromTop = e.touches[0].clientY - rect.top;
+
+              if (distanceFromTop <= 16) {
+                resize.handleTouchStart(e);
+              }
+            },
+          })}
         >
           <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
             {!isControlledMode && !input.isEditMode && (
