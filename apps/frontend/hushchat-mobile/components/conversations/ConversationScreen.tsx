@@ -30,6 +30,7 @@ import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useLastSeenMessage } from "@/hooks/useLastSeenMessage";
 
 interface IConversationScreenProps {
   initialConversationId?: number;
@@ -41,7 +42,7 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const {
-    user: { email },
+    user: { id: currentUserId, email },
   } = useUserStore();
 
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
@@ -59,6 +60,11 @@ export default function ConversationScreen({ initialConversationId }: IConversat
       debouncedSearchQuery.cancel();
     };
   }, [debouncedSearchQuery]);
+
+  const { queueLastSeenUpdate } = useLastSeenMessage(
+    Number(currentUserId),
+    selectedConversation?.id
+  );
 
   const {
     conversationsPages,
@@ -166,6 +172,7 @@ export default function ConversationScreen({ initialConversationId }: IConversat
         debouncedSearchQuery(searchQuery);
       }}
       searchQuery={searchInput}
+      onUpdateLastSeen={queueLastSeenUpdate}
     />
   );
 }

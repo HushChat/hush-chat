@@ -70,7 +70,7 @@ export const useMarkMessageAsUnreadMutation = createMutationHook<
 );
 
 export const useSetLastSeenMessageMutation = createMutationHook<
-  { data: ConversationReadInfo },
+  ConversationReadInfo,
   { messageId: number; conversationId: number }
 >(({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId));
 

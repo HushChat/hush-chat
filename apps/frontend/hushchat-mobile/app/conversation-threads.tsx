@@ -31,7 +31,6 @@ import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/type
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
-import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
@@ -57,6 +56,7 @@ interface ConversationThreadScreenProps {
   messageToJump?: number | null;
   onMessageJumped?: () => void;
   onConversationDeleted?: () => void;
+  onUpdateLastSeen: (conversationId: number, messageId: number) => void;
 }
 
 const ConversationThreadScreen = ({
@@ -67,6 +67,7 @@ const ConversationThreadScreen = ({
   webMessageInfoPress,
   onMessageJumped,
   messageToJump,
+  onUpdateLastSeen,
 }: ConversationThreadScreenProps) => {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
@@ -132,27 +133,13 @@ const ConversationThreadScreen = ({
   const { lastSeenMessageInfo } =
     useFetchLastSeenMessageStatusForConversation(currentConversationId);
 
-  const { mutate: setLastSeenMessageForConversation } = useSetLastSeenMessageMutation(
-    {
-      conversationId: currentConversationId,
-      currentUserId,
-    },
-    (data) => {
-      updateConversation(currentConversationId, {
-        unreadCount: data.data?.unreadCount || 0,
-      });
-    }
-  );
-
   useEffect(() => {
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
     if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
       const firstMessage = messages[0];
 
-      if (!firstMessage.id || typeof firstMessage.id !== "number") {
-        return;
-      }
+      if (!firstMessage.id || typeof firstMessage.id !== "number") return;
 
       const shouldUpdate =
         lastSeenMessageInfo.lastSeenMessageId === null ||
@@ -160,13 +147,13 @@ const ConversationThreadScreen = ({
         firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
       if (shouldUpdate) {
-        setLastSeenMessageForConversation({
-          messageId: firstMessage.id,
-          conversationId: currentConversationId,
+        updateConversation(conversationId, {
+          unreadCount: 0,
         });
+        onUpdateLastSeen(currentConversationId, firstMessage.id);
       }
     }
-  }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo]);
+  }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo, onUpdateLastSeen]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
