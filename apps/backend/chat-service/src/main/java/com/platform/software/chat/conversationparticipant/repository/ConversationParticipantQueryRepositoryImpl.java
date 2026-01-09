@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -198,10 +199,11 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
 
     @Override
     @Transactional
-    public long updateIsActiveById(Long id, Boolean isActive) {
+    public long updateParticipantStatusAndRole(Long id, Boolean isActive, ConversationParticipantRoleEnum newRole) {
         return queryFactory
             .update(qConversationParticipant)
             .set(qConversationParticipant.isActive, isActive)
+            .set(qConversationParticipant.role, newRole)
             .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now())
             .where(qConversationParticipant.id.eq(id))
             .execute();

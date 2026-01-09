@@ -3,6 +3,7 @@ package com.platform.software.chat.conversationparticipant.repository;
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,7 +23,7 @@ public interface ConversationParticipantQueryRepository {
 
     Optional<ConversationDTO> findConversationById(Long conversationId);
 
-    long updateIsActiveById(Long id, Boolean isActive);
+    long updateParticipantStatusAndRole(Long id, Boolean isActive, ConversationParticipantRoleEnum newRole);
 
     Page<ConversationDTO> getFavouriteConversationsByUserId(Long userId, Pageable pageable);
 
