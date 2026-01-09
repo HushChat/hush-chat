@@ -10,13 +10,13 @@ import { AppText } from "@/components/AppText";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
+import { useLogout } from "@/hooks/useLogout";
 
 type TChatHeaderMenuProps = {
   onRefresh: () => void;
   isLoading: boolean;
   onCreateGroup?: () => void | Promise<void>;
   onOpenMentionedMessages: () => void | Promise<void>;
-  onLogout: () => void | Promise<void>;
   selectedConversationType: ConversationType;
   setSelectedConversationType: (newConversationType: ConversationType) => void;
 };
@@ -26,13 +26,16 @@ export const ConversationHeader = ({
   isLoading,
   onCreateGroup,
   onOpenMentionedMessages,
-  onLogout,
   selectedConversationType,
   setSelectedConversationType,
 }: TChatHeaderMenuProps) => {
   const { visible, position, openAtEvent, close } = useContextMenu();
 
   const headerTitle = useConversationHeaderTitle(selectedConversationType);
+  const { handleLogout } = useLogout();
+  const onLogout = () => {
+    handleLogout();
+  };
 
   const options: IOption[] = [
     {

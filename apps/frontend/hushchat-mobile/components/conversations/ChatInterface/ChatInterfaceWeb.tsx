@@ -19,7 +19,6 @@ import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
 import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
 import { MotionEasing } from "@/motion/easing";
-import { useLogout } from "@/hooks/useLogout";
 import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel.web";
 
 export default function ChatInterfaceWeb({
@@ -39,7 +38,6 @@ export default function ChatInterfaceWeb({
     setSelectedMessageIds,
   } = useConversationStore();
 
-  const { handleLogout } = useLogout();
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showMentionedMessages, setShowMentionedMessages] = useState(false);
@@ -163,7 +161,6 @@ export default function ChatInterfaceWeb({
             isLoading={conversationsLoading}
             onCreateGroup={() => setShowCreateGroup(true)}
             onOpenMentionedMessages={() => setShowMentionedMessages(true)}
-            onLogout={handleLogout}
           />
 
           {selectedConversationType === ConversationType.ALL && (
