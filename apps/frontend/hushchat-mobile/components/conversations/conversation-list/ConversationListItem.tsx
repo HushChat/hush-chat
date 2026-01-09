@@ -11,7 +11,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { ProfileCardModal } from "@/components/ProfileCardModal";
 import { AppText } from "@/components/AppText";
 import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
-import { useUserStore } from "@/store/user/useUserStore";
 
 const ConversationListItem = ({
   conversation,
@@ -33,7 +32,6 @@ const ConversationListItem = ({
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   const chevronButtonRef = useRef<View>(null);
-  const { user } = useUserStore();
 
   const lastMessage = conversation.messages?.at(-1);
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
@@ -107,7 +105,6 @@ const ConversationListItem = ({
               chevronButtonRef={chevronButtonRef}
               onChevronPress={handleOptionsPress}
               isGroup={conversation.isGroup}
-              currentUserId={user?.id}
             />
           </View>
         </View>

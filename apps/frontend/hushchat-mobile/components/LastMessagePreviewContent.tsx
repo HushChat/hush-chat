@@ -5,18 +5,19 @@ import { AppText } from "@/components/AppText";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
 import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
 import { hasGif } from "@/utils/messageUtils";
+import { useUserStore } from "@/store/user/useUserStore";
 
 interface LastMessagePreviewContentProps {
   lastMessage: IMessage | undefined;
-  isGroup?: boolean;
-  currentUserId?: number | null;
+  isGroup: boolean;
 }
 
 export const LastMessagePreviewContent = ({
   lastMessage,
   isGroup,
-  currentUserId,
 }: LastMessagePreviewContentProps) => {
+  const { user } = useUserStore();
+
   if (!lastMessage) return "No Messages Yet";
   const isGif = hasGif(lastMessage);
 
@@ -39,7 +40,7 @@ export const LastMessagePreviewContent = ({
 
   if (isGroup && lastMessage.messageType !== MessageTypeEnum.SYSTEM_EVENT) {
     const senderName =
-      currentUserId && lastMessage.senderId === currentUserId ? "You" : lastMessage.senderFirstName;
+      user?.id && lastMessage.senderId === user.id ? "You" : lastMessage.senderFirstName;
     return `${senderName}: ${lastMessage.messageText}`;
   }
 
