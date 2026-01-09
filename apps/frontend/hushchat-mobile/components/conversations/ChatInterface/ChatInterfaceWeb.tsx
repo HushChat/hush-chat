@@ -30,6 +30,7 @@ export default function ChatInterfaceWeb({
   setSelectedConversation,
   onSearchQueryInserting = () => {},
   searchQuery = "",
+  onUpdateLastSeen,
 }: ChatComponentProps) {
   const {
     selectedConversationType,
@@ -244,6 +245,7 @@ export default function ChatInterfaceWeb({
               webMessageInfoPress={handleShowMessageInfo}
               messageToJump={messageToJump}
               onMessageJumped={() => setMessageToJump(null)}
+              onUpdateLastSeen={onUpdateLastSeen}
             />
           ) : (
             <Placeholder
