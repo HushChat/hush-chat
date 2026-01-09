@@ -3,6 +3,7 @@ import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SOUND_ENABLED_KEY } from "@/constants/constants";
+import { setCachedSoundEnabled } from "@/utils/playSound";
 
 export const SoundToggleButton = () => {
   const [enabled, setEnabled] = useState(true);
@@ -16,6 +17,7 @@ export const SoundToggleButton = () => {
   const toggle = async () => {
     const newValue = !enabled;
     setEnabled(newValue);
+    setCachedSoundEnabled(newValue);
     await AsyncStorage.setItem(SOUND_ENABLED_KEY, String(newValue));
   };
 
