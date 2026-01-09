@@ -14,8 +14,6 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { IWorkspaceUser } from "@/types/workspace-user/types";
 import UserDetails from "@/components/settings/users/UserDeails";
 import { PLATFORM } from "@/constants/platformConstants";
-import Users from "@/components/settings/users/Users";
-import SettingsWrapper from "@/components/settings/Settings";
 import UsersIndex from ".";
 
 export default function UserDetailsScreen() {
@@ -51,9 +49,7 @@ export default function UserDetailsScreen() {
   };
 
   if (PLATFORM.IS_WEB) {
-    return (
-      <UsersIndex />
-    );
+    return <UsersIndex />;
   }
 
   if (isLoadingWorkspaceUsers) {
