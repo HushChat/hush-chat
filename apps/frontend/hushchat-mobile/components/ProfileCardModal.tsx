@@ -1,15 +1,17 @@
-import React from "react";
-import { Modal, Pressable, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Modal, Pressable, View, ActivityIndicator } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { AppText } from "@/components/AppText";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useUserProfileImageQuery } from "@/hooks/useUserProfileImageQuery";
 
 type TProfileCardData = {
   name: string;
   imageUrl: string | null;
   username: string;
   isGroup?: boolean;
+  userId?: number; // ← ADD THIS
 };
 
 interface IProfileCardModalProps {
@@ -27,8 +29,23 @@ export const ProfileCardModal: React.FC<IProfileCardModalProps> = ({
   onMessagePress,
   onCallPress,
 }) => {
-  const isDark = useAppTheme();
+  const { isDark } = useAppTheme();
   const iconColor = isDark ? "#F9FAFB" : "#374151";
+
+  const { data: userImageData, isLoading } = useUserProfileImageQuery(
+    data.userId || 0,
+    visible && !!data.userId
+  );
+
+  const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(data.imageUrl);
+
+  useEffect(() => {
+    if (userImageData?.data?.signedImageUrl) {
+      setDisplayImageUrl(userImageData.data.signedImageUrl);
+    } else if (visible) {
+      setDisplayImageUrl(data.imageUrl);
+    }
+  }, [userImageData, visible, data.imageUrl]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -40,8 +57,13 @@ export const ProfileCardModal: React.FC<IProfileCardModalProps> = ({
           onPress={(e) => e.stopPropagation()}
           className="rounded-[28px] pt-8 pb-6 px-5 w-full max-w-xs items-center bg-white dark:bg-gray-900 elevation-24"
         >
-          <View className="mb-6">
-            <InitialsAvatar imageUrl={data.imageUrl} size="lg" name={data.name} />
+          <View className="mb-6 relative">
+            <InitialsAvatar imageUrl={displayImageUrl} size="lg" name={data.name} />
+            {isLoading && (
+              <View className="absolute inset-0 justify-center items-center bg-black/10 rounded-full">
+                <ActivityIndicator size="small" color="#3B82F6" />
+              </View>
+            )}
           </View>
 
           <View className="items-center mb-6 px-4">

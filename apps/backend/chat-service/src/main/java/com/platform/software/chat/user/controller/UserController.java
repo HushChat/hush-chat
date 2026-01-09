@@ -221,4 +221,20 @@ public class UserController {
         UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser, status);
         return new ResponseEntity<>(userStatusEnum, HttpStatus.OK);
     }
+
+    /**
+     * Get high-quality user profile image URL.
+     * Returns 300px quality image for user profile display.
+     *
+     * @param userId the ID of the user
+     * @return ResponseEntity with the high-quality user image URL
+     */
+    @ApiOperation(value = "Get high quality user profile image")
+    @GetMapping("{userId}/profile-image")
+    public ResponseEntity<SignedURLDTO> getUserProfileImage(@PathVariable Long userId) {
+        String imageUrl = userService.getHighQualityUserProfileImage(userId);
+        SignedURLDTO response = new SignedURLDTO();
+        response.setUrl(imageUrl);
+        return ResponseEntity.ok(response);
+    }
 }
