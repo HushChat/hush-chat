@@ -10,6 +10,7 @@ export interface SidebarMenuItem {
   key: string;
   label: string;
   icon: keyof typeof MaterialIcons.glyphMap;
+  route: string;
 }
 
 export default function SidebarMenu({

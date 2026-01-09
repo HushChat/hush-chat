@@ -79,12 +79,6 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="invite/[inviteCode]" options={{ title: "Processing Invite" }} />
         <Stack.Screen name="group-conversation/select-participants" />
         <Stack.Screen name="group-conversation/configure" />
-        <Stack.Screen name="settings/contact" />
-        <Stack.Screen name="settings/invite" />
-        <Stack.Screen name="settings/change-workspace" />
-        <Stack.Screen name="settings/users/index" />
-        <Stack.Screen name="settings/users/list" />
-        <Stack.Screen name="settings/users/[userId]" />
         <Stack.Screen name="mentioned-messages-view" />
       </Stack>
     </>

@@ -25,6 +25,8 @@ import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { AppText } from "@/components/AppText";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
+import { useUserStore } from "@/store/user/useUserStore";
+import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
 
 export default function ChatInterfaceMobile({
   chatItemList,
@@ -34,6 +36,7 @@ export default function ChatInterfaceMobile({
   onSearchQueryInserting = () => {},
   searchQuery = "",
 }: ChatComponentProps) {
+  const { user } = useUserStore();
   const insets = useSafeAreaInsets();
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
   const { selectedConversationType, setSelectedConversationType } = useConversationStore();
@@ -92,7 +95,10 @@ export default function ChatInterfaceMobile({
           router.push(SETTINGS_INVITE);
         },
       },
-      {
+    ];
+
+    if (user.workspaceRole?.includes(WorkspaceUserRole.ADMIN)) {
+      options.push({
         id: "users",
         title: "Users",
         icon: "people",
@@ -100,8 +106,8 @@ export default function ChatInterfaceMobile({
           setSheetVisible(false);
           router.push(SETTINGS_USERS_LIST);
         },
-      },
-    ];
+      });
+    }
 
     if (workspaces && workspaces.length > 1) {
       options.push({

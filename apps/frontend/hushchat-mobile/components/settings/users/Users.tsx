@@ -1,18 +1,19 @@
 import { AppText } from "@/components/AppText";
 import { View } from "react-native";
 import UsersList from "./UsersList";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IWorkspaceUser } from "@/types/workspace-user/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getCriteria } from "@/utils/conversationUtils";
 import { ConversationType } from "@/types/chat/types";
 import { useCreateOneToOneConversationMutation } from "@/query/post/queries";
-import { router } from "expo-router";
-import { CONVERSATION } from "@/constants/routes";
+import { router, useLocalSearchParams } from "expo-router";
+import { CONVERSATION, USER_DETAILS } from "@/constants/routes";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import UserDetails from "./UserDeails";
 import { Ionicons } from "@expo/vector-icons";
+import { useGetAllWorkspaceUsersQuery } from "@/query/useGetAllWorkspaceUsersQuery";
 
 export const STATUS_COLORS = {
   ACTIVE: {
@@ -35,10 +36,25 @@ export const DEFAULT_STATUS_COLORS = {
 };
 
 export default function Users() {
+  const { userId } = useLocalSearchParams<{ userId?: string }>();
   const [selectedUser, setSelectedUser] = useState<IWorkspaceUser | null>(null);
   const { user } = useUserStore();
   const currentUserId = user?.id;
   const criteria = getCriteria(ConversationType.ALL);
+
+  const { workspaceUsersPages } = useGetAllWorkspaceUsersQuery("");
+
+  useEffect(() => {
+    if (userId && workspaceUsersPages) {
+      const user = workspaceUsersPages.pages
+        ?.flatMap((page) => page.content)
+        ?.find((u) => u.id.toString() === userId);
+      
+      if (user) {
+        setSelectedUser(user);
+      }
+    }
+  }, [userId, workspaceUsersPages]);
 
   const createConversation = useCreateOneToOneConversationMutation(
     { userId: currentUserId, criteria },
@@ -59,6 +75,11 @@ export default function Users() {
     }
   };
 
+  const handleUserSelect = (user: IWorkspaceUser) => {
+    setSelectedUser(user);
+    router.push(USER_DETAILS(user.id));
+  };
+
   return (
     <View className="flex-1 flex-row w-full">
       <View className="w-[450px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800">
@@ -67,7 +88,7 @@ export default function Users() {
             All Users
           </AppText>
         </View>
-        <UsersList onUserSelect={setSelectedUser} selectedUserId={selectedUser?.id} />
+        <UsersList onUserSelect={handleUserSelect} selectedUserId={selectedUser?.id} />
       </View>
 
       <View className="flex-1">

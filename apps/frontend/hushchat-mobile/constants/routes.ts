@@ -18,12 +18,12 @@ export const PROFILE_PATH = "/(tabs)/profile";
 export const FORWARD_PATH = "/conversations/forward-panel";
 export const GROUP_CONVERSATION_SELECT_PARTICIPANTS = "/group-conversation/select-participants";
 export const MENTIONED_MESSAGES = "/mentioned-messages-view";
-export const SETTINGS_CONTACT = "/settings/contact";
-export const SETTINGS_INVITE = "/settings/invite";
-export const SETTINGS_WORKSPACE = "/settings/change-workspace";
+export const SETTINGS_CONTACT = "/(tabs)/settings/contact";
+export const SETTINGS_INVITE = "/(tabs)/settings/invite";
+export const SETTINGS_WORKSPACE = "/(tabs)/settings/change-workspace";
+export const SETTINGS_USERS = "/(tabs)/settings/users";
+export const SETTINGS_USERS_LIST = "/(tabs)/settings/users/list";
+export const USER_DETAILS = (userId: number): Href => `/(tabs)/settings/users/${userId}` as Href;
 export const CONVERSATION = (id: number): Href => `/conversations/${id}` as Href;
 export const MESSAGE_READ_PARTICIPANTS =
   "/conversations/[conversationId]/messages/[messageId]/read-by";
-export const USER_DETAILS = (userId: number): Href => `/settings/users/${userId}` as Href;
-export const SETTINGS_USERS_LIST = "/settings/users/list";
-export const SETTINGS_USERS = "/settings/users";
