@@ -321,6 +321,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String getHighQualityUserProfileImage(Long userId) {
+        ChatUser user = getUserOrThrow(userId);
+
+        String imageIndexedName = user.getImageIndexedName();
+        return cloudPhotoHandlingService.getPhotoViewSignedURL(
+                MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                MediaSizeEnum.MEDIUM,
+                imageIndexedName);
+    }
+
+    @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public void createUserForNewWorkspace(String tenant, String loggedInUserEmail) {
         ChatUser newUser = new ChatUser();

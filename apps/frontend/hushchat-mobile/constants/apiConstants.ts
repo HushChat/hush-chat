@@ -98,6 +98,7 @@ export const USER_API_ENDPOINTS = {
   UNBLOCK_USER: (blockedUserId: number) => `${USER_API_BASE}/${blockedUserId}/unblock`,
   CALL_LOGS: `${USER_API_BASE}/call-logs`,
   PROFILE_IMAGE_SIGNED_URL: (userId: string) => `/users/${userId}/profile/upload-photo`,
+  GET_USER_PROFILE_IMAGE: (userId: number) => `${USER_API_BASE}/${userId}/profile-image`, // ← ADD THIS LINE
   SAVE_TOKEN: `/notifications/device-token`,
   CHANGE_PASSWORD: `/users/change-password`,
   CHANGE_AVAILABILITY_STATUS: `${USER_API_BASE}/availability`,

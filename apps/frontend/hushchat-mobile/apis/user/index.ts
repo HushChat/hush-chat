@@ -1,9 +1,10 @@
 import { USER_API_ENDPOINTS, WORKSPACE_ENDPOINTS } from "@/constants/apiConstants";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { DeviceToken } from "@/types/user/types";
 import { getAllTokens } from "@/utils/authUtils";
 import { chatUserStatus } from "@/types/chat/types";
+import { ErrorResponse } from "@/utils/apiErrorUtils";
 
 export const getUserInfo = async () => {
   try {
@@ -111,5 +112,15 @@ export const updateUserAvailabilityStatus = async (status: chatUserStatus) => {
     return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const getUserProfileImage = async (userId: number) => {
+  try {
+    const response = await axios.get(USER_API_ENDPOINTS.GET_USER_PROFILE_IMAGE(userId));
+    return { data: { signedImageUrl: response.data.url } };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
