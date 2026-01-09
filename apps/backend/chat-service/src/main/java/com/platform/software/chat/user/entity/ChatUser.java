@@ -16,6 +16,18 @@ import java.util.Set;
 @Setter
 @Getter
 // TODO: @Where(clause = "active = true AND deleted = false")
+@Table(
+        indexes = {
+                @Index(
+                        name = "idx_chat_user_email",
+                        columnList = "email"
+                ),
+                @Index(
+                        name = "idx_chat_user_active_deleted",
+                        columnList = "active, deleted"
+                )
+        }
+)
 public class ChatUser extends AuditModel{
 
     @Id

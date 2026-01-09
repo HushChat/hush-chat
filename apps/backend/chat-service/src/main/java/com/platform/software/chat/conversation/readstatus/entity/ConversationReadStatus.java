@@ -14,9 +14,21 @@ import lombok.Setter;
 @Getter
 @Table(uniqueConstraints =
     @UniqueConstraint(
-        name = "UK_conversation_user_read_status",
-        columnNames = {"conversation_id", "user_id"}
-    ))
+            name = "UK_conversation_user_read_status",
+            columnNames = {"conversation_id", "user_id"}
+    ),
+    indexes = {
+            @Index(
+                    name = "idx_crs_user_conversation",
+                    columnList = "user_id, conversation_id"
+            ),
+            @Index(
+                    name = "idx_crs_message",
+                    columnList = "message_id"
+            )
+    })
+
+
 public class ConversationReadStatus extends AuditModel {
     @Id
     @GeneratedValue(generator = "conversation_read_status_generator")

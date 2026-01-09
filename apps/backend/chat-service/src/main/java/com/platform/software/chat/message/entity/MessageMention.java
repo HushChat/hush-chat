@@ -11,6 +11,18 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @Setter
 @Getter
+@Table(
+    indexes = {
+        @Index(
+                name = "idx_mention_user",
+                columnList = "mentioned_user_id"
+        ),
+        @Index(
+                name = "idx_mention_message",
+                columnList = "message_id"
+        )
+    }
+)
 public class MessageMention extends AuditModel {
 
     @Id
