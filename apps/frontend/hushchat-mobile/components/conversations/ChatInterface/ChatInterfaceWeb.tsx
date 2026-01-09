@@ -17,9 +17,9 @@ import { AllParticipants } from "@/components/conversations/AllParticipants";
 import ConversationForwardPanelWeb from "@/components/conversations/conversation-info-panel/forward-panel/WebForwardPanel";
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
-import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel";
 import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
 import { MotionEasing } from "@/motion/easing";
+import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel.web";
 
 export default function ChatInterfaceWeb({
   chatItemList,

@@ -10,6 +10,7 @@ import { AppText } from "@/components/AppText";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
+import { useLogout } from "@/hooks/useLogout";
 
 type TChatHeaderMenuProps = {
   onRefresh: () => void;
@@ -31,6 +32,10 @@ export const ConversationHeader = ({
   const { visible, position, openAtEvent, close } = useContextMenu();
 
   const headerTitle = useConversationHeaderTitle(selectedConversationType);
+  const { handleLogout } = useLogout();
+  const onLogout = () => {
+    handleLogout();
+  };
 
   const options: IOption[] = [
     {
@@ -49,12 +54,21 @@ export const ConversationHeader = ({
         if (onOpenMentionedMessages) return onOpenMentionedMessages();
       },
     },
+    {
+      id: 3,
+      name: "Logout",
+      iconName: "log-out-outline",
+      action: () => {
+        if (onLogout) return onLogout();
+      },
+    },
   ];
 
   const handleKebabPress = (e: GestureResponderEvent) => openAtEvent(e);
 
   const handleOptionSelect = async (action: () => void | Promise<void>) => {
     await action();
+    close();
   };
 
   return (
