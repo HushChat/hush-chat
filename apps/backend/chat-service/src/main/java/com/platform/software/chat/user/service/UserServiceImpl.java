@@ -316,10 +316,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private String getUserProfileImageUrl(String imageIndexedName, MediaSizeEnum size) {
-        if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, size, imageIndexedName);
-        }
-        return imageIndexedName;
+        return cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, size, imageIndexedName);
     }
 
     @Override
@@ -474,19 +471,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserProfileDTO getUserProfile(Long id){
-
+    public UserProfileDTO getUserProfile(Long id) {
         UserProfileDTO userPublicProfile = userInfoRepository.getProfileById(id);
 
-        if(userPublicProfile.getSignedImageUrl() != null && !userPublicProfile.getSignedImageUrl().isEmpty()){
-            userPublicProfile.setSignedImageUrl(
-                    cloudPhotoHandlingService.getPhotoViewSignedURL(
-                            MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                            MediaSizeEnum.SMALL,
-                            userPublicProfile.getSignedImageUrl()
-                    )
-            );
-        }
+        userPublicProfile.setSignedImageUrl(
+                cloudPhotoHandlingService.getPhotoViewSignedURL(
+                        MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                        MediaSizeEnum.SMALL,
+                        userPublicProfile.getSignedImageUrl()
+                )
+        );
 
         return userPublicProfile;
     }

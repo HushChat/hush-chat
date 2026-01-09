@@ -9,7 +9,7 @@ import {
 } from "react";
 import { eventBus } from "@/services/eventBus";
 import { IConversation, IMessage, IUserStatus } from "@/types/chat/types";
-import { playMessageSound } from "@/utils/playSound";
+import { playMessageSound, SoundType } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
 import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
@@ -151,7 +151,13 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         setNotificationConversation(conversation);
 
         if (!conversation.mutedByLoggedInUser) {
-          void playMessageSound();
+          const messages = conversation.messages || [];
+          const lastMessage = messages[messages.length - 1];
+          const isMentioned = lastMessage?.mentions?.some(
+            (user) => Number(user.id) === Number(loggedInUserId)
+          );
+
+          void playMessageSound(isMentioned ? SoundType.MENTION : SoundType.NORMAL);
         }
       }
     };
@@ -413,6 +419,76 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       eventBus.off(USER_EVENTS.PRESENCE, handleIncomingUserStatusUpdates);
     };
   }, []);
+
+  /**
+   * Message updated listener
+   */
+  useEffect(() => {
+    const handleMessageUpdated = (updatedMessage: IMessage) => {
+      if (!updatedMessage?.id || !updatedMessage?.conversationId) return;
+
+      const { conversationId, id: messageId } = updatedMessage;
+
+      const threadKey = conversationMessageQueryKeys.messages(
+        Number(loggedInUserId),
+        conversationId
+      );
+
+      queryClient.setQueryData<InfiniteData<PaginatedResult<IMessage>>>(threadKey, (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            content: page.content.map((msg) =>
+              msg.id === messageId ? { ...msg, ...updatedMessage, isEdited: true } : msg
+            ),
+          })),
+        };
+      });
+
+      // 2. Update conversation list cache if it shows the last message
+      queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
+        conversationsQueryKey,
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              content: page.content.map((conv) => {
+                if (conv.id !== conversationId) return conv;
+
+                const messages = conv.messages ?? [];
+                if (messages.length === 0) return conv;
+
+                const lastIndex = messages.length - 1;
+                const lastMessage = messages[lastIndex];
+
+                if (lastMessage?.id !== messageId) return conv;
+
+                const updatedMessages = [...messages];
+                updatedMessages[lastIndex] = {
+                  ...lastMessage,
+                  ...updatedMessage,
+                  isEdited: true,
+                };
+
+                return { ...conv, messages: updatedMessages };
+              }),
+            })),
+          };
+        }
+      );
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.MESSAGE_UPDATED, handleMessageUpdated);
+    return () => {
+      eventBus.off(CONVERSATION_EVENTS.MESSAGE_UPDATED, handleMessageUpdated);
+    };
+  }, [queryClient, loggedInUserId, conversationsQueryKey]);
 
   /**
    * Apply presence changes into cache

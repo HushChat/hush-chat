@@ -250,10 +250,7 @@ public class ConversationUtilService {
     }
 
     public String getImageViewSignedUrl(MediaPathEnum path, MediaSizeEnum size, String imageIndexedName) {
-        if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
-        }
-        return imageIndexedName;
+        return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
     }
 
     /**
