@@ -8,7 +8,7 @@ interface IFileInputProps {
 }
 
 export const FileInput = forwardRef<HTMLInputElement, IFileInputProps>(
-  ({ onChange, accept = "*/*", multiple = false }, ref) => {
+  ({ onChange, accept = "*/*", multiple = true }, ref) => {
     return (
       <input
         ref={ref}
