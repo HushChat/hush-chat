@@ -77,6 +77,7 @@ const ConversationThreadScreen = ({
   } = useUserStore();
   const { publishActivity } = useWebSocket();
 
+  const [isMessageListAtBottom, setIsMessageListAtBottom] = useState<boolean>(true);
   const dropZoneRef = useRef<View>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -134,26 +135,34 @@ const ConversationThreadScreen = ({
     useFetchLastSeenMessageStatusForConversation(currentConversationId);
 
   useEffect(() => {
-    const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
+    const latestMessage = conversationMessagesPages?.pages?.[0]?.content?.[0];
 
-    if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
-      const firstMessage = messages[0];
-
-      if (!firstMessage.id || typeof firstMessage.id !== "number") return;
-
-      const shouldUpdate =
+    if (
+      currentConversationId &&
+      latestMessage?.id &&
+      typeof latestMessage.id === "number" &&
+      lastSeenMessageInfo !== undefined
+    ) {
+      const isNewMessage =
         lastSeenMessageInfo.lastSeenMessageId === null ||
         lastSeenMessageInfo.lastSeenMessageId === undefined ||
-        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
+        latestMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
-      if (shouldUpdate) {
+      if (isNewMessage && isMessageListAtBottom) {
         updateConversation(conversationId, {
           unreadCount: 0,
         });
-        onUpdateLastSeen(currentConversationId, firstMessage.id);
+
+        onUpdateLastSeen(currentConversationId, latestMessage.id);
       }
     }
-  }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo, onUpdateLastSeen]);
+  }, [
+    currentConversationId,
+    conversationMessagesPages,
+    lastSeenMessageInfo,
+    onUpdateLastSeen,
+    isMessageListAtBottom,
+  ]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
@@ -437,6 +446,7 @@ const ConversationThreadScreen = ({
         webMessageInfoPress={webMessageInfoPress}
         lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
         onEditMessage={handleStartEditWithClearReply}
+        onScrollToBottomStatusChange={setIsMessageListAtBottom}
       />
     );
   }, [
@@ -460,6 +470,7 @@ const ConversationThreadScreen = ({
     handleTargetMessageScrolled,
     lastSeenMessageInfo,
     handleStartEditWithClearReply,
+    setIsMessageListAtBottom,
   ]);
 
   const renderTextInput = useCallback(() => {
