@@ -12,6 +12,7 @@ import { updateUser } from "@/apis/user";
 import {
   ConversationReadInfo,
   IConversation,
+  IMessage,
   TMessageForward,
   TMessageForwardResponse,
   UpdateUserInput,
@@ -94,7 +95,7 @@ export const useToggleNotifyOnlyOnMentionMutation = createMutationHook<
 );
 
 export const useEditMessageMutation = createMutationHook<
-  void,
+  IMessage,
   { conversationId: number; messageId: number; messageText: string }
 >(
   ({ conversationId, messageId, messageText }) =>
