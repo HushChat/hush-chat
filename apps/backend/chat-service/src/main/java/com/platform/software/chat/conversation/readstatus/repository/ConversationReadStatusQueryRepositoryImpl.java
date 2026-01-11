@@ -65,28 +65,14 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
     public ConversationReadInfo findConversationReadInfoByConversationIdAndUserId(
             Long conversationId, Long userId) {
 
-        return queryFactory
-                .select(Projections.constructor(
-                        ConversationReadInfo.class,
-                        qConversationReadStatus.message.id,
-
-                        new CaseBuilder()
-                                .when(qConversationReadStatus.message.id.isNull()
-                                        .or(qMessage.id.gt(qConversationReadStatus.message.id)))
-                                .then(1L)
-                                .otherwise(0L)
-                                .sum()
-                ))
-                .from(qMessage)
-                .leftJoin(qConversationReadStatus)
-                .on(qConversationReadStatus.conversation.id.eq(conversationId)
+        Long lastSeenMessageId = queryFactory
+                .select(qConversationReadStatus.message.id)
+                .from(qConversationReadStatus)
+                .where(qConversationReadStatus.conversation.id.eq(conversationId)
                         .and(qConversationReadStatus.user.id.eq(userId)))
-
-                .where(qMessage.conversation.id.eq(conversationId)
-                        .and(qMessage.isUnsend.isFalse()))
-
-                .groupBy(qConversationReadStatus.message.id)
                 .fetchOne();
+
+        return new ConversationReadInfo(lastSeenMessageId, null);
     }
 
     private JPAQuery<ConversationUnreadCount> buildUnreadCountQuery(Long userId) {
