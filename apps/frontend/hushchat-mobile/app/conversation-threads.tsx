@@ -43,6 +43,7 @@ import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
 import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
+import { useLastSeenMessage } from "@/hooks/useLastSeenMessage";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -56,7 +57,6 @@ interface ConversationThreadScreenProps {
   messageToJump?: number | null;
   onMessageJumped?: () => void;
   onConversationDeleted?: () => void;
-  onUpdateLastSeen: (conversationId: number, messageId: number) => void;
 }
 
 const ConversationThreadScreen = ({
@@ -67,7 +67,6 @@ const ConversationThreadScreen = ({
   webMessageInfoPress,
   onMessageJumped,
   messageToJump,
-  onUpdateLastSeen,
 }: ConversationThreadScreenProps) => {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
@@ -134,6 +133,8 @@ const ConversationThreadScreen = ({
   const { lastSeenMessageInfo } =
     useFetchLastSeenMessageStatusForConversation(currentConversationId);
 
+  const { queueLastSeenUpdate } = useLastSeenMessage(Number(currentUserId), currentConversationId);
+
   useEffect(() => {
     const latestMessage = conversationMessagesPages?.pages?.[0]?.content?.[0];
 
@@ -153,14 +154,14 @@ const ConversationThreadScreen = ({
           unreadCount: 0,
         });
 
-        onUpdateLastSeen(currentConversationId, latestMessage.id);
+        queueLastSeenUpdate(currentConversationId, latestMessage.id);
       }
     }
   }, [
     currentConversationId,
     conversationMessagesPages,
     lastSeenMessageInfo,
-    onUpdateLastSeen,
+    queueLastSeenUpdate,
     isMessageListAtBottom,
   ]);
 

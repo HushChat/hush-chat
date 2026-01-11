@@ -93,7 +93,6 @@ export interface ChatComponentProps {
   setSelectedConversation: (conversation: IConversation | null) => void;
   onSearchQueryInserting?: (searchQuery: string) => void;
   searchQuery?: string;
-  onUpdateLastSeen: (conversationId: number, messageId: number) => void;
 }
 
 export enum ConversationType {
