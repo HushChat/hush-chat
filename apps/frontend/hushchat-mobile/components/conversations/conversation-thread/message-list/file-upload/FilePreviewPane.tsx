@@ -51,17 +51,24 @@ const FilePreviewPane = ({
     const type = getFileType(file.name);
     setFileType(type);
 
-    if (isIframePreviewable) {
-      setLoading(true);
+    if (type === "image" || type === "video" || isIframePreviewable) {
+      if (isIframePreviewable) {
+        setLoading(true);
+      }
+
+      const objUrl = URL.createObjectURL(file);
+      setUrl(objUrl);
+
+      return () => {
+        URL.revokeObjectURL(objUrl);
+        setLoading(false);
+      };
+    } else {
+      setUrl("");
+      return () => {
+        setLoading(false);
+      };
     }
-
-    const objUrl = URL.createObjectURL(file);
-    setUrl(objUrl);
-
-    return () => {
-      URL.revokeObjectURL(objUrl);
-      setLoading(false);
-    };
   }, [file, isIframePreviewable]);
 
   const prettySize = useMemo(() => {
