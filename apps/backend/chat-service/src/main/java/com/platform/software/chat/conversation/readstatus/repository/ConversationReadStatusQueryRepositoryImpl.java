@@ -72,7 +72,19 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
                         .and(qConversationReadStatus.user.id.eq(userId)))
                 .fetchOne();
 
-        return new ConversationReadInfo(lastSeenMessageId, null);
+        JPAQuery<Long> countQuery = queryFactory
+                .select(qMessage.count())
+                .from(qMessage)
+                .where(qMessage.conversation.id.eq(conversationId)
+                        .and(qMessage.isUnsend.isFalse()));
+
+        if (lastSeenMessageId != null) {
+            countQuery.where(qMessage.id.gt(lastSeenMessageId));
+        }
+
+        Long unreadCount = countQuery.fetchOne();
+
+        return new ConversationReadInfo(lastSeenMessageId, unreadCount == null ? 0L : unreadCount);
     }
 
     private JPAQuery<ConversationUnreadCount> buildUnreadCountQuery(Long userId) {
