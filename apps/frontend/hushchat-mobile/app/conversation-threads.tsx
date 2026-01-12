@@ -150,7 +150,7 @@ const ConversationThreadScreen = ({
         latestMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
       if (isNewMessage && isMessageListAtBottom) {
-        updateConversation(conversationId, {
+        updateConversation(currentConversationId, {
           unreadCount: 0,
         });
 
