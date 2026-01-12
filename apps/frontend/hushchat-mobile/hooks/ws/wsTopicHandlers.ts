@@ -62,7 +62,7 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
     const message = JSON.parse(body) as IMessage;
     emitMessageUpdated(message);
   },
-  
+
   [WS_TOPICS.message.pinned]: (body) => {
     const pinnedMessage = JSON.parse(body) as MessagePinnedPayload;
     emitMessagePinned(pinnedMessage);
