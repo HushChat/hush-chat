@@ -20,6 +20,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -199,14 +200,19 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
 
     @Override
     @Transactional
-    public long updateParticipantStatusAndRole(Long id, Boolean isActive, ConversationParticipantRoleEnum newRole) {
-        return queryFactory
-            .update(qConversationParticipant)
-            .set(qConversationParticipant.isActive, isActive)
-            .set(qConversationParticipant.role, newRole)
-            .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now())
-            .where(qConversationParticipant.id.eq(id))
-            .execute();
+    public long updateIsActiveById(Long id, Boolean isActive) {
+        JPAUpdateClause updateClause = queryFactory
+                .update(qConversationParticipant)
+                .set(qConversationParticipant.isActive, isActive)
+                .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now());
+
+        if (!isActive) {
+            updateClause.set(qConversationParticipant.role, ConversationParticipantRoleEnum.MEMBER);
+        }
+
+        return updateClause
+                .where(qConversationParticipant.id.eq(id))
+                .execute();
     }
 
     @Override

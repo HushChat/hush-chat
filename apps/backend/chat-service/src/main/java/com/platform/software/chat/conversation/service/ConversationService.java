@@ -798,7 +798,7 @@ public class ConversationService {
         try {
             conversationEventService.createMessageWithConversationEvent(conversationId, userId, List.of(userId), ConversationEventType.USER_LEFT);
 
-            conversationParticipantRepository.updateParticipantStatusAndRole(leavingParticipant.getId(), false, ConversationParticipantRoleEnum.MEMBER);
+            conversationParticipantRepository.updateIsActiveById(leavingParticipant.getId(), false);
         } catch (Exception e) {
             logger.error("user: %s cannot leave the conversation due to an error".formatted(userId), e);
             throw new CustomInternalServerErrorException("Failed to leave the conversation");
@@ -1424,7 +1424,7 @@ public class ConversationService {
                 .chatUserIdByConversationParticipantId(participantIdToRemove);
 
         try {
-            conversationParticipantRepository.updateParticipantStatusAndRole(participantIdToRemove, false, ConversationParticipantRoleEnum.MEMBER);
+            conversationParticipantRepository.updateIsActiveById(participantIdToRemove, false);
 
             conversationEventService.createMessageWithConversationEvent(conversationId, requestingUserId, List.of(chatUserIdToRemove), ConversationEventType.USER_REMOVED);
         } catch (Exception e) {
