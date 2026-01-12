@@ -20,7 +20,7 @@ export default function AuthMobileLayout({
 }: TAuthMobileLayoutProps) {
   // Choose background and logo based on theme
   const bgImage = isDark ? Images.AuthBgDark : Images.AuthBgLight;
-  const logoImage = isDark ? Images.LogoMobileDark : Images.LogoMobileLight; 
+  const logoImage = isDark ? Images.LogoMobileDark : Images.LogoMobileLight;
 
   return (
     <View style={[style.container, { backgroundColor: colors.formBackground }]}>
@@ -44,7 +44,7 @@ export default function AuthMobileLayout({
           contentContainerStyle={style.content}
           showsVerticalScrollIndicator={false}
         >
-          {children}
+          <View style={{ flex: 1 }}>{children}</View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

@@ -22,6 +22,7 @@ export type TLoginFormProps = {
   formErrors: Record<string, string>;
   showErrors: boolean;
   onValueChange: (arg: { name: string; value: string }) => void;
+  stretch?: boolean;
 };
 
 export interface Workspace {

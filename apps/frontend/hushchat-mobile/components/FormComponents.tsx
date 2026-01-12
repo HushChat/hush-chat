@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, ViewStyle, StyleSheet } from "react-native";
+import { View, TouchableOpacity, ViewStyle, StyleSheet, StyleProp } from "react-native";
 import { AuthColors } from "@/types/login/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
@@ -33,6 +33,7 @@ interface LinkTextProps {
 interface FormContainerProps {
   children: React.ReactNode;
   maxWidth?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 const COLORS = {
@@ -96,9 +97,11 @@ export const LinkText: React.FC<LinkTextProps> = ({ text, linkText, onPress, col
   </View>
 );
 
-export const FormContainer: React.FC<FormContainerProps> = ({ children, maxWidth = 400 }) => (
-  <View style={[styles.formContainer, { maxWidth }]}>{children}</View>
-);
+export const FormContainer: React.FC<FormContainerProps> = ({
+  children,
+  maxWidth = 400,
+  style,
+}) => <View style={[styles.formContainer, { maxWidth }, style]}>{children}</View>;
 
 const styles = StyleSheet.create({
   headerContainer: {

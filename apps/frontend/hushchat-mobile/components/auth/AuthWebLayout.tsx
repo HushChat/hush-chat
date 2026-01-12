@@ -47,7 +47,7 @@ export default function AuthWebLayout({ colors, children, isDark = false }: TAut
           contentContainerStyle={s.mobileScrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View>{children}</View>
+          <View style={{ flex: 1 }}>{children}</View>
         </ScrollView>
       </View>
     );
