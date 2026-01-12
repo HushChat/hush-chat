@@ -4,6 +4,7 @@ import { eventBus } from "@/services/eventBus";
 import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
 import { conversationQueryKeys } from "@/constants/queryKeys";
 import { MessagePinnedPayload } from "@/types/ws/types";
+import { ConversationAPIResponse } from "@/types/chat/types";
 
 interface UseMessagePinnedListenerProps {
   loggedInUserId: number;
@@ -21,12 +22,9 @@ export const useMessagePinnedListener = ({ loggedInUserId }: UseMessagePinnedLis
       const { conversationId, pinnedMessage } = payload;
 
       // Get the metadata query key for this conversation
-      const metadataKey = conversationQueryKeys.metaDataById(
-        Number(loggedInUserId),
-        conversationId
-      );
+      const metadataKey = conversationQueryKeys.metaDataById(loggedInUserId, conversationId);
 
-      queryClient.setQueryData(metadataKey, (old: any) => {
+      queryClient.setQueryData(metadataKey, (old: ConversationAPIResponse) => {
         if (!old) return old;
 
         return {
