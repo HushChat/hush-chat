@@ -402,7 +402,7 @@ public class MessageService {
         if (messageIds.size() != forwardedMessageIds.size()) {
             Set<Long> mismatchedMessageIds = new HashSet<>(forwardedMessageIds);
             mismatchedMessageIds.removeAll(messageIds);
-            throw new CustomBadRequestException("cannot identify messages with ids: %s !".formatted(mismatchedMessageIds));
+            throw new CustomBadRequestException("Messages not found!");
         }
 
         Set<Long> conversationIds = messages.stream().map(m -> m.getConversation().getId()).collect(Collectors.toSet());
