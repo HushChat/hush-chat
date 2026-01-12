@@ -32,4 +32,5 @@ export const TOPICS = [
   { destination: WS_TOPICS.message.react, id: "sub-message-reaction" },
   { destination: WS_TOPICS.message.typing, id: "sub-typing-status" },
   { destination: WS_TOPICS.message.read, id: "sub-message-read" },
+  { destination: WS_TOPICS.message.updated, id: "sub-message-updated" },
 ] as const;
