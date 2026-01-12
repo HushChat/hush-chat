@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { eventBus } from "@/services/eventBus";
-// import { TypingIndicator, UserPresence, WebSocketError } from '@/types/ws/types';
+// import { TypingIndicatorPayload, UserPresence, WebSocketError } from '@/types/ws/types';
 import { IConversation, IMessage } from "@/types/chat/types";
 import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
 
@@ -120,7 +120,7 @@ export const useConversationMessages = (conversationId: number) => {
 //       conversationId: typingConversationId,
 //       userId,
 //       isTyping,
-//     }: TypingIndicator) => {
+//     }: TypingIndicatorPayload) => {
 //       if (typingConversationId === conversationId) {
 //         setTypingUsers((prev) => {
 //           if (isTyping) {

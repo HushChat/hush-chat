@@ -126,4 +126,5 @@ export const GIF_API_ENDPOINTS = {
 export const WS_DESTINATIONS = {
   SUBSCRIBED_CONVERSATIONS: "/app/subscribed-conversations",
   TYPING: "/app/typing",
+  HEARTBEAT: "/app/heartbeat",
 };
