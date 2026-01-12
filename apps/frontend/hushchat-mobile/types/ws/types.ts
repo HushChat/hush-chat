@@ -15,15 +15,20 @@ export interface WebSocketMessage {
   };
 }
 
-export interface TypingIndicator {
+export interface TypingIndicatorPayload {
   conversationId: number;
   chatUserName: string;
   typing: boolean;
 }
 
-export interface MessageRead {
+export interface MessageReadPayload {
   conversationId: number;
   lastSeenMessageId: number;
+}
+
+export interface MessagePinnedPayload {
+  conversationId: number;
+  pinnedMessage?: any;
 }
 
 export interface UserPresence {
@@ -90,3 +95,22 @@ export interface MessageReactionPayload {
   previousReactionType?: string | null;
   reactionAction: MessageReactionActionEnum;
 }
+
+export interface ConnectionState {
+  status: WebSocketStatus;
+  reconnectAttempts: number;
+  shouldStopRetrying: boolean;
+  isConnecting: boolean;
+  isCleaningUp: boolean;
+  isIntentionalClose: boolean;
+  lastMessageTime: number;
+}
+export const initialConnectionState: ConnectionState = {
+  status: WebSocketStatus.Disconnected,
+  reconnectAttempts: 0,
+  shouldStopRetrying: false,
+  isConnecting: false,
+  isCleaningUp: false,
+  isIntentionalClose: false,
+  lastMessageTime: 0,
+};
