@@ -5,11 +5,13 @@ import { getAllTokens } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
 import { CONNECTED_RESPONSE, ERROR_RESPONSE, MESSAGE_RESPONSE } from "@/constants/wsConstants";
 import {
+  ConnectionState,
+  initialConnectionState,
   TypingIndicatorWSData,
   UserActivityWSSubscriptionData,
   WebSocketStatus,
 } from "@/types/ws/types";
-import { logDebug, logInfo } from "@/utils/logger";
+import { logDebug, logError, logInfo } from "@/utils/logger";
 import { extractTopicFromMessage, subscribeToTopic, validateToken } from "@/hooks/ws/WSUtilService";
 import { handleMessageByTopic } from "@/hooks/ws/wsTopicHandlers";
 import { TOPICS, WS_URL_PATH } from "@/constants/ws/wsTopics";
@@ -28,13 +30,7 @@ import { useAppVisibility } from "@/hooks/useAppVisibility";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { HEARTBEAT_INTERVAL, useHeartbeat } from "@/hooks/ws/wsHeartbeat";
 import { publishTypingStatus, publishUserActivity } from "@/hooks/ws/wsPublisher";
-
-const INITIAL_RETRY_DELAY = 1000;
-const MAX_RETRY_DELAY = 30000;
-const RETRY_MULTIPLIER = 1.5;
-const MAX_RECONNECT_ATTEMPTS = 50;
-
-const CONNECTION_DEBOUNCE_DELAY = 1000;
+import { CONFIG } from "@/constants/ws/wsConfig";
 
 const encoder = new TextEncoder();
 
@@ -43,98 +39,201 @@ export default function useWebSocketConnection() {
   const isAppActive = useAppVisibility();
   const isNetworkConnected = useNetworkStatus();
   const {
-    user: { email, id },
+    user: { id },
   } = useUserStore();
   const { startHeartbeat, stopHeartbeat, updateLastMessageTime } = useHeartbeat();
 
   // WebSocket reference
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Connection control flags
-  const shouldStopRetryingRef = useRef(false);
-  const isConnectingRef = useRef(false);
-  const isIntentionalCloseRef = useRef(false);
-  const isCleaningUpRef = useRef(false);
-
-  // Reconnection state
-  const reconnectAttemptsRef = useRef(0);
+  // Connection state ref (using ref to avoid stale closures)
+  const stateRef = useRef<ConnectionState>({ ...initialConnectionState });
 
   // Timer references
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heartbeatIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const connectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timersRef = useRef<{
+    reconnect: ReturnType<typeof setTimeout> | null;
+    connectionTimeout: ReturnType<typeof setTimeout> | null;
+    connectionDebounce: ReturnType<typeof setTimeout> | null;
+    healthCheck: ReturnType<typeof setInterval> | null;
+  }>({
+    reconnect: null,
+    connectionTimeout: null,
+    connectionDebounce: null,
+    healthCheck: null,
+  });
 
   // Track previous visibility/network states
   const prevAppActiveRef = useRef<boolean>(isAppActive);
   const prevNetworkConnectedRef = useRef<boolean>(isNetworkConnected);
 
+  // Current workspace ID for reconnection detection
+  const currentWorkspaceRef = useRef<string | null>(null);
+
   const [connectionStatus, setConnectionStatus] = useState<WebSocketStatus>(
     WebSocketStatus.Disconnected
   );
 
-  // Calculate retry delay
+  // Update state helper
+  const updateState = useCallback((updates: Partial<ConnectionState>) => {
+    stateRef.current = { ...stateRef.current, ...updates };
+    if (updates.status !== undefined) {
+      setConnectionStatus(updates.status);
+    }
+  }, []);
+
   const getRetryDelay = useCallback(() => {
+    const attempts = stateRef.current.reconnectAttempts;
     const baseDelay = Math.min(
-      INITIAL_RETRY_DELAY * Math.pow(RETRY_MULTIPLIER, reconnectAttemptsRef.current),
-      MAX_RETRY_DELAY
+      CONFIG.INITIAL_RETRY_DELAY * Math.pow(CONFIG.RETRY_MULTIPLIER, attempts),
+      CONFIG.MAX_RETRY_DELAY
     );
+
+    if (baseDelay >= CONFIG.MAX_RETRY_DELAY) {
+      logInfo("Retry delay capped at maximum");
+    }
+
+    // Add jitter
     const jitter = Math.random() * baseDelay * 0.2;
     return Math.floor(baseDelay + jitter);
   }, []);
 
+  // Clear all timers
   const clearAllTimers = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
+    const timers = timersRef.current;
+
+    if (timers.reconnect) {
+      clearTimeout(timers.reconnect);
+      timers.reconnect = null;
     }
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
-      heartbeatIntervalRef.current = null;
+    if (timers.connectionTimeout) {
+      clearTimeout(timers.connectionTimeout);
+      timers.connectionTimeout = null;
     }
-    if (connectionDebounceRef.current) {
-      clearTimeout(connectionDebounceRef.current);
-      connectionDebounceRef.current = null;
+    if (timers.connectionDebounce) {
+      clearTimeout(timers.connectionDebounce);
+      timers.connectionDebounce = null;
+    }
+    if (timers.healthCheck) {
+      clearInterval(timers.healthCheck);
+      timers.healthCheck = null;
     }
   }, []);
 
-  const closeExistingConnection = useCallback(() => {
-    if (wsRef.current) {
-      isIntentionalCloseRef.current = true;
-      stopHeartbeat();
-      try {
-        if (
-          wsRef.current.readyState === WebSocket.OPEN ||
-          wsRef.current.readyState === WebSocket.CONNECTING
-        ) {
-          wsRef.current.close(1000, "Closing for reconnection");
-        }
-      } catch (error) {
-        logDebug("Error closing existing connection:", error);
-      }
-      wsRef.current = null;
+  // Clean up WebSocket event handlers
+  const cleanupWebSocketHandlers = useCallback((ws: WebSocket | null) => {
+    if (ws) {
+      ws.onopen = null;
+      ws.onmessage = null;
+      ws.onerror = null;
+      ws.onclose = null;
     }
-  }, [stopHeartbeat]);
+  }, []);
+
+  // Close existing connection
+  const closeExistingConnection = useCallback(
+    (reason: string = "Closing connection") => {
+      const ws = wsRef.current;
+      if (ws) {
+        updateState({ isIntentionalClose: true });
+        stopHeartbeat();
+        cleanupWebSocketHandlers(ws);
+
+        try {
+          if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+            ws.close(1000, reason);
+          }
+        } catch (error) {
+          logDebug("Error closing existing connection:", error);
+        }
+        wsRef.current = null;
+      }
+    },
+    [stopHeartbeat, cleanupWebSocketHandlers, updateState]
+  );
+
+  // Store connect function in ref to avoid stale closures in callbacks
+  const connectWebSocketRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Health check function
+  const startHealthCheck = useCallback(() => {
+    if (timersRef.current.healthCheck) {
+      clearInterval(timersRef.current.healthCheck);
+    }
+
+    timersRef.current.healthCheck = setInterval(() => {
+      const state = stateRef.current;
+      const ws = wsRef.current;
+
+      if (ws?.readyState === WebSocket.OPEN) {
+        const timeSinceLastMessage = Date.now() - state.lastMessageTime;
+
+        if (timeSinceLastMessage > CONFIG.STALE_CONNECTION_THRESHOLD) {
+          logInfo("Connection appears stale, reconnecting...");
+          closeExistingConnection("Stale connection");
+          updateState({ reconnectAttempts: 0, isConnecting: false });
+
+          // Trigger reconnection
+          timersRef.current.reconnect = setTimeout(() => {
+            if (!stateRef.current.isCleaningUp && !stateRef.current.shouldStopRetrying) {
+              connectWebSocketRef.current?.();
+            }
+          }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
+        }
+      }
+    }, CONFIG.HEALTH_CHECK_INTERVAL);
+  }, [closeExistingConnection, updateState]);
 
   // Check if we can attempt connection
   const canAttemptConnection = useCallback(() => {
-    if (isCleaningUpRef.current) {
-      logDebug("Cannot connect: cleanup in progress");
+    const state = stateRef.current;
+
+    if (state.isCleaningUp) {
+      logDebug("Cannot connect:  cleanup in progress");
       return false;
     }
-    if (shouldStopRetryingRef.current) {
-      logDebug("Cannot connect: shouldStopRetrying is true");
+    if (state.shouldStopRetrying) {
+      logDebug("Cannot connect:  shouldStopRetrying is true");
       return false;
     }
     if (!isAuthenticated || !isWorkspaceSelected) {
       logDebug("Cannot connect: not authenticated or workspace not selected");
       return false;
     }
-    if (isConnectingRef.current) {
+    if (state.isConnecting) {
       logDebug("Cannot connect: connection already in progress");
       return false;
     }
     return true;
   }, [isAuthenticated, isWorkspaceSelected]);
+
+  // Schedule reconnection with backoff
+  const scheduleReconnect = useCallback(() => {
+    const state = stateRef.current;
+
+    if (state.shouldStopRetrying || !isAuthenticated || state.isCleaningUp) {
+      return;
+    }
+
+    const newAttempts = state.reconnectAttempts + 1;
+    updateState({ reconnectAttempts: newAttempts });
+
+    if (newAttempts > CONFIG.MAX_RECONNECT_ATTEMPTS) {
+      logInfo("Max reconnection attempts reached, stopping");
+      updateState({ shouldStopRetrying: true, status: WebSocketStatus.Error });
+      return;
+    }
+
+    const retryDelay = getRetryDelay();
+    logInfo(
+      `Attempting reconnection ${newAttempts}/${CONFIG.MAX_RECONNECT_ATTEMPTS} in ${retryDelay}ms... `
+    );
+
+    timersRef.current.reconnect = setTimeout(() => {
+      if (!stateRef.current.isCleaningUp && !stateRef.current.shouldStopRetrying) {
+        connectWebSocketRef.current?.();
+      }
+    }, retryDelay);
+  }, [isAuthenticated, getRetryDelay, updateState]);
 
   // Main connection function
   const connectWebSocket = useCallback(async () => {
@@ -143,9 +242,9 @@ export default function useWebSocketConnection() {
     }
 
     // Clear any pending reconnect timeout
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
+    if (timersRef.current.reconnect) {
+      clearTimeout(timersRef.current.reconnect);
+      timersRef.current.reconnect = null;
     }
 
     // Check if already connected
@@ -154,49 +253,79 @@ export default function useWebSocketConnection() {
       return;
     }
 
-    isConnectingRef.current = true;
+    updateState({ isConnecting: true });
 
-    // Close existing connection if any
-    closeExistingConnection();
+    // Close existing connection first, then reset intentional close flag
+    closeExistingConnection("Reconnection");
 
     try {
-      setConnectionStatus(WebSocketStatus.Connecting);
+      updateState({ status: WebSocketStatus.Connecting });
 
       const { idToken, workspace } = await getAllTokens();
       const deviceId = await getDeviceId();
       const deviceType = getDeviceType();
 
-      if (idToken === null) {
+      // Validate required data
+      if (!idToken) {
         logInfo("Aborting WebSocket connection due to missing token");
-        shouldStopRetryingRef.current = true;
-        setConnectionStatus(WebSocketStatus.Error);
-        isConnectingRef.current = false;
+        updateState({
+          shouldStopRetrying: true,
+          status: WebSocketStatus.Error,
+          isConnecting: false,
+        });
         return;
       }
 
       if (!validateToken(idToken)) {
         logInfo("Aborting WebSocket connection due to invalid or expired token");
-        shouldStopRetryingRef.current = true;
-        setConnectionStatus(WebSocketStatus.Error);
-        isConnectingRef.current = false;
+        updateState({
+          shouldStopRetrying: true,
+          status: WebSocketStatus.Error,
+          isConnecting: false,
+        });
         return;
       }
 
-      if (deviceId === null) {
+      if (!deviceId) {
         logInfo("Aborting WebSocket connection due to missing device ID");
-        shouldStopRetryingRef.current = true;
-        setConnectionStatus(WebSocketStatus.Error);
-        isConnectingRef.current = false;
+        updateState({
+          shouldStopRetrying: true,
+          status: WebSocketStatus.Error,
+          isConnecting: false,
+        });
         return;
       }
+
+      currentWorkspaceRef.current = workspace;
 
       const wsUrl = `${getWSBaseURL()}${WS_URL_PATH}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
-      isIntentionalCloseRef.current = false;
+
+      updateState({ isIntentionalClose: false });
+
+      // Set connection timeout
+      timersRef.current.connectionTimeout = setTimeout(() => {
+        if (ws.readyState === WebSocket.CONNECTING) {
+          logInfo("Connection timeout, closing.. .");
+          cleanupWebSocketHandlers(ws);
+          ws.close();
+          updateState({ isConnecting: false });
+
+          // Attempt retry
+          scheduleReconnect();
+        }
+      }, CONFIG.CONNECTION_TIMEOUT);
 
       ws.onopen = () => {
+        // Clear connection timeout
+        if (timersRef.current.connectionTimeout) {
+          clearTimeout(timersRef.current.connectionTimeout);
+          timersRef.current.connectionTimeout = null;
+        }
+
         logInfo("WebSocket connection opened");
+        updateState({ lastMessageTime: Date.now() });
         updateLastMessageTime();
 
         const connectFrameBytes = [
@@ -218,26 +347,31 @@ export default function useWebSocketConnection() {
       };
 
       ws.onmessage = (event) => {
+        updateState({ lastMessageTime: Date.now() });
         updateLastMessageTime();
         logDebug("Received message:", event.data.substring(0, 100));
 
         if (event.data.startsWith(CONNECTED_RESPONSE)) {
           logInfo("STOMP Connected successfully");
-          setConnectionStatus(WebSocketStatus.Connected);
-          reconnectAttemptsRef.current = 0;
-          isConnectingRef.current = false;
+          updateState({
+            status: WebSocketStatus.Connected,
+            reconnectAttempts: 0,
+            isConnecting: false,
+          });
 
-          // Subscribe to all topics first
+          // Subscribe to all topics
           TOPICS.forEach((topic) => {
             subscribeToTopic(ws, topic.destination, topic.id, deviceType);
           });
 
           // Start heartbeat after subscriptions
           startHeartbeat(ws);
+
+          // Start health check
+          startHealthCheck();
         } else if (event.data.startsWith(ERROR_RESPONSE)) {
-          logInfo("STOMP error:", event.data);
-          setConnectionStatus(WebSocketStatus.Error);
-          isConnectingRef.current = false;
+          logError("STOMP error:", event.data);
+          updateState({ status: WebSocketStatus.Error, isConnecting: false });
           stopHeartbeat();
 
           const errorMessage = event.data.toLowerCase();
@@ -248,7 +382,7 @@ export default function useWebSocketConnection() {
             errorMessage.includes("auth")
           ) {
             logInfo("Authentication error detected, stopping reconnection attempts");
-            shouldStopRetryingRef.current = true;
+            updateState({ shouldStopRetrying: true });
           }
         } else if (event.data.startsWith(MESSAGE_RESPONSE)) {
           const lines = event.data.split("\n");
@@ -267,88 +401,68 @@ export default function useWebSocketConnection() {
       };
 
       ws.onerror = (error) => {
-        logInfo("WebSocket error:", error);
-        setConnectionStatus(WebSocketStatus.Error);
-        isConnectingRef.current = false;
+        logError("WebSocket error:", error);
+        updateState({ status: WebSocketStatus.Error, isConnecting: false });
         stopHeartbeat();
       };
 
       ws.onclose = (event) => {
         logInfo("WebSocket closed:", event.code, event.reason);
-        setConnectionStatus(WebSocketStatus.Disconnected);
-        stopHeartbeat();
-        isConnectingRef.current = false;
 
-        if (isIntentionalCloseRef.current || isCleaningUpRef.current) {
+        // Clear connection timeout if still pending
+        if (timersRef.current.connectionTimeout) {
+          clearTimeout(timersRef.current.connectionTimeout);
+          timersRef.current.connectionTimeout = null;
+        }
+
+        updateState({ status: WebSocketStatus.Disconnected, isConnecting: false });
+        stopHeartbeat();
+
+        // Stop health check
+        if (timersRef.current.healthCheck) {
+          clearInterval(timersRef.current.healthCheck);
+          timersRef.current.healthCheck = null;
+        }
+
+        const state = stateRef.current;
+
+        if (state.isIntentionalClose || state.isCleaningUp) {
           logInfo("WebSocket closed intentionally, not reconnecting");
           return;
         }
 
-        // Check for authentication failures - stop all retries
+        // Check for authentication failures
         if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
           logInfo("Connection closed due to authentication failure, stopping all retries");
-          shouldStopRetryingRef.current = true;
+          updateState({ shouldStopRetrying: true });
           return;
         }
 
         // Attempt reconnection
-        if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
-          reconnectAttemptsRef.current++;
-
-          if (reconnectAttemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
-            logInfo("Max reconnection attempts reached, stopping");
-            shouldStopRetryingRef.current = true;
-            setConnectionStatus(WebSocketStatus.Error);
-            return;
-          }
-
-          const retryDelay = getRetryDelay();
-          logInfo(
-            `Attempting reconnection ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS} in ${retryDelay}ms...`
-          );
-
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (!isCleaningUpRef.current && !shouldStopRetryingRef.current) {
-              connectWebSocket();
-            }
-          }, retryDelay);
-        }
+        scheduleReconnect();
       };
     } catch (error) {
-      logInfo("Connection setup error:", error);
-      setConnectionStatus(WebSocketStatus.Error);
-      isConnectingRef.current = false;
+      logError("Connection setup error:", error);
+      updateState({ status: WebSocketStatus.Error, isConnecting: false });
       stopHeartbeat();
-
-      if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
-        reconnectAttemptsRef.current++;
-
-        if (reconnectAttemptsRef.current <= MAX_RECONNECT_ATTEMPTS) {
-          const retryDelay = getRetryDelay();
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (!isCleaningUpRef.current && !shouldStopRetryingRef.current) {
-              connectWebSocket();
-            }
-          }, retryDelay);
-        } else {
-          shouldStopRetryingRef.current = true;
-          setConnectionStatus(WebSocketStatus.Error);
-        }
-      }
+      scheduleReconnect();
     }
   }, [
-    isAuthenticated,
     canAttemptConnection,
+    closeExistingConnection,
+    cleanupWebSocketHandlers,
     startHeartbeat,
     stopHeartbeat,
-    closeExistingConnection,
-    getRetryDelay,
+    startHealthCheck,
+    scheduleReconnect,
     updateLastMessageTime,
+    updateState,
   ]);
+
+  connectWebSocketRef.current = connectWebSocket;
 
   // Handle page visibility changes
   useEffect(() => {
-    // Only trigger on actual state change from inactive to active
     const wasInactive = !prevAppActiveRef.current;
     const isNowActive = isAppActive;
     prevAppActiveRef.current = isAppActive;
@@ -361,32 +475,41 @@ export default function useWebSocketConnection() {
       return;
     }
 
-    // Don't reconnect if we stopped retrying (auth failure)
-    if (shouldStopRetryingRef.current || isCleaningUpRef.current) {
-      logDebug("Skipping visibility reconnect: shouldStopRetrying is true");
+    const state = stateRef.current;
+    if (state.shouldStopRetrying || state.isCleaningUp) {
+      logDebug("Skipping visibility reconnect:  shouldStopRetrying is true");
       return;
     }
 
     const needsReconnection = !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN;
 
-    if (needsReconnection && connectionStatus !== WebSocketStatus.Connecting) {
+    if (needsReconnection && state.status !== WebSocketStatus.Connecting) {
       logInfo("Reconnecting WebSocket after page became visible");
 
-      // Clear any existing debounce
-      if (connectionDebounceRef.current) {
-        clearTimeout(connectionDebounceRef.current);
+      if (timersRef.current.connectionDebounce) {
+        clearTimeout(timersRef.current.connectionDebounce);
       }
 
-      connectionDebounceRef.current = setTimeout(() => {
-        if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
-          reconnectAttemptsRef.current = 0;
-          connectWebSocket();
+      timersRef.current.connectionDebounce = setTimeout(() => {
+        const currentState = stateRef.current;
+        if (!currentState.shouldStopRetrying && isAuthenticated && !currentState.isCleaningUp) {
+          updateState({ reconnectAttempts: 0 });
+          connectWebSocketRef.current?.();
         }
-      }, CONNECTION_DEBOUNCE_DELAY);
+      }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
     }
-  }, [isAppActive, isAuthenticated, connectionStatus, connectWebSocket]);
+  }, [isAppActive, isAuthenticated, updateState]);
 
-  // Handle online/offline
+  // Pause/resume heartbeat based on visibility
+  useEffect(() => {
+    if (!isAppActive && wsRef.current?.readyState === WebSocket.OPEN) {
+      stopHeartbeat();
+    } else if (isAppActive && wsRef.current?.readyState === WebSocket.OPEN) {
+      startHeartbeat(wsRef.current);
+    }
+  }, [isAppActive, startHeartbeat, stopHeartbeat]);
+
+  // Handle network status changes
   useEffect(() => {
     const wasOffline = !prevNetworkConnectedRef.current;
     const isNowOnline = isNetworkConnected;
@@ -394,36 +517,21 @@ export default function useWebSocketConnection() {
 
     if (!isNowOnline) {
       logInfo("Network connection lost");
-      setConnectionStatus(WebSocketStatus.Disconnected);
+      updateState({ status: WebSocketStatus.Disconnected });
 
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
+      // Clear pending timers
+      if (timersRef.current.reconnect) {
+        clearTimeout(timersRef.current.reconnect);
+        timersRef.current.reconnect = null;
       }
 
-      if (connectionDebounceRef.current) {
-        clearTimeout(connectionDebounceRef.current);
-        connectionDebounceRef.current = null;
+      if (timersRef.current.connectionDebounce) {
+        clearTimeout(timersRef.current.connectionDebounce);
+        timersRef.current.connectionDebounce = null;
       }
 
-      if (wsRef.current) {
-        isIntentionalCloseRef.current = true;
-        stopHeartbeat();
-        try {
-          if (
-            wsRef.current.readyState === WebSocket.OPEN ||
-            wsRef.current.readyState === WebSocket.CONNECTING
-          ) {
-            wsRef.current.close(1000, "Network lost");
-          }
-        } catch (error) {
-          logDebug("Error closing connection on network loss:", error);
-        }
-        wsRef.current = null;
-      }
-
-      isConnectingRef.current = false;
-
+      closeExistingConnection("Network lost");
+      updateState({ isConnecting: false });
       return;
     }
 
@@ -432,55 +540,90 @@ export default function useWebSocketConnection() {
         return;
       }
 
-      if (shouldStopRetryingRef.current || isCleaningUpRef.current) {
+      const state = stateRef.current;
+      if (state.shouldStopRetrying || state.isCleaningUp) {
         logDebug("Skipping network reconnect: shouldStopRetrying is true");
         return;
       }
 
       logInfo("Network connection restored, reconnecting WebSocket");
 
-      if (connectionDebounceRef.current) {
-        clearTimeout(connectionDebounceRef.current);
+      if (timersRef.current.connectionDebounce) {
+        clearTimeout(timersRef.current.connectionDebounce);
       }
 
-      connectionDebounceRef.current = setTimeout(() => {
-        if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
-          reconnectAttemptsRef.current = 0;
-          isConnectingRef.current = false;
-          connectWebSocket();
+      timersRef.current.connectionDebounce = setTimeout(() => {
+        const currentState = stateRef.current;
+        if (!currentState.shouldStopRetrying && isAuthenticated && !currentState.isCleaningUp) {
+          updateState({ reconnectAttempts: 0, isConnecting: false });
+          connectWebSocketRef.current?.();
         }
-      }, CONNECTION_DEBOUNCE_DELAY);
+      }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
     }
-  }, [isNetworkConnected, isAuthenticated, connectWebSocket, stopHeartbeat]);
+  }, [isNetworkConnected, isAuthenticated, closeExistingConnection, updateState]);
+
+  // Handle workspace changes
+  useEffect(() => {
+    const checkWorkspaceChange = async () => {
+      if (!isAuthenticated || !isWorkspaceSelected) {
+        return;
+      }
+
+      try {
+        const { workspace } = await getAllTokens();
+
+        if (currentWorkspaceRef.current && currentWorkspaceRef.current !== workspace) {
+          logInfo("Workspace changed, reconnecting WebSocket.. .");
+          closeExistingConnection("Workspace changed");
+          updateState({ reconnectAttempts: 0, isConnecting: false, shouldStopRetrying: false });
+
+          timersRef.current.connectionDebounce = setTimeout(() => {
+            connectWebSocketRef.current?.();
+          }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
+        }
+      } catch (error) {
+        logDebug("Error checking workspace change:", error);
+      }
+    };
+
+    checkWorkspaceChange();
+  }, [isAuthenticated, isWorkspaceSelected, closeExistingConnection, updateState]);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setConnectionStatus(WebSocketStatus.Disconnected);
-      shouldStopRetryingRef.current = true;
-      isConnectingRef.current = false;
-      isCleaningUpRef.current = true;
+      updateState({
+        status: WebSocketStatus.Disconnected,
+        shouldStopRetrying: true,
+        isConnecting: false,
+        isCleaningUp: true,
+      });
       clearAllTimers();
-      closeExistingConnection();
-      isCleaningUpRef.current = false;
+      closeExistingConnection("Authentication lost");
+      updateState({ isCleaningUp: false });
       return;
     }
 
     // Reset state for new authentication
-    shouldStopRetryingRef.current = false;
-    reconnectAttemptsRef.current = 0;
-    isConnectingRef.current = false;
-    isCleaningUpRef.current = false;
+    updateState({
+      shouldStopRetrying: false,
+      reconnectAttempts: 0,
+      isConnecting: false,
+      isCleaningUp: false,
+    });
+
     connectWebSocket();
 
     return () => {
-      isCleaningUpRef.current = true;
-      shouldStopRetryingRef.current = true;
-      isConnectingRef.current = false;
+      updateState({
+        isCleaningUp: true,
+        shouldStopRetrying: true,
+        isConnecting: false,
+      });
       clearAllTimers();
-      closeExistingConnection();
-      setConnectionStatus(WebSocketStatus.Disconnected);
+      closeExistingConnection("Component unmount");
+      updateState({ status: WebSocketStatus.Disconnected });
     };
-  }, [email, isAuthenticated, connectWebSocket, clearAllTimers, closeExistingConnection]);
+  }, [isAuthenticated, connectWebSocket, clearAllTimers, closeExistingConnection, updateState]);
 
   // Publish user activity
   const publishActivity = useCallback(
@@ -519,24 +662,37 @@ export default function useWebSocketConnection() {
         return false;
       }
 
-      const userId = id;
-
-      if (!userId) {
-        logInfo("Cannot publish typing: missing workspaceId or userId");
+      if (!id) {
+        logInfo("Cannot publish typing: missing userId");
         return false;
       }
 
       return publishTypingStatus(wsRef.current, {
         ...data,
-        userId,
+        userId: id,
       });
     },
     [connectionStatus, id]
   );
 
+  const forceReconnect = useCallback(() => {
+    logInfo("Force reconnect requested");
+    updateState({
+      shouldStopRetrying: false,
+      reconnectAttempts: 0,
+      isConnecting: false,
+    });
+    closeExistingConnection("Force reconnect");
+
+    setTimeout(() => {
+      connectWebSocketRef.current?.();
+    }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
+  }, [closeExistingConnection, updateState]);
+
   return {
     connectionStatus,
     publishActivity,
     publishTyping,
+    forceReconnect,
   };
 }
