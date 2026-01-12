@@ -176,7 +176,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     return () => {
       eventBus.off(WEBSOCKET_EVENTS.MESSAGE, handleIncomingWebSocketConversation);
     };
-  }, []);
+  }, [loggedInUserId]);
 
   /**
    * Conversation created listener (group added / new group)
