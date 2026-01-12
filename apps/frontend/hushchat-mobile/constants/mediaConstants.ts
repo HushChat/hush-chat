@@ -1,5 +1,3 @@
-export const ACCEPT_IMAGE_TYPES = "image/*";
-export const ACCEPT_VIDEO_TYPES = "video/*";
 export const ACCEPT_DOC_TYPES = "*";
 
 export const MAX_IMAGE_SIZE_KB = 5 * 1024; // 5MB

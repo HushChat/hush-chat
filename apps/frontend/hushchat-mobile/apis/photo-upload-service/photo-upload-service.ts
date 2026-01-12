@@ -304,7 +304,7 @@ export function useMessageAttachmentUploader(
     const skipped: UploadResult[] = [];
 
     for (const { file, caption } of filesWithCaptions) {
-      const category = getFileType(file.type, file.name);
+      const category = getFileType(file.type);
 
       const maxSize = sizeMap[category];
       const fileSizeKB = file.size / 1024;
