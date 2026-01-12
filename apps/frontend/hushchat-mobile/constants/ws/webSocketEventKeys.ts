@@ -24,6 +24,7 @@ export const CONVERSATION_EVENTS = {
   CREATED: "conversation:created",
   MESSAGE_UNSENT: "conversation:messageUnsent",
   MESSAGE_REACTION: "conversation:messageReaction",
+  MESSAGE_PINNED: "conversation:messagePinned",
   MESSAGE_UPDATED: "conversation:messageUpdated",
 } as const;
 
