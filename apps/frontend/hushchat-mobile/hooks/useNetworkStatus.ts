@@ -9,8 +9,6 @@ export function useNetworkStatus(): boolean {
   const [isConnected, setIsConnected] = useState<boolean>(true);
 
   const handleNetworkChange = useCallback((state: NetInfoState) => {
-    // For mobile:  use isConnected
-    // For web:  isConnected might be null, so also check isInternetReachable
     const connected = state.isConnected ?? true;
     const reachable = state.isInternetReachable ?? true;
 
