@@ -123,8 +123,8 @@ export const ConversationMessageItem = ({
     x: 0,
     y: 0,
   });
-  const [showMentionProfileModal, setShowMentionProfileModal] = useState(false);
-  const [selectedMentionUser, setSelectedMentionUser] = useState<TUser | null>(null);
+  const [showProfilePreviewModal, setShowProfilePreviewModal] = useState(false);
+  const [selectedPreviewUser, setSelectedPreviewUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
@@ -259,7 +259,7 @@ export const ConversationMessageItem = ({
         action: () => webMessageInfoPress && webMessageInfoPress(message.id),
       });
 
-      if (canEdit) {
+      if (canEdit && !isForwardedMessage) {
         options.push({
           id: 6,
           name: "Edit Message",
@@ -339,7 +339,9 @@ export const ConversationMessageItem = ({
 
   const handleMessageMentionedUser = useCallback(
     (user: TUser) => {
-      setShowMentionProfileModal(false);
+      if (currentUserId === String(user.id)) return;
+
+      setShowProfilePreviewModal(false);
       createConversation(user.id);
     },
     [createConversation]
@@ -436,9 +438,27 @@ export const ConversationMessageItem = ({
   );
 
   const handleMentionClick = useCallback((user: TUser) => {
-    setSelectedMentionUser(user);
-    setShowMentionProfileModal(true);
+    if (currentUserId === String(user.id)) return;
+
+    setSelectedPreviewUser(user);
+    setShowProfilePreviewModal(true);
   }, []);
+
+  const handleNamePress = useCallback(() => {
+    if (!message.senderId || String(message.senderId) === currentUserId) return;
+
+    const senderAsUser: TUser = {
+      id: Number(message.senderId),
+      username: "",
+      email: "",
+      firstName: message.senderFirstName || "",
+      lastName: message.senderLastName || "",
+      signedImageUrl: message.senderSignedImageUrl || "",
+    };
+
+    setSelectedPreviewUser(senderAsUser);
+    setShowProfilePreviewModal(true);
+  }, [message, currentUserId]);
 
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
@@ -482,6 +502,7 @@ export const ConversationMessageItem = ({
                 name={senderName}
                 size={AvatarSize.extraSmall}
                 imageUrl={message.senderSignedImageUrl}
+                onPress={handleNamePress}
               />
             </View>
           ) : isGroupChat ? (
@@ -501,15 +522,13 @@ export const ConversationMessageItem = ({
               onOpenMenu={openWebMenuAtEvent}
               messageText={message.messageText}
               isRead={message.isReadByEveryone}
+              onClickSendernName={handleNamePress}
             />
 
             {renderParentMessage()}
 
             <View className={isCurrentUser ? "self-end" : "self-start"}>
-              <MessageHighlightWrapper
-                isHighlighted={message.id === targetMessageId}
-                glowColor="#3B82F6"
-              >
+              <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
                   isCurrentUser={isCurrentUser}
@@ -542,9 +561,12 @@ export const ConversationMessageItem = ({
             />
 
             <MentionProfileModal
-              visible={showMentionProfileModal}
-              user={selectedMentionUser}
-              onClose={() => setShowMentionProfileModal(false)}
+              visible={showProfilePreviewModal}
+              user={selectedPreviewUser}
+              onClose={() => {
+                setShowProfilePreviewModal(false);
+                setSelectedPreviewUser(null);
+              }}
               onMessagePress={handleMessageMentionedUser}
             />
           </View>

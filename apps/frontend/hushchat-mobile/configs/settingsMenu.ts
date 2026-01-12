@@ -27,7 +27,7 @@ const baseMenuItems: TMenuItem[] = [
     key: "invite",
     label: "Invite",
     icon: "person-add",
-    allowedRoles: ALL_ROLES,
+    allowedRoles: [WorkspaceUserRole.ADMIN],
   },
 ];
 

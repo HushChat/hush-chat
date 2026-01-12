@@ -6,6 +6,7 @@ import FileList from "./FileList";
 import FilePreviewPane from "./FilePreviewPane";
 import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
 import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
+import { usePasteHandler } from "@/hooks/usePasteHandler";
 
 export type FileWithCaption = {
   file: File;
@@ -41,6 +42,7 @@ const FilePreviewOverlay = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [captions, setCaptions] = useState<Map<number, string>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const captionInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setCaptions((prev) => {
@@ -64,6 +66,19 @@ const FilePreviewOverlay = ({
       setSelectedIndex(Math.max(0, files.length - 1));
     }
   }, [files.length, selectedIndex]);
+
+  const handlePasteFilesInPreview = useCallback(
+    (newFiles: File[]) => {
+      onFileSelect(newFiles);
+    },
+    [onFileSelect]
+  );
+
+  usePasteHandler({
+    enabled: true,
+    onPasteFiles: handlePasteFilesInPreview,
+    inputRef: captionInputRef,
+  });
 
   const handleCaptionChange = useCallback(
     (text: string) => {
@@ -154,6 +169,7 @@ const FilePreviewOverlay = ({
           isGroupChat={isGroupChat}
           replyToMessage={replyToMessage}
           onCancelReply={onCancelReply}
+          inputRef={captionInputRef}
         />
       </View>
 

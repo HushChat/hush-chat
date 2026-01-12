@@ -7,14 +7,11 @@ import BackButton from "@/components/BackButton";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Image } from "expo-image";
 
 interface MessageInfoProps {
   conversationId: number;
   messageId: number;
 }
-
-const SIZE = 40;
 
 export default function MessageInfoPanel({ conversationId, messageId }: MessageInfoProps) {
   const router = useRouter();
@@ -51,18 +48,11 @@ export default function MessageInfoPanel({ conversationId, messageId }: MessageI
 
   const renderParticipant = ({ item }: { item: TUser }) => (
     <View className="flex-row items-center px-4 py-3">
-      {!item.signedImageUrl ? (
-        <Image
-          source={{ uri: item.signedImageUrl }}
-          style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2 }}
-          className="bg-gray-200"
-          contentFit="cover"
-          transition={200}
-          cachePolicy="memory-disk"
-        />
-      ) : (
-        <InitialsAvatar name={`${item.firstName ?? ""} ${item.lastName}`} size="md" />
-      )}
+      <InitialsAvatar
+        name={`${item.firstName ?? ""} ${item.lastName}`}
+        size="sm"
+        imageUrl={item.signedImageUrl}
+      />
 
       <View className="ml-3 flex-1">
         <AppText className="text-2xl font-medium text-gray-900 dark:text-gray-100">

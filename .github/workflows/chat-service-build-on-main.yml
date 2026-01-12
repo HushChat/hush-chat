@@ -62,6 +62,10 @@ jobs:
       TENOR_API_KEY: ${{ vars.TENOR_API_KEY }}
       TENOR_API_BASE_URL: ${{ vars.TENOR_API_BASE_URL }}
 
+      #Ratelimit
+      RATE_LIMITING_ENABLED: ${{ vars.RATE_LIMITING_ENABLED }}
+      RATE_LIMITING_REQUESTS_PER_MINUTE: ${{ vars.RATE_LIMITING_REQUESTS_PER_MINUTE }}
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -73,6 +77,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: Set up Node.js + Install dependencies
         uses: ./.github/actions/setup-node-yarn-install

@@ -9,7 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { AppText } from "@/components/AppText";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 import { VideoPlayer } from "./ImageGrid/VideoPlayer";
 import { LocalFile } from "@/hooks/useNativePickerUpload";
 import { colorScheme } from "nativewind";
