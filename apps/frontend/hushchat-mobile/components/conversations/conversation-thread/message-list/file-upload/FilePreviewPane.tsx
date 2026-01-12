@@ -48,7 +48,7 @@ const FilePreviewPane = ({
   useEffect(() => {
     if (!file) return;
 
-    const type = getFileType(file.type, file.name);
+    const type = getFileType(file.name);
     setFileType(type);
 
     if (isIframePreviewable) {

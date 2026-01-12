@@ -13,7 +13,7 @@ export const useFileGrid = (attachments: IMessageAttachment[]) => {
 
     for (const att of attachments) {
       const fileName = att.originalFileName || att.indexedFileName || "";
-      const type = getFileType(undefined, fileName);
+      const type = getFileType(fileName);
 
       if (type === "image") imgs.push(att);
       else if (type === "video") vids.push(att);
