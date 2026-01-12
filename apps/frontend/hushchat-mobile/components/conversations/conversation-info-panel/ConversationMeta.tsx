@@ -42,6 +42,9 @@ const ConversationMeta = ({
           <AppText
             className="text-gray-600 dark:text-text-secondary-dark text-sm"
             numberOfLines={1}
+            style={{
+              fontFamily: "Poppins-Regular, OpenMoji-Color",
+            }}
           >
             GIF
           </AppText>
@@ -54,6 +57,11 @@ const ConversationMeta = ({
         <AppText
           className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
           numberOfLines={1}
+          style={{
+            fontFamily: PLATFORM.IS_WEB
+              ? "Poppins-Regular, OpenMoji-Color"
+              : "OpenMoji-Color, Poppins-Regular",
+          }}
         >
           {messageContent}
         </AppText>

@@ -29,6 +29,7 @@ export default function RootLayout() {
 
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
+    "OpenMoji-Color": require("../assets/fonts/OpenMoji-color-colr0_svg.ttf"),
   });
   const queryClient = createQueryClient();
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
