@@ -1,6 +1,7 @@
 import { WS_TOPICS, WSTopic } from "@/constants/ws/wsTopics";
 import {
   emitConversationCreated,
+  emitMessagePinned,
   emitMessageReaction,
   emitMessageRead,
   emitMessageUnsent,
@@ -13,8 +14,9 @@ import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
 import {
   MessageReactionPayload,
   MessageUnsentPayload,
-  MessageRead,
-  TypingIndicator,
+  MessageReadPayload,
+  TypingIndicatorPayload,
+  MessagePinnedPayload,
 } from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 
@@ -47,18 +49,23 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
   },
 
   [WS_TOPICS.message.typing]: (body) => {
-    const typingStatus = JSON.parse(body) as TypingIndicator;
+    const typingStatus = JSON.parse(body) as TypingIndicatorPayload;
     emitUserTyping(typingStatus);
   },
 
   [WS_TOPICS.message.read]: (body) => {
-    const readStatus = JSON.parse(body) as MessageRead;
+    const readStatus = JSON.parse(body) as MessageReadPayload;
     emitMessageRead(readStatus);
   },
 
   [WS_TOPICS.message.updated]: (body) => {
     const message = JSON.parse(body) as IMessage;
     emitMessageUpdated(message);
+  },
+
+  [WS_TOPICS.message.pinned]: (body) => {
+    const pinnedMessage = JSON.parse(body) as MessagePinnedPayload;
+    emitMessagePinned(pinnedMessage);
   },
 };
 

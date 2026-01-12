@@ -29,10 +29,11 @@ import {
   MessageUnsentPayload,
 } from "@/types/ws/types";
 import { useMessageReadListener } from "@/hooks/useMessageReadListener";
+import { useMessagePinnedListener } from "@/hooks/useMessagePinnedListener";
 
 const PAGE_SIZE = 20;
 
-interface PaginatedResult<T> {
+export interface PaginatedResult<T> {
   content: T[];
   last?: boolean;
   totalElements?: number;
@@ -66,7 +67,15 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     user: { id: loggedInUserId, email },
   } = useUserStore();
 
+  /**
+   * Message read listener to update read status in messages
+   */
   useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
+
+  /**
+   * Message pinned listener to update pinned message in conversation metadata
+   */
+  useMessagePinnedListener({ loggedInUserId: Number(loggedInUserId) });
 
   const conversationsQueryKey = useMemo(
     () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
@@ -167,7 +176,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     return () => {
       eventBus.off(WEBSOCKET_EVENTS.MESSAGE, handleIncomingWebSocketConversation);
     };
-  }, []);
+  }, [loggedInUserId]);
 
   /**
    * Conversation created listener (group added / new group)
