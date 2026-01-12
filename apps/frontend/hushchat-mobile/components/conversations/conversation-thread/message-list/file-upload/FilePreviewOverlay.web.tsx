@@ -4,9 +4,9 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { MAX_FILES, validateFiles } from "@/utils/fileValidation";
 import FileList from "./FileList";
 import FilePreviewPane from "./FilePreviewPane";
-import { ACCEPT_FILE_TYPES } from "@/constants/mediaConstants";
 import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 import { usePasteHandler } from "@/hooks/usePasteHandler";
+import { ACCEPT_DOC_TYPES } from "@/constants/mediaConstants";
 
 export type FileWithCaption = {
   file: File;
@@ -185,7 +185,7 @@ const FilePreviewOverlay = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept={ACCEPT_FILE_TYPES}
+        accept={ACCEPT_DOC_TYPES}
         multiple
         style={styles.hiddenInput}
         onChange={onHiddenPickerChange}
