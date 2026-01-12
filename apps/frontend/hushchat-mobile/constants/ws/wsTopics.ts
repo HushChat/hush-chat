@@ -9,6 +9,7 @@ export const WS_TOPICS = {
     typing: "/topic/typing-status/",
     read: "/topic/message-read/",
     pinned: "/topic/message-pinned/",
+    updated: "/topic/message-updated/",
   },
   user: {
     onlineStatus: "/topic/online-status/",

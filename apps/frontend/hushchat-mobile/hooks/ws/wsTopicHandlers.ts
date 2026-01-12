@@ -8,8 +8,9 @@ import {
   emitNewMessage,
   emitUserStatus,
   emitUserTyping,
+  emitMessageUpdated,
 } from "@/services/eventBus";
-import { IConversation, IUserStatus } from "@/types/chat/types";
+import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
 import {
   MessageReactionPayload,
   MessageUnsentPayload,
@@ -57,6 +58,11 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
     emitMessageRead(readStatus);
   },
 
+  [WS_TOPICS.message.updated]: (body) => {
+    const message = JSON.parse(body) as IMessage;
+    emitMessageUpdated(message);
+  },
+  
   [WS_TOPICS.message.pinned]: (body) => {
     const pinnedMessage = JSON.parse(body) as MessagePinnedPayload;
     emitMessagePinned(pinnedMessage);

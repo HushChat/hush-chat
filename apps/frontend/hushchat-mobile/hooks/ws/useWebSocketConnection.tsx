@@ -45,6 +45,7 @@ const TOPICS = [
   { destination: WS_TOPICS.message.typing, id: "sub-typing-status" },
   { destination: WS_TOPICS.message.read, id: "sub-message-read" },
   { destination: WS_TOPICS.message.pinned, id: "sub-message-pinned" },
+  { destination: WS_TOPICS.message.updated, id: "sub-message-updated" },
 ] as const;
 
 const encoder = new TextEncoder();

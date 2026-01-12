@@ -8,7 +8,7 @@ import {
   MessageReadPayload,
   MessagePinnedPayload,
 } from "@/types/ws/types";
-import { IConversation, IUserStatus } from "@/types/chat/types";
+import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
 import {
   CALL_EVENTS,
   CONVERSATION_EVENTS,
@@ -42,6 +42,7 @@ export type WebSocketEvents = {
   [CONVERSATION_EVENTS.MESSAGE_UNSENT]: MessageUnsentPayload;
   [CONVERSATION_EVENTS.MESSAGE_REACTION]: MessageReactionPayload;
   [CONVERSATION_EVENTS.MESSAGE_PINNED]: MessagePinnedPayload;
+  [CONVERSATION_EVENTS.MESSAGE_UPDATED]: IMessage;
 
   // User presence events
   [USER_EVENTS.PRESENCE]: IUserStatus;
@@ -102,6 +103,10 @@ export const emitUserTyping = (typingIndicator: TypingIndicatorPayload) => {
 
 export const emitMessageRead = (readStatus: MessageReadPayload) => {
   eventBus.emit(CONVERSATION_EVENTS.MESSAGE_READ, readStatus);
+};
+
+export const emitMessageUpdated = (message: IMessage) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_UPDATED, message);
 };
 
 export const emitMessagePinned = (pinnedMessage: MessagePinnedPayload) => {

@@ -41,5 +41,8 @@ public final class WebSocketTopicConstants {
 
     /** Message pinned event */
     public static final String MESSAGE_PINNED = "/topic/message-pinned/";
+  
+    /** Message updated event */
+    public static final String MESSAGE_UPDATED = "/topic/message-updated/";
 
 }

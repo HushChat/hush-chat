@@ -25,6 +25,7 @@ export const CONVERSATION_EVENTS = {
   MESSAGE_UNSENT: "conversation:messageUnsent",
   MESSAGE_REACTION: "conversation:messageReaction",
   MESSAGE_PINNED: "conversation:messagePinned",
+  MESSAGE_UPDATED: "conversation:messageUpdated",
 } as const;
 
 export const USER_EVENTS = {

@@ -108,13 +108,12 @@ public class MessagePublisherService {
                         return;
 
                     ConversationDTO payload = getConversationDTO(participant, conversationDTO);
-                    if (payload.getImageIndexedName() != null && !payload.getImageIndexedName().isBlank()) {
-                        payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
-                                payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE ,
-                                MediaSizeEnum.MEDIUM,
-                                payload.getImageIndexedName())
-                        );
-                    }
+
+                    payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.MEDIUM,
+                            payload.getImageIndexedName())
+                    );
 
                     webSocketSessionManager.sendMessageToUser(
                             workspaceId,
@@ -263,6 +262,36 @@ public class MessagePublisherService {
                         payload));
     }
 
+    /**
+      * Notify conversation participants in real time when a message is updated.
+      * @param conversationId the conversation ID
+      * @param messageViewDTO the updated message view DTO
+      * @param actorUserId    the user ID who updated the message
+      * @param workspaceId    the workspace identifier
+      */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageUpdatedToParticipants(
+            Long conversationId,
+            MessageViewDTO messageViewDTO,
+            Long actorUserId,
+            String workspaceId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(
+                conversationId,
+                actorUserId);
+
+        participants.stream()
+                        .filter(p -> p.getId() != null)
+                        .map(ChatUser::getEmail)
+                        .filter(email -> email != null && !email.isBlank())
+                        .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                                workspaceId,
+                                email,
+                                WebSocketTopicConstants.MESSAGE_UPDATED,
+                                messageViewDTO));
+        }
+  
     /**
      * Notify conversation participants in real time when a message is pinned.
      * <p>

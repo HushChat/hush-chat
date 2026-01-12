@@ -6,6 +6,7 @@ import com.platform.software.chat.message.dto.MessagePinEvent;
 import com.platform.software.chat.message.dto.MessageReactionEvent;
 import com.platform.software.chat.message.dto.MessageUnsentEvent;
 import com.platform.software.chat.message.dto.MessageCreatedEvent;
+import com.platform.software.chat.message.dto.MessageUpdatedEvent;
 import com.platform.software.chat.notification.service.ChatNotificationService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -91,6 +92,16 @@ public class ChatEventListener {
         );
     }
 
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onMessageUpdated(MessageUpdatedEvent event) {
+        messagePublisherService.invokeMessageUpdatedToParticipants(
+                event.getConversationId(),
+                event.getMessageViewDTO(),
+                event.getActorUserId(),
+                event.getWorkspaceId());
+    }
+  
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onMessagePin(MessagePinEvent event){
