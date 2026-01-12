@@ -147,11 +147,20 @@ export function useConversationMessagesQuery(conversationId: number) {
 
               if (conversationIndex === -1) return page;
 
-              // if conversation is found, do not invalidate cache
               found = true;
 
+              const existingConversation = page.content[conversationIndex];
+              const existingLastMessage = existingConversation.messages?.[0];
+
+              const shouldUpdateMessage =
+                !existingLastMessage || newMessage.id === existingLastMessage.id;
+
+              if (!shouldUpdateMessage) {
+                return page;
+              }
+
               const updatedConversation: IConversation = {
-                ...page.content[conversationIndex],
+                ...existingConversation,
                 messages: [newMessage],
               };
 
