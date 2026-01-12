@@ -35,17 +35,17 @@ async function getTokens() {
           note: user.note || user.email,
           token: data.idToken,
         });
-        console.log(`✓ Logged in: ${user.email}`);
+        console.log(`Logged in: ${user.email}`);
       } else {
-        console.error(`✗ No token found for ${user.email}`);
+        console.error(`No token found for ${user.email}`);
       }
     } catch (error) {
-      console.error(`✗ Error logging in ${user.email}:`, error.message);
+      console.error(`Error logging in ${user.email}:`, error.message);
     }
   }
 
   fs.writeFileSync("tokens.json", JSON.stringify(validTokens, null, 2));
-  console.log(`\nSaved ${validTokens.length} tokens to tokens.json`);
+  console.log(`Saved ${validTokens.length} tokens to tokens.json`);
 }
 
 getTokens();
