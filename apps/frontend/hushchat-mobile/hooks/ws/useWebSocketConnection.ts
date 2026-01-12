@@ -34,7 +34,7 @@ const MAX_RETRY_DELAY = 30000;
 const RETRY_MULTIPLIER = 1.5;
 const MAX_RECONNECT_ATTEMPTS = 50;
 
-const CONNECTION_DEBOUNCE_DELAY = 500;
+const CONNECTION_DEBOUNCE_DELAY = 1000;
 
 const encoder = new TextEncoder();
 
@@ -54,6 +54,7 @@ export default function useWebSocketConnection() {
   const shouldStopRetryingRef = useRef(false);
   const isConnectingRef = useRef(false);
   const isIntentionalCloseRef = useRef(false);
+  const isCleaningUpRef = useRef(false);
 
   // Reconnection state
   const reconnectAttemptsRef = useRef(0);
@@ -99,19 +100,29 @@ export default function useWebSocketConnection() {
   const closeExistingConnection = useCallback(() => {
     if (wsRef.current) {
       isIntentionalCloseRef.current = true;
+      stopHeartbeat();
       try {
-        wsRef.current.close(1000, "Closing for reconnection");
+        if (
+          wsRef.current.readyState === WebSocket.OPEN ||
+          wsRef.current.readyState === WebSocket.CONNECTING
+        ) {
+          wsRef.current.close(1000, "Closing for reconnection");
+        }
       } catch (error) {
         logDebug("Error closing existing connection:", error);
       }
       wsRef.current = null;
     }
-  }, []);
+  }, [stopHeartbeat]);
 
   // Check if we can attempt connection
   const canAttemptConnection = useCallback(() => {
+    if (isCleaningUpRef.current) {
+      logDebug("Cannot connect: cleanup in progress");
+      return false;
+    }
     if (shouldStopRetryingRef.current) {
-      logDebug("Cannot connect:  shouldStopRetrying is true");
+      logDebug("Cannot connect: shouldStopRetrying is true");
       return false;
     }
     if (!isAuthenticated || !isWorkspaceSelected) {
@@ -227,6 +238,7 @@ export default function useWebSocketConnection() {
           logInfo("STOMP error:", event.data);
           setConnectionStatus(WebSocketStatus.Error);
           isConnectingRef.current = false;
+          stopHeartbeat();
 
           const errorMessage = event.data.toLowerCase();
           if (
@@ -237,7 +249,6 @@ export default function useWebSocketConnection() {
           ) {
             logInfo("Authentication error detected, stopping reconnection attempts");
             shouldStopRetryingRef.current = true;
-            stopHeartbeat();
           }
         } else if (event.data.startsWith(MESSAGE_RESPONSE)) {
           const lines = event.data.split("\n");
@@ -259,6 +270,7 @@ export default function useWebSocketConnection() {
         logInfo("WebSocket error:", error);
         setConnectionStatus(WebSocketStatus.Error);
         isConnectingRef.current = false;
+        stopHeartbeat();
       };
 
       ws.onclose = (event) => {
@@ -267,7 +279,7 @@ export default function useWebSocketConnection() {
         stopHeartbeat();
         isConnectingRef.current = false;
 
-        if (isIntentionalCloseRef.current) {
+        if (isIntentionalCloseRef.current || isCleaningUpRef.current) {
           logInfo("WebSocket closed intentionally, not reconnecting");
           return;
         }
@@ -280,7 +292,7 @@ export default function useWebSocketConnection() {
         }
 
         // Attempt reconnection
-        if (!shouldStopRetryingRef.current && isAuthenticated) {
+        if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
           reconnectAttemptsRef.current++;
 
           if (reconnectAttemptsRef.current > MAX_RECONNECT_ATTEMPTS) {
@@ -292,11 +304,13 @@ export default function useWebSocketConnection() {
 
           const retryDelay = getRetryDelay();
           logInfo(
-            `Attempting reconnection ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS} in ${retryDelay}ms... `
+            `Attempting reconnection ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS} in ${retryDelay}ms...`
           );
 
           reconnectTimeoutRef.current = setTimeout(() => {
-            connectWebSocket();
+            if (!isCleaningUpRef.current && !shouldStopRetryingRef.current) {
+              connectWebSocket();
+            }
           }, retryDelay);
         }
       };
@@ -304,14 +318,17 @@ export default function useWebSocketConnection() {
       logInfo("Connection setup error:", error);
       setConnectionStatus(WebSocketStatus.Error);
       isConnectingRef.current = false;
+      stopHeartbeat();
 
-      if (!shouldStopRetryingRef.current && isAuthenticated) {
+      if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
         reconnectAttemptsRef.current++;
 
         if (reconnectAttemptsRef.current <= MAX_RECONNECT_ATTEMPTS) {
           const retryDelay = getRetryDelay();
           reconnectTimeoutRef.current = setTimeout(() => {
-            connectWebSocket();
+            if (!isCleaningUpRef.current && !shouldStopRetryingRef.current) {
+              connectWebSocket();
+            }
           }, retryDelay);
         } else {
           shouldStopRetryingRef.current = true;
@@ -326,6 +343,7 @@ export default function useWebSocketConnection() {
     stopHeartbeat,
     closeExistingConnection,
     getRetryDelay,
+    updateLastMessageTime,
   ]);
 
   // Handle page visibility changes
@@ -344,8 +362,8 @@ export default function useWebSocketConnection() {
     }
 
     // Don't reconnect if we stopped retrying (auth failure)
-    if (shouldStopRetryingRef.current) {
-      logDebug("Skipping visibility reconnect:  shouldStopRetrying is true");
+    if (shouldStopRetryingRef.current || isCleaningUpRef.current) {
+      logDebug("Skipping visibility reconnect: shouldStopRetrying is true");
       return;
     }
 
@@ -360,7 +378,7 @@ export default function useWebSocketConnection() {
       }
 
       connectionDebounceRef.current = setTimeout(() => {
-        if (!shouldStopRetryingRef.current && isAuthenticated) {
+        if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
           reconnectAttemptsRef.current = 0;
           connectWebSocket();
         }
@@ -390,8 +408,14 @@ export default function useWebSocketConnection() {
 
       if (wsRef.current) {
         isIntentionalCloseRef.current = true;
+        stopHeartbeat();
         try {
-          wsRef.current.close(1000, "Network lost");
+          if (
+            wsRef.current.readyState === WebSocket.OPEN ||
+            wsRef.current.readyState === WebSocket.CONNECTING
+          ) {
+            wsRef.current.close(1000, "Network lost");
+          }
         } catch (error) {
           logDebug("Error closing connection on network loss:", error);
         }
@@ -408,8 +432,8 @@ export default function useWebSocketConnection() {
         return;
       }
 
-      if (shouldStopRetryingRef.current) {
-        logDebug("Skipping network reconnect:  shouldStopRetrying is true");
+      if (shouldStopRetryingRef.current || isCleaningUpRef.current) {
+        logDebug("Skipping network reconnect: shouldStopRetrying is true");
         return;
       }
 
@@ -420,22 +444,24 @@ export default function useWebSocketConnection() {
       }
 
       connectionDebounceRef.current = setTimeout(() => {
-        if (!shouldStopRetryingRef.current && isAuthenticated) {
+        if (!shouldStopRetryingRef.current && isAuthenticated && !isCleaningUpRef.current) {
           reconnectAttemptsRef.current = 0;
           isConnectingRef.current = false;
           connectWebSocket();
         }
       }, CONNECTION_DEBOUNCE_DELAY);
     }
-  }, [isNetworkConnected, isAuthenticated, connectWebSocket]);
+  }, [isNetworkConnected, isAuthenticated, connectWebSocket, stopHeartbeat]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       setConnectionStatus(WebSocketStatus.Disconnected);
       shouldStopRetryingRef.current = true;
       isConnectingRef.current = false;
+      isCleaningUpRef.current = true;
       clearAllTimers();
       closeExistingConnection();
+      isCleaningUpRef.current = false;
       return;
     }
 
@@ -443,9 +469,11 @@ export default function useWebSocketConnection() {
     shouldStopRetryingRef.current = false;
     reconnectAttemptsRef.current = 0;
     isConnectingRef.current = false;
+    isCleaningUpRef.current = false;
     connectWebSocket();
 
     return () => {
+      isCleaningUpRef.current = true;
       shouldStopRetryingRef.current = true;
       isConnectingRef.current = false;
       clearAllTimers();
@@ -458,9 +486,14 @@ export default function useWebSocketConnection() {
   const publishActivity = useCallback(
     async (data: UserActivityWSSubscriptionData) => {
       if (connectionStatus !== WebSocketStatus.Connected) {
-        logInfo("Cannot publish activity:  WebSocket not connected", {
+        logInfo("Cannot publish activity: WebSocket not connected", {
           status: connectionStatus,
         });
+        return false;
+      }
+
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        logInfo("Cannot publish activity: WebSocket not in OPEN state");
         return false;
       }
 
@@ -475,9 +508,14 @@ export default function useWebSocketConnection() {
   const publishTyping = useCallback(
     async (data: TypingIndicatorWSData) => {
       if (connectionStatus !== WebSocketStatus.Connected) {
-        logInfo("Cannot publish typing:  WebSocket not connected", {
+        logInfo("Cannot publish typing: WebSocket not connected", {
           status: connectionStatus,
         });
+        return false;
+      }
+
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        logInfo("Cannot publish typing: WebSocket not in OPEN state");
         return false;
       }
 
