@@ -308,9 +308,16 @@ const ConversationThreadScreen = ({
     }
   }, [pickImagesAndVideos, handleOpenImagePicker, setSelectedMessage]);
 
-  const handleNativeAddMoreTrigger = useCallback(() => {
-    handleOpenImagePickerNative();
-  }, [handleOpenImagePickerNative]);
+  const handleNativeAddMore = useCallback(async () => {
+    try {
+      const files = await pickImagesAndVideos();
+      if (files && files.length > 0) {
+        handleAddMoreFiles(files as any);
+      }
+    } catch {
+      ToastUtils.error("Failed to add more files.");
+    }
+  }, [pickImagesAndVideos, handleAddMoreFiles]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
@@ -573,13 +580,12 @@ const ConversationThreadScreen = ({
               <View className="flex-1">
                 {showImagePreview ? (
                   <FilePreviewOverlay
-                    files={selectedFiles as any}
+                    files={selectedFiles}
                     conversationId={currentConversationId}
                     onClose={handleCloseImagePreview}
                     onRemoveFile={handleRemoveFile}
                     onSendFiles={handleSendFilesFromPreview}
-                    onAddMoreTrigger={handleNativeAddMoreTrigger}
-                    onFileSelect={handleAddMoreFiles}
+                    onFileSelect={handleNativeAddMore}
                     isSending={isSendingMessage || isUploadingImages}
                     isGroupChat={isGroupChat}
                     replyToMessage={selectedMessage}

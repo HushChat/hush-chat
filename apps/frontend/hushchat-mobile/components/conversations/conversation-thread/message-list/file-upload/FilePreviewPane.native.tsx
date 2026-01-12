@@ -5,6 +5,7 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -101,20 +102,34 @@ const FilePreviewPane = ({
 
       <View className="pb-1 bg-background-light dark:bg-background-dark">{children}</View>
 
-      <View className="px-1 pb-1 bg-background-light dark:bg-background-dark">
-        <ConversationInput
-          conversationId={conversationId}
-          onSendMessage={onSendFiles}
-          disabled={isSending}
-          isSending={isSending}
-          isGroupChat={isGroupChat}
-          replyToMessage={replyToMessage}
-          onCancelReply={onCancelReply}
-          controlledValue={caption}
-          onControlledValueChange={onCaptionChange}
-          hideAttachmentBtn={true}
-          hideSendButton
-        />
+      <View className="bg-background-light dark:bg-background-dark">
+        <View className="flex-row items-end px-3 pb-3 gap-2">
+          <View className="flex-1">
+            <ConversationInput
+              conversationId={conversationId}
+              onSendMessage={() => {}}
+              disabled={isSending}
+              isSending={isSending}
+              isGroupChat={isGroupChat}
+              replyToMessage={replyToMessage}
+              onCancelReply={onCancelReply}
+              controlledValue={caption}
+              onControlledValueChange={onCaptionChange}
+              hideSendButton={true}
+              hideEmojiGifPickers={true}
+            />
+          </View>
+          <TouchableOpacity
+            onPress={onSendFiles}
+            disabled={isSending}
+            className="w-11 h-11 rounded-full mb-4 pl-1 mr-1 bg-primary-light dark:bg-primary-dark items-center justify-center active:opacity-80"
+            style={{
+              opacity: isSending ? 0.6 : 1,
+            }}
+          >
+            <Ionicons name="send" size={20} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );

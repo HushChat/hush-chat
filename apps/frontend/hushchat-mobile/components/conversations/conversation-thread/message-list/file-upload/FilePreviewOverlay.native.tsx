@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, TouchableOpacity, ScrollView, Modal, Keyboard } from "react-native";
+import { View, TouchableOpacity, ScrollView, Modal } from "react-native"; // Removed Keyboard import
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +12,6 @@ import { MAX_FILES } from "@/utils/fileValidation";
 
 import FilePreviewPane from "./FilePreviewPane";
 import PreviewFooter from "./PreviewFooter";
-import { PLATFORM } from "@/constants/platformConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export type NativeFileWithCaption = {
@@ -26,12 +25,11 @@ type TFilePreviewOverlayProps = {
   onClose: () => void;
   onRemoveFile: (index: number) => void;
   onSendFiles: (filesWithCaptions: NativeFileWithCaption[]) => void;
-  onAddMoreTrigger?: () => void;
+  onFileSelect?: () => void;
   isSending?: boolean;
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
-  onFileSelect?: any;
 };
 
 const THUMB_SIZE = 64;
@@ -43,7 +41,7 @@ const FilePreviewOverlay = ({
   onClose,
   onRemoveFile,
   onSendFiles,
-  onAddMoreTrigger,
+  onFileSelect,
   isSending = false,
   isGroupChat = false,
   replyToMessage,
@@ -51,27 +49,9 @@ const FilePreviewOverlay = ({
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [captions, setCaptions] = useState<Map<number, string>>(new Map());
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
-  const isDark = useAppTheme();
+  const { isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
-
-  useEffect(() => {
-    const showEvent = PLATFORM.IS_IOS ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = PLATFORM.IS_IOS ? "keyboardWillHide" : "keyboardDidHide";
-
-    const showSubscription = Keyboard.addListener(showEvent, () => {
-      setKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener(hideEvent, () => {
-      setKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
 
   useEffect(() => {
     if (selectedIndex >= files.length && files.length > 0) {
@@ -128,9 +108,9 @@ const FilePreviewOverlay = ({
     if (files.length >= MAX_FILES) {
       ToastUtils.error(`Maximum ${MAX_FILES} files allowed.`);
     } else {
-      onAddMoreTrigger?.();
+      onFileSelect?.();
     }
-  }, [files.length, onAddMoreTrigger]);
+  }, [files.length, onFileSelect]);
 
   const renderThumbnail = (file: LocalFile, index: number) => {
     const isSelected = index === selectedIndex;
@@ -253,19 +233,14 @@ const FilePreviewOverlay = ({
           </FilePreviewPane>
         </View>
 
-        <View
-          style={{ opacity: isKeyboardVisible ? 0 : 1 }}
-          pointerEvents={isKeyboardVisible ? "none" : "auto"}
-        >
-          <PreviewFooter
-            isSending={isSending}
-            isAtLimit={files.length >= MAX_FILES}
-            hasFiles={files.length > 0}
-            onClose={handleClose}
-            onSend={handleSend}
-            fileCount={files.length}
-          />
-        </View>
+        <PreviewFooter
+          isSending={isSending}
+          isAtLimit={files.length >= MAX_FILES}
+          hasFiles={files.length > 0}
+          onClose={handleClose}
+          onSend={handleSend}
+          fileCount={files.length}
+        />
       </View>
     </Modal>
   );
