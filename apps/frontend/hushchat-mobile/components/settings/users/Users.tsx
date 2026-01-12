@@ -49,7 +49,7 @@ export default function Users() {
       const user = workspaceUsersPages.pages
         ?.flatMap((page) => page.content)
         ?.find((u) => u.id.toString() === userId);
-      
+
       if (user) {
         setSelectedUser(user);
       }
