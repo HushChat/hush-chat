@@ -90,6 +90,11 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
                 qMessage.id.count()
             ))
             .from(qConversation)
+                .innerJoin(qParticipant).on(
+                        qParticipant.conversation.eq(qConversation)
+                                .and(qParticipant.user.id.eq(userId))
+                                .and(qParticipant.isDeleted.isFalse())
+                )
             .leftJoin(qConversationReadStatus)
             .on(joinReadStatusForUser(userId))
             .leftJoin(qMessage)
