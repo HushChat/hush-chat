@@ -1,6 +1,7 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversation.readstatus.dto.MessageReadStatusWSResponseDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
@@ -86,6 +87,12 @@ public class MessagePublisherService {
         }
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
+        if (messageViewDTO.getImageIndexedName() != null) {
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                    MediaSizeEnum.SMALL, messageViewDTO.getImageIndexedName());
+            messageViewDTO.setSenderSignedImageUrl(signedUrl);
+        }
+
         conversationDTO.setMessages(List.of(messageViewDTO));
 
         DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
@@ -103,13 +110,12 @@ public class MessagePublisherService {
                         return;
 
                     ConversationDTO payload = getConversationDTO(participant, conversationDTO);
-                    if (payload.getImageIndexedName() != null && !payload.getImageIndexedName().isBlank()) {
-                        payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
-                                payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE ,
-                                MediaSizeEnum.MEDIUM,
-                                payload.getImageIndexedName())
-                        );
-                    }
+
+                    payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.MEDIUM,
+                            payload.getImageIndexedName())
+                    );
 
                     webSocketSessionManager.sendMessageToUser(
                             workspaceId,
@@ -222,4 +228,70 @@ public class MessagePublisherService {
                         WebSocketTopicConstants.MESSAGE_REACTION,
                         payload));
     }
+
+    /**
+     * Notify conversation participants in real time when a message is marked as
+     * read/seen.
+     * <p>
+     * The user who marked the message as read (actor) is explicitly excluded from
+     * receiving the WebSocket event, as their UI state is already updated locally.
+     *
+     * @param workspaceId       the workspace (tenant) identifier
+     * @param conversationId    the conversation ID where the message was read
+     * @param actorUserId       the user ID who marked the message as read
+     * @param lastSeenMessageId the ID of the last seen/read message
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageReadStatusToParticipants(
+            String workspaceId,
+            Long conversationId,
+            Long actorUserId,
+            Long lastSeenMessageId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId,
+                actorUserId);
+
+        MessageReadStatusWSResponseDTO payload = new MessageReadStatusWSResponseDTO(conversationId, lastSeenMessageId);
+
+        participants.stream()
+                .filter(p -> p.getId() != null)
+                .map(ChatUser::getEmail)
+                .filter(email -> email != null && !email.isBlank())
+                .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                        workspaceId,
+                        email,
+                        WebSocketTopicConstants.MESSAGE_READ,
+                        payload));
+    }
+
+    /**
+      * Notify conversation participants in real time when a message is updated.
+      * @param conversationId the conversation ID
+      * @param messageViewDTO the updated message view DTO
+      * @param actorUserId    the user ID who updated the message
+      * @param workspaceId    the workspace identifier
+      */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageUpdatedToParticipants(
+            Long conversationId,
+            MessageViewDTO messageViewDTO,
+            Long actorUserId,
+            String workspaceId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(
+                conversationId,
+                actorUserId);
+
+        participants.stream()
+                        .filter(p -> p.getId() != null)
+                        .map(ChatUser::getEmail)
+                        .filter(email -> email != null && !email.isBlank())
+                        .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                                workspaceId,
+                                email,
+                                WebSocketTopicConstants.MESSAGE_UPDATED,
+                                messageViewDTO));
+        }
 }

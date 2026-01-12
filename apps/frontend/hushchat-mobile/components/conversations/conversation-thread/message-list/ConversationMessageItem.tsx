@@ -259,7 +259,7 @@ export const ConversationMessageItem = ({
         action: () => webMessageInfoPress && webMessageInfoPress(message.id),
       });
 
-      if (canEdit) {
+      if (canEdit && !isForwardedMessage) {
         options.push({
           id: 6,
           name: "Edit Message",
@@ -528,10 +528,7 @@ export const ConversationMessageItem = ({
             {renderParentMessage()}
 
             <View className={isCurrentUser ? "self-end" : "self-start"}>
-              <MessageHighlightWrapper
-                isHighlighted={message.id === targetMessageId}
-                glowColor="#3B82F6"
-              >
+              <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
                   isCurrentUser={isCurrentUser}

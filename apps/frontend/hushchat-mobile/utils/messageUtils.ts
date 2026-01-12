@@ -18,6 +18,11 @@ interface IGroupedMessages {
   data: IMessage[];
 }
 
+interface IUnreadMeta {
+  messageId: number;
+  count: number;
+}
+
 export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMessages[] => {
   if (!messages || messages.length === 0) return [];
 
@@ -133,6 +138,40 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
     console.warn("Invalid URL encountered:", fullUrl);
     return null;
   }
+};
+
+export const getUnreadMeta = (
+  messages: readonly IMessage[],
+  lastSeenMessageId: number | null,
+  currentUserId?: number
+): IUnreadMeta | null => {
+  if (!messages.length) return null;
+
+  if (messages[0]?.senderId === currentUserId) {
+    return null;
+  }
+
+  if (!lastSeenMessageId) {
+    return null;
+  }
+
+  const lastSeenIndex = messages.findIndex((msg) => msg.id === lastSeenMessageId);
+
+  if (lastSeenIndex <= 0) {
+    return null;
+  }
+
+  const firstUnreadIndex = lastSeenIndex - 1;
+  const firstUnreadMessage = messages[firstUnreadIndex];
+
+  if (!firstUnreadMessage?.id) {
+    return null;
+  }
+
+  return {
+    messageId: firstUnreadMessage.id,
+    count: firstUnreadIndex + 1,
+  };
 };
 
 export const downloadFileNative = async (attachment: IMessageAttachment): Promise<void> => {

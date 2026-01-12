@@ -2,13 +2,20 @@ import { WS_TOPICS, WSTopic } from "@/constants/ws/wsTopics";
 import {
   emitConversationCreated,
   emitMessageReaction,
+  emitMessageRead,
   emitMessageUnsent,
   emitNewMessage,
   emitUserStatus,
   emitUserTyping,
+  emitMessageUpdated,
 } from "@/services/eventBus";
-import { IConversation, IUserStatus } from "@/types/chat/types";
-import { MessageReactionPayload, MessageUnsentPayload, TypingIndicator } from "@/types/ws/types";
+import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
+import {
+  MessageReactionPayload,
+  MessageUnsentPayload,
+  MessageRead,
+  TypingIndicator,
+} from "@/types/ws/types";
 import { logDebug, logInfo } from "@/utils/logger";
 
 export type TopicHandler = (body: string) => void;
@@ -42,6 +49,16 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
   [WS_TOPICS.message.typing]: (body) => {
     const typingStatus = JSON.parse(body) as TypingIndicator;
     emitUserTyping(typingStatus);
+  },
+
+  [WS_TOPICS.message.read]: (body) => {
+    const readStatus = JSON.parse(body) as MessageRead;
+    emitMessageRead(readStatus);
+  },
+
+  [WS_TOPICS.message.updated]: (body) => {
+    const message = JSON.parse(body) as IMessage;
+    emitMessageUpdated(message);
   },
 };
 

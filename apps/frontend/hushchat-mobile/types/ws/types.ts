@@ -21,6 +21,11 @@ export interface TypingIndicator {
   typing: boolean;
 }
 
+export interface MessageRead {
+  conversationId: number;
+  lastSeenMessageId: number;
+}
+
 export interface UserPresence {
   userId: string;
   status: "online" | "offline" | "away" | "busy";
