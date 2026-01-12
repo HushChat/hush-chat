@@ -39,4 +39,7 @@ public final class WebSocketTopicConstants {
     /** Typing event */
     public static final String TYPING_STATUS = "/topic/typing-status/";
 
+    /** Message updated event */
+    public static final String MESSAGE_UPDATED = "/topic/message-updated/";
+
 }

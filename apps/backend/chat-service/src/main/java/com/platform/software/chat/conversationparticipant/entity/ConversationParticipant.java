@@ -1,7 +1,5 @@
 package com.platform.software.chat.conversationparticipant.entity;
 
-import java.time.ZonedDateTime;
-
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.common.model.AuditModel;
@@ -10,10 +8,30 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.ZonedDateTime;
+
 @Entity
 @Setter
 @Getter
-@Table(uniqueConstraints = @UniqueConstraint(name = "UK_conversation_participant", columnNames = {"conversation_id", "user_id"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "UK_conversation_participant", columnNames = {"conversation_id", "user_id"}),
+        indexes = {
+                @Index(
+                        name = "idx_cp_user_active",
+                        columnList = "user_id, is_active"
+                ),
+                @Index(
+                        name = "idx_cp_conversation_active",
+                        columnList = "conversation_id, is_active"
+                ),
+                @Index(
+                        name = "idx_cp_user_archived",
+                        columnList = "user_id, archived"
+                ),
+                @Index(
+                        name = "idx_cp_user_pinned",
+                        columnList = "user_id, is_pinned"
+                )
+        })
 // TODO: remove @Where(clause = "is_active = true")
 public class ConversationParticipant extends AuditModel {
     @Id
@@ -36,6 +54,7 @@ public class ConversationParticipant extends AuditModel {
     private ChatUser user;
 
     @NotNull
+    @Column(name = "is_active")
     private Boolean isActive = true;
 
     private ZonedDateTime inactiveFrom;
@@ -44,6 +63,7 @@ public class ConversationParticipant extends AuditModel {
 
     private Boolean isFavorite = false;
 
+    @Column(name = "is_pinned")
     private Boolean isPinned = false;
 
     private ZonedDateTime pinnedAt;

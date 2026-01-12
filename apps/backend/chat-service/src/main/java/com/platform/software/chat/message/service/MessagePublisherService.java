@@ -264,4 +264,34 @@ public class MessagePublisherService {
                         WebSocketTopicConstants.MESSAGE_READ,
                         payload));
     }
+
+    /**
+      * Notify conversation participants in real time when a message is updated.
+      * @param conversationId the conversation ID
+      * @param messageViewDTO the updated message view DTO
+      * @param actorUserId    the user ID who updated the message
+      * @param workspaceId    the workspace identifier
+      */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageUpdatedToParticipants(
+            Long conversationId,
+            MessageViewDTO messageViewDTO,
+            Long actorUserId,
+            String workspaceId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(
+                conversationId,
+                actorUserId);
+
+        participants.stream()
+                        .filter(p -> p.getId() != null)
+                        .map(ChatUser::getEmail)
+                        .filter(email -> email != null && !email.isBlank())
+                        .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                                workspaceId,
+                                email,
+                                WebSocketTopicConstants.MESSAGE_UPDATED,
+                                messageViewDTO));
+        }
 }

@@ -1,0 +1,358 @@
+databaseChangeLog:
+  - changeSet:
+      id: idx-conversation-is-group
+      author: pavithra
+      tag: release-14.1
+      changes:
+        - createIndex:
+            indexName: idx_conversation_is_group
+            tableName: conversation
+            columns:
+              - column:
+                  name: is_group
+
+  - changeSet:
+      id: idx-conversation-created-by
+      author: pavithra
+      tag: release-14.2
+      changes:
+        - createIndex:
+            indexName: idx_conversation_created_by
+            tableName: conversation
+            columns:
+              - column:
+                  name: created_by_id
+
+  - changeSet:
+      id: idx-conversation-deleted
+      author: pavithra
+      tag: release-14.3
+      changes:
+        - createIndex:
+            indexName: idx_conversation_deleted
+            tableName: conversation
+            columns:
+              - column:
+                  name: deleted
+
+  - changeSet:
+      id: idx-conversation-event-actor
+      author: pavithra
+      tag: release-14.4
+      changes:
+        - createIndex:
+            indexName: idx_ce_actor
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: actor_user_id
+
+  - changeSet:
+      id: idx-conversation-event-target
+      author: pavithra
+      tag: release-14.5
+      changes:
+        - createIndex:
+            indexName: idx_ce_target
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: target_user_id
+
+  - changeSet:
+      id: idx-conversation-event-message
+      author: pavithra
+      tag: release-14.6
+      changes:
+        - createIndex:
+            indexName: idx_ce_message
+            tableName: conversation_event
+            columns:
+              - column:
+                  name: message_id
+
+
+  - changeSet:
+      id: idx-invite-conversation
+      author: pavithra
+      tag: release-14.7
+      changes:
+        - createIndex:
+            indexName: idx_invite_conversation
+            tableName: conversation_invite_link
+            columns:
+              - column:
+                  name: conversation_id
+
+  - changeSet:
+      id: idx-invite-active-expiry
+      author: pavithra
+      tag: release-14.8
+      changes:
+        - createIndex:
+            indexName: idx_invite_active_expiry
+            tableName: conversation_invite_link
+            columns:
+              - column:
+                  name: is_active
+              - column:
+                  name: expires_at
+
+
+  - changeSet:
+      id: idx-cp-user-active
+      author: pavithra
+      tag: release-14.9
+      changes:
+        - createIndex:
+            indexName: idx_cp_user_active
+            tableName: conversation_participant
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: is_active
+
+  - changeSet:
+      id: idx-cp-conversation-active
+      author: pavithra
+      tag: release-14.10
+      changes:
+        - createIndex:
+            indexName: idx_cp_conversation_active
+            tableName: conversation_participant
+            columns:
+              - column:
+                  name: conversation_id
+              - column:
+                  name: is_active
+
+  - changeSet:
+      id: idx-cp-user-archived
+      author: pavithra
+      tag: release-14.11
+      changes:
+        - createIndex:
+            indexName: idx_cp_user_archived
+            tableName: conversation_participant
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: archived
+
+  - changeSet:
+      id: idx-cp-user-pinned
+      author: pavithra
+      tag: release-14.12
+      changes:
+        - createIndex:
+            indexName: idx_cp_user_pinned
+            tableName: conversation_participant
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: is_pinned
+
+  - changeSet:
+      id: idx-crs-user-conversation
+      author: pavithra
+      tag: release-14.13
+      changes:
+        - createIndex:
+            indexName: idx_crs_user_conversation
+            tableName: conversation_read_status
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: conversation_id
+
+  - changeSet:
+      id: idx-crs-message
+      author: pavithra
+      tag: release-14.14
+      changes:
+        - createIndex:
+            indexName: idx_crs_message
+            tableName: conversation_read_status
+            columns:
+              - column:
+                  name: message_id
+
+  - changeSet:
+      id: idx-favourite-message-user
+      author: pavithra
+      tag: release-14.15
+      changes:
+        - createIndex:
+            indexName: idx_fav_user
+            tableName: favourite_message
+            columns:
+              - column:
+                  name: user_id
+
+  - changeSet:
+      id: idx-favourite-message-message
+      author: pavithra
+      tag: release-14.16
+      changes:
+        - createIndex:
+            indexName: idx_fav_message
+            tableName: favourite_message
+            columns:
+              - column:
+                  name: message_id
+
+  - changeSet:
+      id: idx-message-conversation-created
+      author: pavithra
+      tag: release-14.17
+      changes:
+        - createIndex:
+            indexName: idx_message_conversation_created
+            tableName: message
+            columns:
+              - column:
+                  name: conversation_id
+              - column:
+                  name: created_at
+                  descending: true
+
+  - changeSet:
+      id: idx-message-sender
+      author: pavithra
+      tag: release-14.18
+      changes:
+        - createIndex:
+            indexName: idx_message_sender
+            tableName: message
+            columns:
+              - column:
+                  name: sender_id
+
+  - changeSet:
+      id: idx-message-parent
+      author: pavithra
+      tag: release-14.19
+      changes:
+        - createIndex:
+            indexName: idx_message_parent
+            tableName: message
+            columns:
+              - column:
+                  name: parent_message_id
+
+  - changeSet:
+      id: idx-message-forwarded
+      author: pavithra
+      tag: release-14.20
+      changes:
+        - createIndex:
+            indexName: idx_message_forwarded
+            tableName: message
+            columns:
+              - column:
+                  name: forwarded_message_id
+
+
+  - changeSet:
+      id: idx-message-attachment-message
+      author: pavithra
+      tag: release-14.21
+      changes:
+        - createIndex:
+            indexName: idx_attachment_message
+            tableName: message_attachment
+            columns:
+              - column:
+                  name: message_id
+
+
+  - changeSet:
+      id: idx-message-mention-user
+      author: pavithra
+      tag: release-14.22
+      changes:
+        - createIndex:
+            indexName: idx_mention_user
+            tableName: message_mention
+            columns:
+              - column:
+                  name: mentioned_user_id
+
+  - changeSet:
+      id: idx-message-mention-message
+      author: pavithra
+      tag: release-14.23
+      changes:
+        - createIndex:
+            indexName: idx_mention_message
+            tableName: message_mention
+            columns:
+              - column:
+                  name: message_id
+
+  - changeSet:
+      id: idx-message-reaction-message
+      author: pavithra
+      tag: release-14.24
+      changes:
+        - createIndex:
+            indexName: idx_reaction_message
+            tableName: message_reaction
+            columns:
+              - column:
+                  name: message_id
+
+
+  - changeSet:
+      id: idx-user-block-blocker
+      author: pavithra
+      tag: release-14.25
+      changes:
+        - createIndex:
+            indexName: idx_user_block_blocker
+            tableName: user_block
+            columns:
+              - column:
+                  name: blocker_id
+
+  - changeSet:
+      id: idx-user-block-blocked
+      author: pavithra
+      tag: release-14.26
+      changes:
+        - createIndex:
+            indexName: idx_user_block_blocked
+            tableName: user_block
+            columns:
+              - column:
+                  name: blocked_id
+
+  - changeSet:
+      id: idx-chat-user-email
+      author: pavithra
+      tag: release-14.27
+      changes:
+        - createIndex:
+            indexName: idx_chat_user_email
+            tableName: chat_user
+            columns:
+              - column:
+                  name: email
+
+  - changeSet:
+      id: idx-chat-user-active-deleted
+      author: pavithra
+      tag: release-14.28
+      changes:
+        - createIndex:
+            indexName: idx_chat_user_active_deleted
+            tableName: chat_user
+            columns:
+              - column:
+                  name: active
+              - column:
+                  name: deleted

@@ -132,8 +132,11 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const updateConversationsListCache = useCallback(
     (newMessage: IMessage) => {
+      let found = false;
+      const listQueryKey = ["conversations", userId];
+
       queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
-        { queryKey: ["conversations", userId] },
+        { queryKey: listQueryKey },
         (oldData) => {
           if (!oldData) return oldData;
 
@@ -143,6 +146,9 @@ export function useConversationMessagesQuery(conversationId: number) {
               const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
 
               if (conversationIndex === -1) return page;
+
+              // if conversation is found, do not invalidate cache
+              found = true;
 
               const updatedConversation: IConversation = {
                 ...page.content[conversationIndex],
@@ -168,6 +174,10 @@ export function useConversationMessagesQuery(conversationId: number) {
           };
         }
       );
+
+      if (!found) {
+        queryClient.invalidateQueries({ queryKey: listQueryKey });
+      }
     },
     [queryClient, conversationId, userId]
   );
