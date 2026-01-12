@@ -7,7 +7,7 @@
 - 
 ### Step 2 - get user tokens
 - move to hush-chat/scripts/k6-load-testing
-- run scripts by `k6 run getUserTokens.js`
+- run scripts by `node getUserTokens.js`
 - tokens.json file will be created for users
 
 ### Step 3 - run scripts
