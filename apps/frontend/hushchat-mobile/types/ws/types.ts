@@ -15,15 +15,20 @@ export interface WebSocketMessage {
   };
 }
 
-export interface TypingIndicator {
+export interface TypingIndicatorPayload {
   conversationId: number;
   chatUserName: string;
   typing: boolean;
 }
 
-export interface MessageRead {
+export interface MessageReadPayload {
   conversationId: number;
   lastSeenMessageId: number;
+}
+
+export interface MessagePinnedPayload {
+  conversationId: number;
+  pinnedMessage?: any;
 }
 
 export interface UserPresence {
