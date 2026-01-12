@@ -1,26 +1,17 @@
 import { useCallback, useRef } from "react";
 import { logDebug, logInfo } from "@/utils/logger";
-import { HEADER_DESTINATION } from "@/constants/constants";
-import { WS_DESTINATIONS } from "@/constants/apiConstants";
-
-const encoder = new TextEncoder();
 
 export const HEARTBEAT_INTERVAL = 30000;
 const MISSED_HEARTBEAT_THRESHOLD = 2;
 
 export const useHeartbeat = () => {
-  const heartbeatIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heartbeatTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastMessageTimeRef = useRef<number>(Date.now());
 
   const stopHeartbeat = useCallback(() => {
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
       heartbeatIntervalRef.current = null;
-    }
-    if (heartbeatTimeoutRef.current) {
-      clearTimeout(heartbeatTimeoutRef.current);
-      heartbeatTimeoutRef.current = null;
     }
   }, []);
 
@@ -38,13 +29,8 @@ export const useHeartbeat = () => {
           return;
         }
 
-        const pingFrame = new Uint8Array([
-          ...Array.from(encoder.encode("SEND\n")),
-          ...Array.from(encoder.encode(`${HEADER_DESTINATION}:${WS_DESTINATIONS.HEARTBEAT}\n`)),
-          0x0a,
-          0x00,
-        ]);
-        ws.send(pingFrame.buffer);
+        const heartbeatFrame = new Uint8Array([0x0a]);
+        ws.send(heartbeatFrame.buffer);
         logDebug("Heartbeat sent");
       } catch (error) {
         logInfo("Error sending heartbeat:", error);
@@ -55,6 +41,7 @@ export const useHeartbeat = () => {
   const startHeartbeat = useCallback(
     (ws: WebSocket) => {
       stopHeartbeat();
+      lastMessageTimeRef.current = Date.now();
 
       heartbeatIntervalRef.current = setInterval(() => {
         sendHeartbeat(ws);
