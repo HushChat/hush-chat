@@ -1,8 +1,9 @@
-import { PLATFORM } from "@/constants/platformConstants";
-import Users from "@/components/settings/users/Users";
 import { Redirect } from "expo-router";
-import SettingsWrapper from "@/components/settings/Settings";
+
 import { RoleGuard, WorkspaceUserRole } from "@/app/guards/RoleGuard";
+import SettingsWrapper from "@/components/settings/Settings";
+import Users from "@/components/settings/users/Users";
+import { PLATFORM } from "@/constants/platformConstants";
 
 export default function UsersIndex() {
   if (!PLATFORM.IS_WEB) {
