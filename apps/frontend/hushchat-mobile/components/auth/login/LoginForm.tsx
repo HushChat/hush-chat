@@ -25,8 +25,8 @@ export const LoginForm = memo(
   }: TLoginFormProps) => (
     <FormContainer>
       <FormHeader
-        title="Login"
-        subtitle="Please login to your account to continue"
+        title="Welcome back"
+        subtitle="Sign in to continue to your conversations"
         colors={colors}
       />
 
@@ -36,39 +36,43 @@ export const LoginForm = memo(
         <View className="flex-col gap-3">
           <TextField
             name="email"
-            placeholder="Email Address"
+            label="Email address"
+            placeholder="Email Adress"
             keyboardType="email-address"
             autoCapitalize="none"
             formValues={formValues}
             formErrors={formErrors}
             showErrors={showErrors}
             onValueChange={onValueChange}
+            size="md"
           />
 
           <TextField
             name="password"
+            label="Password"
             placeholder="Password"
             secureTextEntry
             formValues={formValues}
             formErrors={formErrors}
             showErrors={showErrors}
             onValueChange={onValueChange}
+            size="md"
           />
         </View>
         <TouchableOpacity
           className="self-end pt-2 mb-5"
           onPress={() => router.push(AUTH_FORGOT_PASSWORD_PATH)}
         >
-          <AppText className="text-[15px] font-bold" style={{ color: colors.primary }}>
-            Forgot Password?
+          <AppText className="text-base font-medium!" style={{ color: colors.primary }}>
+            Forgot password?
           </AppText>
         </TouchableOpacity>
 
-        <FormButton title="Log In" onPress={onSubmit} colors={colors} />
+        <FormButton title="Login" onPress={onSubmit} colors={colors} />
 
         <LinkText
           text="Don't have an account?"
-          linkText="Register"
+          linkText="Create one"
           colors={colors}
           onPress={() => router.push(AUTH_REGISTER_PATH)}
         />

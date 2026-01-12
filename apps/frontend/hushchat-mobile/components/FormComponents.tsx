@@ -44,7 +44,7 @@ const COLORS = {
 
 export const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle, colors }) => (
   <View style={styles.headerContainer}>
-    <AppText style={[styles.headerTitle, { color: colors.primary }]}>{title}</AppText>
+    <AppText style={[styles.headerTitle, { color: colors.textPrimary }]}>{title}</AppText>
     <AppText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{subtitle}</AppText>
   </View>
 );
@@ -96,7 +96,7 @@ export const LinkText: React.FC<LinkTextProps> = ({ text, linkText, onPress, col
   </View>
 );
 
-export const FormContainer: React.FC<FormContainerProps> = ({ children, maxWidth = 450 }) => (
+export const FormContainer: React.FC<FormContainerProps> = ({ children, maxWidth = 400 }) => (
   <View style={[styles.formContainer, { maxWidth }]}>{children}</View>
 );
 
@@ -106,21 +106,18 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: "700",
-    marginBottom: 12,
+    fontFamily: "Poppins-SemiBold",
+    // fontWeight: "700",
+    // marginBottom: 12,
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 22,
   },
   button: {
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 12,
     marginBottom: 20,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
   },
   buttonDisabled: {
     shadowOpacity: 0,
@@ -154,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   linkText: {
-    fontSize: 15,
+    fontSize: 16,
     marginRight: 4,
   },
   linkButton: {
