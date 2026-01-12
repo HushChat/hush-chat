@@ -15,6 +15,8 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 import { separatePinnedItems } from "@/query/config/appendToOffsetPaginatedCache";
 
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { WebSocketStatus } from "@/types/ws/types";
 const PAGE_SIZE = 20;
 
 export function useConversationMessagesQuery(conversationId: number) {
@@ -27,6 +29,9 @@ export function useConversationMessagesQuery(conversationId: number) {
   const [inMessageWindowView, setInMessageWindowView] = useState(false);
   const [targetMessageId, setTargetMessageId] = useState<number | null>(null);
 
+  const { connectionStatus } = useWebSocket();
+  const prevConnectionStatus = useRef(connectionStatus);
+
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
     [userId, conversationId]
@@ -38,7 +43,17 @@ export function useConversationMessagesQuery(conversationId: number) {
       setInMessageWindowView(false);
       setTargetMessageId(null);
     }
-  }, [conversationId, queryKey, queryClient]);
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (
+      connectionStatus === WebSocketStatus.Connected &&
+      prevConnectionStatus.current !== WebSocketStatus.Connected
+    ) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+    prevConnectionStatus.current = connectionStatus;
+  }, [connectionStatus, queryKey, queryClient]);
 
   const {
     pages,
