@@ -150,3 +150,9 @@ secrets.json
 # ---------------------------------------
 # GitHub Actions temp files
 *.retry
+
+# ---------------------------------------
+# SCRIPTS
+# ---------------------------------------
+scripts/k6-load-testing/tokens.json
+scripts/k6-load-testing/users.json

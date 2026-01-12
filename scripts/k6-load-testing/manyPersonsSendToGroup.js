@@ -1,21 +1,15 @@
 import http from "k6/http";
+import { SharedArray } from "k6/data";
 
 // NOTE - set BASE_URL and ACCESS_TOKEN
 
 const TARGET_CONVERSATION_ID = 0;
 const BASE_URL = "<baseURL>";
+const TENANT = "<tenant>";
 
-const SENDERS = [
-  {
-    note: "john",
-    token: "<accessToken>",
-  },
-  {
-    note: "jane",
-    token: "",
-  },
-  // add more as needed
-];
+const ALL_TOKENS = new SharedArray("tokens", function () {
+  return JSON.parse(open("./tokens.json"));
+});
 
 /*
  * within 4 minutes max duration, send each sender 1000 messages for given group conversation
@@ -24,7 +18,7 @@ export const options = {
   scenarios: {
     many_to_one: {
       executor: "per-vu-iterations",
-      vus: SENDERS.length,
+      vus: ALL_TOKENS.length,
       iterations: 1000,
       maxDuration: "4m",
     },
@@ -33,24 +27,20 @@ export const options = {
 
 export default function () {
   const index = __VU - 1;
+  const currentUser = ALL_TOKENS[index];
 
-  if (index >= SENDERS.length) return;
-
-  const currentUser = SENDERS[index];
+  if (!currentUser) return;
 
   const messageNum = __ITER + 1;
-
-  const messageText = `Message ${messageNum} from ${currentUser.note}`;
-
   const url = `${BASE_URL}/conversations/${TARGET_CONVERSATION_ID}/messages`;
 
   const payload = JSON.stringify({
-    messageText: messageText,
+    messageText: `Message ${messageNum} from ${currentUser.note}`,
   });
 
   const params = {
     headers: {
-      "x-tenant": "localhost",
+      "x-tenant": TENANT,
       "Content-Type": "application/json",
       Authorization: `Bearer ${currentUser.token}`,
     },
