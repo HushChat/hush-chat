@@ -24,7 +24,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface/ChatInterface";
 import { router } from "expo-router";
 import { PLATFORM } from "@/constants/platformConstants";
-import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
+import { CHATS_PATH } from "@/constants/routes";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
@@ -104,7 +104,8 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
     if (PLATFORM.IS_WEB) {
       if (conversation) {
-        router.replace(CONVERSATION(conversation.id));
+        // TODO: Temporary workaround — using setParams to avoid route remount
+        router.setParams({ id: conversation.id.toString() });
       } else {
         router.replace(CHATS_PATH);
       }
