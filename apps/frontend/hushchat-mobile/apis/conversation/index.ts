@@ -48,6 +48,7 @@ export interface CursorPaginatedQueryOptions<T> {
   pageSize?: number;
   enabled?: boolean;
   allowForwardPagination?: boolean;
+  retry?: boolean | number | ((failureCount: number, error: unknown) => boolean);
 }
 
 export interface AddConversationParticipantsParams {
