@@ -68,6 +68,7 @@ export const MediaItem = ({
     >
       <Image
         source={{ uri: imageSource }}
+        placeholder={{ uri: imageSource }}
         style={style}
         contentFit="contain"
         cachePolicy="memory-disk"
