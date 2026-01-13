@@ -72,7 +72,10 @@ public class WorkspaceUserService {
         Map<String, WorkspaceUserInviteDTO> uniqueInvites = workspaceUserInviteDTOs.stream()
                 .collect(Collectors.toMap(
                         dto -> dto.getEmail().toLowerCase().trim(),
-                        dto -> dto,
+                        dto -> {
+                            dto.setEmail(dto.getEmail().toLowerCase().trim());
+                            return dto;
+                        },
                         (existing, replacement) -> existing
                 ));
 
