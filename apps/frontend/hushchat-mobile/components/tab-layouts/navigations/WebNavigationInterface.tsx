@@ -6,6 +6,7 @@ import { INavigationItem } from "@/types/navigation/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import classNames from "classnames";
 import { AppText } from "@/components/AppText";
+import { SETTINGS_CONTACT } from "@/constants/routes";
 
 interface WebNavigationInterfaceProps {
   navigationItems: INavigationItem[];
@@ -89,7 +90,7 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
         <TouchableOpacity
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
           className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-2xl items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700"
-          onPress={() => router.push("/(tabs)/settings")}
+          onPress={() => router.push(SETTINGS_CONTACT)}
         >
           <Ionicons name="settings-outline" size={20} color="#6b7280" />
         </TouchableOpacity>

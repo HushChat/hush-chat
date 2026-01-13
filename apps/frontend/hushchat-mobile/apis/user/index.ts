@@ -1,4 +1,8 @@
-import { USER_API_ENDPOINTS, WORKSPACE_ENDPOINTS } from "@/constants/apiConstants";
+import {
+  ADMIN_WORKSPACE_ENDPOINTS,
+  USER_API_ENDPOINTS,
+  WORKSPACE_ENDPOINTS,
+} from "@/constants/apiConstants";
 import axios from "axios";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { DeviceToken } from "@/types/user/types";
@@ -94,6 +98,21 @@ export const getUserWorkspaces = async () => {
   try {
     const response = await axios.get(WORKSPACE_ENDPOINTS.GET);
     return response.data;
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const getAllWorkspaceUsers = async (
+  searchKeyword: string = "",
+  page: number = 0,
+  size: number = 20
+) => {
+  try {
+    const response = await axios.get(ADMIN_WORKSPACE_ENDPOINTS.GET_WORKSPACE_USERS, {
+      params: { searchKeyword, page, size },
+    });
+    return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
   }

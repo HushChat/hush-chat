@@ -9,6 +9,7 @@ import com.platform.software.platform.workspaceuser.entity.QWorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.slf4j.Logger;
@@ -81,11 +82,24 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
                 .fetchFirst();
     }
 
-    public Page<WorkspaceUser> fetchWorkspaceUsersPage(Pageable pageable) {
-
+    public Page<WorkspaceUser> fetchWorkspaceUsersPage(Pageable pageable, String searchKeyword) {
         JPAQuery<WorkspaceUser> query = jpaQueryFactory
                 .select(qWorkspaceUser)
                 .from(qWorkspaceUser);
+
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            String trimmedKeyword = searchKeyword.trim();
+            String[] keywordParts = trimmedKeyword.split("\\s+");
+
+            BooleanBuilder keywordBuilder = new BooleanBuilder();
+
+            for (String part : keywordParts) {
+                keywordBuilder.and(
+                        qWorkspaceUser.email.containsIgnoreCase(part));
+            }
+
+            query.where(keywordBuilder);
+        }
 
         long total = query.fetchCount();
 
@@ -96,4 +110,5 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
 
         return new PageImpl<>(results, pageable, total);
     }
+
 }
