@@ -127,10 +127,12 @@ const ChatHeader = ({
               <Ionicons name="search" size={20} color={"#6B7280"} />
             </TouchableOpacity>
 
-            <RefreshButton
-              onRefresh={refetchConversationMessages}
-              isLoading={isLoadingConversationMessages}
-            />
+            {__DEV__ && (
+              <RefreshButton
+                onRefresh={refetchConversationMessages}
+                isLoading={isLoadingConversationMessages}
+              />
+            )}
           </View>
         )}
       </View>

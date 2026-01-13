@@ -3,7 +3,8 @@ import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
-import { useConversationMessages } from "@/hooks/useWebSocketEvents";
+import { eventBus } from "@/services/eventBus";
+import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
 import {
   CursorPaginatedResponse,
   getConversationMessagesByCursor,
@@ -16,8 +17,6 @@ import { logError } from "@/utils/logger";
 import { separatePinnedItems } from "@/query/config/appendToOffsetPaginatedCache";
 import { skipRetryOnAccessDenied } from "@/utils/apiErrorUtils";
 
-import { useWebSocket } from "@/contexts/WebSocketContext";
-import { WebSocketStatus } from "@/types/ws/types";
 const PAGE_SIZE = 20;
 
 export function useConversationMessagesQuery(
@@ -33,9 +32,6 @@ export function useConversationMessagesQuery(
   const [inMessageWindowView, setInMessageWindowView] = useState(false);
   const [targetMessageId, setTargetMessageId] = useState<number | null>(null);
 
-  const { connectionStatus } = useWebSocket();
-  const prevConnectionStatus = useRef(connectionStatus);
-
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
     [userId, conversationId]
@@ -48,16 +44,6 @@ export function useConversationMessagesQuery(
       setTargetMessageId(null);
     }
   }, [conversationId]);
-
-  useEffect(() => {
-    if (
-      connectionStatus === WebSocketStatus.Connected &&
-      prevConnectionStatus.current !== WebSocketStatus.Connected
-    ) {
-      queryClient.invalidateQueries({ queryKey });
-    }
-    prevConnectionStatus.current = connectionStatus;
-  }, [connectionStatus, queryKey, queryClient]);
 
   const {
     pages,
@@ -78,6 +64,7 @@ export function useConversationMessagesQuery(
     enabled: !!conversationId && options?.enabled,
     allowForwardPagination: inMessageWindowView,
     retry: skipRetryOnAccessDenied,
+    refetchOnMount: true,
   });
 
   const loadMessageWindow = useCallback(
@@ -172,7 +159,9 @@ export function useConversationMessagesQuery(
               const existingLastMessage = existingConversation.messages?.[0];
 
               const shouldUpdateMessage =
-                !existingLastMessage || newMessage.id === existingLastMessage.id;
+                !existingLastMessage ||
+                new Date(newMessage.createdAt) >= new Date(existingLastMessage.createdAt) ||
+                newMessage.id === existingLastMessage.id;
 
               if (!shouldUpdateMessage) {
                 return page;
@@ -232,13 +221,29 @@ export function useConversationMessagesQuery(
     [queryClient, queryKey]
   );
 
-  const { lastMessage } = useConversationMessages(conversationId);
-
   useEffect(() => {
-    if (!lastMessage) return;
-    updateConversationMessagesCache(lastMessage);
-    updateConversationsListCache(lastMessage);
-  }, [lastMessage, updateConversationMessagesCache, updateConversationsListCache]);
+    const handleNewMessage = ({
+      conversationId: msgConversationId,
+      messageWithConversation,
+    }: {
+      conversationId: number;
+      messageWithConversation: IConversation;
+    }) => {
+      if (msgConversationId === conversationId) {
+        const messages = messageWithConversation.messages || [];
+        messages.forEach((msg) => {
+          updateConversationMessagesCache(msg);
+          updateConversationsListCache(msg);
+        });
+      }
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
+
+    return () => {
+      eventBus.off(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
+    };
+  }, [conversationId, updateConversationMessagesCache, updateConversationsListCache]);
 
   return {
     pages,

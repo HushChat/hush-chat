@@ -22,7 +22,9 @@ export function useMessageEdit({
   conversationId,
 }: IUseMessageEditOptions): IUseMessageEditReturn {
   const [editingMessage, setEditingMessage] = useState<IMessage | null>(null);
-  const { updateConversationsListCache } = useConversationMessagesQuery(conversationId);
+  const { updateConversationsListCache } = useConversationMessagesQuery(conversationId, {
+    enabled: false,
+  });
 
   const { mutate: editMessage, isPending: isEditingMessage } = useEditMessageMutation(
     { userId, conversationId },
