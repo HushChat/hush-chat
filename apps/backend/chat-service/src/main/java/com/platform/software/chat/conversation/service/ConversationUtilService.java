@@ -380,7 +380,8 @@ public class ConversationUtilService {
         for (MessageAttachment attachment : attachments) {
             MessageAttachmentDTO dto = new MessageAttachmentDTO();
             try {
-                String fileViewSignedURL = "https://d1874tvjvwdef3.cloudfront.net/chat-service/conversation/1_04277cc9-1c8a-47e8-96e2-927641c86634";
+                String fileViewSignedURL = cloudPhotoHandlingService
+                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
 
                 dto.setId(attachment.getId());
                 dto.setFileUrl(fileViewSignedURL);
