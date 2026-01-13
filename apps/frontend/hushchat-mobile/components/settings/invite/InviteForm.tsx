@@ -17,6 +17,8 @@ import InviteFormFields from "@/components/settings/invite/InviteFormFields";
 import { useInviteForm } from "@/hooks/useInviteForm";
 import { ToastUtils } from "@/utils/toastUtils";
 
+const SCROLL_CONTENT_PADDING_BOTTOM = 45;
+
 export default function InviteForm() {
   const insets = useSafeAreaInsets();
   const { inviteForm, inviteMutation } = useInviteForm();
@@ -67,12 +69,11 @@ export default function InviteForm() {
   return (
     <KeyboardAvoidingView className="flex-1" behavior="padding">
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
         className="bg-background-light dark:bg-background-dark"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: SCROLL_CONTENT_PADDING_BOTTOM }}
       >
         <View className="flex-1 px-4" style={{ paddingTop: insets.top + 12 }}>
-          {/* Header */}
           <View className="flex-row items-center mb-6 mt-3">
             {!PLATFORM.IS_WEB && <BackButton onPress={() => router.back()} />}
             <AppText className="text-2xl font-bold text-gray-900 dark:text-white ml-2">
