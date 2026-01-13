@@ -66,7 +66,7 @@ public class WorkspaceUserService {
     }
 
     public void inviteUserToWorkspace(String inviterEmail, String workspaceIdentifier, List<WorkspaceUserInviteDTO> workspaceUserInviteDTOs) {
-        if (workspaceUserInviteDTOs != null && workspaceUserInviteDTOs.size() >= MAX_INVITES_PER_REQUEST) {
+        if (workspaceUserInviteDTOs != null && workspaceUserInviteDTOs.size() > MAX_INVITES_PER_REQUEST) {
             logger.error("user {} attempted to send {} invites to workspace {}. Maximum allowed is {}.", inviterEmail, workspaceUserInviteDTOs.size(), workspaceIdentifier, MAX_INVITES_PER_REQUEST);
             throw new CustomBadRequestException("Maximum of %s invites allowed per request. Found: %s".formatted(MAX_INVITES_PER_REQUEST, workspaceUserInviteDTOs.size()));
         }
