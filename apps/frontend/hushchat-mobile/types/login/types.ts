@@ -90,6 +90,7 @@ export type TForgotPasswordFormProps = {
   formErrors: Record<string, string>;
   showErrors: boolean;
   onBackToLogin: () => void;
+  stretch?: boolean;
 };
 
 export type TForgotPasswordResetFormProps = {
@@ -102,6 +103,7 @@ export type TForgotPasswordResetFormProps = {
   onValueChange: (args: { name: string; value: string }) => void;
   onSubmit: () => void;
   onBackToLogin: () => void;
+  stretch?: boolean;
 };
 
 export type TProfileFormProps = {

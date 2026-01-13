@@ -44,16 +44,13 @@ export default function AuthWebLayout({
   const isWide = width >= 1024;
 
   if (!isWide) {
-    // Mobile web - simplified layout with gradient header
     const mobileBg = isDark ? Images.AuthBgDark : Images.AuthBgLight;
     const mobileLogo = isDark ? Images.LogoMobileDark : Images.LogoMobileLight;
 
     return (
       <View style={[s.container, { backgroundColor: colors.formBackground }]}>
         <View style={s.mobileHeader}>
-          {/* Background image with gradient pattern */}
           <Image source={mobileBg} style={s.mobileHeaderBg} resizeMode="cover" />
-          {/* Logo */}
           <View style={s.logoContainer}>
             <Image source={mobileLogo} style={s.logoImage} resizeMode="contain" />
           </View>
@@ -68,23 +65,17 @@ export default function AuthWebLayout({
     );
   }
 
-  // Desktop layout
   return (
     <View style={s.container}>
       <View style={s.shell}>
-        {/* Left panel with background image */}
         <View style={s.left}>
-          {/* Background image with gradient pattern - same for light/dark */}
           <Image source={Images.AuthBgDesktop} style={s.leftBgImage} resizeMode="cover" />
-
           <View style={s.leftContent}>
             <View style={s.leftContentTop}>
-              {/* Logo */}
               <View style={s.logoContainer}>
                 <Image source={Images.LogoDesktop} style={s.logoImage} resizeMode="contain" />
               </View>
 
-              {/* Hero text */}
               <View style={s.heroBlock}>
                 <AppText style={[s.heroTitle, { color: colors.logoText }]}>{heroTitle}</AppText>
                 <AppText style={[s.heroSubtitle, { color: colors.featureText }]}>
@@ -93,7 +84,6 @@ export default function AuthWebLayout({
               </View>
             </View>
 
-            {/* Features list */}
             {features && features.length > 0 && (
               <View style={s.featuresContainer}>
                 {features.map((feature, index) => (
@@ -109,7 +99,6 @@ export default function AuthWebLayout({
           </View>
         </View>
 
-        {/* Right panel with form */}
         <View style={[s.right, { backgroundColor: colors.formBackground }]}>{children}</View>
       </View>
     </View>
@@ -156,7 +145,7 @@ const s = StyleSheet.create({
     marginTop: 50,
   },
   heroBlock: {
-    maxWidth: 500,
+    maxWidth: 550,
   },
   heroTitle: {
     fontSize: 44,
@@ -188,7 +177,6 @@ const s = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 48,
   },
-  // Mobile web styles
   mobileHeader: {
     height: 160,
     alignItems: "center",

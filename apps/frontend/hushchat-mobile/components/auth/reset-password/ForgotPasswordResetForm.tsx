@@ -22,80 +22,93 @@ export const ForgotPasswordResetForm = memo((props: TForgotPasswordResetFormProp
     onValueChange,
     onSubmit,
     onBackToLogin,
+    stretch,
   } = props;
 
   return (
-    <FormContainer>
-      <FormHeader
-        title="Reset Password"
-        subtitle="Enter the code sent to your email and set a new password."
-        colors={colors}
-      />
+    <FormContainer style={stretch ? { flex: 1 } : undefined}>
+      <View style={{ flex: 1 }}>
+        <View>
+          <FormHeader
+            title="Reset Password"
+            subtitle="Enter the code sent to your email and set a new password."
+            colors={colors}
+          />
 
-      {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
+          {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
 
-      {!!successMessage && (
-        <View className="mb-4 rounded-xl px-3 py-2 bg-green-100 dark:bg-emerald-950">
-          <AppText className="text-sm font-semibold text-green-700 dark:text-emerald-300 text-center">
-            {successMessage}
-          </AppText>
+          {!!successMessage && (
+            <View className="mb-4 rounded-xl px-3 py-2 bg-green-100 dark:bg-emerald-950">
+              <AppText className="text-sm font-semibold text-green-700 dark:text-emerald-300 text-center">
+                {successMessage}
+              </AppText>
+            </View>
+          )}
+
+          <View className="flex-col gap-3">
+            <TextField
+              name="email"
+              placeholder="Email Address"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              formValues={formValues}
+              formErrors={formErrors}
+              showErrors={showErrors}
+              onValueChange={onValueChange}
+              platformAwareDefault
+            />
+
+            <TextField
+              name="code"
+              placeholder="Verification Code"
+              keyboardType="number-pad"
+              autoComplete="one-time-code"
+              formValues={formValues}
+              formErrors={formErrors}
+              showErrors={showErrors}
+              onValueChange={onValueChange}
+              platformAwareDefault
+            />
+
+            <TextField
+              name="password"
+              placeholder="New Password"
+              secureTextEntry
+              autoComplete="new-password"
+              formValues={formValues}
+              formErrors={formErrors}
+              showErrors={showErrors}
+              onValueChange={onValueChange}
+              platformAwareDefault
+            />
+
+            <TextField
+              name="confirmPassword"
+              placeholder="Confirm New Password"
+              secureTextEntry
+              autoComplete="new-password"
+              formValues={formValues}
+              formErrors={formErrors}
+              showErrors={showErrors}
+              onValueChange={onValueChange}
+              platformAwareDefault
+            />
+          </View>
         </View>
-      )}
 
-      <View className="flex-col gap-3">
-        <TextField
-          name="email"
-          placeholder="Email Address"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-          formValues={formValues}
-          formErrors={formErrors}
-          showErrors={showErrors}
-          onValueChange={onValueChange}
-          platformAwareDefault
-        />
+        <View style={{ flex: stretch ? 1 : 0, minHeight: 20 }} />
 
-        <TextField
-          name="code"
-          placeholder="Verification Code"
-          keyboardType="number-pad"
-          autoComplete="one-time-code"
-          formValues={formValues}
-          formErrors={formErrors}
-          showErrors={showErrors}
-          onValueChange={onValueChange}
-          platformAwareDefault
-        />
-
-        <TextField
-          name="password"
-          placeholder="New Password"
-          secureTextEntry
-          autoComplete="new-password"
-          formValues={formValues}
-          formErrors={formErrors}
-          showErrors={showErrors}
-          onValueChange={onValueChange}
-          platformAwareDefault
-        />
-
-        <TextField
-          name="confirmPassword"
-          placeholder="Confirm New Password"
-          secureTextEntry
-          autoComplete="new-password"
-          formValues={formValues}
-          formErrors={formErrors}
-          showErrors={showErrors}
-          onValueChange={onValueChange}
-          platformAwareDefault
-        />
-
-        <FormButton title="Reset Password" onPress={onSubmit} colors={colors} />
+        <View>
+          <FormButton title="Reset Password" onPress={onSubmit} colors={colors} />
+          <LinkText
+            text="All set?"
+            linkText="Back to Login"
+            colors={colors}
+            onPress={onBackToLogin}
+          />
+        </View>
       </View>
-
-      <LinkText text="All set?" linkText="Back to Login" colors={colors} onPress={onBackToLogin} />
     </FormContainer>
   );
 });

@@ -1,14 +1,11 @@
 import React from "react";
-import { useRouter } from "expo-router";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
-import { Images } from "@/assets/images";
 import { useForgotPasswordReset } from "@/hooks/auth/useForgotPasswordReset";
 import { ForgotPasswordResetForm } from "@/components/auth/reset-password/ForgotPasswordResetForm";
 import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 
 export default function ForgotPasswordResetScreen() {
-  const { colors } = useAuthThemeColors();
-  const router = useRouter();
+  const { colors, isDark } = useAuthThemeColors();
   const {
     errorMessage,
     successMessage,
@@ -21,7 +18,7 @@ export default function ForgotPasswordResetScreen() {
   } = useForgotPasswordReset();
 
   return (
-    <AuthMobileLayout colors={colors} image={Images.Workspace} onBack={() => router.back()}>
+    <AuthMobileLayout colors={colors} isDark={isDark}>
       <ForgotPasswordResetForm
         colors={colors}
         errorMessage={errorMessage}
@@ -32,6 +29,7 @@ export default function ForgotPasswordResetScreen() {
         onValueChange={onValueChange}
         onSubmit={onSubmit}
         onBackToLogin={onBackToLogin}
+        stretch={true}
       />
     </AuthMobileLayout>
   );
