@@ -27,10 +27,12 @@ interface IAutoHeightReturn {
   currentInputHeight: number;
   minimumInputHeight: number;
   maximumInputHeight: number;
+  currentMaxHeight: number;
   animatedHeightStyle: AnimatedViewStyle;
   handleTextContainerSizeChange: (event: TextInputContentSizeChangeEvent) => void;
   animateHeightResetToMinimum: (onComplete?: () => void) => void;
   updateHeightForTextChange: (textValue: string) => void;
+  handleManualResize: (deltaY: number) => void;
 }
 
 export function useAutoHeight({
@@ -49,12 +51,17 @@ export function useAutoHeight({
     return PLATFORM.IS_WEB ? Math.max(rawHeight, WEB_MAX_CONTAINER_PX) : rawHeight;
   }, [lineHeight, maxLines, verticalPadding]);
 
+  const absoluteMaximumHeight = useMemo(() => {
+    return 400;
+  }, []);
+
   const initialHeightValue = useMemo(
     () => lineHeight * minLines + verticalPadding,
     [lineHeight, minLines, verticalPadding]
   );
 
   const [currentInputHeight, setCurrentInputHeight] = useState<number>(initialHeightValue);
+  const [currentMaxHeight, setCurrentMaxHeight] = useState<number>(maximumInputHeight);
   const animatedHeightValue = useSharedValue(initialHeightValue);
   const contentSizeRef = useRef<number>(initialHeightValue);
   const isResettingRef = useRef<boolean>(false);
@@ -64,18 +71,19 @@ export function useAutoHeight({
   }));
 
   const updateHeight = useCallback(
-    (newHeight: number) => {
-      const clampedHeight = Math.max(minimumInputHeight, Math.min(maximumInputHeight, newHeight));
+    (newHeight: number, isManual: boolean = false) => {
+      const maxHeight = isManual ? absoluteMaximumHeight : currentMaxHeight;
+      const clampedHeight = Math.max(minimumInputHeight, Math.min(maxHeight, newHeight));
 
       setCurrentInputHeight(clampedHeight);
       animatedHeightValue.value = withTiming(clampedHeight, {
-        duration: RESIZE_ANIM_MS,
+        duration: isManual ? 0 : RESIZE_ANIM_MS,
         easing: ANIM_EASING,
       });
 
       contentSizeRef.current = clampedHeight;
     },
-    [minimumInputHeight, maximumInputHeight, animatedHeightValue]
+    [minimumInputHeight, currentMaxHeight, absoluteMaximumHeight, animatedHeightValue]
   );
 
   const handleTextContainerSizeChange = useCallback(
@@ -83,7 +91,7 @@ export function useAutoHeight({
       if (isResettingRef.current) return;
 
       const rawMeasuredHeight = Math.ceil(event.nativeEvent.contentSize.height);
-      updateHeight(rawMeasuredHeight);
+      updateHeight(rawMeasuredHeight, false);
     },
     [updateHeight]
   );
@@ -91,15 +99,17 @@ export function useAutoHeight({
   const updateHeightForTextChange = useCallback(
     (textValue: string) => {
       if (textValue.trim().length === 0) {
-        updateHeight(minimumInputHeight);
+        updateHeight(minimumInputHeight, false);
+        setCurrentMaxHeight(maximumInputHeight);
       }
     },
-    [minimumInputHeight, updateHeight]
+    [minimumInputHeight, maximumInputHeight, updateHeight]
   );
 
   const animateHeightResetToMinimum = useCallback(
     (onComplete?: () => void) => {
       isResettingRef.current = true;
+      setCurrentMaxHeight(maximumInputHeight);
 
       animatedHeightValue.value = minimumInputHeight;
 
@@ -109,16 +119,34 @@ export function useAutoHeight({
       isResettingRef.current = false;
       onComplete?.();
     },
-    [minimumInputHeight, animatedHeightValue]
+    [minimumInputHeight, maximumInputHeight, animatedHeightValue]
+  );
+
+  const handleManualResize = useCallback(
+    (deltaY: number) => {
+      const newHeight = contentSizeRef.current + deltaY;
+      const clampedHeight = Math.max(
+        minimumInputHeight,
+        Math.min(absoluteMaximumHeight, newHeight)
+      );
+
+      setCurrentInputHeight(clampedHeight);
+      setCurrentMaxHeight(clampedHeight);
+      animatedHeightValue.value = clampedHeight;
+      contentSizeRef.current = clampedHeight;
+    },
+    [minimumInputHeight, absoluteMaximumHeight, animatedHeightValue]
   );
 
   return {
     currentInputHeight,
     minimumInputHeight,
     maximumInputHeight,
+    currentMaxHeight,
     animatedHeightStyle,
     handleTextContainerSizeChange,
     animateHeightResetToMinimum,
     updateHeightForTextChange,
+    handleManualResize,
   };
 }
