@@ -130,17 +130,17 @@ export interface WorkspaceDropdownProps {
 
 export const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   PENDING: {
-    bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    bg: "bg-yellow-100 dark:bg-yellow-900/50",
     text: "text-yellow-700 dark:text-yellow-400",
     label: "Invitation Pending",
   },
   ACTIVE: {
-    bg: "bg-green-100 dark:bg-green-900/30",
+    bg: "bg-green-100 dark:bg-green-800/50",
     text: "text-green-700 dark:text-green-400",
     label: "Active",
   },
   SUSPENDED: {
-    bg: "bg-red-100 dark:bg-red-900/30",
+    bg: "bg-red-100 dark:bg-red-900/50",
     text: "text-red-700 dark:text-red-400",
     label: "Suspended",
   },
