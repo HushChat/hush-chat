@@ -149,7 +149,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponseDTO authenticateUser(LoginDTO loginDTO) {
-
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
 
@@ -172,7 +171,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ChatUser getUserOrThrow(Long userId) {
         ChatUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomBadRequestException("Cannot find user!"));
+            .orElseThrow(() -> new CustomBadRequestException("Cannot find user!"));
         return user;
     }
 
@@ -189,10 +188,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getUserByIdWithProfileImage(Long id) {
         ChatUser user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.warn("invalid user id {} provided", id);
-                    return new CustomBadRequestException("user does not exist!");
-                });
+            .orElseThrow(() -> {
+                logger.warn("invalid user id {} provided", id);
+                return new CustomBadRequestException("user does not exist!");
+            });
 
         UserDTO userDTO = new UserDTO(user);
         return userDTO;
