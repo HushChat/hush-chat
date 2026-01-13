@@ -18,7 +18,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 public class WorkspaceUserService {
@@ -67,30 +69,33 @@ public class WorkspaceUserService {
         List<WorkspaceUser> successfullyInvitedUsers = new ArrayList<>();
         AtomicReference<Workspace> workspace = new AtomicReference<>(new Workspace());
 
+        Map<String, WorkspaceUserInviteDTO> uniqueInvites = workspaceUserInviteDTOs.stream()
+                .collect(Collectors.toMap(
+                        dto -> dto.getEmail().toLowerCase().trim(),
+                        dto -> dto,
+                        (existing, replacement) -> existing
+                ));
+
         WorkspaceUtils.runInGlobalSchema(() -> {
             transactionTemplate.executeWithoutResult(status -> {
                 workspace.set(workspaceUserRepository.validateWorkspaceMembershipOrThrow(inviterEmail, workspaceIdentifier));
 
-                for (WorkspaceUserInviteDTO dto : workspaceUserInviteDTOs) {
-                    try {
+                for (WorkspaceUserInviteDTO dto : uniqueInvites.values()) {
                         WorkspaceUser existingUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
                                 dto.getEmail(), workspaceIdentifier).orElse(null);
 
                         if (existingUser != null) {
-                            // do not throw exception, or it will rollback valid invites
-                            logger.warn("User {} is already a member of workspace {}. Skipping.", dto.getEmail(), workspaceIdentifier);
+                            logger.warn("User {} is already a {} member of workspace {}. Skipping.", dto.getEmail(), existingUser.getStatus(), workspaceIdentifier);
                             continue;
                         }
 
                         WorkspaceUser newWorkspaceUser = WorkspaceUserInviteDTO.createPendingInvite(dto, workspace.get(), inviterEmail);
-                        workspaceUserRepository.save(newWorkspaceUser);
 
                         successfullyInvitedUsers.add(newWorkspaceUser);
                         logger.info("Successfully invited user: {} to workspace: {}", dto.getEmail(), workspaceIdentifier);
-                    } catch (Exception e) {
-                        logger.error("Failed to invite user: {} to workspace: {}. Error: {}", dto.getEmail(), workspaceIdentifier, e.getMessage());
-                    }
                 }
+
+                workspaceUserRepository.saveAll(successfullyInvitedUsers);
             });
         });
 
