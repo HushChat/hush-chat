@@ -221,4 +221,13 @@ public class UserController {
         UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser, status);
         return new ResponseEntity<>(userStatusEnum, HttpStatus.OK);
     }
+
+    @ApiOperation(value = "Disable a user")
+    @PatchMapping("{id}/disable")
+    public ResponseEntity<Void> disableUser(
+            @PathVariable Long id
+    ) {
+        userService.disableUser(id);
+        return ResponseEntity.ok().build();
+    }
 }

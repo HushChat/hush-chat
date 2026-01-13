@@ -33,7 +33,7 @@ import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepo
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
 import com.platform.software.chat.user.repository.UserBlockRepository;
-import com.platform.software.platform.workspace.repository.WorkspaceRepository; 
+import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponseDTO authenticateUser(LoginDTO loginDTO) {
-        
+
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
 
@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ChatUser getUserOrThrow(Long userId) {
         ChatUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new CustomBadRequestException("Cannot find user!"));
+                .orElseThrow(() -> new CustomBadRequestException("Cannot find user!"));
         return user;
     }
 
@@ -189,11 +189,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getUserByIdWithProfileImage(Long id) {
         ChatUser user = userRepository.findById(id)
-        .orElseThrow(() -> {
-            logger.warn("invalid user id {} provided", id);
-            return new CustomBadRequestException("user does not exist!");
-        });
-        
+                .orElseThrow(() -> {
+                    logger.warn("invalid user id {} provided", id);
+                    return new CustomBadRequestException("user does not exist!");
+                });
+
         UserDTO userDTO = new UserDTO(user);
         return userDTO;
     }
@@ -213,14 +213,14 @@ public class UserServiceImpl implements UserService {
     public UserViewDTO findUserById(Long id, String workspaceIdentifier) {
         UserViewDTO userViewDTO = userUtilService.getUserViewDTO(id);
         userViewDTO.setSignedImageUrl(getUserProfileImageUrl(userViewDTO.getImageIndexedName(), MediaSizeEnum.MEDIUM));
-        
+
         String currentWorkspaceIdentifier = WorkspaceContext.getCurrentWorkspace();
 
         if (currentWorkspaceIdentifier != null) {
             workspaceRepository.findByWorkspaceIdentifier(currentWorkspaceIdentifier)
-                .ifPresent(workspace -> {
-                    userViewDTO.setWorkspaceName(workspace.getName());
-                });
+                    .ifPresent(workspace -> {
+                        userViewDTO.setWorkspaceName(workspace.getName());
+                    });
         }
         WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(userViewDTO.getEmail(), workspaceIdentifier);
         userViewDTO.setWorkspaceRole(workspaceUser.getRole());
@@ -524,5 +524,25 @@ public class UserServiceImpl implements UserService {
     public String getUserAvailabilityStatus(String email) {
         ChatUser user = getUserByEmail(email);
         return user.getAvailabilityStatus().getName();
+    }
+
+    @Override
+    public void disableUser(Long userId) {
+        ChatUser user = validateAndGetUser(userId);
+
+        user.setActive(false);
+
+        try {
+            userRepository.save(user);
+
+            cacheService.evictByLastPartsForCurrentWorkspace(
+                    List.of(CacheNames.FIND_USER_BY_ID + ":" + user.getId()));
+
+            logger.info("User {} has been disabled successfully", userId);
+
+        } catch (Exception exception) {
+            logger.error("Failed to disable user id: {}", user.getId(), exception);
+            throw new CustomInternalServerErrorException("Failed to disable user");
+        }
     }
 }
