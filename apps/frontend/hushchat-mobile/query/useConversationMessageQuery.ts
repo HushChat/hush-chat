@@ -16,8 +16,6 @@ import { logError } from "@/utils/logger";
 import { separatePinnedItems } from "@/query/config/appendToOffsetPaginatedCache";
 import { skipRetryOnAccessDenied } from "@/utils/apiErrorUtils";
 
-import { useWebSocket } from "@/contexts/WebSocketContext";
-import { WebSocketStatus } from "@/types/ws/types";
 const PAGE_SIZE = 20;
 
 export function useConversationMessagesQuery(
@@ -33,9 +31,6 @@ export function useConversationMessagesQuery(
   const [inMessageWindowView, setInMessageWindowView] = useState(false);
   const [targetMessageId, setTargetMessageId] = useState<number | null>(null);
 
-  const { connectionStatus } = useWebSocket();
-  const prevConnectionStatus = useRef(connectionStatus);
-
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
     [userId, conversationId]
@@ -43,21 +38,12 @@ export function useConversationMessagesQuery(
 
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
+      queryClient.invalidateQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
     }
-  }, [conversationId]);
-
-  useEffect(() => {
-    if (
-      connectionStatus === WebSocketStatus.Connected &&
-      prevConnectionStatus.current !== WebSocketStatus.Connected
-    ) {
-      queryClient.invalidateQueries({ queryKey });
-    }
-    prevConnectionStatus.current = connectionStatus;
-  }, [connectionStatus, queryKey, queryClient]);
+  }, [conversationId, queryKey, queryClient]);
 
   const {
     pages,
