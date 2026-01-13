@@ -39,12 +39,11 @@ export function useConversationMessagesQuery(
 
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
-      queryClient.invalidateQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
     }
-  }, [conversationId, queryKey, queryClient]);
+  }, [conversationId]);
 
   const {
     pages,
@@ -65,6 +64,7 @@ export function useConversationMessagesQuery(
     enabled: !!conversationId && options?.enabled,
     allowForwardPagination: inMessageWindowView,
     retry: skipRetryOnAccessDenied,
+    refetchOnMount: true,
   });
 
   const loadMessageWindow = useCallback(
