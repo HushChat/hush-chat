@@ -1136,6 +1136,14 @@ public class ConversationService {
             }
 
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+
+            eventPublisher.publishEvent(new MessagePinEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversationId,
+                    isPinningAction ? new BasicMessageDTO(message) : null,
+                    userId
+            ));
+
         } catch (Exception exception) {
             logger.error("Failed to pin messageId: {} in conversationId: {}", messageId, conversationId, exception);
             throw new CustomBadRequestException("Failed to pin message in conversation");

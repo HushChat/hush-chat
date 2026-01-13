@@ -14,10 +14,16 @@ import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 import { separatePinnedItems } from "@/query/config/appendToOffsetPaginatedCache";
+import { skipRetryOnAccessDenied } from "@/utils/apiErrorUtils";
 
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { WebSocketStatus } from "@/types/ws/types";
 const PAGE_SIZE = 20;
 
-export function useConversationMessagesQuery(conversationId: number) {
+export function useConversationMessagesQuery(
+  conversationId: number,
+  options?: { enabled?: boolean }
+) {
   const {
     user: { id: userId },
   } = useUserStore();
@@ -27,6 +33,9 @@ export function useConversationMessagesQuery(conversationId: number) {
   const [inMessageWindowView, setInMessageWindowView] = useState(false);
   const [targetMessageId, setTargetMessageId] = useState<number | null>(null);
 
+  const { connectionStatus } = useWebSocket();
+  const prevConnectionStatus = useRef(connectionStatus);
+
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
     [userId, conversationId]
@@ -34,12 +43,21 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
-      queryClient.invalidateQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
     }
-  }, [conversationId, queryKey, queryClient]);
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (
+      connectionStatus === WebSocketStatus.Connected &&
+      prevConnectionStatus.current !== WebSocketStatus.Connected
+    ) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+    prevConnectionStatus.current = connectionStatus;
+  }, [connectionStatus, queryKey, queryClient]);
 
   const {
     pages,
@@ -57,8 +75,9 @@ export function useConversationMessagesQuery(conversationId: number) {
     queryKey,
     queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
-    enabled: !!conversationId,
+    enabled: !!conversationId && options?.enabled,
     allowForwardPagination: inMessageWindowView,
+    retry: skipRetryOnAccessDenied,
   });
 
   const loadMessageWindow = useCallback(
@@ -132,20 +151,35 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   const updateConversationsListCache = useCallback(
     (newMessage: IMessage) => {
+      let found = false;
+      const listQueryKey = ["conversations", userId];
+
       queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
-        { queryKey: ["conversations", userId] },
+        { queryKey: listQueryKey },
         (oldData) => {
           if (!oldData) return oldData;
 
           return {
             ...oldData,
-            pages: oldData.pages.map((page) => {
+            pages: oldData?.pages?.map((page) => {
               const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
 
               if (conversationIndex === -1) return page;
 
+              found = true;
+
+              const existingConversation = page.content[conversationIndex];
+              const existingLastMessage = existingConversation.messages?.[0];
+
+              const shouldUpdateMessage =
+                !existingLastMessage || newMessage.id === existingLastMessage.id;
+
+              if (!shouldUpdateMessage) {
+                return page;
+              }
+
               const updatedConversation: IConversation = {
-                ...page.content[conversationIndex],
+                ...existingConversation,
                 messages: [newMessage],
               };
 
@@ -168,6 +202,10 @@ export function useConversationMessagesQuery(conversationId: number) {
           };
         }
       );
+
+      if (!found) {
+        queryClient.invalidateQueries({ queryKey: listQueryKey });
+      }
     },
     [queryClient, conversationId, userId]
   );

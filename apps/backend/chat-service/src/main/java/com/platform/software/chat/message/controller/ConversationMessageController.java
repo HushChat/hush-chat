@@ -191,14 +191,14 @@ public class ConversationMessageController {
      */
     @ApiOperation(value = "edit a message")
     @PutMapping("{messageId}")
-    public ResponseEntity<Void> editMessage(
+    public ResponseEntity<MessageViewDTO> editMessage(
         @PathVariable Long conversationId,
         @PathVariable Long messageId,
         @AuthenticatedUser UserDetails userDetails,
         @RequestBody MessageUpsertDTO messageDTO
     ) {
-        messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
-        return ResponseEntity.ok().build();
+        MessageViewDTO updatedMessage = messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
+        return ResponseEntity.ok(updatedMessage);
     }
 
     /** unpin a message in a conversation
