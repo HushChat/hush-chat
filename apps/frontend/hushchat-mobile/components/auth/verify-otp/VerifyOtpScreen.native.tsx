@@ -7,7 +7,7 @@ import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 import { VerifyOtpForm } from "@/components/auth/verify-otp/VerifyOtpForm";
 
 export default function VerifyOtpScreen() {
-  const { colors } = useAuthThemeColors();
+  const { colors, isDark } = useAuthThemeColors();
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
   const {
@@ -20,7 +20,7 @@ export default function VerifyOtpScreen() {
   } = useVerifyOtpForm(email);
 
   return (
-    <AuthMobileLayout colors={colors} image={Images.Workspace} onBack={() => router.back()}>
+    <AuthMobileLayout colors={colors} isDark={isDark}>
       <VerifyOtpForm
         colors={colors}
         errorMessage={errorMessage}
@@ -29,6 +29,7 @@ export default function VerifyOtpScreen() {
         onSubmit={handleVerifyOtp}
         onResendOtp={handleResendOtp}
         isLoading={isLoading}
+        stretch={true}
       />
     </AuthMobileLayout>
   );

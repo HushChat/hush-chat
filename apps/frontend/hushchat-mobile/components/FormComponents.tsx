@@ -108,10 +108,9 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
+    letterSpacing: -0.5,
     fontFamily: "Poppins-SemiBold",
-    // fontWeight: "700",
-    // marginBottom: 12,
   },
   headerSubtitle: {
     fontSize: 16,
@@ -128,7 +127,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: "Poppins-Medium",
     textAlign: "center",
   },
   buttonTextEnabled: {
@@ -159,7 +158,7 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: "Poppins-Medium",
   },
   formContainer: {
     width: "100%",

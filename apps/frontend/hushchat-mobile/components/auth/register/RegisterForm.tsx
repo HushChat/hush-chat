@@ -1,8 +1,16 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { FormHeader, FormButton, ErrorMessage, FormContainer } from "@/components/FormComponents";
+import {
+  FormHeader,
+  FormButton,
+  ErrorMessage,
+  FormContainer,
+  LinkText,
+} from "@/components/FormComponents";
 import TextField from "@/components/forms/TextField";
 import { TRegisterFormProps } from "@/types/login/types";
+import { router } from "expo-router";
+import { AUTH_LOGIN_PATH } from "@/constants/routes";
 
 export const RegisterForm = ({
   colors,
@@ -13,6 +21,7 @@ export const RegisterForm = ({
   onValueChange,
   onSubmit,
   isLoading,
+  stretch,
 }: TRegisterFormProps) => {
   const sharedProps = {
     formValues,
@@ -22,42 +31,68 @@ export const RegisterForm = ({
   };
 
   return (
-    <FormContainer>
-      <FormHeader title="Register" subtitle="Create your account to get started." colors={colors} />
+    <FormContainer style={stretch ? { flex: 1 } : undefined}>
+      <View style={{ flex: 1 }}>
+        <View>
+          <FormHeader
+            title="Create your account"
+            subtitle="Start your journey with secure team messaging"
+            colors={colors}
+          />
 
-      {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
+          {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
 
-      <View style={styles.fieldsContainer}>
-        <TextField
-          name="email"
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          {...sharedProps}
-        />
+          <View style={styles.fieldsContainer}>
+            <TextField
+              name="email"
+              label="Email address"
+              placeholder="Email Adress"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              size="md"
+              {...sharedProps}
+            />
 
-        <View style={styles.row}>
-          <View style={styles.halfWidth}>
-            <TextField name="password" placeholder="Password" secureTextEntry {...sharedProps} />
-          </View>
-          <View style={styles.halfWidth}>
+            <TextField
+              name="password"
+              label="Create password"
+              placeholder="Password"
+              secureTextEntry
+              size="md"
+              {...sharedProps}
+            />
+
             <TextField
               name="confirmPassword"
-              placeholder="Confirm Password"
+              label="Confirm password"
+              placeholder="Confirm password"
               secureTextEntry
+              size="md"
               {...sharedProps}
             />
           </View>
         </View>
-      </View>
 
-      <FormButton
-        title={isLoading ? "Registering..." : "Register"}
-        onPress={onSubmit}
-        disabled={isLoading}
-        colors={colors}
-        style={styles.submitButton}
-      />
+        {/* Spacer */}
+        <View style={{ flex: stretch ? 1 : 0, minHeight: 20 }} />
+
+        <View>
+          <FormButton
+            title={isLoading ? "Creating account..." : "Create account"}
+            onPress={onSubmit}
+            disabled={isLoading}
+            colors={colors}
+            style={styles.submitButton}
+          />
+
+          <LinkText
+            text="Already have an account?"
+            linkText="Sign in"
+            colors={colors}
+            onPress={() => router.push(AUTH_LOGIN_PATH)}
+          />
+        </View>
+      </View>
     </FormContainer>
   );
 };
@@ -67,14 +102,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
     width: "100%",
-  },
-  row: {
-    flexDirection: "row",
-    gap: 10,
-    width: "100%",
-  },
-  halfWidth: {
-    flex: 1,
   },
   submitButton: {
     marginTop: 24,

@@ -4,6 +4,11 @@ import { AppText } from "../AppText";
 import { Ionicons } from "@expo/vector-icons";
 import { Images } from "@/assets/images";
 
+export type TAuthFeature = {
+  icon: keyof typeof Ionicons.glyphMap;
+  text: string;
+};
+
 type TAuthWebLayoutProps = {
   colors: {
     background: string;
@@ -16,15 +21,25 @@ type TAuthWebLayoutProps = {
   };
   children: ReactNode;
   isDark?: boolean;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  features?: TAuthFeature[];
 };
 
-const FEATURES = [
-  { icon: "shield-checkmark-outline" as const, text: "End-to-end encryption" },
-  { icon: "people-outline" as const, text: "Team workspaces" },
-  { icon: "chatbubbles-outline" as const, text: "Real-time messaging" },
+const DEFAULT_FEATURES: TAuthFeature[] = [
+  { icon: "shield-checkmark-outline", text: "End-to-end encryption" },
+  { icon: "people-outline", text: "Team workspaces" },
+  { icon: "chatbubbles-outline", text: "Real-time messaging" },
 ];
 
-export default function AuthWebLayout({ colors, children, isDark = false }: TAuthWebLayoutProps) {
+export default function AuthWebLayout({
+  colors,
+  children,
+  isDark = false,
+  heroTitle = "Your conversations,\nyour rules.",
+  heroSubtitle = "Pick up right where you left off. Your team is waiting, and your messages are secure as always.",
+  features = DEFAULT_FEATURES,
+}: TAuthWebLayoutProps) {
   const { width } = useWindowDimensions();
   const isWide = width >= 1024;
 
@@ -71,27 +86,26 @@ export default function AuthWebLayout({ colors, children, isDark = false }: TAut
 
               {/* Hero text */}
               <View style={s.heroBlock}>
-                <AppText style={[s.heroTitle, { color: colors.logoText }]}>
-                  Your conversations,{"\n"}your rules.
-                </AppText>
+                <AppText style={[s.heroTitle, { color: colors.logoText }]}>{heroTitle}</AppText>
                 <AppText style={[s.heroSubtitle, { color: colors.featureText }]}>
-                  Pick up right where you left off. Your team is waiting, and your messages are
-                  secure as always.
+                  {heroSubtitle}
                 </AppText>
               </View>
             </View>
 
             {/* Features list */}
-            <View style={s.featuresContainer}>
-              {FEATURES.map((feature, index) => (
-                <View key={index} style={s.featureRow}>
-                  <Ionicons name={feature.icon} size={20} color={colors.featureText} />
-                  <AppText style={[s.featureText, { color: colors.featureText }]}>
-                    {feature.text}
-                  </AppText>
-                </View>
-              ))}
-            </View>
+            {features && features.length > 0 && (
+              <View style={s.featuresContainer}>
+                {features.map((feature, index) => (
+                  <View key={index} style={s.featureRow}>
+                    <Ionicons name={feature.icon} size={20} color={colors.featureText} />
+                    <AppText style={[s.featureText, { color: colors.featureText }]}>
+                      {feature.text}
+                    </AppText>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </View>
 
@@ -139,6 +153,7 @@ const s = StyleSheet.create({
   logoImage: {
     height: 40,
     width: 180,
+    marginTop: 50,
   },
   heroBlock: {
     maxWidth: 500,

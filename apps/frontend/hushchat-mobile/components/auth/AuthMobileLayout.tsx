@@ -18,17 +18,13 @@ export default function AuthMobileLayout({
   children,
   isDark = false,
 }: TAuthMobileLayoutProps) {
-  // Choose background and logo based on theme
   const bgImage = isDark ? Images.AuthBgDark : Images.AuthBgLight;
   const logoImage = isDark ? Images.LogoMobileDark : Images.LogoMobileLight;
 
   return (
     <View style={[style.container, { backgroundColor: colors.formBackground }]}>
-      {/* Header with gradient background image */}
       <View style={style.header}>
-        {/* Background image with gradient pattern */}
         <Image source={bgImage} style={style.headerBg} resizeMode="cover" />
-        {/* Logo */}
         <View style={style.logoContainer}>
           <Image source={logoImage} style={style.logoImage} resizeMode="contain" />
         </View>
@@ -71,6 +67,7 @@ const style = StyleSheet.create({
   logoImage: {
     height: 36,
     width: 160,
+    marginTop: 50,
   },
   kav: { flex: 1 },
   content: {

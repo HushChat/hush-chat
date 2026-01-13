@@ -55,6 +55,7 @@ export type TRegisterFormProps = {
   onValueChange: (args: { name: string; value: string }) => void;
   onSubmit: () => void;
   isLoading: boolean;
+  stretch?: boolean;
 };
 
 export type TWorkspaceRegisterFormProps = {

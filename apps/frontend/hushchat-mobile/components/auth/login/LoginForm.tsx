@@ -26,7 +26,6 @@ export const LoginForm = memo(
   }: TLoginFormProps) => (
     <FormContainer style={stretch ? { flex: 1 } : undefined}>
       <View style={{ flex: 1 }}>
-        {/* Top Section: Header & Inputs */}
         <View>
           <FormHeader
             title="Welcome back"
@@ -74,10 +73,8 @@ export const LoginForm = memo(
           </View>
         </View>
 
-        {/* Spacer to push buttons to bottom on mobile, collapses on desktop */}
-        <View style={{ flex: stretch ? 1 : 0, minHeight: 40 }} />
+        <View style={{ flex: stretch ? 1 : 0, minHeight: 20 }} />
 
-        {/* Bottom Section: Buttons */}
         <View>
           <FormButton title="Login" onPress={onSubmit} colors={colors} />
 
