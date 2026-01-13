@@ -40,6 +40,7 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
   pageSize = 20,
   enabled = true,
   allowForwardPagination = false,
+  retry,
 }: CursorPaginatedQueryOptions<T>) {
   const queryClient = useQueryClient();
 
@@ -57,6 +58,7 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
   } = useInfiniteQuery<CursorPaginatedResponse<T>>({
     queryKey,
     enabled,
+    retry,
     initialPageParam: undefined,
     queryFn: async ({ pageParam }) => {
       const cursorQuery = buildCursorQuery(pageParam as TPageParam);

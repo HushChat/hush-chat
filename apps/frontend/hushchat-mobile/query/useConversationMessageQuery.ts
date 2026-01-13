@@ -14,10 +14,14 @@ import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 import { separatePinnedItems } from "@/query/config/appendToOffsetPaginatedCache";
+import { skipRetryOnAccessDenied } from "@/utils/apiErrorUtils";
 
 const PAGE_SIZE = 20;
 
-export function useConversationMessagesQuery(conversationId: number) {
+export function useConversationMessagesQuery(
+  conversationId: number,
+  options?: { enabled?: boolean }
+) {
   const {
     user: { id: userId },
   } = useUserStore();
@@ -57,8 +61,9 @@ export function useConversationMessagesQuery(conversationId: number) {
     queryKey,
     queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
-    enabled: !!conversationId,
+    enabled: !!conversationId && options?.enabled,
     allowForwardPagination: inMessageWindowView,
+    retry: skipRetryOnAccessDenied,
   });
 
   const loadMessageWindow = useCallback(
