@@ -78,6 +78,7 @@ const ConversationThreadScreen = ({
 
   const dropZoneRef = useRef<View>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  const [isViewingFirstPage, setIsViewingFirstPage] = useState(true);
 
   const {
     selectionMode,
@@ -126,6 +127,30 @@ const ConversationThreadScreen = ({
     targetMessageId,
     clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId);
+
+  const handleViewableMessagesChanged = useCallback(
+    (visibleMessageIds: number[]) => {
+      const pages = conversationMessagesPages?.pages || [];
+
+      if (pages.length === 0 || visibleMessageIds.length === 0) {
+        setIsViewingFirstPage(false);
+        return;
+      }
+
+      const firstPage = pages.find((page) => page.firstPage === true);
+      if (!firstPage || !firstPage.content) {
+        setIsViewingFirstPage(false);
+        return;
+      }
+
+      const isFirstPageVisible = visibleMessageIds.some((id) =>
+        firstPage.content.some((msg) => msg.id === id)
+      );
+
+      setIsViewingFirstPage(isFirstPageVisible);
+    },
+    [conversationMessagesPages]
+  );
 
   const { updateConversation } = useConversationNotificationsContext();
 
@@ -289,7 +314,7 @@ const ConversationThreadScreen = ({
 
         const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
 
-        if (lastSuccessful?.signed?.messageId && loadMessageWindow) {
+        if (lastSuccessful?.signed?.messageId && loadMessageWindow && !isViewingFirstPage) {
           loadMessageWindow(lastSuccessful.signed.messageId);
         }
       } else if (uploadError) {
@@ -308,7 +333,7 @@ const ConversationThreadScreen = ({
 
         const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
 
-        if (lastSuccessful?.signed?.messageId && loadMessageWindow) {
+        if (lastSuccessful?.signed?.messageId && loadMessageWindow && !isViewingFirstPage) {
           loadMessageWindow(lastSuccessful.signed.messageId);
         }
       } else if (uploadError) {
@@ -332,7 +357,7 @@ const ConversationThreadScreen = ({
       updateConversationMessagesCache(newMessage);
       updateConversationsListCache(newMessage);
 
-      if (newMessage.id && loadMessageWindow) {
+      if (newMessage.id && loadMessageWindow && !isViewingFirstPage) {
         loadMessageWindow(newMessage.id);
       }
     },
@@ -350,6 +375,7 @@ const ConversationThreadScreen = ({
     updateConversationMessagesCache,
     sendGifMessage,
     loadMessageWindow,
+    isViewingFirstPage,
   });
 
   const handleSendFilesFromPreview = useCallback(
@@ -473,6 +499,7 @@ const ConversationThreadScreen = ({
         webMessageInfoPress={webMessageInfoPress}
         lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
         onEditMessage={handleStartEditWithClearReply}
+        onViewableMessagesChanged={handleViewableMessagesChanged}
       />
     );
   }, [

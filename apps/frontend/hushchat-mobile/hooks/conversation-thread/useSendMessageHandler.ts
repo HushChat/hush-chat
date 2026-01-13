@@ -32,6 +32,7 @@ interface IUseSendMessageHandlerParams {
     parentMessageId?: number | null
   ) => Promise<IMessage>;
   loadMessageWindow: (messageId: number) => Promise<void>;
+  isViewingFirstPage: boolean;
 }
 
 let tempMessageIdCounter = -1;
@@ -113,6 +114,7 @@ export const useSendMessageHandler = ({
   handleCloseImagePreview,
   sendGifMessage,
   loadMessageWindow,
+  isViewingFirstPage,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
     useConversationMessagesQuery(currentConversationId);
@@ -210,7 +212,7 @@ export const useSendMessageHandler = ({
           }
 
           const lastSuccessfulResult = results.reverse().find((r) => r.success && r.messageId);
-          if (lastSuccessfulResult?.messageId && loadMessageWindow) {
+          if (lastSuccessfulResult?.messageId && loadMessageWindow && !isViewingFirstPage) {
             loadMessageWindow(lastSuccessfulResult.messageId!);
           }
 
@@ -231,7 +233,7 @@ export const useSendMessageHandler = ({
 
           const sentGifMessage = await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
 
-          if (sentGifMessage?.id) {
+          if (sentGifMessage?.id && !isViewingFirstPage) {
             loadMessageWindow(sentGifMessage.id);
           }
 
