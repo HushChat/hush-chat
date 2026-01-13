@@ -55,7 +55,8 @@ const ConversationListItem = ({
       <Pressable
         className={classNames(
           "group flex-row items-center gap-3 px-4 py-3 active:bg-secondary-light dark:active:bg-secondary-dark",
-          PLATFORM.IS_WEB && "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
+          PLATFORM.IS_WEB &&
+            "mx-1 rounded-2xl md:hover:bg-blue-100/60 md:hover:dark:bg-secondary-dark",
           {
             "bg-background-light dark:bg-background-dark": !isConversationSelected,
             "bg-blue-100/60 dark:bg-secondary-dark": isConversationSelected,
