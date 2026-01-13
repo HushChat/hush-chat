@@ -42,6 +42,7 @@ export const MediaItem = ({ attachment, style, onPress }: IMediaItemProps) => {
     >
       <Image
         source={{ uri: imageSource }}
+        placeholder={{ uri: imageSource }}
         style={style}
         contentFit="contain"
         cachePolicy="memory-disk"
