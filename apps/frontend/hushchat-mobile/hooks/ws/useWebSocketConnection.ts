@@ -31,6 +31,8 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { HEARTBEAT_INTERVAL, useHeartbeat } from "@/hooks/ws/wsHeartbeat";
 import { publishTypingStatus, publishUserActivity } from "@/hooks/ws/wsPublisher";
 import { CONFIG } from "@/constants/ws/wsConfig";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import { DeviceType } from "@/types/chat/types";
 
 const encoder = new TextEncoder();
 
@@ -42,6 +44,7 @@ export default function useWebSocketConnection() {
     user: { id },
   } = useUserStore();
   const { startHeartbeat, stopHeartbeat, updateLastMessageTime } = useHeartbeat();
+  const isMobileLayout = useIsMobileLayout();
 
   // WebSocket reference
   const wsRef = useRef<WebSocket | null>(null);
@@ -263,10 +266,16 @@ export default function useWebSocketConnection() {
 
       const { idToken, workspace } = await getAllTokens();
       const deviceId = await getDeviceId();
-      const deviceType = getDeviceType();
+      let deviceType = DeviceType.UNKNOWN;
 
-      // Validate required data
+      if (isMobileLayout) {
+        deviceType = DeviceType.MOBILE;
+      } else if (getDeviceType() === DeviceType.WEB) {
+        deviceType = DeviceType.WEB;
+      }
+
       if (!idToken) {
+        // Validate required data
         logInfo("Aborting WebSocket connection due to missing token");
         updateState({
           shouldStopRetrying: true,
