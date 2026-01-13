@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class WorkspaceUserService {
-
+    private static final Long MAX_INVITES_PER_REQUEST = 100L;
     private final WorkspaceUserRepository workspaceUserRepository;
     private final TransactionTemplate transactionTemplate;
     private final WorkspaceUserUtilService workspaceUserUtilService;
@@ -66,6 +66,11 @@ public class WorkspaceUserService {
     }
 
     public void inviteUserToWorkspace(String inviterEmail, String workspaceIdentifier, List<WorkspaceUserInviteDTO> workspaceUserInviteDTOs) {
+        if (workspaceUserInviteDTOs != null && workspaceUserInviteDTOs.size() >= MAX_INVITES_PER_REQUEST) {
+            logger.error("user {} attempted to send {} invites to workspace {}. Maximum allowed is {}.", inviterEmail, workspaceUserInviteDTOs.size(), workspaceIdentifier, MAX_INVITES_PER_REQUEST);
+            throw new CustomBadRequestException("Maximum of %s invites allowed per request. Found: %s".formatted(MAX_INVITES_PER_REQUEST, workspaceUserInviteDTOs.size()));
+        }
+
         List<WorkspaceUser> successfullyInvitedUsers = new ArrayList<>();
         AtomicReference<Workspace> workspace = new AtomicReference<>(new Workspace());
 
