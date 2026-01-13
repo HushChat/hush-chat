@@ -287,6 +287,15 @@ export const createMessagesWithAttachments = async (
   }
 };
 
+export const publishMessageEvents = async (conversationId: number, messageIds: number[]) => {
+  try {
+    await axios.post(CONVERSATION_API_ENDPOINTS.PUBLISH_MESSAGES(conversationId), messageIds);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const toggleConversationFavorite = async (conversationId: string) => {
   try {
     const response = await axios.patch(
