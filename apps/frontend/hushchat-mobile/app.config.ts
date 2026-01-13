@@ -72,6 +72,9 @@ export default () => ({
     ],
     experiments: {
       typedRoutes: true,
+      router: {
+        server: false,
+      },
     },
     extra: {
       eas: {
