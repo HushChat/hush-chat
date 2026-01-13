@@ -172,7 +172,9 @@ export function useConversationMessagesQuery(
               const existingLastMessage = existingConversation.messages?.[0];
 
               const shouldUpdateMessage =
-                !existingLastMessage || newMessage.id === existingLastMessage.id;
+                !existingLastMessage ||
+                new Date(newMessage.createdAt) >= new Date(existingLastMessage.createdAt) ||
+                newMessage.id === existingLastMessage.id;
 
               if (!shouldUpdateMessage) {
                 return page;

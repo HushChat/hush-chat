@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -72,7 +72,6 @@ const InitialsAvatar = ({
   imageUrl,
   userStatus = chatUserStatus.OFFLINE,
   showOnlineStatus = false,
-  imageError = false,
   onImageError,
   showCameraIcon = false,
   isUploading = false,
@@ -80,8 +79,20 @@ const InitialsAvatar = ({
   deviceType,
 }: IInitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
+  const [hasError, setHasError] = useState<boolean>(false);
 
-  const shouldShowImage = imageUrl && !imageError;
+  useEffect(() => {
+    setHasError(false);
+  }, [imageUrl]);
+
+  const handleImageError = () => {
+    setHasError(true);
+    if (onImageError) {
+      onImageError();
+    }
+  };
+
+  const shouldShowImage = imageUrl && !hasError;
 
   const Wrapper = onPress ? TouchableOpacity : View;
   const wrapperProps = onPress ? { onPress, disabled: isUploading } : {};
@@ -98,7 +109,7 @@ const InitialsAvatar = ({
               style={styles.avatarImage}
               contentFit="cover"
               cachePolicy="memory-disk"
-              onError={onImageError}
+              onError={handleImageError}
             />
           ) : (
             <AppText className={`font-medium text-center ${text}`} style={styles.initialsText}>
