@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { AppState, AppStateStatus, Platform } from "react-native";
+import { AppState, AppStateStatus } from "react-native";
+import { PLATFORM } from "@/constants/platformConstants";
 
 /**
  * Returns a boolean indicating whether the app is currently active (in the foreground).
@@ -7,7 +8,7 @@ import { AppState, AppStateStatus, Platform } from "react-native";
  */
 export function useAppVisibility(): boolean {
   const [isActive, setIsActive] = useState<boolean>(() => {
-    if (Platform.OS === "web") {
+    if (PLATFORM.IS_WEB) {
       if (typeof document !== "undefined") {
         return document.visibilityState === "visible";
       }
@@ -40,7 +41,7 @@ export function useAppVisibility(): boolean {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === "web") {
+    if (PLATFORM.IS_WEB) {
       if (typeof document === "undefined") {
         return;
       }

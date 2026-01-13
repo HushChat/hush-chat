@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { Platform } from "react-native";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
+import { PLATFORM } from "@/constants/platformConstants";
 
 /**
  * Returns a boolean indicating whether the device is online.
@@ -8,7 +8,7 @@ import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
  */
 export function useNetworkStatus(): boolean {
   const [isConnected, setIsConnected] = useState<boolean>(() => {
-    if (Platform.OS === "web" && typeof navigator !== "undefined") {
+    if (PLATFORM.IS_WEB && typeof navigator !== "undefined") {
       return navigator.onLine ?? true;
     }
     return true;
@@ -26,7 +26,7 @@ export function useNetworkStatus(): boolean {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === "web") {
+    if (PLATFORM.IS_WEB) {
       if (typeof window === "undefined") {
         return;
       }
