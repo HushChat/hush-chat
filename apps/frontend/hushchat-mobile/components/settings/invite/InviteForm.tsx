@@ -15,25 +15,53 @@ import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import InviteFormFields from "@/components/settings/invite/InviteFormFields";
 import { useInviteForm } from "@/hooks/useInviteForm";
-import { IInvite } from "@/schema/invite";
+import { ToastUtils } from "@/utils/toastUtils";
 
 export default function InviteForm() {
   const insets = useSafeAreaInsets();
-
-  const { inviteForm, inviteMutation } = useInviteForm({ email: "" });
+  const { inviteForm, inviteMutation } = useInviteForm();
 
   const handleInvite = async () => {
     const validateInviteData = await inviteForm.validateAll();
-    if (!validateInviteData) {
+
+    const emails = inviteForm.values.invites?.map((i) => i.email.toLowerCase()) ?? [];
+    const hasDuplicates = emails.some((email, index) => emails.indexOf(email) !== index);
+
+    if (!validateInviteData?.invites || hasDuplicates) {
       return;
     }
 
-    inviteMutation.mutate(validateInviteData.email);
+    inviteMutation.mutate(validateInviteData.invites);
     Keyboard.dismiss();
   };
 
-  const onChangeField = (field: keyof IInvite, value: any) => {
-    inviteForm.setFieldValue(field, value);
+  const addInviteField = () => {
+    const currentInvites = [...(inviteForm.values.invites ?? [])];
+
+    if (currentInvites.length >= 100) {
+      ToastUtils.error("Maximum invites are 100");
+      return;
+    }
+
+    inviteForm.setFieldValue("invites", [...currentInvites, { email: "" }]);
+  };
+
+  const removeInviteField = (index: number) => {
+    const currentInvites = [...(inviteForm.values.invites ?? [])];
+
+    if (index >= 0 && index < currentInvites.length) {
+      currentInvites.splice(index, 1);
+      inviteForm.setFieldValue("invites", currentInvites);
+    }
+  };
+
+  const onChangeEmail = (index: number, value: string) => {
+    const currentInvites = [...(inviteForm.values.invites ?? [])];
+
+    if (currentInvites[index]) {
+      currentInvites[index] = { ...currentInvites[index], email: value };
+      inviteForm.setFieldValue("invites", currentInvites);
+    }
   };
 
   return (
@@ -44,38 +72,50 @@ export default function InviteForm() {
         className="bg-background-light dark:bg-background-dark"
       >
         <View className="flex-1 px-4" style={{ paddingTop: insets.top + 12 }}>
+          {/* Header */}
           <View className="flex-row items-center mb-6 mt-3">
             {!PLATFORM.IS_WEB && <BackButton onPress={() => router.back()} />}
-            <AppText className="text-2xl font-bold text-gray-900 dark:text-white leading-none ml-2">
+            <AppText className="text-2xl font-bold text-gray-900 dark:text-white ml-2">
               Invite to Workspace
             </AppText>
           </View>
 
           <View className="flex-1">
             <AppText className="text-base text-gray-500 dark:text-gray-400 mb-6">
-              Enter the email address of the person you would like to invite to collaborate.
+              Invite multiple colleagues by adding their email addresses below.
             </AppText>
 
-            <InviteFormFields
-              data={inviteForm.values}
-              onChangeField={onChangeField}
-              onError={inviteForm.errors}
-            />
+            {inviteForm?.values?.invites?.map((invite, index) => (
+              <InviteFormFields
+                key={`invite-${index}`}
+                index={index}
+                email={invite.email}
+                onChangeEmail={onChangeEmail}
+                onRemove={removeInviteField}
+                error={inviteForm.errors[`invites[${index}].email`]}
+              />
+            ))}
+
+            <TouchableOpacity onPress={addInviteField} className="flex-row items-center py-2">
+              <AppText className="text-primary-light dark:text-primary-dark font-medium">
+                + Add another email
+              </AppText>
+            </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleInvite}
               activeOpacity={DEFAULT_ACTIVE_OPACITY}
-              disabled={!inviteForm.values.email}
-              className={`rounded-lg py-4 items-center mt-5 ${
-                !inviteForm.values
-                  ? "bg-gray-300 dark:bg-gray-700"
-                  : "bg-primary-light dark:bg-primary-dark"
+              disabled={inviteMutation.isPending}
+              className={`rounded-lg py-4 items-center mt-10 bg-primary-light dark:bg-primary-dark ${
+                inviteMutation.isPending ? "opacity-70" : ""
               }`}
             >
               {inviteMutation.isPending ? (
                 <ActivityIndicator color="#ffffff" size={20} />
               ) : (
-                <AppText className="text-white font-semibold text-base">Send Invitation</AppText>
+                <AppText className="text-white font-semibold text-base">
+                  Send {inviteForm.values.invites?.length} Invitation(s)
+                </AppText>
               )}
             </TouchableOpacity>
           </View>

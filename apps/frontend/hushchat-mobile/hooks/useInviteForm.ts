@@ -1,21 +1,25 @@
 import { useForm } from "@/hooks/useForm";
-import { inviteSchema } from "@/schema/invite";
-import { useMutation } from "@tanstack/react-query";
-import { sendInviteToWorkspace } from "@/apis/conversation";
+import { inviteSchema, IInviteFormValues } from "@/schema/invite";
 import { ToastUtils } from "@/utils/toastUtils";
+import { useSendInviteMutation } from "@/query/post/queries";
 
-export function useInviteForm(formData: { email: string }) {
-  const inviteForm = useForm(inviteSchema, formData);
+const INITIAL_VALUES: IInviteFormValues = {
+  invites: [{ email: "" }],
+};
 
-  const inviteMutation = useMutation({
-    mutationFn: sendInviteToWorkspace,
-    onSuccess: () => {
-      ToastUtils.success("Invite sent successfully!");
+export function useInviteForm(initialData = INITIAL_VALUES) {
+  const inviteForm = useForm(inviteSchema, initialData);
+
+  const inviteMutation = useSendInviteMutation(
+    {},
+    () => {
+      ToastUtils.success("Invites sent successfully!");
+      inviteForm.setValues(INITIAL_VALUES);
     },
-    onError: (error: any) => {
-      ToastUtils.error(error.response?.data?.error || error.message);
-    },
-  });
+    (error: any) => {
+      ToastUtils.error(error);
+    }
+  );
 
   return { inviteForm, inviteMutation };
 }
