@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Platform } from "react-native";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 
 /**
@@ -6,7 +7,12 @@ import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
  * Compatible with React Native mobile and web.
  */
 export function useNetworkStatus(): boolean {
-  const [isConnected, setIsConnected] = useState<boolean>(true);
+  const [isConnected, setIsConnected] = useState<boolean>(() => {
+    if (Platform.OS === "web" && typeof navigator !== "undefined") {
+      return navigator.onLine ?? true;
+    }
+    return true;
+  });
 
   const handleNetworkChange = useCallback((state: NetInfoState) => {
     const connected = state.isConnected ?? true;
@@ -20,6 +26,25 @@ export function useNetworkStatus(): boolean {
   }, []);
 
   useEffect(() => {
+    if (Platform.OS === "web") {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const handleOnline = () => setIsConnected(true);
+      const handleOffline = () => setIsConnected(false);
+
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+
+      setIsConnected(navigator.onLine ?? true);
+
+      return () => {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      };
+    }
+
     let isMounted = true;
 
     const unsubscribe = NetInfo.addEventListener((state) => {
