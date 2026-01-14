@@ -4,7 +4,6 @@ import {
   View,
   Pressable,
   Dimensions,
-  ScrollView,
   Image,
   StyleSheet,
   ActivityIndicator,
@@ -16,15 +15,13 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { VideoView, useVideoPlayer } from "expo-video";
 import { scheduleOnRN } from "react-native-worklets";
 
-import { IThumbnailStripBaseProps, TImagePreviewProps } from "@/types/chat/types";
+import { TImagePreviewProps } from "@/types/chat/types";
 import { useSwipeGesture } from "@/gestures/base/useSwipeGesture";
 import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
-import { useVideoThumbnails } from "@/hooks/useVideoThumbnails";
 import { useMediaDownload } from "@/hooks/useMediaDownload";
 import { useZoomPanGestures } from "@/gestures/base/useZoomPanGesture";
-import { ThumbnailItem } from "@/components/conversations/conversation-thread/composer/image-preview/ThumbnailItem";
-import { isAttachmentVideo, THUMBNAIL } from "@/utils/mediaUtils";
+import { isAttachmentVideo } from "@/utils/mediaUtils";
 import { useImagePreviewNavigation } from "@/hooks/useImagePreviewHooks";
 import { ConfirmDialog } from "@/components/conversations/conversation-thread/composer/image-preview/ConfirmDialog";
 
@@ -114,37 +111,6 @@ const VideoPlayerView = ({ url, hasMultipleImages }: IVideoPlayerViewProps) => {
   );
 };
 
-const ThumbnailStrip = ({
-  attachments,
-  currentIndex,
-  thumbnails,
-  onSelectIndex,
-}: IThumbnailStripBaseProps) => (
-  <MotionView
-    visible
-    preset="slideUp"
-    delay={200}
-    className="absolute bottom-0 left-0 right-0 p-5 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-[#202C33]"
-  >
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.thumbListContainer}
-    >
-      {attachments.map((attachment, idx) => (
-        <ThumbnailItem
-          key={attachment.id || idx}
-          attachment={attachment}
-          index={idx}
-          isActive={currentIndex === idx}
-          thumbnailUri={thumbnails[idx]}
-          onPress={onSelectIndex}
-        />
-      ))}
-    </ScrollView>
-  </MotionView>
-);
-
 export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const insets = useSafeAreaInsets();
@@ -159,14 +125,14 @@ export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImageP
   const { isDownloading, dialogState, downloadMedia, handleConfirmSave, handleCancelDialog } =
     useMediaDownload();
 
-  const videoThumbnails = useVideoThumbnails(visible ? images : [], currentIndex, {
-    windowSize: 1,
-  });
-
-  const { handlePrevious, handleNext, handleSelectIndex, canGoPrevious, canGoNext } =
-    useImagePreviewNavigation(currentIndex, setCurrentIndex, images.length, {
+  const { handlePrevious, handleNext, canGoPrevious, canGoNext } = useImagePreviewNavigation(
+    currentIndex,
+    setCurrentIndex,
+    images.length,
+    {
       onNavigate: resetTransform,
-    });
+    }
+  );
 
   useEffect(() => {
     if (visible) {
@@ -253,15 +219,6 @@ export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImageP
             </View>
           </GestureHandlerRootView>
 
-          {hasMultipleImages && (
-            <ThumbnailStrip
-              attachments={images}
-              currentIndex={currentIndex}
-              thumbnails={videoThumbnails}
-              onSelectIndex={handleSelectIndex}
-            />
-          )}
-
           <ConfirmDialog
             visible={dialogState.visible}
             onCancel={handleCancelDialog}
@@ -283,9 +240,6 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
-  },
-  thumbListContainer: {
-    gap: THUMBNAIL.GAP,
   },
 });
 

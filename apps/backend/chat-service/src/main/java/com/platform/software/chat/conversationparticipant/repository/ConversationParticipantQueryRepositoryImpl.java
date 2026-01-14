@@ -354,8 +354,7 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         BooleanBuilder where = new BooleanBuilder();
 
         where.and(qConversationParticipant.conversation.id.eq(conversationId))
-                .and(qConversationParticipant.isActive.isTrue())
-                .and(qConversationParticipant.isDeleted.isFalse());
+                .and(qConversationParticipant.isActive.isTrue());
 
         if (StringUtils.hasText(filterCriteria.getKeyword())) {
             String keyword = filterCriteria.getKeyword().trim();
