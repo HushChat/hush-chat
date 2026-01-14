@@ -44,6 +44,7 @@ import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
 import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
+import { getAPIErrorMessage } from "@/utils/apiErrorUtils";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -78,6 +79,7 @@ const ConversationThreadScreen = ({
 
   const dropZoneRef = useRef<View>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  const hasRedirectedRef = useRef(false);
 
   const {
     selectionMode,
@@ -106,8 +108,27 @@ const ConversationThreadScreen = ({
     }
   }, [currentConversationId]);
 
-  const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
-    useConversationByIdQuery(currentConversationId);
+  const {
+    conversationAPIResponse,
+    conversationAPILoading,
+    conversationAPIError,
+    isConversationNotFound,
+  } = useConversationByIdQuery(currentConversationId);
+
+  useEffect(() => {
+    if (isConversationNotFound && !hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
+      ToastUtils.error(getAPIErrorMessage(conversationAPIError, "Conversation not found!"));
+      router.replace(CHATS_PATH);
+    }
+  }, [isConversationNotFound]);
+
+  useEffect(() => {
+    hasRedirectedRef.current = false;
+  }, [currentConversationId]);
+
+  const shouldFetchMessages =
+    !conversationAPILoading && !conversationAPIError && !!conversationAPIResponse;
 
   const {
     pages: conversationMessagesPages,
@@ -125,7 +146,9 @@ const ConversationThreadScreen = ({
     updateConversationsListCache,
     targetMessageId,
     clearTargetMessage,
-  } = useConversationMessagesQuery(currentConversationId);
+  } = useConversationMessagesQuery(currentConversationId, {
+    enabled: shouldFetchMessages,
+  });
 
   const { updateConversation } = useConversationNotificationsContext();
 
@@ -377,8 +400,8 @@ const ConversationThreadScreen = ({
   }, []);
 
   const onForwardPress = useCallback(() => {
-    if (PLATFORM.IS_WEB) {
-      webForwardPress?.(selectedMessageIds);
+    if (PLATFORM.IS_WEB && webForwardPress) {
+      webForwardPress(selectedMessageIds);
     } else {
       router.push({
         pathname: FORWARD_PATH,
@@ -416,13 +439,13 @@ const ConversationThreadScreen = ({
       return <LoadingState />;
     }
 
-    if (conversationAPIError || conversationMessagesError) {
+    if ((conversationAPIError || conversationMessagesError) && !isConversationNotFound) {
       return (
         <Alert
           type="error"
           message={
-            conversationMessagesError?.message ||
-            conversationAPIError?.message ||
+            getAPIErrorMessage(conversationMessagesError) ||
+            getAPIErrorMessage(conversationAPIError) ||
             "An error occurred"
           }
         />

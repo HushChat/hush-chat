@@ -188,7 +188,7 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
               <FileInput
                 ref={input.documentInputRef}
                 onChange={input.handleDocumentChange}
-                accept={".pdf,.doc,.docx,.xls,.xlsx,.txt"}
+                accept="*"
               />
             </>
           )}
