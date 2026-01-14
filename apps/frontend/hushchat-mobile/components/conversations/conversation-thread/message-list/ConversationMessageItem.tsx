@@ -44,7 +44,6 @@ import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
 import { CONVERSATION } from "@/constants/routes";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
-import classNames from "classnames";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -464,12 +463,7 @@ export const ConversationMessageItem = ({
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
     return (
-      <View
-        className={classNames("mb-1", {
-          "self-end": isCurrentUser,
-          "self-start": !isCurrentUser,
-        })}
-      >
+      <View className="mb-1">
         <ParentMessagePreview
           message={message}
           parentMessage={parentMessage}
