@@ -11,7 +11,7 @@ type TProfileCardData = {
   imageUrl: string | null;
   username: string;
   isGroup?: boolean;
-  userId?: number; // ← ADD THIS
+  userId?: number;
 };
 
 interface IProfileCardModalProps {
