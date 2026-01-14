@@ -8,8 +8,7 @@ import { MotionConfig } from "@/motion/config";
 type PlaceholderProps = {
   title: string;
   subtitle?: string;
-  image?: ImageSourcePropType;
-  icon?: React.ReactNode;
+  image: ImageSourcePropType;
   bottomNote?: string;
   imageWidth?: number;
   imageHeight?: number;
@@ -29,8 +28,7 @@ export default function Placeholder({
   title,
   subtitle,
   image,
-  icon,
-  bottomNote,
+  bottomNote = "Private and secure workspace communication.",
   imageWidth = DEFAULT_IMAGE_WIDTH,
   imageHeight = DEFAULT_IMAGE_HEIGHT,
   showDelayMs = DEFAULT_SHOW_DELAY_MS,
@@ -67,36 +65,16 @@ export default function Placeholder({
         easing="emphasized"
         className="items-center"
       >
-        {showBackground && !icon && (
+        {showBackground && (
           <View className="absolute w-72 h-72 bg-primary-light/5 dark:bg-primary-dark/15 rounded-full" />
         )}
 
-        {icon ? (
-          <View
-            style={{ width: imageWidth, height: imageHeight }}
-            className="items-center justify-center mb-6 relative"
-          >
-            {showBackground && (
-              <View
-                className="absolute bg-primary-light/5 dark:bg-primary-dark/15 rounded-full"
-                style={{
-                  width: imageWidth * 1.5,
-                  height: imageHeight * 1.5,
-                  top: -imageHeight * 0.25,
-                  left: -imageWidth * 0.25,
-                }}
-              />
-            )}
-            {icon}
-          </View>
-        ) : image ? (
-          <Animated.Image
-            source={image}
-            onLoad={handleImageLoad}
-            style={imageStyle}
-            resizeMode="contain"
-          />
-        ) : null}
+        <Animated.Image
+          source={image}
+          onLoad={handleImageLoad}
+          style={imageStyle}
+          resizeMode="contain"
+        />
 
         <AppText className="text-2xl font-semibold text-center text-text-primary-light dark:text-text-primary-dark mb-2">
           {title}
