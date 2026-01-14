@@ -77,10 +77,11 @@ export default function ConversationScreen({ initialConversationId }: IConversat
       const { workspace } = await getAllTokens();
       const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
       const conversationIds = conversations?.flatMap((page) => page.id) ?? [];
-      publishActivity({
+      await publishActivity({
         workspaceId: workspace as string,
         email,
         visibleConversations: conversationIds,
+        openedConversation: initialConversationId,
       } as UserActivityWSSubscriptionData);
     };
 
@@ -115,11 +116,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
       key: ConversationType.ALL,
       label: "All",
       isActive: selectedConversationType === ConversationType.ALL,
-    },
-    {
-      key: ConversationType.UNREAD,
-      label: "Unread",
-      isActive: selectedConversationType === ConversationType.UNREAD,
     },
     {
       key: ConversationType.FAVORITES,

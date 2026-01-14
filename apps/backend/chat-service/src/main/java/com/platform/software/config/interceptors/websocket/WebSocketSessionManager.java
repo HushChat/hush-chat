@@ -83,6 +83,7 @@ public class WebSocketSessionManager {
 
             existingSession.setDeviceType(DeviceType.fromString(device));
             existingSession.setDisconnectedTime(null);
+            
             existingSession.setChatUserStatus(userStatus);
             webSocketSessionInfos.put(sessionKey, existingSession);
 
@@ -124,6 +125,27 @@ public class WebSocketSessionManager {
 
 
             webSocketSessionInfos.put(sessionKey, existingSession);
+        }
+    }
+
+    /**
+     * Updates the user status in the session cache and notifies active peers.
+     */
+    public void updateStatusAndNotify(String workspaceId, String email, UserStatusEnum status, DeviceType deviceType) {
+        List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
+
+        for (WebSocketSessionInfoDAO session : sessions) {
+            session.setChatUserStatus(status);
+            session.setUpdatedTime(ZonedDateTime.now());
+
+            UserStatusEnum normalizedStatus = normalizeStatus(status);
+
+            String device = session.getDeviceType().getName();
+            if (deviceType != null) {
+                device = deviceType.getName();
+            }
+
+            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, device);
         }
     }
 

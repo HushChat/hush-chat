@@ -1,19 +1,23 @@
 package com.platform.software.chat.message.service;
 
+import com.platform.software.chat.conversation.dto.ConversationEventCreated;
 import com.platform.software.chat.conversation.dto.ConversationEventType;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.conversation.repository.ConversationEventRepository;
+import com.platform.software.chat.conversation.service.ConversationEventMessageService;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.message.dto.MessageTypeEnum;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
+import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
-import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +33,10 @@ public class ConversationEventService {
     private final UserService userService;
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final ConversationEventRepository conversationEventRepository;
-    private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final MessageService messageService;
     private final MessageUtilService messageUtilService;
+    private final ConversationEventMessageService conversationEventMessageService;
 
     /**
      * Create conversation event.
@@ -74,7 +79,20 @@ public class ConversationEventService {
     private ConversationEvent createEventWithMessage(Long conversationId, Long actorUserId, ConversationEventType conversationType, Long targetUserId, MessageUpsertDTO messageDTO) {
         Message savedMessage = messageUtilService.createTextMessage(conversationId, actorUserId, messageDTO, MessageTypeEnum.SYSTEM_EVENT);
         messageService.setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
-        return buildConversationEvent(conversationType, actorUserId, targetUserId, savedMessage);
+
+        ConversationEvent event = buildConversationEvent(conversationType, actorUserId, targetUserId, savedMessage);
+
+        MessageViewDTO messageViewDTO = new MessageViewDTO(event.getMessage());
+        conversationEventMessageService.setEventMessageText(event, messageViewDTO, actorUserId, true);
+
+        eventPublisher.publishEvent(new ConversationEventCreated(
+                WorkspaceContext.getCurrentWorkspace(),
+                conversationId,
+                messageViewDTO,
+                actorUserId
+        ));
+
+        return event;
     }
 
     private ConversationEvent buildConversationEvent(ConversationEventType conversationType, Long actorUserId, Long targetUserId, Message savedMessage) {
