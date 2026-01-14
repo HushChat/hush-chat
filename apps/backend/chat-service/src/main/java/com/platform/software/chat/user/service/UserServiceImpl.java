@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ChatUser getUserOrThrow(Long userId) {
         ChatUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new CustomBadRequestException("Cannot find user with id %s".formatted(userId)));
+            .orElseThrow(() -> new CustomBadRequestException("Cannot find user!"));
         return user;
     }
 

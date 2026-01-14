@@ -88,6 +88,7 @@ application-*.properties
 !application-example.properties
 !application-test.properties
 !application-local.properties
+!application-prod.properties
 
 
 # ---------------------------------------
