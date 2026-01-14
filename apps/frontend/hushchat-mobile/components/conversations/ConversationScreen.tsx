@@ -30,6 +30,7 @@ import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 interface IConversationScreenProps {
   initialConversationId?: number;
@@ -101,11 +102,15 @@ export default function ConversationScreen({ initialConversationId }: IConversat
     onConversationFound: setSelectedConversation,
   });
 
+  const isMobieLayout = useIsMobileLayout();
+
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
-    if (PLATFORM.IS_WEB) {
+    if (isMobieLayout || PLATFORM.IS_WEB) {
       if (conversation) {
+        setSelectedConversation(conversation);
         router.replace(CONVERSATION(conversation.id));
       } else {
+        setSelectedConversation(null);
         router.replace(CHATS_PATH);
       }
     }
