@@ -1,18 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, View, Pressable, ScrollView, StyleSheet } from "react-native";
+import { Modal, View, Pressable, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 
-import {
-  TImagePreviewProps,
-  IMessageAttachment,
-  TNavigationDirection,
-  IThumbnailStripBaseProps,
-} from "@/types/chat/types";
+import { TImagePreviewProps, IMessageAttachment, TNavigationDirection } from "@/types/chat/types";
 import { AppText } from "@/components/AppText";
-import { useVideoThumbnails } from "@/hooks/useVideoThumbnails";
 import { isAttachmentVideo, THUMBNAIL } from "@/utils/mediaUtils";
-import { ThumbnailItem } from "@/components/conversations/conversation-thread/composer/image-preview/ThumbnailItem";
 import {
   useImagePreviewNavigation,
   useKeyboardNavigation,
@@ -91,42 +84,6 @@ const MediaViewer = ({ attachment, isVideo }: IMediaViewerProps) => {
   );
 };
 
-interface IThumbnailStripWebProps extends IThumbnailStripBaseProps {
-  scrollRef: React.RefObject<ScrollView | null>;
-}
-
-const ThumbnailStrip = ({
-  attachments,
-  currentIndex,
-  thumbnails,
-  onSelectIndex,
-  scrollRef,
-}: IThumbnailStripWebProps) => {
-  return (
-    <View className="bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-[#202C33] py-4">
-      <View className="items-center justify-center">
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.thumbnailScroll}
-        >
-          {attachments.map((attachment, index) => (
-            <ThumbnailItem
-              key={attachment.id || index}
-              attachment={attachment}
-              index={index}
-              isActive={currentIndex === index}
-              thumbnailUri={thumbnails[index]}
-              onPress={onSelectIndex}
-            />
-          ))}
-        </ScrollView>
-      </View>
-    </View>
-  );
-};
-
 export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const thumbnailScrollRef = useRef<ScrollView>(null);
@@ -136,18 +93,18 @@ export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImageP
   const isCurrentVideo = isAttachmentVideo(currentAttachment);
   const hasMultipleImages = images.length > 1;
 
-  const videoThumbnails = useVideoThumbnails(visible ? images : [], currentIndex, {
-    windowSize: 1,
-  });
-
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
 
-  const { handlePrevious, handleNext, handleSelectIndex, canGoPrevious, canGoNext } =
-    useImagePreviewNavigation(currentIndex, setCurrentIndex, images.length, {
+  const { handlePrevious, handleNext, canGoPrevious, canGoNext } = useImagePreviewNavigation(
+    currentIndex,
+    setCurrentIndex,
+    images.length,
+    {
       wrapNavigation: true,
-    });
+    }
+  );
 
   useKeyboardNavigation(visible, onClose, handlePrevious, handleNext);
   useThumbnailScroll(thumbnailScrollRef, currentIndex, images.length, {
@@ -186,26 +143,10 @@ export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImageP
             <NavigationButton direction="next" onPress={handleNext} />
           )}
         </View>
-
-        {hasMultipleImages && (
-          <ThumbnailStrip
-            attachments={images}
-            currentIndex={currentIndex}
-            thumbnails={videoThumbnails}
-            onSelectIndex={handleSelectIndex}
-            scrollRef={thumbnailScrollRef}
-          />
-        )}
       </View>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  thumbnailScroll: {
-    maxWidth: "100%",
-  },
-});
 
 const videoStyles = {
   player: {

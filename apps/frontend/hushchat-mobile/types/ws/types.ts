@@ -95,3 +95,22 @@ export interface MessageReactionPayload {
   previousReactionType?: string | null;
   reactionAction: MessageReactionActionEnum;
 }
+
+export interface ConnectionState {
+  status: WebSocketStatus;
+  reconnectAttempts: number;
+  shouldStopRetrying: boolean;
+  isConnecting: boolean;
+  isCleaningUp: boolean;
+  isIntentionalClose: boolean;
+  lastMessageTime: number;
+}
+export const initialConnectionState: ConnectionState = {
+  status: WebSocketStatus.Disconnected,
+  reconnectAttempts: 0,
+  shouldStopRetrying: false,
+  isConnecting: false,
+  isCleaningUp: false,
+  isIntentionalClose: false,
+  lastMessageTime: 0,
+};
