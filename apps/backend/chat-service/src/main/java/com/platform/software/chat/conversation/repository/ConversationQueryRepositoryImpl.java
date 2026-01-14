@@ -56,6 +56,10 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
     @Override
     public Optional<Conversation> findDirectConversationBetweenUsers(Long userId1, Long userId2) {
+        if (userId1.equals(userId2)) {
+            return findSelfConversation(userId1);
+        }
+
         Conversation result = jpaQueryFactory
                 .select(qConversation)
                 .from(qConversation)
@@ -64,6 +68,20 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         .and(qConversationParticipant.user.id.in(userId1, userId2)))
                 .groupBy(qConversation.id)
                 .having(qConversationParticipant.count().eq(2L))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    private Optional<Conversation> findSelfConversation(Long userId) {
+        Conversation result = jpaQueryFactory
+                .select(qConversation)
+                .from(qConversation)
+                .where(
+                    qConversation.isSelfConversation.eq(true)
+                        .and(qConversation.deleted.eq(false))
+                        .and(qConversation.createdBy.id.eq(userId))
+                )
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -243,12 +261,16 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         ConversationParticipant loggedInParticipant = null;
                         ConversationParticipant otherParticipant = null;
 
-                        boolean needOtherParticipant = !conversation.getIsGroup();
+                        boolean isSelfConversation = conversation.getIsSelfConversation();
+                        boolean needOtherParticipant = !conversation.getIsGroup() && !isSelfConversation;
 
                         for (ConversationParticipant participant : conversation.getConversationParticipants()) {
                             if (participant.getUser() != null && participant.getUser().getId() != null) {
                                 if (participant.getUser().getId().equals(userId)) {
                                     loggedInParticipant = participant;
+                                    if (isSelfConversation) {
+                                        otherParticipant = participant;
+                                    }
                                 } else if (needOtherParticipant) {
                                     otherParticipant = participant;
                                 }
@@ -266,7 +288,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                             dto.setMutedByLoggedInUser(ConversationUtilService.isMuted(loggedInParticipant.getMutedUntil()));
                         }
 
-                        if (needOtherParticipant && otherParticipant != null) {
+                        if ((needOtherParticipant || isSelfConversation) && otherParticipant != null) {
                             if (otherParticipant.getUser().getFirstName() != null
                                     && otherParticipant.getUser().getLastName() != null) {
                                 String name = otherParticipant.getUser().getFirstName() + " " + otherParticipant.getUser().getLastName();
@@ -411,9 +433,17 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                   )
                   // get the other active participant
                   //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
+                  // For self-conversations, join to the same participant
                   .join(cpOther).on(
                           cpOther.conversation.eq(c)
-                                  .and(cpOther.user.id.ne(userId))
+                                  .and(
+                                        c.isSelfConversation.isTrue()
+                                        .and(cpOther.user.id.eq(userId))
+                                        .or(
+                                        c.isSelfConversation.isFalse()
+                                                .and(cpOther.user.id.ne(userId))
+                                        )
+                                )
                   )
                   .join(uOther).on(uOther.eq(cpOther.user))
                   .leftJoin(b).on( // here we are only checking if the logged-in user has blocked the other user

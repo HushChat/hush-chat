@@ -117,7 +117,9 @@ public class MessageUtilService {
 
         conversationPermissionGuard.validateMessageSendingAccess(conversation, participant);
 
-        validateInteractionAllowed(conversation, senderUserId);
+        if (!conversation.getIsSelfConversation()) {
+            validateInteractionAllowed(conversation, senderUserId);
+        }
 
         Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);

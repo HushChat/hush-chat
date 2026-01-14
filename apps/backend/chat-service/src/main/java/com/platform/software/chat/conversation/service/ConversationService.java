@@ -118,28 +118,39 @@ public class ConversationService {
      * @param loggedInUserId the ID of the user creating the conversation
      * @param participantIds the IDs of the participants in the conversation
      * @param isGroup whether the conversation is a group conversation
+     * @param isSelfConversation whether this is a self-conversation
      * @return a new Conversation entity
      */
-    public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
+    public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup, boolean isSelfConversation) {
         Conversation conversation = new Conversation();
         conversation.setIsGroup(isGroup);
+        conversation.setIsSelfConversation(isSelfConversation);
         conversation.setCreatedBy(userService.getUserOrThrow(loggedInUserId));
         List<ConversationParticipant> participants = new ArrayList<>();
 
-        for (Long participantId : participantIds) {
-            ChatUser participant = userService.getUserOrThrow(participantId);
-
+        if (isSelfConversation) {
+            ChatUser user = userService.getUserOrThrow(loggedInUserId);
+            
             ConversationParticipant conversationParticipant = new ConversationParticipant();
-            conversationParticipant.setUser(participant);
-
-            ConversationParticipantRoleEnum role = ConversationParticipantRoleEnum.MEMBER;
-            boolean isParticipantAdmin = participantId.equals(loggedInUserId);
-            if (isGroup && isParticipantAdmin) {
-                role = ConversationParticipantRoleEnum.ADMIN;
-            }
-
-            conversationParticipant.setRole(role);
+            conversationParticipant.setUser(user);
+            conversationParticipant.setRole(ConversationParticipantRoleEnum.ADMIN);
             participants.add(conversationParticipant);
+        } else {
+            for (Long participantId : participantIds) {
+                ChatUser participant = userService.getUserOrThrow(participantId);
+
+                ConversationParticipant conversationParticipant = new ConversationParticipant();
+                conversationParticipant.setUser(participant);
+
+                ConversationParticipantRoleEnum role = ConversationParticipantRoleEnum.MEMBER;
+                boolean isParticipantAdmin = participantId.equals(loggedInUserId);
+                if (isGroup && isParticipantAdmin) {
+                    role = ConversationParticipantRoleEnum.ADMIN;
+                }
+
+                conversationParticipant.setRole(role);
+                participants.add(conversationParticipant);
+            }
         }
 
         conversation.setConversationParticipants(participants);
@@ -174,13 +185,19 @@ public class ConversationService {
         if (existingConversation.isPresent()) {
             return existingConversation.get();
         }
-        if (userService.isInteractionBlockedBetween(loggedInUserId, conversationUpsertDTO.getTargetUserId())) {
+        boolean isSelfConversation = conversationUpsertDTO.getTargetUserId().equals(loggedInUserId);
+
+        if (!isSelfConversation && userService.isInteractionBlockedBetween(loggedInUserId, conversationUpsertDTO.getTargetUserId())) {
             logger.warn("user {} attempted to start a conversation with blocked user {}",
                     loggedInUserId, conversationUpsertDTO.getTargetUserId());
             throw new CustomBadRequestException("Cannot start a conversation with this user!");
         }
 
-        Conversation conversation = createConversation(loggedInUserId, List.of(conversationUpsertDTO.getTargetUserId(), loggedInUserId), false);
+        List<Long> participantIds = isSelfConversation 
+        ? List.of(loggedInUserId) 
+        : List.of(conversationUpsertDTO.getTargetUserId(), loggedInUserId);
+
+        Conversation conversation = createConversation(loggedInUserId, participantIds, false, isSelfConversation);
 
         return saveConversationAndBuildDTO(conversation);
     }
@@ -222,7 +239,7 @@ public class ConversationService {
 
         validateParticipantsExist(allParticipantIds);
 
-        Conversation conversation = createConversation(loggedInUserId, allParticipantIds, true);
+        Conversation conversation = createConversation(loggedInUserId, allParticipantIds, true, false);
         conversation.setName(groupConversationDTO.getName().trim());
         conversation.setDescription(groupConversationDTO.getDescription().trim());
 

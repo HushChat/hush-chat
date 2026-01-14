@@ -35,7 +35,6 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     public Page<ChatUser> findAllUsersByCriteria(Pageable pageable, UserFilterCriteriaDTO userFilterCriteriaDTO, Long loggedInUserId) {
 
         BooleanBuilder where = new BooleanBuilder();
-        where.and(chatUser.id.ne(loggedInUserId));
 
         //TODO: Refactor this and move it to full text search
         if(userFilterCriteriaDTO.getKeyword() != null && !userFilterCriteriaDTO.getKeyword().isEmpty()) {
