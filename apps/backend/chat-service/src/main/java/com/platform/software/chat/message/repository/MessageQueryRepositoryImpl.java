@@ -4,26 +4,23 @@ import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.message.attachment.entity.QMessageAttachment;
+import com.platform.software.chat.message.dto.MessagePageResult;
 import com.platform.software.chat.message.dto.MessageWindowPage;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.*;
-
+import java.util.stream.Collectors;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -119,7 +116,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         return tsvectorString;
     }
 
-    public Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant) {
+    public MessagePageResult<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
@@ -133,6 +130,12 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         if(participant.getLastDeletedTime() != null) {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
+
+        Long maxId = queryFactory.select(message.id.max())
+                .from(message).where(conditions).fetchOne();
+
+        Long minId = queryFactory.select(message.id.min())
+                .from(message).where(conditions).fetchOne();
 
         Long total = queryFactory
             .select(message.id.countDistinct())
@@ -167,9 +170,17 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             messages = messages.reversed(); // if the query fetches with after id, it will fetch asc order, so for the frontend display, it has to be revered
         }
 
+        boolean firstPage = false, lastPage = false;
+
+        if (!messages.isEmpty()) {
+            Set<Long> ids = messages.stream().map(Message::getId).collect(Collectors.toSet());
+            firstPage = maxId != null && ids.contains(maxId);
+            lastPage  = minId != null && ids.contains(minId);
+        }
+
         Pageable pageable = PageRequest.of(0, idBasedPageRequest.getSize().intValue());
 
-        return new PageImpl<>(messages, pageable, total != null ? total : 0L);
+        return new MessagePageResult<>(messages, pageable, total != null ? total : 0L, firstPage, lastPage);
     }
 
     /**

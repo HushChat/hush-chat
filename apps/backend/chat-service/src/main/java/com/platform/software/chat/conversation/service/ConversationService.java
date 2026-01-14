@@ -566,13 +566,15 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId){
+    public MessagePageResult<MessageViewDTO> getMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId, Long loggedInUserId){
         ConversationParticipant loggedInParticipant =
                 conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
+        MessagePageResult<Message> messagesResult = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        Page<MessageViewDTO> messageDTOPage = getMessageViewDTOs(messagesResult, conversationId, loggedInUserId);
+
+        return MessagePageResult.from(messageDTOPage, messagesResult.isFirstPage(), messagesResult.isLastPage());
     }
 
     /**

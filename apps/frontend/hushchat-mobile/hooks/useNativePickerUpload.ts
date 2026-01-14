@@ -29,6 +29,7 @@ export type SignedUrl = {
   indexedFileName: string;
   url: string;
   messageId?: number;
+  createdAt?: string;
 };
 
 export type UploadResult = {
@@ -241,6 +242,7 @@ export function useNativePickerUpload(
       }));
       try {
         const signed = await getSignedUrls(files, messageText);
+        console.log("signed", signed);
         if (!signed || signed.length === 0) throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];

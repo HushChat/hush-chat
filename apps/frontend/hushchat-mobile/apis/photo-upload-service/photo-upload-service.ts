@@ -65,6 +65,7 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
         url: item.signedUrl.url,
         indexedFileName: item.signedUrl.indexedFileName,
         messageId: item.id,
+        createdAt: item.createdAt,
       }));
   }
   return [];
@@ -231,7 +232,7 @@ export function useMessageAttachmentUploader(
     gifUrl: string,
     messageText: string = "",
     parentMessageId?: number | null
-  ): Promise<IMessage> => {
+  ): Promise<IMessage[]> => {
     const attachments: TAttachmentUploadRequest[] = [
       {
         messageText,

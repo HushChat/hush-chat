@@ -30,7 +30,9 @@ interface IUseSendMessageHandlerParams {
     gifUrl: string,
     messageText: string,
     parentMessageId?: number | null
-  ) => Promise<IMessage>;
+  ) => Promise<IMessage[]>;
+  loadMessageWindow: (messageId: number, highlighted?: boolean) => Promise<void>;
+  isViewingFirstPage: boolean;
 }
 
 let tempMessageIdCounter = -1;
@@ -111,6 +113,8 @@ export const useSendMessageHandler = ({
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
   sendGifMessage,
+  loadMessageWindow,
+  isViewingFirstPage,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
     useConversationMessagesQuery(currentConversationId, { enabled: false });
@@ -222,7 +226,16 @@ export const useSendMessageHandler = ({
           updateConversationMessagesCache(tempGifMessage);
           updateConversationsListCache(tempGifMessage);
 
-          await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
+          const sentGifMessages = await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
+
+          console.log(sentGifMessages);
+
+          sentGifMessages.forEach((msg: IMessage) => {
+            if (msg?.id && !isViewingFirstPage) {
+              loadMessageWindow(msg.id, false);
+            }
+          });
+
           setSelectedMessage(null);
           return;
         }
@@ -301,6 +314,15 @@ export const useSendMessageHandler = ({
               replaceTempMessage(tempId, result.messageId);
             }
           });
+        }
+
+        const latest = results
+          .map((r) => r.signed)
+          .filter((s) => s?.messageId && s.createdAt)
+          .reduce((a, b) => (new Date(b!.createdAt!) > new Date(a!.createdAt!) ? b : a));
+
+        if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
+          loadMessageWindow(latest.messageId, false);
         }
 
         const failedCount = results.filter((r) => !r.success).length;

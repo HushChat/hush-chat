@@ -63,7 +63,7 @@ public class MessageService {
     private final MessageUtilService messageUtilService;
     private final MessageMentionRepository messageMentionRepository;
 
-    public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
+    public MessagePageResult<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
