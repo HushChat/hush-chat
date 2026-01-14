@@ -16,11 +16,13 @@ export const ParticipantRow = ({
   showMenu = false,
   onRemove,
   onToggleRole,
+  onPress,
 }: {
   participant: ConversationParticipant;
   showMenu?: boolean;
   onRemove?: (participantId: number) => void;
   onToggleRole?: (participantId: number, isAdmin: boolean) => void;
+  onPress?: (participant: ConversationParticipant) => void;
 }) => {
   const chevronButtonRef = useRef<View>(null);
   const [showOptions, setShowOptions] = useState(false);
@@ -67,6 +69,7 @@ export const ParticipantRow = ({
             "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark"
         )}
         onLongPress={handleLongPress}
+        onPress={() => onPress && onPress(participant)}
       >
         <InitialsAvatar
           name={`${participant.user.firstName} ${participant.user.lastName}`}
