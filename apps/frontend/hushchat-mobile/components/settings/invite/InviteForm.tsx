@@ -13,8 +13,9 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useInviteForm } from "@/hooks/useInviteForm";
-import TokenizedEmailInput from "@/components/settings/invite/TokenizedEmailInput"; // adjust path
+import TokenizedEmailInput from "@/components/settings/invite/TokenizedEmailInput";
 import { ToastUtils } from "@/utils/toastUtils";
+import classNames from "classnames";
 
 export default function InviteForm() {
   const insets = useSafeAreaInsets();
@@ -64,11 +65,13 @@ export default function InviteForm() {
             onPress={handleInvite}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
             disabled={inviteMutation.isPending || (inviteForm.values.emails?.length ?? 0) === 0}
-            className={`
-                rounded-lg py-4 items-center mt-10 
-                bg-primary-light dark:bg-primary-dark
-                ${inviteMutation.isPending || (inviteForm.values.emails?.length ?? 0) === 0 ? "opacity-60" : ""}
-              `}
+            className={classNames(
+              "rounded-lg py-4 items-center mt-10 bg-primary-light dark:bg-primary-dark",
+              {
+                "opacity-60":
+                  inviteMutation.isPending || (inviteForm.values.emails?.length ?? 0) === 0,
+              }
+            )}
           >
             {inviteMutation.isPending ? (
               <ActivityIndicator color="#ffffff" size={20} />
