@@ -1,12 +1,14 @@
 import mitt from "mitt";
 import {
-  TypingIndicator,
+  TypingIndicatorPayload,
   WebSocketError,
   NotificationPayload,
   MessageUnsentPayload,
   MessageReactionPayload,
+  MessageReadPayload,
+  MessagePinnedPayload,
 } from "@/types/ws/types";
-import { IConversation, IUserStatus } from "@/types/chat/types";
+import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
 import {
   CALL_EVENTS,
   CONVERSATION_EVENTS,
@@ -29,12 +31,8 @@ export type WebSocketEvents = {
     conversationId: number;
     messageWithConversation: IConversation;
   };
-  [CONVERSATION_EVENTS.TYPING]: TypingIndicator;
-  [CONVERSATION_EVENTS.MESSAGE_READ]: {
-    conversationId: number;
-    messageIds: string[];
-    userId: string;
-  };
+  [CONVERSATION_EVENTS.TYPING]: TypingIndicatorPayload;
+  [CONVERSATION_EVENTS.MESSAGE_READ]: MessageReadPayload;
   [CONVERSATION_EVENTS.MESSAGE_DELIVERED]: {
     conversationId: number;
     messageIds: string[];
@@ -43,6 +41,8 @@ export type WebSocketEvents = {
   [CONVERSATION_EVENTS.CREATED]: IConversation;
   [CONVERSATION_EVENTS.MESSAGE_UNSENT]: MessageUnsentPayload;
   [CONVERSATION_EVENTS.MESSAGE_REACTION]: MessageReactionPayload;
+  [CONVERSATION_EVENTS.MESSAGE_PINNED]: MessagePinnedPayload;
+  [CONVERSATION_EVENTS.MESSAGE_UPDATED]: IMessage;
 
   // User presence events
   [USER_EVENTS.PRESENCE]: IUserStatus;
@@ -97,6 +97,22 @@ export const emitMessageReaction = (data: MessageReactionPayload) => {
   eventBus.emit(CONVERSATION_EVENTS.MESSAGE_REACTION, data);
 };
 
+export const emitUserTyping = (typingIndicator: TypingIndicatorPayload) => {
+  eventBus.emit(CONVERSATION_EVENTS.TYPING, typingIndicator);
+};
+
+export const emitMessageRead = (readStatus: MessageReadPayload) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_READ, readStatus);
+};
+
+export const emitMessageUpdated = (message: IMessage) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_UPDATED, message);
+};
+
+export const emitMessagePinned = (pinnedMessage: MessagePinnedPayload) => {
+  eventBus.emit(CONVERSATION_EVENTS.MESSAGE_PINNED, pinnedMessage);
+};
+
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {
 //   const timestamp = new Date().toISOString();
 //
@@ -124,7 +140,7 @@ export const emitMessageReaction = (data: MessageReactionPayload) => {
 //   });
 // };
 //
-// export const emitTypingIndicator = (indicator: TypingIndicator) => {
+// export const emitTypingIndicator = (indicator: TypingIndicatorPayload) => {
 //   eventBus.emit('conversation:typing', indicator);
 // };
 //

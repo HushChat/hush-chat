@@ -4,10 +4,11 @@ import {
   IMessage,
   IMessageAttachment,
   MessageAttachmentTypeEnum,
+  MessageTypeEnum,
 } from "@/types/chat/types";
 import { ToastUtils } from "@/utils/toastUtils";
 import * as Clipboard from "expo-clipboard";
-import { Directory, Paths, File } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Linking } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
@@ -15,6 +16,11 @@ import { PLATFORM } from "@/constants/platformConstants";
 interface IGroupedMessages {
   title: string;
   data: IMessage[];
+}
+
+interface IUnreadMeta {
+  messageId: number;
+  count: number;
 }
 
 export const groupMessagesByDate = (messages: readonly IMessage[]): IGroupedMessages[] => {
@@ -61,6 +67,18 @@ function getDateTitle(date: Date): string {
   return format(date, "MMM dd, yyyy");
 }
 
+const getNextUserMessage = (
+  allMessages: readonly IMessage[],
+  startIndex: number
+): IMessage | undefined => {
+  for (let i = startIndex + 1; i < allMessages.length; i++) {
+    if (allMessages[i].messageType !== MessageTypeEnum.SYSTEM_EVENT) {
+      return allMessages[i];
+    }
+  }
+  return undefined;
+};
+
 export const shouldShowSenderAvatar = (
   allMessages: readonly IMessage[],
   index: number,
@@ -68,18 +86,15 @@ export const shouldShowSenderAvatar = (
   isCurrentUser: boolean
 ): boolean => {
   if (!isGroupChat) return false;
-
   if (isCurrentUser) return false;
 
   const current = allMessages[index];
-  const next = allMessages[index + 1];
+  if (!current || current.messageType === MessageTypeEnum.SYSTEM_EVENT) return false;
 
-  if (!current) return false;
+  const next = getNextUserMessage(allMessages, index);
   if (!next) return true;
 
-  const sameSender = current.senderId === next.senderId;
-
-  return !sameSender;
+  return current.senderId !== next.senderId;
 };
 
 export const shouldShowSenderName = (
@@ -90,14 +105,12 @@ export const shouldShowSenderName = (
   if (!isGroupChat) return false;
 
   const current = allMessages[index];
-  const next = allMessages[index + 1];
+  if (!current || current.messageType === "SYSTEM_EVENT") return false;
 
-  if (!current) return false;
+  const next = getNextUserMessage(allMessages, index);
   if (!next) return true;
 
-  const sameSender = current.senderId === next.senderId;
-
-  return !sameSender;
+  return current.senderId !== next.senderId;
 };
 
 export const copyToClipboard = async (text: string | undefined): Promise<void> => {
@@ -125,6 +138,40 @@ export const normalizeUrl = (url: string | undefined | null): string | null => {
     console.warn("Invalid URL encountered:", fullUrl);
     return null;
   }
+};
+
+export const getUnreadMeta = (
+  messages: readonly IMessage[],
+  lastSeenMessageId: number | null,
+  currentUserId?: number
+): IUnreadMeta | null => {
+  if (!messages.length) return null;
+
+  if (messages[0]?.senderId === currentUserId) {
+    return null;
+  }
+
+  if (!lastSeenMessageId) {
+    return null;
+  }
+
+  const lastSeenIndex = messages.findIndex((msg) => msg.id === lastSeenMessageId);
+
+  if (lastSeenIndex <= 0) {
+    return null;
+  }
+
+  const firstUnreadIndex = lastSeenIndex - 1;
+  const firstUnreadMessage = messages[firstUnreadIndex];
+
+  if (!firstUnreadMessage?.id) {
+    return null;
+  }
+
+  return {
+    messageId: firstUnreadMessage.id,
+    count: firstUnreadIndex + 1,
+  };
 };
 
 export const downloadFileNative = async (attachment: IMessageAttachment): Promise<void> => {

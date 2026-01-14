@@ -16,18 +16,16 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantCommandRepository;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
-import com.platform.software.chat.message.dto.MessageReactionSummaryDTO;
-import com.platform.software.chat.message.dto.MessageSearchRequestDTO;
+import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
-import com.platform.software.chat.message.dto.MessageTypeEnum;
-import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.service.ConversationEventService;
 import com.platform.software.chat.message.service.MessageMentionService;
 import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.message.service.MessageUtilService;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -61,7 +59,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.constants.GeneralConstants;
-
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -368,14 +365,13 @@ public class ConversationService {
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
 
                     String imageIndexedName = messageViewDTO.getImageIndexedName();
-                    if (imageIndexedName != null) {
-                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
-                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                                MediaSizeEnum.SMALL,
-                                imageIndexedName
-                        );
-                        messageViewDTO.setSenderSignedImageUrl(signedUrl);
-                    }
+
+                    String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.SMALL,
+                            imageIndexedName
+                    );
+                    messageViewDTO.setSenderSignedImageUrl(signedUrl);
 
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
@@ -454,7 +450,7 @@ public class ConversationService {
 
             if (conversationEventMap.containsKey(msg.getId())) {
                 ConversationEvent event = conversationEventMap.get(msg.getId());
-                conversationEventMessageService.setEventMessageText(event, msg, loggedInUserId);
+                conversationEventMessageService.setEventMessageText(event, msg, loggedInUserId, false);
             }
         }
     }
@@ -483,11 +479,10 @@ public class ConversationService {
             UserViewDTO user = new UserViewDTO(participant.getUser());
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
-            if (imageIndexedName != null) {
-                String signedImageUrl =
-                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
-                user.setSignedImageUrl(signedImageUrl);
-            }
+
+            String signedImageUrl =
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
+            user.setSignedImageUrl(signedImageUrl);
 
             participantViewDTO.setUser(user);
             return participantViewDTO;
@@ -606,13 +601,15 @@ public class ConversationService {
      * @param loggedInUserId the ID of the logged-in user
      * @return a Page of MessageViewDTOs containing message details
      */
-    public Page<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId){
+    public MessageWindowPage<MessageViewDTO> getMessagePageById(Long messageId, Long conversationId, Long loggedInUserId){
         ConversationParticipant loggedInParticipant =
                 conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
+        MessageWindowPage<Message> messagesPage = messageService.getRecentVisibleMessages(messageId, conversationId, loggedInParticipant);
 
-        return getMessageViewDTOs(messages, conversationId, loggedInUserId);
+        Page<MessageViewDTO> messageViewPage = getMessageViewDTOs(messagesPage, conversationId, loggedInUserId);
+
+        return MessageWindowPage.from(messageViewPage, messagesPage.isHasMoreBefore(), messagesPage.isHasMoreAfter());
     }
 
     /**
@@ -641,7 +638,7 @@ public class ConversationService {
 
         Map<Long, Message> messageMap = messages.getContent().stream()
         .collect(Collectors.toMap(Message::getId, Function.identity()));
-    
+
          List<MessageViewDTO> enrichedDTOs = messageViewDTOS.stream()
             .map(dto -> {
                 Message matchedMessage = messageMap.get(dto.getId());
@@ -649,7 +646,7 @@ public class ConversationService {
 
                 if (conversationEventMap.containsKey(dto.getId())) {
                     ConversationEvent event = conversationEventMap.get(dto.getId());
-                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId);
+                    conversationEventMessageService.setEventMessageText(event, dto, loggedInUserId, false);
                 }
 
                 boolean isReadByEveryone = lastReadMessageId != null && lastReadMessageId >= dto.getId();
@@ -699,7 +696,7 @@ public class ConversationService {
      * @return the smallest last-read message ID among other participants, or {@code null}
      *         if no other participants have read statuses recorded or if any participant has null
      */
-    private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
+    public Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
         // read statuses of every participant, with their user id and last read message id
         Map<Long, Long> userReadStatuses =
             new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
@@ -1154,6 +1151,14 @@ public class ConversationService {
             }
 
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+
+            eventPublisher.publishEvent(new MessagePinEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversationId,
+                    isPinningAction ? new BasicMessageDTO(message) : null,
+                    userId
+            ));
+
         } catch (Exception exception) {
             logger.error("Failed to pin messageId: {} in conversationId: {}", messageId, conversationId, exception);
             throw new CustomBadRequestException("Failed to pin message in conversation");
@@ -1390,6 +1395,12 @@ public class ConversationService {
                     WorkspaceContext.getCurrentWorkspace(),
                     directOtherMeta.getEmail()
             );
+
+            DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    directOtherMeta.getEmail());
+                    
+            conversationMetaDataDTO.setDeviceType(deviceType);
             conversationMetaDataDTO.setChatUserStatus(status);
 
         } else {
@@ -1531,15 +1542,19 @@ public class ConversationService {
         Page<ChatUser> users = conversationReadStatusRepository
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
 
-        Page<UserBasicViewDTO> userDTOs = users.map(user -> {
-            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(user.getImageIndexedName());
+        return users.map(user -> {
+            String imageIndexName = user.getImageIndexedName();
+
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                    MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                    MediaSizeEnum.SMALL,
+                    imageIndexName
+            );
 
             UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
             userBasicViewDTO.setSignedImageUrl(signedUrl);
             return userBasicViewDTO;
         });
-
-        return userDTOs;
     }
 
     /**

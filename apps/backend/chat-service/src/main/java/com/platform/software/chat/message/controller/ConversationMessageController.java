@@ -6,6 +6,7 @@ import com.platform.software.chat.conversation.readstatus.service.ConversationRe
 import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.dto.MessageWindowPage;
 import com.platform.software.chat.message.dto.MessageWithAttachmentUpsertDTO;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.user.dto.UserBasicViewDTO;
@@ -99,6 +100,25 @@ public class ConversationMessageController {
     }
 
     /**
+     * Publishes message events for the specified message IDs in a conversation after attachment uploads.
+     *
+     * @param conversationId the ID of the conversation
+     * @param messageIds the list of message IDs for which to publish events
+     * @param userDetails the authenticated user details
+     * @return ResponseEntity with no content (HTTP 200 OK)
+     */
+    @ApiOperation(value = "Publish message events after attachment upload")
+    @PostMapping("/publish-messages")
+    public ResponseEntity<Void> publishMessageEvents(
+        @PathVariable Long conversationId,
+        @RequestBody List<Long> messageIds,
+        @AuthenticatedUser UserDetails userDetails
+    ) {
+        messageService.publishMessageEvents(messageIds, conversationId, userDetails.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Get messages from a specific conversation.
      *
      * @param conversationId the ID of the conversation
@@ -189,14 +209,14 @@ public class ConversationMessageController {
      */
     @ApiOperation(value = "edit a message")
     @PutMapping("{messageId}")
-    public ResponseEntity<Void> editMessage(
+    public ResponseEntity<MessageViewDTO> editMessage(
         @PathVariable Long conversationId,
         @PathVariable Long messageId,
         @AuthenticatedUser UserDetails userDetails,
         @RequestBody MessageUpsertDTO messageDTO
     ) {
-        messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
-        return ResponseEntity.ok().build();
+        MessageViewDTO updatedMessage = messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
+        return ResponseEntity.ok(updatedMessage);
     }
 
     /** unpin a message in a conversation
@@ -215,14 +235,14 @@ public class ConversationMessageController {
         return ResponseEntity.noContent().build();
     }
 
-    @ApiOperation(value = "Get a page of messages around a specific message ID", response = MessageViewDTO.class)
+    @ApiOperation(value = "Get a page of messages around a specific message ID", response = MessageWindowPage.class)
     @GetMapping("/{messageId}")
-    public ResponseEntity<Page<MessageViewDTO>> getMessagesAroundId(
+    public ResponseEntity<MessageWindowPage<MessageViewDTO>> getMessagesAroundId(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails,
             @PathVariable Long messageId
     ) {
-        Page<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
+        MessageWindowPage<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 
@@ -243,13 +263,13 @@ public class ConversationMessageController {
             @PathVariable Long conversationId,
             @PathVariable Long messageId,
             @AuthenticatedUser UserDetails userDetails) {
-        
+
         ConversationReadInfo readInfo = messageService.markMessageAsUnread(
             conversationId,
             userDetails.getId(),
             messageId
         );
-        
+
         return ResponseEntity.ok(readInfo);
     }
 }

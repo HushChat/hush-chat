@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
 import { SIZES } from "@/constants/mediaConstants";
-import { AppText } from "@/components/AppText";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
-import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
 import { getFileType } from "@/utils/files/getFileType";
+import { isLocalPreviewSupported } from "@/utils/filePreviewUtils";
+import { AppText } from "@/components/AppText";
+import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
+
 type TFilePreviewPaneProps = {
   file: File;
   conversationId: number;
@@ -18,6 +20,7 @@ type TFilePreviewPaneProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
 };
 
 const FilePreviewPane = ({
@@ -30,14 +33,17 @@ const FilePreviewPane = ({
   isGroupChat = false,
   replyToMessage,
   onCancelReply,
+  inputRef,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState<"image" | "document" | "video">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video">("document");
+  const [loading, setLoading] = useState(false);
 
   const isDark = colorScheme.get() === "dark";
   const iconColor = isDark ? "#ffffff" : "#6B4EFF";
-
   const K = 1024;
+
+  const isIframePreviewable = isLocalPreviewSupported(file?.name || "");
 
   useEffect(() => {
     if (!file) return;
@@ -45,12 +51,25 @@ const FilePreviewPane = ({
     const type = getFileType(file.name);
     setFileType(type);
 
-    if (type !== "document") {
-      const obj = URL.createObjectURL(file);
-      setUrl(obj);
-      return () => URL.revokeObjectURL(obj);
+    if (type === "image" || type === "video" || isIframePreviewable) {
+      if (isIframePreviewable) {
+        setLoading(true);
+      }
+
+      const objUrl = URL.createObjectURL(file);
+      setUrl(objUrl);
+
+      return () => {
+        URL.revokeObjectURL(objUrl);
+        setLoading(false);
+      };
+    } else {
+      setUrl("");
+      return () => {
+        setLoading(false);
+      };
     }
-  }, [file]);
+  }, [file, isIframePreviewable]);
 
   const prettySize = useMemo(() => {
     const bytes = file?.size ?? 0;
@@ -61,30 +80,59 @@ const FilePreviewPane = ({
 
   if (!file) return null;
 
+  const renderPreviewContent = () => {
+    if (fileType === "image") {
+      return <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />;
+    }
+
+    if (fileType === "video") {
+      return (
+        <View style={styles.videoContainer}>
+          <VideoPlayer uri={url} style={styles.video} />
+        </View>
+      );
+    }
+
+    if (isIframePreviewable && url) {
+      return (
+        <View className="w-full h-full bg-white rounded-lg overflow-hidden border border-gray-200 relative">
+          <iframe
+            key={url}
+            className="custom-scrollbar"
+            src={`${url}#toolbar=0&navpanes=0`}
+            style={{ width: "100%", height: "100%", border: "none" }}
+            title={file.name}
+            onLoad={() => setLoading(false)}
+          />
+          {loading && (
+            <View className="absolute inset-0 justify-center items-center bg-white/80">
+              <ActivityIndicator size="large" color={iconColor} />
+            </View>
+          )}
+        </View>
+      );
+    }
+
+    return (
+      <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
+        <Ionicons name="document-text-outline" size={64} color={iconColor} />
+        <AppText className="mt-4 text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
+          {file.name}
+        </AppText>
+        <AppText className="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+          {prettySize}
+        </AppText>
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
-      <View className="flex-1 items-center justify-center px-6">
-        {fileType === "image" ? (
-          <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />
-        ) : fileType === "video" ? (
-          <View style={styles.videoContainer}>
-            <VideoPlayer uri={url} style={styles.video} />
-          </View>
-        ) : (
-          <View className="items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-secondary-light/20 dark:bg-secondary-dark/30">
-            <Ionicons name="document-text-outline" size={64} color={iconColor} />
-            <AppText className="mt-4 text-lg font-medium text-text-primary-light dark:text-text-primary-dark">
-              {file.name}
-            </AppText>
-            <AppText className="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">
-              {prettySize}
-            </AppText>
-          </View>
-        )}
-      </View>
+      <View className="flex-1 items-center justify-center px-6 py-4">{renderPreviewContent()}</View>
 
       <View style={styles.inputContainer}>
         <ConversationInput
+          ref={inputRef}
           conversationId={conversationId}
           onSendMessage={onSendFiles}
           disabled={isSending}
@@ -106,11 +154,13 @@ export default FilePreviewPane;
 const styles = StyleSheet.create({
   previewImage: {
     width: "100%",
-    height: 420,
+    height: "100%",
+    maxHeight: 500,
   },
   videoContainer: {
     width: "100%",
-    height: 420,
+    height: "100%",
+    maxHeight: 500,
     backgroundColor: "#000",
     borderRadius: 8,
     overflow: "hidden",

@@ -41,13 +41,15 @@ const createTempImageMessage = ({
   messageText,
   conversationId,
   senderId,
+  tempId,
 }: {
   file: File;
   messageText: string;
   conversationId: number;
   senderId: number;
+  tempId: number;
 }): IMessage => ({
-  id: generateTempMessageId(),
+  id: tempId,
   isForwarded: false,
   senderId,
   senderFirstName: "",
@@ -110,8 +112,8 @@ export const useSendMessageHandler = ({
   handleCloseImagePreview,
   sendGifMessage,
 }: IUseSendMessageHandlerParams) => {
-  const { updateConversationMessagesCache, updateConversationsListCache } =
-    useConversationMessagesQuery(currentConversationId);
+  const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
+    useConversationMessagesQuery(currentConversationId, { enabled: false });
 
   const renameFile = useCallback(
     (file: File, index: number): File => {
@@ -159,15 +161,21 @@ export const useSendMessageHandler = ({
         if (validFiles.length > 0) {
           const renamedFiles = validFiles.map((file, index) => renameFile(file, index));
 
+          const tempMessageIds: number[] = [];
+
           renamedFiles.forEach((file) => {
-            updateConversationMessagesCache(
-              createTempImageMessage({
-                file,
-                messageText: trimmed,
-                conversationId: currentConversationId,
-                senderId: Number(currentUserId),
-              })
-            );
+            const tempId = generateTempMessageId();
+            tempMessageIds.push(tempId);
+
+            const tempMsg = createTempImageMessage({
+              file,
+              messageText: trimmed,
+              conversationId: currentConversationId,
+              senderId: Number(currentUserId),
+              tempId,
+            });
+
+            updateConversationMessagesCache(tempMsg);
           });
 
           const lastFile = renamedFiles[renamedFiles.length - 1];
@@ -177,6 +185,7 @@ export const useSendMessageHandler = ({
               messageText: trimmed || `Sent ${renamedFiles.length} file(s)`,
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
+              tempId: generateTempMessageId(),
             })
           );
 
@@ -185,7 +194,18 @@ export const useSendMessageHandler = ({
             caption: trimmed,
           }));
 
-          await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMessage?.id ?? null);
+          const parentMsgId = parentMessage?.id ?? null;
+
+          const results = await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMsgId);
+
+          if (replaceTempMessage) {
+            results.forEach((result, index) => {
+              if (result.success && result.messageId && index < tempMessageIds.length) {
+                const tempId = tempMessageIds[index];
+                replaceTempMessage(tempId, result.messageId);
+              }
+            });
+          }
 
           setSelectedMessage(null);
           return;
@@ -227,12 +247,16 @@ export const useSendMessageHandler = ({
       updateConversationsListCache,
       setSelectedMessage,
       renameFile,
+      replaceTempMessage,
     ]
   );
 
   const handleSendFilesWithCaptions = useCallback(
     async (filesWithCaptions: TFileWithCaption[]) => {
       if (!filesWithCaptions || filesWithCaptions.length === 0) return;
+
+      const parentMsgId = selectedMessage?.id ?? null;
+      const tempMessageIds: number[] = [];
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
@@ -243,14 +267,18 @@ export const useSendMessageHandler = ({
         );
 
         preparedFiles.forEach(({ file, caption }) => {
-          updateConversationMessagesCache(
-            createTempImageMessage({
-              file,
-              messageText: caption,
-              conversationId: currentConversationId,
-              senderId: Number(currentUserId),
-            })
-          );
+          const tempId = generateTempMessageId();
+          tempMessageIds.push(tempId);
+
+          const tempMsg = createTempImageMessage({
+            file,
+            messageText: caption,
+            conversationId: currentConversationId,
+            senderId: Number(currentUserId),
+            tempId,
+          });
+
+          updateConversationMessagesCache(tempMsg);
         });
 
         const lastItem = preparedFiles[preparedFiles.length - 1];
@@ -260,13 +288,20 @@ export const useSendMessageHandler = ({
             messageText: lastItem.caption || `Sent ${preparedFiles.length} file(s)`,
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
+            tempId: generateTempMessageId(),
           })
         );
 
-        const results = await uploadFilesFromWebWithCaptions(
-          preparedFiles,
-          selectedMessage?.id ?? null
-        );
+        const results = await uploadFilesFromWebWithCaptions(preparedFiles, parentMsgId);
+
+        if (replaceTempMessage) {
+          results.forEach((result, index) => {
+            if (result.success && result.messageId && index < tempMessageIds.length) {
+              const tempId = tempMessageIds[index];
+              replaceTempMessage(tempId, result.messageId);
+            }
+          });
+        }
 
         const failedCount = results.filter((r) => !r.success).length;
         if (failedCount > 0) {
@@ -289,6 +324,7 @@ export const useSendMessageHandler = ({
       handleCloseImagePreview,
       setSelectedMessage,
       renameFile,
+      replaceTempMessage,
     ]
   );
 

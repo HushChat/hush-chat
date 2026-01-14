@@ -32,7 +32,7 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   };
 
   const onNavigateToRegister = async () => {
-    await saveWorkspace(selectedWorkspace?.name);
+    await saveWorkspace(selectedWorkspace?.workspaceIdentifier);
     router.push(WORKSPACE_REGISTER_PATH);
   };
 

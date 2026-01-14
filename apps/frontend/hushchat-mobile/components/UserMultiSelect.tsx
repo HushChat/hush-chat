@@ -14,6 +14,7 @@ export interface UserMultiSelectListProps {
   onChange: (nextSelected: TUser[]) => void;
   searchPlaceholder?: string;
   conversationId?: number;
+  autoFocusSearch?: boolean;
 }
 
 export const UserMultiSelectList = ({
@@ -21,6 +22,7 @@ export const UserMultiSelectList = ({
   onChange,
   searchPlaceholder = "Search users...",
   conversationId,
+  autoFocusSearch = false,
 }: UserMultiSelectListProps) => {
   const [searchText, setSearchText] = useState("");
   const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS).trim();
@@ -42,6 +44,7 @@ export const UserMultiSelectList = ({
       searchText={searchText}
       setSearchText={setSearchText}
       searchPlaceholder={searchPlaceholder}
+      autoFocusSearch={autoFocusSearch}
       queryResult={{
         pages: usersPages,
         isLoading: isLoadingUsers,

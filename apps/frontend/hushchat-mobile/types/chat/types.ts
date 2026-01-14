@@ -254,11 +254,16 @@ export interface TMessageForward {
   customText: string;
 }
 
+export interface TMessageForwardResponse {
+  forwardedTo: number[];
+}
+
 export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
   signedImageUrl: string;
   chatUserStatus?: chatUserStatus;
+  deviceType?: DeviceType;
 }
 
 export type TPickerState = {
@@ -335,6 +340,7 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
   editingMessage?: IMessage | null;
   onCancelEdit?: () => void;
   onEditMessage?: (messageId: number, newText: string) => void;
@@ -351,33 +357,10 @@ export interface IThumbnailItemProps {
   onPress: (index: number) => void;
 }
 
-export interface IThumbnailStripBaseProps {
-  attachments: IMessageAttachment[];
-  currentIndex: number;
-  thumbnails: Record<number, string>;
-  onSelectIndex: (index: number) => void;
-}
-
 export interface IConfirmDialogProps {
   visible: boolean;
   onCancel: () => void;
   onConfirm: () => void;
-}
-
-export interface IMediaViewerBaseProps {
-  attachment: IMessageAttachment | undefined;
-  isVideo: boolean;
-}
-
-export interface IUseVideoThumbnailsOptions {
-  windowSize?: number;
-  quality?: number;
-  captureTime?: number;
-}
-
-export interface IConfirmDialogState {
-  visible: boolean;
-  existingFileUri: string | null;
 }
 
 export const PIN_MESSAGE_OPTIONS = [

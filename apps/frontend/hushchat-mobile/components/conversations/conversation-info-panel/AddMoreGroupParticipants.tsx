@@ -87,6 +87,7 @@ export default function AddMoreGroupParticipants({
           onChange={setSelectedUsers}
           searchPlaceholder="Add participants…"
           conversationId={conversationId}
+          autoFocusSearch={true}
         />
       </View>
     </MotionView>

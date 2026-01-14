@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useRef } from "react";
 import { TextInputContentSizeChangeEvent, ViewStyle } from "react-native";
 import {
   useSharedValue,
@@ -10,7 +10,6 @@ import { PLATFORM } from "@/constants/platformConstants";
 import {
   ANIM_EASING,
   RESIZE_ANIM_MS,
-  RESET_ANIM_MS,
   WEB_MAX_CONTAINER_PX,
   WEB_MIN_CONTAINER_PX,
 } from "@/constants/composerConstants";
@@ -31,7 +30,7 @@ interface IAutoHeightReturn {
   animatedHeightStyle: AnimatedViewStyle;
   handleTextContainerSizeChange: (event: TextInputContentSizeChangeEvent) => void;
   animateHeightResetToMinimum: (onComplete?: () => void) => void;
-  updateHeightForClearedText: (textValue: string) => void;
+  updateHeightForTextChange: (textValue: string) => void;
 }
 
 export function useAutoHeight({
@@ -57,56 +56,58 @@ export function useAutoHeight({
 
   const [currentInputHeight, setCurrentInputHeight] = useState<number>(initialHeightValue);
   const animatedHeightValue = useSharedValue(initialHeightValue);
+  const contentSizeRef = useRef<number>(initialHeightValue);
+  const isResettingRef = useRef<boolean>(false);
 
   const animatedHeightStyle: AnimatedStyle<ViewStyle> = useAnimatedStyle(() => ({
     height: animatedHeightValue.value,
   }));
 
-  const handleTextContainerSizeChange = useCallback(
-    (event: TextInputContentSizeChangeEvent) => {
-      const rawMeasuredHeight = Math.ceil(event.nativeEvent.contentSize.height);
+  const updateHeight = useCallback(
+    (newHeight: number) => {
+      const clampedHeight = Math.max(minimumInputHeight, Math.min(maximumInputHeight, newHeight));
 
-      const nextHeight = Math.max(
-        minimumInputHeight,
-        Math.min(maximumInputHeight, rawMeasuredHeight)
-      );
-
-      setCurrentInputHeight(nextHeight);
-
-      animatedHeightValue.value = withTiming(nextHeight, {
+      setCurrentInputHeight(clampedHeight);
+      animatedHeightValue.value = withTiming(clampedHeight, {
         duration: RESIZE_ANIM_MS,
         easing: ANIM_EASING,
       });
+
+      contentSizeRef.current = clampedHeight;
     },
     [minimumInputHeight, maximumInputHeight, animatedHeightValue]
   );
 
-  const animateHeightResetToMinimum = useCallback(
-    (onComplete?: () => void) => {
-      animatedHeightValue.value = withTiming(minimumInputHeight, {
-        duration: RESET_ANIM_MS,
-        easing: ANIM_EASING,
-      });
+  const handleTextContainerSizeChange = useCallback(
+    (event: TextInputContentSizeChangeEvent) => {
+      if (isResettingRef.current) return;
 
-      setCurrentInputHeight(minimumInputHeight);
-
-      if (onComplete) {
-        setTimeout(onComplete, RESET_ANIM_MS);
-      }
+      const rawMeasuredHeight = Math.ceil(event.nativeEvent.contentSize.height);
+      updateHeight(rawMeasuredHeight);
     },
-    [minimumInputHeight, animatedHeightValue]
+    [updateHeight]
   );
 
-  const updateHeightForClearedText = useCallback(
+  const updateHeightForTextChange = useCallback(
     (textValue: string) => {
-      if (textValue.trim().length > 0) return;
+      if (textValue.trim().length === 0) {
+        updateHeight(minimumInputHeight);
+      }
+    },
+    [minimumInputHeight, updateHeight]
+  );
+
+  const animateHeightResetToMinimum = useCallback(
+    (onComplete?: () => void) => {
+      isResettingRef.current = true;
+
+      animatedHeightValue.value = minimumInputHeight;
 
       setCurrentInputHeight(minimumInputHeight);
+      contentSizeRef.current = minimumInputHeight;
 
-      animatedHeightValue.value = withTiming(minimumInputHeight, {
-        duration: RESIZE_ANIM_MS,
-        easing: ANIM_EASING,
-      });
+      isResettingRef.current = false;
+      onComplete?.();
     },
     [minimumInputHeight, animatedHeightValue]
   );
@@ -118,6 +119,6 @@ export function useAutoHeight({
     animatedHeightStyle,
     handleTextContainerSizeChange,
     animateHeightResetToMinimum,
-    updateHeightForClearedText,
+    updateHeightForTextChange,
   };
 }

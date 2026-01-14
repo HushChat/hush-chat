@@ -22,11 +22,7 @@ import {
   IMessage,
   IMessageReactionRequest,
 } from "@/types/chat/types";
-import {
-  conversationMessageQueryKeys,
-  conversationQueryKeys,
-  userQueryKeys,
-} from "@/constants/queryKeys";
+import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
 
 /**
  * Mutation factory for creating one-to-one conversations.
@@ -96,17 +92,9 @@ export const usePatchConversationQuery = createMutationHook<
 
 export const useSendMessageMutation = createMutationHook<
   IMessage,
-  { conversationId: number; message: string; parentMessageId?: number; gifUrl?: string }
->(
-  ({ conversationId, message, parentMessageId, gifUrl }) =>
-    sendMessageByConversationId(conversationId, message, parentMessageId, gifUrl),
-  (keyParams: { userId: number; conversationId: number; criteria: ConversationFilterCriteria }) =>
-    () => {
-      return [
-        conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
-        conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria),
-      ] as string[][];
-    }
+  { conversationId: number; message: string; parentMessageId?: number }
+>(({ conversationId, message, parentMessageId }) =>
+  sendMessageByConversationId(conversationId, message, parentMessageId)
 );
 
 export const useAddMessageReactionMutation = createMutationHook<

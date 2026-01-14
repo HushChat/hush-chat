@@ -37,7 +37,7 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
             .from(qWorkspaceUser)
             .join(qWorkspaceUser.workspace, qWorkspace)
             .where(qWorkspaceUser.email.eq(email)
-                    .and(qWorkspace.name.eq(currantWorkspace))
+                    .and(qWorkspace.workspaceIdentifier.eq(currantWorkspace))
                     .and(qWorkspaceUser.status.eq(WorkspaceUserStatus.PENDING)))
             .fetchOne();
 

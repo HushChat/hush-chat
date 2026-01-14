@@ -72,7 +72,7 @@ function normalizeMetadata<T extends Record<string, any>>(
 /**
  * Separate items into pinned and unpinned groups while maintaining order
  */
-function separatePinnedItems<T>(
+export function separatePinnedItems<T>(
   items: T[],
   isPinned: (item: T) => boolean
 ): { pinned: T[]; unpinned: T[] } {
