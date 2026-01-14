@@ -11,9 +11,9 @@
 - tokens.json file will be created for users
 
 ### Step 3 - run scripts
-- move to hush-chat/scripts/k6-load-testing
-- run scripts by `k6 run <script_name>.js`
+- move to hush-chat/scripts/k6-load-testing and relavant file path
+- run scripts in `BASH` by `export $(cat .env | xargs) && k6 run onePersonSendToOnePerson.js`
+- if run without env file, fill base_url and tenant name in script
 
 ## NOTE
-- make sure baseURL and tenant set
 - each scripts run on different conditions. check each script before run to fill essential fields

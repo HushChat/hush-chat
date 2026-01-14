@@ -1,7 +1,8 @@
+require("dotenv").config();
 const fs = require("fs");
 
-const BASE_URL = "<baseURL>";
-const TENANT = "<tenant>";
+const BASE_URL = process.env.BASE_URL;
+const TENANT = process.env.TENANT;
 
 const USERS = require("./users.json");
 
