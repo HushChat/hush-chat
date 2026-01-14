@@ -1,14 +1,12 @@
 import React from "react";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
-import { Images } from "@/assets/images";
 import { useVerifyOtpForm } from "@/hooks/auth/useVerifyOtpForm";
 import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 import { VerifyOtpForm } from "@/components/auth/verify-otp/VerifyOtpForm";
 
 export default function VerifyOtpScreen() {
   const { colors, isDark } = useAuthThemeColors();
-  const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
   const {
     confirmationCode,
