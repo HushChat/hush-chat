@@ -30,8 +30,8 @@ interface IUseSendMessageHandlerParams {
     gifUrl: string,
     messageText: string,
     parentMessageId?: number | null
-  ) => Promise<IMessage>;
-  loadMessageWindow: (messageId: number) => Promise<void>;
+  ) => Promise<IMessage[]>;
+  loadMessageWindow: (messageId: number, highlighted?: boolean) => Promise<void>;
   isViewingFirstPage: boolean;
 }
 
@@ -211,9 +211,13 @@ export const useSendMessageHandler = ({
             });
           }
 
-          const lastSuccessfulResult = results.reverse().find((r) => r.success && r.messageId);
-          if (lastSuccessfulResult?.messageId && loadMessageWindow && !isViewingFirstPage) {
-            loadMessageWindow(lastSuccessfulResult.messageId!);
+          const latest = results
+            .map((r) => r.signed)
+            .filter((s) => s?.messageId && s.createdAt)
+            .reduce((a, b) => (new Date(b!.createdAt!) > new Date(a!.createdAt!) ? b : a));
+
+          if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
+            loadMessageWindow(latest.messageId, false);
           }
 
           setSelectedMessage(null);
@@ -231,11 +235,15 @@ export const useSendMessageHandler = ({
           updateConversationMessagesCache(tempGifMessage);
           updateConversationsListCache(tempGifMessage);
 
-          const sentGifMessage = await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
+          const sentGifMessages = await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
 
-          if (sentGifMessage?.id && !isViewingFirstPage) {
-            loadMessageWindow(sentGifMessage.id);
-          }
+          console.log(sentGifMessages);
+
+          sentGifMessages.forEach((msg: IMessage) => {
+            if (msg?.id && !isViewingFirstPage) {
+              loadMessageWindow(msg.id, false);
+            }
+          });
 
           setSelectedMessage(null);
           return;

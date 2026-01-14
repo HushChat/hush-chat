@@ -110,6 +110,7 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
 
     refetchOnMount: refetchOnMount || false,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {

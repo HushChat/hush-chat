@@ -146,6 +146,7 @@ const ConversationThreadScreen = ({
     updateConversationMessagesCache,
     updateConversationsListCache,
     targetMessageId,
+    shouldHighlight,
     clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId, {
     enabled: shouldFetchMessages,
@@ -239,9 +240,9 @@ const ConversationThreadScreen = ({
   );
 
   const handleNavigateToMessage = useCallback(
-    (messageId: number) => {
+    (messageId: number, highlight: boolean = true) => {
       if (loadMessageWindow) {
-        void loadMessageWindow(messageId);
+        void loadMessageWindow(messageId, highlight);
         onMessageJumped?.();
       }
     },
@@ -335,10 +336,13 @@ const ConversationThreadScreen = ({
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
 
-        const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
+        const latest = results
+          .map((r) => r.signed)
+          .filter((s) => s?.messageId && s.createdAt)
+          .reduce((a, b) => (new Date(b!.createdAt!) > new Date(a!.createdAt!) ? b : a));
 
-        if (lastSuccessful?.signed?.messageId && loadMessageWindow && !isViewingFirstPage) {
-          loadMessageWindow(lastSuccessful.signed.messageId);
+        if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
+          loadMessageWindow(latest.messageId, false);
         }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
@@ -351,13 +355,18 @@ const ConversationThreadScreen = ({
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImagesAndVideos();
+      console.log("results", results);
+
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
 
-        const lastSuccessful = [...results].reverse().find((r) => r.success && r.signed?.messageId);
+        const latest = results
+          .map((r) => r.signed)
+          .filter((s) => s?.messageId && s.createdAt)
+          .reduce((a, b) => (new Date(b!.createdAt!) > new Date(a!.createdAt!) ? b : a));
 
-        if (lastSuccessful?.signed?.messageId && loadMessageWindow && !isViewingFirstPage) {
-          loadMessageWindow(lastSuccessful.signed.messageId);
+        if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
+          loadMessageWindow(latest.messageId, false);
         }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
@@ -381,7 +390,7 @@ const ConversationThreadScreen = ({
       updateConversationsListCache(newMessage);
 
       if (newMessage.id && loadMessageWindow && !isViewingFirstPage) {
-        loadMessageWindow(newMessage.id);
+        loadMessageWindow(newMessage.id, false);
       }
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
@@ -518,6 +527,7 @@ const ConversationThreadScreen = ({
         setSelectedConversation={setSelectedConversationId}
         onNavigateToMessage={handleNavigateToMessage}
         targetMessageId={targetMessageId}
+        shouldHighlight={shouldHighlight}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
         lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
