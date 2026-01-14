@@ -69,7 +69,7 @@ export const ConversationHeader = ({
       </View>
       <View className="flex-row items-center gap-3">
         <WebSocketStatusIndicator />
-        <RefreshButton onRefresh={onRefresh} isLoading={isLoading} color="#6B7280" />
+        {__DEV__ && <RefreshButton onRefresh={onRefresh} isLoading={isLoading} color="#6B7280" />}
         <SoundToggleButton />
         <KebabMenuButton onPress={handleKebabPress} />
         <WebContextMenu
