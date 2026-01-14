@@ -40,6 +40,7 @@ export const MentionProfileModal: React.FC<IMentionProfileModalProps> = ({
         imageUrl: user.signedImageUrl,
         username: user.username,
         isGroup: false,
+        userId: user.id,
       }}
       onMessagePress={handleMessagePress}
       onCallPress={onCallPress ? handleCallPress : undefined}
