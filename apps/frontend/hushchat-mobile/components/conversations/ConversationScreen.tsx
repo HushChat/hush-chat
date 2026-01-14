@@ -23,13 +23,13 @@ import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ChatInterface from "@/components/conversations/ChatInterface/ChatInterface";
 import { router } from "expo-router";
+import { PLATFORM } from "@/constants/platformConstants";
 import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useWebSocket } from "@/contexts/WebSocketContext";
-import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 interface IConversationScreenProps {
   initialConversationId?: number;
@@ -101,15 +101,13 @@ export default function ConversationScreen({ initialConversationId }: IConversat
     onConversationFound: setSelectedConversation,
   });
 
-  const isMobieLayout = useIsMobileLayout();
-
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
-    if (isMobieLayout) {
+    if (PLATFORM.IS_WEB) {
       if (conversation) {
         setSelectedConversation(conversation);
         router.replace(CONVERSATION(conversation.id));
       } else {
-        setSelectedConversation(conversation);
+        setSelectedConversation(null);
         router.replace(CHATS_PATH);
       }
     }
