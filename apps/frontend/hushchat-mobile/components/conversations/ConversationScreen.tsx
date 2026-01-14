@@ -104,8 +104,10 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
     if (PLATFORM.IS_WEB) {
       if (conversation) {
+        setSelectedConversation(conversation);
         router.replace(CONVERSATION(conversation.id));
       } else {
+        setSelectedConversation(null);
         router.replace(CHATS_PATH);
       }
     }
