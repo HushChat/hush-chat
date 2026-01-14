@@ -11,6 +11,18 @@ import java.util.Date;
 @Entity
 @Getter
 @Setter
+@Table(
+        indexes = {
+                @Index(
+                        name = "idx_invite_conversation",
+                        columnList = "conversation_id"
+                ),
+                @Index(
+                        name = "idx_invite_active_expiry",
+                        columnList = "is_active, expires_at"
+                )
+        }
+)
 public class ConversationInviteLink extends AuditModel {
 
     @Id
@@ -32,11 +44,13 @@ public class ConversationInviteLink extends AuditModel {
     @JoinColumn(name = "created_by_user_id", nullable = false)
     private ChatUser createdBy;
 
+    @Column(name = "expires_at")
     private Date expiresAt;
 
     private Long maxUsers;
 
     private Long usedCount = 0L;
 
+    @Column(name = "is_active")
     private boolean isActive;
 }

@@ -48,6 +48,8 @@ export interface CursorPaginatedQueryOptions<T> {
   pageSize?: number;
   enabled?: boolean;
   allowForwardPagination?: boolean;
+  retry?: boolean | number | ((failureCount: number, error: unknown) => boolean);
+  refetchOnMount?: boolean | "always";
 }
 
 export interface AddConversationParticipantsParams {
@@ -202,7 +204,7 @@ export const editMessageById = async (
   conversationId: number,
   messageId: number,
   messageText: string
-): Promise<ApiResponse<void>> => {
+): Promise<ApiResponse<IMessage>> => {
   try {
     const response = await axios.put(
       CONVERSATION_API_ENDPOINTS.EDIT_MESSAGE(conversationId, messageId),
@@ -283,6 +285,15 @@ export const createMessagesWithAttachments = async (
   } catch (error) {
     ToastUtils.error("Unable to request attachment upload URL: " + error);
     throw error;
+  }
+};
+
+export const publishMessageEvents = async (conversationId: number, messageIds: number[]) => {
+  try {
+    await axios.post(CONVERSATION_API_ENDPOINTS.PUBLISH_MESSAGES(conversationId), messageIds);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
 

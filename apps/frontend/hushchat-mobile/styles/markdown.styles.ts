@@ -10,7 +10,7 @@ import { StyleSheet, TextStyle } from "react-native";
 const messageTextStyles: TextStyle = {
   fontSize: 16,
   lineHeight: 20,
-  fontFamily: "Poppins-Regular",
+  fontFamily: "Poppins-Regular, OpenMoji-Color",
 };
 
 export const getMarkdownStyles = (textColor: string) => {
