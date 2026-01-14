@@ -2,6 +2,7 @@ import {
   ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
+  ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -40,50 +41,56 @@ export default function InviteForm() {
 
   return (
     <KeyboardAvoidingView className="flex-1 w-[700px]" behavior="padding">
-      <View className="flex-1 px-4" style={{ paddingTop: insets.top + 12 }}>
-        <View className="flex-row items-center mb-6 mt-3">
-          {!PLATFORM.IS_WEB && <BackButton onPress={() => router.back()} />}
-          <AppText className="text-2xl font-bold text-gray-900 dark:text-white ml-2">
-            Invite to Workspace
-          </AppText>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        className="bg-background-light dark:bg-background-dark custom-scrollbar"
+      >
+        <View className="flex-1 px-4" style={{ paddingTop: insets.top + 12 }}>
+          <View className="flex-row items-center mb-6 mt-3">
+            {!PLATFORM.IS_WEB && <BackButton onPress={() => router.back()} />}
+            <AppText className="text-2xl font-bold text-gray-900 dark:text-white ml-2">
+              Invite to Workspace
+            </AppText>
+          </View>
+
+          <View className="flex-1">
+            <AppText className="text-base text-gray-500 dark:text-gray-400 mb-6">
+              Invite colleagues by entering their email addresses below. Separate with commas,
+              spaces, or press Enter.
+            </AppText>
+
+            <TokenizedEmailInput
+              value={inviteForm.values.emails ?? []}
+              onChange={(emails) => inviteForm.setFieldValue("emails", emails)}
+              error={inviteForm.errors.emails as string | undefined}
+              max={100}
+            />
+
+            <TouchableOpacity
+              onPress={handleInvite}
+              activeOpacity={DEFAULT_ACTIVE_OPACITY}
+              disabled={inviteMutation.isPending || (inviteForm.values.emails?.length ?? 0) === 0}
+              className={classNames(
+                "rounded-lg py-4 items-center mt-10 bg-primary-light dark:bg-primary-dark",
+                {
+                  "opacity-60":
+                    inviteMutation.isPending || (inviteForm.values.emails?.length ?? 0) === 0,
+                }
+              )}
+            >
+              {inviteMutation.isPending ? (
+                <ActivityIndicator color="#ffffff" size={20} />
+              ) : (
+                <AppText className="text-white font-semibold text-base">
+                  Send {inviteForm.values.emails?.length ?? 0} Invite
+                  {(inviteForm.values.emails?.length ?? 0) !== 1 ? "s" : ""}
+                </AppText>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <View className="flex-1">
-          <AppText className="text-base text-gray-500 dark:text-gray-400 mb-6">
-            Invite colleagues by entering their email addresses below. Separate with commas, spaces,
-            or press Enter.
-          </AppText>
-
-          <TokenizedEmailInput
-            value={inviteForm.values.emails ?? []}
-            onChange={(emails) => inviteForm.setFieldValue("emails", emails)}
-            error={inviteForm.errors.emails as string | undefined}
-            max={100}
-          />
-
-          <TouchableOpacity
-            onPress={handleInvite}
-            activeOpacity={DEFAULT_ACTIVE_OPACITY}
-            disabled={inviteMutation.isPending || (inviteForm.values.emails?.length ?? 0) === 0}
-            className={classNames(
-              "rounded-lg py-4 items-center mt-10 bg-primary-light dark:bg-primary-dark",
-              {
-                "opacity-60":
-                  inviteMutation.isPending || (inviteForm.values.emails?.length ?? 0) === 0,
-              }
-            )}
-          >
-            {inviteMutation.isPending ? (
-              <ActivityIndicator color="#ffffff" size={20} />
-            ) : (
-              <AppText className="text-white font-semibold text-base">
-                Send {inviteForm.values.emails?.length ?? 0} Invite
-                {(inviteForm.values.emails?.length ?? 0) !== 1 ? "s" : ""}
-              </AppText>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
