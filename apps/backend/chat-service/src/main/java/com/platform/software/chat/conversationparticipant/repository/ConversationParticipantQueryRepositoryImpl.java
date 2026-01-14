@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -19,6 +20,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -199,12 +201,18 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     @Override
     @Transactional
     public long updateIsActiveById(Long id, Boolean isActive) {
-        return queryFactory
-            .update(qConversationParticipant)
-            .set(qConversationParticipant.isActive, isActive)
-            .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now())
-            .where(qConversationParticipant.id.eq(id))
-            .execute();
+        JPAUpdateClause updateClause = queryFactory
+                .update(qConversationParticipant)
+                .set(qConversationParticipant.isActive, isActive)
+                .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now());
+
+        if (!isActive) {
+            updateClause.set(qConversationParticipant.role, ConversationParticipantRoleEnum.MEMBER);
+        }
+
+        return updateClause
+                .where(qConversationParticipant.id.eq(id))
+                .execute();
     }
 
     @Override
@@ -346,8 +354,7 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         BooleanBuilder where = new BooleanBuilder();
 
         where.and(qConversationParticipant.conversation.id.eq(conversationId))
-                .and(qConversationParticipant.isActive.isTrue())
-                .and(qConversationParticipant.isDeleted.isFalse());
+                .and(qConversationParticipant.isActive.isTrue());
 
         if (StringUtils.hasText(filterCriteria.getKeyword())) {
             String keyword = filterCriteria.getKeyword().trim();

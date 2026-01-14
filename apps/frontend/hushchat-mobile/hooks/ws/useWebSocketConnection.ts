@@ -432,10 +432,14 @@ export default function useWebSocketConnection() {
         }
 
         // Check for authentication failures
-        if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
+        if (event.code === 1008 || event.code === 3401) {
           logInfo("Connection closed due to authentication failure, stopping all retries");
           updateState({ shouldStopRetrying: true });
           return;
+        }
+
+        if (event.code === 1002) {
+          logInfo("Connection closed due to protocol error (missed heartbeats), will reconnect");
         }
 
         // Attempt reconnection

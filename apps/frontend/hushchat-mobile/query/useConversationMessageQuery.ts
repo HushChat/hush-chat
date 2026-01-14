@@ -3,7 +3,8 @@ import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
-import { useConversationMessages } from "@/hooks/useWebSocketEvents";
+import { eventBus } from "@/services/eventBus";
+import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
 import {
   CursorPaginatedResponse,
   getConversationMessagesByCursor,
@@ -14,10 +15,14 @@ import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
 import { separatePinnedItems } from "@/query/config/appendToOffsetPaginatedCache";
+import { skipRetryOnAccessDenied } from "@/utils/apiErrorUtils";
 
 const PAGE_SIZE = 20;
 
-export function useConversationMessagesQuery(conversationId: number) {
+export function useConversationMessagesQuery(
+  conversationId: number,
+  options?: { enabled?: boolean }
+) {
   const {
     user: { id: userId },
   } = useUserStore();
@@ -34,12 +39,11 @@ export function useConversationMessagesQuery(conversationId: number) {
 
   useEffect(() => {
     if (previousConversationId.current !== conversationId) {
-      queryClient.invalidateQueries({ queryKey });
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
     }
-  }, [conversationId, queryKey, queryClient]);
+  }, [conversationId]);
 
   const {
     pages,
@@ -57,8 +61,10 @@ export function useConversationMessagesQuery(conversationId: number) {
     queryKey,
     queryFn: (params) => getConversationMessagesByCursor(conversationId, params),
     pageSize: PAGE_SIZE,
-    enabled: !!conversationId,
+    enabled: !!conversationId && options?.enabled,
     allowForwardPagination: inMessageWindowView,
+    retry: skipRetryOnAccessDenied,
+    refetchOnMount: true,
   });
 
   const loadMessageWindow = useCallback(
@@ -142,16 +148,27 @@ export function useConversationMessagesQuery(conversationId: number) {
 
           return {
             ...oldData,
-            pages: oldData.pages.map((page) => {
+            pages: oldData?.pages?.map((page) => {
               const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
 
               if (conversationIndex === -1) return page;
 
-              // if conversation is found, do not invalidate cache
               found = true;
 
+              const existingConversation = page.content[conversationIndex];
+              const existingLastMessage = existingConversation.messages?.[0];
+
+              const shouldUpdateMessage =
+                !existingLastMessage ||
+                new Date(newMessage.createdAt) >= new Date(existingLastMessage.createdAt) ||
+                newMessage.id === existingLastMessage.id;
+
+              if (!shouldUpdateMessage) {
+                return page;
+              }
+
               const updatedConversation: IConversation = {
-                ...page.content[conversationIndex],
+                ...existingConversation,
                 messages: [newMessage],
               };
 
@@ -204,13 +221,29 @@ export function useConversationMessagesQuery(conversationId: number) {
     [queryClient, queryKey]
   );
 
-  const { lastMessage } = useConversationMessages(conversationId);
-
   useEffect(() => {
-    if (!lastMessage) return;
-    updateConversationMessagesCache(lastMessage);
-    updateConversationsListCache(lastMessage);
-  }, [lastMessage, updateConversationMessagesCache, updateConversationsListCache]);
+    const handleNewMessage = ({
+      conversationId: msgConversationId,
+      messageWithConversation,
+    }: {
+      conversationId: number;
+      messageWithConversation: IConversation;
+    }) => {
+      if (msgConversationId === conversationId) {
+        const messages = messageWithConversation.messages || [];
+        messages.forEach((msg) => {
+          updateConversationMessagesCache(msg);
+          updateConversationsListCache(msg);
+        });
+      }
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
+
+    return () => {
+      eventBus.off(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
+    };
+  }, [conversationId, updateConversationMessagesCache, updateConversationsListCache]);
 
   return {
     pages,

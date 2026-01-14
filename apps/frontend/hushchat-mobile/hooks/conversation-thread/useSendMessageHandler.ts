@@ -113,7 +113,7 @@ export const useSendMessageHandler = ({
   sendGifMessage,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
-    useConversationMessagesQuery(currentConversationId);
+    useConversationMessagesQuery(currentConversationId, { enabled: false });
 
   const renameFile = useCallback(
     (file: File, index: number): File => {
