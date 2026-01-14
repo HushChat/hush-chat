@@ -27,8 +27,6 @@ export default function () {
   const index = __VU - 1;
   const currentUser = ALL_TOKENS[index];
 
-  console.log(BASE_URL);
-
   if (!currentUser) return;
 
   const messageNum = __ITER + 1;
