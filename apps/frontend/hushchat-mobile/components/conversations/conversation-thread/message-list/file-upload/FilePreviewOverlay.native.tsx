@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, TouchableOpacity, ScrollView, Modal } from "react-native"; // Removed Keyboard import
+import { View, TouchableOpacity, ScrollView, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -114,7 +114,12 @@ const FilePreviewOverlay = ({
 
   const renderThumbnail = (file: LocalFile, index: number) => {
     const isSelected = index === selectedIndex;
-    const isVid = file.type && file.type.startsWith("video");
+
+    const safeType = file.type;
+
+    const isVid = safeType.startsWith("video");
+    const isImg = safeType.startsWith("image");
+    const isDoc = !isVid && !isImg;
 
     return (
       <TouchableOpacity
@@ -127,8 +132,18 @@ const FilePreviewOverlay = ({
         style={{ width: THUMB_SIZE, height: THUMB_SIZE }}
       >
         {isVid ? (
-          <View className="w-full h-full bg-gray-900 justify-center items-center">
+          <View className="w-full h-full justify-center items-center bg-gray-900">
             <Ionicons name="videocam" size={20} color="white" />
+          </View>
+        ) : isDoc ? (
+          <View className="w-full h-full justify-center items-center p-1">
+            <Ionicons name="document-text" size={24} color={isDark ? "white" : "#6B4EFF"} />
+            <AppText
+              numberOfLines={1}
+              className="text-[8px] mt-1 text-center w-full text-text-primary-light dark:text-text-primary-dark"
+            >
+              {file.name?.split(".").pop()?.toUpperCase() || "FILE"}
+            </AppText>
           </View>
         ) : (
           <Image

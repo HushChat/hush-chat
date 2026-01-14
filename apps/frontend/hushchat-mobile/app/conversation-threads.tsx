@@ -45,6 +45,7 @@ import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
 import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
+import * as DocumentPicker from "expo-document-picker";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -277,25 +278,34 @@ const ConversationThreadScreen = ({
     isUploading: isUploadingImages,
     sendGifMessage,
     pickImagesAndVideos,
-    pickDocuments,
     uploadNativeFilesWithCaptions,
   } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
     try {
-      const files = await pickDocuments();
-      if (files && files.length > 0) {
-        // Cast to any because Native returns LocalFile[] which the Native hook accepts,
-        // but Typescript might be confused by the Web File[] type definition in this shared file.
-        handleOpenImagePicker(files as any);
-        setSelectedMessage(null);
-      }
-    } catch {
-      ToastUtils.error("Failed to pick documents.");
-    }
-  }, [pickDocuments, handleOpenImagePicker, setSelectedMessage]);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        multiple: true,
+        copyToCacheDirectory: true,
+      });
 
-  // Updated Handler for Native Images (Pick -> Preview)
+      if (result.canceled) {
+        return;
+      }
+      const normalizedFiles = result.assets.map((asset) => ({
+        uri: asset.uri,
+        name: asset.name,
+        type: asset.mimeType || "application/octet-stream",
+        size: asset.size,
+      }));
+
+      handleOpenImagePicker(normalizedFiles as any);
+      setSelectedMessage(null);
+    } catch {
+      ToastUtils.error("Failed to pick document");
+    }
+  }, [handleOpenImagePicker, setSelectedMessage]);
+
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const files = await pickImagesAndVideos();

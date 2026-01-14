@@ -267,7 +267,7 @@ export function useMessageAttachmentUploader(
       source: "document",
       multiple: true,
       maxSizeKB: MAX_DOCUMENT_SIZE_KB,
-      allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+      allowedMimeTypes: ["*/*"],
     });
   };
 
