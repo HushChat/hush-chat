@@ -65,7 +65,7 @@ class ConversationMessageControllerTest extends BaseAccessTest {
                 }
         );
 
-        assertBadRequest(response);
+        assertNotFound(response);
     }
 
     @Test
@@ -104,7 +104,7 @@ class ConversationMessageControllerTest extends BaseAccessTest {
                 }
         );
 
-        assertBadRequest(response);
+        assertNotFound(response);
     }
 
     @Test
@@ -152,6 +152,6 @@ class ConversationMessageControllerTest extends BaseAccessTest {
                 }
         );
 
-        assertBadRequest(response);
+        assertNotFound(response);
     }
 }
