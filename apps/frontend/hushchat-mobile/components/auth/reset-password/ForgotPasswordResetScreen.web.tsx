@@ -1,12 +1,11 @@
-import React from "react";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
-import { Images } from "@/assets/images";
 import { useForgotPasswordReset } from "@/hooks/auth/useForgotPasswordReset";
 import { ForgotPasswordResetForm } from "@/components/auth/reset-password/ForgotPasswordResetForm";
 import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function ForgotPasswordResetScreen() {
-  const { colors } = useAuthThemeColors();
+  const { colors, isDark } = useAuthThemeColors();
+
   const {
     errorMessage,
     successMessage,
@@ -21,9 +20,10 @@ export default function ForgotPasswordResetScreen() {
   return (
     <AuthWebLayout
       colors={colors}
-      title="Check your inbox"
-      subtitle="Enter the code we sent to your email and choose a new password."
-      image={Images.Workspace}
+      isDark={isDark}
+      heroTitle="You're one step away from a fresh start."
+      heroSubtitle="Create a strong, unique password to keep your account secure. Once reset, you'll be back to chatting with your team in no time."
+      features={[]}
     >
       <ForgotPasswordResetForm
         colors={colors}

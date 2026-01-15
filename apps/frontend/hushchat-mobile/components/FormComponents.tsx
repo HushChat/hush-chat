@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, ViewStyle, StyleSheet } from "react-native";
+import { View, TouchableOpacity, ViewStyle, StyleSheet, StyleProp } from "react-native";
 import { AuthColors } from "@/types/login/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
@@ -33,6 +33,7 @@ interface LinkTextProps {
 interface FormContainerProps {
   children: React.ReactNode;
   maxWidth?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 const COLORS = {
@@ -44,7 +45,7 @@ const COLORS = {
 
 export const FormHeader: React.FC<FormHeaderProps> = ({ title, subtitle, colors }) => (
   <View style={styles.headerContainer}>
-    <AppText style={[styles.headerTitle, { color: colors.primary }]}>{title}</AppText>
+    <AppText style={[styles.headerTitle, { color: colors.textPrimary }]}>{title}</AppText>
     <AppText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{subtitle}</AppText>
   </View>
 );
@@ -96,31 +97,29 @@ export const LinkText: React.FC<LinkTextProps> = ({ text, linkText, onPress, col
   </View>
 );
 
-export const FormContainer: React.FC<FormContainerProps> = ({ children, maxWidth = 450 }) => (
-  <View style={[styles.formContainer, { maxWidth }]}>{children}</View>
-);
+export const FormContainer: React.FC<FormContainerProps> = ({
+  children,
+  maxWidth = 400,
+  style,
+}) => <View style={[styles.formContainer, { maxWidth }, style]}>{children}</View>;
 
 const styles = StyleSheet.create({
   headerContainer: {
     marginBottom: 40,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: "700",
-    marginBottom: 12,
+    fontSize: 28,
+    letterSpacing: -0.5,
+    fontFamily: "Poppins-SemiBold",
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 22,
   },
   button: {
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 12,
     marginBottom: 20,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
   },
   buttonDisabled: {
     shadowOpacity: 0,
@@ -128,7 +127,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: "Poppins-Medium",
     textAlign: "center",
   },
   buttonTextEnabled: {
@@ -154,12 +153,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   linkText: {
-    fontSize: 15,
+    fontSize: 16,
     marginRight: 4,
   },
   linkButton: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: "Poppins-Medium",
   },
   formContainer: {
     width: "100%",

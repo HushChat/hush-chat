@@ -1,21 +1,22 @@
 import React from "react";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
-import { Images } from "@/assets/images";
 import { useForgotPassword } from "@/hooks/auth/useForgotPassword";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password/ForgotPasswordForm";
 import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function ForgotPasswordScreen() {
-  const { colors } = useAuthThemeColors();
+  const { colors, isDark } = useAuthThemeColors();
+
   const { email, setEmail, errorMessage, successMessage, handleSendCode, goBackToLogin } =
     useForgotPassword();
 
   return (
     <AuthWebLayout
       colors={colors}
-      title="Forgot your password?"
-      subtitle="No stress. Enter your email and we’ll send a one-time code to help you get back in."
-      image={Images.LoginPeople}
+      isDark={isDark}
+      heroTitle="Forgot your password? No problem."
+      heroSubtitle="It happens to the best of us. Enter your email and we'll send you a one-time code to help you get back in."
+      features={[]}
     >
       <ForgotPasswordForm
         colors={colors}
