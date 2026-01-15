@@ -14,12 +14,9 @@ export const useAuthThemeColors = () => {
     inputFocusBorder: isDark ? "#563dc4" : "#6B4EFF",
     buttonDisabled: isDark ? "#374151" : "#d1d5db",
     textDisabled: isDark ? "#374151" : "#d1d5db",
-    // New colors for redesigned auth
-    gradientStart: "#7C3AED",
-    gradientEnd: "#5B21B6",
     formBackground: isDark ? "#0a0f1a" : "#ffffff",
-    logoText: isDark ? "#ffffff" : "#ffffff", // Always white on gradient
-    featureText: isDark ? "#D1C8FF" : "#D1C8FF", // Always light on gradient
+    heroText: "#ffffff",
+    featureText: "#D1C8FF",
   };
 
   return { colors, isDark };

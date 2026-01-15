@@ -29,7 +29,6 @@ export default function ForgotPasswordResetScreen() {
         onValueChange={onValueChange}
         onSubmit={onSubmit}
         onBackToLogin={onBackToLogin}
-        stretch={true}
       />
     </AuthMobileLayout>
   );

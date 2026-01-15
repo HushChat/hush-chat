@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { View } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 import {
   FormHeader,
   FormButton,
@@ -22,11 +22,13 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
     formErrors,
     showErrors,
     onBackToLogin,
-    stretch,
   } = props;
 
+  const { width } = useWindowDimensions();
+  const isMobile = width < 1024;
+
   return (
-    <FormContainer style={stretch ? { flex: 1 } : undefined}>
+    <FormContainer style={isMobile ? { flex: 1 } : undefined}>
       <View style={{ flex: 1 }}>
         <View>
           <FormHeader
@@ -60,7 +62,7 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
           </View>
         </View>
 
-        <View style={{ flex: stretch ? 1 : 0, minHeight: 20 }} />
+        <View style={{ flex: isMobile ? 1 : 0, minHeight: 20 }} />
 
         <View>
           <FormButton title="Send Verification Code" onPress={onSubmit} colors={colors} />

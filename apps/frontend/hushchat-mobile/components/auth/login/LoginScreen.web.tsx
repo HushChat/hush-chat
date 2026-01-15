@@ -4,14 +4,10 @@ import { LoginForm } from "@/components/auth/login/LoginForm";
 import { useLoginForm } from "@/hooks/auth/useLoginForm";
 import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
-import { useWindowDimensions } from "react-native";
-
 export default function LoginScreen() {
   const { colors, isDark } = useAuthThemeColors();
   const { formValues, formErrors, showErrors, errorMessage, onValueChange, submit } =
     useLoginForm();
-  const { width } = useWindowDimensions();
-  const isMobile = width < 1024;
 
   return (
     <AuthWebLayout colors={colors} isDark={isDark}>
@@ -23,7 +19,6 @@ export default function LoginScreen() {
         formErrors={formErrors}
         showErrors={showErrors}
         onValueChange={onValueChange}
-        stretch={isMobile}
       />
     </AuthWebLayout>
   );

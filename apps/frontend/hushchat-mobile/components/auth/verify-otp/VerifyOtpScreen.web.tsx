@@ -5,12 +5,8 @@ import { useVerifyOtpForm } from "@/hooks/auth/useVerifyOtpForm";
 import AuthWebLayout from "@/components/auth/AuthWebLayout";
 import { VerifyOtpForm } from "@/components/auth/verify-otp/VerifyOtpForm";
 
-import { useWindowDimensions } from "react-native";
-
 export default function VerifyOtpScreen() {
   const { colors } = useAuthThemeColors();
-  const { width } = useWindowDimensions();
-  const isMobile = width < 1024;
 
   const { email } = useLocalSearchParams<{ email: string }>();
   const {
@@ -37,7 +33,6 @@ export default function VerifyOtpScreen() {
         onSubmit={handleVerifyOtp}
         onResendOtp={handleResendOtp}
         isLoading={isLoading}
-        stretch={isMobile}
       />
     </AuthWebLayout>
   );

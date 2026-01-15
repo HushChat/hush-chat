@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { AppText } from "@/components/AppText";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { ToastUtils } from "@/utils/toastUtils";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 
 const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
@@ -93,7 +94,7 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
         <TouchableOpacity
           style={[styles.createButton, { borderColor: colors.primary }]}
           onPress={() => router.push(WORKSPACE_CREATE_PATH)}
-          activeOpacity={0.7}
+          activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
           <AppText style={[styles.createButtonText, { color: colors.primary }]}>
             + Create new workspace

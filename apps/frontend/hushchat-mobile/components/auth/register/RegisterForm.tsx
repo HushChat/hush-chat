@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
 import {
   FormHeader,
   FormButton,
@@ -21,8 +21,10 @@ export const RegisterForm = ({
   onValueChange,
   onSubmit,
   isLoading,
-  stretch,
 }: TRegisterFormProps) => {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 1024;
+
   const sharedProps = {
     formValues,
     formErrors,
@@ -31,7 +33,7 @@ export const RegisterForm = ({
   };
 
   return (
-    <FormContainer style={stretch ? { flex: 1 } : undefined}>
+    <FormContainer style={isMobile ? { flex: 1 } : undefined}>
       <View style={{ flex: 1 }}>
         <View>
           <FormHeader
@@ -73,8 +75,7 @@ export const RegisterForm = ({
           </View>
         </View>
 
-        {/* Spacer */}
-        <View style={{ flex: stretch ? 1 : 0, minHeight: 20 }} />
+        <View style={{ flex: isMobile ? 1 : 0, minHeight: 20 }} />
 
         <View>
           <FormButton

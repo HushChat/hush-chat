@@ -13,9 +13,9 @@ export default function WorkspaceScreen() {
       heroTitle={`One account,\nmultiple workspaces.`}
       heroSubtitle="Keep your personal and work conversations organized. Each workspace has its own channels, members, and settings."
       features={[
-        { icon: "shield-checkmark-outline", text: "Separate spaces for different teams" },
-        { icon: "person-outline", text: "Independent settings per workspace" },
-        { icon: "chatbubbles-outline", text: "Invite members to any workspace" },
+        { icon: "shield-checkmark-outline", text: "Separate spaces for different organizations" },
+        { icon: "person-outline", text: "Stay updated with real-time notifications" },
+        { icon: "chatbubbles-outline", text: "All your conversations in one place" },
       ]}
     >
       <WorkspaceForm colors={colors} isDark={isDark} showErrors={false} />

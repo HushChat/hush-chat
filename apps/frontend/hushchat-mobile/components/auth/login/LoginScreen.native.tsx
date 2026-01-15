@@ -19,7 +19,6 @@ export default function LoginScreen() {
         formErrors={formErrors}
         showErrors={showErrors}
         onValueChange={onValueChange}
-        stretch={true}
       />
     </AuthMobileLayout>
   );

@@ -1,5 +1,6 @@
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { FormHeader, FormButton, ErrorMessage, FormContainer } from "@/components/FormComponents";
 import TextField from "@/components/forms/TextField";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
@@ -15,7 +16,6 @@ type TVerifyOtpFormProps = {
   onSubmit: () => void;
   onResendOtp: () => void;
   isLoading: boolean;
-  stretch?: boolean;
 };
 
 export const VerifyOtpForm = ({
@@ -26,14 +26,16 @@ export const VerifyOtpForm = ({
   onSubmit,
   onResendOtp,
   isLoading,
-  stretch,
 }: TVerifyOtpFormProps) => {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 1024;
+
   const handleBack = () => {
     router.replace(AUTH_REGISTER_PATH);
   };
 
   return (
-    <FormContainer style={stretch ? { flex: 1 } : undefined}>
+    <FormContainer style={isMobile ? { flex: 1 } : undefined}>
       <View style={{ flex: 1 }}>
         <View>
           <TouchableOpacity
@@ -41,9 +43,12 @@ export const VerifyOtpForm = ({
             onPress={handleBack}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
-            <AppText style={[styles.backButtonText, { color: colors.textSecondary }]}>
-              {"< Back"}
-            </AppText>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
+              <AppText style={[styles.backButtonText, { color: colors.textSecondary }]}>
+                Back
+              </AppText>
+            </View>
           </TouchableOpacity>
 
           <FormHeader
@@ -80,7 +85,7 @@ export const VerifyOtpForm = ({
         </View>
 
         {/* Spacer */}
-        <View style={{ flex: stretch ? 1 : 0, minHeight: 20 }} />
+        <View style={{ flex: isMobile ? 1 : 0, minHeight: 20 }} />
 
         <View>
           <FormButton

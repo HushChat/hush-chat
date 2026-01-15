@@ -20,7 +20,6 @@ export default function RegisterScreen() {
         onValueChange={onValueChange}
         onSubmit={submit}
         isLoading={isLoading}
-        stretch={true}
       />
     </AuthMobileLayout>
   );

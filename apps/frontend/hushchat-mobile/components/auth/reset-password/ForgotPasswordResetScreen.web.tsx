@@ -1,5 +1,3 @@
-import React from "react";
-import { useWindowDimensions } from "react-native";
 import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 import { useForgotPasswordReset } from "@/hooks/auth/useForgotPasswordReset";
 import { ForgotPasswordResetForm } from "@/components/auth/reset-password/ForgotPasswordResetForm";
@@ -7,8 +5,6 @@ import AuthWebLayout from "@/components/auth/AuthWebLayout";
 
 export default function ForgotPasswordResetScreen() {
   const { colors, isDark } = useAuthThemeColors();
-  const { width } = useWindowDimensions();
-  const isMobile = width < 1024;
 
   const {
     errorMessage,
@@ -39,7 +35,6 @@ export default function ForgotPasswordResetScreen() {
         onValueChange={onValueChange}
         onSubmit={onSubmit}
         onBackToLogin={onBackToLogin}
-        stretch={isMobile}
       />
     </AuthWebLayout>
   );

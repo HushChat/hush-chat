@@ -27,7 +27,6 @@ export default function VerifyOtpScreen() {
         onSubmit={handleVerifyOtp}
         onResendOtp={handleResendOtp}
         isLoading={isLoading}
-        stretch={true}
       />
     </AuthMobileLayout>
   );

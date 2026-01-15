@@ -16,7 +16,7 @@ type TAuthWebLayoutProps = {
     textPrimary: string;
     textSecondary: string;
     formBackground: string;
-    logoText: string;
+    heroText: string;
     featureText: string;
   };
   children: ReactNode;
@@ -27,8 +27,8 @@ type TAuthWebLayoutProps = {
 };
 
 const DEFAULT_FEATURES: TAuthFeature[] = [
-  { icon: "shield-checkmark-outline", text: "End-to-end encryption" },
-  { icon: "people-outline", text: "Team workspaces" },
+  { icon: "shield-checkmark-outline", text: "Seamless across all devices" },
+  { icon: "people-outline", text: "Group conversations made easy" },
   { icon: "chatbubbles-outline", text: "Real-time messaging" },
 ];
 
@@ -77,7 +77,7 @@ export default function AuthWebLayout({
               </View>
 
               <View style={s.heroBlock}>
-                <AppText style={[s.heroTitle, { color: colors.logoText }]}>{heroTitle}</AppText>
+                <AppText style={[s.heroTitle, { color: colors.heroText }]}>{heroTitle}</AppText>
                 <AppText style={[s.heroSubtitle, { color: colors.featureText }]}>
                   {heroSubtitle}
                 </AppText>
