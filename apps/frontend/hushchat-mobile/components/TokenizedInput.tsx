@@ -2,8 +2,9 @@ import { useState, useRef, ReactNode } from "react";
 import { View, TextInput, KeyboardTypeOptions } from "react-native";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { PLATFORM } from "@/constants/platformConstants";
+import classNames from "classnames";
 
-interface TokenizedInputProps<T> {
+interface ITokenizedInputProps<T> {
   value: T[];
   onChange: (values: T[]) => void;
   renderToken: (item: T, remove: () => void) => ReactNode;
@@ -14,7 +15,6 @@ interface TokenizedInputProps<T> {
   keyboardType?: KeyboardTypeOptions;
   error?: string;
   max?: number;
-  minWidthInput?: number;
   classNameContainer?: string;
   classNameInput?: string;
 }
@@ -30,10 +30,9 @@ export default function TokenizedInputBase<T>({
   keyboardType = "default",
   error,
   max,
-  minWidthInput = 120,
   classNameContainer = "",
   classNameInput = "",
-}: TokenizedInputProps<T>) {
+}: ITokenizedInputProps<T>) {
   const [inputText, setInputText] = useState("");
   const inputRef = useRef<TextInput>(null);
 
@@ -74,13 +73,15 @@ export default function TokenizedInputBase<T>({
   return (
     <View>
       <View
-        className={`
-          flex-row flex-wrap items-center
-          bg-white dark:bg-gray-800
-          border ${error ? "border-red-500" : "border-gray-300 dark:border-gray-700"}
-          rounded-lg px-3 py-2 min-h-[48px]
-          ${classNameContainer}
-        `}
+        className={classNames(
+          "flex-row flex-wrap items-center rounded-lg px-3 py-2 min-h-[48px]",
+          "bg-white dark:bg-gray-800",
+          {
+            "border border-red-500": error,
+            "border border-gray-300 dark:border-gray-700": !error,
+          },
+          classNameContainer
+        )}
       >
         {value.map((item) => (
           <View key={getKey(item)}>{renderToken(item, () => removeItem(item))}</View>
@@ -99,11 +100,11 @@ export default function TokenizedInputBase<T>({
           keyboardType={keyboardType}
           returnKeyType="done"
           enablesReturnKeyAutomatically={true}
-          className={`
-            flex-1 text-gray-900 dark:text-white text-base py-2 outline-none
-            min-w-[${minWidthInput}px]
-            ${classNameInput}
-          `}
+          className={classNames(
+            "flex-1 text-base py-2 outline-none",
+            "text-gray-900 dark:text-white",
+            classNameInput
+          )}
           autoFocus
         />
       </View>

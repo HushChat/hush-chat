@@ -18,6 +18,8 @@ import TokenizedEmailInput from "@/components/settings/invite/TokenizedEmailInpu
 import { ToastUtils } from "@/utils/toastUtils";
 import classNames from "classnames";
 
+const MAX_EMAIL_INVITES = 100;
+
 export default function InviteForm() {
   const insets = useSafeAreaInsets();
   const { inviteForm, inviteMutation } = useInviteForm();
@@ -30,8 +32,8 @@ export default function InviteForm() {
       return;
     }
 
-    if (emails.length > 100) {
-      ToastUtils.error("Maximum 100 invites allowed");
+    if (emails.length > MAX_EMAIL_INVITES) {
+      ToastUtils.error(`Maximum ${MAX_EMAIL_INVITES} invites allowed`);
       return;
     }
 
@@ -64,7 +66,7 @@ export default function InviteForm() {
               value={inviteForm.values.emails ?? []}
               onChange={(emails) => inviteForm.setFieldValue("emails", emails)}
               error={inviteForm.errors.emails as string | undefined}
-              max={100}
+              max={MAX_EMAIL_INVITES}
             />
 
             <TouchableOpacity

@@ -2,8 +2,9 @@ import { AppText } from "@/components/AppText";
 import { View, TouchableOpacity } from "react-native";
 import TokenizedInputBase from "@/components/TokenizedInput";
 import { EMAIL_REGEX } from "@/constants/regex";
+import { DEFAULT_HIT_SLOP } from "@/constants/ui";
 
-interface TokenizedEmailInputProps {
+interface ITokenizedEmailInputProps {
   value: string[];
   onChange: (emails: string[]) => void;
   error?: string;
@@ -17,7 +18,7 @@ export default function TokenizedEmailInput({
   error,
   max = 100,
   placeholder = "Enter email addresses...",
-}: TokenizedEmailInputProps) {
+}: ITokenizedEmailInputProps) {
   const parseEmailInput = (text: string): string[] =>
     text
       .split(/[\s,;]+/)
@@ -29,7 +30,7 @@ export default function TokenizedEmailInput({
   const renderEmailToken = (email: string, onRemove: () => void) => (
     <View className="flex-row items-center bg-gray-100 dark:bg-gray-700 rounded-full px-3 py-1.5 mr-2 mb-2">
       <AppText className="text-sm text-gray-800 dark:text-gray-200">{email}</AppText>
-      <TouchableOpacity onPress={onRemove} hitSlop={8} className="ml-2">
+      <TouchableOpacity onPress={onRemove} hitSlop={DEFAULT_HIT_SLOP} className="ml-2">
         <AppText className="text-red-500 text-base font-bold">×</AppText>
       </TouchableOpacity>
     </View>
