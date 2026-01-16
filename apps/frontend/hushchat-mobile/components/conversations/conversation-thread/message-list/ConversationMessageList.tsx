@@ -4,7 +4,13 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, SectionList, SectionListRenderItemInfo, View } from "react-native";
+import {
+  ActivityIndicator,
+  SectionList,
+  SectionListRenderItemInfo,
+  View,
+  ViewToken,
+} from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
@@ -41,6 +47,7 @@ interface IMessagesListProps {
   webMessageInfoPress?: (messageId: number) => void;
   lastSeenMessageId?: number | null;
   onEditMessage?: (message: IMessage) => void;
+  onScrollToBottomStatusChange: (isAtBottom: boolean) => void;
 }
 
 const ConversationMessageList = ({
@@ -60,6 +67,7 @@ const ConversationMessageList = ({
   webMessageInfoPress,
   lastSeenMessageId,
   onEditMessage,
+  onScrollToBottomStatusChange,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -167,6 +175,22 @@ const ConversationMessageList = ({
       params: { conversationId, messageId },
     });
   }, []);
+
+  const handleViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (messages.length === 0) return;
+
+    const latestMessageId = messages[0].id;
+
+    // Checking whether the latest message is currently visible
+    const isLatestVisible = viewableItems.some((item) => item.item.id === latestMessageId);
+
+    onScrollToBottomStatusChange(isLatestVisible);
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+    minimumViewTime: 100,
+  }).current;
 
   const renderMessage = useMemo(
     () =>
@@ -305,6 +329,8 @@ const ConversationMessageList = ({
           isFetchingNewer,
           targetMessageId,
         }}
+        onViewableItemsChanged={handleViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
       />
       {reactionsModal.visible && (
         <MessageReactionsModal
