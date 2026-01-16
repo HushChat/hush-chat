@@ -525,14 +525,13 @@ export const sendContactUsMessage = async (data: {
   }
 };
 
-export const sendInviteToWorkspace = async (email: string) => {
+export const sendInviteToWorkspace = async (invites: { email: string }[]) => {
   try {
-    const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, {
-      email: email,
-    });
+    const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, invites);
     return { data: response.data };
-  } catch (error: any) {
-    return { error: error.response?.data?.error || error.message };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.message || axiosError?.message };
   }
 };
 
