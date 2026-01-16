@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, View, ViewStyle, TextStyle, Image } from "react-native";
+import React, { useMemo } from "react";
+import { Pressable, View, StyleSheet, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
@@ -8,7 +8,9 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { MessageLabel } from "@/components/conversations/conversation-thread/composer/MessageLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
+import { useMessageUrlMetadataQuery } from "@/query/useMessageUrlMetadataQuery";
 import { PLATFORM } from "@/constants/platformConstants";
+import LinkPreviewCard from "@/components/conversations/LinkPreviewCard";
 import { getGifUrl, hasGif } from "@/utils/messageUtils";
 
 interface IMessageBubbleProps {
@@ -44,6 +46,19 @@ export const MessageBubble = ({
   isMessageEdited,
 }: IMessageBubbleProps) => {
   const messageContent = message.messageText;
+
+  const bubbleMaxWidthStyle = useMemo(() => {
+    if (message.isIncludeUrlMetadata) {
+      return PLATFORM.IS_WEB ? styles.maxWidthWebForLink : styles.maxWidthRegular;
+    }
+
+    return hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+  }, [message]);
+
+  const { messageUrlMetadata, isMessageUrlMetadataFetching } = useMessageUrlMetadataQuery(
+    message.id,
+    message.isIncludeUrlMetadata
+  );
   const hasGifMedia = hasGif(message);
   const gifUrl = getGifUrl(message);
 
@@ -104,10 +119,12 @@ export const MessageBubble = ({
 
               "shadow-sm": isForwardedMessage,
 
-              "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
+              "px-3 py-2": !(hasMedia && !messageContent && messageUrlMetadata) && !hasGifMedia,
+              "p-1": messageUrlMetadata,
             }
           )}
           style={{
+            ...bubbleMaxWidthStyle,
             ...(isForwardedMessage
               ? isCurrentUser
                 ? { borderRightColor: "#60A5FA30" }
@@ -138,18 +155,41 @@ export const MessageBubble = ({
             </View>
           )}
 
-          {!message.isUnsend && messageContent ? (
-            <FormattedText
-              text={message.messageText}
-              mentions={message.mentions}
-              isCurrentUser={isCurrentUser}
-              onMentionPress={handleMentionPress}
-            />
-          ) : message.isUnsend ? (
+          {message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
+          ) : messageContent ? (
+            message.isIncludeUrlMetadata && messageUrlMetadata ? (
+              <LinkPreviewCard
+                messageText={message.messageText}
+                messageUrlMetadata={messageUrlMetadata}
+                isFetching={isMessageUrlMetadataFetching}
+                isCurrentUser={isCurrentUser}
+                mentions={message.mentions}
+                onMentionPress={handleMentionPress}
+              />
+            ) : (
+              <FormattedText
+                text={message.messageText}
+                mentions={message.mentions}
+                isCurrentUser={isCurrentUser}
+                onMentionPress={handleMentionPress}
+              />
+            )
           ) : null}
         </View>
       </View>
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  maxWidthAttachments: {
+    maxWidth: 305,
+  },
+  maxWidthRegular: {
+    maxWidth: "100%",
+  },
+  maxWidthWebForLink: {
+    maxWidth: "40%",
+  },
+});
