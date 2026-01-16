@@ -121,17 +121,28 @@ const handleConversationNavigation = (
 // }
 
 const handleChatPress = (setSelectedConversation: (conversation: IConversation | null) => void) => {
-  return (item: IConversation) => {
+  return (item: IConversation, messageId?: number) => {
     if (!PLATFORM.IS_WEB) {
       router.push({
         pathname: CHAT_VIEW_PATH,
         params: {
           conversationId: item.id,
           conversationName: item.name,
+          messageId: messageId?.toString(),
         },
       });
     } else {
-      setSelectedConversation(item);
+      if (messageId) {
+        router.push({
+          pathname: "/conversations/[conversationId]/messages/[messageId]",
+          params: {
+            conversationId: item.id.toString(),
+            messageId: messageId?.toString(),
+          },
+        });
+      } else {
+        setSelectedConversation(item);
+      }
     }
   };
 };
