@@ -26,7 +26,7 @@ const DEFAULT_FEATURES: TAuthFeature[] = [
 export default function AuthWebLayout({
   children,
   heroTitle = "Your conversations,\nyour rules.",
-  heroSubtitle = "Pick up right where you left off. Your team is waiting, and your messages are secure as always.",
+  heroSubtitle = "Pick up right where you left off.",
   features = DEFAULT_FEATURES,
 }: TAuthWebLayoutProps) {
   const { width } = useWindowDimensions();
