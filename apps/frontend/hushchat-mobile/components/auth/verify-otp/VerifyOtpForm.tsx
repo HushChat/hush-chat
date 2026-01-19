@@ -7,9 +7,9 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
 import { router } from "expo-router";
 import { AUTH_REGISTER_PATH } from "@/constants/routes";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 type TVerifyOtpFormProps = {
-  colors: any;
   errorMessage: string;
   confirmationCode: string;
   onCodeChange: (code: string) => void;
@@ -19,7 +19,6 @@ type TVerifyOtpFormProps = {
 };
 
 export const VerifyOtpForm = ({
-  colors,
   errorMessage,
   confirmationCode,
   onCodeChange,
@@ -29,6 +28,7 @@ export const VerifyOtpForm = ({
 }: TVerifyOtpFormProps) => {
   const { width } = useWindowDimensions();
   const isMobile = width < 1024;
+  const { colors } = useAuthThemeColors();
 
   const handleBack = () => {
     router.replace(AUTH_REGISTER_PATH);

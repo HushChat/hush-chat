@@ -11,9 +11,9 @@ import TextField from "@/components/forms/TextField";
 import { TRegisterFormProps } from "@/types/login/types";
 import { router } from "expo-router";
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 export const RegisterForm = ({
-  colors,
   errorMessage,
   formValues,
   formErrors,
@@ -31,6 +31,8 @@ export const RegisterForm = ({
     showErrors,
     onValueChange,
   };
+
+  const { colors } = useAuthThemeColors();
 
   return (
     <FormContainer style={isMobile ? { flex: 1 } : undefined}>

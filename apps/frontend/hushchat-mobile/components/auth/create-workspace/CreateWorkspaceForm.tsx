@@ -6,9 +6,9 @@ import { FormHeader, FormButton, ErrorMessage, FormContainer } from "@/component
 import TextField from "@/components/forms/TextField";
 import { TCreateWorkspaceFormProps } from "@/types/login/types";
 import { AppText } from "@/components/AppText";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 export const CreateWorkspaceForm = ({
-  colors,
   errorMessage,
   formValues,
   formErrors,
@@ -24,6 +24,8 @@ export const CreateWorkspaceForm = ({
     showErrors,
     onValueChange,
   };
+
+  const { colors } = useAuthThemeColors();
 
   return (
     <FormContainer>

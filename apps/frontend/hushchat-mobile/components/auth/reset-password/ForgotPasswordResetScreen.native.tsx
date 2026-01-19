@@ -1,11 +1,9 @@
 import React from "react";
-import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 import { useForgotPasswordReset } from "@/hooks/auth/useForgotPasswordReset";
 import { ForgotPasswordResetForm } from "@/components/auth/reset-password/ForgotPasswordResetForm";
 import AuthMobileLayout from "@/components/auth/AuthMobileLayout";
 
 export default function ForgotPasswordResetScreen() {
-  const { colors, isDark } = useAuthThemeColors();
   const {
     errorMessage,
     successMessage,
@@ -18,9 +16,8 @@ export default function ForgotPasswordResetScreen() {
   } = useForgotPasswordReset();
 
   return (
-    <AuthMobileLayout colors={colors} isDark={isDark}>
+    <AuthMobileLayout>
       <ForgotPasswordResetForm
-        colors={colors}
         errorMessage={errorMessage}
         successMessage={successMessage}
         formValues={formValues}

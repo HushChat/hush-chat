@@ -3,6 +3,7 @@ import { View, Image, useWindowDimensions, StyleSheet, ScrollView } from "react-
 import { AppText } from "../AppText";
 import { Ionicons } from "@expo/vector-icons";
 import { Images } from "@/assets/images";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 export type TAuthFeature = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -10,17 +11,7 @@ export type TAuthFeature = {
 };
 
 type TAuthWebLayoutProps = {
-  colors: {
-    background: string;
-    primary: string;
-    textPrimary: string;
-    textSecondary: string;
-    formBackground: string;
-    heroText: string;
-    featureText: string;
-  };
   children: ReactNode;
-  isDark?: boolean;
   heroTitle?: string;
   heroSubtitle?: string;
   features?: TAuthFeature[];
@@ -33,15 +24,15 @@ const DEFAULT_FEATURES: TAuthFeature[] = [
 ];
 
 export default function AuthWebLayout({
-  colors,
   children,
-  isDark = false,
   heroTitle = "Your conversations,\nyour rules.",
   heroSubtitle = "Pick up right where you left off. Your team is waiting, and your messages are secure as always.",
   features = DEFAULT_FEATURES,
 }: TAuthWebLayoutProps) {
   const { width } = useWindowDimensions();
   const isWide = width >= 1024;
+
+  const { colors, isDark } = useAuthThemeColors();
 
   if (!isWide) {
     const mobileBg = isDark ? Images.AuthBgDark : Images.AuthBgLight;

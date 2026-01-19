@@ -12,10 +12,10 @@ import { AUTH_FORGOT_PASSWORD_PATH, AUTH_REGISTER_PATH } from "@/constants/route
 import { TLoginFormProps } from "@/types/login/types";
 import TextField from "@/components/forms/TextField";
 import { AppText } from "@/components/AppText";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 export const LoginForm = memo(
   ({
-    colors,
     errorMessage,
     onSubmit,
     formValues,
@@ -25,6 +25,8 @@ export const LoginForm = memo(
   }: TLoginFormProps) => {
     const { width } = useWindowDimensions();
     const isMobile = width < 1024;
+
+    const { colors } = useAuthThemeColors();
 
     return (
       <FormContainer style={isMobile ? { flex: 1 } : undefined}>

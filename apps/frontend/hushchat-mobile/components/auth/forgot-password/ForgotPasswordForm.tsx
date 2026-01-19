@@ -10,10 +10,10 @@ import {
 import TextField from "@/components/forms/TextField";
 import { TForgotPasswordFormProps } from "@/types/login/types";
 import { AppText } from "@/components/AppText";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
   const {
-    colors,
     errorMessage,
     successMessage,
     onSubmit,
@@ -26,6 +26,8 @@ export const ForgotPasswordForm = memo((props: TForgotPasswordFormProps) => {
 
   const { width } = useWindowDimensions();
   const isMobile = width < 1024;
+
+  const { colors } = useAuthThemeColors();
 
   return (
     <FormContainer style={isMobile ? { flex: 1 } : undefined}>

@@ -10,25 +10,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Images } from "@/assets/images";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 type TAuthMobileLayoutProps = {
-  colors: {
-    textPrimary: string;
-    formBackground: string;
-  };
   children: ReactNode;
-  isDark?: boolean;
   onBack?: () => void;
 };
 
 const KEYBOARD_OFFSET = PLATFORM.IS_IOS ? 60 : 0;
 
-export default function AuthMobileLayout({
-  colors,
-  children,
-  isDark = false,
-  onBack,
-}: TAuthMobileLayoutProps) {
+export default function AuthMobileLayout({ onBack, children }: TAuthMobileLayoutProps) {
+  const { colors, isDark } = useAuthThemeColors();
   const bgImage = isDark ? Images.AuthBgDark : Images.AuthBgLight;
   const logoImage = isDark ? Images.LogoMobileDark : Images.LogoMobileLight;
 

@@ -1,4 +1,4 @@
-import { TWorkspaceFormProps, Workspace, WorkspaceStatus } from "@/types/login/types";
+import { Workspace, WorkspaceStatus } from "@/types/login/types";
 import React, { useState } from "react";
 import { FormButton, FormContainer, FormHeader } from "@/components/FormComponents";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
@@ -11,8 +11,10 @@ import { AppText } from "@/components/AppText";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { ToastUtils } from "@/utils/toastUtils";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
-const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
+const WorkspaceForm = () => {
+  const { colors } = useAuthThemeColors();
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const router = useRouter();
   const { saveWorkspace } = useSaveWorkspace();
@@ -63,7 +65,6 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
           workspaces={workspaces}
           selectedWorkspace={selectedWorkspace}
           onSelectWorkspace={onSelectWorkspace}
-          showErrors={showErrors}
           errorKey="workspace"
           loading={isLoadingWorkspaces}
         />

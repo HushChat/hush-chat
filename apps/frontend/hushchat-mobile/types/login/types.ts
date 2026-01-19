@@ -1,4 +1,3 @@
-import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 import { ICreateWorkspace, IRegisterUser, IWorkspaceRegister } from "@/types/user/types";
 
 export interface AuthColors {
@@ -15,7 +14,6 @@ export interface AuthColors {
 }
 
 export type TLoginFormProps = {
-  colors: ReturnType<typeof useAuthThemeColors>["colors"];
   errorMessage: string;
   onSubmit: () => void;
   formValues: { email: string; password: string };
@@ -40,13 +38,10 @@ export enum WorkspaceStatus {
 }
 
 export type TWorkspaceFormProps = {
-  colors: AuthColors;
-  isDark: boolean;
   showErrors: boolean;
 };
 
 export type TRegisterFormProps = {
-  colors: AuthColors;
   errorMessage: string;
   formValues: IRegisterUser;
   formErrors: Record<string, string>;
@@ -57,7 +52,6 @@ export type TRegisterFormProps = {
 };
 
 export type TWorkspaceRegisterFormProps = {
-  colors: AuthColors;
   errorMessage: string;
   formValues: IWorkspaceRegister;
   formErrors: Record<string, string>;
@@ -68,7 +62,6 @@ export type TWorkspaceRegisterFormProps = {
 };
 
 export type TCreateWorkspaceFormProps = {
-  colors: AuthColors;
   errorMessage: string;
   formValues: ICreateWorkspace;
   formErrors: Record<string, string>;
@@ -79,7 +72,6 @@ export type TCreateWorkspaceFormProps = {
 };
 
 export type TForgotPasswordFormProps = {
-  colors: ReturnType<typeof useAuthThemeColors>["colors"];
   errorMessage?: string | null;
   successMessage?: string | null;
   onSubmit: () => void;
@@ -91,7 +83,6 @@ export type TForgotPasswordFormProps = {
 };
 
 export type TForgotPasswordResetFormProps = {
-  colors: ReturnType<typeof useAuthThemeColors>["colors"];
   errorMessage?: string | null;
   successMessage?: string | null;
   formValues: Record<string, string | null>;
