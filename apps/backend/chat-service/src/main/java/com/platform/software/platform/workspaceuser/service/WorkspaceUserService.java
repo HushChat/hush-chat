@@ -107,15 +107,15 @@ public class WorkspaceUserService {
             });
         });
 
-        if (workspace.get() != null && !successfullyInvitedUsers.isEmpty()) {
-            for (WorkspaceUser user : successfullyInvitedUsers) {
-                try {
-                    workspaceUserUtilService.sendInvitationEmail(workspace.get(), user.getEmail(), inviterEmail);
-                } catch (Exception e) {
-                    logger.error("Failed to send invitation email to {}", user.getEmail(), e);
-                }
-            }
-        }
+//        if (workspace.get() != null && !successfullyInvitedUsers.isEmpty()) {
+//            for (WorkspaceUser user : successfullyInvitedUsers) {
+//                try {
+//                    workspaceUserUtilService.sendInvitationEmail(workspace.get(), user.getEmail(), inviterEmail);
+//                } catch (Exception e) {
+//                    logger.error("Failed to send invitation email to {}", user.getEmail(), e);
+//                }
+//            }
+//        }
     }
 
     public List<WorkspaceDTO> getAllWorkspaceDTO(String email) {
