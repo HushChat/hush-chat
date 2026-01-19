@@ -62,6 +62,11 @@ public abstract class BaseAccessTest extends TestcontainerTest {
                 "Expected status code 400 BAD_REQUEST, but got: " + response.getStatusCode());
     }
 
+    protected void assertNotFound(ResponseEntity<?> response) {
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode(),
+                "Expected status code 404 NOT FOUND, but got: " + response.getStatusCode());
+    }
+
     protected void assertInternalServerError(ResponseEntity<?> response) {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode(),
                 "Expected status code 500 INTERNAL_SERVER_ERROR, but got: " + response.getStatusCode());

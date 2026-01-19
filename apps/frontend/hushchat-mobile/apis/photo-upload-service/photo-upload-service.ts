@@ -10,7 +10,7 @@ import {
   UploadResult,
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
-import { createMessagesWithAttachments } from "@/apis/conversation";
+import { createMessagesWithAttachments, publishMessageEvents } from "@/apis/conversation";
 import { logWarn } from "@/utils/logger";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useState } from "react";
@@ -20,6 +20,7 @@ import {
   MAX_VIDEO_SIZE_KB,
 } from "@/constants/mediaConstants";
 import { IMessage } from "@/types/chat/types";
+import { getFileType } from "@/utils/files/getFileType";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -27,27 +28,6 @@ export enum UploadType {
 }
 
 export const MAX_IMAGE_KB = 1024 * 5;
-export const ALLOWED_DOCUMENT_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "text/plain",
-  "application/octet-stream",
-  "*/*",
-];
-
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-
-const ALLOWED_VIDEO_TYPES = [
-  "video/mp4",
-  "video/quicktime",
-  "video/webm",
-  "video/x-msvideo",
-  "video/x-matroska",
-  "video/x-m4v",
-];
 
 const sizeMap = {
   image: MAX_IMAGE_SIZE_KB,
@@ -264,7 +244,11 @@ export function useMessageAttachmentUploader(
     return response;
   };
 
-  const hook = useNativePickerUpload(getSignedUrls);
+  const handleUploadSuccess = async (messageIds: number[]) => {
+    await publishMessageEvents(conversationId, messageIds);
+  };
+
+  const hook = useNativePickerUpload(getSignedUrls, handleUploadSuccess);
 
   const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
     const results = await hook.pickAndUpload(
@@ -292,7 +276,7 @@ export function useMessageAttachmentUploader(
         source: "document",
         multiple: true,
         maxSizeKB: MAX_DOCUMENT_SIZE_KB,
-        allowedMimeTypes: ALLOWED_DOCUMENT_TYPES,
+        allowedMimeTypes: ["*/*"],
       },
       messageText
     );
@@ -324,31 +308,9 @@ export function useMessageAttachmentUploader(
     const skipped: UploadResult[] = [];
 
     for (const { file, caption } of filesWithCaptions) {
-      const fileType = file.type || "";
-      const isImage = ALLOWED_IMAGE_TYPES.some(
-        (type) => fileType === type || fileType.startsWith("image/")
-      );
-      const isVideo = ALLOWED_VIDEO_TYPES.some(
-        (type) => fileType === type || fileType.startsWith("video/")
-      );
-      const isDocument = ALLOWED_DOCUMENT_TYPES.includes(fileType);
+      const category = getFileType(file.type);
 
-      if (!isImage && !isVideo && !isDocument) {
-        skipped.push({
-          success: false,
-          fileName: file.name,
-          error: `Unsupported file type: ${fileType || "unknown"}`,
-        });
-        continue;
-      }
-
-      const getMaxSize = () => {
-        if (isImage) return sizeMap.image;
-        if (isVideo) return sizeMap.video;
-        return sizeMap.document;
-      };
-
-      const maxSize = getMaxSize();
+      const maxSize = sizeMap[category];
       const fileSizeKB = file.size / 1024;
 
       if (fileSizeKB > maxSize) {
@@ -376,6 +338,8 @@ export function useMessageAttachmentUploader(
       }
 
       const results: UploadResult[] = [];
+      const successfulMessageIds: number[] = [];
+
       for (let i = 0; i < validFiles.length; i++) {
         const { file } = validFiles[i];
         const signed = signedUrls[i];
@@ -391,11 +355,14 @@ export function useMessageAttachmentUploader(
 
         try {
           const blob = await (await fetch(file.uri)).blob();
+
+          const contentType = file.type || blob.type || "application/octet-stream";
+
           await fetch(signed.url, {
             method: "PUT",
             body: blob,
             headers: {
-              "Content-Type": file.type || blob.type || "application/octet-stream",
+              "Content-Type": contentType,
             },
           });
           results.push({
@@ -404,6 +371,10 @@ export function useMessageAttachmentUploader(
             signed,
             messageId: signed.messageId,
           });
+
+          if (signed.messageId) {
+            successfulMessageIds.push(signed.messageId);
+          }
         } catch (e: any) {
           results.push({
             success: false,
@@ -412,6 +383,10 @@ export function useMessageAttachmentUploader(
             signed,
           });
         }
+      }
+
+      if (successfulMessageIds.length > 0) {
+        await publishMessageEvents(conversationId, successfulMessageIds);
       }
 
       const allResults = [...results, ...skipped];

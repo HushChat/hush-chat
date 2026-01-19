@@ -108,10 +108,10 @@ public class WorkspaceService {
 
         WorkspaceUtils.runInGlobalSchema(() -> {
             Workspace workspace = workspaceRepository.findById(workspaceId)
-                    .orElseThrow(() -> new CustomBadRequestException("Workspace with ID '" + workspaceId + "' not found"));
+                    .orElseThrow(() -> new CustomBadRequestException("Workspace not found!"));
 
             if (workspace.getStatus() != null && workspace.getStatus().equals(WorkspaceStatus.ACTIVE)) {
-                throw new CustomBadRequestException("Workspace with ID '" + workspaceId + "' is already active");
+                throw new CustomBadRequestException("Workspace is already active!");
             }
 
             createWorkspace(new WorkspaceUpsertDTO(workspace.getName(), workspace.getDescription(), workspace.getImageUrl()));

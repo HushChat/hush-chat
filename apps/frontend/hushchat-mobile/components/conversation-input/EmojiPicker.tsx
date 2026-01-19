@@ -93,11 +93,15 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
       style={{ maxWidth: `${100 / NUM_COLUMNS}%` }}
       onPress={() => handleEmojiSelect(item)}
     >
-      <Image
-        source={{ uri: getEmojiImageUrl(item.hexcode) }}
-        style={{ width: EMOJI_SIZE, height: EMOJI_SIZE }}
-        resizeMode="contain"
-      />
+      {PLATFORM.IS_WEB ? (
+        <Image
+          source={{ uri: getEmojiImageUrl(item.hexcode) }}
+          style={{ width: EMOJI_SIZE, height: EMOJI_SIZE }}
+          resizeMode="contain"
+        />
+      ) : (
+        <AppText style={{ fontSize: 28 }}>{item.emoji}</AppText>
+      )}
     </TouchableOpacity>
   );
 

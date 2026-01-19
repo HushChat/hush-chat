@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @WorkspaceAdminRestrictedAccess
 @RestController
 @RequestMapping("/admin/workspace")
@@ -87,9 +89,9 @@ public class WorkspaceAdminController {
     public ResponseEntity<Void> inviteToWorkspace(
             @RequestHeader("X-Tenant") String workspaceIdentifier,
             @AuthenticatedUser UserDetails userDetails,
-            @Valid @RequestBody WorkspaceUserInviteDTO workspaceUserInviteDTO
+            @Valid @RequestBody List<WorkspaceUserInviteDTO> workspaceUserInviteDTOs
     ) {
-        workspaceUserService.inviteUserToWorkspace(userDetails.getEmail(), workspaceIdentifier, workspaceUserInviteDTO);
+        workspaceUserService.inviteUserToWorkspace(userDetails.getEmail(), workspaceIdentifier, workspaceUserInviteDTOs);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

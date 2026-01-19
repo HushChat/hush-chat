@@ -3,9 +3,9 @@ import { View, StyleSheet } from "react-native";
 import { FormHeader, FormButton, ErrorMessage, FormContainer } from "@/components/FormComponents";
 import TextField from "@/components/forms/TextField";
 import { TWorkspaceRegisterFormProps } from "@/types/login/types";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 export const WorkspaceRegisterForm = ({
-  colors,
   errorMessage,
   formValues,
   formErrors,
@@ -20,6 +20,8 @@ export const WorkspaceRegisterForm = ({
     showErrors,
     onValueChange,
   };
+
+  const { colors } = useAuthThemeColors();
 
   return (
     <FormContainer>

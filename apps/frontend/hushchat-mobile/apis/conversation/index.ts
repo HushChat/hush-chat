@@ -48,6 +48,8 @@ export interface CursorPaginatedQueryOptions<T> {
   pageSize?: number;
   enabled?: boolean;
   allowForwardPagination?: boolean;
+  retry?: boolean | number | ((failureCount: number, error: unknown) => boolean);
+  refetchOnMount?: boolean | "always";
 }
 
 export interface AddConversationParticipantsParams {
@@ -286,6 +288,15 @@ export const createMessagesWithAttachments = async (
   }
 };
 
+export const publishMessageEvents = async (conversationId: number, messageIds: number[]) => {
+  try {
+    await axios.post(CONVERSATION_API_ENDPOINTS.PUBLISH_MESSAGES(conversationId), messageIds);
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.error || axiosError?.message };
+  }
+};
+
 export const toggleConversationFavorite = async (conversationId: string) => {
   try {
     const response = await axios.patch(
@@ -514,14 +525,13 @@ export const sendContactUsMessage = async (data: {
   }
 };
 
-export const sendInviteToWorkspace = async (email: string) => {
+export const sendInviteToWorkspace = async (invites: { email: string }[]) => {
   try {
-    const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, {
-      email: email,
-    });
+    const response = await axios.post(WORKSPACE_ENDPOINTS.INVITE_TO_WORKSPACE, invites);
     return { data: response.data };
-  } catch (error: any) {
-    return { error: error.response?.data?.error || error.message };
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    return { error: axiosError?.response?.data?.message || axiosError?.message };
   }
 };
 
