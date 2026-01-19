@@ -43,8 +43,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
         String objectKey = String.format(mediaPathEnum.getName(), fileName);
         String signedURL = s3Service.getPrivateBucketSignedURL(objectKey, HttpMethod.PUT);
 
-        SignedURLDTO signedURLDTO = new SignedURLDTO(signedURL, fileName, objectKey);
-        return signedURLDTO;
+        return new SignedURLDTO(signedURL, fileName, objectKey);
     }
 
     @Override
@@ -54,8 +53,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
             return null;
         }
 
-        String signedCloudFrontUrl  = cloudFrontUrl + imageIndexedName;
-        return signedCloudFrontUrl ;
+        return cloudFrontUrl + imageIndexedName;
     }
 
     @Override
@@ -66,8 +64,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
 
         String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
 
-        String signedCloudFrontUrl  = cloudFrontUrl + imageIndexedName;
-        return signedCloudFrontUrl ;
+        return cloudFrontUrl + imageIndexedName;
     }
 
     @Override
