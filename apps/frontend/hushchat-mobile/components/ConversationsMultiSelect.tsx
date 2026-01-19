@@ -17,6 +17,8 @@ export interface ConversationsMultiSelectProps {
   selectedConversations: TConversation[];
   onChange: (nextSelected: TConversation[]) => void;
   searchPlaceholder?: string;
+  sourceConversationId?: number;
+  autoFocusSearch?: boolean;
 }
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -40,6 +42,8 @@ export const ConversationsMultiSelect = ({
   selectedConversations,
   onChange,
   searchPlaceholder = "Search conversations...",
+  sourceConversationId,
+  autoFocusSearch,
 }: ConversationsMultiSelectProps) => {
   const [searchText, setSearchText] = useState("");
   const debouncedSearch = useDebounce(searchText, SEARCH_DEBOUNCE_MS).trim();
@@ -66,6 +70,7 @@ export const ConversationsMultiSelect = ({
       onChange={onChange}
       searchText={searchText}
       setSearchText={setSearchText}
+      autoFocusSearch={autoFocusSearch}
       searchPlaceholder={searchPlaceholder}
       queryResult={{
         pages: debouncedSearch ? searchResults : conversationsPages,
@@ -82,11 +87,13 @@ export const ConversationsMultiSelect = ({
 
         if (debouncedSearch) {
           const { chats = [], users = [] } = (dataPages as ISearchResults) ?? {};
-          return [...chats, ...users];
+          return [...chats, ...users].filter((item) => item.id !== sourceConversationId);
         }
 
         const pages = (dataPages as { pages?: PaginatedResponse<IConversation>[] })?.pages ?? [];
-        return pages.flatMap((page) => page?.content ?? []);
+        return pages
+          .flatMap((page) => page?.content ?? [])
+          .filter((item) => item.id !== sourceConversationId);
       }}
       renderItemRow={(conversation, isSelected, toggle) => (
         <SelectableListItem
@@ -94,6 +101,7 @@ export const ConversationsMultiSelect = ({
           subtitle={getSubText(conversation)}
           isSelected={isSelected}
           onToggle={() => toggle(conversation)}
+          imageUrl={conversation.signedImageUrl}
         />
       )}
       renderChip={(conversation, remove) => (

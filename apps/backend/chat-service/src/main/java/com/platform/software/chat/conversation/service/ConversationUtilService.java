@@ -2,23 +2,34 @@ package com.platform.software.chat.conversation.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.dto.ConversationMetaDataDTO;
+import com.platform.software.chat.conversation.dto.InviteLinkDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationInviteLink;
+import com.platform.software.chat.conversation.repository.ConversationInviteLinkRepository;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.message.dto.MessageForwardRequestDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
+import com.platform.software.config.cache.RedisCacheService;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.exception.CustomResourceNotFoundException;
+import com.platform.software.utils.CommonUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -26,6 +37,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -36,24 +49,41 @@ import java.util.stream.Collectors;
 public class ConversationUtilService {
     Logger logger = LoggerFactory.getLogger(ConversationUtilService.class);
 
+    @Value("${client.base.url}")
+    private String frontendBaseUrl;
+
+    @Value("${invite.link.max-participants}")
+    private int inviteLinkMaxParticipants;
+
+    @Value("${invite.link.expiry-days}")
+    private int inviteLinkExpiryDays;
+
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final ConversationService conversationService;
+    private static final SecureRandom secureRandom = new SecureRandom();
+    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
+    private final ConversationInviteLinkRepository conversationInviteLinkRepository;
+    private final RedisCacheService cacheService;
 
     public ConversationUtilService(
             ConversationParticipantRepository conversationParticipantRepository,
             UserRepository userRepository,
             ConversationRepository conversationRepository,
             CloudPhotoHandlingService cloudPhotoHandlingService,
-            @Lazy ConversationService conversationService
+            @Lazy ConversationService conversationService,
+            ConversationInviteLinkRepository conversationInviteLinkRepository,
+            RedisCacheService cacheService
     ) {
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
         this.conversationService = conversationService;
+        this.conversationInviteLinkRepository = conversationInviteLinkRepository;
+        this.cacheService = cacheService;
     }
 
     /**
@@ -79,9 +109,11 @@ public class ConversationUtilService {
     public ConversationParticipant getConversationParticipantOrThrow(Long conversationId, Long userId) {
         return  conversationParticipantRepository
             .findByConversationIdAndUser_IdAndConversationDeletedFalse(conversationId, userId)
-            .orElseThrow(() -> new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
-                .formatted(conversationId))
-            );
+            .orElseThrow(() -> {
+            logger.error("conversation participant not found or access denied. conversationId={}, userId={}", 
+                conversationId, userId);
+            return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
+        });
     }
 
     /**
@@ -95,10 +127,11 @@ public class ConversationUtilService {
     public ConversationDTO getConversationDTOOrThrow(Long loggedInUserId, Long conversationId) {
         return conversationParticipantRepository
             .findConversationByUserIdAndConversationId(loggedInUserId, conversationId)
-            .orElseThrow(() ->
-                new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
-                    .formatted(conversationId))
-            );
+            .orElseThrow(() -> {
+            logger.warn("conversation not found or access denied. conversationId={}, userId={}", 
+                conversationId, loggedInUserId);
+            return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
+        });
     }
 
     /** Returns the conversation participant if the given user is an admin of the specified group conversation and the conversation is not deleted; otherwise, throws an exception.
@@ -184,17 +217,22 @@ public class ConversationUtilService {
     @Cacheable(value = CacheNames.GET_CONVERSATION_META_DATA, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     public ConversationMetaDataDTO getConversationMetaDataDTO(Long conversationId, Long userId) {
         ConversationParticipant conversationParticipant = getConversationParticipantOrThrow(conversationId, userId);
-        if(conversationParticipant.getIsDeleted()){
-            throw new CustomBadRequestException("Can,t find conversation with ID %s".formatted(conversationId));
-        }
         Conversation conversation = getConversationOrThrow(conversationId);
         ConversationMetaDataDTO conversationMetaDataDTO = conversationRepository.findConversationMetaData(conversationId, userId);
 
         Message pinnedMessage = conversation.getPinnedMessage();
         if (pinnedMessage != null) {
-            BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
-            conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            boolean isVisible = CommonUtils.isMessageVisible(
+                pinnedMessage.getCreatedAt(), 
+                conversationParticipant.getLastDeletedTime()
+            );
+            
+            if(isVisible) {
+                BasicMessageDTO pinnedMessageDTO = new BasicMessageDTO(pinnedMessage);
+                conversationMetaDataDTO.setPinnedMessage(pinnedMessageDTO);
+            }
         }
+
         return conversationMetaDataDTO;
     }
 
@@ -207,8 +245,7 @@ public class ConversationUtilService {
      */
     public ConversationDTO addSignedImageUrlToConversationDTO(ConversationDTO conversationDTO,String fileName) {
         String newFileName = (conversationDTO.getId()) + "_" + fileName;
-        String imageIndexName = String.format("chat-service/conversation/%s", newFileName);
-        conversationDTO.setImageIndexedName(imageIndexName);
+        conversationDTO.setImageIndexedName(newFileName);
 
         SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.GROUP_PICTURE, newFileName);
         conversationDTO.setSignedImageUrl(imageSignedDTO.getUrl());
@@ -216,11 +253,8 @@ public class ConversationUtilService {
         return conversationDTO;
     }
 
-    public String getImageViewSignedUrl(String imageIndexedName) {
-        if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
-        }
-        return imageIndexedName;
+    public String getImageViewSignedUrl(MediaPathEnum path, MediaSizeEnum size, String imageIndexedName) {
+        return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
     }
 
     /**
@@ -302,7 +336,7 @@ public class ConversationUtilService {
      * only the other participants in the conversation.
      * </p>
      *
-     * @param conversationId  the ID of the conversation 
+     * @param conversationId  the ID of the conversation
      * @param senderId        the ID of the user to be excluded from the result
      * @return a list of ChatUser objects representing all participants
      *         in the conversation except the sender
@@ -314,7 +348,7 @@ public class ConversationUtilService {
         return participants.stream().map(participant -> participant.getUser())
                     .filter(user -> !user.getId().equals(sernderId)).toList();
     }
-  
+
     /**
      * Deletes a conversation.
      *
@@ -329,5 +363,141 @@ public class ConversationUtilService {
             logger.error("failed to delete conversation id: {}", conversation.getId(), exception);
             throw new CustomBadRequestException("Failed to delete conversation");
         }
+    }
+
+    /**
+     * Enriches message attachments with signed URLs for file access.
+     *
+     * @param attachments the list of message attachments to process, may be null or empty
+     * @return a list of enriched attachment DTOs with signed URLs, or an empty list if input is null/empty
+     */
+    public List<MessageAttachmentDTO> getEnrichedMessageAttachmentsDTO(List<MessageAttachment> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<MessageAttachmentDTO> attachmentDTOs = new ArrayList<>();
+
+        for (MessageAttachment attachment : attachments) {
+            MessageAttachmentDTO dto = new MessageAttachmentDTO();
+            try {
+                String fileViewSignedURL = cloudPhotoHandlingService
+                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
+
+                dto.setId(attachment.getId());
+                dto.setFileUrl(fileViewSignedURL);
+                dto.setIndexedFileName(attachment.getIndexedFileName());
+                dto.setOriginalFileName(attachment.getOriginalFileName());
+                dto.setType(attachment.getType());
+
+                attachmentDTOs.add(dto);
+            } catch (Exception e) {
+                logger.error("Failed to process attachment {}: {}", attachment.getOriginalFileName(), e.getMessage());
+                dto.setFileUrl(null);
+            }
+        }
+
+        return attachmentDTOs;
+    }
+
+    /**
+     * Generates a secure, URL-safe random token for invite links.
+     *
+     * @return generated invite token
+     */
+    public static String generateInviteToken() {
+        byte[] randomBytes = new byte[24]; // 24 bytes = 32 chars
+        secureRandom.nextBytes(randomBytes);
+        return base64Encoder.encodeToString(randomBytes);
+    }
+
+    /**
+     * Builds the full invite URL using the given token.
+     *
+     * @param token invite token
+     * @return complete invite URL
+     */
+    public String buildInviteUrl(String token) {
+        return String.format("%s/invite/%s", frontendBaseUrl, token);
+    }
+
+    /**
+     * Retrieves all active participants of a conversation except the given sender.
+     * <p>
+     * A participant is considered active if they:
+     * <ul>
+     *   <li>Belong to the given conversation</li>
+     *   <li>Are not marked as deleted from the conversation</li>
+     *   <li>Are marked as active</li>
+     * </ul>
+     * The sender is explicitly excluded from the returned result.
+     *
+     * @param conversationId the conversation ID
+     * @param senderId       the user ID to exclude from the result
+     * @return a list of active chat users in the conversation excluding the sender
+     */
+    public List<ChatUser> getAllActiveParticipantsExceptSender(Long conversationId, Long senderId) {
+        return conversationParticipantRepository
+            .findByConversationIdAndConversationDeletedFalseAndIsActiveTrue(conversationId)
+            .stream()
+            .map(ConversationParticipant::getUser)
+            .filter(user -> user != null && user.getId() != null)
+            .filter(user -> !user.getId().equals(senderId))
+            .toList();
+    }
+
+    @Transactional
+    public InviteLinkDTO createAndSaveNewInviteLink(Long conversationId, ConversationParticipant requestedParticipant) {
+        conversationInviteLinkRepository.invalidateAllInviteLinksByConversationId(conversationId);
+
+        ConversationInviteLink inviteLink = new ConversationInviteLink();
+        inviteLink.setConversation(requestedParticipant.getConversation());
+        inviteLink.setCreatedBy(requestedParticipant.getUser());
+        inviteLink.setToken(ConversationUtilService.generateInviteToken());
+        inviteLink.setExpiresAt(
+                Date.from(Instant.now().plus(inviteLinkExpiryDays, ChronoUnit.DAYS))
+        );
+        inviteLink.setMaxUsers((long) inviteLinkMaxParticipants);
+        inviteLink.setActive(true);
+
+        conversationInviteLinkRepository.save(inviteLink);
+
+        return new InviteLinkDTO(
+                buildInviteUrl(inviteLink.getToken()),
+                inviteLink.getExpiresAt()
+        );
+    }
+
+    /**
+     * Clears the pinned message of a conversation if it has expired.
+     * <p>
+     * This method checks whether the {@code pinnedMessageUntil} field in the given
+     * {@link ConversationMetaDataDTO} has passed the current time. If so, it removes
+     * the pinned message record from the conversation in the database and evicts
+     * related cache entries for the current workspace.
+     * </p>
+     *
+     * @param conversationId The unique identifier of the conversation whose pinned message may be cleared.
+     * @param userId The identifier of the user performing the operation, used for logging and auditing.
+     * @param conversationMetaDataDTO The metadata object containing the pinned message expiration timestamp.
+     * @return {@code true} if the pinned message was expired and successfully cleared (or attempted to clear),
+     *         {@code false} if no expiration occurred or the pinned message was not present.
+     */
+    public boolean clearPinnedMessageIfExpired(Long conversationId, Long userId, ConversationMetaDataDTO conversationMetaDataDTO) {
+        if (conversationMetaDataDTO.getPinnedMessageUntil() != null) {
+            boolean isPinnedMessageExpired = conversationMetaDataDTO.getPinnedMessageUntil().toInstant().isBefore(Instant.now());
+
+            if (isPinnedMessageExpired) {
+                try {
+                    conversationRepository.clearExpiredPinnedMessageFromConversation(conversationId);
+                } catch (Exception error) {
+                    logger.error("update conversation: {} by user: {} with null pinned message failed", conversationId, userId, error);
+                }
+
+                cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+
+                return true;
+            }
+        }
+        return false;
     }
 }

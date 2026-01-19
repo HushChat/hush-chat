@@ -13,17 +13,18 @@ import java.util.concurrent.TimeUnit;
 public class ConversationEventMessageService {
 
     /**
-     * Generates a human-readable event description message
+     * Generates a human-readable event message based on the ConversationEvent
      * @param event The conversation event
-     * @param loggedInUserId The ID of the currently logged-in user (can be null)
+     * @param loggedInUserId The ID of the currently logged-in user
+     * @param isBroadcastMessage Whether the message is a broadcast message to avoidance "You" references
      * @return Formatted event message string
      */
-    public String generateEventMessage(ConversationEvent event, Long loggedInUserId) {
+    public String generateEventMessage(ConversationEvent event, Long loggedInUserId, boolean isBroadcastMessage) {
         if (event == null || event.getEventType() == null) {
             return "Unknown event";
         }
 
-        String actorName = getUserDisplayName(event.getActorUser(), loggedInUserId);
+        String actorName = getUserDisplayName(event.getActorUser(), isBroadcastMessage ? null : loggedInUserId);
         String targetName = getUserDisplayName(event.getTargetUser(), loggedInUserId);
         String timeDescription = getTimeDescription(event.getMessage() != null ?
             event.getMessage().getCreatedAt() : event.getCreatedAt());
@@ -42,19 +43,23 @@ public class ConversationEventMessageService {
                 String.format("%s promoted %s to admin %s", actorName, targetName, timeDescription);
             case USER_REMOVED_FROM_ADMIN ->
                 String.format("%s removed %s from admin %s", actorName, targetName, timeDescription);
+            case MESSAGE_PINNED -> 
+                String.format("%s pinned a message %s", actorName, timeDescription);
             default -> "Unknown event";
         };
     }
 
     /**
      * Gets user display name in format "FirstName LastName" or "You" if it's the logged-in user
+     * @param user The user to get display name for
+     * @param loggedInUserId The ID of the currently logged-in user (pass null to skip "You" logic)
      */
     private String getUserDisplayName(ChatUser user, Long loggedInUserId) {
         if (user == null) {
             return "Unknown User";
         }
 
-        // Check if this is the logged-in user
+        // Check if this is the logged-in user (only if loggedInUserId is provided)
         if (loggedInUserId != null && user.getId() != null && user.getId().equals(loggedInUserId)) {
             return "You";
         }
@@ -102,9 +107,9 @@ public class ConversationEventMessageService {
     /**
      * Sets the formatted message text on the MessageViewDTO
      */
-    public void setEventMessageText(ConversationEvent event, MessageViewDTO view, Long loggedInUserId) {
+    public void setEventMessageText(ConversationEvent event, MessageViewDTO view, Long loggedInUserId, boolean isBroadcastMessage) {
         if (event != null && view != null) {
-            String messageText = generateEventMessage(event, loggedInUserId);
+            String messageText = generateEventMessage(event, loggedInUserId, isBroadcastMessage);
             view.setMessageText(messageText);
         }
     }

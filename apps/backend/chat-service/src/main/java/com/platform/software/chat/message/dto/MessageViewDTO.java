@@ -3,6 +3,7 @@ package com.platform.software.chat.message.dto;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.dto.UserViewDTO;
+import com.platform.software.config.aws.SignedURLDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -27,11 +28,14 @@ public class MessageViewDTO {
     private BasicMessageDTO parentMessage;
     private Boolean isForwarded;
     private Boolean isUnsend;
+    private Boolean isEdited;
     private String senderSignedImageUrl;
     private String imageIndexedName;
     private Boolean isReadByEveryone;
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
+
+    private SignedURLDTO signedUrl;
 
     public MessageViewDTO(Message message) {
         initializeFromMessage(message);
@@ -68,6 +72,7 @@ public class MessageViewDTO {
         this.conversationId = message.getConversation().getId();
         this.isForwarded = message.getForwardedMessage() != null;
         this.isUnsend = message.getIsUnsend();
+        this.isEdited = message.getIsEdited();
         this.messageType = message.getMessageType();
         this.hasAttachment = message.getAttachments() != null 
             && !message.getAttachments().isEmpty();

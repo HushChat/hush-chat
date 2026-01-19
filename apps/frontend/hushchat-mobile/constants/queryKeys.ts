@@ -1,14 +1,17 @@
-import type { ConversationFilterCriteria } from "@/apis/conversation";
+import { AttachmentFilterCriteria, type ConversationFilterCriteria } from "@/apis/conversation";
 
 const CALL_LOGS = "call-logs";
 const GROUP_INFO = "group-info";
 const WORKSPACES = "workspaces";
 
-const CONVERSATION_QUERY_BASE_KEY = "conversations";
+export const CONVERSATION_QUERY_BASE_KEY = "conversations";
 const CONVERSATION_META_QUERY_BASE_KEY = "conversation-meta";
-const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
+export const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
+const CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY = "conversation-attachments";
 const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
+const MESSAGE_QUERY_BASE_KEY = "messages";
 const USER_QUERY_BASE_KEY = "users";
+const GIF_QUERY_BASE_KEY = "gifs";
 
 export const conversationQueryKeys = {
   metaDataById: (userId: number, conversationId: number) => [
@@ -37,6 +40,18 @@ export const conversationQueryKeys = {
     userId,
   ],
 
+  conversationInviteLink: (conversationId: number) => [
+    CONVERSATION_QUERY_BASE_KEY,
+    conversationId,
+    "invite-link",
+  ],
+
+  joinConversationByInvite: (token: string) => [
+    CONVERSATION_QUERY_BASE_KEY,
+    token,
+    "join-by-invite",
+  ],
+
   ConversationParticipants: (conversationId: number, keyword: string) => [
     CONVERSATION_QUERY_BASE_KEY,
     keyword,
@@ -53,6 +68,12 @@ export const conversationQueryKeys = {
     CONVERSATION_MESSAGE_QUERY_BASE_KEY,
     conversationId,
   ],
+
+  conversationAttachments: (
+    conversationId: number,
+    criteria: AttachmentFilterCriteria,
+    pageSize: number
+  ) => [CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY, conversationId, criteria, pageSize],
 };
 
 export const conversationMessageQueryKeys = {
@@ -65,10 +86,21 @@ export const conversationMessageQueryKeys = {
   messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
 };
 
+export const messageQueryKeys = {
+  mentionedMessages: [MESSAGE_QUERY_BASE_KEY, "mentioned-messages"],
+};
+
 export const userQueryKeys = {
   callLogs: (userId: number) => [USER_QUERY_BASE_KEY, CALL_LOGS, userId],
 
   userProfile: (userId: number) => [USER_QUERY_BASE_KEY, userId],
 
   userWorkspace: (userId: number) => [USER_QUERY_BASE_KEY, WORKSPACES, userId],
+
+  changePassword: () => [USER_QUERY_BASE_KEY, "change-password"],
+};
+
+export const gifQueryKeys = {
+  trendingGifs: (userId: number) => [GIF_QUERY_BASE_KEY, "trending", userId],
+  searchGifs: (userId: number, searchQuery: string) => [GIF_QUERY_BASE_KEY, userId, searchQuery],
 };

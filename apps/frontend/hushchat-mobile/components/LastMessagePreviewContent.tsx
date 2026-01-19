@@ -3,16 +3,25 @@ import { View, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
-import type { IMessage } from "@/types/chat/types";
+import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
+import { hasGif } from "@/utils/messageUtils";
+import { useUserStore } from "@/store/user/useUserStore";
 
 interface LastMessagePreviewContentProps {
   lastMessage: IMessage | undefined;
+  isGroup: boolean;
 }
 
-export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewContentProps) => {
-  if (!lastMessage) return "No Messages Yet";
+export const LastMessagePreviewContent = ({
+  lastMessage,
+  isGroup,
+}: LastMessagePreviewContentProps) => {
+  const { user } = useUserStore();
 
-  if (lastMessage.hasAttachment) {
+  if (!lastMessage) return "No Messages Yet";
+  const isGif = hasGif(lastMessage);
+
+  if (!lastMessage.isUnsend && lastMessage.hasAttachment && !isGif) {
     return (
       <View className="flex-row items-center gap-1">
         <View style={styles.attachmentIcon}>
@@ -27,6 +36,12 @@ export const LastMessagePreviewContent = ({ lastMessage }: LastMessagePreviewCon
 
   if (lastMessage.isUnsend) {
     return <LastMessagePreview unsendMessage={lastMessage} />;
+  }
+
+  if (isGroup && lastMessage.messageType !== MessageTypeEnum.SYSTEM_EVENT) {
+    const senderName =
+      user?.id && lastMessage.senderId === user.id ? "You" : lastMessage.senderFirstName;
+    return `${senderName}: ${lastMessage.messageText}`;
   }
 
   return lastMessage.messageText;

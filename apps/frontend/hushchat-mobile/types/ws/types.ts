@@ -1,3 +1,5 @@
+import { DeviceType } from "@/types/chat/types";
+
 export interface WebSocketMessage {
   id: string;
   conversationId: number;
@@ -13,11 +15,20 @@ export interface WebSocketMessage {
   };
 }
 
-export interface TypingIndicator {
+export interface TypingIndicatorPayload {
   conversationId: number;
-  userId: string;
-  isTyping: boolean;
-  timestamp: string;
+  chatUserName: string;
+  typing: boolean;
+}
+
+export interface MessageReadPayload {
+  conversationId: number;
+  lastSeenMessageId: number;
+}
+
+export interface MessagePinnedPayload {
+  conversationId: number;
+  pinnedMessage?: any;
 }
 
 export interface UserPresence {
@@ -48,3 +59,58 @@ export enum WebSocketStatus {
   Connected = "connected",
   Error = "error",
 }
+
+export interface UserActivityWSSubscriptionData {
+  workspaceId: string;
+  email: string;
+  visibleConversations: number[]; // list of conversations visible - mobile or web
+  openedConversation: number | null; // indicates user's selected conversation, could be null
+  deviceType?: DeviceType;
+  deviceId?: string;
+}
+
+export interface TypingIndicatorWSData {
+  userId?: number;
+  conversationId: number;
+  typing: boolean; // true = started typing, false = stopped
+}
+
+export interface MessageUnsentPayload {
+  conversationId: number;
+  messageId: number;
+  actorUserId: number;
+}
+
+export enum MessageReactionActionEnum {
+  ADDED = "ADDED",
+  UPDATED = "UPDATED",
+  REMOVED = "REMOVED",
+}
+
+export interface MessageReactionPayload {
+  conversationId: number;
+  messageId: number;
+  actorUserId: number;
+  reactionType: string | null;
+  previousReactionType?: string | null;
+  reactionAction: MessageReactionActionEnum;
+}
+
+export interface ConnectionState {
+  status: WebSocketStatus;
+  reconnectAttempts: number;
+  shouldStopRetrying: boolean;
+  isConnecting: boolean;
+  isCleaningUp: boolean;
+  isIntentionalClose: boolean;
+  lastMessageTime: number;
+}
+export const initialConnectionState: ConnectionState = {
+  status: WebSocketStatus.Disconnected,
+  reconnectAttempts: 0,
+  shouldStopRetrying: false,
+  isConnecting: false,
+  isCleaningUp: false,
+  isIntentionalClose: false,
+  lastMessageTime: 0,
+};

@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLOR_ACTIVITY, SEND_ICON_SIZE } from "@/constants/composerConstants";
+import { COLOR_ACTIVITY, ICON_SIZE } from "@/constants/composerConstants";
 
 interface SendButtonProps {
   showSend: boolean;
@@ -11,21 +11,15 @@ interface SendButtonProps {
 
 export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) => {
   if (isSending) {
-    return (
-      <ActivityIndicator
-        size="small"
-        color={COLOR_ACTIVITY}
-        className="absolute right-3 bottom-2"
-      />
-    );
+    return <ActivityIndicator size="small" color={COLOR_ACTIVITY} />;
   }
 
   return (
-    <Pressable onPress={onPress} className="absolute right-3 bottom-2" disabled={!showSend}>
+    <Pressable onPress={onPress} disabled={!showSend}>
       <Ionicons
         name={showSend ? "send" : "mic-sharp"}
-        size={SEND_ICON_SIZE}
-        className={"!text-primary-light dark:!text-primary-dark"}
+        size={ICON_SIZE}
+        className="!text-gray-500 dark:!text-gray-400"
       />
     </Pressable>
   );

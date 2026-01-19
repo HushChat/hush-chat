@@ -1,13 +1,13 @@
 package com.platform.software.chat.user.entity;
 
 import com.platform.software.chat.message.entity.FavouriteMessage;
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.common.model.AuditModel;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import jakarta.persistence.*;
-import org.hibernate.annotations.Where;
 
 import java.util.Set;
 
@@ -16,7 +16,19 @@ import java.util.Set;
 @Setter
 @Getter
 // TODO: @Where(clause = "active = true AND deleted = false")
-public class ChatUser extends AuditModel{
+@Table(
+        indexes = {
+                @Index(
+                        name = "idx_chat_user_email",
+                        columnList = "email"
+                ),
+                @Index(
+                        name = "idx_chat_user_active_deleted",
+                        columnList = "active, deleted"
+                )
+        }
+)
+public class ChatUser extends AuditModel {
 
     @Id
     @GeneratedValue(generator = "chat_user_generator")
@@ -48,4 +60,7 @@ public class ChatUser extends AuditModel{
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<FavouriteMessage> favouriteMessages;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatusEnum availabilityStatus = UserStatusEnum.AVAILABLE;
 }

@@ -61,6 +61,9 @@ public class  DBSeeder implements ApplicationListener<ApplicationReadyEvent> {
     @Autowired
     RedisCacheService redisCacheService;
 
+    @Autowired
+    UserInfoSeeder userInfoSeeder;
+
     public DBSeeder(SeederStatus seederStatus) {
         this.seederStatus = seederStatus;
     }
@@ -102,6 +105,7 @@ public class  DBSeeder implements ApplicationListener<ApplicationReadyEvent> {
 
     private void seedChatData() {
         userSeeder.seedChatUsers();
+        userInfoSeeder.seedChatUserInfo();
         conversationSeeder.seedConversationsAndParticipants();
         messageSeeder.seedMessages();
         messageReactionSeeder.seedMessageReactions();

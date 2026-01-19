@@ -1,14 +1,27 @@
-export const getFileType = (
-  fileName: string | undefined | null
-): "image" | "pdf" | "word" | "excel" | "unknown" => {
-  if (!fileName) return "unknown";
+import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
 
-  const ext = fileName.toLowerCase().split(".").pop() || "";
+export type FileType = "image" | "video" | "document";
 
-  if (["jpg", "jpeg", "png", "svg", "gif", "webp"].includes(ext)) return "image";
-  if (ext === "pdf") return "pdf";
-  if (["doc", "docx"].includes(ext)) return "word";
-  if (["xls", "xlsx"].includes(ext)) return "excel";
+/**
+ * Determines file type based on file extension.
+ * Defaults to "document" for any unknown or missing extension.
+ * * @param fileName - The file name (e.g., "photo.jpg", "archive.jar")
+ * @returns FileType - "image", "video", or "document"
+ */
+export const getFileType = (fileName: string): FileType => {
+  if (!fileName) return "document";
 
-  return "unknown";
+  const ext = fileName.split(".").pop()?.toLowerCase();
+
+  if (!ext) return "document";
+
+  if (IMAGE_EXTENSIONS.includes(ext)) {
+    return "image";
+  }
+
+  if (VIDEO_EXTENSIONS.includes(ext)) {
+    return "video";
+  }
+
+  return "document";
 };

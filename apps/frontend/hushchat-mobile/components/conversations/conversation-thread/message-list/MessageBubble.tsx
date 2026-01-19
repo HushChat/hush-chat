@@ -1,59 +1,64 @@
 import React from "react";
-import { Pressable, View, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import { Pressable, View, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
 import FormattedText from "@/components/FormattedText";
 import UnsendMessagePreview from "@/components/UnsendMessagePreview";
-import { ForwardedLabel } from "@/components/conversations/conversation-thread/composer/ForwardedLabel";
+import { MessageLabel } from "@/components/conversations/conversation-thread/composer/MessageLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
-
-const COLORS = {
-  FORWARDED_RIGHT_BORDER: "#60A5FA30",
-  FORWARDED_LEFT_BORDER: "#9CA3AF30",
-};
+import { TUser } from "@/types/user/types";
+import { PLATFORM } from "@/constants/platformConstants";
+import { getGifUrl, hasGif } from "@/utils/messageUtils";
 
 interface IMessageBubbleProps {
   message: IMessage;
   isCurrentUser: boolean;
   hasText: boolean;
   hasAttachments: boolean;
-  hasImages: boolean;
+  hasMedia: boolean;
   selected: boolean;
   selectionMode: boolean;
   isForwardedMessage: boolean;
   attachments: IMessageAttachment[];
   onBubblePress: () => void;
+  onMentionClick?: (user: TUser) => void;
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
+  isMessageEdited?: boolean;
 }
 
-export const MessageBubble: React.FC<IMessageBubbleProps> = ({
+export const MessageBubble = ({
   message,
   isCurrentUser,
   hasText,
   hasAttachments,
-  hasImages,
+  hasMedia,
   selected,
   selectionMode,
   isForwardedMessage,
   attachments,
   onBubblePress,
+  onMentionClick,
   style,
-  messageTextStyle,
-}) => {
+  isMessageEdited,
+}: IMessageBubbleProps) => {
   const messageContent = message.messageText;
+  const hasGifMedia = hasGif(message);
+  const gifUrl = getGifUrl(message);
 
-  const forwardedBorderStyle = isForwardedMessage
-    ? isCurrentUser
-      ? styles.forwardedRight
-      : styles.forwardedLeft
-    : null;
+  const handleMentionPress = (username: string) => {
+    if (!onMentionClick || !message.mentions) return;
 
-  const bubbleMaxWidthStyle = hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
+    const mentionedUser = message.mentions.find((user) => user.username === username);
+
+    if (mentionedUser) {
+      onMentionClick(mentionedUser);
+    }
+  };
 
   return (
-    <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments}>
+    <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments && !hasGif}>
       {selectionMode && (
         <View
           className={classNames("absolute -top-1.5 z-10", {
@@ -73,26 +78,61 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
         className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
         style={style}
       >
-        <ForwardedLabel isForwardedMessage={isForwardedMessage} isCurrentUser={isCurrentUser} />
+        <MessageLabel
+          isForwardedMessage={isForwardedMessage}
+          isCurrentUser={isCurrentUser}
+          isMessageEdited={isMessageEdited}
+        />
 
         <View
-          className={classNames("rounded-lg border-2", {
-            "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-              (hasText || hasImages) && isCurrentUser,
-            "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
-              (hasText || hasImages) && !isCurrentUser,
-            "bg-transparent": !(hasText || hasImages),
+          className={classNames(
+            "rounded-lg border-2",
+            {
+              "max-w-[310px]": hasMedia || hasGifMedia || hasAttachments,
+              "max-w-[600px]": PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+              "max-w-[280px]": !PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+            },
+            {
+              "bg-primary-light dark:bg-primary-dark rounded-tr-none":
+                (hasText || hasMedia || hasGifMedia) && isCurrentUser,
+              "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
+                (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
+              "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
 
-            "border-sky-500 dark:border-sky-400": selected && selectionMode,
-            "border-transparent": !(selected && selectionMode),
+              "border-sky-500 dark:border-sky-400": selected && selectionMode,
+              "border-transparent": !(selected && selectionMode),
 
-            "shadow-sm": isForwardedMessage,
+              "shadow-sm": isForwardedMessage,
 
-            "px-3 py-2": !(hasImages && !messageContent),
-          })}
-          style={[bubbleMaxWidthStyle, forwardedBorderStyle]}
+              "px-3 py-2": !(hasMedia && !messageContent) && !hasGifMedia,
+            }
+          )}
+          style={{
+            ...(isForwardedMessage
+              ? isCurrentUser
+                ? { borderRightColor: "#60A5FA30" }
+                : { borderLeftColor: "#9CA3AF30" }
+              : {}),
+          }}
         >
-          {hasAttachments && (
+          {hasGifMedia && !message.isUnsend && (
+            <View className={messageContent ? "mb-2" : ""}>
+              {PLATFORM.IS_WEB ? (
+                <img
+                  src={gifUrl}
+                  alt="gif"
+                  className="max-w-[250px] max-h-[250px] rounded-lg object-contain"
+                />
+              ) : (
+                <Image
+                  source={{ uri: gifUrl }}
+                  style={{ width: 250, aspectRatio: 1, borderRadius: 8 }}
+                  resizeMode="contain"
+                />
+              )}
+            </View>
+          )}
+          {hasAttachments && !hasGifMedia && (
             <View className={messageContent ? "mb-2" : ""}>
               {renderFileGrid(attachments, isCurrentUser)}
             </View>
@@ -101,9 +141,9 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
           {!message.isUnsend && messageContent ? (
             <FormattedText
               text={message.messageText}
-              style={messageTextStyle || styles.messageText}
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
+              onMentionPress={handleMentionPress}
             />
           ) : message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
@@ -113,25 +153,3 @@ export const MessageBubble: React.FC<IMessageBubbleProps> = ({
     </Pressable>
   );
 };
-
-const styles = StyleSheet.create({
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontFamily: "Poppins-Regular",
-  },
-  maxWidthAttachments: {
-    maxWidth: 305,
-  },
-  maxWidthRegular: {
-    maxWidth: "70%",
-  },
-  forwardedRight: {
-    borderRightWidth: 2,
-    borderRightColor: COLORS.FORWARDED_RIGHT_BORDER,
-  },
-  forwardedLeft: {
-    borderLeftWidth: 2,
-    borderLeftColor: COLORS.FORWARDED_LEFT_BORDER,
-  },
-});

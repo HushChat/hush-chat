@@ -6,7 +6,8 @@
     "lastName": "Akka",
     "email": "jane@chat.com",
     "active": true,
-    "deleted": false
+    "deleted": false,
+    "role": "ADMIN"
   },
   {
     "id": 2,
@@ -33,7 +34,8 @@
     "lastName": "Fernando",
     "email": "john@chat.com",
     "active": true,
-    "deleted": false
+    "deleted": false,
+    "availabilityStatus": "BUSY"
   },
   {
     "id": 5,

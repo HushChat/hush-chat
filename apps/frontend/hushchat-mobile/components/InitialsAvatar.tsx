@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { getInitials } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
-import { chatUserStatus } from "@/types/chat/types";
+import { chatUserStatus, DeviceType } from "@/types/chat/types";
 import UserStatusIndicator from "@/components/UserStatusIndicator";
 import UploadIndicator from "@/components/UploadIndicator";
 
@@ -28,6 +28,7 @@ interface IInitialsAvatarProps {
   showCameraIcon?: boolean;
   isUploading?: boolean;
   onPress?: () => void;
+  deviceType?: DeviceType;
 }
 
 const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> = {
@@ -71,15 +72,27 @@ const InitialsAvatar = ({
   imageUrl,
   userStatus = chatUserStatus.OFFLINE,
   showOnlineStatus = false,
-  imageError = false,
   onImageError,
   showCameraIcon = false,
   isUploading = false,
   onPress,
+  deviceType,
 }: IInitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
+  const [hasError, setHasError] = useState<boolean>(false);
 
-  const shouldShowImage = imageUrl && !imageError;
+  useEffect(() => {
+    setHasError(false);
+  }, [imageUrl]);
+
+  const handleImageError = () => {
+    setHasError(true);
+    if (onImageError) {
+      onImageError();
+    }
+  };
+
+  const shouldShowImage = imageUrl && !hasError;
 
   const Wrapper = onPress ? TouchableOpacity : View;
   const wrapperProps = onPress ? { onPress, disabled: isUploading } : {};
@@ -93,10 +106,11 @@ const InitialsAvatar = ({
           {shouldShowImage ? (
             <Image
               source={{ uri: imageUrl }}
+              placeholder={{ uri: imageUrl }}
               style={styles.avatarImage}
               contentFit="cover"
               cachePolicy="memory-disk"
-              onError={onImageError}
+              onError={handleImageError}
             />
           ) : (
             <AppText className={`font-medium text-center ${text}`} style={styles.initialsText}>
@@ -113,7 +127,9 @@ const InitialsAvatar = ({
           </View>
         )}
 
-        {showOnlineStatus && <UserStatusIndicator userStatus={userStatus} />}
+        {showOnlineStatus && (
+          <UserStatusIndicator userStatus={userStatus} deviceType={deviceType} />
+        )}
       </View>
     </Wrapper>
   );

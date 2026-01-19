@@ -24,16 +24,22 @@ export function useLinkConversation({
       previousConversationId.current = initialConversationId;
     }
 
-    if (!initialConversationId || conversations.length === 0 || hasInitialized.current) {
+    if (!initialConversationId || hasInitialized.current) {
       return;
     }
 
     const conversation = conversations.find(
       (conversation) => conversation.id === initialConversationId
     );
-    if (!conversation) return;
 
     hasInitialized.current = true;
+
+    if (!conversation) {
+      onConversationFound({
+        id: initialConversationId,
+      } as IConversation);
+      return;
+    }
 
     if (PLATFORM.IS_WEB) {
       onConversationFound(conversation);

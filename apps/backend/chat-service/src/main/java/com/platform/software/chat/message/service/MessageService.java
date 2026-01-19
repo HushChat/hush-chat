@@ -2,22 +2,29 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.readstatus.dto.ConversationReadInfo;
 import com.platform.software.chat.conversation.readstatus.entity.ConversationReadStatus;
 import com.platform.software.chat.conversation.readstatus.repository.ConversationReadStatusRepository;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.MessageHistory;
+import com.platform.software.chat.message.entity.MessageMention;
 import com.platform.software.chat.message.repository.MessageHistoryRepository;
+import com.platform.software.chat.message.repository.MessageMentionRepository;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.message.repository.MessageRepository.MessageThreadProjection;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.SignedURLResponseDTO;
+import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
@@ -28,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -53,12 +61,13 @@ public class MessageService {
     private final MessageHistoryRepository messageHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
+    private final MessageMentionRepository messageMentionRepository;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
-    public Page<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
+    public MessageWindowPage<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
@@ -81,6 +90,7 @@ public class MessageService {
                     copy.setMessage(newMessage);
                     copy.setOriginalFileName(a.getOriginalFileName());
                     copy.setIndexedFileName(a.getIndexedFileName());
+                    copy.setType(a.getType());
                     return copy;
                 })
                 .collect(Collectors.toList());
@@ -105,6 +115,12 @@ public class MessageService {
 
         messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
 
+        if (messageViewDTO.getParentMessage() != null && messageViewDTO.getParentMessage().getHasAttachment()) {
+            MessageAttachmentDTO attachmentDTO = messageViewDTO.getParentMessage().getMessageAttachments().getFirst();
+            List<MessageAttachmentDTO> enrichedMessageAttachmentDTOts = messageUtilService.enrichParentMessageAttachmentsWithSignedUrl(List.of(attachmentDTO));
+            messageViewDTO.getParentMessage().setMessageAttachments(enrichedMessageAttachmentDTOts);
+        }
+
         conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
 
         setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
@@ -127,9 +143,10 @@ public class MessageService {
      * @param conversationId the conversation id
      * @param messageId      the message id
      * @param messageDTO     the message dto
+     * @return the updated message view dto
      */
     @Transactional
-    public void editMessage(
+    public MessageViewDTO editMessage(
         Long userId,
         Long conversationId,
         Long messageId,
@@ -140,17 +157,35 @@ public class MessageService {
         }
 
         Message message = getMessageBySender(userId, conversationId, messageId);
+        Conversation conversation = message.getConversation();
 
-        if (message.getMessageText().equals(messageDTO.getMessageText())) {
-            return;
+        if (message.getForwardedMessage() != null) {
+            throw new CustomBadRequestException("Cannot edit a forwarded message!");
         }
 
+        if (message.getMessageText().equals(messageDTO.getMessageText())) {
+            return new MessageViewDTO(message);
+        }
+
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
+
         message.setMessageText(messageDTO.getMessageText());
+        message.setIsEdited(true);
         MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
-            messageRepository.save(message);
+            Message updatedMessage = messageRepository.save(message);
             messageHistoryRepository.save(newMessageHistory);
+
+            MessageViewDTO messageViewDTO = new MessageViewDTO(updatedMessage);
+
+            eventPublisher.publishEvent(new MessageUpdatedEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversationId,
+                    messageViewDTO,
+                    messageViewDTO.getSenderId()));
+
+            return messageViewDTO;
         } catch (Exception e) {
             logger.error("failed to save message edit history", e);
             throw new CustomBadRequestException("Failed to save message changes");
@@ -164,7 +199,7 @@ public class MessageService {
         return newMessageHistory;
     }
 
-    private Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
+    public Message getMessageBySender(Long userId, Long conversationId, Long messageId) {
         Message message = messageRepository.findByConversation_IdAndIdAndSender_Id(conversationId, messageId, userId)
             .orElseThrow(() -> new CustomBadRequestException("Message does not exist or you don't have permission to edit this message"));
         return message;
@@ -205,6 +240,94 @@ public class MessageService {
         return signedURLResponseDTO;
     }
 
+    /**
+     * Create messages with attachments list.
+     *
+     * @param messageDTOs    the message dt os
+     * @param conversationId the conversation id
+     * @param loggedInUserId the logged in user id
+     * @return the list
+     */
+    @Transactional
+    public List<MessageViewDTO> createMessagesWithAttachments(
+        List<MessageWithAttachmentUpsertDTO> messageDTOs,
+        Long conversationId,
+        Long loggedInUserId
+    ) {
+        List<MessageViewDTO> createdMessages = new ArrayList<>();
+        
+        for (MessageWithAttachmentUpsertDTO messageDTO : messageDTOs) {
+            Message savedMessage = messageUtilService.createTextMessage(
+                conversationId, loggedInUserId, 
+                messageDTO.getMessageUpsertDTO(), 
+                MessageTypeEnum.ATTACHMENT
+            );
+            
+            MessageViewDTO messageViewDTO = getMessageViewDTO(
+                loggedInUserId, 
+                messageDTO.getParentMessageId(), 
+                savedMessage
+            );
+            
+            if (messageDTO.isGifAttachment()) {
+                messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+                
+                setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
+                
+                eventPublisher.publishEvent(new MessageCreatedEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversationId,
+                    messageViewDTO,
+                    loggedInUserId,
+                    savedMessage
+                ));
+            } else {
+                SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(
+                    messageDTO.getFileName(), 
+                    savedMessage
+                );
+                messageViewDTO.setSignedUrl(signedURLResponseDTO.getSignedURLs().getFirst());
+            }
+            
+            createdMessages.add(messageViewDTO);
+        }
+        
+        return createdMessages;
+    }
+
+    /**
+     * Publishes message events for the specified message IDs after attachment uploads are completed.
+     * This method filters messages to ensure they belong to the authenticated user and conversation,
+     * updates the last seen message for the sender, and publishes MessageCreatedEvent for each valid message.
+     *
+     * @param messageIds the list of message IDs to publish events for
+     * @param conversationId the ID of the conversation
+     * @param loggedInUserId the ID of the logged-in user
+     */
+    @Transactional
+    public void publishMessageEvents(List<Long> messageIds, Long conversationId, Long loggedInUserId) {
+        String currentWorkspace = WorkspaceContext.getCurrentWorkspace();
+        
+        List<Message> messages = messageRepository.findAllById(messageIds);
+        
+        for (Message message : messages) {
+            if (!message.getSender().getId().equals(loggedInUserId) || 
+                !message.getConversation().getId().equals(conversationId)) {
+                continue;
+            }
+            
+            MessageViewDTO messageViewDTO = new MessageViewDTO(message);
+            
+            eventPublisher.publishEvent(new MessageCreatedEvent(
+                currentWorkspace,
+                conversationId,
+                messageViewDTO,
+                loggedInUserId,
+                message
+            ));
+        }
+    }
+
     /* * Creates a MessageViewDTO from the saved message and sets the sender ID and parent message ID.
      *
      * @param loggedInUserId the ID of the logged-in user
@@ -224,7 +347,7 @@ public class MessageService {
      * @param messageForwardRequestDTO the DTO containing forwarding details
      */
     @Transactional
-    public void forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
+    public MessageForwardResponseDTO forwardMessages(Long loggedInUserId, MessageForwardRequestDTO messageForwardRequestDTO) {
         ValidationUtils.validate(messageForwardRequestDTO);
 
         // validating logged user has access to the forwarding message
@@ -254,6 +377,8 @@ public class MessageService {
                 .toList();
 
         ChatUser loggedInUser = userService.getUserOrThrow(loggedInUserId);
+        
+        List<Long> forwardedConversations = new ArrayList<>(List.of());
 
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
@@ -296,7 +421,10 @@ public class MessageService {
                 logger.error("failed forward messages {}", messageForwardRequestDTO, exception);
                 throw new CustomBadRequestException("Failed to forward message");
             }
+            forwardedConversations.add(targetConversation.getId());
         }
+
+        return new MessageForwardResponseDTO(forwardedConversations);
     }
 
     /**
@@ -314,7 +442,7 @@ public class MessageService {
         if (messageIds.size() != forwardedMessageIds.size()) {
             Set<Long> mismatchedMessageIds = new HashSet<>(forwardedMessageIds);
             mismatchedMessageIds.removeAll(messageIds);
-            throw new CustomBadRequestException("cannot identify messages with ids: %s !".formatted(mismatchedMessageIds));
+            throw new CustomBadRequestException("Messages not found!");
         }
 
         Set<Long> conversationIds = messages.stream().map(m -> m.getConversation().getId()).collect(Collectors.toSet());
@@ -351,7 +479,7 @@ public class MessageService {
      * @return the Message entity
      */
     public Message getMessageOrThrow(Long messageId) {
-        return messageRepository.findById(messageId)
+        return messageRepository.findByIdWithSenderAndConversation(messageId)
             .orElseThrow(() -> {
                 logger.error("message with id {} not found when creating favorite message", messageId);
                 return new CustomResourceNotFoundException("Message not found!");
@@ -463,14 +591,100 @@ public class MessageService {
     public void unsendMessage(Long loggedInUserId, Long messageId) {
         Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId)
                 .orElseThrow(() -> new CustomBadRequestException(
-                        "Message not found, not owned by you, or you don’t have permission to delete it"
-                ));
+                        "Message not found, not owned by you, or you don’t have permission to delete it"));
 
-        if (message.getCreatedAt().before(Date.from(Instant.now().minus(24, ChronoUnit.HOURS)))) {
-            throw new CustomBadRequestException("You can only delete a message within 24 hours of sending it");
+        Conversation conversation = message.getConversation();
+        messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
+
+        if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
+            throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");
         }
 
         message.setIsUnsend(true);
         messageRepository.save(message);
+
+        eventPublisher.publishEvent(new MessageUnsentEvent(
+                WorkspaceContext.getCurrentWorkspace(),
+                message.getConversation().getId(),
+                message.getId(),
+                loggedInUserId));
+    }
+
+    /**
+     * Marks a message as unread by setting the user's last seen message to the previous message.
+     * If the target message is the first message in the conversation, sets last seen to null.
+     *
+     * @param conversationId The conversation ID
+     * @param loggedInUserId The logged-in user ID
+     * @param messageId The message ID to mark as unread
+     * @return ConversationReadInfo with updated read status
+     */
+    @Transactional
+    public ConversationReadInfo markMessageAsUnread(Long conversationId, Long loggedInUserId, Long messageId) {
+        ConversationParticipant participant = conversationUtilService
+            .getConversationParticipantOrThrow(conversationId, loggedInUserId);
+        
+        Message targetMessage = messageRepository
+            .findByConversation_IdAndId(conversationId, messageId)
+            .orElseThrow(() -> new CustomBadRequestException("Message not found in this conversation"));
+
+        if (targetMessage.getSender().getId().equals(loggedInUserId)) {
+            throw new CustomBadRequestException("Cannot mark your own messages as unread");
+        }
+        
+        Optional<Message> previousMessage = messageRepository
+            .findPreviousMessage(conversationId, messageId, participant);
+        
+        ConversationReadStatus updatingStatus = conversationReadStatusRepository
+            .findByConversationIdAndUserId(conversationId, loggedInUserId)
+            .orElseGet(() -> {
+                ConversationReadStatus newStatus = new ConversationReadStatus();
+                newStatus.setUser(participant.getUser());
+                newStatus.setConversation(participant.getConversation());
+                return newStatus;
+            });
+        
+        updatingStatus.setMessage(previousMessage.orElse(null));
+        
+        try {
+            conversationReadStatusRepository.save(updatingStatus);
+        } catch (Exception exception) {
+            logger.error("failed to mark message {} as unread for user {}", messageId, loggedInUserId, exception);
+            throw new CustomBadRequestException("Failed to mark message as unread");
+        }
+        
+        return conversationReadStatusRepository.findConversationReadInfoByConversationIdAndUserId(
+            conversationId,
+            loggedInUserId
+        );
+    }
+
+    /**
+     * Retrieves all message mentions by others for a specific user with pagination support.
+     * <p>
+     * This method queries the database for all messages where the specified user has been mentioned,
+     * converts the entities to DTOs, and returns them in a paginated format.
+     * </p>
+     *
+     * @param userDetails the user whose message mentions are being retrieved
+     * @param pageable pagination and sorting information (page number, size, sort order)
+     * @return a {@link Page} of {@link MessageMentionDTO} objects representing the user's mentions
+     */
+    public Page<MessageMentionDTO> getAllUserMessageMentions(UserDetails userDetails, Pageable pageable) {
+        Page<MessageMention> messageMentionPage = messageMentionRepository.findAllUserMentionsByOthers(userDetails.getId(), pageable);
+
+        Page<MessageMentionDTO> messageMentionDTOPages = messageMentionPage.map(messageMention -> {
+            MessageMentionDTO dto = new MessageMentionDTO(messageMention);
+
+            String imageIndexedName = messageMention.getMessage().getSender().getImageIndexedName();
+            if (imageIndexedName != null) {
+                String signedImageUrl = conversationUtilService.getImageViewSignedUrl( MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.MEDIUM , imageIndexedName);
+                dto.getMessage().setSenderSignedImageUrl(signedImageUrl);
+            }
+
+            return dto;
+        });
+
+        return messageMentionDTOPages;
     }
 }

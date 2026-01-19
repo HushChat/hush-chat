@@ -2,14 +2,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQueryClient } from "@tanstack/react-query";
 
 import ChatHeader from "@/components/conversations/conversation-thread/ChatHeader";
 import ConversationMessageList from "@/components/conversations/conversation-thread/message-list/ConversationMessageList";
 import EmptyChatState from "@/components/conversations/conversation-thread/message-list/EmptyChatState";
 import LoadingState from "@/components/LoadingState";
 import DisabledMessageInput from "@/components/conversations/conversation-thread/composer/DisabledMessageInput";
-import FilePreviewOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay";
+import FilePreviewOverlay, {
+  FileWithCaption,
+} from "@/components/conversations/conversation-thread/message-list/file-upload/FilePreviewOverlay";
 import MessageForwardActionBar from "@/components/conversations/conversation-thread/composer/MessageForwardActionBar";
 import Alert from "@/components/Alert";
 
@@ -35,9 +36,15 @@ import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
 import { useSendMessageHandler } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 import { useMessageAttachmentUploader } from "@/apis/photo-upload-service/photo-upload-service";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { usePasteHandler } from "@/hooks/usePasteHandler";
 import DragAndDropOverlay from "@/components/conversations/conversation-thread/message-list/file-upload/DragAndDropOverlay";
+import { getAllTokens } from "@/utils/authUtils";
+import { UserActivityWSSubscriptionData } from "@/types/ws/types";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useMessageEdit } from "@/hooks/useMessageEdit";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
+import { getAPIErrorMessage } from "@/utils/apiErrorUtils";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -47,6 +54,7 @@ interface ConversationThreadScreenProps {
   onShowProfile: () => void;
   webSearchPress?: () => void;
   webForwardPress?: (messageIds: Set<number>) => void;
+  webMessageInfoPress?: (messageId: number) => void;
   messageToJump?: number | null;
   onMessageJumped?: () => void;
   onConversationDeleted?: () => void;
@@ -57,6 +65,7 @@ const ConversationThreadScreen = ({
   onShowProfile,
   webSearchPress = () => {},
   webForwardPress,
+  webMessageInfoPress,
   onMessageJumped,
   messageToJump,
 }: ConversationThreadScreenProps) => {
@@ -64,10 +73,13 @@ const ConversationThreadScreen = ({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
   const {
-    user: { id: currentUserId },
+    user: { id: currentUserId, email },
   } = useUserStore();
-  const queryClient = useQueryClient();
+  const { publishActivity } = useWebSocket();
+
   const dropZoneRef = useRef<View>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  const hasRedirectedRef = useRef(false);
 
   const {
     selectionMode,
@@ -75,19 +87,48 @@ const ConversationThreadScreen = ({
     selectedMessageIds,
     setSelectedMessageIds,
     setSelectedConversationId,
-    selectedConversationId,
+    setIsMarkdownEnabled,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
   const currentConversationId = conversationId || Number(params.conversationId);
 
   useEffect(() => {
+    const publishUserActivity = async () => {
+      const { workspace } = await getAllTokens();
+      await publishActivity({
+        workspaceId: workspace as string,
+        email,
+        openedConversation: currentConversationId,
+      } as UserActivityWSSubscriptionData);
+    };
+
     if (currentConversationId) {
       setSelectedConversationId(currentConversationId);
+      publishUserActivity();
     }
-  }, [selectedConversationId]);
+  }, [currentConversationId]);
 
-  const { conversationAPIResponse, conversationAPILoading, conversationAPIError } =
-    useConversationByIdQuery(currentConversationId);
+  const {
+    conversationAPIResponse,
+    conversationAPILoading,
+    conversationAPIError,
+    isConversationNotFound,
+  } = useConversationByIdQuery(currentConversationId);
+
+  useEffect(() => {
+    if (isConversationNotFound && !hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
+      ToastUtils.error(getAPIErrorMessage(conversationAPIError, "Conversation not found!"));
+      router.replace(CHATS_PATH);
+    }
+  }, [isConversationNotFound]);
+
+  useEffect(() => {
+    hasRedirectedRef.current = false;
+  }, [currentConversationId]);
+
+  const shouldFetchMessages =
+    !conversationAPILoading && !conversationAPIError && !!conversationAPIResponse;
 
   const {
     pages: conversationMessagesPages,
@@ -102,9 +143,12 @@ const ConversationThreadScreen = ({
     invalidateQuery: refetchConversationMessages,
     loadMessageWindow,
     updateConversationMessagesCache,
+    updateConversationsListCache,
     targetMessageId,
     clearTargetMessage,
-  } = useConversationMessagesQuery(currentConversationId);
+  } = useConversationMessagesQuery(currentConversationId, {
+    enabled: shouldFetchMessages,
+  });
 
   const { updateConversation } = useConversationNotificationsContext();
 
@@ -120,29 +164,25 @@ const ConversationThreadScreen = ({
       updateConversation(currentConversationId, {
         unreadCount: data.data?.unreadCount || 0,
       });
-    },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
     }
   );
 
   useEffect(() => {
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
-    if (
-      currentConversationId &&
-      messages.length > 0 &&
-      lastSeenMessageInfo?.lastSeenMessageId !== undefined
-    ) {
+    if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
       const firstMessage = messages[0];
 
       if (!firstMessage.id || typeof firstMessage.id !== "number") {
         return;
       }
 
-      const isFirstMessageLastSeen = firstMessage.id === lastSeenMessageInfo.lastSeenMessageId;
+      const shouldUpdate =
+        lastSeenMessageInfo.lastSeenMessageId === null ||
+        lastSeenMessageInfo.lastSeenMessageId === undefined ||
+        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
 
-      if (!isFirstMessageLastSeen) {
+      if (shouldUpdate) {
         setLastSeenMessageForConversation({
           messageId: firstMessage.id,
           conversationId: currentConversationId,
@@ -154,6 +194,24 @@ const ConversationThreadScreen = ({
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
+  const isOnlyAdminsCanSendMessages =
+    conversationAPIResponse?.isGroup && conversationAPIResponse?.onlyAdminsCanSendMessages;
+
+  const isCurrentUserAdmin = conversationAPIResponse?.isCurrentUserAdmin;
+
+  const { editingMessage, isEditingMessage, handleStartEdit, handleCancelEdit, handleEditMessage } =
+    useMessageEdit({
+      userId: Number(currentUserId),
+      conversationId: currentConversationId,
+    });
+
+  const handleStartEditWithClearReply = useCallback(
+    (message: IMessage) => {
+      handleStartEdit(message);
+      setSelectedMessage(null);
+    },
+    [handleStartEdit]
+  );
 
   const handleNavigateToMessage = useCallback(
     (messageId: number) => {
@@ -178,8 +236,6 @@ const ConversationThreadScreen = ({
   const {
     selectedFiles,
     showImagePreview,
-    imageMessage,
-    setImageMessage,
     open: handleOpenImagePicker,
     close: handleCloseImagePreview,
     removeAt: handleRemoveFile,
@@ -196,80 +252,128 @@ const ConversationThreadScreen = ({
     },
   });
 
+  const handlePasteFiles = useCallback(
+    (files: File[]) => {
+      if (selectedFiles.length === 0) {
+        handleOpenImagePicker(files);
+      } else {
+        handleAddMoreFiles(files);
+      }
+    },
+    [selectedFiles.length, handleOpenImagePicker, handleAddMoreFiles]
+  );
+
+  const getDisabledMessageReason = useCallback(() => {
+    const isBlocked = conversationAPIResponse?.isBlocked === true;
+    const isInactive = conversationAPIResponse?.isActive === false;
+    const isMessageRestricted = Boolean(isOnlyAdminsCanSendMessages) && !isCurrentUserAdmin;
+
+    if (isInactive) {
+      return "You can't send messages to this group because you are no longer a member.";
+    }
+
+    if (isBlocked) {
+      return "You can't send messages because this conversation is blocked.";
+    }
+
+    if (isMessageRestricted) {
+      return "Only admins are allowed to send messages in this group.";
+    }
+
+    return null;
+  }, [
+    conversationAPIResponse?.isBlocked,
+    conversationAPIResponse?.isActive,
+    isOnlyAdminsCanSendMessages,
+    isCurrentUserAdmin,
+  ]);
+
+  usePasteHandler({
+    enabled: !selectionMode && !showImagePreview && !getDisabledMessageReason(),
+    inputRef: messageInputRef,
+    onPasteFiles: handlePasteFiles,
+  });
+
   const {
-    pickAndUploadImages,
-    uploadFilesFromWeb,
+    pickAndUploadImagesAndVideos,
+    uploadFilesFromWebWithCaptions,
     pickAndUploadDocuments,
     isUploading: isUploadingImages,
     error: uploadError,
-  } = useMessageAttachmentUploader(currentConversationId, imageMessage);
+    sendGifMessage,
+  } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadDocuments();
 
       if (results?.some((r) => r.success)) {
-        refetchConversationMessages();
         setSelectedMessage(null);
-        setImageMessage("");
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
     } catch {
       ToastUtils.error("Failed to pick or upload documents.");
     }
-  }, [
-    pickAndUploadDocuments,
-    refetchConversationMessages,
-    setSelectedMessage,
-    setImageMessage,
-    uploadError,
-  ]);
+  }, [pickAndUploadDocuments, setSelectedMessage, uploadError]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadImages();
+      const results = await pickAndUploadImagesAndVideos();
       if (results?.some((r) => r.success)) {
-        await refetchConversationMessages();
         setSelectedMessage(null);
-        setImageMessage("");
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickAndUploadImages, setSelectedMessage, setImageMessage, uploadError]);
+  }, [pickAndUploadImagesAndVideos, setSelectedMessage, uploadError]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
     (newMessage) => {
       setSelectedMessage(null);
       updateConversationMessagesCache(newMessage);
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      updateConversationsListCache(newMessage);
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
-  const { handleSendMessage, handleSendFiles } = useSendMessageHandler({
+  const { handleSendMessage, handleSendFilesWithCaptions } = useSendMessageHandler({
     currentConversationId,
     currentUserId,
-    imageMessage,
-    setImageMessage,
     selectedMessage,
     setSelectedMessage,
-    selectedFiles,
     sendMessage,
-    uploadFilesFromWeb,
+    uploadFilesFromWebWithCaptions,
     handleCloseImagePreview,
+    updateConversationMessagesCache,
+    sendGifMessage,
   });
+
+  const handleSendFilesFromPreview = useCallback(
+    async (filesWithCaptions: FileWithCaption[]) => {
+      await handleSendFilesWithCaptions(filesWithCaptions);
+    },
+    [handleSendFilesWithCaptions]
+  );
 
   useEffect(() => {
     setSelectedMessage(null);
+    handleCancelEdit();
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-  }, [currentConversationId, setSelectionMode, setSelectedMessageIds, handleCloseImagePreview]);
+    setIsMarkdownEnabled(true);
+  }, [
+    currentConversationId,
+    setSelectionMode,
+    setSelectedMessageIds,
+    handleCloseImagePreview,
+    setIsMarkdownEnabled,
+    handleCancelEdit,
+  ]);
 
   const handleBackPress = useCallback(() => {
     navigateBackOrFallback(CHATS_PATH);
@@ -296,10 +400,13 @@ const ConversationThreadScreen = ({
   }, []);
 
   const onForwardPress = useCallback(() => {
-    if (PLATFORM.IS_WEB) {
-      webForwardPress?.(selectedMessageIds);
+    if (PLATFORM.IS_WEB && webForwardPress) {
+      webForwardPress(selectedMessageIds);
     } else {
-      router.push({ pathname: FORWARD_PATH, params: {} });
+      router.push({
+        pathname: FORWARD_PATH,
+        params: { currentConversationId: currentConversationId },
+      });
     }
   }, [selectedMessageIds, webForwardPress]);
 
@@ -314,6 +421,7 @@ const ConversationThreadScreen = ({
       conversationName: conversationAPIResponse?.name,
       signedImageUrl: conversationAPIResponse?.signedImageUrl,
       chatUserStatus: conversationAPIResponse?.chatUserStatus,
+      deviceType: conversationAPIResponse?.deviceType,
     }),
     [currentConversationId, conversationAPIResponse]
   );
@@ -331,13 +439,13 @@ const ConversationThreadScreen = ({
       return <LoadingState />;
     }
 
-    if (conversationAPIError || conversationMessagesError) {
+    if ((conversationAPIError || conversationMessagesError) && !isConversationNotFound) {
       return (
         <Alert
           type="error"
           message={
-            conversationMessagesError?.message ||
-            conversationAPIError?.message ||
+            getAPIErrorMessage(conversationMessagesError) ||
+            getAPIErrorMessage(conversationAPIError) ||
             "An error occurred"
           }
         />
@@ -358,9 +466,13 @@ const ConversationThreadScreen = ({
         conversationAPIResponse={conversationAPIResponse}
         pickerState={pickerState}
         selectedConversationId={currentConversationId}
+        setSelectedConversation={setSelectedConversationId}
         onNavigateToMessage={handleNavigateToMessage}
         targetMessageId={targetMessageId}
         onTargetMessageScrolled={handleTargetMessageScrolled}
+        webMessageInfoPress={webMessageInfoPress}
+        lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
+        onEditMessage={handleStartEditWithClearReply}
       />
     );
   }, [
@@ -382,45 +494,42 @@ const ConversationThreadScreen = ({
     handleNavigateToMessage,
     targetMessageId,
     handleTargetMessageScrolled,
+    lastSeenMessageInfo,
+    handleStartEditWithClearReply,
   ]);
 
   const renderTextInput = useCallback(() => {
-    const isBlocked = conversationAPIResponse?.isBlocked === true;
-    const isInactive = conversationAPIResponse?.isActive === false;
+    const disabledReason = getDisabledMessageReason();
 
-    if (isBlocked || isInactive) {
-      return (
-        <DisabledMessageInput
-          customMessage={
-            isInactive
-              ? "You can't send messages to this group because you are no longer a member."
-              : isBlocked
-                ? "You can't send messages because this conversation is blocked."
-                : undefined
-          }
-        />
-      );
+    if (disabledReason) {
+      return <DisabledMessageInput customMessage={disabledReason} />;
     }
 
     if (selectionMode) return null;
 
     return (
       <ConversationInput
+        ref={messageInputRef}
         conversationId={currentConversationId}
         onSendMessage={handleSendMessage}
         onOpenImagePicker={handleOpenImagePicker}
         onOpenImagePickerNative={handleOpenImagePickerNative}
         onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
         disabled={isLoadingConversationMessages}
-        isSending={isSendingMessage || isUploadingImages}
+        isSending={isSendingMessage || isUploadingImages || isEditingMessage}
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
+        editingMessage={editingMessage}
+        onCancelEdit={handleCancelEdit}
+        onEditMessage={handleEditMessage}
       />
     );
   }, [
     conversationAPIResponse?.isBlocked,
     conversationAPIResponse?.isActive,
+    isOnlyAdminsCanSendMessages,
+    isCurrentUserAdmin,
     selectionMode,
     currentConversationId,
     handleSendMessage,
@@ -430,17 +539,14 @@ const ConversationThreadScreen = ({
     isLoadingConversationMessages,
     isSendingMessage,
     isUploadingImages,
+    isEditingMessage,
     selectedMessage,
     handleCancelReply,
     isGroupChat,
+    editingMessage,
+    handleCancelEdit,
+    handleEditMessage,
   ]);
-
-  const actionBarStyle = useMemo(
-    () => ({
-      paddingBottom: insets.bottom,
-    }),
-    [insets.bottom]
-  );
 
   return (
     <SafeAreaView
@@ -456,6 +562,7 @@ const ConversationThreadScreen = ({
           refetchConversationMessages={refetchConversationMessages}
           isLoadingConversationMessages={isLoadingConversationMessages}
           webPressSearch={webSearchPress}
+          isGroupChat={isGroupChat}
         />
 
         <KeyboardAvoidingView
@@ -466,8 +573,11 @@ const ConversationThreadScreen = ({
           <ImageBackground
             source={Images.chatBackground}
             className="flex-1"
+            resizeMode="cover"
             imageStyle={{
               opacity: isDark ? CHAT_BG_OPACITY_DARK : CHAT_BG_OPACITY_LIGHT,
+              width: "100%",
+              height: "100%",
             }}
           >
             <View className="flex-1">
@@ -475,31 +585,31 @@ const ConversationThreadScreen = ({
                 {showImagePreview ? (
                   <FilePreviewOverlay
                     files={selectedFiles}
+                    conversationId={currentConversationId}
                     onClose={handleCloseImagePreview}
                     onRemoveFile={handleRemoveFile}
-                    onSendFiles={handleSendFiles}
+                    onSendFiles={handleSendFilesFromPreview}
                     onFileSelect={handleAddMoreFiles}
-                    isSending={isSendingMessage}
-                    message={imageMessage}
-                    onMessageChange={setImageMessage}
+                    isSending={isSendingMessage || isUploadingImages}
+                    isGroupChat={isGroupChat}
+                    replyToMessage={selectedMessage}
+                    onCancelReply={handleCancelReply}
                   />
                 ) : (
                   <>
                     {renderContent()}
                     <View style={styles.textInputWrapper}>{renderTextInput()}</View>
                     {selectionMode && (
-                      <View style={actionBarStyle}>
-                        <MessageForwardActionBar
-                          visible={selectionMode}
-                          count={selectedMessageIds.size}
-                          isDark={isDark}
-                          onCancel={() => {
-                            setSelectionMode(false);
-                            setSelectedMessageIds(EMPTY_SET);
-                          }}
-                          onForward={onForwardPress}
-                        />
-                      </View>
+                      <MessageForwardActionBar
+                        visible={selectionMode}
+                        count={selectedMessageIds.size}
+                        isDark={isDark}
+                        onCancel={() => {
+                          setSelectionMode(false);
+                          setSelectedMessageIds(EMPTY_SET);
+                        }}
+                        onForward={onForwardPress}
+                      />
                     )}
                   </>
                 )}

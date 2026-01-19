@@ -7,34 +7,36 @@ import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
+import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
+import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.utils.CommonUtils;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 public class ConversationQueryRepositoryImpl implements ConversationQueryRepository {
@@ -46,6 +48,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QMessage qMessage = QMessage.message;
     private static final QMessage qMessage2 = QMessage.message;
     private final WebSocketSessionManager webSocketSessionManager;
+    private static final QUserBlock qUserBlock = QUserBlock.userBlock;
 
     public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory, @Lazy WebSocketSessionManager webSocketSessionManager) {
         this.jpaQueryFactory = jpaQueryFactory;
@@ -150,8 +153,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 : false;
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
-                .and(qConversation.deleted.eq(false))
-                .and(qConversationParticipant.isDeleted.eq(false)
                 .and(qConversation.status.eq(ConversationStatus.ACTIVE)));
 
         whereConditions = whereConditions.and(
@@ -185,6 +186,26 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                         .where(qMessage2.conversation.eq(qConversation)))))
                 .where(whereConditions);
 
+
+        List<Tuple> blockingRelationships = jpaQueryFactory
+                .select(qUserBlock.blocker.id, qUserBlock.blocked.id)
+                .from(qUserBlock)
+                .where(qUserBlock.blocker.id.eq(userId).or(qUserBlock.blocked.id.eq(userId)))
+                .fetch();
+
+        Set<Long> restrictedUserIds = new HashSet<>();
+
+        for (Tuple t : blockingRelationships) {
+            Long blockerId = t.get(qUserBlock.blocker.id);
+            Long blockedId = t.get(qUserBlock.blocked.id);
+
+            if (userId.equals(blockerId)) {
+                restrictedUserIds.add(blockedId);
+            } else {
+                restrictedUserIds.add(blockerId);
+            }
+        }
+
         boolean isValidSearchKey = StringUtils.hasText(conversationFilterCriteria.getSearchKeyword());
         if (isValidSearchKey) {
             baseQuery.where(qConversation.isGroup.isTrue()
@@ -216,6 +237,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                     Conversation conversation = tuple.get(qConversation);
                     Message latestMessage = tuple.get(qMessage);
 
+                    ConversationParticipant participantEntity = tuple.get(qConversationParticipant);
+
                     ConversationDTO dto = new ConversationDTO(conversation);
 
                     if (conversation != null && conversation.getConversationParticipants() != null) {
@@ -246,27 +269,64 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         }
 
                         if (needOtherParticipant && otherParticipant != null) {
-                            if (otherParticipant.getUser().getFirstName() != null && otherParticipant.getUser().getLastName() != null) {
+                            if (otherParticipant.getUser().getFirstName() != null
+                                    && otherParticipant.getUser().getLastName() != null) {
                                 String name = otherParticipant.getUser().getFirstName() + " " + otherParticipant.getUser().getLastName();
-                                String imageIndexedName = otherParticipant.getUser().getImageIndexedName();
-                                dto.setName(name);
-                                dto.setImageIndexedName(imageIndexedName);
 
-                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(),
+                                dto.setName(name);
+
+                                Long otherUserId = otherParticipant.getUser().getId();
+
+                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(
+                                        WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail());
 
-                                dto.setChatUserStatus(status);
+                                DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                                        WorkspaceContext.getCurrentWorkspace(),
+                                        otherParticipant.getUser().getEmail());
+
+
+                                if (restrictedUserIds.contains(otherUserId)) {
+                                    dto.setImageIndexedName(null);
+                                    dto.setChatUserStatus(ChatUserStatus.OFFLINE);
+                                    dto.setDeviceType(null);
+                                } else {
+                                    dto.setImageIndexedName(otherParticipant.getUser().getImageIndexedName());
+                                    dto.setChatUserStatus(status);
+                                    dto.setDeviceType(deviceType);
+                                }
                             }
                         }
                     }
 
                     if (latestMessage != null) {
-                        MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
-                        dto.setMessages(List.of(messageViewDTO));
+                        boolean isVisible = CommonUtils.isMessageVisible(
+                                latestMessage.getCreatedAt(),
+                                participantEntity != null ? participantEntity.getLastDeletedTime() : null
+                        );
+
+                        if (isVisible) {
+                                MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
+
+                                if (!messageViewDTO.getIsUnsend()) {
+                                    List<MessageAttachmentDTO> attachmentDTOs =
+                                            latestMessage.getAttachments()
+                                                    .stream()
+                                                    .map(MessageAttachmentDTO::new)
+                                                    .toList();
+                                    messageViewDTO.setMessageAttachments(attachmentDTOs);
+                                } else {
+                                    messageViewDTO.setMessageAttachments(new ArrayList<>());
+                                }
+
+                                dto.setMessages(List.of(messageViewDTO));
+                                return dto;
+                        }
                     }
 
-                    return dto;
+                    return dto.getIsGroup() ? dto : null;
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         return new PageImpl<>(conversationDTOs, pageable, totalCount);
@@ -309,10 +369,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .from(qConversation)
                 .join(qConversation.conversationParticipants, qConversationParticipant)
                 .where(qConversation.id.eq(conversationId)
-                        .and(qConversation.deleted.isFalse())
-                        .and(qConversation.status.eq(ConversationStatus.ACTIVE))
                         .and(qConversationParticipant.user.id.eq(userId))
-                        .and(qConversationParticipant.isDeleted.isFalse()))
+                        .and(qConversation.status.eq(ConversationStatus.ACTIVE)))
                 .fetchFirst();
 
         if(conversation == null) {
@@ -331,7 +389,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         .and(qConversationParticipant.isActive.isTrue()))
                 .fetchFirst() != null;
     }
-  
+
     public Optional<DirectOtherMetaDTO> findDirectOtherMeta(Long conversationId, Long userId) {
           QConversation c = QConversation.conversation;
           QConversationParticipant cpSelf = QConversationParticipant.conversationParticipant;
@@ -353,7 +411,6 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                   .join(cpSelf).on(
                           cpSelf.conversation.eq(c)
                                   .and(cpSelf.user.id.eq(userId))
-                                  .and(cpSelf.isDeleted.isFalse())
                   )
                   // get the other active participant
                   //we don't need to check if the other participant is deleted here because we are only fetching other user meta info
@@ -461,5 +518,16 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .fetch();
 
         return new PageImpl<>(results, pageable, totalCount);
+    }
+
+    @Override
+    @Transactional
+    public long clearExpiredPinnedMessageFromConversation(Long conversationId) {
+        return jpaQueryFactory
+                .update(qConversation)
+                .set(qConversation.pinnedMessage, Expressions.nullExpression())
+                .set(qConversation.pinnedMessageUntil,  Expressions.nullExpression())
+                .where(qConversation.id.eq(conversationId))
+                .execute();
     }
 }

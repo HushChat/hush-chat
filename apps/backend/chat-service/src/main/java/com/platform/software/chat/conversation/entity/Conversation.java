@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.entity;
 
-import java.util.List;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -9,13 +8,21 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
+
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @Entity
 @Setter
 @Getter
-// TODO: remove @Where(clause = "deleted = false")
-public class Conversation extends AuditModel{
+@Table(
+        indexes = {
+                @Index(name = "idx_conversation_is_group", columnList = "is_group"),
+                @Index(name = "idx_conversation_created_by", columnList = "created_by_id"),
+                @Index(name = "idx_conversation_deleted", columnList = "deleted")
+        }
+)
+public class Conversation extends AuditModel {
     @Id
     @GeneratedValue(generator = "conversation_generator")
     private Long id;
@@ -23,6 +30,7 @@ public class Conversation extends AuditModel{
     private String name;
 
     @NotNull
+    @Column(name = "is_group")
     private Boolean isGroup;
 
     private boolean deleted = false;
@@ -45,7 +53,12 @@ public class Conversation extends AuditModel{
     @JoinColumn(name = "pinned_message_id")
     private Message pinnedMessage;
 
+    private ZonedDateTime pinnedMessageUntil;
+
     private String description;
+
+    @Column(name = "only_admins_can_send_messages")
+    private Boolean onlyAdminsCanSendMessages = false;
 
     @Enumerated(EnumType.STRING)
     private ConversationStatus status;

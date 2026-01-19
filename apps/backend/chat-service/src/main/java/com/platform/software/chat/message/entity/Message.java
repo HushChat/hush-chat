@@ -13,13 +13,34 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Setter
 @Getter
-public class Message extends AuditModel{
+@Table(
+        indexes = {
+                @Index(
+                        name = "idx_message_conversation_created",
+                        columnList = "conversation_id, created_at DESC"
+                ),
+                @Index(
+                        name = "idx_message_sender",
+                        columnList = "sender_id"
+                ),
+                @Index(
+                        name = "idx_message_parent",
+                        columnList = "parent_message_id"
+                ),
+                @Index(
+                        name = "idx_message_forwarded",
+                        columnList = "forwarded_message_id"
+                )
+        }
+)
+public class Message extends AuditModel {
     @Id
     @GeneratedValue(generator = "message_generator")
     private Long id;
@@ -46,12 +67,12 @@ public class Message extends AuditModel{
     @JoinColumn(name = "forwarded_message_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Message forwardedMessage;
-  
+
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
     private List<FavouriteMessage> favouriteMessages;
 
     @Type(PostgreSQLTSVectorType.class)
-    @Column(name = "search_vector",columnDefinition = "tsvector")
+    @Column(name = "search_vector", columnDefinition = "tsvector")
     private String searchVector;
 
     @NotNull
@@ -62,4 +83,8 @@ public class Message extends AuditModel{
 
     @Enumerated(EnumType.STRING)
     private MessageTypeEnum messageType;
+
+    @NotNull
+    @Column(name = "is_edited", nullable = false)
+    private Boolean isEdited = false;
 }

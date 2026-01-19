@@ -26,6 +26,11 @@ import { router } from "expo-router";
 import { PLATFORM } from "@/constants/platformConstants";
 import { CHATS_PATH, CONVERSATION } from "@/constants/routes";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
+import { getAllTokens } from "@/utils/authUtils";
+import { UserActivityWSSubscriptionData } from "@/types/ws/types";
+import { useUserStore } from "@/store/user/useUserStore";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 interface IConversationScreenProps {
   initialConversationId?: number;
@@ -36,6 +41,9 @@ export default function ConversationScreen({ initialConversationId }: IConversat
   const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const {
+    user: { email },
+  } = useUserStore();
 
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
 
@@ -63,6 +71,26 @@ export default function ConversationScreen({ initialConversationId }: IConversat
     refetch,
   } = useConversationsQuery(criteria);
 
+  const { publishActivity } = useWebSocket();
+
+  useEffect(() => {
+    const publishUserActivity = async () => {
+      const { workspace } = await getAllTokens();
+      const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+      const conversationIds = conversations?.flatMap((page) => page.id) ?? [];
+      await publishActivity({
+        workspaceId: workspace as string,
+        email,
+        visibleConversations: conversationIds,
+        openedConversation: initialConversationId,
+      } as UserActivityWSSubscriptionData);
+    };
+
+    if (conversationsPages) {
+      publishUserActivity();
+    }
+  }, [conversationsPages]);
+
   const { searchResults, isSearching, searchError, refetchSearch } =
     useGlobalSearchQuery(searchQuery);
 
@@ -74,13 +102,15 @@ export default function ConversationScreen({ initialConversationId }: IConversat
     onConversationFound: setSelectedConversation,
   });
 
-  const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
-    setSelectedConversation(conversation);
+  const isMobieLayout = useIsMobileLayout();
 
-    if (PLATFORM.IS_WEB) {
+  const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
+    if (isMobieLayout || PLATFORM.IS_WEB) {
       if (conversation) {
+        setSelectedConversation(conversation);
         router.replace(CONVERSATION(conversation.id));
       } else {
+        setSelectedConversation(null);
         router.replace(CHATS_PATH);
       }
     }
@@ -91,11 +121,6 @@ export default function ConversationScreen({ initialConversationId }: IConversat
       key: ConversationType.ALL,
       label: "All",
       isActive: selectedConversationType === ConversationType.ALL,
-    },
-    {
-      key: ConversationType.UNREAD,
-      label: "Unread",
-      isActive: selectedConversationType === ConversationType.UNREAD,
     },
     {
       key: ConversationType.FAVORITES,

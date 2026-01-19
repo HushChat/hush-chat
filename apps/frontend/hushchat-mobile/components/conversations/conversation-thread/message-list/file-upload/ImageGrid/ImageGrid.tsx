@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { IMessageAttachment } from "@/types/chat/types";
 
-import { ImageItem } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/ImageItem";
+import { MediaItem } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/MediaItem";
 import {
   staticStyles,
   dynamicStyles,
@@ -22,7 +22,7 @@ export const ImageGrid = ({ images, onImagePress }: TImageGridProps) => {
 
   const renderSingleImage = () => (
     <View style={staticStyles.singleImageContainer}>
-      <ImageItem
+      <MediaItem
         attachment={displayImages[0]}
         style={dynamicStyles.singleImage(aspectRatio)}
         onPress={() => onImagePress(0)}
@@ -32,12 +32,12 @@ export const ImageGrid = ({ images, onImagePress }: TImageGridProps) => {
 
   const renderTwoImages = () => (
     <View style={[staticStyles.flexRow, staticStyles.gap]}>
-      <ImageItem
+      <MediaItem
         attachment={displayImages[0]}
         style={dynamicStyles.twoImagesImage}
         onPress={() => onImagePress(0)}
       />
-      <ImageItem
+      <MediaItem
         attachment={displayImages[1]}
         style={dynamicStyles.twoImagesImage}
         onPress={() => onImagePress(1)}
@@ -47,19 +47,19 @@ export const ImageGrid = ({ images, onImagePress }: TImageGridProps) => {
 
   const renderThreeImages = () => (
     <View style={[staticStyles.flexRow, staticStyles.gap]}>
-      <ImageItem
+      <MediaItem
         attachment={displayImages[0]}
         style={dynamicStyles.threeImagesLarge}
         onPress={() => onImagePress(0)}
       />
 
       <View style={staticStyles.gap}>
-        <ImageItem
+        <MediaItem
           attachment={displayImages[1]}
           style={dynamicStyles.threeImagesSmall}
           onPress={() => onImagePress(1)}
         />
-        <ImageItem
+        <MediaItem
           attachment={displayImages[2]}
           style={dynamicStyles.threeImagesSmall}
           onPress={() => onImagePress(2)}
@@ -71,12 +71,12 @@ export const ImageGrid = ({ images, onImagePress }: TImageGridProps) => {
   const renderFourOrMoreImages = () => (
     <View style={[staticStyles.flexRow, staticStyles.gap]}>
       <View style={staticStyles.gap}>
-        <ImageItem
+        <MediaItem
           attachment={displayImages[0]}
           style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(0)}
         />
-        <ImageItem
+        <MediaItem
           attachment={displayImages[1]}
           style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(1)}
@@ -84,12 +84,12 @@ export const ImageGrid = ({ images, onImagePress }: TImageGridProps) => {
       </View>
 
       <View style={staticStyles.gap}>
-        <ImageItem
+        <MediaItem
           attachment={displayImages[2]}
           style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(2)}
         />
-        <ImageItem
+        <MediaItem
           attachment={displayImages[3]}
           style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(3)}

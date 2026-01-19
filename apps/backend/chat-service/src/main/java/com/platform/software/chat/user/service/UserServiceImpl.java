@@ -9,26 +9,37 @@ import java.util.stream.Collectors;
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserInfoRepository;
 import com.platform.software.chat.user.repository.UserQueryRepository;
 import com.platform.software.common.dto.LoginDTO;
 import com.platform.software.common.model.MediaPathEnum;
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.AWSconfig;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
+import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
+import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
+import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import com.platform.software.chat.user.entity.UserBlock;
 import com.platform.software.chat.user.repository.UserBlockRepository;
+import com.platform.software.platform.workspace.repository.WorkspaceRepository; 
 
+import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -67,7 +78,10 @@ public class UserServiceImpl implements UserService {
     private final UserUtilService userUtilService;
     private final AWSconfig awSconfig;
     private final ChatNotificationRepository chatNotificationRepository;
-
+    private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceUserRepository workspaceUserRepository;
+    private final UserInfoRepository userInfoRepository;
+    private final WebSocketSessionManager webSocketSessionManager;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -80,7 +94,11 @@ public class UserServiceImpl implements UserService {
             ConversationRepository conversationRepository,
             UserUtilService userUtilService,
             AWSconfig awSconfig,
-            ChatNotificationRepository chatNotificationRepository
+            ChatNotificationRepository chatNotificationRepository,
+            WorkspaceUserRepository workspaceUserRepository,
+            WorkspaceRepository workspaceRepository,
+            UserInfoRepository userInfoRepository,
+            @Lazy WebSocketSessionManager webSocketSessionManager
     ) {
         this.userRepository = userRepository;
         this.cognitoService = cognitoService;
@@ -93,6 +111,10 @@ public class UserServiceImpl implements UserService {
         this.userUtilService = userUtilService;
         this.chatNotificationRepository = chatNotificationRepository;
         this.awSconfig = awSconfig;
+        this.workspaceRepository = workspaceRepository;
+        this.workspaceUserRepository = workspaceUserRepository;
+        this.userInfoRepository = userInfoRepository;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     @Override
@@ -101,7 +123,7 @@ public class UserServiceImpl implements UserService {
 
         return users.map(user -> {
             UserDTO userDTO = new UserDTO(user);
-            userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+            userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.SMALL));
             return userDTO;
         });
     }
@@ -131,8 +153,6 @@ public class UserServiceImpl implements UserService {
         ValidationUtils.validate(loginDTO);
         String email = loginDTO.getEmail().toLowerCase();
 
-        getUserByEmail(email);
-
         try {
             LoginResponseDTO loginResponseDTO = cognitoService.authenticateUser(email, loginDTO.getPassword());
 
@@ -152,7 +172,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ChatUser getUserOrThrow(Long userId) {
         ChatUser user = userRepository.findById(userId)
-            .orElseThrow(() -> new CustomBadRequestException("Cannot find user with id %s".formatted(userId)));
+            .orElseThrow(() -> new CustomBadRequestException("Cannot find user!"));
         return user;
     }
 
@@ -179,17 +199,31 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    @Cacheable(value = CacheNames.FIND_USER_BY_ID, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
+    /**
+     * Retrieves detailed user information by user ID within a specific workspace context.
+     *
+     * @param id the unique identifier of the user to retrieve
+     * @param workspaceIdentifier the identifier of the workspace to fetch user role information from
+     * @return a {@link UserViewDTO} containing the user's details, signed profile image URL,
+     *         workspace name (if available in current context), and workspace role
+     * @see UserViewDTO
+     * @see WorkspaceContext#getCurrentWorkspace()
+     */
     @Override
-    public UserViewDTO findUserById(Long id) {
-        ChatUser user = userRepository.findById(id)
-        .orElseThrow(() -> {
-            logger.warn("invalid user id {} provided", id);
-            return new CustomBadRequestException("user does not exist!");
-        });
+    public UserViewDTO findUserById(Long id, String workspaceIdentifier) {
+        UserViewDTO userViewDTO = userUtilService.getUserViewDTO(id);
+        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(userViewDTO.getImageIndexedName(), MediaSizeEnum.MEDIUM));
         
-        UserViewDTO userViewDTO = new UserViewDTO(user);
-        userViewDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        String currentWorkspaceIdentifier = WorkspaceContext.getCurrentWorkspace();
+
+        if (currentWorkspaceIdentifier != null) {
+            workspaceRepository.findByWorkspaceIdentifier(currentWorkspaceIdentifier)
+                .ifPresent(workspace -> {
+                    userViewDTO.setWorkspaceName(workspace.getName());
+                });
+        }
+        WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(userViewDTO.getEmail(), workspaceIdentifier);
+        userViewDTO.setWorkspaceRole(workspaceUser.getRole());
         return userViewDTO;
     }
 
@@ -282,11 +316,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.countByIdIn(userIds);
     }
 
-    private String getUserProfileImageUrl(String imageIndexedName) {
-        if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(imageIndexedName);
-        }
-        return imageIndexedName;
+    private String getUserProfileImageUrl(String imageIndexedName, MediaSizeEnum size) {
+        return cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, size, imageIndexedName);
     }
 
     @Override
@@ -392,8 +423,106 @@ public class UserServiceImpl implements UserService {
         userDTO.setDeleted(user.getDeleted());
         userDTO.setImageIndexedName(user.getImageIndexedName());
         userDTO.setConversationId(conversationMap.get(user.getId()));
-        userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName()));
+        userDTO.setSignedImageUrl(getUserProfileImageUrl(user.getImageIndexedName(), MediaSizeEnum.SMALL));
 
         return userDTO;
+    }
+
+    @Override
+    public Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable) {
+
+        Page<WorkspaceUser> workspaceUserPage = WorkspaceUtils.runInGlobalSchema(
+                () -> workspaceUserRepository.fetchWorkspaceUsersPage(pageable)
+        );
+
+        List<WorkspaceUser> workspaceUsers = workspaceUserPage.getContent();
+        List<String> emails = workspaceUsers.stream()
+                .map(WorkspaceUser::getEmail)
+                .collect(Collectors.toList());
+
+        List<ChatUser> chatUsers = userQueryRepository.fetchChatUsersByEmails(emails);
+
+        Map<String, ChatUser> chatUserMap = chatUsers.stream()
+                .collect(Collectors.toMap(ChatUser::getEmail, cu -> cu));
+
+        List<WorkspaceUserViewDTO> result = workspaceUsers.stream()
+                .map(wu -> {
+                    ChatUser cu = chatUserMap.get(wu.getEmail());
+                    return new WorkspaceUserViewDTO(
+                            wu.getId(),
+                            cu != null ? cu.getFirstName() : null,
+                            cu != null ? cu.getLastName() : null,
+                            cu != null ? cu.getUsername() : null,
+                            cu != null ? cu.getEmail() : wu.getEmail(),
+                            cu != null ? cu.getImageIndexedName() : null,
+                            wu.getStatus()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(result, pageable, workspaceUserPage.getTotalElements());
+    }
+
+    @Override
+    public UserProfileDTO getUserProfile(Long id) {
+        UserProfileDTO userPublicProfile = userInfoRepository.getProfileById(id);
+
+        userPublicProfile.setSignedImageUrl(
+                cloudPhotoHandlingService.getPhotoViewSignedURL(
+                        MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                        MediaSizeEnum.SMALL,
+                        userPublicProfile.getSignedImageUrl()
+                )
+        );
+
+        return userPublicProfile;
+    }
+
+    /**
+     * Change the availability status of the authenticated user
+     * <p>
+     * This method retrieves the user, change their availability status as requested, persists the change,
+     * and evicts relevant cache entries to ensure data consistency.
+     * </p>
+     *
+     * @param authenticatedUser the authenticated user details containing the user ID
+     * @param status the status user requesting to have
+     * @return the updated {@link UserStatusEnum} after toggling
+     * @throws CustomInternalServerErrorException if the user status update fails during persistence
+     * @throws IllegalArgumentException if the user cannot be validated or found
+     */
+    @Transactional
+    public UserStatusEnum updateUserAvailability(UserDetails authenticatedUser, UserStatusEnum status) {
+        ChatUser user = validateAndGetUser(authenticatedUser.getId());
+
+        user.setAvailabilityStatus(status);
+
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            logger.error("failed to update user {} availability status", user.getId(), e);
+            throw new CustomInternalServerErrorException("Failed to Update Status");
+        }
+
+        String workspaceId = WorkspaceContext.getCurrentWorkspace();
+
+        webSocketSessionManager.updateStatusAndNotify(
+                workspaceId,
+                user.getEmail(),
+                status,
+                null
+        );
+
+        cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL+":" + user.getEmail()));
+        cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.FIND_USER_BY_ID+":" + user.getId()));
+
+        return user.getAvailabilityStatus();
+    }
+
+    // todo - change cache configuration to work with enum type too.
+    @Cacheable(value = CacheNames.FIND_USER_AVAILABILITY_STATUS_BY_EMAIL, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
+    public String getUserAvailabilityStatus(String email) {
+        ChatUser user = getUserByEmail(email);
+        return user.getAvailabilityStatus().getName();
     }
 }

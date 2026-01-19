@@ -55,12 +55,15 @@ public class MessageController {
      */
     @ApiOperation(value = "forward messages to conversations")
     @PutMapping("forward")
-    public ResponseEntity<Void> forwardMessages(
+    public ResponseEntity<MessageForwardResponseDTO> forwardMessages(
             @AuthenticatedUser UserDetails userDetails,
             @RequestBody MessageForwardRequestDTO messageForwardRequestDTO
     ) {
-        messageService.forwardMessages(userDetails.getId(), messageForwardRequestDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
+        MessageForwardResponseDTO response = messageService.forwardMessages(
+                userDetails.getId(),
+                messageForwardRequestDTO
+        );
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -191,5 +194,28 @@ public class MessageController {
         return ResponseEntity.ok(messageReactionService
                 .getMessageReactions(messageId, userDetails.getId(), pageable)
         );
+    }
+
+    /**
+     * Retrieves all message mentions by others for the authenticated user.
+     * <p>
+     * This endpoint returns a paginated list of messages where the authenticated user
+     * has been mentioned by others. The results can be sorted and filtered using pagination parameters.
+     * </p>
+     *
+     * @param authenticatedUser the currently authenticated user whose mentions are being retrieved
+     * @param pageable pagination and sorting information (page number, size, sort order)
+     * @return a {@link ResponseEntity} containing a {@link Page} of {@link MessageMentionDTO} objects
+     *         with HTTP status 200 (OK)
+     */
+    @ApiOperation(value = "get all user message mentions by others")
+    @GetMapping("/mentions")
+    public ResponseEntity<Page<MessageMentionDTO>> getMentionsByOthersForUser(
+            @AuthenticatedUser UserDetails authenticatedUser,
+            Pageable pageable
+    ) {
+        Page<MessageMentionDTO> messageMentionPages = messageService.getAllUserMessageMentions(authenticatedUser, pageable);
+
+        return ResponseEntity.ok(messageMentionPages);
     }
 }

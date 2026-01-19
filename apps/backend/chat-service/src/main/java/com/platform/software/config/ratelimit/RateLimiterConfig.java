@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.platform.software.common.constants.Constants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -23,23 +25,37 @@ import java.util.concurrent.ConcurrentHashMap;
 @Profile({Constants.MAIN_SERVICE_PRODUCTION_PROFILE_NAME, Constants.MAIN_SERVICE_STAGING_PROFILE_NAME, Constants.MAIN_SERVICE_PENTEST_PROFILE_NAME})
 public class RateLimiterConfig implements WebMvcConfigurer {
     private final ObjectMapper objectMapper;
+    private final int maxRequests;
 
-    public RateLimiterConfig(ObjectMapper objectMapper) {
+    @Value("${ratelimiting.enabled}")
+    private boolean rateLimitingEnabled;
+
+    public RateLimiterConfig(
+            ObjectMapper objectMapper,
+            @Value("${ratelimiting.requests-per-minute}") int maxRequests
+
+    ) {
         this.objectMapper = objectMapper;
+        this.maxRequests = maxRequests;
     }
 
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RateLimiterInterceptor(objectMapper));
+    public void addInterceptors(@NotNull InterceptorRegistry registry) {
+        if (!rateLimitingEnabled) {
+            return;
+        }
+        registry.addInterceptor(new RateLimiterInterceptor(objectMapper, maxRequests));
     }
 
     private static class RateLimiterInterceptor implements HandlerInterceptor {
         private static final Logger logger = LoggerFactory.getLogger(RateLimiterInterceptor.class);
         private final Map<String, UserRateLimit> rateLimitMap = new ConcurrentHashMap<>();
         private final ObjectMapper objectMapper;
+        private final int maxRequests;
 
-        public RateLimiterInterceptor(ObjectMapper objectMapper) {
+        public RateLimiterInterceptor(ObjectMapper objectMapper, int maxRequests) {
             this.objectMapper = objectMapper;
+            this.maxRequests = maxRequests;
         }
 
         @Override
@@ -55,8 +71,8 @@ public class RateLimiterConfig implements WebMvcConfigurer {
             if (auth != null && auth.getName() != null) {
                 username = auth.getName();
             }
-           
-            UserRateLimit rateLimit = rateLimitMap.computeIfAbsent(username, k -> new UserRateLimit());
+
+            UserRateLimit rateLimit = rateLimitMap.computeIfAbsent(username, k -> new UserRateLimit(maxRequests));
 
             if (!rateLimit.tryAcquire()) {
                 handleRateLimitExceeded(response, username, rateLimit);
@@ -95,12 +111,16 @@ public class RateLimiterConfig implements WebMvcConfigurer {
     }
 
     private static class UserRateLimit {
-        private final int maxRequests = 400;
+        private final int maxRequests;
         private final long timeFrameMillis = 60000; // 1 minute
         private long lastResetTime = System.currentTimeMillis();
         private int requestCount = 0;
         private Long firstViolationInWindow = null;
         private boolean violationLogged = false;
+
+        public UserRateLimit(int maxRequests) {
+            this.maxRequests = maxRequests;
+        }
 
         public synchronized boolean tryAcquire() {
             long currentTime = System.currentTimeMillis();
@@ -116,7 +136,7 @@ public class RateLimiterConfig implements WebMvcConfigurer {
             if (firstViolationInWindow == null) {
                 firstViolationInWindow = currentTime;
             }
-            
+
             return false;
         }
 

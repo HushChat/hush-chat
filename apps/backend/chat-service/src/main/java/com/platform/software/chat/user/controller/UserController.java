@@ -1,25 +1,16 @@
 package com.platform.software.chat.user.controller;
 
-import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
-import com.platform.software.chat.user.dto.UserResetPasswordDTO;
+import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
+import com.platform.software.chat.user.dto.*;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.platform.software.chat.call.dto.CallLogViewDTO;
 import com.platform.software.chat.call.service.CallLogService;
-import com.platform.software.chat.user.dto.UserDTO;
-import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.service.security.CognitoService;
@@ -87,7 +78,7 @@ public class UserController {
     @ApiOperation(value = "Get logged in user", response = UserViewDTO.class)
     @GetMapping("whoami")
     public ResponseEntity<UserViewDTO> getLoggedInUser(@AuthenticatedUser UserDetails authenticatedUser) {
-        UserViewDTO user = userService.findUserById(authenticatedUser.getId());
+        UserViewDTO user = userService.findUserById(authenticatedUser.getId(), authenticatedUser.getWorkspaceId());
         return ResponseEntity.ok(user);
     }
 
@@ -202,5 +193,32 @@ public class UserController {
             userResetPasswordDTO.getNewPassword()
         );
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get user profile by id", response = UserProfileDTO.class)
+    @GetMapping("profile/{id}")
+    public ResponseEntity<UserProfileDTO> userProfile(
+            @PathVariable Long id
+    ){
+        return ResponseEntity.ok(userService.getUserProfile(id));
+    }
+
+    /**
+     * Updates the availability status of the currently authenticated user.
+     * <p>
+     * This endpoint allows an authenticated user to toggle or change their current availability status.
+     * The operation delegates the update to {@code userService.updateUserAvailability(UserDetails)},
+     * which returns the updated {@link UserStatusEnum}.
+     * </p>
+     *
+     * @param authenticatedUser the currently authenticated user obtained from the security context,
+     *                          injected via {@link AuthenticatedUser}
+     * @return a {@link ResponseEntity} containing the updated {@link UserStatusEnum} and an HTTP 200 (OK) status
+     */
+    @ApiOperation(value = "Change user availability status", response = UserStatusEnum.class)
+    @PatchMapping("availability")
+    public ResponseEntity<UserStatusEnum> updateUserAvailability(@AuthenticatedUser UserDetails authenticatedUser, @RequestParam UserStatusEnum status) {
+        UserStatusEnum userStatusEnum = userService.updateUserAvailability(authenticatedUser, status);
+        return new ResponseEntity<>(userStatusEnum, HttpStatus.OK);
     }
 }

@@ -6,16 +6,22 @@ import com.platform.software.chat.conversation.readstatus.service.ConversationRe
 import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.dto.MessageWindowPage;
+import com.platform.software.chat.message.dto.MessageWithAttachmentUpsertDTO;
 import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/conversations/{conversationId}/messages")
@@ -70,6 +76,46 @@ public class ConversationMessageController {
                 messageDTO, conversationId, userDetails.getId()
         );
         return new ResponseEntity<>(signedURLResponseDTO, HttpStatus.OK);
+    }
+
+    /**
+     * Create messages with attachments response entity.
+     *
+     * @param conversationId the conversation id
+     * @param messageDTO     the message dto
+     * @param userDetails    the user details
+     * @return the response entity
+     */
+    @ApiOperation(value = "Signed urls generate to upload messages attachments", response = MessageViewDTO.class)
+    @PostMapping("/upload-message-signed-url")
+    public ResponseEntity<List<MessageViewDTO>> createMessagesWithAttachments(
+        @PathVariable Long conversationId,
+        @RequestBody List<MessageWithAttachmentUpsertDTO> messageDTO,
+        @AuthenticatedUser UserDetails userDetails
+    ) {
+        List<MessageViewDTO> createdMessages = messageService.createMessagesWithAttachments(
+            messageDTO, conversationId, userDetails.getId()
+        );
+        return new ResponseEntity<>(createdMessages, HttpStatus.OK);
+    }
+
+    /**
+     * Publishes message events for the specified message IDs in a conversation after attachment uploads.
+     *
+     * @param conversationId the ID of the conversation
+     * @param messageIds the list of message IDs for which to publish events
+     * @param userDetails the authenticated user details
+     * @return ResponseEntity with no content (HTTP 200 OK)
+     */
+    @ApiOperation(value = "Publish message events after attachment upload")
+    @PostMapping("/publish-messages")
+    public ResponseEntity<Void> publishMessageEvents(
+        @PathVariable Long conversationId,
+        @RequestBody List<Long> messageIds,
+        @AuthenticatedUser UserDetails userDetails
+    ) {
+        messageService.publishMessageEvents(messageIds, conversationId, userDetails.getId());
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -131,6 +177,7 @@ public class ConversationMessageController {
      *
      * @param conversationId the ID of the conversation
      * @param messageId the ID of the message to pin
+     * @param duration the duration the message needs to be pinned
      * @param userDetails the authenticated user details
      * @return ResponseEntity with status OK
      */
@@ -139,12 +186,14 @@ public class ConversationMessageController {
     public ResponseEntity<Void> pinMessage(
             @PathVariable Long conversationId,
             @PathVariable Long messageId,
+            @RequestParam(required = false) String duration,
             @AuthenticatedUser UserDetails userDetails
     ) {
         conversationService.togglePinMessage(
                 userDetails.getId(),
                 conversationId,
-                messageId
+                messageId,
+                duration
         );
         return ResponseEntity.ok().build();
     }
@@ -160,14 +209,14 @@ public class ConversationMessageController {
      */
     @ApiOperation(value = "edit a message")
     @PutMapping("{messageId}")
-    public ResponseEntity<Void> editMessage(
+    public ResponseEntity<MessageViewDTO> editMessage(
         @PathVariable Long conversationId,
         @PathVariable Long messageId,
         @AuthenticatedUser UserDetails userDetails,
         @RequestBody MessageUpsertDTO messageDTO
     ) {
-        messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
-        return ResponseEntity.ok().build();
+        MessageViewDTO updatedMessage = messageService.editMessage(userDetails.getId(), conversationId, messageId, messageDTO);
+        return ResponseEntity.ok(updatedMessage);
     }
 
     /** unpin a message in a conversation
@@ -186,14 +235,41 @@ public class ConversationMessageController {
         return ResponseEntity.noContent().build();
     }
 
-    @ApiOperation(value = "Get a page of messages around a specific message ID", response = MessageViewDTO.class)
+    @ApiOperation(value = "Get a page of messages around a specific message ID", response = MessageWindowPage.class)
     @GetMapping("/{messageId}")
-    public ResponseEntity<Page<MessageViewDTO>> getMessagesAroundId(
+    public ResponseEntity<MessageWindowPage<MessageViewDTO>> getMessagesAroundId(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails,
             @PathVariable Long messageId
     ) {
-        Page<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
+        MessageWindowPage<MessageViewDTO> messages = conversationService.getMessagePageById(messageId, conversationId, userDetails.getId());
         return new ResponseEntity<>(messages, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get a page of participants who read the message", response = UserBasicViewDTO.class)
+    @GetMapping("{messageId}/seen-by")
+    public ResponseEntity<Page<UserBasicViewDTO>> getMessageSeenGroupParticipants(
+            @PathVariable Long conversationId,
+            @PathVariable Long messageId,
+            @AuthenticatedUser UserDetails userDetails,
+            Pageable pageable
+    ) {
+        Page<UserBasicViewDTO> userBasicViewDTOs = conversationService.getMessageSeenGroupParticipants(conversationId, messageId, userDetails.getId(), pageable);
+        return new ResponseEntity<>(userBasicViewDTOs, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{messageId}/mark-unread")
+    public ResponseEntity<ConversationReadInfo> markMessageAsUnread(
+            @PathVariable Long conversationId,
+            @PathVariable Long messageId,
+            @AuthenticatedUser UserDetails userDetails) {
+
+        ConversationReadInfo readInfo = messageService.markMessageAsUnread(
+            conversationId,
+            userDetails.getId(),
+            messageId
+        );
+
+        return ResponseEntity.ok(readInfo);
     }
 }

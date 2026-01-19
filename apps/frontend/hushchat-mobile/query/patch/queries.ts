@@ -1,15 +1,29 @@
 import {
   archiveConversationById,
   ConversationFilterCriteria,
+  editMessageById,
   setLastSeenMessageByConversationId,
   toggleConversationFavorite,
+  toggleNotifyOnlyOnMention,
+  updateMessageRestrictions,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
 import { updateUser } from "@/apis/user";
-import { ConversationReadInfo, TMessageForward, UpdateUserInput } from "@/types/chat/types";
-import { conversationQueryKeys, userQueryKeys } from "@/constants/queryKeys";
+import {
+  ConversationReadInfo,
+  IConversation,
+  IMessage,
+  TMessageForward,
+  TMessageForwardResponse,
+  UpdateUserInput,
+} from "@/types/chat/types";
+import {
+  conversationMessageQueryKeys,
+  conversationQueryKeys,
+  userQueryKeys,
+} from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
-import { forwardMessages, unsendMessage } from "@/apis/message";
+import { forwardMessages, markMessageAsUnread, unsendMessage } from "@/apis/message";
 
 export const useArchiveConversationMutation = createMutationHook<void, number>(
   archiveConversationById,
@@ -34,7 +48,10 @@ export const useUpdateUserMutation = createMutationHook<IUser, UpdateUserInput>(
     [userQueryKeys.userProfile(keyParams.userId)] as string[][]
 );
 
-export const useForwardMessageMutation = createMutationHook<void, TMessageForward>(
+export const useForwardMessageMutation = createMutationHook<
+  TMessageForwardResponse,
+  TMessageForward
+>(
   (params) => forwardMessages(params),
   (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
     [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][]
@@ -44,7 +61,47 @@ export const usePatchUnsendMessageMutation = createMutationHook<void, { messageI
   unsendMessage
 );
 
+export const useMarkMessageAsUnreadMutation = createMutationHook<
+  void,
+  { messageId: number; conversationId: number }
+>(
+  markMessageAsUnread,
+  (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
+    [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][]
+);
+
 export const useSetLastSeenMessageMutation = createMutationHook<
   { data: ConversationReadInfo },
   { messageId: number; conversationId: number }
 >(({ messageId, conversationId }) => setLastSeenMessageByConversationId(messageId, conversationId));
+
+export const useUpdateMessageRestrictionsMutation = createMutationHook<
+  IConversation,
+  { conversationId: number; onlyAdminsCanSendMessages: boolean }
+>(
+  ({ conversationId, onlyAdminsCanSendMessages }) =>
+    updateMessageRestrictions(conversationId, onlyAdminsCanSendMessages),
+  (keyParams: { userId: number; conversationId: number }) => () =>
+    [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
+);
+
+export const useToggleNotifyOnlyOnMentionMutation = createMutationHook<
+  IConversation,
+  { conversationId: number }
+>(
+  ({ conversationId }) => toggleNotifyOnlyOnMention(conversationId),
+  (keyParams: { userId: number; conversationId: number }) => () =>
+    [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
+);
+
+export const useEditMessageMutation = createMutationHook<
+  IMessage,
+  { conversationId: number; messageId: number; messageText: string }
+>(
+  ({ conversationId, messageId, messageText }) =>
+    editMessageById(conversationId, messageId, messageText),
+  (keyParams: { userId: number; conversationId: number }) => () =>
+    [
+      conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
+    ] as string[][]
+);

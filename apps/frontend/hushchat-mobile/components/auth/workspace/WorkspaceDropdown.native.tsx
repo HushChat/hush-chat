@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import { PLATFORM } from "@/constants/platformConstants";
-import { Workspace, WorkspaceDropdownProps } from "@/types/login/types";
+import { STATUS_STYLES, Workspace, WorkspaceDropdownProps } from "@/types/login/types";
 import { SIZE_PRESETS } from "@/components/forms/TextField";
 import { MotionView } from "@/motion/MotionView";
 import { AppText } from "@/components/AppText";
@@ -56,6 +56,8 @@ const WorkspaceDropdown = ({
 
   const insets = useSafeAreaInsets();
 
+  const workspaceList = Array.isArray(workspaces) ? workspaces : [];
+
   const effectiveSize: SizeKey = useMemo(() => {
     if (size) return size;
     if (!platformAwareDefault) return "md";
@@ -80,18 +82,11 @@ const WorkspaceDropdown = ({
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "PENDING") {
-      return (
-        <View className="bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">
-          <AppText className="text-yellow-700 dark:text-yellow-400 text-xs font-medium">
-            Invitation Pending
-          </AppText>
-        </View>
-      );
-    }
+    const style = STATUS_STYLES[status];
+
     return (
-      <View className="bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">
-        <AppText className="text-green-700 dark:text-green-400 text-xs font-medium">Active</AppText>
+      <View className={`${style.bg} px-2 py-0.5 rounded-full self-start`}>
+        <AppText className={`${style.text} text-xs font-medium`}>{style.label}</AppText>
       </View>
     );
   };
@@ -107,7 +102,7 @@ const WorkspaceDropdown = ({
       <View className="flex-col gap-y-1">
         <Pressable onPress={openDropdown}>
           <View
-            className={`border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.radius} flex-row items-center justify-between`}
+            className={`border border-violet-200 dark:border-violet-800 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 ${tokens.px} ${tokens.py} ${tokens.inputHeight} rounded-xl flex-row items-center justify-between`}
           >
             <AppText
               className={`${tokens.font} ${
@@ -119,7 +114,7 @@ const WorkspaceDropdown = ({
             <Ionicons
               name={isModalVisible ? "chevron-up" : "chevron-down"}
               size={tokens.iconSize}
-              color="#9CA3AF"
+              color="#8B5CF6"
             />
           </View>
         </Pressable>
@@ -152,7 +147,7 @@ const WorkspaceDropdown = ({
                 duration={300}
                 easing="emphasized"
                 style={styles.sheet}
-                className="bg-white dark:bg-gray-900 rounded-t-3xl"
+                className="bg-white dark:bg-gray-900 rounded-t-3xl border-t border-violet-100 dark:border-violet-900"
               >
                 <View className="items-center py-3">
                   <View className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
@@ -176,7 +171,7 @@ const WorkspaceDropdown = ({
                       showsVerticalScrollIndicator={true}
                       style={{ maxHeight: SCREEN_HEIGHT * 0.6 }}
                     >
-                      {workspaces.map((item, index) => (
+                      {workspaceList.map((item, index) => (
                         <MotionView
                           key={item.id.toString()}
                           visible={true}
@@ -185,16 +180,16 @@ const WorkspaceDropdown = ({
                         >
                           <Pressable
                             onPress={() => handleSelect(item)}
-                            className={`py-4 px-2 ${
-                              index < workspaces.length - 1
-                                ? "border-b border-gray-200 dark:border-gray-700"
-                                : ""
+                            className={`py-4 px-4 mb-3 rounded-xl border ${
+                              selectedWorkspace?.id === item.id
+                                ? "bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800"
+                                : "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700"
                             }`}
                           >
                             <View className="flex-row items-start justify-between gap-3">
                               <View className="flex-1">
                                 <AppText
-                                  className={`${tokens.font} font-semibold text-gray-900 dark:text-gray-100 mb-1`}
+                                  className={`${tokens.font} font-medium text-gray-900 dark:text-gray-100 mb-1`}
                                 >
                                   {item.name}
                                 </AppText>
@@ -206,8 +201,8 @@ const WorkspaceDropdown = ({
                                 {getStatusBadge(item.status)}
                               </View>
                               {selectedWorkspace?.id === item.id && (
-                                <View className="w-10 h-10 rounded-full items-center justify-center bg-blue-100 dark:bg-blue-900/30">
-                                  <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
+                                <View className="w-8 h-8 rounded-full items-center justify-center bg-violet-100 dark:bg-violet-900/30">
+                                  <Ionicons name="checkmark" size={18} color="#8B5CF6" />
                                 </View>
                               )}
                             </View>

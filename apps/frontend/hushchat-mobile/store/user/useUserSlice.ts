@@ -2,6 +2,7 @@ import { getUserInfo } from "@/apis/user";
 import { IUser } from "@/types/user/types";
 import { logInfo } from "@/utils/logger";
 import { StateCreator } from "zustand";
+import { chatUserStatus } from "@/types/chat/types";
 
 export interface UserState {
   user: IUser;
@@ -12,6 +13,7 @@ export interface UserState {
   setIsAuthenticatedAndDataFetched: (value: boolean) => void;
   fetchUserData: () => Promise<void>;
   resetState: () => void;
+  setUserStatus: (status: chatUserStatus) => void;
 }
 
 const initialUserState: IUser = {
@@ -21,6 +23,9 @@ const initialUserState: IUser = {
   lastName: "",
   signedImageUrl: "",
   active: false,
+  workspaceName: "",
+  workspaceRole: "",
+  status: chatUserStatus.OFFLINE,
 };
 
 export const createUserSlice: StateCreator<UserState> = (set) => ({
@@ -35,6 +40,15 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
 
   setIsAuthenticatedAndDataFetched: (value: boolean) => {
     set({ isAuthenticatedAndDataFetched: value });
+  },
+
+  setUserStatus: (status: chatUserStatus) => {
+    set((state) => ({
+      user: {
+        ...state.user,
+        status: status,
+      },
+    }));
   },
 
   fetchUserData: async () => {
@@ -61,8 +75,13 @@ export const createUserSlice: StateCreator<UserState> = (set) => ({
         return;
       }
 
+      const user: IUser = {
+        ...response.data,
+        workspaceRole: response.data.workspaceRole,
+      };
+
       set({
-        user: response.data,
+        user: user,
         loading: false,
         isAuthenticatedAndDataFetched: true,
       });

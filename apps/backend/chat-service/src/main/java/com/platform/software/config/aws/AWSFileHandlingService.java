@@ -6,14 +6,19 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AWSFileHandlingService implements CloudPhotoHandlingService {
     Logger logger = LoggerFactory.getLogger(AWSFileHandlingService.class);
+
+    @Value("${cloud.front.url}")
+    private String cloudFrontUrl;
 
     private final S3Service s3Service;
 
@@ -44,12 +49,27 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
 
     @Override
     public String getPhotoViewSignedURL(String imageIndexedName) {
+        if (imageIndexedName == null || imageIndexedName.trim().isEmpty()) {
+            return null;
+        }
+
+        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+    }
+
+    @Override
+    public String getPhotoViewSignedURL(MediaPathEnum mediaPathEnum, MediaSizeEnum size, String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return null;
+        }
+
+        String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
+
         return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
     }
 
     @Override
     public SignedURLResponseDTO generateSignedURLForMessageAttachmentsUpload(DocUploadRequestDTO attachmentRequestDTO, Long requestId) {
-        String objectKey = String.format("chat-service/message-attachments/%s", requestId);
+        String objectKey = String.format(MediaPathEnum.MESSAGE_ATTACHMENT.getName(), requestId);
         return getSignedURLToUpload(attachmentRequestDTO, objectKey, DocUploadRequestDTO.class);
     }
 

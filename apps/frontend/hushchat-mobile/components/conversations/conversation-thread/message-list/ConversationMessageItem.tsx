@@ -13,6 +13,8 @@ import {
   IOption,
   ReactionType,
   MessageTypeEnum,
+  PIN_MESSAGE_OPTIONS,
+  IMessageAttachment,
 } from "@/types/chat/types";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,18 +25,25 @@ import { SwipeableMessageRow } from "@/gestures/components/SwipeableMessageRow";
 import { useAddMessageReactionMutation } from "@/query/post/queries";
 import { useRemoveMessageReactionMutation } from "@/query/delete/queries";
 import { ToastUtils } from "@/utils/toastUtils";
-import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { MessageHeader } from "@/components/conversations/conversation-thread/message-list/MessageHeader";
 import { MessageBubble } from "@/components/conversations/conversation-thread/message-list/MessageBubble";
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
-import { isImageAttachment } from "@/utils/messageHelpers";
+import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
+import { TUser } from "@/types/user/types";
+import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import { router } from "expo-router";
+import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
+import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
+import { CONVERSATION } from "@/constants/routes";
+import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { useModalContext } from "@/context/modal-context";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -55,14 +64,19 @@ interface MessageItemProps {
   selected: boolean;
   onStartSelectionWith: (messageId: number) => void;
   onToggleSelection: (messageId: number) => void;
-  onMessageLongPress?: (message: IMessage) => void;
+  onMessageLongPress?: (message: IMessage, attachment?: IMessageAttachment) => void;
   onCloseAllOverlays?: () => void;
-  onMessagePin: (message: IMessage) => void;
+  onMessagePin: (message: IMessage, duration: string | null) => void;
   onUnsendMessage: (message: IMessage) => void;
   selectedConversationId: number;
   onViewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   showSenderAvatar: boolean;
+  showSenderName: boolean;
   onNavigateToMessage?: (messageId: number) => void;
+  targetMessageId?: number | null;
+  webMessageInfoPress?: (messageId: number) => void;
+  onMarkMessageAsUnread: (message: IMessage) => void;
+  onEditMessage?: (message: IMessage) => void;
 }
 
 const REMOVE_ONE = 1;
@@ -83,24 +97,34 @@ export const ConversationMessageItem = ({
   onMessageLongPress,
   onCloseAllOverlays,
   onMessagePin,
-  selectedConversationId,
   onUnsendMessage,
   onViewReactions,
   showSenderAvatar,
+  showSenderName,
   onNavigateToMessage,
+  targetMessageId,
+  webMessageInfoPress,
+  onMarkMessageAsUnread,
+  onEditMessage,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
 
   const queryClient = useQueryClient();
 
-  const hasImages = () => attachments.some(isImageAttachment);
+  const hasMedia = useMemo(
+    () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
+    [attachments]
+  );
+  const { openModal, closeModal } = useModalContext();
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
   const [webMenuPos, setWebMenuPos] = useState<{ x: number; y: number }>({
     x: 0,
     y: 0,
   });
+  const [showProfilePreviewModal, setShowProfilePreviewModal] = useState(false);
+  const [selectedPreviewUser, setSelectedPreviewUser] = useState<TUser | null>(null);
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
@@ -108,16 +132,16 @@ export const ConversationMessageItem = ({
     message.reactionSummary || { counts: {}, currentUserReaction: "" }
   );
   const reactedByCurrentUser = reactionSummary?.currentUserReaction || "";
-  const {
-    user: { id: userId },
-  } = useUserStore();
   const { selectionMode } = useConversationStore();
 
   const messageContent = message.messageText;
   const isForwardedMessage = message.isForwarded;
+  const isMessageEdited = message.isEdited;
   const hasText = !!messageContent;
   const isGroupChat = conversationAPIResponse?.isGroup;
   const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
+  const isAttachmentOnly = message.messageType === MessageTypeEnum.ATTACHMENT;
+  const canEdit = isCurrentUser && !message.isUnsend && hasText && !isAttachmentOnly;
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
@@ -164,6 +188,34 @@ export const ConversationMessageItem = ({
     [selectionMode, isSystemEvent]
   );
 
+  const handleTogglePinMessage = useCallback(() => {
+    if (isThisMessagePinned) {
+      onMessagePin(message, null);
+      return;
+    }
+
+    openModal({
+      type: MODAL_TYPES.confirm,
+      title: "Pin Message",
+      description: "Select how long you want to pin this message",
+      buttons: [
+        ...PIN_MESSAGE_OPTIONS.map((option) => ({
+          text: option.label,
+          onPress: () => {
+            onMessagePin(message, option.value);
+            closeModal();
+          },
+        })),
+        {
+          text: "Cancel",
+          onPress: closeModal,
+          variant: MODAL_BUTTON_VARIANTS.destructive,
+        },
+      ],
+      icon: "pin-outline",
+    });
+  }, [isThisMessagePinned, openModal, PIN_MESSAGE_OPTIONS, closeModal]);
+
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
 
   const webOptions: IOption[] = useMemo(() => {
@@ -182,7 +234,7 @@ export const ConversationMessageItem = ({
         id: 2,
         name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
         iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
-        action: () => onMessagePin(message),
+        action: () => handleTogglePinMessage(),
       },
       {
         id: 3,
@@ -191,6 +243,7 @@ export const ConversationMessageItem = ({
         action: () => onStartSelectionWith(Number(message.id)),
       },
     ];
+
     if (isCurrentUser && !message.isUnsend) {
       options.push({
         id: 4,
@@ -198,33 +251,66 @@ export const ConversationMessageItem = ({
         iconName: "ban" as keyof typeof Ionicons.glyphMap,
         action: () => onUnsendMessage(message),
       });
+
+      options.push({
+        id: 5,
+        name: "Message Info",
+        iconName: "information-circle-outline",
+        action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+      });
+
+      if (canEdit && !isForwardedMessage) {
+        options.push({
+          id: 6,
+          name: "Edit Message",
+          iconName: "pencil" as keyof typeof Ionicons.glyphMap,
+          action: () => onEditMessage?.(message),
+        });
+      }
     }
+
+    if (!isCurrentUser && !message.isUnsend) {
+      options.push({
+        id: 7,
+        name: "Mark as Unread",
+        iconName: "mail-unread-outline" as keyof typeof Ionicons.glyphMap,
+        action: () => onMarkMessageAsUnread(message),
+      });
+    }
+
     return options;
   }, [
     message,
     isThisMessagePinned,
     isCurrentUser,
+    canEdit,
     onMessagePin,
     onStartSelectionWith,
     onUnsendMessage,
+    onEditMessage,
     isSystemEvent,
+    webMessageInfoPress,
+    onMarkMessageAsUnread,
   ]);
 
-  const handleLongPress = useCallback(() => {
-    if (conversationAPIResponse?.isBlocked) return;
-    if (selectionMode) return;
-    if (isSystemEvent) return;
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onOpenPicker(String(message.id));
-    onMessageLongPress?.(message);
-  }, [
-    conversationAPIResponse?.isBlocked,
-    selectionMode,
-    message,
-    onMessageLongPress,
-    onOpenPicker,
-    isSystemEvent,
-  ]);
+  const handleLongPress = useCallback(
+    (attachment?: IMessageAttachment) => {
+      if (conversationAPIResponse?.isBlocked) return;
+      if (selectionMode) return;
+      if (isSystemEvent) return;
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onOpenPicker(String(message.id));
+      onMessageLongPress?.(message, attachment);
+    },
+    [
+      conversationAPIResponse?.isBlocked,
+      selectionMode,
+      message,
+      onMessageLongPress,
+      onOpenPicker,
+      isSystemEvent,
+    ]
+  );
 
   const handleOpenPicker = useCallback(() => {
     if (conversationAPIResponse?.isBlocked || !conversationAPIResponse?.isActive) return;
@@ -240,8 +326,29 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        router.push(CONVERSATION(result.data.id));
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessageMentionedUser = useCallback(
+    (user: TUser) => {
+      if (currentUserId === String(user.id)) return;
+
+      setShowProfilePreviewModal(false);
+      createConversation(user.id);
+    },
+    [createConversation]
+  );
+
   const addReaction = useAddMessageReactionMutation(
-    { userId: Number(userId), conversationId: selectedConversationId },
+    undefined,
     () => {
       if (message.id) {
         queryClient.invalidateQueries({
@@ -255,7 +362,7 @@ export const ConversationMessageItem = ({
   );
 
   const removeReaction = useRemoveMessageReactionMutation(
-    { userId: Number(userId), conversationId: selectedConversationId },
+    undefined,
     () => {
       if (message.id) {
         queryClient.invalidateQueries({
@@ -330,6 +437,29 @@ export const ConversationMessageItem = ({
     ]
   );
 
+  const handleMentionClick = useCallback((user: TUser) => {
+    if (currentUserId === String(user.id)) return;
+
+    setSelectedPreviewUser(user);
+    setShowProfilePreviewModal(true);
+  }, []);
+
+  const handleNamePress = useCallback(() => {
+    if (!message.senderId || String(message.senderId) === currentUserId) return;
+
+    const senderAsUser: TUser = {
+      id: Number(message.senderId),
+      username: "",
+      email: "",
+      firstName: message.senderFirstName || "",
+      lastName: message.senderLastName || "",
+      signedImageUrl: message.senderSignedImageUrl || "",
+    };
+
+    setSelectedPreviewUser(senderAsUser);
+    setShowProfilePreviewModal(true);
+  }, [message, currentUserId]);
+
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
     return (
@@ -372,6 +502,7 @@ export const ConversationMessageItem = ({
                 name={senderName}
                 size={AvatarSize.extraSmall}
                 imageUrl={message.senderSignedImageUrl}
+                onPress={handleNamePress}
               />
             </View>
           ) : isGroupChat ? (
@@ -381,6 +512,7 @@ export const ConversationMessageItem = ({
             <MessageHeader
               isCurrentUser={isCurrentUser}
               isGroupChat={isGroupChat}
+              showSenderName={showSenderName}
               senderName={senderName}
               messageTime={messageTime}
               messageIsUnsend={message.isUnsend}
@@ -390,22 +522,29 @@ export const ConversationMessageItem = ({
               onOpenMenu={openWebMenuAtEvent}
               messageText={message.messageText}
               isRead={message.isReadByEveryone}
+              onClickSendernName={handleNamePress}
             />
 
             {renderParentMessage()}
 
-            <MessageBubble
-              message={message}
-              isCurrentUser={isCurrentUser}
-              hasText={hasText}
-              hasAttachments={hasAttachments}
-              hasImages={hasImages()}
-              selected={selected}
-              selectionMode={selectionMode}
-              isForwardedMessage={isForwardedMessage}
-              attachments={attachments}
-              onBubblePress={handleBubblePress}
-            />
+            <View className={isCurrentUser ? "self-end" : "self-start"}>
+              <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
+                <MessageBubble
+                  message={message}
+                  isCurrentUser={isCurrentUser}
+                  hasText={hasText}
+                  hasAttachments={hasAttachments}
+                  hasMedia={hasMedia}
+                  selected={selected}
+                  selectionMode={selectionMode}
+                  isForwardedMessage={isForwardedMessage}
+                  attachments={attachments}
+                  onBubblePress={handleBubblePress}
+                  onMentionClick={handleMentionClick}
+                  isMessageEdited={isMessageEdited}
+                />
+              </MessageHighlightWrapper>
+            </View>
 
             <MessageReactions
               message={message}
@@ -419,6 +558,16 @@ export const ConversationMessageItem = ({
               onSelectReaction={handleSelectReaction}
               onCloseAllOverlays={onCloseAllOverlays}
               onViewReactions={handleViewReactions}
+            />
+
+            <MentionProfileModal
+              visible={showProfilePreviewModal}
+              user={selectedPreviewUser}
+              onClose={() => {
+                setShowProfilePreviewModal(false);
+                setSelectedPreviewUser(null);
+              }}
+              onMessagePress={handleMessageMentionedUser}
             />
           </View>
         </View>
@@ -453,7 +602,7 @@ export const ConversationMessageItem = ({
         }}
         style={webStyles.contents}
       >
-        <ContentBlock />
+        {ContentBlock()}
       </div>
     );
   }
@@ -471,7 +620,7 @@ export const ConversationMessageItem = ({
         showAffordance
         enabled={!selectionMode}
       >
-        <ContentBlock />
+        {ContentBlock()}
       </SwipeableMessageRow>
     </GestureDetector>
   );

@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
-import { Workspace, WorkspaceDropdownProps } from "@/types/login/types";
+import { STATUS_STYLES, Workspace, WorkspaceDropdownProps } from "@/types/login/types";
 import { SIZE_PRESETS } from "@/components/forms/TextField";
 import { AppText } from "@/components/AppText";
 
@@ -57,7 +57,7 @@ const WorkspaceDropdown = ({
   const tokens = SIZE_PRESETS[effectiveSize];
 
   const inputBase =
-    "border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 " +
+    "border border-violet-200 dark:border-violet-800 text-gray-900 dark:text-gray-100 " +
     "bg-white dark:bg-gray-900";
 
   const handleOpen = () => {
@@ -79,18 +79,11 @@ const WorkspaceDropdown = ({
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "PENDING") {
-      return (
-        <View className="bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">
-          <AppText className="text-yellow-700 dark:text-yellow-400 text-xs font-medium">
-            Invitation Pending
-          </AppText>
-        </View>
-      );
-    }
+    const style = STATUS_STYLES[status];
+
     return (
-      <View className="bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">
-        <AppText className="text-green-700 dark:text-green-400 text-xs font-medium">Active</AppText>
+      <View className={`${style.bg} px-3 py-0.5 rounded-full w-fit`}>
+        <AppText className={`${style.text} text-xs font-medium`}>{style.label}</AppText>
       </View>
     );
   };
@@ -107,7 +100,7 @@ const WorkspaceDropdown = ({
         <Pressable onPress={handleOpen}>
           <View
             ref={buttonRef}
-            className={`${inputBase} ${tokens.px} ${tokens.py} ${tokens.inputHeight} ${tokens.radius} flex-row items-center justify-between`}
+            className={`${inputBase} ${tokens.px} ${tokens.py} ${tokens.inputHeight} rounded-xl flex-row items-center justify-between`}
           >
             <AppText
               className={`${tokens.font} ${
@@ -119,7 +112,7 @@ const WorkspaceDropdown = ({
             <Ionicons
               name={isOpen ? "chevron-up" : "chevron-down"}
               size={tokens.iconSize}
-              color="#9CA3AF"
+              color="#8B5CF6"
             />
           </View>
         </Pressable>
@@ -147,7 +140,7 @@ const WorkspaceDropdown = ({
                     width: dropdownPosition.width,
                   },
                 ]}
-                className={`border border-gray-300 dark:border-gray-600 ${tokens.radius} bg-white dark:bg-gray-800 overflow-hidden`}
+                className={`border border-violet-200 dark:border-violet-800 rounded-xl bg-white dark:bg-gray-800 overflow-hidden`}
               >
                 {workspaces.length === 0 || loading ? (
                   <View className="p-8 items-center">
@@ -165,11 +158,11 @@ const WorkspaceDropdown = ({
                       <Pressable
                         className={`p-4 ${
                           index !== workspaces.length - 1
-                            ? "border-b border-gray-200 dark:border-gray-700"
+                            ? "border-b border-violet-100 dark:border-violet-900"
                             : ""
                         } ${
                           selectedWorkspace?.id === item.id
-                            ? "bg-blue-50 dark:bg-blue-900/20"
+                            ? "bg-violet-50 dark:bg-violet-900/20"
                             : "bg-white dark:bg-gray-800"
                         }`}
                         onPress={() => handleSelect(item)}
@@ -177,7 +170,7 @@ const WorkspaceDropdown = ({
                         <View className="flex-row items-start justify-between gap-3">
                           <View className="flex-1">
                             <AppText
-                              className={`${tokens.font} font-semibold text-gray-900 dark:text-gray-100 mb-1`}
+                              className={`${tokens.font} font-medium text-gray-900 dark:text-gray-100 mb-1`}
                             >
                               {item.name}
                             </AppText>
@@ -191,7 +184,7 @@ const WorkspaceDropdown = ({
                             {getStatusBadge(item.status)}
                           </View>
                           {selectedWorkspace?.id === item.id && (
-                            <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
+                            <Ionicons name="checkmark-circle" size={24} color="#8B5CF6" />
                           )}
                         </View>
                       </Pressable>

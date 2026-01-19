@@ -1,20 +1,20 @@
 package com.platform.software.chat.user.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
-import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
-import com.platform.software.chat.user.dto.UserUpsertDTO;
 import com.platform.software.chat.user.dto.UserDTO;
+import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.dto.WorkSpaceUserUpsertDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.common.model.UserTypeEnum;
 import com.platform.software.common.service.security.CognitoService;
+import com.platform.software.config.cache.CacheNames;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomCognitoServerErrorException;
 import com.platform.software.exception.CustomInternalServerErrorException;
-import com.platform.software.platform.workspace.entity.Workspace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.platform.software.common.model.MediaPathEnum;
@@ -69,9 +69,8 @@ public class UserUtilService {
   
     public UserDTO addSignedImageUrlToUser(UserDTO userDTO, String finalName) {
           String newFileName = (userDTO.getId() + "_" + finalName);
-          String imageIndexName = String.format(MediaPathEnum.PROFILE_PICTURE.getName(), newFileName);
 
-          userDTO.setImageIndexedName(imageIndexName);
+          userDTO.setImageIndexedName(newFileName);
 
           SignedURLDTO imageSignedDTO = cloudPhotoHandlingService.getPhotoUploadSignedURL(MediaPathEnum.PROFILE_PICTURE, newFileName);
           userDTO.setSignedImageUrl(imageSignedDTO.getUrl());
@@ -97,5 +96,33 @@ public class UserUtilService {
                     ));
                 });
         }
+    }
+
+    /**
+     * Retrieves a user's view DTO by ID from cache or database.
+     * <p>
+     * This method fetches a {@link ChatUser} by the given ID and converts it to a {@link UserViewDTO}.
+     * The result is cached using Spring's {@code @Cacheable} annotation with workspace-aware key generation,
+     * improving performance for frequently accessed user data across workspace contexts.
+     * </p>
+     *
+     * @param userId the unique identifier of the user to retrieve
+     * @return a {@link UserViewDTO} containing the user's basic information
+     * @throws CustomBadRequestException if no user exists with the specified {@code userId}
+     * @see CacheNames#FIND_USER_BY_ID
+     * @see CacheNames#WORKSPACE_AWARE_KEY_GENERATOR
+     * @see ChatUser
+     * @see UserViewDTO
+     */
+    @Cacheable(value = CacheNames.FIND_USER_BY_ID, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
+    public UserViewDTO getUserViewDTO(Long userId) {
+        ChatUser user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.warn("invalid user id {} provided", userId);
+                    return new CustomBadRequestException("User does not exist!");
+                });
+
+        UserViewDTO userViewDTO = new UserViewDTO(user);
+        return userViewDTO;
     }
 }
