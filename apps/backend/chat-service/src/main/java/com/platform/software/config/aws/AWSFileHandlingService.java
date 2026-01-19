@@ -53,8 +53,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
             return null;
         }
 
-        String signedCloudFrontUrl  = cloudFrontUrl + imageIndexedName;
-        return signedCloudFrontUrl ;
+        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
     }
 
     @Override
@@ -65,8 +64,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
 
         String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
 
-        String signedCloudFrontUrl  = cloudFrontUrl + imageIndexedName;
-        return signedCloudFrontUrl ;
+        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
     }
 
     @Override

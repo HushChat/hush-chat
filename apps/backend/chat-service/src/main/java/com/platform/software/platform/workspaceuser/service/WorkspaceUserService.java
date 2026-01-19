@@ -15,12 +15,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 public class WorkspaceUserService {
-
+    private static final Long MAX_INVITES_PER_REQUEST = 100L;
     private final WorkspaceUserRepository workspaceUserRepository;
     private final TransactionTemplate transactionTemplate;
     private final WorkspaceUserUtilService workspaceUserUtilService;
@@ -61,30 +65,57 @@ public class WorkspaceUserService {
         });
     }
 
-    public void inviteUserToWorkspace(String inviterEmail, String workspaceIdentifier, WorkspaceUserInviteDTO workspaceUserInviteDTO) {
+    public void inviteUserToWorkspace(String inviterEmail, String workspaceIdentifier, List<WorkspaceUserInviteDTO> workspaceUserInviteDTOs) {
+        if (workspaceUserInviteDTOs != null && workspaceUserInviteDTOs.size() > MAX_INVITES_PER_REQUEST) {
+            logger.error("user {} attempted to send {} invites to workspace {}. Maximum allowed is {}.", inviterEmail, workspaceUserInviteDTOs.size(), workspaceIdentifier, MAX_INVITES_PER_REQUEST);
+            throw new CustomBadRequestException("Maximum of %s invites allowed per request. Found: %s".formatted(MAX_INVITES_PER_REQUEST, workspaceUserInviteDTOs.size()));
+        }
+
+        List<WorkspaceUser> successfullyInvitedUsers = new ArrayList<>();
         AtomicReference<Workspace> workspace = new AtomicReference<>(new Workspace());
+
+        Map<String, WorkspaceUserInviteDTO> uniqueInvites = workspaceUserInviteDTOs.stream()
+                .collect(Collectors.toMap(
+                        dto -> dto.getEmail().toLowerCase().trim(),
+                        dto -> {
+                            dto.setEmail(dto.getEmail().toLowerCase().trim());
+                            return dto;
+                        },
+                        (existing, replacement) -> existing
+                ));
+
         WorkspaceUtils.runInGlobalSchema(() -> {
             transactionTemplate.executeWithoutResult(status -> {
-                WorkspaceUser existingUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
-                        workspaceUserInviteDTO.getEmail(), workspaceIdentifier).orElse(null);
+                workspace.set(workspaceUserRepository.validateWorkspaceMembershipOrThrow(inviterEmail, workspaceIdentifier));
 
-                if (existingUser != null) {
-                    throw new CustomBadRequestException("User is already a member of this workspace.");
+                for (WorkspaceUserInviteDTO dto : uniqueInvites.values()) {
+                        WorkspaceUser existingUser = workspaceUserRepository.findByEmailAndWorkspace_WorkspaceIdentifier(
+                                dto.getEmail(), workspaceIdentifier).orElse(null);
+
+                        if (existingUser != null) {
+                            logger.warn("User {} is already a {} member of workspace {}. Skipping.", dto.getEmail(), existingUser.getStatus(), workspaceIdentifier);
+                            continue;
+                        }
+
+                        WorkspaceUser newWorkspaceUser = WorkspaceUserInviteDTO.createPendingInvite(dto, workspace.get(), inviterEmail);
+
+                        successfullyInvitedUsers.add(newWorkspaceUser);
+                        logger.info("Successfully invited user: {} to workspace: {}", dto.getEmail(), workspaceIdentifier);
                 }
 
-                try {
-                    workspace.set(workspaceUserRepository.validateWorkspaceMembershipOrThrow(inviterEmail, workspaceIdentifier));
-                    WorkspaceUser newWorkspaceUser =
-                            WorkspaceUserInviteDTO.createPendingInvite(workspaceUserInviteDTO, workspace.get(), inviterEmail);
-                    workspaceUserRepository.save(newWorkspaceUser);
-                    logger.info("Successfully invited user: {} to workspace: {}", workspaceUserInviteDTO.getEmail(), workspaceIdentifier);
-                } catch (Exception e) {
-                    logger.info("Failed to invite user: {} to workspace: {}. Error: {}", workspaceUserInviteDTO.getEmail(), workspaceIdentifier, e.getMessage());
-                    throw new CustomBadRequestException("Failed to invite user to workspace: " + e.getMessage());
-                }
+                workspaceUserRepository.saveAll(successfullyInvitedUsers);
             });
         });
-        workspaceUserUtilService.sendInvitationEmail(workspace.get(), workspaceUserInviteDTO.getEmail(), inviterEmail );
+
+//        if (workspace.get() != null && !successfullyInvitedUsers.isEmpty()) {
+//            for (WorkspaceUser user : successfullyInvitedUsers) {
+//                try {
+//                    workspaceUserUtilService.sendInvitationEmail(workspace.get(), user.getEmail(), inviterEmail);
+//                } catch (Exception e) {
+//                    logger.error("Failed to send invitation email to {}", user.getEmail(), e);
+//                }
+//            }
+//        }
     }
 
     public List<WorkspaceDTO> getAllWorkspaceDTO(String email) {
