@@ -526,4 +526,14 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .where(qConversation.id.eq(conversationId))
                 .execute();
     }
+
+    @Override
+    @Transactional
+    public long updateGroupMessagePinPermission(Long conversationId, Boolean isAdminOnlyCanPinGroupMessage) {
+        return jpaQueryFactory
+                .update(qConversation)
+                .set(qConversation.onlyAdminsCanPinMessages, isAdminOnlyCanPinGroupMessage)
+                .where(qConversation.id.eq(conversationId))
+                .execute();
+    }
 }

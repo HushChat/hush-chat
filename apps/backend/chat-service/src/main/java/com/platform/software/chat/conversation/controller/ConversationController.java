@@ -580,4 +580,14 @@ public class ConversationController {
     ) {
         return ResponseEntity.ok(conversationService.toggleNotifyMentionsOnly(conversationId, userDetails.getId()));
     }
+
+    @PatchMapping("{conversationId}/group-message-pin-permission")
+    public ResponseEntity<Boolean> updateGroupPinnedMessagePermission(
+            @AuthenticatedUser UserDetails userDetails,
+            @PathVariable Long conversationId,
+            @Valid @RequestBody Boolean isAdminOnlyCanPinGroupMessage
+    ) {
+        return ResponseEntity.ok(conversationService.updateGroupPinnedMessagePermission(userDetails.getId(), conversationId, isAdminOnlyCanPinGroupMessage));
+    }
+
 }

@@ -32,6 +32,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
     private DeviceType deviceType;
 
     private Long unreadCount;
+    private boolean onlyAdminsCanPinMessages;
 
     public ConversationDTO(Conversation conversation) {
         this.mapToSelf(conversation);
@@ -86,5 +87,6 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.description = dao.getDescription();
         this.signedImageUrl = dao.getSignedImageUrl();
         this.onlyAdminsCanSendMessages = dao.getOnlyAdminsCanSendMessages();
+        this.onlyAdminsCanPinMessages = dao.getOnlyAdminsCanPinMessages();
     }
 }

@@ -59,4 +59,6 @@ public class Conversation extends AuditModel {
 
     @Column(name = "only_admins_can_send_messages")
     private Boolean onlyAdminsCanSendMessages = false;
+
+    private Boolean onlyAdminsCanPinMessages = false;
 }

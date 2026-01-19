@@ -20,6 +20,7 @@ export interface IConversation {
   chatUserStatus: chatUserStatus;
   onlyAdminsCanSendMessages: boolean;
   notifyOnMentionsOnly: boolean;
+  onlyAdminsCanPinMessages: boolean;
   deviceType?: DeviceType;
 }
 

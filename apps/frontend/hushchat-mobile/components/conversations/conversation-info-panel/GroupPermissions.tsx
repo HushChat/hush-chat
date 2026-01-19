@@ -6,7 +6,10 @@ import ActionToggleItem from "@/components/conversations/conversation-info-panel
 import { MotionView } from "@/motion/MotionView";
 import { IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
-import { useUpdateMessageRestrictionsMutation } from "@/query/patch/queries";
+import {
+  useUpdateMessageRestrictionsMutation,
+  useUpdateOnlyAdminsCanPinMessagesMutation,
+} from "@/query/patch/queries";
 
 interface IGroupPermissionsProps {
   conversation: IConversation;
@@ -21,12 +24,28 @@ export default function GroupPermissions({
 }: IGroupPermissionsProps) {
   const screenWidth = Dimensions.get("window").width;
   const { user } = useUserStore();
+  const isOnlyAdminsCanPinMessages = conversation.onlyAdminsCanPinMessages;
+
+  console.log(conversation);
 
   const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState<boolean>(
     conversation.onlyAdminsCanSendMessages
   );
-  const [membersCanEditGroupInfo, setMembersCanEditGroupInfo] = useState(true);
-  const [membersCanAddParticipants, setMembersCanAddParticipants] = useState(true);
+  // const [membersCanEditGroupInfo, setMembersCanEditGroupInfo] = useState(true);
+
+  const updateOnlyAdminsCanPinMessages = useUpdateOnlyAdminsCanPinMessagesMutation(
+    { conversationId: Number(conversation?.id), isOnlyAdminsCanPinMessages },
+    () => {}
+  );
+
+  const handleToggleOnlyAdminsCanPinMessages = (newValue: boolean) => {
+    if (!conversation?.id) return;
+
+    updateOnlyAdminsCanPinMessages.mutate({
+      conversationId: Number(conversation?.id),
+      onlyAdminsCanPinMessages: newValue,
+    });
+  };
 
   const updateOnlyAdminCanSendMessage = useUpdateMessageRestrictionsMutation(
     { userId: Number(user.id), conversationId: Number(conversation?.id) },
@@ -87,19 +106,26 @@ export default function GroupPermissions({
           <AppText className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Group Management
           </AppText>
+          {/*<ActionToggleItem*/}
+          {/*  icon="create-outline"*/}
+          {/*  title="Members can edit group info"*/}
+          {/*  description="Allow all members to change group name, description, and photo."*/}
+          {/*  value={membersCanEditGroupInfo}*/}
+          {/*  onValueChange={setMembersCanEditGroupInfo}*/}
+          {/*/>*/}
+          {/*<ActionToggleItem*/}
+          {/*  icon="person-add-outline"*/}
+          {/*  title="Members can add participants"*/}
+          {/*  description="Allow all members to add new participants to the group."*/}
+          {/*  value={membersCanAddParticipants}*/}
+          {/*  onValueChange={setMembersCanAddParticipants}*/}
+          {/*/>*/}
           <ActionToggleItem
-            icon="create-outline"
-            title="Members can edit group info"
-            description="Allow all members to change group name, description, and photo."
-            value={membersCanEditGroupInfo}
-            onValueChange={setMembersCanEditGroupInfo}
-          />
-          <ActionToggleItem
-            icon="person-add-outline"
-            title="Members can add participants"
-            description="Allow all members to add new participants to the group."
-            value={membersCanAddParticipants}
-            onValueChange={setMembersCanAddParticipants}
+            icon="pin-outline"
+            title="Only admin can pin Messages"
+            description="Allow only admins of group to pin/unpin messages"
+            value={isOnlyAdminsCanPinMessages}
+            onValueChange={handleToggleOnlyAdminsCanPinMessages}
           />
         </View>
       </ScrollView>

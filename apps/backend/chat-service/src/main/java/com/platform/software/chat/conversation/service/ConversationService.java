@@ -1659,4 +1659,10 @@ public class ConversationService {
         conversationParticipantRepository.save(participant);
         return participant.getNotifyOnMentionsOnly();
     }
+
+    public boolean updateGroupPinnedMessagePermission(Long loggedInUserId, Long conversationId, Boolean isAdminOnlyCanPinGroupMessage) {
+        conversationUtilService.getLoggedInUserIfAdminAndValidConversation(loggedInUserId,conversationId);
+        long updatedRows = conversationRepository.updateGroupMessagePinPermission(conversationId, isAdminOnlyCanPinGroupMessage);
+        return updatedRows > 0;
+    }
 }
