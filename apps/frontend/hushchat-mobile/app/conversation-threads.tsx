@@ -449,8 +449,8 @@ const ConversationThreadScreen = ({
   }, []);
 
   const onForwardPress = useCallback(() => {
-    if (PLATFORM.IS_WEB) {
-      webForwardPress?.(selectedMessageIds);
+    if (PLATFORM.IS_WEB && webForwardPress) {
+      webForwardPress(selectedMessageIds);
     } else {
       router.push({
         pathname: FORWARD_PATH,

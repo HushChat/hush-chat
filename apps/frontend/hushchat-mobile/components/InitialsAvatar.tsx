@@ -106,6 +106,7 @@ const InitialsAvatar = ({
           {shouldShowImage ? (
             <Image
               source={{ uri: imageUrl }}
+              placeholder={{ uri: imageUrl }}
               style={styles.avatarImage}
               contentFit="cover"
               cachePolicy="memory-disk"
