@@ -1,6 +1,8 @@
 package com.platform.software.controller.external;
 
 import com.platform.software.common.dto.LoginDTO;
+import com.platform.software.config.aws.CloudFrontCookieService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +23,17 @@ public class PublicUserController {
 
     private final UserService userService;
     private final CognitoService cognitoService;
+    private final CloudFrontCookieService cloudFrontCookieService;
+
 
     public PublicUserController(
             UserService userService,
-            CognitoService cognitoService
+            CognitoService cognitoService,
+            CloudFrontCookieService cloudFrontCookieService
     ) {
         this.userService = userService;
         this.cognitoService = cognitoService;
+        this.cloudFrontCookieService = cloudFrontCookieService;
     }
 
     @ApiOperation(value = "Create a new user in idp", response = UserDTO.class)
@@ -51,9 +57,11 @@ public class PublicUserController {
     @ApiOperation(value = "handle sign out", response = HttpStatus.class)
     @PostMapping("sign-out")
     public ResponseEntity<HttpStatus> signOut(
-            @RequestParam String accessToken
+            @RequestParam String accessToken,
+            HttpServletResponse response
     ) {
         userService.signOut(accessToken);
+        cloudFrontCookieService.clearCookies(response);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

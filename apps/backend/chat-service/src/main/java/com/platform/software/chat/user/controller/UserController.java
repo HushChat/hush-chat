@@ -3,6 +3,8 @@ package com.platform.software.chat.user.controller;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 
+import com.platform.software.config.aws.CloudFrontCookieService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -28,15 +30,18 @@ public class UserController {
     private final UserService userService;
     private final CallLogService callLogService;
     private final CognitoService cognitoService;
+    private final CloudFrontCookieService cloudFrontCookieService;
 
     public UserController(
-        UserService userService, 
-        CallLogService callLogService,
-        CognitoService cognitoService
-        ) {
+            UserService userService,
+            CallLogService callLogService,
+            CognitoService cognitoService,
+            CloudFrontCookieService cloudFrontCookieService
+    ) {
         this.userService = userService;
         this.callLogService = callLogService;
         this.cognitoService = cognitoService;
+        this.cloudFrontCookieService = cloudFrontCookieService;
     }
 
     /**
@@ -77,8 +82,12 @@ public class UserController {
      */
     @ApiOperation(value = "Get logged in user", response = UserViewDTO.class)
     @GetMapping("whoami")
-    public ResponseEntity<UserViewDTO> getLoggedInUser(@AuthenticatedUser UserDetails authenticatedUser) {
+    public ResponseEntity<UserViewDTO> getLoggedInUser(
+            @AuthenticatedUser UserDetails authenticatedUser,
+            HttpServletResponse response
+    ) {
         UserViewDTO user = userService.findUserById(authenticatedUser.getId(), authenticatedUser.getWorkspaceId());
+        cloudFrontCookieService.setChatResourcesCookies(response);
         return ResponseEntity.ok(user);
     }
 
