@@ -46,6 +46,7 @@ interface IMessagesListProps {
   onTargetMessageScrolled?: () => void;
   webMessageInfoPress?: (messageId: number) => void;
   lastSeenMessageId?: number | null;
+  shouldHighlight?: boolean;
   onEditMessage?: (message: IMessage) => void;
   onViewableMessagesChanged?: (visibleMessageIds: number[]) => void;
 }
@@ -63,6 +64,7 @@ const ConversationMessageList = ({
   isFetchingNewer,
   onNavigateToMessage,
   targetMessageId,
+  shouldHighlight,
   onTargetMessageScrolled,
   webMessageInfoPress,
   lastSeenMessageId,
@@ -207,6 +209,7 @@ const ConversationMessageList = ({
         viewReactions,
         onNavigateToMessage,
         targetMessageId,
+        shouldHighlight,
         webMessageInfoPress,
         markMessageAsUnread,
         onEditMessage,
@@ -228,6 +231,7 @@ const ConversationMessageList = ({
       viewReactions,
       onNavigateToMessage,
       targetMessageId,
+      shouldHighlight,
       webMessageInfoPress,
       markMessageAsUnread,
       onEditMessage,

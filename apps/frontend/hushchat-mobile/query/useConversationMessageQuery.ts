@@ -31,6 +31,8 @@ export function useConversationMessagesQuery(
   const previousConversationId = useRef<number | null>(null);
   const [inMessageWindowView, setInMessageWindowView] = useState(false);
   const [targetMessageId, setTargetMessageId] = useState<number | null>(null);
+  const [shouldHighlight, setShouldHighlight] = useState<boolean>(false);
+  const blockAutoFetchRef = useRef<boolean>(false);
 
   const queryKey = useMemo(
     () => conversationMessageQueryKeys.messages(Number(userId), conversationId),
@@ -42,6 +44,7 @@ export function useConversationMessagesQuery(
       previousConversationId.current = conversationId;
       setInMessageWindowView(false);
       setTargetMessageId(null);
+      blockAutoFetchRef.current = false;
     }
   }, [conversationId]);
 
@@ -49,7 +52,7 @@ export function useConversationMessagesQuery(
     pages,
     isLoading,
     error,
-    fetchNextPage,
+    fetchNextPage: originalFetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     fetchPreviousPage,
@@ -64,51 +67,71 @@ export function useConversationMessagesQuery(
     enabled: !!conversationId && options?.enabled,
     allowForwardPagination: inMessageWindowView,
     retry: skipRetryOnAccessDenied,
-    refetchOnMount: true,
+    refetchOnMount: false,
   });
 
-  const loadMessageWindow = useCallback(
-    async (targetMessageIdParam: number) => {
-      setTargetMessageId(null);
+  const fetchNextPage = useCallback(async () => {
+    if (blockAutoFetchRef.current) {
+      return;
+    }
+    return originalFetchNextPage();
+  }, [originalFetchNextPage]);
 
-      setTimeout(async () => {
+  const loadMessageWindow = useCallback(
+    async (targetMessageIdParam: number, highlight: boolean = true) => {
+      setTargetMessageId(null);
+      setShouldHighlight(false);
+      blockAutoFetchRef.current = true;
+
+      try {
         setInMessageWindowView(true);
 
-        try {
-          const messageWindowResponse = await getMessagesAroundMessageId(
-            conversationId,
-            targetMessageIdParam
-          );
+        const messageWindowResponse = await getMessagesAroundMessageId(
+          conversationId,
+          targetMessageIdParam
+        );
 
-          if (messageWindowResponse.error) {
-            ToastUtils.error(messageWindowResponse.error);
-            setTargetMessageId(null);
-            return;
-          }
-
-          const paginatedMessageWindow = messageWindowResponse.data;
-          if (!paginatedMessageWindow) {
-            setTargetMessageId(null);
-            return;
-          }
-
-          const newInfiniteQueryCache: InfiniteData<CursorPaginatedResponse<IMessage>> = {
-            pages: [paginatedMessageWindow],
-            pageParams: [null],
-          };
-
-          queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
-            queryKey,
-            newInfiniteQueryCache
-          );
-
-          setTargetMessageId(targetMessageIdParam);
-        } catch (error) {
-          logError("jumpToMessage: Failed to load target message window", error);
-          setInMessageWindowView(false);
+        if (messageWindowResponse.error) {
+          ToastUtils.error(messageWindowResponse.error);
           setTargetMessageId(null);
+          setShouldHighlight(false);
+          blockAutoFetchRef.current = false;
+          setInMessageWindowView(false);
+          return;
         }
-      }, 0);
+
+        const paginatedMessageWindow = messageWindowResponse.data;
+        if (!paginatedMessageWindow) {
+          setTargetMessageId(null);
+          setShouldHighlight(false);
+          blockAutoFetchRef.current = false;
+          setInMessageWindowView(false);
+          return;
+        }
+
+        const newInfiniteQueryCache: InfiniteData<CursorPaginatedResponse<IMessage>> = {
+          pages: [paginatedMessageWindow],
+          pageParams: [null],
+        };
+
+        queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+          queryKey,
+          newInfiniteQueryCache
+        );
+
+        setTargetMessageId(targetMessageIdParam);
+        setShouldHighlight(highlight);
+
+        setTimeout(() => {
+          blockAutoFetchRef.current = false;
+        }, 1000);
+      } catch (error) {
+        logError("jumpToMessage: Failed to load target message window", error);
+        setInMessageWindowView(false);
+        setTargetMessageId(null);
+        setShouldHighlight(false);
+        blockAutoFetchRef.current = false;
+      }
     },
     [conversationId, queryClient, queryKey]
   );
@@ -263,6 +286,7 @@ export function useConversationMessagesQuery(
     loadMessageWindow,
     inMessageWindowView,
     targetMessageId,
+    shouldHighlight,
     clearTargetMessage,
   } as const;
 }
