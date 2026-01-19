@@ -49,25 +49,22 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
 
     @Override
     public String getPhotoViewSignedURL(String imageIndexedName) {
-
-        if (imageIndexedName == null) {
+        if (imageIndexedName == null || imageIndexedName.trim().isEmpty()) {
             return null;
         }
 
-        String signedCloudFrontUrl  = cloudFrontUrl + imageIndexedName;
-        return signedCloudFrontUrl ;
+        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
     }
 
     @Override
     public String getPhotoViewSignedURL(MediaPathEnum mediaPathEnum, MediaSizeEnum size, String fileName) {
-        if (fileName == null) {
+        if (fileName == null || fileName.trim().isEmpty()) {
             return null;
         }
 
         String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
 
-        String signedCloudFrontUrl  = cloudFrontUrl + imageIndexedName;
-        return signedCloudFrontUrl ;
+        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
     }
 
     @Override
