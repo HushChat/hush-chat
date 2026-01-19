@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/store/auth/authStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
-import { getAllTokens } from "@/utils/authUtils";
+import { getAllTokens, refreshIdToken } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
 import { CONNECTED_RESPONSE, ERROR_RESPONSE, MESSAGE_RESPONSE } from "@/constants/wsConstants";
 import {
@@ -279,10 +279,16 @@ export default function useWebSocketConnection() {
       if (!validateToken(idToken)) {
         logInfo("Aborting WebSocket connection due to invalid or expired token");
         updateState({
-          shouldStopRetrying: true,
+          shouldStopRetrying: false,
           status: WebSocketStatus.Error,
           isConnecting: false,
         });
+        try {
+          await refreshIdToken();
+        } catch {
+          logInfo("Token refresh failed during WebSocket connection attempt");
+        }
+        scheduleReconnect();
         return;
       }
 
@@ -432,10 +438,14 @@ export default function useWebSocketConnection() {
         }
 
         // Check for authentication failures
-        if (event.code === 1002 || event.code === 1008 || event.code === 3401) {
+        if (event.code === 1008 || event.code === 3401) {
           logInfo("Connection closed due to authentication failure, stopping all retries");
           updateState({ shouldStopRetrying: true });
           return;
+        }
+
+        if (event.code === 1002) {
+          logInfo("Connection closed due to protocol error (missed heartbeats), will reconnect");
         }
 
         // Attempt reconnection
@@ -499,15 +509,6 @@ export default function useWebSocketConnection() {
       }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
     }
   }, [isAppActive, isAuthenticated, updateState]);
-
-  // Pause/resume heartbeat based on visibility
-  useEffect(() => {
-    if (!isAppActive && wsRef.current?.readyState === WebSocket.OPEN) {
-      stopHeartbeat();
-    } else if (isAppActive && wsRef.current?.readyState === WebSocket.OPEN) {
-      startHeartbeat(wsRef.current);
-    }
-  }, [isAppActive, startHeartbeat, stopHeartbeat]);
 
   // Handle network status changes
   useEffect(() => {

@@ -602,7 +602,7 @@ export const ConversationMessageItem = ({
         }}
         style={webStyles.contents}
       >
-        <ContentBlock />
+        {ContentBlock()}
       </div>
     );
   }
@@ -620,7 +620,7 @@ export const ConversationMessageItem = ({
         showAffordance
         enabled={!selectionMode}
       >
-        <ContentBlock />
+        {ContentBlock()}
       </SwipeableMessageRow>
     </GestureDetector>
   );

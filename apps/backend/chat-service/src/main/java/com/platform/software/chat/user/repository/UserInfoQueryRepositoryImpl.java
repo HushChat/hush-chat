@@ -44,7 +44,7 @@ public class UserInfoQueryRepositoryImpl implements UserInfoQueryRepository {
                 .fetchOne();
 
         if (userPublicProfile == null) {
-            throw new CustomBadRequestException("User not found with id: " + id);
+            throw new CustomBadRequestException("User not found!");
         }
 
         return userPublicProfile;
