@@ -21,6 +21,7 @@ jobs:
       CLOUD_AWS_ACCESS_KEY: ${{ secrets.DEV_CLOUD_AWS_ACCESS_KEY }}
       CLOUD_AWS_SECRET_KEY: ${{ secrets.DEV_CLOUD_AWS_SECRET_KEY }}
       PRIVATE_BUCKET_NAME: ${{ vars.DEV_PRIVATE_BUCKET_NAME }}
+      CLOUD_FRONT_URL: ${{ vars.DEV_CLOUD_FRONT_URL }}
 
       # Logging / ELK
       LOG_ELK_HOST: ${{ vars.DEV_LOG_ELK_HOST }}
