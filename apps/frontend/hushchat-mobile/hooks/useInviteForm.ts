@@ -4,7 +4,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useSendInviteMutation } from "@/query/post/queries";
 
 const INITIAL_VALUES: IInviteFormValues = {
-  invites: [{ email: "" }],
+  emails: [],
 };
 
 export function useInviteForm(initialData = INITIAL_VALUES) {
@@ -17,7 +17,7 @@ export function useInviteForm(initialData = INITIAL_VALUES) {
       inviteForm.setValues(INITIAL_VALUES);
     },
     (error: any) => {
-      ToastUtils.error(error);
+      ToastUtils.error(error?.message || "Failed to send invites");
     }
   );
 
