@@ -1675,14 +1675,14 @@ public class ConversationService {
                     .map(cp -> cp.getUser().getId())
                     .toList();
 
-            triggerGroupCreationEvents(conversation.getId(), conversation.getCreatedBy().getId(), participantIds);
-
             eventPublisher.publishEvent(new ConversationCreatedEvent(
                     WorkspaceContext.getCurrentWorkspace(),
                     conversation.getId(),
                     conversation.getCreatedBy().getId(),
                     savedConversationDTO
             ));
+
+            triggerGroupCreationEvents(conversation.getId(), conversation.getCreatedBy().getId(), participantIds);
         } catch (Exception e) {
             logger.error("Failed to approve conversationId: {}", conversationId, e);
             throw new CustomInternalServerErrorException("Failed to approve conversation");
