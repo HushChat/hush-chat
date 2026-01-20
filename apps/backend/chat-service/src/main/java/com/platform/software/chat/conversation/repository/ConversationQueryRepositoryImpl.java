@@ -153,7 +153,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 : false;
 
         BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
-                .and(qConversation.status.eq(ConversationStatus.ACTIVE)));
+                .and(qConversation.status.eq(ConversationStatus.ACTIVE));
 
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
