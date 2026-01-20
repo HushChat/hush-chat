@@ -1,6 +1,7 @@
 package com.platform.software.config.aws;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
@@ -76,7 +77,7 @@ public class CloudFrontCookieService {
             addCookie(response, "CloudFront-Signature", cookies.signatureHeaderValue());
             addCookie(response, "CloudFront-Policy", cookies.policyHeaderValue());
 
-            log.debug("CloudFront signed cookies set for chat resources");
+            log.info("CloudFront signed cookies set for chat resources");
 
         } catch (Exception e) {
             log.error("Failed to set CloudFront cookies", e);
@@ -121,7 +122,9 @@ public class CloudFrontCookieService {
     }
 
     private PrivateKey loadPrivateKey() throws Exception {
-        String keyContent = Files.readString(Path.of(cloudFrontPrivateKeyPath));
+        ClassPathResource resource = new ClassPathResource("keys/cloudfront_private_key.pem");
+        String keyContent = Files.readString(Path.of(resource.getURI()));
+        //String keyContent = Files.readString(Path.of(cloudFrontPrivateKeyPath));
 
         String privateKeyPEM = keyContent
                 .replace("-----BEGIN PRIVATE KEY-----", "")
