@@ -2,6 +2,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack, Redirect, useSegments } from "expo-router";
+import Head from "expo-router/head";
 import { StatusBar } from "expo-status-bar";
 import "react-native-worklets";
 import "@/global.css";
@@ -19,6 +20,7 @@ import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { useRefreshOnAppStateChange } from "@/hooks/useRefreshOnAppStateChange";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
@@ -28,16 +30,24 @@ export default function RootLayout() {
 
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
+    "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
+    "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
+    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
+    "OpenMoji-Color": require("../assets/fonts/OpenMoji-color-colr0_svg.ttf"),
   });
   const queryClient = createQueryClient();
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
 
   return (
     <GestureHandlerRootView>
+      <Head>
+        <title>HushChat</title>
+      </Head>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
             <WebSocketProvider>
+              <AppLifecycleManager />
               <ConversationNotificationsProvider>
                 <ModalProvider>
                   <Gate ready={appReady} isAuthenticated={isAuthenticated} />
@@ -86,4 +96,9 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
       </Stack>
     </>
   );
+}
+
+function AppLifecycleManager() {
+  useRefreshOnAppStateChange();
+  return null;
 }

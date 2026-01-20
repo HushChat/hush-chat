@@ -528,10 +528,7 @@ export const ConversationMessageItem = ({
             {renderParentMessage()}
 
             <View className={isCurrentUser ? "self-end" : "self-start"}>
-              <MessageHighlightWrapper
-                isHighlighted={message.id === targetMessageId}
-                glowColor="#3B82F6"
-              >
+              <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
                   isCurrentUser={isCurrentUser}
@@ -605,7 +602,7 @@ export const ConversationMessageItem = ({
         }}
         style={webStyles.contents}
       >
-        <ContentBlock />
+        {ContentBlock()}
       </div>
     );
   }
@@ -623,7 +620,7 @@ export const ConversationMessageItem = ({
         showAffordance
         enabled={!selectionMode}
       >
-        <ContentBlock />
+        {ContentBlock()}
       </SwipeableMessageRow>
     </GestureDetector>
   );

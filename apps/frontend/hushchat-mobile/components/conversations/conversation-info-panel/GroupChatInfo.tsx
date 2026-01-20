@@ -210,7 +210,7 @@ export default function GroupChatInfo({
               },
             })
           }
-          imageUrl={conversationInfo?.conversation.signedImageUrl || ""}
+          imageUrl={conversationInfo?.conversation.signedImageUrl}
           onPressSearch={() =>
             router.push({
               pathname: SEARCH_VIEW_PATH,

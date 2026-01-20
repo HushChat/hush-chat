@@ -348,14 +348,13 @@ public class ConversationService {
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
 
                     String imageIndexedName = messageViewDTO.getImageIndexedName();
-                    if (imageIndexedName != null) {
-                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
-                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                                MediaSizeEnum.SMALL,
-                                imageIndexedName
-                        );
-                        messageViewDTO.setSenderSignedImageUrl(signedUrl);
-                    }
+
+                    String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.SMALL,
+                            imageIndexedName
+                    );
+                    messageViewDTO.setSenderSignedImageUrl(signedUrl);
 
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
@@ -463,11 +462,10 @@ public class ConversationService {
             UserViewDTO user = new UserViewDTO(participant.getUser());
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
-            if (imageIndexedName != null) {
-                String signedImageUrl =
-                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
-                user.setSignedImageUrl(signedImageUrl);
-            }
+
+            String signedImageUrl =
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
+            user.setSignedImageUrl(signedImageUrl);
 
             participantViewDTO.setUser(user);
             return participantViewDTO;
@@ -1110,6 +1108,10 @@ public class ConversationService {
 
         boolean isPinningAction = !currentlyPinned;
 
+        ConversationEventType eventType = isPinningAction
+        ? ConversationEventType.MESSAGE_PINNED
+        : ConversationEventType.MESSAGE_UNPINNED;
+
         ZonedDateTime pinnedUntil = null;
 
         if (durationKey != null && isPinningAction) {
@@ -1126,16 +1128,21 @@ public class ConversationService {
         try {
             conversationRepository.save(conversation);
 
-            if (isPinningAction) {
-                conversationEventService.createMessageWithConversationEvent(
-                        conversationId,
-                        userId,
-                        null,
-                        ConversationEventType.MESSAGE_PINNED
-                );
-            }
+            conversationEventService.createMessageWithConversationEvent(
+                    conversationId,
+                    userId,
+                    null,
+                    eventType);
 
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+
+            eventPublisher.publishEvent(new MessagePinEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversationId,
+                    isPinningAction ? new BasicMessageDTO(message) : null,
+                    userId
+            ));
+
         } catch (Exception exception) {
             logger.error("Failed to pin messageId: {} in conversationId: {}", messageId, conversationId, exception);
             throw new CustomBadRequestException("Failed to pin message in conversation");
@@ -1520,16 +1527,14 @@ public class ConversationService {
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
 
         return users.map(user -> {
-            String signedUrl = null;
             String imageIndexName = user.getImageIndexedName();
 
-            if (imageIndexName != null) {
-                signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
-                        MediaPathEnum.RESIZED_PROFILE_PICTURE,
-                        MediaSizeEnum.SMALL,
-                        imageIndexName
-                );
-            }
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                    MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                    MediaSizeEnum.SMALL,
+                    imageIndexName
+            );
+
             UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);
             userBasicViewDTO.setSignedImageUrl(signedUrl);
             return userBasicViewDTO;

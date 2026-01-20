@@ -15,6 +15,7 @@ interface Props {
   unreadCount: number;
   chevronButtonRef: RefObject<View | null>;
   onChevronPress: (e: GestureResponderEvent) => void;
+  isGroup: boolean;
 }
 
 const ConversationMeta = ({
@@ -23,8 +24,9 @@ const ConversationMeta = ({
   unreadCount,
   chevronButtonRef,
   onChevronPress,
+  isGroup,
 }: Props) => {
-  const messageContent = LastMessagePreviewContent({ lastMessage });
+  const messageContent = LastMessagePreviewContent({ lastMessage, isGroup });
   const isGif = hasGif(lastMessage);
 
   const renderMessagePreview = () => {
@@ -40,6 +42,9 @@ const ConversationMeta = ({
           <AppText
             className="text-gray-600 dark:text-text-secondary-dark text-sm"
             numberOfLines={1}
+            style={{
+              fontFamily: "Poppins-Regular, OpenMoji-Color",
+            }}
           >
             GIF
           </AppText>
@@ -52,6 +57,9 @@ const ConversationMeta = ({
         <AppText
           className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
           numberOfLines={1}
+          style={{
+            fontFamily: "Poppins-Regular, OpenMoji-Color",
+          }}
         >
           {messageContent}
         </AppText>

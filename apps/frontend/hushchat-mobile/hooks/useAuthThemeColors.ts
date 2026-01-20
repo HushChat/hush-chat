@@ -14,6 +14,9 @@ export const useAuthThemeColors = () => {
     inputFocusBorder: isDark ? "#563dc4" : "#6B4EFF",
     buttonDisabled: isDark ? "#374151" : "#d1d5db",
     textDisabled: isDark ? "#374151" : "#d1d5db",
+    formBackground: isDark ? "#0a0f1a" : "#ffffff",
+    heroText: "#ffffff",
+    featureText: "#D1C8FF",
   };
 
   return { colors, isDark };

@@ -8,6 +8,8 @@ import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
 import { PLATFORM } from "@/constants/platformConstants";
 import ChatInfoNameBar from "@/components/conversations/conversation-info-panel/common/ChatInfoNameBar";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { AppText } from "@/components/AppText";
+import { getInitials } from "@/utils/commonUtils";
 
 type ChatInfoHeaderProps = {
   title: string;
@@ -15,7 +17,7 @@ type ChatInfoHeaderProps = {
   showActions?: boolean;
   onPressChat?: () => void;
   onPressCall?: () => void;
-  imageUrl: string;
+  imageUrl?: string | undefined | null;
   onPressSearch: () => void;
 };
 
@@ -42,12 +44,21 @@ export default function ChatInfoHeader({
           },
         ]}
       >
-        <Image
-          source={{ uri: imageUrl }}
-          style={styles.headerImage}
-          contentFit="cover"
-          cachePolicy="memory-disk"
-        />
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.headerImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+          />
+        ) : (
+          <View className="flex-1 justify-center items-center bg-primary-light dark:bg-primary-dark">
+            <AppText className={`text-[100px] text-center text-white`}>
+              {getInitials(title)}
+            </AppText>
+          </View>
+        )}
+
         <TouchableOpacity
           onPress={onBack}
           className={classNames(

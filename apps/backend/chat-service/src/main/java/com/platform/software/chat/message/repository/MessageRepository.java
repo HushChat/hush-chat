@@ -71,7 +71,8 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
     WHERE m1_0.conversation_id = :conversationId
     AND (m1_0.created_at > :deletedAt)
     AND (m1_0.search_vector @@ plainto_tsquery(:searchTerm)
-    OR m1_0.message_text ILIKE ('%' || :searchTerm || '%'))
+      OR m1_0.message_text ILIKE ('%' || :searchTerm || '%'))
+    AND m1_0.is_unsend = false
     """, nativeQuery = true)
     List<Message> findBySearchTermAndConversationNative(
         @Param("searchTerm") String searchTerm, 
@@ -91,6 +92,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
       AND (cp1_0.last_deleted_time IS NULL OR m1_0.created_at > cp1_0.last_deleted_time)
       AND (m1_0.search_vector @@ plainto_tsquery(:searchTerm)
         OR m1_0.message_text ILIKE ('%' || :searchTerm || '%'))
+      AND m1_0.is_unsend = false
     """, nativeQuery = true)
     Page<Message> findBySearchTermInConversations(
         @Param("searchTerm") String searchTerm,
