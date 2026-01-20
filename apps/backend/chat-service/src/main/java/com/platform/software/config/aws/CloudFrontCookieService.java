@@ -1,7 +1,6 @@
 package com.platform.software.config.aws;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
@@ -21,6 +20,8 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+
+import static com.platform.software.common.constants.GeneralConstants.LOCAL;
 
 @Service
 public class CloudFrontCookieService {
@@ -43,6 +44,9 @@ public class CloudFrontCookieService {
     @Value("${cloudfront.expiration-time:60}")
     private int cookieExpirationMinutes;
 
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
+
     private static final Logger log = LoggerFactory.getLogger(CloudFrontCookieService.class);
 
     private final CloudFrontUtilities cloudFrontUtilities;
@@ -56,6 +60,10 @@ public class CloudFrontCookieService {
      * Sets signed cookies granting access to ALL chat private resources. 
      */
     public void setChatResourcesCookies(HttpServletResponse response) {
+        if (activeProfile.equals(LOCAL)) {
+            log.info("Skipping CloudFront cookie setting in local profile");
+            return;
+        }
         try {
             PrivateKey privateKey = getPrivateKey();
             Instant expirationTime = Instant.now()
@@ -122,9 +130,7 @@ public class CloudFrontCookieService {
     }
 
     private PrivateKey loadPrivateKey() throws Exception {
-        ClassPathResource resource = new ClassPathResource("keys/cloudfront_private_key.pem");
-        String keyContent = Files.readString(Path.of(resource.getURI()));
-        //String keyContent = Files.readString(Path.of(cloudFrontPrivateKeyPath));
+        String keyContent = Files.readString(Path.of(cloudFrontPrivateKeyPath));
 
         String privateKeyPEM = keyContent
                 .replace("-----BEGIN PRIVATE KEY-----", "")

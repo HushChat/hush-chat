@@ -11,6 +11,7 @@ EXPOSE 3092 5080
 
 # Make sure the JAR path is correct
 COPY ./src/main/resources/logback-spring.xml /app/logback-spring.xml
+COPY ./src/main/resources/cloudfront_private_key.pem /app/cloudfront_private_key.pem
 ENTRYPOINT ["java", \
             "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5080", \
             "-jar", \

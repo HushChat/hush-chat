@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import static com.platform.software.common.constants.GeneralConstants.LOCAL;
+
 @Service
 public class AWSFileHandlingService implements CloudPhotoHandlingService {
     Logger logger = LoggerFactory.getLogger(AWSFileHandlingService.class);
@@ -56,7 +58,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
             return null;
         }
 
-        if (activeProfile.equals("local")) {
+        if (activeProfile.equals(LOCAL)) {
             return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
         }
 
@@ -71,7 +73,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
 
         String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
 
-        if (activeProfile.equals("local")) {
+        if (activeProfile.equals(LOCAL)) {
             return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
         }
 
