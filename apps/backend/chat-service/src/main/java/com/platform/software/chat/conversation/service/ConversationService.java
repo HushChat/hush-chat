@@ -237,17 +237,8 @@ public class ConversationService {
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
 
-            savedConversationDTO = saveConversationAndBuildDTO(conversation);
+            saveConversationAndBuildDTO(conversation);
         }
-
-        eventPublisher.publishEvent(new ConversationCreatedEvent(
-            WorkspaceContext.getCurrentWorkspace(),
-            savedConversationDTO.getId(),
-            loggedInUserId,
-            savedConversationDTO
-        ));
-
-        triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
     }
 
     /**
@@ -262,6 +253,7 @@ public class ConversationService {
                 Collections.emptyList(),
                 ConversationEventType.GROUP_CREATED
         );
+
         // Event 2: Users Added
         List<Long> targetsForAddEvent = initialParticipantIds.stream()
                 .filter(id -> !id.equals(actorUserId))
@@ -1671,13 +1663,26 @@ public class ConversationService {
         }
 
         if(conversation.getStatus() == ConversationStatus.ACTIVE) {
+            logger.info("Conversation {} already active", conversationId);
             return;
         }
 
         conversation.setStatus(ConversationStatus.ACTIVE);
         try {
-            conversationRepository.save(conversation);
-            conversationEventService.createMessageWithConversationEvent(conversation.getId(), conversation.getCreatedBy().getId(), null, ConversationEventType.GROUP_CREATED);
+            ConversationDTO savedConversationDTO = saveConversationAndBuildDTO(conversation);
+
+            List<Long> participantIds = conversation.getConversationParticipants().stream()
+                    .map(cp -> cp.getUser().getId())
+                    .toList();
+
+            triggerGroupCreationEvents(conversation.getId(), conversation.getCreatedBy().getId(), participantIds);
+
+            eventPublisher.publishEvent(new ConversationCreatedEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversation.getId(),
+                    conversation.getCreatedBy().getId(),
+                    savedConversationDTO
+            ));
         } catch (Exception e) {
             logger.error("Failed to approve conversationId: {}", conversationId, e);
             throw new CustomInternalServerErrorException("Failed to approve conversation");
