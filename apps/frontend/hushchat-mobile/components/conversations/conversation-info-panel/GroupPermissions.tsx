@@ -137,8 +137,8 @@ export default function GroupPermissions({
           {/*/>*/}
           <ActionToggleItem
             icon="pin-outline"
-            title="Only admin can pin Messages"
-            description="Allow only admins of group to pin/unpin messages"
+            title="Only admins can pin Messages"
+            description="Allow only admins of the group to pin/unpin messages"
             value={onlyAdminsCanPinMessages}
             onValueChange={handleToggleOnlyAdminsCanPinMessages}
           />
