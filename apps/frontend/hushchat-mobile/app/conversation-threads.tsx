@@ -365,7 +365,7 @@ const ConversationThreadScreen = ({
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-    setIsMarkdownEnabled(true);
+    setIsMarkdownEnabled(false);
   }, [
     currentConversationId,
     setSelectionMode,
