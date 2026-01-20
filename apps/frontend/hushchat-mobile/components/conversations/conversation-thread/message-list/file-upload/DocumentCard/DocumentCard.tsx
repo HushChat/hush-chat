@@ -40,7 +40,6 @@ export const DocumentCard = ({ attachment, isCurrentUser, onPreview }: TDocument
 
   const { label, icon, color } = typeLabels[ext] || typeLabels.unknown;
 
-  // const bgColor = isDark ? "rgba(86, 61, 196, 0.25)" : "rgba(107, 78, 255, 0.15)";
   const bgColor = isDark ? "rgb(33, 22, 81)" : "rgb(222, 216, 255)";
   const borderColor = isDark ? "rgba(86, 61, 196, 0.4)" : "rgba(107, 78, 255, 0.3)";
   const textPrimary = isDark ? "#ffffff" : "#35277b";
