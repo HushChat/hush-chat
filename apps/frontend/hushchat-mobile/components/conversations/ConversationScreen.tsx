@@ -1,8 +1,7 @@
-import { useCallback, useState } from "react";
-import { router, useGlobalSearchParams } from "expo-router";
+import { useState } from "react";
+import { useGlobalSearchParams } from "expo-router";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import { IConversation } from "@/types/chat/types";
-import { CONVERSATION, CHATS_PATH } from "@/constants/routes";
 import ChatInterfaceWeb from "@/components/conversations/ChatInterface/ChatInterfaceWeb";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 
@@ -20,20 +19,5 @@ export default function ConversationScreen() {
     onConversationFound: setSelectedConversation,
   });
 
-  const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
-    if (conversation) {
-      setSelectedConversation(conversation);
-      router.push(CONVERSATION(conversation.id));
-    } else {
-      setSelectedConversation(null);
-      router.push(CHATS_PATH);
-    }
-  }, []);
-
-  return (
-    <ChatInterfaceWeb
-      selectedConversation={selectedConversation}
-      setSelectedConversation={handleSetSelectedConversation}
-    />
-  );
+  return <ChatInterfaceWeb selectedConversation={selectedConversation} />;
 }

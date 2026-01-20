@@ -86,7 +86,6 @@ export interface IFilter {
 
 export interface ChatComponentProps {
   selectedConversation: IConversation | null;
-  setSelectedConversation: (conversation: IConversation | null) => void;
 }
 
 export enum ConversationType {

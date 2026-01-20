@@ -15,10 +15,7 @@ import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
 import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel";
 
-export default function ChatInterfaceWeb({
-  selectedConversation,
-  setSelectedConversation,
-}: ChatComponentProps) {
+export default function ChatInterfaceWeb({ selectedConversation }: ChatComponentProps) {
   const { setSelectionMode, setSelectedMessageIds } = useConversationStore();
 
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
@@ -83,7 +80,6 @@ export default function ChatInterfaceWeb({
             conversationId={selectedConversation.id}
             onClose={closePanel}
             isWebView
-            setSelectedConversation={setSelectedConversation}
           />
         );
       case PanelType.SEARCH:
