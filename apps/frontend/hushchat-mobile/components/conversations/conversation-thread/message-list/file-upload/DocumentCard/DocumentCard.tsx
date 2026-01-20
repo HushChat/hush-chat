@@ -28,13 +28,13 @@ export const DocumentCard = ({ attachment, isCurrentUser, onPreview }: TDocument
 
   const ext = getFileExtension(attachment.originalFileName || attachment.indexedFileName);
   const typeLabels: Record<string, { label: string; icon: string; color: string }> = {
-    pdf: { label: "PDF", icon: "document-text", color: "#6B4EFF" },
+    pdf: { label: "PDF", icon: "document-text", color: "#b11c1f" },
     doc: { label: "WORD", icon: "document-text", color: "#2B6CB0" },
     docx: { label: "WORD", icon: "document-text", color: "#2B6CB0" },
     xls: { label: "EXCEL", icon: "document-text", color: "#16A34A" },
     xlsx: { label: "EXCEL", icon: "document-text", color: "#16A34A" },
-    ppt: { label: "PPT", icon: "document-text", color: "#E11D48" },
-    pptx: { label: "PPT", icon: "document-text", color: "#E11D48" },
+    ppt: { label: "PPT", icon: "document-text", color: "#cd4f2e" },
+    pptx: { label: "PPT", icon: "document-text", color: "#cd4f2e" },
     unknown: { label: "FILE", icon: "document-text", color: "#6B7280" },
   };
 
