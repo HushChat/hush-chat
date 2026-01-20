@@ -70,10 +70,15 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
     FROM message m1_0
     WHERE m1_0.conversation_id = :conversationId
     AND (m1_0.created_at > :deletedAt)
-    AND m1_0.search_vector @@ plainto_tsquery(:searchTerm)
+    AND (m1_0.search_vector @@ plainto_tsquery(:searchTerm)
+      OR m1_0.message_text ILIKE ('%' || :searchTerm || '%'))
     AND m1_0.is_unsend = false
     """, nativeQuery = true)
-    List<Message> findBySearchTermAndConversationNative(@Param("searchTerm") String searchTerm, @Param("conversationId") Long conversationId, @Param("deletedAt") Date deletedAt);
+    List<Message> findBySearchTermAndConversationNative(
+        @Param("searchTerm") String searchTerm, 
+        @Param("conversationId") Long conversationId, 
+        @Param("deletedAt") Date deletedAt
+    );
 
     @Query(value = """
     SELECT
@@ -85,7 +90,8 @@ public interface MessageRepository extends JpaRepository<Message, Long>, Message
     WHERE m1_0.conversation_id IN :conversationIds
       AND cp1_0.user_id = :userId
       AND (cp1_0.last_deleted_time IS NULL OR m1_0.created_at > cp1_0.last_deleted_time)
-      AND m1_0.search_vector @@ plainto_tsquery(:searchTerm)
+      AND (m1_0.search_vector @@ plainto_tsquery(:searchTerm)
+        OR m1_0.message_text ILIKE ('%' || :searchTerm || '%'))
       AND m1_0.is_unsend = false
     """, nativeQuery = true)
     Page<Message> findBySearchTermInConversations(
