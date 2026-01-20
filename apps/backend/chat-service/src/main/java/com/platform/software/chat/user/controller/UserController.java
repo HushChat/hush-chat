@@ -30,18 +30,15 @@ public class UserController {
     private final UserService userService;
     private final CallLogService callLogService;
     private final CognitoService cognitoService;
-    private final CloudFrontCookieService cloudFrontCookieService;
 
     public UserController(
             UserService userService,
             CallLogService callLogService,
-            CognitoService cognitoService,
-            CloudFrontCookieService cloudFrontCookieService
+            CognitoService cognitoService
     ) {
         this.userService = userService;
         this.callLogService = callLogService;
         this.cognitoService = cognitoService;
-        this.cloudFrontCookieService = cloudFrontCookieService;
     }
 
     /**
@@ -83,11 +80,9 @@ public class UserController {
     @ApiOperation(value = "Get logged in user", response = UserViewDTO.class)
     @GetMapping("whoami")
     public ResponseEntity<UserViewDTO> getLoggedInUser(
-            @AuthenticatedUser UserDetails authenticatedUser,
-            HttpServletResponse response
+            @AuthenticatedUser UserDetails authenticatedUser
     ) {
         UserViewDTO user = userService.findUserById(authenticatedUser.getId(), authenticatedUser.getWorkspaceId());
-        cloudFrontCookieService.setChatResourcesCookies(response);
         return ResponseEntity.ok(user);
     }
 

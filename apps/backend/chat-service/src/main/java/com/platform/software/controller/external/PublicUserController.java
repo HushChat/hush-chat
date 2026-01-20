@@ -48,9 +48,11 @@ public class PublicUserController {
     @ApiOperation(value = "login an employee", response = LoginResponseDTO.class)
     @PostMapping("auth/login")
     public ResponseEntity<LoginResponseDTO> authenticateEmployee(
-            @RequestBody LoginDTO loginDTO
+            @RequestBody LoginDTO loginDTO,
+            HttpServletResponse response
     ) {
         LoginResponseDTO loginResponseDTO = userService.authenticateUser(loginDTO);
+        cloudFrontCookieService.setChatResourcesCookies(response);
         return new ResponseEntity<>(loginResponseDTO, HttpStatus.OK);
     }
 
