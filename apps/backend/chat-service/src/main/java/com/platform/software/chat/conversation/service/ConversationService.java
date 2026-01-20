@@ -1129,8 +1129,13 @@ public class ConversationService {
                         conversationId,
                         userId,
                         null,
-                        ConversationEventType.MESSAGE_PINNED
-                );
+                        ConversationEventType.MESSAGE_PINNED);
+            } else {
+                conversationEventService.createMessageWithConversationEvent(
+                        conversationId,
+                        userId,
+                        null,
+                        ConversationEventType.MESSAGE_UNPINNED);
             }
 
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
