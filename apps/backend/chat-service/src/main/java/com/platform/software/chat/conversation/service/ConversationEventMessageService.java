@@ -3,11 +3,15 @@ package com.platform.software.chat.conversation.service;
 import com.platform.software.chat.conversation.entity.ConversationEvent;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.common.constants.Constants;
+
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class ConversationEventMessageService {
@@ -87,15 +91,16 @@ public class ConversationEventMessageService {
             return "recently";
         }
 
-        Date now = new Date();
-        long diffInMillis = now.getTime() - eventTime.getTime();
-        long daysBetween = TimeUnit.MILLISECONDS.toDays(diffInMillis);
+        LocalDate eventDate = eventTime.toInstant().atZone(ZoneId.of(Constants.TIME_ZONE_IST)).toLocalDate();
+        LocalDate today = LocalDate.now();
+
+        long daysBetween = ChronoUnit.DAYS.between(eventDate, today);
 
         if (daysBetween == 0) {
             return "today";
         } else if (daysBetween == 1) {
             return "yesterday";
-        } else if (daysBetween < 7) {
+        } else if (daysBetween > 1 && daysBetween < 7) {
             return daysBetween + " days ago";
         } else {
             // Format as date for older events
