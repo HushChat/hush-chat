@@ -20,6 +20,9 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
     @Value("${cloud.front.url}")
     private String cloudFrontUrl;
 
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
+
     private final S3Service s3Service;
 
     public AWSFileHandlingService(S3Service s3Service) {
@@ -53,6 +56,10 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
             return null;
         }
 
+        if (activeProfile.equals("local")) {
+            return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+        }
+
         return cloudFrontUrl + imageIndexedName;
     }
 
@@ -63,6 +70,10 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
         }
 
         String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
+
+        if (activeProfile.equals("local")) {
+            return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+        }
 
         return cloudFrontUrl + imageIndexedName;
     }
