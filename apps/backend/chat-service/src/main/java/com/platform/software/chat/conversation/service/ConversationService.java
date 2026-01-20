@@ -1097,7 +1097,7 @@ public class ConversationService {
     @Transactional
     public void togglePinMessage(Long userId, Long conversationId, Long messageId, String durationKey) {
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
-        if (conversation.getIsGroup()) {
+        if (conversation.getIsGroup() && conversation.getOnlyAdminsCanPinMessages()) {
             conversationUtilService.getLoggedInUserIfAdminAndValidConversation(conversationId, userId);
         } else {
             conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
