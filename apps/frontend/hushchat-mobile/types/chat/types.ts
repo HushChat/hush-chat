@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { JSX, ReactNode } from "react";
+import React, { JSX } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
@@ -85,14 +85,8 @@ export interface IFilter {
 }
 
 export interface ChatComponentProps {
-  chatItemList: ReactNode;
-  conversationsRefetch: () => void;
-  conversationsLoading: boolean;
-  filters: IFilter[];
   selectedConversation: IConversation | null;
   setSelectedConversation: (conversation: IConversation | null) => void;
-  onSearchQueryInserting?: (searchQuery: string) => void;
-  searchQuery?: string;
 }
 
 export enum ConversationType {

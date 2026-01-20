@@ -1,10 +1,13 @@
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
+import { View } from "react-native";
+import ConversationSidebar from "@/components/conversations/conversation-list/CoversationSidebar";
 
 export default function ConversationsLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="[id]" />
-    </Stack>
+    <View style={{ flex: 1, flexDirection: "row" }}>
+      <ConversationSidebar />
+
+      <Slot />
+    </View>
   );
 }
