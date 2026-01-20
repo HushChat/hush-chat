@@ -27,7 +27,7 @@ export const createConversationSlice: StateCreator<ConversationState> = (
   setSelectionMode: (mode: boolean) => set({ selectionMode: mode }),
   selectedMessageIds: new Set<number>(),
   setSelectedMessageIds: (ids: Set<number>) => set({ selectedMessageIds: new Set(ids) }),
-  isMarkdownEnabled: false,
+  isMarkdownEnabled: true,
   setIsMarkdownEnabled: (enabled: boolean) => set({ isMarkdownEnabled: enabled }),
   toggleMarkdown: () => set((state) => ({ isMarkdownEnabled: !state.isMarkdownEnabled })),
   resetState: () =>
