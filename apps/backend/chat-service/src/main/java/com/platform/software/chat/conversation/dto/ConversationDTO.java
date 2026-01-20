@@ -56,6 +56,7 @@ public class ConversationDTO implements ModelMapper<Conversation> {
         this.chatUserStatus = other.chatUserStatus;
         this.onlyAdminsCanSendMessages = other.onlyAdminsCanSendMessages;
         this.deviceType = other.deviceType;
+        this.onlyAdminsCanPinMessages = other.onlyAdminsCanPinMessages;
     }
 
     @Override

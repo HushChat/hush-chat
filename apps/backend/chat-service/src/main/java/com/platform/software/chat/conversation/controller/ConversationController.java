@@ -585,9 +585,9 @@ public class ConversationController {
     public ResponseEntity<Boolean> updateGroupPinnedMessagePermission(
             @AuthenticatedUser UserDetails userDetails,
             @PathVariable Long conversationId,
-            @Valid @RequestBody Boolean isAdminOnlyCanPinGroupMessage
+            @Valid @RequestBody Boolean onlyAdminsCanPinMessages
     ) {
-        return ResponseEntity.ok(conversationService.updateGroupPinnedMessagePermission(userDetails.getId(), conversationId, isAdminOnlyCanPinGroupMessage));
+        return ResponseEntity.ok(conversationService.updateGroupPinnedMessagePermission(userDetails.getId(), conversationId, onlyAdminsCanPinMessages));
     }
 
 }

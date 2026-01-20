@@ -109,7 +109,7 @@ export const useEditMessageMutation = createMutationHook<
 
 export const useUpdateOnlyAdminsCanPinMessagesMutation = createMutationHook<
   IConversation,
-  { conversationId: number; onlyAdminsCanSendMessages: boolean }
->(({ conversationId, onlyAdminsCanSendMessages }) =>
-  makeOnlyAdminsCanPinMessages(conversationId, onlyAdminsCanSendMessages)
+  { conversationId: number; onlyAdminsCanPinMessages: boolean }
+>(({ conversationId, onlyAdminsCanPinMessages }) =>
+  makeOnlyAdminsCanPinMessages(conversationId, onlyAdminsCanPinMessages)
 );

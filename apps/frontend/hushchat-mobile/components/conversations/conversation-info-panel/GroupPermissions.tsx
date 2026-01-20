@@ -10,6 +10,9 @@ import {
   useUpdateMessageRestrictionsMutation,
   useUpdateOnlyAdminsCanPinMessagesMutation,
 } from "@/query/patch/queries";
+import { useUpdateCache } from "@/query/config/useUpdateCache";
+import { conversationQueryKeys } from "@/constants/queryKeys";
+import { ToastUtils } from "@/utils/toastUtils";
 
 interface IGroupPermissionsProps {
   conversation: IConversation;
@@ -24,9 +27,8 @@ export default function GroupPermissions({
 }: IGroupPermissionsProps) {
   const screenWidth = Dimensions.get("window").width;
   const { user } = useUserStore();
-  const isOnlyAdminsCanPinMessages = conversation.onlyAdminsCanPinMessages;
-
-  console.log(conversation);
+  const updateCache = useUpdateCache();
+  const onlyAdminsCanPinMessages = conversation.onlyAdminsCanPinMessages;
 
   const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState<boolean>(
     conversation.onlyAdminsCanSendMessages
@@ -34,17 +36,30 @@ export default function GroupPermissions({
   // const [membersCanEditGroupInfo, setMembersCanEditGroupInfo] = useState(true);
 
   const updateOnlyAdminsCanPinMessages = useUpdateOnlyAdminsCanPinMessagesMutation(
-    { conversationId: Number(conversation?.id), isOnlyAdminsCanPinMessages },
+    { conversationId: Number(conversation?.id), onlyAdminsCanPinMessages },
     () => {}
   );
 
   const handleToggleOnlyAdminsCanPinMessages = (newValue: boolean) => {
     if (!conversation?.id) return;
 
-    updateOnlyAdminsCanPinMessages.mutate({
-      conversationId: Number(conversation?.id),
-      onlyAdminsCanPinMessages: newValue,
-    });
+    updateOnlyAdminsCanPinMessages.mutate(
+      {
+        conversationId: Number(conversation?.id),
+        onlyAdminsCanPinMessages: newValue,
+      },
+      {
+        onSuccess: (data) => {
+          updateCache(
+            conversationQueryKeys.metaDataById(Number(user.id ?? 0), Number(conversation?.id ?? 0)),
+            (prev) => (prev ? { ...prev, onlyAdminsCanPinMessages: data.data } : prev)
+          );
+        },
+        onError: () => {
+          ToastUtils.error("Something went wrong!");
+        },
+      }
+    );
   };
 
   const updateOnlyAdminCanSendMessage = useUpdateMessageRestrictionsMutation(
@@ -124,7 +139,7 @@ export default function GroupPermissions({
             icon="pin-outline"
             title="Only admin can pin Messages"
             description="Allow only admins of group to pin/unpin messages"
-            value={isOnlyAdminsCanPinMessages}
+            value={onlyAdminsCanPinMessages}
             onValueChange={handleToggleOnlyAdminsCanPinMessages}
           />
         </View>

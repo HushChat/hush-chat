@@ -585,11 +585,14 @@ export const joinConversationByInvite = async (token: string) => {
 
 export const makeOnlyAdminsCanPinMessages = async (
   conversationId: number,
-  isAdminOnlyCanPinGroupMessage: boolean
+  onlyAdminsCanPinMessages: boolean
 ) => {
   const response = await axios.patch(
     `${CONVERSATION_API_ENDPOINTS.UPDATE_ONLY_ADMINS_CAN_PIN_MESSAGES(conversationId)}`,
-    isAdminOnlyCanPinGroupMessage
+    JSON.stringify(onlyAdminsCanPinMessages),
+    {
+      headers: { "Content-Type": "application/json" },
+    }
   );
   return { data: response.data };
 };

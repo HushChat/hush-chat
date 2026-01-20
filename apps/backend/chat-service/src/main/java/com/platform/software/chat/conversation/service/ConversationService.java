@@ -1096,10 +1096,15 @@ public class ConversationService {
      */
     @Transactional
     public void togglePinMessage(Long userId, Long conversationId, Long messageId, String durationKey) {
-        conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+        if (conversation.getIsGroup()) {
+            conversationUtilService.getLoggedInUserIfAdminAndValidConversation(conversationId, userId);
+        } else {
+            conversationUtilService.getConversationParticipantOrThrow(conversationId, userId);
+        }
 
         Message message = messageUtilService.getMessageOrThrow(conversationId, messageId);
-        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+
 
         boolean currentlyPinned = Optional.ofNullable(conversation.getPinnedMessage())
                 .map(Message::getId)
@@ -1660,9 +1665,12 @@ public class ConversationService {
         return participant.getNotifyOnMentionsOnly();
     }
 
-    public boolean updateGroupPinnedMessagePermission(Long loggedInUserId, Long conversationId, Boolean isAdminOnlyCanPinGroupMessage) {
+    public boolean updateGroupPinnedMessagePermission(Long loggedInUserId, Long conversationId, Boolean onlyAdminsCanPinMessages) {
         conversationUtilService.getLoggedInUserIfAdminAndValidConversation(loggedInUserId,conversationId);
-        long updatedRows = conversationRepository.updateGroupMessagePinPermission(conversationId, isAdminOnlyCanPinGroupMessage);
-        return updatedRows > 0;
+        long updatedRows = conversationRepository.updateGroupMessagePinPermission(conversationId, onlyAdminsCanPinMessages);
+
+        cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA + ":" + conversationId));
+
+        return updatedRows > 0 ? onlyAdminsCanPinMessages : !onlyAdminsCanPinMessages;
     }
 }
