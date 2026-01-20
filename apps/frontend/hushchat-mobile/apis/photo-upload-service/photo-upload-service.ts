@@ -250,7 +250,10 @@ export function useMessageAttachmentUploader(
 
   const hook = useNativePickerUpload(getSignedUrls, handleUploadSuccess);
 
-  const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
+  const pickAndUploadImagesAndVideos = async (
+    messageText: string = "",
+    onPickSuccess?: (files: LocalFile[]) => Promise<void> | void
+  ) => {
     const results = await hook.pickAndUpload(
       {
         source: "media",
@@ -260,7 +263,8 @@ export function useMessageAttachmentUploader(
         allowedMimeTypes: ["image/*", "video/*"],
         allowsEditing: false,
       },
-      messageText
+      messageText,
+      onPickSuccess
     );
 
     if (results && onUploadComplete) {
@@ -270,7 +274,10 @@ export function useMessageAttachmentUploader(
     return results;
   };
 
-  const pickAndUploadDocuments = async (messageText: string = "") => {
+  const pickAndUploadDocuments = async (
+    messageText: string = "",
+    onPickSuccess?: (files: LocalFile[]) => Promise<void> | void
+  ) => {
     const results = await hook.pickAndUpload(
       {
         source: "document",
@@ -278,7 +285,8 @@ export function useMessageAttachmentUploader(
         maxSizeKB: MAX_DOCUMENT_SIZE_KB,
         allowedMimeTypes: ["*/*"],
       },
-      messageText
+      messageText,
+      onPickSuccess
     );
 
     if (results && onUploadComplete) {

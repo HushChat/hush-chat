@@ -303,9 +303,18 @@ export function useNativePickerUpload(
   );
 
   const pickAndUpload = useCallback(
-    async (opts?: Partial<PickAndUploadOptions>, messageText: string = "") => {
+    async (
+      opts?: Partial<PickAndUploadOptions>,
+      messageText: string = "",
+      onPickSuccess?: (files: LocalFile[]) => Promise<void> | void
+    ) => {
       const picked = await pick(opts);
       if (!picked || picked.length === 0) return [];
+
+      if (onPickSuccess) {
+        await onPickSuccess(picked);
+      }
+
       return await upload(picked, messageText);
     },
     [pick, upload]

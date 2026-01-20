@@ -1,13 +1,15 @@
 import { useCallback } from "react";
 import { format } from "date-fns";
-import { UseMutateFunction } from "@tanstack/react-query";
+import { UseMutateFunction, useQueryClient } from "@tanstack/react-query";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { IMessage, MessageAttachmentTypeEnum } from "@/types/chat/types";
-import { UploadResult } from "@/hooks/useNativePickerUpload";
+import { UploadResult, LocalFile } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
 import { getFileType } from "@/utils/files/getFileType";
 import { ToastUtils } from "@/utils/toastUtils";
+import { useUserStore } from "@/store/user/useUserStore";
+import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 
 export type TFileWithCaption = {
   file: File;
@@ -36,41 +38,53 @@ interface IUseSendMessageHandlerParams {
 let tempMessageIdCounter = -1;
 export const generateTempMessageId = (): number => tempMessageIdCounter--;
 
-const createTempImageMessage = ({
+export const createTempImageMessage = ({
   file,
+  fileUri,
+  fileName,
+  fileType,
   messageText,
   conversationId,
   senderId,
   tempId,
 }: {
-  file: File;
+  file?: File;
+  fileUri?: string;
+  fileName?: string;
+  fileType?: string;
   messageText: string;
   conversationId: number;
   senderId: number;
   tempId: number;
-}): IMessage => ({
-  id: tempId,
-  isForwarded: false,
-  senderId,
-  senderFirstName: "",
-  senderLastName: "",
-  messageText,
-  createdAt: new Date().toISOString(),
-  conversationId,
-  messageAttachments: [
-    {
-      fileUrl: URL.createObjectURL(file),
-      originalFileName: file.name,
-      indexedFileName: "",
-      mimeType: file.type,
-      type: MessageAttachmentTypeEnum.MEDIA,
-      updatedAt: "",
-    },
-  ],
-  hasAttachment: true,
-});
+}): IMessage => {
+  const finalFileUrl = file ? URL.createObjectURL(file) : fileUri || "";
+  const finalFileName = file ? file.name : fileName || "unknown";
+  const finalFileType = file ? file.type : fileType || "application/octet-stream";
 
-const createTempGifMessage = ({
+  return {
+    id: tempId,
+    isForwarded: false,
+    senderId,
+    senderFirstName: "",
+    senderLastName: "",
+    messageText,
+    createdAt: new Date().toISOString(),
+    conversationId,
+    messageAttachments: [
+      {
+        fileUrl: finalFileUrl,
+        originalFileName: finalFileName,
+        indexedFileName: "",
+        mimeType: finalFileType,
+        type: MessageAttachmentTypeEnum.MEDIA,
+        updatedAt: "",
+      },
+    ],
+    hasAttachment: true,
+  };
+};
+
+export const createTempGifMessage = ({
   gifUrl,
   messageText,
   conversationId,
@@ -114,6 +128,11 @@ export const useSendMessageHandler = ({
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
     useConversationMessagesQuery(currentConversationId, { enabled: false });
+
+  const queryClient = useQueryClient();
+  const {
+    user: { id: userId },
+  } = useUserStore();
 
   const renameFile = useCallback(
     (file: File, index: number): File => {
@@ -327,9 +346,44 @@ export const useSendMessageHandler = ({
       replaceTempMessage,
     ]
   );
+  const handleMobileUploadOptimisticUpdate = useCallback(
+    async (files: LocalFile[]) => {
+      if (!files || files.length === 0) return;
+
+      await queryClient.cancelQueries({
+        queryKey: conversationMessageQueryKeys.messages(Number(userId), currentConversationId),
+      });
+
+      files.forEach((file) => {
+        const tempId = generateTempMessageId();
+        const tempMsg = createTempImageMessage({
+          fileUri: file.uri,
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          messageText: "",
+          conversationId: currentConversationId,
+          senderId: Number(currentUserId),
+          tempId,
+        });
+
+        updateConversationMessagesCache(tempMsg);
+        updateConversationsListCache(tempMsg);
+      });
+    },
+    [
+      currentConversationId,
+      currentUserId,
+      userId,
+      queryClient,
+      updateConversationMessagesCache,
+      updateConversationsListCache,
+    ]
+  );
 
   return {
     handleSendMessage,
     handleSendFilesWithCaptions,
+    handleMobileUploadOptimisticUpdate,
   } as const;
 };
