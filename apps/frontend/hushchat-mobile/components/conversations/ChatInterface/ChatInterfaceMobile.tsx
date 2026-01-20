@@ -1,6 +1,5 @@
-import { View, ScrollView, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import FilterButton from "@/components/FilterButton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import {
@@ -17,7 +16,6 @@ import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import SearchBar from "@/components/SearchBar";
 import { ChatComponentProps, ConversationType } from "@/types/chat/types";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
@@ -26,12 +24,8 @@ import { SoundToggleButton } from "@/components/conversations/SoundToggleButton"
 import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
 
 export default function ChatInterfaceMobile({
-  chatItemList,
-  filters,
   selectedConversation,
   setSelectedConversation,
-  onSearchQueryInserting = () => {},
-  searchQuery = "",
 }: ChatComponentProps) {
   const insets = useSafeAreaInsets();
   const [sheetVisible, setSheetVisible] = useState<boolean>(false);
@@ -142,34 +136,6 @@ export default function ChatInterfaceMobile({
           </TouchableOpacity>
         </View>
       </View>
-      {selectedConversationType === ConversationType.ALL && (
-        <View className="px-4 h-12">
-          <SearchBar
-            value={searchQuery}
-            onChangeText={onSearchQueryInserting}
-            onClear={() => onSearchQueryInserting("")}
-          />
-        </View>
-      )}
-
-      {selectedConversationType !== ConversationType.ARCHIVED && (
-        <View className="bg-background-light dark:bg-background-dark px-4 py-3">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row gap-x-2">
-              {filters.map((filter) => (
-                <FilterButton
-                  key={filter.key}
-                  label={filter.label}
-                  isActive={filter.isActive}
-                  onPress={() => setSelectedConversationType(filter.key)}
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-      )}
-
-      {chatItemList}
 
       <BottomSheet
         visible={sheetVisible}

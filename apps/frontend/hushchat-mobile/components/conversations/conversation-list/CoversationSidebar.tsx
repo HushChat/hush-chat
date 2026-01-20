@@ -17,7 +17,7 @@ import { WebGroupCreation } from "@/components/conversations/conversation-list/g
 import { MotionView } from "@/motion/MotionView";
 import { MotionEasing } from "@/motion/easing";
 import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, View } from "react-native";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
 import SearchBar from "@/components/SearchBar";
 import FilterButton from "@/components/FilterButton";
@@ -150,7 +150,6 @@ export default function ConversationSidebar() {
     <View
       onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
       className="w-[470px] min-w-72 max-w-2xl lg:w-[460px] bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 h-full"
-      style={styles.leftPaneContainer}
     >
       <ConversationHeader
         selectedConversationType={selectedConversationType}
@@ -244,10 +243,3 @@ export default function ConversationSidebar() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  leftPaneContainer: {
-    position: "relative",
-    flexShrink: 0,
-  },
-});
