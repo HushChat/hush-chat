@@ -30,6 +30,7 @@ import {
 } from "@/types/ws/types";
 import { useMessageReadListener } from "@/hooks/useMessageReadListener";
 import { useMessagePinnedListener } from "@/hooks/useMessagePinnedListener";
+import { IUser } from "@/types/user/types";
 
 const PAGE_SIZE = 20;
 
@@ -248,25 +249,24 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     setCreatedConversation(null);
   }, [createdConversation, queryClient, conversationsQueryKey]);
 
-  const markMessageAsUnsent = (message: IMessage): IMessage => ({
+  const markMessageAsUnsent = (message: IMessage, unsentBy: IUser): IMessage => ({
     ...message,
     isUnsend: true,
     messageAttachments: [],
     isForwarded: false,
+    unsentBy: unsentBy,
   });
 
   // TODO: Move these handlers into a custom hook, as this file is continuously growing.
   useEffect(() => {
     const handleMessageUnsent = (payload: MessageUnsentPayload) => {
-      const { conversationId, messageId } = payload;
+      const { conversationId, messageId, unsentBy } = payload;
 
       // Update conversation list cache
       queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
         conversationsQueryKey,
         (old: InfiniteData<PaginatedResult<IConversation>> | undefined) => {
           if (!old) return old;
-
-          const { conversationId, messageId } = payload;
 
           return {
             ...old,
@@ -284,7 +284,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
                 if (lastMessage?.id !== messageId) return conv;
 
                 const nextMessages = [...messages];
-                nextMessages[lastIndex] = markMessageAsUnsent(lastMessage);
+                nextMessages[lastIndex] = markMessageAsUnsent(lastMessage, unsentBy);
                 return {
                   ...conv,
                   messages: nextMessages,
@@ -311,7 +311,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
             pages: old.pages.map((page: PaginatedResult<IMessage>) => ({
               ...page,
               content: page.content.map((msg: IMessage) =>
-                msg.id === messageId ? markMessageAsUnsent(msg) : msg
+                msg.id === messageId ? markMessageAsUnsent(msg, unsentBy) : msg
               ),
             })),
           };

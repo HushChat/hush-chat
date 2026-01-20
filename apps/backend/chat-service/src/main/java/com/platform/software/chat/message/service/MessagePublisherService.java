@@ -8,6 +8,7 @@ import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.ReactionTypeEnum;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.service.UserUtilService;
@@ -156,10 +157,27 @@ public class MessagePublisherService {
             Long messageId,
             Long actorUserId,
             String workspaceId) {
-        MessageUnsentWSResponseDTO payload = new MessageUnsentWSResponseDTO(conversationId, messageId, actorUserId);
-
         ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(actorUserId,
                 conversationId);
+
+        UserBasicViewDTO unsentActor = conversationDTO.getParticipants().stream()
+                .filter(p -> p.getUser() != null && p.getUser().getId().equals(actorUserId))
+                .findFirst()
+                .map(p
+                        -> new UserBasicViewDTO(
+                        p.getUser().getId(),
+                        p.getUser().getFirstName(),
+                        p.getUser().getLastName(),
+                        p.getUser().getSignedImageUrl()
+                ))
+                .orElse(null);
+
+        MessageUnsentWSResponseDTO payload = new MessageUnsentWSResponseDTO(
+                conversationId,
+                messageId,
+                actorUserId,
+                unsentActor
+        );
 
         conversationDTO.getParticipants().stream()
                 .filter(p -> p.getUser() != null && p.getUser().getId() != null)

@@ -78,6 +78,10 @@ public class Message extends AuditModel {
     @NotNull
     private Boolean isUnsend = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "unsent_by_id")
+    private ChatUser unsentBy;
+
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MessageAttachment> attachments = new ArrayList<>();
 

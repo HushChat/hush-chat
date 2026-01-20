@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface MessageQueryRepository {
     Message saveMessageWthSearchVector(Message message);
 
-    Optional<Message> findDeletableMessage(Long messageId, Long loggedInUserId);
+    Optional<Message> findDeletableMessage(Long messageId, Long loggedInUserId, Boolean isUnsendByPlatformAdmin);
 
     Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant);
 

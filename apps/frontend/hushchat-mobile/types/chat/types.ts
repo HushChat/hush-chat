@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { JSX, ReactNode } from "react";
-import { TUser } from "@/types/user/types";
+import { IUser, TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
 export interface IConversation {
@@ -70,6 +70,7 @@ export interface IMessage {
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
   isEdited?: boolean;
+  unsentBy?: IUser;
 }
 
 export interface IMessageView extends IMessage {

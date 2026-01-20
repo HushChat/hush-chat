@@ -1,7 +1,7 @@
 import { IMessage } from "@/types/chat/types";
 import { useColorScheme, View, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
+import React, { useCallback } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
 import { AppText } from "@/components/AppText";
 
@@ -29,6 +29,29 @@ export default function UnsendMessagePreview({ unsendMessage }: UnsendMessagePre
   const isDark = colorScheme === "dark";
   const { user } = useUserStore();
 
+  const getDeleteText = useCallback(() => {
+    if (!unsendMessage) return "";
+
+    const currentUserId = Number(user.id);
+    const senderId = unsendMessage.senderId;
+    const deleter = unsendMessage.unsentBy;
+
+    const isAdminDelete = deleter && deleter.id !== senderId;
+
+    if (isAdminDelete) {
+      if (deleter.id === currentUserId) {
+        return "You deleted this message as admin";
+      }
+      return `This message was deleted by admin ${deleter.firstName}`;
+    }
+
+    if (senderId === currentUserId) {
+      return "You deleted this message";
+    }
+
+    return `${unsendMessage.senderFirstName} deleted this message`;
+  }, [unsendMessage]);
+
   return (
     <View style={styles.container}>
       <View style={styles.iconWrapper} className="bg-background-light dark:bg-background-dark">
@@ -38,8 +61,7 @@ export default function UnsendMessagePreview({ unsendMessage }: UnsendMessagePre
         className="text-text-primary-light dark:text-text-secondary-dark pb-1"
         style={styles.unsendText}
       >
-        {unsendMessage?.senderId !== Number(user.id) ? unsendMessage?.senderFirstName : "You"}{" "}
-        unsent this message
+        {getDeleteText()}
       </AppText>
     </View>
   );

@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_unsent_by_id_to_message
+      author: ransilu
+      tag: release-15.1
+      changes:
+        - addColumn:
+            tableName: message
+            columns:
+              - column:
+                  name: unsent_by_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: add_fk_message_unset_by
+      author: ransilu
+      tag: release-15.2
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: message
+            baseColumnNames: unsent_by_id
+            constraintName: fk_message_unsent_by_user
+            referencedTableName: chat_user
+            referencedColumnNames: id
+            onDelete: SET NULL

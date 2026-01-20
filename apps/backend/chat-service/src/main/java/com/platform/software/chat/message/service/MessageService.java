@@ -24,11 +24,13 @@ import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.model.MediaPathEnum;
 import com.platform.software.common.model.MediaSizeEnum;
 import com.platform.software.config.aws.SignedURLResponseDTO;
+import com.platform.software.config.interceptors.UserTypeChecker;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomResourceNotFoundException;
+import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -62,6 +64,7 @@ public class MessageService {
     private final ApplicationEventPublisher eventPublisher;
     private final MessageUtilService messageUtilService;
     private final MessageMentionRepository messageMentionRepository;
+    private final UserTypeChecker userTypeChecker;
 
     public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
         return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
@@ -589,18 +592,23 @@ public class MessageService {
      */
     @Transactional
     public void unsendMessage(Long loggedInUserId, Long messageId) {
-        Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId)
+        boolean isPlatformAdmin = userTypeChecker.hasUserType(WorkspaceUserRole.ADMIN.getName());
+
+        Message message = messageRepository.findDeletableMessage(messageId, loggedInUserId, isPlatformAdmin)
                 .orElseThrow(() -> new CustomBadRequestException(
                         "Message not found, not owned by you, or you don’t have permission to delete it"));
 
         Conversation conversation = message.getConversation();
         messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
-        if (message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
+        if (!isPlatformAdmin && message.getCreatedAt().before(Date.from(Instant.now().minus(5, ChronoUnit.MINUTES)))) {
             throw new CustomBadRequestException("You can only unsend a message within 5 minutes of sending it");
         }
 
+        ChatUser unsentBy = userService.getUserOrThrow(loggedInUserId);
+        message.setUnsentBy(unsentBy);
         message.setIsUnsend(true);
+
         messageRepository.save(message);
 
         eventPublisher.publishEvent(new MessageUnsentEvent(
