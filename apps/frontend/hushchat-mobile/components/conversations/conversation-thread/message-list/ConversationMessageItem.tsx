@@ -231,18 +231,24 @@ export const ConversationMessageItem = ({
         action: () => onMessageSelect?.(message),
       },
       {
-        id: 2,
-        name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
-        iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
-        action: () => handleTogglePinMessage(),
-      },
-      {
         id: 3,
         name: "Select message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
       },
     ];
+
+    if (
+      !conversationAPIResponse?.onlyAdminsCanPinMessages ||
+      conversationAPIResponse?.isCurrentUserAdmin
+    ) {
+      options.push({
+        id: 2,
+        name: isThisMessagePinned ? "Unpin Message" : "Pin Message",
+        iconName: (isThisMessagePinned ? "pin" : "pin-outline") as keyof typeof Ionicons.glyphMap,
+        action: () => handleTogglePinMessage(),
+      });
+    }
 
     if (isCurrentUser && !message.isUnsend) {
       options.push({

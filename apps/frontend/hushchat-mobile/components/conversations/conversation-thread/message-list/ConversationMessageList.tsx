@@ -272,6 +272,10 @@ const ConversationMessageList = ({
           isGifUrl={hasGif(pinnedMessage)}
           onUnpin={() => togglePin(pinnedMessage)}
           onPress={handlePinnedMessageClick}
+          permissionToUnpin={
+            !conversationAPIResponse?.onlyAdminsCanPinMessages ||
+            conversationAPIResponse?.isCurrentUserAdmin
+          }
         />
       )}
 

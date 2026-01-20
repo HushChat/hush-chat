@@ -1401,6 +1401,8 @@ public class ConversationService {
 
             if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
                 conversationMetaDataDTO.setIsCurrentUserAdmin(true);
+            } else {
+                conversationMetaDataDTO.setIsCurrentUserAdmin(false);
             }
         }
 

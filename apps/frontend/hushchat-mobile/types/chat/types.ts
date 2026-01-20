@@ -22,6 +22,7 @@ export interface IConversation {
   notifyOnMentionsOnly: boolean;
   onlyAdminsCanPinMessages: boolean;
   deviceType?: DeviceType;
+  isCurrentUserAdmin: boolean;
 }
 
 export interface ReactionSummary {
@@ -220,6 +221,8 @@ export interface ConversationAPIResponse {
   isActive: boolean;
   name: string;
   pinnedMessage?: IBasicMessage | null;
+  onlyAdminsCanPinMessages: boolean;
+  isCurrentUserAdmin: boolean;
 }
 
 export interface IGroupConversation {
