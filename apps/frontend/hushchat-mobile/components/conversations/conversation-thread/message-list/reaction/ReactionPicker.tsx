@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo, useRef } from "react";
-import { View, Pressable, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { REACTION_META } from "@/constants/reactions";
 import classNames from "classnames";
 import { ReactionType } from "@/types/chat/types";
@@ -7,6 +7,7 @@ import EmojiGlyph from "@/components/conversations/conversation-thread/message-l
 import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { MotionView } from "@/motion/MotionView";
 import { MotionConfig } from "@/motion/config";
+import { PLATFORM } from "@/constants/platformConstants";
 
 type ReactionPickerProps = {
   visible: boolean;
@@ -48,9 +49,13 @@ const ReactionPicker = memo(
         EMOJIS.map((type) => {
           const isSelected = reactedByCurrentUser === type;
           return (
-            <Pressable
+            <TouchableOpacity
               key={type}
-              onPress={() => handleSelect(type)}
+              activeOpacity={0.7}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleSelect(type);
+              }}
               className={classNames(
                 "items-center justify-center px-1 rounded-full",
                 "active:bg-gray-100 dark:active:bg-gray-700",
@@ -61,8 +66,10 @@ const ReactionPicker = memo(
                 }
               )}
             >
-              <EmojiGlyph size={24}>{REACTION_META[type].emoji}</EmojiGlyph>
-            </Pressable>
+              <View pointerEvents="none">
+                <EmojiGlyph size={24}>{REACTION_META[type].emoji}</EmojiGlyph>
+              </View>
+            </TouchableOpacity>
           );
         }),
       [reactedByCurrentUser, handleSelect]
@@ -85,8 +92,12 @@ const ReactionPicker = memo(
         >
           <View
             ref={rootRef}
-            onStartShouldSetResponder={() => true}
-            onResponderStart={(e) => e.stopPropagation?.()}
+            {...(PLATFORM.IS_WEB
+              ? {
+                  onClick: (e: any) => e.stopPropagation(),
+                  onTouchEnd: (e: any) => e.stopPropagation(),
+                }
+              : {})}
             className="flex-row w-fit p-1.5 items-center rounded-full shadow-lg bg-secondary-light dark:bg-secondary-dark border border-gray-200 dark:border-gray-600"
           >
             {emojiButtons}
