@@ -130,8 +130,10 @@ public class WorkspaceService {
     public List<String> getAllWorkspaces(){
         return WorkspaceUtils.runInGlobalSchema(() -> workspaceRepository.findAllByWorkspaceIdentifierIsNotNull()
                 .stream()
+                .filter(workspace -> workspace.getStatus() != WorkspaceStatus.PENDING)
                 .map(Workspace::getWorkspaceIdentifier)
                 .filter(id -> !id.isBlank())
-                .toList());
+                .toList()
+        );
     }
 }

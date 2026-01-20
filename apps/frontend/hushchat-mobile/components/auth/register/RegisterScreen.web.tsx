@@ -13,7 +13,7 @@ export default function RegisterScreen() {
       features={[
         { icon: "shield-checkmark-outline", text: "Free to get started" },
         { icon: "phone-portrait-outline", text: "Sync across all your devices" },
-        { icon: "laptop-outline", text: "Join unlimited workspaces" },
+        { icon: "laptop-outline", text: "Join multiple workspaces" },
       ]}
     >
       <RegisterForm

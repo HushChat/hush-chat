@@ -22,6 +22,7 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
 import { AppText, AppTextInput } from "@/components/AppText";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 const COLORS = {
   primaryBlue: "#3b82f6",
@@ -59,6 +60,8 @@ const GroupConfigurationForm = ({
   } = useUserStore();
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
+  const isMobileInBrowser = useIsMobileLayout();
+
   const { mutate: createGroup, isPending: submitting } = useCreateGroupConversationMutation(
     {
       userId: Number(userId),
@@ -71,7 +74,7 @@ const GroupConfigurationForm = ({
         uploadImageToSignedUrl(imageAssetData?.fileUri, conversation?.signedImageUrl);
       }
 
-      if (!PLATFORM.IS_WEB) {
+      if (!PLATFORM.IS_WEB || isMobileInBrowser) {
         router.push({
           pathname: CHAT_VIEW_PATH,
           params: {
