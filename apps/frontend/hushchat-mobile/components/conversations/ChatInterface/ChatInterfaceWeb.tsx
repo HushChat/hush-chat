@@ -1,5 +1,5 @@
 import { View, Dimensions, StyleSheet, ScrollView } from "react-native";
-import { ChatComponentProps } from "@/types/chat/types";
+import { IConversation } from "@/types/chat/types";
 import usePanelManager from "@/hooks/useWebPanelManager";
 import { useCallback, useEffect, useState } from "react";
 import ConversationThreadScreen from "@/app/conversation-threads";
@@ -14,9 +14,25 @@ import ConversationForwardPanelWeb from "@/components/conversations/conversation
 import { EMPTY_SET } from "@/constants/constants";
 import { MotionView } from "@/motion/MotionView";
 import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel";
+import { useGlobalSearchParams } from "expo-router";
+import { useConversationsQuery } from "@/query/useConversationsQuery";
+import { useLinkConversation } from "@/hooks/useLinkConversation";
 
-export default function ChatInterfaceWeb({ selectedConversation }: ChatComponentProps) {
+export default function ChatInterfaceWeb() {
   const { setSelectionMode, setSelectedMessageIds } = useConversationStore();
+
+  const { id } = useGlobalSearchParams<{ id?: string }>();
+  const conversationId = id ? Number(id) : null;
+
+  const { conversationsPages } = useConversationsQuery({});
+  const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+  const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
+
+  useLinkConversation({
+    initialConversationId: conversationId ?? undefined,
+    conversations,
+    onConversationFound: setSelectedConversation,
+  });
 
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [messageToJump, setMessageToJump] = useState<number | null>(null);

@@ -1,13 +1,14 @@
-import { Slot } from "expo-router";
 import { View } from "react-native";
-import ConversationSidebar from "@/components/conversations/conversation-list/CoversationSidebar";
+import { Slot } from "expo-router";
+import { PLATFORM } from "@/constants/platformConstants";
+import ConversationSidebar from "@/components/conversations/conversation-list/ConversationSidebar/CoversationSidebar";
 
 export default function ConversationsLayout() {
   return (
     <View style={{ flex: 1, flexDirection: "row" }}>
       <ConversationSidebar />
 
-      <Slot />
+      {PLATFORM.IS_WEB && <Slot />}
     </View>
   );
 }

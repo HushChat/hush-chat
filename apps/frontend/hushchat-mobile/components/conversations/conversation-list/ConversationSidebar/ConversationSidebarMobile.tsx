@@ -1,51 +1,55 @@
+import { useCallback, useMemo, useState } from "react";
 import { View, TouchableOpacity } from "react-native";
-import React, { useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import classNames from "classnames";
+import { Ionicons } from "@expo/vector-icons";
+
+import { useConversationList } from "@/hooks/useConversationList";
+import { useConversationSearch } from "@/hooks/useConversationSearch";
+import { useUserActivity } from "@/hooks/useUserActivity";
+
+import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
+import BackButton from "@/components/BackButton";
+import { AppText } from "@/components/AppText";
+import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
+import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
+import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
+
+import { ConversationType, IConversation } from "@/types/chat/types";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { router } from "expo-router";
 import {
-  CHAT_VIEW_PATH,
+  CONVERSATION,
   GROUP_CONVERSATION_SELECT_PARTICIPANTS,
   MENTIONED_MESSAGES,
   SETTINGS_CONTACT,
   SETTINGS_INVITE,
   SETTINGS_WORKSPACE,
 } from "@/constants/routes";
-import classNames from "classnames";
-import BackButton from "@/components/BackButton";
-import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
-import { Ionicons } from "@expo/vector-icons";
-import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { ChatComponentProps, ConversationType } from "@/types/chat/types";
-import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
-import { AppText } from "@/components/AppText";
-import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
-import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
+import { PLATFORM } from "@/constants/platformConstants";
 
-export default function ChatInterfaceMobile({
-  selectedConversation,
-  setSelectedConversation,
-}: ChatComponentProps) {
+export default function ConversationSidebarMobile() {
+  const [sheetVisible, setSheetVisible] = useState(false);
   const insets = useSafeAreaInsets();
-  const [sheetVisible, setSheetVisible] = useState<boolean>(false);
-  const { selectedConversationType, setSelectedConversationType } = useConversationStore();
   const { workspaces } = useUserWorkspacesQuery();
 
-  const headerTitle = useConversationHeaderTitle(selectedConversationType);
+  const {
+    selectedConversationType,
+    setSelectedConversationType,
+    selectedConversationId,
+    conversations,
+    selectedConversation,
+    isLoadingConversations,
+    conversationsError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useConversationList();
 
-  useEffect(() => {
-    if (selectedConversation) {
-      router.push({
-        pathname: CHAT_VIEW_PATH,
-        params: {
-          conversationId: selectedConversation.id,
-        },
-      });
-
-      setSelectedConversation(null);
-    }
-  }, [selectedConversation, setSelectedConversation]);
+  const { searchInput, searchResults, isSearching, searchError, refetchSearch } =
+    useConversationSearch();
 
   const sheetOptions = useMemo(() => {
     const options: BottomSheetOption[] = [
@@ -102,13 +106,23 @@ export default function ChatInterfaceMobile({
     return options;
   }, [workspaces]);
 
+  const handleSelectConversation = useCallback((conversation: IConversation | null) => {
+    if (!conversation) return;
+
+    if (PLATFORM.IS_WEB) {
+      router.push(CONVERSATION(conversation.id));
+    }
+  }, []);
+
+  useUserActivity({ conversations, selectedConversationId });
+
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View
-        className="bg-background-light dark:bg-background-dark px-4 py-3"
+        className="bg-background-light dark:bg-background-dark px-4"
         style={{ paddingTop: insets.top + 12 }}
       >
-        <View className="flex-row items-center">
+        <View className="flex-row items-center py-3">
           {selectedConversationType === ConversationType.ARCHIVED && (
             <BackButton onPress={() => setSelectedConversationType(ConversationType.ALL)} />
           )}
@@ -120,7 +134,7 @@ export default function ChatInterfaceMobile({
                 "text-3xl font-bold": selectedConversationType !== ConversationType.ARCHIVED,
               })}
             >
-              {headerTitle}
+              HushChat
             </AppText>
           </View>
 
@@ -130,11 +144,30 @@ export default function ChatInterfaceMobile({
           <TouchableOpacity
             onPress={() => setSheetVisible(true)}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
-            className="ml-2 h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="ml-2 h-9 w-9 items-center justify-center rounded-lg"
           >
             <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
           </TouchableOpacity>
         </View>
+      </View>
+
+      <View className="flex-1 px-4">
+        <ConversationListContainer
+          conversations={conversations}
+          conversationsError={conversationsError?.message}
+          conversationsLoading={isLoadingConversations}
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          conversationsRefetch={refetch}
+          setSelectedConversation={handleSelectConversation}
+          selectedConversation={selectedConversation}
+          searchedConversationsResult={searchResults}
+          isSearchingConversations={isSearching}
+          errorWhileSearchingConversation={searchError?.message}
+          searchQuery={searchInput}
+          refetchSearchResults={refetchSearch}
+        />
       </View>
 
       <BottomSheet

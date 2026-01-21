@@ -1,102 +1,56 @@
-import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
-import { useConversationsQuery } from "@/query/useConversationsQuery";
-import useGlobalSearchQuery from "@/query/useGlobalSearchQuery";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { IConversation, IFilter, ConversationType } from "@/types/chat/types";
-import { getCriteria } from "@/utils/conversationUtils";
-import { debounce } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { router, useGlobalSearchParams } from "expo-router";
-import { PLATFORM } from "@/constants/platformConstants";
-import { CONVERSATION } from "@/constants/routes";
-import { getAllTokens } from "@/utils/authUtils";
-import { UserActivityWSSubscriptionData } from "@/types/ws/types";
-import { useUserStore } from "@/store/user/useUserStore";
-import { useWebSocket } from "@/contexts/WebSocketContext";
-import { WebGroupCreation } from "@/components/conversations/conversation-list/group-conversation-creation/web/WebGroupCreation";
-import { MotionView } from "@/motion/MotionView";
-import { MotionEasing } from "@/motion/easing";
-import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
+import { useCallback, useState } from "react";
 import { Dimensions, View } from "react-native";
+
+import { useConversationList } from "@/hooks/useConversationList";
+import { useConversationSearch } from "@/hooks/useConversationSearch";
+import { useUserActivity } from "@/hooks/useUserActivity";
+
+import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
 import SearchBar from "@/components/SearchBar";
 import FilterButton from "@/components/FilterButton";
+import { WebGroupCreation } from "@/components/conversations/conversation-list/group-conversation-creation/web/WebGroupCreation";
+import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
+import { MotionView } from "@/motion/MotionView";
+import { MotionEasing } from "@/motion/easing";
 
-export default function ConversationSidebar() {
-  const { selectedConversationType, setSelectedConversationType } = useConversationStore();
+import { ConversationType, IConversation, IFilter } from "@/types/chat/types";
+import { PLATFORM } from "@/constants/platformConstants";
+import { router } from "expo-router";
+import { CONVERSATION } from "@/constants/routes";
+
+export default function ConversationSidebarWeb() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showMentionedMessages, setShowMentionedMessages] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
-
-  const {
-    user: { email },
-  } = useUserStore();
-
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener("change", ({ window }) => {
-      setScreenWidth(window.width);
-    });
-    return () => subscription?.remove();
-  }, []);
-
-  const { id } = useGlobalSearchParams<{ id?: string }>();
-  const selectedConversationId = id ? Number(id) : null;
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
 
-  const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
-
-  const debouncedSearchQuery = useMemo(
-    () =>
-      debounce((value: string) => {
-        setSearchQuery(value);
-      }, 500),
-    []
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedSearchQuery.cancel();
-    };
-  }, [debouncedSearchQuery]);
+  const screenWidth = Dimensions.get("window").width;
 
   const {
-    conversationsPages,
+    selectedConversationType,
+    setSelectedConversationType,
+    selectedConversationId,
+    conversations,
+    selectedConversation,
     isLoadingConversations,
     conversationsError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useConversationsQuery(criteria);
+  } = useConversationList();
 
-  const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
+  const {
+    searchInput,
+    searchResults,
+    isSearching,
+    searchError,
+    refetchSearch,
+    handleSearchInputChange,
+    handleSearchClear,
+  } = useConversationSearch();
 
-  const { searchResults, isSearching, searchError, refetchSearch } =
-    useGlobalSearchQuery(searchQuery);
-
-  const { publishActivity } = useWebSocket();
-
-  useEffect(() => {
-    const publishUserActivity = async () => {
-      const { workspace } = await getAllTokens();
-      const conversationIds = conversations.map((c) => c.id);
-
-      await publishActivity({
-        workspaceId: workspace as string,
-        email,
-        visibleConversations: conversationIds,
-        openedConversation: selectedConversationId ?? undefined,
-      } as UserActivityWSSubscriptionData);
-    };
-
-    if (conversations.length) {
-      void publishUserActivity();
-    }
-  }, [conversations, selectedConversationId, email, publishActivity]);
-
-  const handleSetSelectedConversation = useCallback((conversation: IConversation | null) => {
+  const handleSelectConversation = useCallback((conversation: IConversation | null) => {
     if (!conversation) return;
 
     if (PLATFORM.IS_WEB) {
@@ -110,18 +64,7 @@ export default function ConversationSidebar() {
     }
   }, []);
 
-  const handleSearchInputChange = useCallback(
-    (value: string) => {
-      setSearchInput(value);
-      debouncedSearchQuery(value);
-    },
-    [debouncedSearchQuery]
-  );
-
-  const handleSearchClear = useCallback(() => {
-    setSearchInput("");
-    setSearchQuery("");
-  }, []);
+  useUserActivity({ conversations, selectedConversationId });
 
   const filters: IFilter[] = [
     {
@@ -196,12 +139,8 @@ export default function ConversationSidebar() {
           hasNextPage={hasNextPage}
           isFetchingNextPage={isFetchingNextPage}
           conversationsRefetch={refetch}
-          setSelectedConversation={handleSetSelectedConversation}
-          selectedConversation={
-            selectedConversationId
-              ? (conversations.find((c) => c.id === selectedConversationId) ?? null)
-              : null
-          }
+          setSelectedConversation={handleSelectConversation}
+          selectedConversation={selectedConversation}
           searchedConversationsResult={searchResults}
           isSearchingConversations={isSearching}
           errorWhileSearchingConversation={searchError?.message}
@@ -219,7 +158,7 @@ export default function ConversationSidebar() {
             void refetch();
             setShowCreateGroup(false);
           }}
-          setSelectedConversation={handleSetSelectedConversation}
+          setSelectedConversation={handleSelectConversation}
         />
       )}
 
@@ -236,7 +175,7 @@ export default function ConversationSidebar() {
           <MentionedMessageListView
             onClose={() => setShowMentionedMessages(false)}
             onMessageClicked={handleSearchMessageClick}
-            setSelectedConversation={handleSetSelectedConversation}
+            setSelectedConversation={handleSelectConversation}
           />
         </MotionView>
       )}
