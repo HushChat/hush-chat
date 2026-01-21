@@ -326,6 +326,7 @@ export interface ConversationInputProps {
   conversationId: number;
   onSendMessage: (
     message: string,
+    isMarkdownEnabled: boolean,
     parentMessage?: IMessage,
     files?: File[],
     gifUrl?: string

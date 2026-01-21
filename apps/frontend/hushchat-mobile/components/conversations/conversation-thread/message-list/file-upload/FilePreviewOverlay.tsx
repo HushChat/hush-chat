@@ -11,6 +11,7 @@ import { ACCEPT_DOC_TYPES } from "@/constants/mediaConstants";
 export type FileWithCaption = {
   file: File;
   caption: string;
+  isMarkdownEnabled: boolean;
 };
 
 type TFilePreviewOverlayProps = {
@@ -137,6 +138,7 @@ const FilePreviewOverlay = ({
     const filesWithCaptions: FileWithCaption[] = files.map((file, index) => ({
       file,
       caption: captions.get(index) || "",
+      isMarkdownEnabled: false,
     }));
     onSendFiles(filesWithCaptions);
     setCaptions(new Map());

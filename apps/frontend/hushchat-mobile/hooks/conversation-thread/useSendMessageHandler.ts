@@ -12,6 +12,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 export type TFileWithCaption = {
   file: File;
   caption: string;
+  isMarkdownEnabled: boolean;
 };
 
 interface IUseSendMessageHandlerParams {
@@ -198,6 +199,7 @@ export const useSendMessageHandler = ({
           const filesWithCaptions: TFileWithCaption[] = renamedFiles.map((file) => ({
             file,
             caption: trimmed,
+            isMarkdownEnabled,
           }));
 
           const parentMsgId = parentMessage?.id ?? null;
@@ -267,9 +269,10 @@ export const useSendMessageHandler = ({
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
-          ({ file, caption }, index) => ({
+          ({ file, caption, isMarkdownEnabled }, index) => ({
             file: renameFile(file, index),
             caption: caption.trim(),
+            isMarkdownEnabled,
           })
         );
 
