@@ -168,16 +168,18 @@ public class WebSocketSessionManager {
     }
 
     public void removeWebSocketSessionInfo(String sessionKey, String email, String deviceType) {
-        WebSocketSessionInfoDAO removed = webSocketSessionInfos.remove(sessionKey);
-        if (removed != null) {
-            String workspaceId = sessionKey.split(":", 2)[0];
+        synchronized (this) {
+            WebSocketSessionInfoDAO removed = webSocketSessionInfos.remove(sessionKey);
+            if (removed != null) {
+                String workspaceId = sessionKey.split(":", 2)[0];
 
-            List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
-            if(sessions == null || sessions.isEmpty()) {
-                logger.debug("no active sessions remain for user: {}", sessionKey);
-                userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE, deviceType);
+                List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
+                if (sessions == null || sessions.isEmpty()) {
+                    logger.debug("no active sessions remain for user: {}", sessionKey);
+                    userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE, deviceType);
+                }
+                logger.debug("removed session for user: {}", sessionKey);
             }
-            logger.debug("removed session for user: {}", sessionKey);
         }
     }
 
