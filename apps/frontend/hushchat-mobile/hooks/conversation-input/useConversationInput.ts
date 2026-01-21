@@ -42,7 +42,9 @@ export function useConversationInput({
   onCancelEdit,
   onEditMessage,
 }: TConversationInputOptions) {
-  const [isMarkdownEnabled, setIsMarkdownEnabled] = useState<boolean>(false);
+  const [isMarkdownEnabled, setIsMarkdownEnabled] = useState<boolean>(
+    editingMessage?.isMarkdownEnabled ?? false
+  );
   const messageTextInputRef = useRef<TextInput>(null);
   const defaultPlaceholderText = "Type a message...";
   const editPlaceholderText = "Edit message...";
@@ -103,6 +105,8 @@ export function useConversationInput({
   }, [editingMessage?.id]);
 
   useEffect(() => {
+    setIsMarkdownEnabled(editingMessage?.isMarkdownEnabled ?? false);
+
     if (!editingMessage && editingMessageRef.current) {
       if (isControlledMode) {
         onControlledValueChange?.("");

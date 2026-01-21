@@ -163,7 +163,7 @@ public class MessageService {
             throw new CustomBadRequestException("Cannot edit a forwarded message!");
         }
 
-        if (message.getMessageText().equals(messageDTO.getMessageText())) {
+        if (message.getMessageText().equals(messageDTO.getMessageText()) && message.getIsMarkdownEnabled().equals(messageDTO.getIsMarkdownEnabled())) {
             return new MessageViewDTO(message);
         }
 
