@@ -253,6 +253,7 @@ export interface TMessageForward {
   conversationIds: number[];
   userIds?: number[];
   customText: string;
+  isMarkdownEnabled: boolean;
 }
 
 export interface TMessageForwardResponse {

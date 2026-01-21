@@ -61,6 +61,7 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
       conversationIds: conversationIds.length > 0 ? conversationIds : undefined,
       userIds: userIds.length > 0 ? userIds : undefined,
       customText: customText,
+      isMarkdownEnabled: false,
     });
   };
 
