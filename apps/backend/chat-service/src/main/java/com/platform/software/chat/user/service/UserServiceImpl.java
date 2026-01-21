@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import com.platform.software.chat.conversation.entity.Conversation;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.notification.repository.ChatNotificationRepository;
@@ -429,10 +428,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable) {
+    public Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable, Long loggedInUserId, String searchKeyword) {
 
         Page<WorkspaceUser> workspaceUserPage = WorkspaceUtils.runInGlobalSchema(
-                () -> workspaceUserRepository.fetchWorkspaceUsersPage(pageable)
+                () -> workspaceUserRepository.fetchWorkspaceUsersPage(pageable, searchKeyword)
         );
 
         List<WorkspaceUser> workspaceUsers = workspaceUserPage.getContent();
@@ -445,18 +444,26 @@ public class UserServiceImpl implements UserService {
         Map<String, ChatUser> chatUserMap = chatUsers.stream()
                 .collect(Collectors.toMap(ChatUser::getEmail, cu -> cu));
 
+        List<Long> targetUserIds = chatUsers.stream()
+            .map(ChatUser::getId)
+            .collect(Collectors.toList());
+
+        Map<Long, Long> userToConversationMap =
+            conversationRepository.findDirectConversationsBatch(loggedInUserId, targetUserIds);
+
         List<WorkspaceUserViewDTO> result = workspaceUsers.stream()
                 .map(wu -> {
                     ChatUser cu = chatUserMap.get(wu.getEmail());
-                    return new WorkspaceUserViewDTO(
-                            wu.getId(),
-                            cu != null ? cu.getFirstName() : null,
-                            cu != null ? cu.getLastName() : null,
-                            cu != null ? cu.getUsername() : null,
-                            cu != null ? cu.getEmail() : wu.getEmail(),
-                            cu != null ? cu.getImageIndexedName() : null,
-                            wu.getStatus()
-                    );
+                    return WorkspaceUserViewDTO.builder()
+                            .id(wu.getId())
+                            .firstName(cu != null ? cu.getFirstName() : null)
+                            .lastName(cu != null ? cu.getLastName() : null)
+                            .username(cu != null ? cu.getUsername() : null)
+                            .email(cu != null ? cu.getEmail() : wu.getEmail())
+                            .imageIndexedName(cu != null ? cu.getImageIndexedName() : null)
+                            .status(wu.getStatus())
+                            .conversationId(cu != null ? userToConversationMap.get(cu.getId()) : null)
+                            .build();
                 })
                 .collect(Collectors.toList());
 

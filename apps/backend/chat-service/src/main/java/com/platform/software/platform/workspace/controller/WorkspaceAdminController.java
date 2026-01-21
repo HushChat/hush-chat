@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.dto.ConversationAdminViewDTO;
 import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.interceptors.WorkspaceAdminRestrictedAccess;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
@@ -29,11 +30,18 @@ public class WorkspaceAdminController {
     private final ConversationService conversationService;
     private final WorkspaceUserService workspaceUserService;
     private final UserService userService;
+    private final WebSocketSessionManager webSocketSessionManager;
 
-    public WorkspaceAdminController(ConversationService conversationService, WorkspaceUserService workspaceUserService, UserService userService) {
+    public WorkspaceAdminController(
+        ConversationService conversationService, 
+        WorkspaceUserService workspaceUserService, 
+        UserService userService,
+        WebSocketSessionManager webSocketSessionManager
+    ) {
         this.conversationService = conversationService;
         this.workspaceUserService = workspaceUserService;
         this.userService = userService;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     @ApiOperation(value = "Get all group conversations in a workspace", response = ConversationAdminViewDTO.class)
@@ -65,9 +73,14 @@ public class WorkspaceAdminController {
     @ApiOperation(value = "Get all workspace users", response = WorkspaceUserViewDTO.class)
     @GetMapping("/users")
     public ResponseEntity<Page<WorkspaceUserViewDTO>> getAllWorkspaceUsers(
-            Pageable pageable
+        @AuthenticatedUser UserDetails userDetails,
+        @RequestParam(required = false) String searchKeyword,
+        Pageable pageable
     ) {
-        Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsers(pageable);
+        Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsers(pageable, userDetails.getId(), searchKeyword);
+        workspaceUsers.forEach(dto -> {
+            dto.setChatUserStatus(webSocketSessionManager.getUserChatStatus(WorkspaceContext.getCurrentWorkspace(), dto.getEmail()));
+        });
         return new ResponseEntity<>(workspaceUsers, HttpStatus.OK);
     }
 
