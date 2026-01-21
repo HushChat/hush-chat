@@ -3,6 +3,7 @@ import { TouchableOpacity, View } from "react-native";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 import { SendButton } from "@/components/conversation-input/SendButton";
+import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
 
 interface IComposerIconButtonProps {
   onPress: () => void;
@@ -32,6 +33,8 @@ interface IConversationInputActionProps {
   onOpenEmojiPicker: () => void;
   onOpenGifPicker: () => void;
   onSendPress: () => void;
+  isMarkdownEnabled: boolean;
+  onToggleMarkdown: () => void;
 }
 
 export const ConversationInputActions = memo(
@@ -45,6 +48,8 @@ export const ConversationInputActions = memo(
     onOpenEmojiPicker,
     onOpenGifPicker,
     onSendPress,
+    isMarkdownEnabled,
+    onToggleMarkdown,
   }: IConversationInputActionProps) => {
     return (
       <View className="flex-row gap-2 items-center ml-1">
@@ -62,6 +67,12 @@ export const ConversationInputActions = memo(
               <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
             </ComposerIconButton>
           </>
+        )}
+
+        {isValidMessage && (
+          <View className="ml-1">
+            <MarkdownToggle enabled={isMarkdownEnabled} onToggle={onToggleMarkdown} />
+          </View>
         )}
 
         {!hideSendButton && (

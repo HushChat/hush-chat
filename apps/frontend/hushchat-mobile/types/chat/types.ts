@@ -70,6 +70,7 @@ export interface IMessage {
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
   isEdited?: boolean;
+  isMarkdownEnabled?: boolean;
 }
 
 export interface IMessageView extends IMessage {

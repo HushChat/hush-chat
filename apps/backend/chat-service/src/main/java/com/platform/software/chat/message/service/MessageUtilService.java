@@ -120,6 +120,7 @@ public class MessageUtilService {
         validateInteractionAllowed(conversation, senderUserId);
 
         Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
+        newMessage.setIsMarkdownEnabled(message.getIsMarkdownEnabled());
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
 
         try {

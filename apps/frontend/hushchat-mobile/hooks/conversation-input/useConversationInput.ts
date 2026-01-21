@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo, useEffect } from "react";
+import { useCallback, useRef, useMemo, useEffect, useState } from "react";
 import { TextInput, TextInputSelectionChangeEvent } from "react-native";
 import { useEnterSubmit } from "@/utils/commonUtils";
 import { useSpecialCharHandler } from "@/hooks/useSpecialCharHandler";
@@ -42,6 +42,7 @@ export function useConversationInput({
   onCancelEdit,
   onEditMessage,
 }: TConversationInputOptions) {
+  const [isMarkdownEnabled, setIsMarkdownEnabled] = useState<boolean>(false);
   const messageTextInputRef = useRef<TextInput>(null);
   const defaultPlaceholderText = "Type a message...";
   const editPlaceholderText = "Edit message...";
@@ -206,6 +207,7 @@ export function useConversationInput({
         if (isControlledMode) {
           sendMessageCallbackRef.current(
             processedMessage,
+            isMarkdownEnabled,
             replyManagerRef.current.activeReplyTargetMessage ?? undefined
           );
           return;
@@ -219,12 +221,15 @@ export function useConversationInput({
 
       sendMessageCallbackRef.current(
         processedMessage,
+        isMarkdownEnabled,
         replyManagerRef.current.activeReplyTargetMessage ?? undefined
       );
 
       autoHeightController.animateHeightResetToMinimum();
       mentionsController.clearActiveMentionQuery();
       mentionsController.clearValidMentions();
+
+      setIsMarkdownEnabled(false);
 
       if (replyManagerRef.current.isReplyModeActive) {
         replyManagerRef.current.cancelReplyMode();
@@ -243,6 +248,7 @@ export function useConversationInput({
       mentionsController.clearActiveMentionQuery,
       mentionsController.clearValidMentions,
       typingActivity.stopTyping,
+      isMarkdownEnabled,
     ]
   );
 
@@ -338,5 +344,7 @@ export function useConversationInput({
     handleSendButtonPress,
 
     placeholder: resolvedPlaceholderText,
+    isMarkdownEnabled,
+    setIsMarkdownEnabled,
   };
 }

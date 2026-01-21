@@ -6,12 +6,9 @@ import { AppText } from "@/components/AppText";
 import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
 import { handleConversationNavigation } from "@/utils/commonUtils";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
-import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
-import classNames from "classnames";
 import { TypingIndicator } from "@/components/conversations/conversation-thread/TypingIndicator";
 import { eventBus } from "@/services/eventBus";
 import { USER_EVENTS } from "@/constants/ws/webSocketEventKeys";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { chatUserStatus, ConversationInfo, DeviceType, IUserStatus } from "@/types/chat/types";
 import RefreshButton from "@/components/RefreshButton";
 
@@ -35,7 +32,6 @@ const ChatHeader = ({
   isGroupChat,
 }: ChatHeaderProps) => {
   const isMobileLayout = useIsMobileLayout();
-  const { isMarkdownEnabled, toggleMarkdown } = useConversationStore();
 
   const [userPresence, setUserPresence] = useState<{
     status: chatUserStatus;
@@ -112,10 +108,6 @@ const ChatHeader = ({
               />
             </View>
           </TouchableOpacity>
-
-          <View className={classNames(!isMobileLayout && "mr-3")}>
-            <MarkdownToggle enabled={isMarkdownEnabled} onToggle={toggleMarkdown} />
-          </View>
         </View>
 
         {!isMobileLayout && (

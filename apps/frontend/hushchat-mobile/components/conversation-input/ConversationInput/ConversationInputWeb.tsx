@@ -175,6 +175,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
               onOpenEmojiPicker={openEmojiPicker}
               onOpenGifPicker={openGifPicker}
               onSendPress={handleSendPress}
+              isMarkdownEnabled={input.isMarkdownEnabled}
+              onToggleMarkdown={() => input.setIsMarkdownEnabled((prev) => !prev)}
             />
           </View>
 

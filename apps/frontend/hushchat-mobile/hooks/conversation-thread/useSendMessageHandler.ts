@@ -149,7 +149,13 @@ export const useSendMessageHandler = ({
   );
 
   const handleSendMessage = useCallback(
-    async (message: string, parentMessage?: IMessage, files?: File[], gifUrl?: string) => {
+    async (
+      message: string,
+      isMarkdownEnabled: boolean,
+      parentMessage?: IMessage,
+      files?: File[],
+      gifUrl?: string
+    ) => {
       const trimmed = message?.trim() ?? "";
       const filesToSend = files || [];
 
@@ -231,6 +237,7 @@ export const useSendMessageHandler = ({
           conversationId: currentConversationId,
           message: trimmed,
           parentMessageId: parentMessage?.id,
+          isMarkdownEnabled: isMarkdownEnabled,
         });
 
         setSelectedMessage(null);

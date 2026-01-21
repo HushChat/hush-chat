@@ -9,7 +9,6 @@ import { useMarkdownStyles } from "@/hooks/formattedText/useMarkdownStyles";
 import { useProcessedText } from "@/hooks/formattedText/useProcessedText";
 import { TUser } from "@/types/user/types";
 import { AppText } from "@/components/AppText";
-import { useConversationStore } from "@/store/conversation/useConversationStore";
 import classNames from "classnames";
 
 export interface FormattedTextProps {
@@ -21,11 +20,11 @@ export interface FormattedTextProps {
   onMentionPress?: (username: string) => void;
   onHashtagPress?: (hashtag: string) => void;
   isCurrentUser: boolean;
+  isMarkdownEnabled?: boolean;
 }
 
 const FormattedText = (props: FormattedTextProps) => {
-  const { text, mentions = [], isCurrentUser } = props;
-  const { isMarkdownEnabled } = useConversationStore();
+  const { text, mentions = [], isCurrentUser, isMarkdownEnabled } = props;
 
   const processedText = useProcessedText(text, mentions);
   const { markdownStyles } = useMarkdownStyles(isCurrentUser);
