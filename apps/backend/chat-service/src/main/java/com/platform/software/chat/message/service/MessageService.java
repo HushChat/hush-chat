@@ -388,6 +388,7 @@ public class MessageService {
                 Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
+                newMessage.setIsMarkdownEnabled(message.getIsMarkdownEnabled());
                 forwardingMessages.add(newMessage);
             });
 
