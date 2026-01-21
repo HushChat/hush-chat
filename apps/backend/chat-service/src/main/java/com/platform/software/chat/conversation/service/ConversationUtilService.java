@@ -11,6 +11,7 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.message.dto.MessageForwardRequestDTO;
@@ -27,6 +28,7 @@ import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomResourceNotFoundException;
 import com.platform.software.utils.CommonUtils;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -389,6 +391,13 @@ public class ConversationUtilService {
                 dto.setOriginalFileName(attachment.getOriginalFileName());
                 dto.setType(attachment.getType());
 
+                if(attachment.getType().equals(AttachmentTypeEnum.VIDEO)){
+                    String objectKey = getIndexedFileName(attachment);
+                    String videoThumbnailSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(objectKey);
+                    dto.setThumbnailUrl(videoThumbnailSignedURL);
+                }
+
                 attachmentDTOs.add(dto);
             } catch (Exception e) {
                 logger.error("Failed to process attachment {}: {}", attachment.getOriginalFileName(), e.getMessage());
@@ -397,6 +406,24 @@ public class ConversationUtilService {
         }
 
         return attachmentDTOs;
+    }
+
+    /**
+     * Constructs the indexed file name for a video thumbnail based on the attachment's indexed file name.
+     *
+     * @param attachment the MessageAttachment entity
+     * @return the constructed object key for the video thumbnail
+     */
+    @NotNull
+    private static String getIndexedFileName(MessageAttachment attachment) {
+        String indexedFileName = attachment.getIndexedFileName();
+        String fileName = indexedFileName.substring(indexedFileName.lastIndexOf('/') + 1);
+        int lastDot = fileName.lastIndexOf('.');
+        String thumbnailName = (lastDot != -1)
+                ? fileName.substring(0, lastDot) + ".jpg"
+                : fileName + ".jpg";
+
+        return String.format(MediaPathEnum.VIDEO_THUMBNAIL.getName(), thumbnailName);
     }
 
     /**
