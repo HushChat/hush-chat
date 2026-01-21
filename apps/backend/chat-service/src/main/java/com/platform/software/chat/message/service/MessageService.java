@@ -71,12 +71,13 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
-    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType) {
+    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType, Boolean isMarkdownEnabled) {
         Message newMessage = new Message();
         newMessage.setMessageText(messageText);
         newMessage.setConversation(conversation);
         newMessage.setSender(loggedInUser);
         newMessage.setMessageType(messageType);
+        newMessage.setIsMarkdownEnabled(isMarkdownEnabled);
         return newMessage;
     }
 
@@ -385,10 +386,9 @@ public class MessageService {
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
             messages.forEach(message -> {
-                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType());
+                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType(), message.getIsMarkdownEnabled());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
-                newMessage.setIsMarkdownEnabled(message.getIsMarkdownEnabled());
                 forwardingMessages.add(newMessage);
             });
 
@@ -398,7 +398,8 @@ public class MessageService {
                         messageForwardRequestDTO.getCustomText(),
                         targetConversation.getModel(),
                         loggedInUser,
-                        MessageTypeEnum.TEXT
+                        MessageTypeEnum.TEXT,
+                        messageForwardRequestDTO.getIsMarkdownEnabled()
                 );
                 forwardingMessages.add(customMessage);
             }
