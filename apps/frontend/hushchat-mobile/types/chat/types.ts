@@ -84,10 +84,6 @@ export interface IFilter {
   isActive: boolean;
 }
 
-export interface ChatComponentProps {
-  selectedConversation: IConversation | null;
-}
-
 export enum ConversationType {
   ALL = "ALL",
   ARCHIVED = "ARCHIVED",
@@ -142,12 +138,6 @@ export interface IMessageReaction {
   reactionType: ReactionType;
   count: number;
   reactedByCurrentUser: boolean;
-}
-
-export interface IMessageReactions {
-  messageId: number;
-  reactions: IMessageReaction[];
-  totalReactionsCount: number;
 }
 
 export interface IMessageReactionRequest {
