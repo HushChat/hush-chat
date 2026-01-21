@@ -43,12 +43,14 @@ const createTempImageMessage = ({
   conversationId,
   senderId,
   tempId,
+  isMarkdownEnabled,
 }: {
   file: File;
   messageText: string;
   conversationId: number;
   senderId: number;
   tempId: number;
+  isMarkdownEnabled: boolean;
 }): IMessage => ({
   id: tempId,
   isForwarded: false,
@@ -69,6 +71,7 @@ const createTempImageMessage = ({
     },
   ],
   hasAttachment: true,
+  isMarkdownEnabled: isMarkdownEnabled,
 });
 
 const createTempGifMessage = ({
@@ -180,6 +183,7 @@ export const useSendMessageHandler = ({
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
               tempId,
+              isMarkdownEnabled,
             });
 
             updateConversationMessagesCache(tempMsg);
@@ -193,6 +197,7 @@ export const useSendMessageHandler = ({
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
               tempId: generateTempMessageId(),
+              isMarkdownEnabled,
             })
           );
 
@@ -276,7 +281,7 @@ export const useSendMessageHandler = ({
           })
         );
 
-        preparedFiles.forEach(({ file, caption }) => {
+        preparedFiles.forEach(({ file, caption, isMarkdownEnabled }) => {
           const tempId = generateTempMessageId();
           tempMessageIds.push(tempId);
 
@@ -286,6 +291,7 @@ export const useSendMessageHandler = ({
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
             tempId,
+            isMarkdownEnabled,
           });
 
           updateConversationMessagesCache(tempMsg);
@@ -299,6 +305,7 @@ export const useSendMessageHandler = ({
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
             tempId: generateTempMessageId(),
+            isMarkdownEnabled: lastItem.isMarkdownEnabled,
           })
         );
 
