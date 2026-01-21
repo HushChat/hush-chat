@@ -171,6 +171,8 @@ public class MessageService {
 
         message.setMessageText(messageDTO.getMessageText());
         message.setIsEdited(true);
+        message.setIsMarkdownEnabled(messageDTO.getIsMarkdownEnabled());
+        
         MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {

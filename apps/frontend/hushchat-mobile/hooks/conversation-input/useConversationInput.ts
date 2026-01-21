@@ -192,7 +192,11 @@ export function useConversationInput({
           return;
         }
 
-        editMessageCallbackRef.current?.(editingMessageRef.current.id, processedMessage);
+        editMessageCallbackRef.current?.(
+          editingMessageRef.current.id,
+          processedMessage,
+          isMarkdownEnabled
+        );
 
         if (!isControlledMode) {
           messageInputController.updateTypedMessageText("");

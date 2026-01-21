@@ -344,7 +344,7 @@ export interface ConversationInputProps {
   onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
   editingMessage?: IMessage | null;
   onCancelEdit?: () => void;
-  onEditMessage?: (messageId: number, newText: string) => void;
+  onEditMessage?: (messageId: number, newText: string, isMarkdownEnabled: boolean) => void;
   hideEmojiGifPickers?: boolean;
 }
 

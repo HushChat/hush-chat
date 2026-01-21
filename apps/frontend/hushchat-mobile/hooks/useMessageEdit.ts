@@ -14,7 +14,7 @@ interface IUseMessageEditReturn {
   isEditingMessage: boolean;
   handleStartEdit: (message: IMessage) => void;
   handleCancelEdit: () => void;
-  handleEditMessage: (messageId: number, newText: string) => void;
+  handleEditMessage: (messageId: number, newText: string, isMarkdownEnabled: boolean) => void;
 }
 
 export function useMessageEdit({
@@ -46,7 +46,7 @@ export function useMessageEdit({
   }, []);
 
   const handleEditMessage = useCallback(
-    (messageId: number, newText: string) => {
+    (messageId: number, newText: string, isMarkdownEnabled: boolean) => {
       const trimmedText = newText.trim();
 
       if (!trimmedText) {
@@ -58,6 +58,7 @@ export function useMessageEdit({
         conversationId,
         messageId,
         messageText: trimmedText,
+        isMarkdownEnabled,
       });
     },
     [conversationId, editMessage]

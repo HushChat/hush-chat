@@ -96,10 +96,10 @@ export const useToggleNotifyOnlyOnMentionMutation = createMutationHook<
 
 export const useEditMessageMutation = createMutationHook<
   IMessage,
-  { conversationId: number; messageId: number; messageText: string }
+  { conversationId: number; messageId: number; messageText: string; isMarkdownEnabled: boolean }
 >(
-  ({ conversationId, messageId, messageText }) =>
-    editMessageById(conversationId, messageId, messageText),
+  ({ conversationId, messageId, messageText, isMarkdownEnabled }) =>
+    editMessageById(conversationId, messageId, messageText, isMarkdownEnabled),
   (keyParams: { userId: number; conversationId: number }) => () =>
     [
       conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
