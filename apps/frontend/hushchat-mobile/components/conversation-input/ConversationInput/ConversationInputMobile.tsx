@@ -170,6 +170,8 @@ const ConversationInputMobile = ({
               onOpenEmojiPicker={openEmojiPicker}
               onOpenGifPicker={openGifPicker}
               onSendPress={handleSendButtonPress}
+              isMarkdownEnabled={input.isMarkdownEnabled}
+              onToggleMarkdown={() => input.setIsMarkdownEnabled((prev) => !prev)}
             />
           </View>
         </Animated.View>
@@ -206,7 +208,7 @@ const ConversationInputMobile = ({
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={(gifUrl) => {
-              onSendMessage?.("", undefined, undefined, gifUrl);
+              onSendMessage?.("", false, undefined, undefined, gifUrl);
             }}
           />
         </>
