@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { View, TouchableOpacity } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { View, TouchableOpacity, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,11 +15,11 @@ import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatus
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
 import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
 
-import { ConversationType, IConversation } from "@/types/chat/types";
+import { ConversationType, IConversation, IFilter } from "@/types/chat/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { router } from "expo-router";
 import {
-  CONVERSATION,
+  CHAT_VIEW_PATH,
   GROUP_CONVERSATION_SELECT_PARTICIPANTS,
   MENTIONED_MESSAGES,
   SETTINGS_CONTACT,
@@ -27,7 +27,9 @@ import {
   SETTINGS_WORKSPACE,
 } from "@/constants/routes";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
-import { PLATFORM } from "@/constants/platformConstants";
+import SearchBar from "@/components/SearchBar";
+import FilterButton from "@/components/FilterButton";
+import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
 
 export default function ConversationSidebarMobile() {
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -48,8 +50,17 @@ export default function ConversationSidebarMobile() {
     refetch,
   } = useConversationList();
 
-  const { searchInput, searchResults, isSearching, searchError, refetchSearch } =
-    useConversationSearch();
+  const headerTitle = useConversationHeaderTitle(selectedConversationType);
+
+  const {
+    searchInput,
+    searchResults,
+    isSearching,
+    searchError,
+    refetchSearch,
+    handleSearchInputChange,
+    handleSearchClear,
+  } = useConversationSearch();
 
   const sheetOptions = useMemo(() => {
     const options: BottomSheetOption[] = [
@@ -108,13 +119,38 @@ export default function ConversationSidebarMobile() {
 
   const handleSelectConversation = useCallback((conversation: IConversation | null) => {
     if (!conversation) return;
-
-    if (PLATFORM.IS_WEB) {
-      router.push(CONVERSATION(conversation.id));
-    }
+    router.push({
+      pathname: CHAT_VIEW_PATH,
+      params: {
+        conversationId: conversation.id,
+      },
+    });
   }, []);
 
   useUserActivity({ conversations, selectedConversationId });
+
+  const filters: IFilter[] = [
+    {
+      key: ConversationType.ALL,
+      label: "All",
+      isActive: selectedConversationType === ConversationType.ALL,
+    },
+    {
+      key: ConversationType.FAVORITES,
+      label: "Favorites",
+      isActive: selectedConversationType === ConversationType.FAVORITES,
+    },
+    {
+      key: ConversationType.GROUPS,
+      label: "Groups",
+      isActive: selectedConversationType === ConversationType.GROUPS,
+    },
+    {
+      key: ConversationType.MUTED,
+      label: "Muted",
+      isActive: selectedConversationType === ConversationType.MUTED,
+    },
+  ];
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
@@ -134,7 +170,7 @@ export default function ConversationSidebarMobile() {
                 "text-3xl font-bold": selectedConversationType !== ConversationType.ARCHIVED,
               })}
             >
-              HushChat
+              {headerTitle}
             </AppText>
           </View>
 
@@ -151,7 +187,34 @@ export default function ConversationSidebarMobile() {
         </View>
       </View>
 
-      <View className="flex-1 px-4">
+      {selectedConversationType === ConversationType.ALL && (
+        <View className="px-4 h-12">
+          <SearchBar
+            value={searchInput}
+            onChangeText={handleSearchInputChange}
+            onClear={handleSearchClear}
+          />
+        </View>
+      )}
+
+      {selectedConversationType !== ConversationType.ARCHIVED && (
+        <View className="bg-background-light dark:bg-background-dark px-4 py-3">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row gap-x-2">
+              {filters.map((filter) => (
+                <FilterButton
+                  key={filter.key}
+                  label={filter.label}
+                  isActive={filter.isActive}
+                  onPress={() => setSelectedConversationType(filter.key)}
+                />
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      )}
+
+      <View className="flex-1">
         <ConversationListContainer
           conversations={conversations}
           conversationsError={conversationsError?.message}
