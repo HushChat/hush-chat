@@ -25,6 +25,8 @@ type TConversationInputOptions = Pick<
   | "editingMessage"
   | "onCancelEdit"
   | "onEditMessage"
+  | "controlledMarkdownEnabled"
+  | "onControlledMarkdownChange"
 >;
 
 export function useConversationInput({
@@ -37,14 +39,13 @@ export function useConversationInput({
   onCancelReply,
   controlledValue,
   onControlledValueChange,
+  controlledMarkdownEnabled,
+  onControlledMarkdownChange,
   onTypingStatusChange,
   editingMessage,
   onCancelEdit,
   onEditMessage,
 }: TConversationInputOptions) {
-  const [isMarkdownEnabled, setIsMarkdownEnabled] = useState<boolean>(
-    editingMessage?.isMarkdownEnabled ?? false
-  );
   const messageTextInputRef = useRef<TextInput>(null);
   const defaultPlaceholderText = "Type a message...";
   const editPlaceholderText = "Edit message...";
@@ -52,6 +53,25 @@ export function useConversationInput({
   const maxLines = 6;
   const lineHeight = 22;
   const verticalPadding = 12;
+
+  const [internalMarkdownEnabled, setInternalMarkdownEnabled] = useState<boolean>(
+    editingMessage?.isMarkdownEnabled ?? false
+  );
+
+  const isMarkdownControlled = controlledMarkdownEnabled !== undefined;
+
+  const isMarkdownEnabled = isMarkdownControlled
+    ? controlledMarkdownEnabled
+    : internalMarkdownEnabled;
+
+  const setIsMarkdownEnabled = (value: boolean | ((prev: boolean) => boolean)) => {
+    if (isMarkdownControlled && onControlledMarkdownChange) {
+      const resolvedValue = typeof value === "function" ? value(isMarkdownEnabled) : value;
+      onControlledMarkdownChange(resolvedValue);
+    } else {
+      setInternalMarkdownEnabled(value);
+    }
+  };
 
   const isControlledMode = controlledValue !== undefined;
   const isEditMode = !!editingMessage;

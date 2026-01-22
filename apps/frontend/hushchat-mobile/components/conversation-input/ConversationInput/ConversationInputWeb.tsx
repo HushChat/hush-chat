@@ -34,6 +34,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       controlledValue,
       onControlledValueChange,
       hideSendButton = false,
+      controlledMarkdownEnabled,
+      onControlledMarkdownChange,
       editingMessage,
       onCancelEdit,
       onEditMessage,
@@ -71,6 +73,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       editingMessage,
       onCancelEdit,
       onEditMessage,
+      controlledMarkdownEnabled,
+      onControlledMarkdownChange,
     });
 
     const handleKeyPress = useCallback(

@@ -41,8 +41,84 @@ const FilePreviewOverlay = ({
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [captions, setCaptions] = useState<Map<number, string>>(new Map());
+  const [markdowns, setMarkdowns] = useState<Map<number, boolean>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const captionInputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setMarkdowns((prev) => {
+      const newMarkdowns = new Map(prev);
+      files.forEach((_, index) => {
+        if (!newMarkdowns.has(index)) {
+          newMarkdowns.set(index, false);
+        }
+      });
+      Array.from(newMarkdowns.keys()).forEach((key) => {
+        if (key >= files.length) {
+          newMarkdowns.delete(key);
+        }
+      });
+      return newMarkdowns;
+    });
+  }, [files.length]);
+
+  const handleMarkdownChange = useCallback(
+    (isEnabled: boolean) => {
+      setMarkdowns((prev) => {
+        const newMarkdowns = new Map(prev);
+        newMarkdowns.set(selectedIndex, isEnabled);
+        return newMarkdowns;
+      });
+    },
+    [selectedIndex]
+  );
+
+  const getCurrentMarkdown = useCallback(() => {
+    return markdowns.get(selectedIndex) ?? false;
+  }, [markdowns, selectedIndex]);
+
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      setCaptions((prev) => {
+        const newCaptions = new Map<number, string>();
+        prev.forEach((caption, key) => {
+          if (key < index) {
+            newCaptions.set(key, caption);
+          } else if (key > index) {
+            newCaptions.set(key - 1, caption);
+          }
+        });
+        return newCaptions;
+      });
+
+      setMarkdowns((prev) => {
+        const newMarkdowns = new Map<number, boolean>();
+        prev.forEach((val, key) => {
+          if (key < index) {
+            newMarkdowns.set(key, val);
+          } else if (key > index) {
+            newMarkdowns.set(key - 1, val);
+          }
+        });
+        return newMarkdowns;
+      });
+      onRemoveFile(index);
+    },
+    [onRemoveFile]
+  );
+
+  const handleSend = useCallback(() => {
+    const filesWithCaptions: FileWithCaption[] = files.map((file, index) => ({
+      file,
+      caption: captions.get(index) || "",
+      isMarkdownEnabled: markdowns.get(index) ?? false,
+    }));
+
+    onSendFiles(filesWithCaptions);
+
+    setCaptions(new Map());
+    setMarkdowns(new Map());
+  }, [files, captions, markdowns, onSendFiles]);
 
   useEffect(() => {
     setCaptions((prev) => {
@@ -116,34 +192,6 @@ const FilePreviewOverlay = ({
     fileInputRef.current?.click();
   }, [files.length]);
 
-  const handleRemoveFile = useCallback(
-    (index: number) => {
-      setCaptions((prev) => {
-        const newCaptions = new Map<number, string>();
-        prev.forEach((caption, key) => {
-          if (key < index) {
-            newCaptions.set(key, caption);
-          } else if (key > index) {
-            newCaptions.set(key - 1, caption);
-          }
-        });
-        return newCaptions;
-      });
-      onRemoveFile(index);
-    },
-    [onRemoveFile]
-  );
-
-  const handleSend = useCallback(() => {
-    const filesWithCaptions: FileWithCaption[] = files.map((file, index) => ({
-      file,
-      caption: captions.get(index) || "",
-      isMarkdownEnabled: false,
-    }));
-    onSendFiles(filesWithCaptions);
-    setCaptions(new Map());
-  }, [files, captions, onSendFiles]);
-
   const handleClose = useCallback(() => {
     setCaptions(new Map());
     onClose();
@@ -171,6 +219,8 @@ const FilePreviewOverlay = ({
           replyToMessage={replyToMessage}
           onCancelReply={onCancelReply}
           inputRef={captionInputRef}
+          isMarkdownEnabled={getCurrentMarkdown()}
+          onMarkdownChange={handleMarkdownChange}
         />
       </View>
 

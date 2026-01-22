@@ -28,6 +28,8 @@ const ConversationInputMobile = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  controlledMarkdownEnabled,
+  onControlledMarkdownChange,
   editingMessage,
   onCancelEdit,
   onEditMessage,
@@ -65,6 +67,8 @@ const ConversationInputMobile = ({
     editingMessage,
     onCancelEdit,
     onEditMessage,
+    controlledMarkdownEnabled,
+    onControlledMarkdownChange,
   });
 
   const handleAddButtonPress = useCallback(() => {

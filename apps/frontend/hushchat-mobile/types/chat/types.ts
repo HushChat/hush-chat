@@ -342,6 +342,8 @@ export interface ConversationInputProps {
   isGroupChat?: boolean;
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
+  controlledMarkdownEnabled?: boolean;
+  onControlledMarkdownChange?: (enabled: boolean) => void;
   hideSendButton?: boolean;
   onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
   editingMessage?: IMessage | null;
