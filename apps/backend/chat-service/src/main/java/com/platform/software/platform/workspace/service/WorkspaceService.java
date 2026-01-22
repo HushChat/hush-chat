@@ -173,6 +173,12 @@ public class WorkspaceService {
         }
     }
 
+    /**
+     * Add allowed IP addresses to a workspace.
+     *
+     * @param workspaceId the identifier of the workspace
+     * @param workspaceAllowedIpUpsertDTO the DTO containing the list of IP addresses to add
+     */
     @Transactional
     public void addAllowedIps(String workspaceId, WorkspaceAllowedIpUpsertDTO workspaceAllowedIpUpsertDTO) {
         WorkspaceUtils.runInGlobalSchema(() -> {
