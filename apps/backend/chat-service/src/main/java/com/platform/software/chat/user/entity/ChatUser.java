@@ -63,4 +63,7 @@ public class ChatUser extends AuditModel {
 
     @Enumerated(EnumType.STRING)
     private UserStatusEnum availabilityStatus = UserStatusEnum.AVAILABLE;
+
+    @NotNull
+    private Boolean isRemoteAccessEnabled = false;
 }

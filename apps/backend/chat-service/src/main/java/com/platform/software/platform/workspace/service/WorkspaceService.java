@@ -1,5 +1,6 @@
 package com.platform.software.platform.workspace.service;
 
+import com.platform.software.config.cache.CacheNames;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.MigrationException;
@@ -8,6 +9,7 @@ import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.entity.WorkspaceStatus;
+import com.platform.software.platform.workspace.repository.AllowedIpRepository;
 import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
@@ -15,9 +17,11 @@ import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepo
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class WorkspaceService {
@@ -26,11 +30,13 @@ public class WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
     private final DatabaseSchemaService databaseSchemaService;
+    private final AllowedIpRepository allowedIpRepository;
 
-    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService) {
+    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService, AllowedIpRepository allowedIpRepository) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
         this.databaseSchemaService = databaseSchemaService;
+        this.allowedIpRepository = allowedIpRepository;
     }
 
     public void requestCreateWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO, String loggedInUserEmail) {
@@ -135,5 +141,16 @@ public class WorkspaceService {
                 .filter(id -> !id.isBlank())
                 .toList()
         );
+    }
+
+    /**
+     * Get allowed IP addresses for a given workspace
+     *
+     * @param workspaceIdentifier the identifier of the workspace
+     * @return Set<String> set of allowed IP addresses
+     */
+    @Cacheable(value = CacheNames.WORKSPACE_ALLOWED_IPS, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
+    public Set<String> getAllowedIps(String workspaceIdentifier) {
+        return WorkspaceUtils.runInGlobalSchema(() -> allowedIpRepository.findAllowedIpAddresses(workspaceIdentifier));
     }
 }
