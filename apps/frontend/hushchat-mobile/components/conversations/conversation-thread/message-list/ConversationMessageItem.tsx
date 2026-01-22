@@ -44,6 +44,7 @@ import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
 import { CONVERSATION } from "@/constants/routes";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
+import { useUserStore } from "@/store/user/useUserStore";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -111,6 +112,9 @@ export const ConversationMessageItem = ({
   const hasAttachments = attachments.length > 0;
 
   const queryClient = useQueryClient();
+  const {
+    user: { workspaceRole },
+  } = useUserStore();
 
   const hasMedia = useMemo(
     () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
@@ -244,7 +248,7 @@ export const ConversationMessageItem = ({
       },
     ];
 
-    if (isCurrentUser && !message.isUnsend) {
+    if ((isCurrentUser && !message.isUnsend) || workspaceRole === "ADMIN") {
       options.push({
         id: 4,
         name: "Unsend Message",

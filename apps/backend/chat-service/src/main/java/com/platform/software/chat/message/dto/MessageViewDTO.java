@@ -2,6 +2,7 @@ package com.platform.software.chat.message.dto;
 
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.entity.Message;
+import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.config.aws.SignedURLDTO;
 import lombok.Data;
@@ -34,6 +35,7 @@ public class MessageViewDTO {
     private Boolean isReadByEveryone;
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
+    private UserBasicViewDTO unsentBy;
 
     private SignedURLDTO signedUrl;
 
@@ -48,6 +50,10 @@ public class MessageViewDTO {
 
     public MessageViewDTO(Message message, Long lastSeenMessageId) {
         this(message);
+
+        if (message.getUnsentBy() != null) {
+            this.unsentBy = new UserBasicViewDTO(message.getUnsentBy());
+        }
 
         this.isSeen = lastSeenMessageId != null && message.getId() <= lastSeenMessageId;
     }

@@ -24,9 +24,7 @@ export function useMessageActions(
   const updateCache = useUpdateCache();
   const router = useRouter();
   const { selectedConversationType } = useConversationStore();
-  const {
-    user: { id: userId },
-  } = useUserStore();
+  const { user } = useUserStore();
   const criteria = getCriteria(selectedConversationType);
 
   const [selectedPinnedMessage, setSelectedPinnedMessage] = useState<IBasicMessage | null>(null);
@@ -91,6 +89,7 @@ export function useMessageActions(
                     isUnsend: true,
                     messageAttachments: [],
                     isForwarded: false,
+                    unsentBy: user,
                   }
                 : msg
             ),
@@ -115,7 +114,7 @@ export function useMessageActions(
    */
   const { mutate: markAsUnread } = useMarkMessageAsUnreadMutation(
     {
-      userId: userId,
+      userId: user.id,
       criteria: criteria,
     },
     () => {

@@ -67,13 +67,17 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     }
 
     @Override
-    public Optional<Message> findDeletableMessage(Long messageId, Long loggedInUserId) {
+    public Optional<Message> findDeletableMessage(Long messageId, Long loggedInUserId, Boolean isUnsendByPlatformAdmin) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
         QMessage m = QMessage.message;
         QConversation c = QConversation.conversation;
         QChatUser u = QChatUser.chatUser;
         QConversationParticipant cp = QConversationParticipant.conversationParticipant;
+
+        BooleanExpression senderCheck = Boolean.TRUE.equals(isUnsendByPlatformAdmin)
+                ? null
+                : m.sender.id.eq(loggedInUserId);
 
         Message result = queryFactory
                 .selectFrom(m)
@@ -82,7 +86,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                 .innerJoin(cp).on(cp.conversation.eq(c).and(cp.user.eq(u)))
                 .where(
                         m.id.eq(messageId)
-                                .and(m.sender.id.eq(loggedInUserId))
+                                .and(senderCheck)
                                 .and(c.deleted.eq(false))
                                 .and(cp.isDeleted.eq(false))
                                 .and(cp.isActive.eq(true))
@@ -122,6 +126,8 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     public Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
+        QChatUser unsentBy = new QChatUser("unsent_by");
+
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
             .and(message.sender.isNotNull())
             .and(message.conversation.deleted.eq(false));
@@ -145,9 +151,10 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         JPAQuery<Message> query = queryFactory
             .selectDistinct(message)
             .from(message)
-            .leftJoin(message.attachments, messageAttachment).fetchJoin()
             .innerJoin(message.conversation, conversation).fetchJoin()
             .innerJoin(message.sender, sender).fetchJoin()
+            .leftJoin(message.unsentBy, unsentBy).fetchJoin()
+            .leftJoin(message.attachments, messageAttachment).fetchJoin()
             .limit(idBasedPageRequest.getSize());
 
         // Add cursor-based pagination conditions

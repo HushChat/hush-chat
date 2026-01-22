@@ -1,4 +1,5 @@
 import { DeviceType } from "@/types/chat/types";
+import { IUser } from "@/types/user/types";
 
 export interface WebSocketMessage {
   id: string;
@@ -79,6 +80,7 @@ export interface MessageUnsentPayload {
   conversationId: number;
   messageId: number;
   actorUserId: number;
+  unsentBy: IUser;
 }
 
 export enum MessageReactionActionEnum {

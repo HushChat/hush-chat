@@ -18,4 +18,11 @@ public class UserBasicViewDTO {
         this.lastName = user.getLastName();
         this.signedImageUrl = user.getSignedImageUrl();
     }
+
+    public UserBasicViewDTO(Long id, String firstName, String lastName, String signedImageUrl) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.signedImageUrl = signedImageUrl;
+    }
 }
