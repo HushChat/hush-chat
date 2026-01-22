@@ -1,10 +1,18 @@
-import { Stack } from "expo-router";
+import { View } from "react-native";
+import { Slot } from "expo-router";
+import { PLATFORM } from "@/constants/platformConstants";
+import ConversationSidebar from "@/components/conversations/conversation-list/ConversationSidebar/CoversationSidebar";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 export default function ConversationsLayout() {
+  const isMobileLayout = useIsMobileLayout();
+  const mobileSelected = !PLATFORM.IS_WEB || isMobileLayout;
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="[id]" />
-    </Stack>
+    <View style={{ flex: 1, flexDirection: "row" }}>
+      <ConversationSidebar />
+
+      {!mobileSelected && <Slot />}
+    </View>
   );
 }
