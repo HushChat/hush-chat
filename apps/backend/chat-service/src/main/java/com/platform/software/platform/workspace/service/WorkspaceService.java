@@ -1,6 +1,7 @@
 package com.platform.software.platform.workspace.service;
 
 import com.platform.software.config.cache.CacheNames;
+import com.platform.software.config.cache.RedisCacheService;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.MigrationException;
@@ -36,12 +37,15 @@ public class WorkspaceService {
     private final WorkspaceUserRepository workspaceUserRepository;
     private final DatabaseSchemaService databaseSchemaService;
     private final AllowedIpRepository allowedIpRepository;
+    private final RedisCacheService cacheService;
 
-    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService, AllowedIpRepository allowedIpRepository) {
+
+    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService, AllowedIpRepository allowedIpRepository, RedisCacheService cacheService) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
         this.databaseSchemaService = databaseSchemaService;
         this.allowedIpRepository = allowedIpRepository;
+        this.cacheService = cacheService;
     }
 
     public void requestCreateWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO, String loggedInUserEmail) {
@@ -198,6 +202,7 @@ public class WorkspaceService {
                     .toList();
 
             allowedIpRepository.saveAll(allowedIps);
+            cacheService.evictByLastPartsForCurrentWorkspace(List.of(CacheNames.WORKSPACE_ALLOWED_IPS + ":" + workspaceId));
         });
     }
 }
