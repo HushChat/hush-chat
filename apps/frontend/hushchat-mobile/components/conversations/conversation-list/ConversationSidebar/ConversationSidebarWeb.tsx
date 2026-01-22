@@ -3,7 +3,7 @@ import { Dimensions, View } from "react-native";
 
 import { useConversationList } from "@/hooks/useConversationList";
 import { useConversationSearch } from "@/hooks/useConversationSearch";
-import { useUserActivity } from "@/hooks/useUserActivity";
+import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
 
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
@@ -14,10 +14,10 @@ import MentionedMessageListView from "@/components/conversations/conversation-li
 import { MotionView } from "@/motion/MotionView";
 import { MotionEasing } from "@/motion/easing";
 
-import { ConversationType, IConversation, IFilter } from "@/types/chat/types";
-import { PLATFORM } from "@/constants/platformConstants";
+import { ConversationType, IConversation } from "@/types/chat/types";
 import { router } from "expo-router";
 import { CONVERSATION } from "@/constants/routes";
+import { getConversationFilters } from "@/constants/conversationFilters";
 
 export default function ConversationSidebarWeb() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -52,10 +52,7 @@ export default function ConversationSidebarWeb() {
 
   const handleSelectConversation = useCallback((conversation: IConversation | null) => {
     if (!conversation) return;
-
-    if (PLATFORM.IS_WEB) {
-      router.push(CONVERSATION(conversation.id));
-    }
+    router.push(CONVERSATION(conversation.id));
   }, []);
 
   const handleSearchMessageClick = useCallback((message: any) => {
@@ -64,30 +61,9 @@ export default function ConversationSidebarWeb() {
     }
   }, []);
 
-  useUserActivity({ conversations, selectedConversationId });
+  usePublishUserActivity({ conversations, selectedConversationId });
 
-  const filters: IFilter[] = [
-    {
-      key: ConversationType.ALL,
-      label: "All",
-      isActive: selectedConversationType === ConversationType.ALL,
-    },
-    {
-      key: ConversationType.FAVORITES,
-      label: "Favorites",
-      isActive: selectedConversationType === ConversationType.FAVORITES,
-    },
-    {
-      key: ConversationType.GROUPS,
-      label: "Groups",
-      isActive: selectedConversationType === ConversationType.GROUPS,
-    },
-    {
-      key: ConversationType.MUTED,
-      label: "Muted",
-      isActive: selectedConversationType === ConversationType.MUTED,
-    },
-  ];
+  const filters = getConversationFilters(selectedConversationType);
 
   return (
     <View

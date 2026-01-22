@@ -5,15 +5,15 @@ import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { IConversation } from "@/types/chat/types";
 
-interface UseUserActivityParams {
+interface IUserActivityParams {
   conversations: IConversation[];
   selectedConversationId: number | null;
 }
 
-export const useUserActivity = ({
+export const usePublishUserActivity = ({
   conversations,
   selectedConversationId,
-}: UseUserActivityParams) => {
+}: IUserActivityParams) => {
   const {
     user: { email },
   } = useUserStore();

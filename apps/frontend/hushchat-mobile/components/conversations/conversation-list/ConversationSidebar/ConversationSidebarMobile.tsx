@@ -6,30 +6,25 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useConversationList } from "@/hooks/useConversationList";
 import { useConversationSearch } from "@/hooks/useConversationSearch";
-import { useUserActivity } from "@/hooks/useUserActivity";
+import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
 
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import BackButton from "@/components/BackButton";
 import { AppText } from "@/components/AppText";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
-import BottomSheet, { BottomSheetOption } from "@/components/BottomSheet";
+import BottomSheet from "@/components/BottomSheet";
 
-import { ConversationType, IConversation, IFilter } from "@/types/chat/types";
+import { ConversationType, IConversation } from "@/types/chat/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { router } from "expo-router";
-import {
-  CHAT_VIEW_PATH,
-  GROUP_CONVERSATION_SELECT_PARTICIPANTS,
-  MENTIONED_MESSAGES,
-  SETTINGS_CONTACT,
-  SETTINGS_INVITE,
-  SETTINGS_WORKSPACE,
-} from "@/constants/routes";
+import { CHAT_VIEW_PATH } from "@/constants/routes";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import SearchBar from "@/components/SearchBar";
 import FilterButton from "@/components/FilterButton";
 import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
+import { getConversationFilters } from "@/constants/conversationFilters";
+import { getConversationSidebarSheetOptions } from "@/configs/conversationSidebarSheetOptions";
 
 export default function ConversationSidebarMobile() {
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -62,60 +57,14 @@ export default function ConversationSidebarMobile() {
     handleSearchClear,
   } = useConversationSearch();
 
-  const sheetOptions = useMemo(() => {
-    const options: BottomSheetOption[] = [
-      {
-        id: "create-group",
-        title: "New group",
-        icon: "people-outline",
-        onPress: () => {
-          setSheetVisible(false);
-          router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
-        },
-      },
-      {
-        id: "mentioned-messages",
-        title: "Mentioned messages",
-        icon: "at-outline",
-        onPress: () => {
-          setSheetVisible(false);
-          router.push(MENTIONED_MESSAGES);
-        },
-      },
-      {
-        id: "contact",
-        title: "Contacts",
-        icon: "chatbubble-outline",
-        onPress: () => {
-          setSheetVisible(false);
-          router.push(SETTINGS_CONTACT);
-        },
-      },
-      {
-        id: "invite",
-        title: "Invite",
-        icon: "person-add",
-        onPress: () => {
-          setSheetVisible(false);
-          router.push(SETTINGS_INVITE);
-        },
-      },
-    ];
-
-    if (workspaces && workspaces.length > 1) {
-      options.push({
-        id: "change-workspace",
-        title: "Change workspace",
-        icon: "aperture-outline",
-        onPress: () => {
-          setSheetVisible(false);
-          router.push(SETTINGS_WORKSPACE);
-        },
-      });
-    }
-
-    return options;
-  }, [workspaces]);
+  const sheetOptions = useMemo(
+    () =>
+      getConversationSidebarSheetOptions({
+        hasMultipleWorkspaces: !!workspaces && workspaces.length > 1,
+        closeSheet: () => setSheetVisible(false),
+      }),
+    [workspaces]
+  );
 
   const handleSelectConversation = useCallback((conversation: IConversation | null) => {
     if (!conversation) return;
@@ -127,30 +76,9 @@ export default function ConversationSidebarMobile() {
     });
   }, []);
 
-  useUserActivity({ conversations, selectedConversationId });
+  usePublishUserActivity({ conversations, selectedConversationId });
 
-  const filters: IFilter[] = [
-    {
-      key: ConversationType.ALL,
-      label: "All",
-      isActive: selectedConversationType === ConversationType.ALL,
-    },
-    {
-      key: ConversationType.FAVORITES,
-      label: "Favorites",
-      isActive: selectedConversationType === ConversationType.FAVORITES,
-    },
-    {
-      key: ConversationType.GROUPS,
-      label: "Groups",
-      isActive: selectedConversationType === ConversationType.GROUPS,
-    },
-    {
-      key: ConversationType.MUTED,
-      label: "Muted",
-      isActive: selectedConversationType === ConversationType.MUTED,
-    },
-  ];
+  const filters = getConversationFilters(selectedConversationType);
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
