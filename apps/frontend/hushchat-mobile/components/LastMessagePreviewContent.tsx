@@ -17,13 +17,26 @@ export const LastMessagePreviewContent = ({
   isGroup,
 }: LastMessagePreviewContentProps) => {
   const { user } = useUserStore();
+  const amISentTheMessage = user?.id && lastMessage?.senderId === user.id;
+
+  let prefix = "";
+  if (amISentTheMessage) {
+    prefix = "You:";
+  } else if (isGroup) {
+    prefix = `${lastMessage?.senderFirstName}: `;
+  }
 
   if (!lastMessage) return "No Messages Yet";
   const isGif = hasGif(lastMessage);
 
-  if (!lastMessage.isUnsend && lastMessage.hasAttachment && !isGif) {
+  if (lastMessage.isUnsend) {
+    return <LastMessagePreview unsendMessage={lastMessage} />;
+  }
+
+  if (lastMessage.hasAttachment && !isGif) {
     return (
       <View className="flex-row items-center gap-1">
+        <AppText className="text-gray-600 dark:text-text-secondary-dark text-sm">{prefix}</AppText>
         <View style={styles.attachmentIcon}>
           <MaterialIcons name="attachment" size={14} color="#6B7280" />
         </View>
@@ -34,14 +47,35 @@ export const LastMessagePreviewContent = ({
     );
   }
 
-  if (lastMessage.isUnsend) {
-    return <LastMessagePreview unsendMessage={lastMessage} />;
+  if (lastMessage.hasAttachment && isGif) {
+    return (
+      <View className="flex-row items-center gap-1 flex-1">
+        <AppText className="text-gray-600 dark:text-text-secondary-dark text-sm">{prefix}</AppText>
+        <MaterialIcons
+          name="gif"
+          size={20}
+          className="text-gray-600 dark:text-text-secondary-dark"
+          color="#4B5563"
+        />
+        <AppText
+          className="text-gray-600 dark:text-text-secondary-dark text-sm"
+          numberOfLines={1}
+          style={{
+            fontFamily: "Poppins-Regular, OpenMoji-Color",
+          }}
+        >
+          GIF
+        </AppText>
+      </View>
+    );
+  }
+
+  if (amISentTheMessage && lastMessage.messageType !== MessageTypeEnum.SYSTEM_EVENT) {
+    return `${prefix} ${lastMessage.messageText}`;
   }
 
   if (isGroup && lastMessage.messageType !== MessageTypeEnum.SYSTEM_EVENT) {
-    const senderName =
-      user?.id && lastMessage.senderId === user.id ? "You" : lastMessage.senderFirstName;
-    return `${senderName}: ${lastMessage.messageText}`;
+    return `${lastMessage.senderFirstName}: ${lastMessage.messageText}`;
   }
 
   return lastMessage.messageText;
