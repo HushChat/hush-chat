@@ -1,8 +1,8 @@
 import { useMemo } from "react";
+import { useGlobalSearchParams } from "expo-router";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import { getCriteria } from "@/utils/conversationUtils";
-import { useGlobalSearchParams } from "expo-router";
 
 export const useConversationList = () => {
   const { selectedConversationType, setSelectedConversationType } = useConversationStore();
@@ -10,7 +10,10 @@ export const useConversationList = () => {
   const { id } = useGlobalSearchParams<{ id?: string }>();
   const selectedConversationId = id ? Number(id) : null;
 
-  const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
+  const conversationQueryCriteria = useMemo(
+    () => getCriteria(selectedConversationType),
+    [selectedConversationType]
+  );
 
   const {
     conversationsPages,
@@ -20,27 +23,25 @@ export const useConversationList = () => {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useConversationsQuery(criteria);
+  } = useConversationsQuery(conversationQueryCriteria);
 
   const conversations = useMemo(
     () => conversationsPages?.pages.flatMap((page) => page.content) ?? [],
     [conversationsPages]
   );
 
-  const selectedConversation = useMemo(
-    () =>
-      selectedConversationId
-        ? (conversations.find((c) => c.id === selectedConversationId) ?? null)
-        : null,
-    [conversations, selectedConversationId]
-  );
+  const selectedConversation = useMemo(() => {
+    if (!selectedConversationId) return null;
+
+    return conversations.find((conversation) => conversation.id === selectedConversationId) ?? null;
+  }, [conversations, selectedConversationId]);
 
   return {
     selectedConversationType,
     setSelectedConversationType,
     selectedConversationId,
-    conversations,
     selectedConversation,
+    conversations,
     isLoadingConversations,
     conversationsError,
     fetchNextPage,

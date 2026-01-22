@@ -2,23 +2,25 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
 import useGlobalSearchQuery from "@/query/useGlobalSearchQuery";
 
+const SEARCH_DEBOUNCE_DELAY_MS = 500;
+
 export const useConversationSearch = () => {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const debouncedSearchQuery = useMemo(
+  const debouncedUpdateSearchQuery = useMemo(
     () =>
       debounce((value: string) => {
         setSearchQuery(value);
-      }, 500),
+      }, SEARCH_DEBOUNCE_DELAY_MS),
     []
   );
 
   useEffect(() => {
     return () => {
-      debouncedSearchQuery.cancel();
+      debouncedUpdateSearchQuery.cancel();
     };
-  }, [debouncedSearchQuery]);
+  }, [debouncedUpdateSearchQuery]);
 
   const { searchResults, isSearching, searchError, refetchSearch } =
     useGlobalSearchQuery(searchQuery);
@@ -26,9 +28,9 @@ export const useConversationSearch = () => {
   const handleSearchInputChange = useCallback(
     (value: string) => {
       setSearchInput(value);
-      debouncedSearchQuery(value);
+      debouncedUpdateSearchQuery(value);
     },
-    [debouncedSearchQuery]
+    [debouncedUpdateSearchQuery]
   );
 
   const handleSearchClear = useCallback(() => {

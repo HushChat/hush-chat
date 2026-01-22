@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+
 import {
   GROUP_CONVERSATION_SELECT_PARTICIPANTS,
   MENTIONED_MESSAGES,
@@ -6,67 +7,68 @@ import {
   SETTINGS_INVITE,
   SETTINGS_WORKSPACE,
 } from "@/constants/routes";
+
 import { BottomSheetOption } from "@/components/BottomSheet";
 
-type Params = {
+type TConversationSidebarActionConfig = {
   hasMultipleWorkspaces: boolean;
-  closeSheet: () => void;
+  closeActionSheet: () => void;
 };
 
-export function getConversationSidebarSheetOptions({
+export function getConversationSidebarActionOptions({
   hasMultipleWorkspaces,
-  closeSheet,
-}: Params): BottomSheetOption[] {
-  const options: BottomSheetOption[] = [
+  closeActionSheet,
+}: TConversationSidebarActionConfig): BottomSheetOption[] {
+  const sidebarActions: BottomSheetOption[] = [
     {
-      id: "create-group",
+      id: "create_new_group_conversation",
       title: "New group",
       icon: "people-outline",
       onPress: () => {
-        closeSheet();
+        closeActionSheet();
         router.push(GROUP_CONVERSATION_SELECT_PARTICIPANTS);
       },
     },
     {
-      id: "mentioned-messages",
+      id: "view_mentioned_messages",
       title: "Mentioned messages",
       icon: "at-outline",
       onPress: () => {
-        closeSheet();
+        closeActionSheet();
         router.push(MENTIONED_MESSAGES);
       },
     },
     {
-      id: "contact",
+      id: "open_contacts_settings",
       title: "Contacts",
       icon: "chatbubble-outline",
       onPress: () => {
-        closeSheet();
+        closeActionSheet();
         router.push(SETTINGS_CONTACT);
       },
     },
     {
-      id: "invite",
+      id: "invite_people_to_workspace",
       title: "Invite",
       icon: "person-add",
       onPress: () => {
-        closeSheet();
+        closeActionSheet();
         router.push(SETTINGS_INVITE);
       },
     },
   ];
 
   if (hasMultipleWorkspaces) {
-    options.push({
-      id: "change-workspace",
-      title: "Change workspace",
+    sidebarActions.push({
+      id: "switch_active_workspace",
+      title: "Switch workspace",
       icon: "aperture-outline",
       onPress: () => {
-        closeSheet();
+        closeActionSheet();
         router.push(SETTINGS_WORKSPACE);
       },
     });
   }
 
-  return options;
+  return sidebarActions;
 }

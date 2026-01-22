@@ -1,34 +1,33 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { View, TouchableOpacity, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
-
+import classNames from "classnames";
+import { router } from "expo-router";
+import { ConversationType, IConversation } from "@/types/chat/types";
+import { CHAT_VIEW_PATH } from "@/constants/routes";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { getConversationFilters } from "@/constants/conversationFilters";
 import { useConversationList } from "@/hooks/useConversationList";
 import { useConversationSearch } from "@/hooks/useConversationSearch";
+import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
 import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
-
+import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
-import BackButton from "@/components/BackButton";
-import { AppText } from "@/components/AppText";
 import WebSocketStatusIndicator from "@/components/conversations/WebSocketStatusIndicator";
 import { SoundToggleButton } from "@/components/conversations/SoundToggleButton";
-import BottomSheet from "@/components/BottomSheet";
-
-import { ConversationType, IConversation } from "@/types/chat/types";
-import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
-import { router } from "expo-router";
-import { CHAT_VIEW_PATH } from "@/constants/routes";
-import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
+import BackButton from "@/components/BackButton";
+import { AppText } from "@/components/AppText";
 import SearchBar from "@/components/SearchBar";
 import FilterButton from "@/components/FilterButton";
-import { useConversationHeaderTitle } from "@/hooks/useConversationHeaderTitle";
-import { getConversationFilters } from "@/constants/conversationFilters";
-import { getConversationSidebarSheetOptions } from "@/configs/conversationSidebarSheetOptions";
+import BottomSheet from "@/components/BottomSheet";
+import { getConversationSidebarActionOptions } from "@/configs/conversationSidebarSheetOptions";
 
 export default function ConversationSidebarMobile() {
   const [sheetVisible, setSheetVisible] = useState(false);
+
   const insets = useSafeAreaInsets();
+
   const { workspaces } = useUserWorkspacesQuery();
 
   const {
@@ -45,8 +44,6 @@ export default function ConversationSidebarMobile() {
     refetch,
   } = useConversationList();
 
-  const headerTitle = useConversationHeaderTitle(selectedConversationType);
-
   const {
     searchInput,
     searchResults,
@@ -57,28 +54,32 @@ export default function ConversationSidebarMobile() {
     handleSearchClear,
   } = useConversationSearch();
 
+  const headerTitle = useConversationHeaderTitle(selectedConversationType);
+
+  const filters = getConversationFilters(selectedConversationType);
+
   const sheetOptions = useMemo(
     () =>
-      getConversationSidebarSheetOptions({
+      getConversationSidebarActionOptions({
         hasMultipleWorkspaces: !!workspaces && workspaces.length > 1,
-        closeSheet: () => setSheetVisible(false),
+        closeActionSheet: () => setSheetVisible(false),
       }),
     [workspaces]
   );
 
   const handleSelectConversation = useCallback((conversation: IConversation | null) => {
     if (!conversation) return;
+
     router.push({
       pathname: CHAT_VIEW_PATH,
-      params: {
-        conversationId: conversation.id,
-      },
+      params: { conversationId: conversation.id },
     });
   }, []);
 
-  usePublishUserActivity({ conversations, selectedConversationId });
-
-  const filters = getConversationFilters(selectedConversationType);
+  usePublishUserActivity({
+    conversations,
+    selectedConversationId,
+  });
 
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
@@ -141,7 +142,6 @@ export default function ConversationSidebarMobile() {
           </ScrollView>
         </View>
       )}
-
       <View className="flex-1">
         <ConversationListContainer
           conversations={conversations}

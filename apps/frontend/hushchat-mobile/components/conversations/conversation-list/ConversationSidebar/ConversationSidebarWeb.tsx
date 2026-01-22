@@ -1,10 +1,12 @@
 import { useCallback, useState } from "react";
 import { Dimensions, View } from "react-native";
-
+import { router } from "expo-router";
+import { ConversationType, IConversation } from "@/types/chat/types";
+import { CONVERSATION } from "@/constants/routes";
+import { getConversationFilters } from "@/constants/conversationFilters";
 import { useConversationList } from "@/hooks/useConversationList";
 import { useConversationSearch } from "@/hooks/useConversationSearch";
 import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
-
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
 import SearchBar from "@/components/SearchBar";
@@ -13,11 +15,6 @@ import { WebGroupCreation } from "@/components/conversations/conversation-list/g
 import MentionedMessageListView from "@/components/conversations/conversation-list/MentionedMessageListView";
 import { MotionView } from "@/motion/MotionView";
 import { MotionEasing } from "@/motion/easing";
-
-import { ConversationType, IConversation } from "@/types/chat/types";
-import { router } from "expo-router";
-import { CONVERSATION } from "@/constants/routes";
-import { getConversationFilters } from "@/constants/conversationFilters";
 
 export default function ConversationSidebarWeb() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -50,6 +47,8 @@ export default function ConversationSidebarWeb() {
     handleSearchClear,
   } = useConversationSearch();
 
+  const filters = getConversationFilters(selectedConversationType);
+
   const handleSelectConversation = useCallback((conversation: IConversation | null) => {
     if (!conversation) return;
     router.push(CONVERSATION(conversation.id));
@@ -61,9 +60,10 @@ export default function ConversationSidebarWeb() {
     }
   }, []);
 
-  usePublishUserActivity({ conversations, selectedConversationId });
-
-  const filters = getConversationFilters(selectedConversationType);
+  usePublishUserActivity({
+    conversations,
+    selectedConversationId,
+  });
 
   return (
     <View
@@ -92,16 +92,14 @@ export default function ConversationSidebarWeb() {
       {selectedConversationType !== ConversationType.ARCHIVED && (
         <View className="px-4 sm:px-6 py-3">
           <View className="flex-row flex-wrap gap-2">
-            <View className="flex-row space-x-2">
-              {filters.map((filter) => (
-                <FilterButton
-                  key={filter.key}
-                  label={filter.label}
-                  isActive={filter.isActive}
-                  onPress={() => setSelectedConversationType(filter.key)}
-                />
-              ))}
-            </View>
+            {filters.map((filter) => (
+              <FilterButton
+                key={filter.key}
+                label={filter.label}
+                isActive={filter.isActive}
+                onPress={() => setSelectedConversationType(filter.key)}
+              />
+            ))}
           </View>
         </View>
       )}
@@ -140,7 +138,7 @@ export default function ConversationSidebarWeb() {
 
       {showMentionedMessages && (
         <MotionView
-          visible={showMentionedMessages}
+          visible
           className="flex-1 absolute top-0 bottom-0 left-0 right-0 dark:!bg-secondary"
           delay={40}
           from={{ opacity: 0, translateX: screenWidth }}
