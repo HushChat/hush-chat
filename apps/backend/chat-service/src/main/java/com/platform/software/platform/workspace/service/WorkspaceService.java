@@ -5,8 +5,10 @@ import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.MigrationException;
 import com.platform.software.exception.SchemaCreationException;
+import com.platform.software.platform.workspace.dto.WorkspaceAllowedIpUpsertDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUpsertDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
+import com.platform.software.platform.workspace.entity.AllowedIp;
 import com.platform.software.platform.workspace.entity.Workspace;
 import com.platform.software.platform.workspace.entity.WorkspaceStatus;
 import com.platform.software.platform.workspace.repository.AllowedIpRepository;
@@ -15,12 +17,15 @@ import com.platform.software.platform.workspaceuser.entity.WorkspaceUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
 import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepository;
 import com.platform.software.utils.WorkspaceUtils;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -152,5 +157,41 @@ public class WorkspaceService {
     @Cacheable(value = CacheNames.WORKSPACE_ALLOWED_IPS, keyGenerator = CacheNames.WORKSPACE_AWARE_KEY_GENERATOR)
     public Set<String> getAllowedIps(String workspaceIdentifier) {
         return WorkspaceUtils.runInGlobalSchema(() -> allowedIpRepository.findAllowedIpAddresses(workspaceIdentifier));
+    }
+
+    /**
+     * Validate that the list of IP addresses contains only unique entries.
+     *
+     * @param ipAddresses the list of IP addresses to validate
+     * @throws IllegalArgumentException if duplicate IP addresses are found
+     */
+    public void validateUniqueIps(List<String> ipAddresses) {
+        Set<String> uniqueIps = new HashSet<>(ipAddresses);
+
+        if (uniqueIps.size() != ipAddresses.size()) {
+            throw new CustomBadRequestException("Duplicate IP addresses are not allowed");
+        }
+    }
+
+    @Transactional
+    public void addAllowedIps(String workspaceId, WorkspaceAllowedIpUpsertDTO workspaceAllowedIpUpsertDTO) {
+        WorkspaceUtils.runInGlobalSchema(() -> {
+            validateUniqueIps(workspaceAllowedIpUpsertDTO.getIpAddresses());
+
+            Optional<Workspace> workspace = workspaceRepository.findByWorkspaceIdentifier(workspaceId);
+            if (workspace.isEmpty()) {
+                throw new CustomBadRequestException("Workspace not found for identifier: " + workspaceId);
+            }
+            List<AllowedIp> allowedIps = workspaceAllowedIpUpsertDTO.getIpAddresses().stream()
+                    .map(ip -> {
+                        AllowedIp allowedIp = new AllowedIp();
+                        allowedIp.setIpAddress(ip);
+                        allowedIp.setWorkspace(workspace.get());
+                        return allowedIp;
+                    })
+                    .toList();
+
+            allowedIpRepository.saveAll(allowedIps);
+        });
     }
 }
