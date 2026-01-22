@@ -170,14 +170,13 @@ public class MessageService {
 
         messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
+        MessageHistory newMessageHistory = getMessageHistoryEntity(message);
         message.setMessageText(messageDTO.getMessageText());
         message.setIsEdited(true);
         message.setIsMarkdownEnabled(messageDTO.getIsMarkdownEnabled());
-        
-        MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
-            Message updatedMessage = messageRepository.save(message);
+            Message updatedMessage = messageRepository.saveMessageWthSearchVector(message);
             messageHistoryRepository.save(newMessageHistory);
 
             MessageViewDTO messageViewDTO = new MessageViewDTO(updatedMessage);
@@ -195,9 +194,9 @@ public class MessageService {
         }
     }
 
-    private static MessageHistory getMessageHistoryEntity(MessageUpsertDTO messageDTO, Message message) {
+    private static MessageHistory getMessageHistoryEntity(Message message) {
         MessageHistory newMessageHistory = new MessageHistory();
-        newMessageHistory.setMessageText(messageDTO.getMessageText());
+        newMessageHistory.setMessageText(message.getMessageText());
         newMessageHistory.setMessage(message);
         return newMessageHistory;
     }
