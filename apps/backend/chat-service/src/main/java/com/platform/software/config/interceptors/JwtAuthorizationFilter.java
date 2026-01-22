@@ -121,20 +121,17 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         return clientIp;
     }
 
-    private boolean isAuthorized(String ipAddress, String tenantId) {
-        Set<String> allowedIps = workspaceService.getAllowedIps(tenantId);
-        if (allowedIps.isEmpty()) {
-            return true;
-        }
-        return allowedIps.contains(ipAddress);
-    }
-
     private boolean validateUserIp(HttpServletRequest request, ChatUser user, String workspaceId) {
         if(isProfileActive(Constants.LOCAL_PROFILE_NAME) || user == null || user.getIsRemoteAccessEnabled()){
             return true;
         }
 
         String forwardedIp = getUserForwardedIp(request);
+        Set<String> allowedIps = workspaceService.getAllowedIps(workspaceId);
+
+        if(allowedIps.isEmpty()){
+            return true;
+        }
 
         boolean isAuthorizedIpFound = false;
 
@@ -142,7 +139,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             String[] ips = forwardedIp.split(",");
             for (String ip : ips) {
                 String trimmedIp = ip.trim();
-                if (isAuthorized(trimmedIp, workspaceId)) {
+                if (allowedIps.contains(trimmedIp)) {
                     isAuthorizedIpFound = true;
                     break;
                 }
