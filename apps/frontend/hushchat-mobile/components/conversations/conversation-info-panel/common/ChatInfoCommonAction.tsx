@@ -18,6 +18,7 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 import ActionList from "@/components/conversations/conversation-info-panel/common/ActionList";
 import { IActionConfig } from "@/types/chat/types";
 import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
+import { router } from "expo-router";
 
 type TChatInfoActionProps = {
   conversationId: number;
@@ -25,7 +26,6 @@ type TChatInfoActionProps = {
   isPinned: boolean;
   isMuted: boolean;
   onBack: () => void;
-  setSelectedConversation?: (conversation: null) => void;
   onShowMediaAttachments?: () => void;
 };
 
@@ -35,7 +35,6 @@ export default function ChatInfoCommonAction({
   isPinned: initialPinned,
   isMuted,
   onBack,
-  setSelectedConversation = () => {},
   onShowMediaAttachments,
 }: TChatInfoActionProps) {
   const { openModal, closeModal } = useModalContext();
@@ -55,7 +54,7 @@ export default function ChatInfoCommonAction({
       initialFavorite,
       onDeleteSuccess: () => {
         closeModal();
-        setSelectedConversation(null);
+        router.push("/");
         refetch();
         onBack();
       },
