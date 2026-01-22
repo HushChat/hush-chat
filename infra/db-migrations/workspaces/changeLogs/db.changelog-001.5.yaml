@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_is_remote_access_enabled_to_chat_user
+      author: moditha
+      tag: release-15.1
+      comment: "add isRemoteAccessEnabled to chat_user and set default to true"
+      changes:
+        - addColumn:
+            tableName: chat_user
+            columns:
+              - column:
+                  name: is_remote_access_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+        - update:
+            tableName: chat_user
+            columns:
+              - column:
+                  name: is_remote_access_enabled
+                  valueBoolean: true
