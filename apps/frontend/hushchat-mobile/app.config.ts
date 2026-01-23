@@ -21,6 +21,7 @@ export default () => ({
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
+      softwareKeyboardLayoutMode: "pan",
       intentFilters: [
         {
           action: "VIEW",
