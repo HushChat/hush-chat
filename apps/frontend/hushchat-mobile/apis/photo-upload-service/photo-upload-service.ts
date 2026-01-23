@@ -195,6 +195,7 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const getSignedUrls = async (
     files: LocalFile[],
@@ -353,17 +354,37 @@ export function useMessageAttachmentUploader(
           continue;
         }
 
+        setUploadProgress(0);
+
         try {
           const blob = await (await fetch(file.uri)).blob();
 
           const contentType = file.type || blob.type || "application/octet-stream";
 
-          await fetch(signed.url, {
-            method: "PUT",
-            body: blob,
-            headers: {
-              "Content-Type": contentType,
-            },
+          await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+
+            xhr.open("PUT", signed.url);
+            xhr.setRequestHeader("Content-Type", contentType);
+
+            xhr.upload.onprogress = (event) => {
+              if (event.lengthComputable) {
+                const percentCompleted = Math.round((event.loaded * 100) / event.total);
+                setUploadProgress(percentCompleted);
+              }
+            };
+
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.response);
+              } else {
+                reject(new Error(`Upload failed with status ${xhr.status}`));
+              }
+            };
+
+            xhr.onerror = () => reject(new Error("Network error during upload"));
+
+            xhr.send(blob);
           });
           results.push({
             success: true,
@@ -427,5 +448,6 @@ export function useMessageAttachmentUploader(
     uploadFilesFromWebWithCaptions,
     isUploading: isUploadingWebFiles,
     sendGifMessage,
+    uploadProgress,
   };
 }

@@ -21,6 +21,7 @@ type TFilePreviewPaneProps = {
   replyToMessage?: any;
   onCancelReply?: () => void;
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  uploadProgress: number;
 };
 
 const FilePreviewPane = ({
@@ -34,6 +35,7 @@ const FilePreviewPane = ({
   replyToMessage,
   onCancelReply,
   inputRef,
+  uploadProgress,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
   const [fileType, setFileType] = useState<"image" | "document" | "video">("document");
@@ -130,6 +132,18 @@ const FilePreviewPane = ({
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-1 items-center justify-center px-6 py-4">{renderPreviewContent()}</View>
 
+      {isSending && (
+        <View style={styles.progressBarContainer}>
+          <View style={styles.progressLabelRow}>
+            <AppText style={styles.progressText}>Uploading...</AppText>
+            <AppText style={styles.progressText}>{uploadProgress}%</AppText>
+          </View>
+          <View style={styles.track}>
+            <View style={[styles.fill, { width: `${uploadProgress}%` }]} />
+          </View>
+        </View>
+      )}
+
       <View style={styles.inputContainer}>
         <ConversationInput
           ref={inputRef}
@@ -176,5 +190,31 @@ const styles = StyleSheet.create({
     zIndex: 100,
     paddingHorizontal: 8,
     paddingBottom: 8,
+  },
+  progressBarContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    width: "100%",
+  },
+  progressLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6B4EFF", // Or your theme color
+  },
+  track: {
+    height: 4,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  fill: {
+    height: "100%",
+    backgroundColor: "#6B4EFF",
+    borderRadius: 2,
   },
 });

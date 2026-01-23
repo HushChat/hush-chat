@@ -24,6 +24,7 @@ type TFilePreviewOverlayProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
+  uploadProgress: number;
 };
 
 const FilePreviewOverlay = ({
@@ -37,6 +38,7 @@ const FilePreviewOverlay = ({
   isGroupChat = false,
   replyToMessage,
   onCancelReply,
+  uploadProgress,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [captions, setCaptions] = useState<Map<number, string>>(new Map());
@@ -169,6 +171,7 @@ const FilePreviewOverlay = ({
           replyToMessage={replyToMessage}
           onCancelReply={onCancelReply}
           inputRef={captionInputRef}
+          uploadProgress={uploadProgress}
         />
       </View>
 
