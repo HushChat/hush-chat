@@ -146,8 +146,10 @@ public class MessageUtilService {
 
         for (MessageAttachmentDTO messageAttachmentDTO : messageAttachmentDTOs) {
             try {
-                String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageAttachmentDTO.getIndexedFileName());
-                messageAttachmentDTO.setFileUrl(signedUrl);
+                if (!messageAttachmentDTO.getType().equals(AttachmentTypeEnum.GIF)) {
+                    String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageAttachmentDTO.getIndexedFileName());
+                    messageAttachmentDTO.setFileUrl(signedUrl);
+                }
 
                 attachmentDTOsWithSignedUrl.add(messageAttachmentDTO);
             } catch (Exception e) {

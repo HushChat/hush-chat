@@ -104,7 +104,13 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
 
     const handleGifSelect = useCallback(
       (gifUrl: string) => {
-        onSendMessage?.("", input.isMarkdownEnabled, undefined, undefined, gifUrl);
+        onSendMessage?.(
+          "",
+          input.isMarkdownEnabled,
+          replyToMessage ?? undefined,
+          undefined,
+          gifUrl
+        );
       },
       [onSendMessage]
     );

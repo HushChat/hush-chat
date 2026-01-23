@@ -212,7 +212,7 @@ const ConversationInputMobile = ({
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={(gifUrl) => {
-              onSendMessage?.("", false, undefined, undefined, gifUrl);
+              onSendMessage?.("", false, replyToMessage ?? undefined, undefined, gifUrl);
             }}
           />
         </>

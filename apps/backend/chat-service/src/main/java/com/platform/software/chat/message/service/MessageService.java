@@ -272,7 +272,8 @@ public class MessageService {
             );
             
             if (messageDTO.isGifAttachment()) {
-                messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+                MessageAttachment messageAttachment = messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+                messageViewDTO.setMessageAttachments(List.of(new MessageAttachmentDTO(messageAttachment)));
                 
                 setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
                 
