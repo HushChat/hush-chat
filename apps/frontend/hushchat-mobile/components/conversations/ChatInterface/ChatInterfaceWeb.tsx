@@ -3,14 +3,12 @@ import { View, Dimensions } from "react-native";
 import { useGlobalSearchParams } from "expo-router";
 import { IConversation } from "@/types/chat/types";
 import { PanelType } from "@/types/web-panel/types";
-import { Images } from "@/assets/images";
 import { EMPTY_SET } from "@/constants/constants";
 import usePanelManager from "@/hooks/useWebPanelManager";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
 import ConversationThreadScreen from "@/app/conversation-threads";
-import Placeholder from "@/components/Placeholder";
 import ConversationSidePanel from "@/components/conversations/conversation-info-panel/ConversationSidePanel";
 
 export default function ChatInterfaceWeb() {
@@ -84,7 +82,7 @@ export default function ChatInterfaceWeb() {
 
   const renderMainContent = () => (
     <>
-      {selectedConversation ? (
+      {selectedConversation && (
         <ConversationThreadScreen
           conversationId={selectedConversation.id}
           onShowProfile={handleShowProfile}
@@ -93,12 +91,6 @@ export default function ChatInterfaceWeb() {
           webMessageInfoPress={handleShowMessageInfo}
           messageToJump={messageToJump}
           onMessageJumped={() => setMessageToJump(null)}
-        />
-      ) : (
-        <Placeholder
-          title="No chat selected"
-          subtitle="Choose a conversation to start chatting"
-          image={Images.NoChatSelected}
         />
       )}
 
