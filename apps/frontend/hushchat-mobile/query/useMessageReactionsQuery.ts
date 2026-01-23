@@ -15,9 +15,6 @@ export const useMessageReactionsQuery = (messageId: number) => {
   } = usePaginatedQuery({
     queryKey: conversationMessageQueryKeys.messageReactions(messageId),
     queryFn: (pageParam: number) => getMessageReactions(messageId, pageParam, 10),
-    options: {
-      staleTime: 5 * 60 * 1000, // 5 minutes stale time
-    },
     initialPageParam: 0,
   });
 
