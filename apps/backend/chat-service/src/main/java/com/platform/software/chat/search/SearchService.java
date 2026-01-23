@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @Service
 public class SearchService {
     private final int MAX_SEARCH_RESULT_SIZE = 25;
-    private final int MIN_SEARCH_KEYWORD_SIZE = 2;
 
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final MessageRepository messageRepository;
@@ -61,7 +60,7 @@ public class SearchService {
      */
     public ConversationSearchResults searchKeywordAcrossConversations(Long userId, SearchRequestDTO searchRequestDTO) {
         String searchKeyword = searchRequestDTO.getSearchKeyword();
-        if (searchKeyword == null || searchKeyword.trim().length() <= MIN_SEARCH_KEYWORD_SIZE) {
+        if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
             return new ConversationSearchResults();
         }
         Pageable pageable = PageRequest.of(0, MAX_SEARCH_RESULT_SIZE);

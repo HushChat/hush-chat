@@ -169,12 +169,12 @@ public class MessageService {
 
         messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
+        MessageHistory newMessageHistory = getMessageHistoryEntity(message);
         message.setMessageText(messageDTO.getMessageText());
         message.setIsEdited(true);
-        MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
-            Message updatedMessage = messageRepository.save(message);
+            Message updatedMessage = messageRepository.saveMessageWthSearchVector(message);
             messageHistoryRepository.save(newMessageHistory);
 
             MessageViewDTO messageViewDTO = new MessageViewDTO(updatedMessage);
@@ -192,9 +192,9 @@ public class MessageService {
         }
     }
 
-    private static MessageHistory getMessageHistoryEntity(MessageUpsertDTO messageDTO, Message message) {
+    private static MessageHistory getMessageHistoryEntity(Message message) {
         MessageHistory newMessageHistory = new MessageHistory();
-        newMessageHistory.setMessageText(messageDTO.getMessageText());
+        newMessageHistory.setMessageText(message.getMessageText());
         newMessageHistory.setMessage(message);
         return newMessageHistory;
     }
@@ -270,7 +270,8 @@ public class MessageService {
             );
             
             if (messageDTO.isGifAttachment()) {
-                messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+                MessageAttachment messageAttachment = messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+                messageViewDTO.setMessageAttachments(List.of(new MessageAttachmentDTO(messageAttachment)));
                 
                 setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
                 

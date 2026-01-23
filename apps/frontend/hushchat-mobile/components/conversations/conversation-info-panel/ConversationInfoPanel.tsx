@@ -17,14 +17,9 @@ export interface ChatInfoScreenProps {
   conversationId: number;
   onClose?: () => void;
   isWebView?: boolean;
-  setSelectedConversation?: (conversation: null) => void;
 }
 
-export default function ConversationInfoPanel({
-  conversationId,
-  onClose,
-  setSelectedConversation = () => {},
-}: ChatInfoScreenProps) {
+export default function ConversationInfoPanel({ conversationId, onClose }: ChatInfoScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const router = useRouter();
@@ -95,14 +90,12 @@ export default function ConversationInfoPanel({
           <GroupChatInfo
             conversation={conversationAPIResponse}
             onBack={handleBack}
-            setSelectedConversation={setSelectedConversation}
             onShowMediaAttachments={handleShowMediaAttachments}
           />
         ) : (
           <OneToOneChatInfo
             conversation={conversationAPIResponse}
             onBack={handleBack}
-            setSelectedConversation={setSelectedConversation}
             onShowMediaAttachments={handleShowMediaAttachments}
           />
         );
