@@ -1,6 +1,8 @@
 package com.platform.software.config.aws;
 
 import com.amazonaws.HttpMethod;
+import com.platform.software.common.constants.Constants;
+import com.platform.software.common.context.DeviceContext;
 import com.platform.software.common.model.MediaPathEnum;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
             return null;
         }
 
-        if (activeProfile.equals(LOCAL)) {
+        if (activeProfile.equals(LOCAL) || DeviceContext.getCurrentDevice().equals(Constants.MOBILE_CLIENT_DEVICE_TYPE)) {
             return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
         }
 
@@ -73,7 +75,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
 
         String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
 
-        if (activeProfile.equals(LOCAL)) {
+        if (activeProfile.equals(LOCAL) || DeviceContext.getCurrentDevice().equals(Constants.MOBILE_CLIENT_DEVICE_TYPE)) {
             return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
         }
 
