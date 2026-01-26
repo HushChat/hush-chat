@@ -159,6 +159,8 @@ const FilePreviewOverlay = ({
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
           onRemoveFile={handleRemoveFile}
+          isSending={isSending}
+          uploadProgress={uploadProgress}
         />
         <FilePreviewPane
           file={files[selectedIndex]}
@@ -171,7 +173,6 @@ const FilePreviewOverlay = ({
           replyToMessage={replyToMessage}
           onCancelReply={onCancelReply}
           inputRef={captionInputRef}
-          uploadProgress={uploadProgress}
         />
       </View>
 
