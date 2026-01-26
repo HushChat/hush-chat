@@ -550,6 +550,7 @@ export const ConversationMessageItem = ({
               <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
+                  currentUserId={currentUserId}
                   isCurrentUser={isCurrentUser}
                   hasText={hasText}
                   hasAttachments={hasAttachments}

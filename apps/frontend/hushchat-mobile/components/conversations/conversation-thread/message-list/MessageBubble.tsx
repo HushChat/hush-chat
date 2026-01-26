@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Pressable, View, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,9 +10,13 @@ import { renderFileGrid } from "@/components/conversations/conversation-thread/m
 import { TUser } from "@/types/user/types";
 import { PLATFORM } from "@/constants/platformConstants";
 import { getGifUrl, hasGif } from "@/utils/messageUtils";
+import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import { AppText } from "@/components/AppText";
+import { formatDateTime } from "@/utils/commonUtils";
 
 interface IMessageBubbleProps {
   message: IMessage;
+  currentUserId: string;
   isCurrentUser: boolean;
   hasText: boolean;
   hasAttachments: boolean;
@@ -30,6 +34,7 @@ interface IMessageBubbleProps {
 
 export const MessageBubble = ({
   message,
+  currentUserId,
   isCurrentUser,
   hasText,
   hasAttachments,
@@ -56,6 +61,28 @@ export const MessageBubble = ({
       onMentionClick(mentionedUser);
     }
   };
+
+  const forwardedMessage = useCallback(() => {
+    const forwardedMessage = message.originalForwardedMessage;
+
+    return (
+      <View className="flex flex-row items-center gap-x-2">
+        <InitialsAvatar
+          name={forwardedMessage?.senderFirstName || ""}
+          size={AvatarSize.extraSmall}
+          imageUrl={forwardedMessage?.senderSignedImageUrl}
+        />
+
+        <AppText>
+          {forwardedMessage?.senderId && String(forwardedMessage?.senderId) === currentUserId
+            ? "You"
+            : `${forwardedMessage?.senderFirstName} ${forwardedMessage?.senderLastName}`}
+        </AppText>
+
+        <AppText>{formatDateTime(forwardedMessage?.createdAt ?? "")}</AppText>
+      </View>
+    );
+  }, []);
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments && !hasGif}>
@@ -110,8 +137,8 @@ export const MessageBubble = ({
           style={{
             ...(isForwardedMessage
               ? isCurrentUser
-                ? { borderRightColor: "#60A5FA30" }
-                : { borderLeftColor: "#9CA3AF30" }
+                ? { borderWidth: 4, borderRightColor: "#563DC4" }
+                : { borderWidth: 4, borderLeftColor: "#563DC4" }
               : {}),
           }}
         >
@@ -139,12 +166,16 @@ export const MessageBubble = ({
           )}
 
           {!message.isUnsend && messageContent ? (
-            <FormattedText
-              text={message.messageText}
-              mentions={message.mentions}
-              isCurrentUser={isCurrentUser}
-              onMentionPress={handleMentionPress}
-            />
+            <View className="flex-col gap-y-2">
+              {message.isForwarded && forwardedMessage()}
+
+              <FormattedText
+                text={message.messageText}
+                mentions={message.mentions}
+                isCurrentUser={isCurrentUser}
+                onMentionPress={handleMentionPress}
+              />
+            </View>
           ) : message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
           ) : null}
