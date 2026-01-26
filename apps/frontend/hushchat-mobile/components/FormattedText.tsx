@@ -29,7 +29,7 @@ const FormattedText = (props: FormattedTextProps) => {
   const processedText = useProcessedText(text, mentions);
   const { markdownStyles } = useMarkdownStyles(isCurrentUser);
   const handleLinkPress = useLinkHandler(props);
-  const { menuVisible, menuPos, openMenu, closeMenu, copyLink } = useWebContextMenu();
+  const { menuVisible, menuPos, openMenu, closeMenu, copyLink, copyText } = useWebContextMenu();
   const rules = useMarkdownRules(handleLinkPress, isCurrentUser, openMenu);
   const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
 
@@ -63,6 +63,12 @@ const FormattedText = (props: FormattedTextProps) => {
               name: "Copy link address",
               iconName: "copy-outline",
               action: copyLink,
+            },
+            {
+              id: 2,
+              name: "Copy text",
+              iconName: "text-outline",
+              action: copyText,
             },
           ]}
           iconSize={18}
