@@ -58,7 +58,7 @@ public class MessagePublisherService {
         ConversationParticipantViewDTO senderParticipant = conversationDTO.getParticipants().stream()
                 .filter(p -> p.getUser().getId().equals(senderId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));;
+                .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));
 
         // when sending ws message, conversation name need to be named of the message
         // sender for non group conversations
