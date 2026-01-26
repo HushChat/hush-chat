@@ -367,21 +367,35 @@ export function useMessageAttachmentUploader(
 
           const contentType = file.type || blob.type || "application/octet-stream";
 
-          await axios.put(signed.url, blob, {
-            headers: {
-              "Content-Type": contentType,
-            },
-            onUploadProgress: (event) => {
-              if (!event.total) return;
+          await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
 
-              const percentCompleted = Math.round((event.loaded * 100) / event.total);
+            xhr.open("PUT", signed.url);
+            xhr.setRequestHeader("Content-Type", contentType);
 
-              setUploadProgress((prev) => ({
-                ...prev,
-                [fileKey]: percentCompleted,
-              }));
-            },
+            xhr.upload.onprogress = (event) => {
+              if (event.lengthComputable) {
+                const percentCompleted = Math.round((event.loaded * 100) / event.total);
+                setUploadProgress((prev) => ({
+                  ...prev,
+                  [fileKey]: percentCompleted,
+                }));
+              }
+            };
+
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.response);
+              } else {
+                reject(new Error(`Upload failed with status ${xhr.status}`));
+              }
+            };
+
+            xhr.onerror = () => reject(new Error("Network error during upload"));
+
+            xhr.send(blob);
           });
+
           results.push({
             success: true,
             fileName: file.name,
