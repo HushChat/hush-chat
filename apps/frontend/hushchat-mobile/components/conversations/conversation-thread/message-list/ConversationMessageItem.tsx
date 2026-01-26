@@ -251,7 +251,7 @@ export const ConversationMessageItem = ({
       },
       {
         id: 3,
-        name: "Select message",
+        name: "Forward message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
       },
