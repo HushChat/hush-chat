@@ -8,7 +8,7 @@ type TFileListProps = {
   onSelect: (index: number) => void;
   onRemoveFile: (index: number) => void;
   isSending: boolean;
-  uploadProgress: Map<string, number>;
+  uploadProgress: Record<string, number>;
 };
 
 const FileList = ({
@@ -34,7 +34,7 @@ const FileList = ({
             onSelect={() => onSelect(index)}
             onRemove={onRemoveFile}
             isSending={isSending}
-            uploadProgress={uploadProgress.get(index.toString()) || 0}
+            uploadProgress={uploadProgress[index.toString()] ?? 0}
           />
         </View>
       ))}

@@ -195,7 +195,7 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map());
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
   const getSignedUrls = async (
     files: LocalFile[],
@@ -341,7 +341,7 @@ export function useMessageAttachmentUploader(
       const results: UploadResult[] = [];
       const successfulMessageIds: number[] = [];
 
-      setUploadProgress(new Map());
+      setUploadProgress({});
 
       for (let i = 0; i < validFiles.length; i++) {
         const { file } = validFiles[i];
@@ -357,45 +357,30 @@ export function useMessageAttachmentUploader(
           continue;
         }
 
-        setUploadProgress((prev) => {
-          const newProgress = new Map(prev);
-          newProgress.set(fileKey, 0);
-          return newProgress;
-        });
+        setUploadProgress((prev) => ({
+          ...prev,
+          [fileKey]: 0,
+        }));
 
         try {
           const blob = await (await fetch(file.uri)).blob();
 
           const contentType = file.type || blob.type || "application/octet-stream";
 
-          await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
+          await axios.put(signed.url, blob, {
+            headers: {
+              "Content-Type": contentType,
+            },
+            onUploadProgress: (event) => {
+              if (!event.total) return;
 
-            xhr.open("PUT", signed.url);
-            xhr.setRequestHeader("Content-Type", contentType);
+              const percentCompleted = Math.round((event.loaded * 100) / event.total);
 
-            xhr.upload.onprogress = (event) => {
-              if (event.lengthComputable) {
-                const percentCompleted = Math.round((event.loaded * 100) / event.total);
-                setUploadProgress((prev) => {
-                  const newProgress = new Map(prev);
-                  newProgress.set(fileKey, percentCompleted);
-                  return newProgress;
-                });
-              }
-            };
-
-            xhr.onload = () => {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(xhr.response);
-              } else {
-                reject(new Error(`Upload failed with status ${xhr.status}`));
-              }
-            };
-
-            xhr.onerror = () => reject(new Error("Network error during upload"));
-
-            xhr.send(blob);
+              setUploadProgress((prev) => ({
+                ...prev,
+                [fileKey]: percentCompleted,
+              }));
+            },
           });
           results.push({
             success: true,
@@ -430,7 +415,7 @@ export function useMessageAttachmentUploader(
       return allResults;
     } finally {
       setIsUploadingWebFiles(false);
-      setUploadProgress(new Map());
+      setUploadProgress({});
       validFiles.forEach(({ file }) => {
         try {
           URL.revokeObjectURL(file._blobUrl);
