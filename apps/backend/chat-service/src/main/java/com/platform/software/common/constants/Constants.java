@@ -7,6 +7,7 @@ public class Constants {
     public static final String DEFAULT_TEST_TENANT_ID = "localhost";
     public static final String EMAIL_ATTR = "email";
     public static final String X_PUBLIC_KEY = "X-Public-Key";
+    public static final String X_FORWARDED_FOR_HEADER = "X-Forwarded-For";
     public static final String X_PLATFORM_ID_HEADER = "X-Platform-Id";
     public static final String PREFERRED_USERNAME_ATTR = "preferred_username";
     public static final String COGNITO_CUSTOM_USER_TYPE_KEY = "custom:user_type";
@@ -16,8 +17,7 @@ public class Constants {
     public static final String APPLICATION_JSON_CONTENT_TYPE = "application/json";
     public static final String TIME_ZONE_IST = "Asia/Kolkata";
     public static final String MAIN_SERVICE_PRODUCTION_PROFILE_NAME = "prod";
-    public static final String MAIN_SERVICE_DEV_PROFILE_NAME = "local";
-    public static final String MAIN_SERVICE_E2E_PROFILE_NAME = "e2e";
+    public static final String LOCAL_PROFILE_NAME = "local";
     public static final String MAIN_SERVICE_STAGING_PROFILE_NAME = "staging";
     public static final String MAIN_SERVICE_PENTEST_PROFILE_NAME = "pentest";
     public static final String API_REQUEST_ID = "x-Uuid";

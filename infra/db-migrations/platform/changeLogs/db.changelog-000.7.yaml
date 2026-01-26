@@ -1,0 +1,90 @@
+databaseChangeLog:
+  - changeSet:
+      id: create workspace_allowed_ip sequence
+      author: moditha
+      tag: release-7.1
+      changes:
+        - createSequence:
+            sequenceName: workspace_allowed_ip_generator
+            startValue: 1
+            incrementBy: 50
+            maxValue: 9223372036854775807
+            minValue: 1
+            cacheSize: 1
+            cycle: false
+
+  - changeSet:
+      id: create workspace_allowed_ips table
+      author: moditha
+      tag: release-7.2
+      changes:
+        - createTable:
+            tableName: workspace_allowed_ips
+            schemaName: platform
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  defaultValueSequenceNext: workspace_allowed_ip_generator
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: workspace_allowed_ips_pkey
+
+              - column:
+                  name: ip_address
+                  type: VARCHAR(45)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: workspace_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: add foreign key constraint for workspace_allowed_ips
+      author: moditha
+      tag: release-7.3
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: workspace_allowed_ips
+            baseColumnNames: workspace_id
+            constraintName: fk_workspace_allowed_ips_workspace
+            referencedTableName: workspace
+            referencedColumnNames: id
+            onDelete: CASCADE
+            baseTableSchemaName: platform
+
+  - changeSet:
+      id: create indexes for workspace_allowed_ips
+      author: moditha
+      tag: release-10.4
+      changes:
+        - createIndex:
+            indexName: idx_workspace_allowed_ips_workspace_id
+            tableName: workspace_allowed_ips
+            schemaName: platform
+            columns:
+              - column:
+                  name: workspace_id
+
+        - createIndex:
+            indexName: idx_workspace_allowed_ips_ip_address
+            tableName: workspace_allowed_ips
+            schemaName: platform
+            columns:
+              - column:
+                  name: ip_address
+
+  - changeSet:
+      id: add unique constraint for workspace_allowed_ips
+      author: moditha
+      tag: release-10.5
+      changes:
+        - addUniqueConstraint:
+            tableName: workspace_allowed_ips
+            schemaName: platform
+            columnNames: workspace_id, ip_address
+            constraintName: uk_workspace_allowed_ips_workspace_ip

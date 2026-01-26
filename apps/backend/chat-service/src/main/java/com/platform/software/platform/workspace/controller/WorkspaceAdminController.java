@@ -7,12 +7,15 @@ import com.platform.software.config.interceptors.WorkspaceAdminRestrictedAccess;
 import com.platform.software.config.security.AuthenticatedUser;
 import com.platform.software.config.security.model.UserDetails;
 import com.platform.software.config.workspace.WorkspaceContext;
+import com.platform.software.platform.workspace.dto.WorkspaceAllowedIpUpsertDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserInviteDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserSuspendDTO;
 import com.platform.software.platform.workspace.dto.WorkspaceUserViewDTO;
+import com.platform.software.platform.workspace.service.WorkspaceService;
 import com.platform.software.platform.workspaceuser.service.WorkspaceUserService;
 import io.swagger.annotations.ApiOperation;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,11 +32,13 @@ public class WorkspaceAdminController {
     private final ConversationService conversationService;
     private final WorkspaceUserService workspaceUserService;
     private final UserService userService;
+    private final WorkspaceService workspaceService;
 
-    public WorkspaceAdminController(ConversationService conversationService, WorkspaceUserService workspaceUserService, UserService userService) {
+    public WorkspaceAdminController(ConversationService conversationService, WorkspaceUserService workspaceUserService, UserService userService, WorkspaceService workspaceService) {
         this.conversationService = conversationService;
         this.workspaceUserService = workspaceUserService;
         this.userService = userService;
+        this.workspaceService = workspaceService;
     }
 
     @ApiOperation(value = "Get all group conversations in a workspace", response = ConversationAdminViewDTO.class)
@@ -101,5 +106,28 @@ public class WorkspaceAdminController {
     public ResponseEntity<Void> toggleUserRole(@AuthenticatedUser UserDetails userDetails, @PathVariable String email) {
         workspaceUserService.toggleUserRole(userDetails, WorkspaceContext.getCurrentWorkspace(), email);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+
+    /**
+     * Adds allowed IP addresses to the current workspace.
+     * <p>
+     * This endpoint accepts a {@link WorkspaceAllowedIpUpsertDTO} containing the IP addresses
+     * to be added to the allowed list for the current workspace. The addition of IPs is handled
+     * by the {@code workspaceService.addAllowedIps} method.
+     * </p>
+     *
+     * @param workspaceAllowedIpUpsertDTO The DTO containing the IP addresses to be added.
+     * @return A {@link ResponseEntity} with HTTP status {@code 201 Created} if the IPs are successfully added.
+     *
+     * @throws org.springframework.security.access.AccessDeniedException if the current user is not authorized to perform this operation.
+     */
+    @ApiOperation(value = "Add allowed IPs to workspace")
+    @PostMapping("/allowed-ips")
+    public ResponseEntity<Void> addAllowedIps(
+            @Valid @RequestBody WorkspaceAllowedIpUpsertDTO workspaceAllowedIpUpsertDTO
+    ){
+        workspaceService.addAllowedIps(WorkspaceContext.getCurrentWorkspace(), workspaceAllowedIpUpsertDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
