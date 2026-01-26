@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-hushchat-bot-user
+      author: moditha
+      changes:
+        - insert:
+            tableName: chat_user
+            columns:
+              - column:
+                  name: username
+                  value: hushchat_bot
+              - column:
+                  name: first_name
+                  value: HushChat
+              - column:
+                  name: last_name
+                  value: Bot
+              - column:
+                  name: email
+                  value: bot@gethush.chat
+              - column:
+                  name: active
+                  valueBoolean: true
+              - column:
+                  name: deleted
+                  valueBoolean: false
+              - column:
+                  name: availability_status
+                  value: AVAILABLE
+              - column:
+                  name: created_at
+                  valueDate: now()
+              - column:
+                  name: updated_at
+                  valueDate: now()
