@@ -52,13 +52,20 @@ public class MessagePublisherService {
      */
     @Transactional(readOnly = true)
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId,
-            String workspaceId) {
-        ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
+            String workspaceId, MessageTypeEnum messageType) {
 
-        ConversationParticipantViewDTO senderParticipant = conversationDTO.getParticipants().stream()
-                .filter(p -> p.getUser().getId().equals(senderId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));
+        ConversationDTO conversationDTO = null;
+        ConversationParticipantViewDTO senderParticipant = null;
+
+        if(messageType == MessageTypeEnum.BOT_MESSAGE) {
+            conversationDTO = conversationUtilService.getConversationDTOOrThrow(conversationId);
+        } else {
+            conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
+            senderParticipant = conversationDTO.getParticipants().stream()
+                    .filter(p -> p.getUser().getId().equals(senderId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));
+        }
 
         // when sending ws message, conversation name need to be named of the message
         // sender for non group conversations
@@ -93,12 +100,15 @@ public class MessagePublisherService {
 
         conversationDTO.setMessages(List.of(messageViewDTO));
 
-        DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
-                WorkspaceContext.getCurrentWorkspace(),
-                senderParticipant.getUser().getEmail()
-        );
-        conversationDTO.setDeviceType(deviceType);
+        if (senderParticipant != null) {
+            DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    senderParticipant.getUser().getEmail()
+            );
+            conversationDTO.setDeviceType(deviceType);
+        }
 
+        ConversationDTO finalConversationDTO = conversationDTO;
         conversationDTO.getParticipants().stream()
                 .filter(p -> p.getUser() != null && p.getUser().getId() != null)
                 .filter(p -> !p.getUser().getId().equals(senderId))
@@ -107,7 +117,7 @@ public class MessagePublisherService {
                     if (email == null)
                         return;
 
-                    ConversationDTO payload = getConversationDTO(participant, conversationDTO);
+                    ConversationDTO payload = getConversationDTO(participant, finalConversationDTO);
 
                     payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
                             payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,

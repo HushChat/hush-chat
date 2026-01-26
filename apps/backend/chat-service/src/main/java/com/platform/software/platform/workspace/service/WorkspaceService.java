@@ -156,11 +156,13 @@ public class WorkspaceService {
      */
     public MessageViewDTO createBotMessage(MessageUpsertDTO messageDTO, Long conversationId) {
 
+        //TODO: Bot user id should be fetched from workspace table
+
         if (WorkspaceContext.getCurrentWorkspace() == null){
             throw new CustomBadRequestException("Workspace is not set");
         }
 
-        return messageService.createMessage(
+        return messageService.createBotMessage(
                 messageDTO, conversationId, workspaceBotUserId
         );
     }

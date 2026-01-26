@@ -100,6 +100,26 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     }
 
     @Override
+    public Optional<ConversationDTO> getConversationById(Long conversationId) {
+        // Query to get conversation and all its participants
+        List<Tuple> results = queryFactory
+                .select(qConversationParticipant, qConversation, qUser)
+                .from(qConversationParticipant)
+                .leftJoin(qConversationParticipant.conversation, qConversation)
+                .leftJoin(qConversationParticipant.user, qUser)
+                .where(qConversationParticipant.conversation.id.eq(conversationId))
+                .where(qConversationParticipant.isActive.isTrue())
+                .fetch();
+
+        if (results.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<ConversationDTO> conversationDTOs = buildConversationDTOs(results, null);
+        return conversationDTOs.isEmpty() ? Optional.empty() : Optional.of(conversationDTOs.getFirst());
+    }
+
+    @Override
     public List<ConversationDTO> findAllConversationByUserIdAndConversationIds(Long userId, Set<Long> conversationIds) {
         // Single query to check participation and get all participants
         List<Tuple> results = queryFactory
