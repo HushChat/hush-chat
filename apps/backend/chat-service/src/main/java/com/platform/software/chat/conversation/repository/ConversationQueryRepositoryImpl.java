@@ -239,8 +239,9 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
                     ConversationDTO dto = new ConversationDTO(conversation);
 
+                    ConversationParticipant loggedInParticipant = null;
+
                     if (conversation != null && conversation.getConversationParticipants() != null) {
-                        ConversationParticipant loggedInParticipant = null;
                         ConversationParticipant otherParticipant = null;
 
                         boolean needOtherParticipant = !conversation.getIsGroup();
@@ -304,20 +305,24 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         );
 
                         if (isVisible) {
-                                MessageViewDTO messageViewDTO = new MessageViewDTO(latestMessage);
+                                MessageViewDTO messageViewDTO = null;
 
-                                if (!messageViewDTO.getIsUnsend()) {
-                                    List<MessageAttachmentDTO> attachmentDTOs =
-                                            latestMessage.getAttachments()
-                                                    .stream()
-                                                    .map(MessageAttachmentDTO::new)
-                                                    .toList();
-                                    messageViewDTO.setMessageAttachments(attachmentDTOs);
-                                } else {
-                                    messageViewDTO.setMessageAttachments(new ArrayList<>());
+                                if (loggedInParticipant.getIsActive()){
+                                    messageViewDTO=  new MessageViewDTO(latestMessage);
+
+                                    if (!messageViewDTO.getIsUnsend()) {
+                                        List<MessageAttachmentDTO> attachmentDTOs =
+                                                latestMessage.getAttachments()
+                                                        .stream()
+                                                        .map(MessageAttachmentDTO::new)
+                                                        .toList();
+                                        messageViewDTO.setMessageAttachments(attachmentDTOs);
+                                    } else {
+                                        messageViewDTO.setMessageAttachments(new ArrayList<>());
+                                    }
                                 }
 
-                                dto.setMessages(List.of(messageViewDTO));
+                                dto.setMessages(messageViewDTO != null ? List.of(messageViewDTO) : null);
                                 return dto;
                         }
                     }

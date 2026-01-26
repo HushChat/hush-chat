@@ -20,6 +20,7 @@ export const IMAGE_EXTENSIONS = [
 
 export const VIDEO_EXTENSIONS = [
   "mp4",
+  "video/mp4",
   "mov",
   "webm",
   "avi",

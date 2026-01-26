@@ -7,7 +7,7 @@ interface AttachmentPreviewProps {
 }
 
 export const AttachmentPreview = ({ attachment }: AttachmentPreviewProps) => {
-  if (!attachment || !attachment.fileUrl) return null;
+  if (!attachment) return null;
 
   const isDocument = attachment?.type === MessageAttachmentTypeEnum.DOCS;
   const isGif = attachment.type === MessageAttachmentTypeEnum.GIF;
