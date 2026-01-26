@@ -2,6 +2,7 @@ package com.platform.software.config.interceptors;
 
 import com.platform.software.common.constants.Constants;
 import com.platform.software.common.service.ErrorResponseHandler;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.ErrorResponses;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -56,6 +57,11 @@ public class ApiKeyAuthorizationFilter extends OncePerRequestFilter {
             logger.warn("Incorrect API key provided. Path: {}", path);
             ErrorResponseHandler.sendErrorResponse(response, HttpStatus.UNAUTHORIZED, ErrorResponses.INCORRECT_PUBLIC_KEY_RESPONSE);
             return;
+        }
+
+        String workspace = request.getHeader(Constants.X_TENANT_HEADER);
+        if (workspace != null && !workspace.isEmpty()) {
+            WorkspaceContext.setCurrentWorkspace(workspace);
         }
 
         Set<GrantedAuthority> authorities = new HashSet<>();
