@@ -167,7 +167,6 @@ const ConversationInputMobile = ({
             <ConversationInputActions
               isEditMode={input.isEditMode}
               hideEmojiGifPickers={hideEmojiGifPickers}
-              hideSendButton={hideSendButton}
               disabled={disabled}
               isValidMessage={input.isValidMessage}
               isSending={isSending}

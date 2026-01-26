@@ -26,7 +26,6 @@ const ComposerIconButton = ({ onPress, disabled, children }: IComposerIconButton
 interface IConversationInputActionProps {
   isEditMode: boolean;
   hideEmojiGifPickers?: boolean;
-  hideSendButton?: boolean;
   disabled?: boolean;
   isValidMessage: boolean;
   isSending: boolean;
@@ -41,7 +40,6 @@ export const ConversationInputActions = memo(
   ({
     isEditMode,
     hideEmojiGifPickers,
-    hideSendButton,
     disabled,
     isValidMessage,
     isSending,
@@ -69,17 +67,13 @@ export const ConversationInputActions = memo(
           </>
         )}
 
-        {isValidMessage && (
-          <View className="ml-1">
-            <MarkdownToggle enabled={isMarkdownEnabled} onToggle={onToggleMarkdown} />
-          </View>
-        )}
+        <View className="ml-1">
+          <MarkdownToggle enabled={isMarkdownEnabled} onToggle={onToggleMarkdown} />
+        </View>
 
-        {!hideSendButton && (
-          <View className="ml-1">
-            <SendButton showSend={isValidMessage} isSending={isSending} onPress={onSendPress} />
-          </View>
-        )}
+        <View className="ml-1">
+          <SendButton showSend={isValidMessage} isSending={isSending} onPress={onSendPress} />
+        </View>
       </View>
     );
   }
