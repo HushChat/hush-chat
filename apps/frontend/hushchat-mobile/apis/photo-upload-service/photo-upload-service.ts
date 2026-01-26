@@ -195,7 +195,7 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map());
 
   const getSignedUrls = async (
     files: LocalFile[],
@@ -341,9 +341,12 @@ export function useMessageAttachmentUploader(
       const results: UploadResult[] = [];
       const successfulMessageIds: number[] = [];
 
+      setUploadProgress(new Map());
+
       for (let i = 0; i < validFiles.length; i++) {
         const { file } = validFiles[i];
         const signed = signedUrls[i];
+        const fileKey = i.toString();
 
         if (!signed || !signed.url) {
           results.push({
@@ -354,7 +357,11 @@ export function useMessageAttachmentUploader(
           continue;
         }
 
-        setUploadProgress(0);
+        setUploadProgress((prev) => {
+          const newProgress = new Map(prev);
+          newProgress.set(fileKey, 0);
+          return newProgress;
+        });
 
         try {
           const blob = await (await fetch(file.uri)).blob();
@@ -370,7 +377,11 @@ export function useMessageAttachmentUploader(
             xhr.upload.onprogress = (event) => {
               if (event.lengthComputable) {
                 const percentCompleted = Math.round((event.loaded * 100) / event.total);
-                setUploadProgress(percentCompleted);
+                setUploadProgress((prev) => {
+                  const newProgress = new Map(prev);
+                  newProgress.set(fileKey, percentCompleted);
+                  return newProgress;
+                });
               }
             };
 
@@ -419,6 +430,7 @@ export function useMessageAttachmentUploader(
       return allResults;
     } finally {
       setIsUploadingWebFiles(false);
+      setUploadProgress(new Map());
       validFiles.forEach(({ file }) => {
         try {
           URL.revokeObjectURL(file._blobUrl);

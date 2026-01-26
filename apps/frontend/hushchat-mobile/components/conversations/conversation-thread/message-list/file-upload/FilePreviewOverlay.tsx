@@ -24,7 +24,7 @@ type TFilePreviewOverlayProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
-  uploadProgress: number;
+  uploadProgress: Map<string, number>;
 };
 
 const FilePreviewOverlay = ({
