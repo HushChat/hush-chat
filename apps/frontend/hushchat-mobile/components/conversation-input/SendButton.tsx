@@ -5,21 +5,21 @@ import { COLOR_ACTIVITY, ICON_SIZE } from "@/constants/composerConstants";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface SendButtonProps {
-  showSend: boolean;
+  hasContent: boolean;
   isSending: boolean;
   onPress: () => void;
 }
 
-export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) => {
+export const SendButton = ({ hasContent, isSending, onPress }: SendButtonProps) => {
   const { isDark } = useAppTheme();
-  const iconColor = showSend ? (isDark ? "#563dc4" : "#6b4eff") : isDark ? "#9ca3af" : "#6b7280";
+  const iconColor = hasContent ? (isDark ? "#563dc4" : "#6b4eff") : isDark ? "#9ca3af" : "#6b7280";
 
   if (isSending) {
     return <ActivityIndicator size="small" color={COLOR_ACTIVITY} />;
   }
 
   return (
-    <Pressable onPress={onPress} disabled={!showSend}>
+    <Pressable onPress={onPress} disabled={!hasContent}>
       <Ionicons name={"send"} size={ICON_SIZE} color={iconColor} />
     </Pressable>
   );

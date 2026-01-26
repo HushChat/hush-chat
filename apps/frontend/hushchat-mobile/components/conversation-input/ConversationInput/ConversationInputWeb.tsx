@@ -172,6 +172,7 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
             <ConversationInputActions
               isEditMode={input.isEditMode}
               hideEmojiGifPickers={hideEmojiGifPickers}
+              hideSendButton={hideSendButton}
               disabled={disabled}
               isValidMessage={input.isValidMessage}
               isSending={isSending}
