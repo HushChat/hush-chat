@@ -109,6 +109,8 @@ export function useConversationMessagesQuery(
           return;
         }
 
+        const isAtLatest = paginatedMessageWindow.hasMoreAfter === false;
+
         const newInfiniteQueryCache: InfiniteData<CursorPaginatedResponse<IMessage>> = {
           pages: [paginatedMessageWindow],
           pageParams: [null],
@@ -121,6 +123,10 @@ export function useConversationMessagesQuery(
 
         setTargetMessageId(targetMessageIdParam);
         setShouldHighlight(highlight);
+
+        if (isAtLatest) {
+          setInMessageWindowView(false);
+        }
 
         setTimeout(() => {
           blockAutoFetchRef.current = false;
@@ -151,7 +157,11 @@ export function useConversationMessagesQuery(
           const alreadyExists = firstPage.content.some((msg) => msg.id === newMessage.id);
           if (alreadyExists) return oldData;
 
-          const updatedFirstPage = { ...firstPage, content: [newMessage, ...firstPage.content] };
+          const updatedFirstPage = {
+            ...firstPage,
+            content: [newMessage, ...firstPage.content],
+            hasMoreAfter: false,
+          };
           return { ...oldData, pages: [updatedFirstPage, ...oldData.pages.slice(1)] };
         }
       );
