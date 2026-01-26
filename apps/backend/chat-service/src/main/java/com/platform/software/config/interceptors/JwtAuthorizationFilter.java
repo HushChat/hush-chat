@@ -1,6 +1,7 @@
 package com.platform.software.config.interceptors;
 
 import com.platform.software.common.constants.Constants;
+import com.platform.software.common.context.DeviceContext;
 import com.platform.software.common.service.ErrorResponseHandler;
 import com.platform.software.common.service.security.CustomHttpStatus;
 import com.platform.software.common.utils.AuthUtils;
@@ -103,6 +104,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         return workspaceUser;
     }
 
+    private void setCurrentDevice(HttpServletRequest request) {
+        String deviceType = request.getHeader(Constants.X_DEVICE_TYPE);
+        DeviceContext.setCurrentDevice(deviceType != null ? deviceType : Constants.WEB_CLIENT_DEVICE_TYPE);
+    }
+
 
     private void handleTokenVerificationForUsers(
         DecodedJWT decodedJwt,
@@ -116,6 +122,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         WorkspaceUser workspaceUser = null;
+
+        setCurrentDevice(request);
 
         // Allow through for public routes
         if (isPublicEndpoint(request)) {

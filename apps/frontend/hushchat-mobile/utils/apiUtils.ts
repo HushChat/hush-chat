@@ -3,8 +3,10 @@ import { AUTH_API_ENDPOINTS, TOKEN_TYPE } from "@/constants/apiConstants";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 import { getAllTokens, isTokenExpiringSoon, refreshIdToken } from "@/utils/authUtils";
 import { logError } from "@/utils/logger";
-import { X_TENANT, X_UUID_HEADER } from "@/constants/constants";
+import { X_DEVICE_TYPE, X_TENANT, X_UUID_HEADER } from "@/constants/constants";
 import * as Crypto from "expo-crypto";
+import { PLATFORM } from "@/constants/platformConstants";
+import { DeviceType } from "@/types/chat/types";
 
 const getAPIBaseURL = () => {
   const host = getBuildConstant(BuildConstantKeys.API_HOST);
@@ -69,7 +71,9 @@ export const setupAuthorizationHeader = () => {
         if (workspace) {
           config.headers[X_TENANT] = workspace;
         }
-
+        if (!PLATFORM.IS_WEB) {
+          config.headers[X_DEVICE_TYPE] = DeviceType.MOBILE;
+        }
         config.headers[X_UUID_HEADER] = Crypto.randomUUID();
       } catch (error) {
         logError("Error while setting up authorization header", error);
