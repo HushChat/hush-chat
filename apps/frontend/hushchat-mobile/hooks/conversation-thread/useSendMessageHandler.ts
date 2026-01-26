@@ -31,7 +31,7 @@ interface IUseSendMessageHandlerParams {
     messageText: string,
     parentMessageId?: number | null
   ) => Promise<IMessage[]>;
-  loadMessageWindow: (messageId: number, highlighted?: boolean) => Promise<void[]>;
+  loadMessageWindow: (messageId: number, highlighted?: boolean) => Promise<void>;
   isViewingFirstPage: boolean;
 }
 
@@ -271,10 +271,7 @@ export const useSendMessageHandler = ({
           });
         }
 
-        const latest = results
-          .map((r) => r.signed)
-          .filter((s) => s?.messageId && s.createdAt)
-          .reduce((a, b) => (new Date(b!.createdAt!) > new Date(a!.createdAt!) ? b : a));
+        const latest = results[results.length - 1].signed;
 
         if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
           loadMessageWindow(latest.messageId, false);

@@ -336,10 +336,7 @@ const ConversationThreadScreen = ({
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
 
-        const latest = results
-          .map((r) => r.signed)
-          .filter((s) => s?.messageId && s.createdAt)
-          .reduce((a, b) => (new Date(b!.createdAt!) > new Date(a!.createdAt!) ? b : a));
+        const latest = results[results.length - 1].signed;
 
         if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
           loadMessageWindow(latest.messageId, false);
@@ -355,15 +352,11 @@ const ConversationThreadScreen = ({
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImagesAndVideos();
-      console.log("results", results);
 
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
 
-        const latest = results
-          .map((r) => r.signed)
-          .filter((s) => s?.messageId && s.createdAt)
-          .reduce((a, b) => (new Date(b!.createdAt!) > new Date(a!.createdAt!) ? b : a));
+        const latest = results[results.length - 1].signed;
 
         if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
           loadMessageWindow(latest.messageId, false);
