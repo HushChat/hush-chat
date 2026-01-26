@@ -11,6 +11,7 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.message.dto.MessageForwardRequestDTO;
@@ -380,11 +381,13 @@ public class ConversationUtilService {
         for (MessageAttachment attachment : attachments) {
             MessageAttachmentDTO dto = new MessageAttachmentDTO();
             try {
-                String fileViewSignedURL = cloudPhotoHandlingService
-                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                if (!attachment.getType().equals(AttachmentTypeEnum.GIF)) {
+                    String fileViewSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                    dto.setFileUrl(fileViewSignedURL);
+                }
 
                 dto.setId(attachment.getId());
-                dto.setFileUrl(fileViewSignedURL);
                 dto.setIndexedFileName(attachment.getIndexedFileName());
                 dto.setOriginalFileName(attachment.getOriginalFileName());
                 dto.setType(attachment.getType());

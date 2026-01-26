@@ -31,7 +31,7 @@ interface IUseSendMessageHandlerParams {
     messageText: string,
     parentMessageId?: number | null
   ) => Promise<IMessage[]>;
-  loadMessageWindow: (messageId: number, highlighted?: boolean) => Promise<void>;
+  loadMessageWindow: (messageId: number, highlighted?: boolean) => Promise<void[]>;
   isViewingFirstPage: boolean;
 }
 
@@ -67,38 +67,6 @@ const createTempImageMessage = ({
       mimeType: file.type,
       type: MessageAttachmentTypeEnum.MEDIA,
       updatedAt: "",
-    },
-  ],
-  hasAttachment: true,
-});
-
-const createTempGifMessage = ({
-  gifUrl,
-  messageText,
-  conversationId,
-  senderId,
-}: {
-  gifUrl: string;
-  messageText: string;
-  conversationId: number;
-  senderId: number;
-}): IMessage => ({
-  id: generateTempMessageId(),
-  isForwarded: false,
-  senderId,
-  senderFirstName: "",
-  senderLastName: "",
-  messageText,
-  createdAt: new Date().toISOString(),
-  conversationId,
-  messageAttachments: [
-    {
-      fileUrl: gifUrl,
-      originalFileName: "tenor_gif.gif",
-      indexedFileName: gifUrl,
-      mimeType: "image/gif",
-      type: MessageAttachmentTypeEnum.GIF,
-      updatedAt: new Date().toISOString(),
     },
   ],
   hasAttachment: true,
@@ -216,26 +184,13 @@ export const useSendMessageHandler = ({
         }
 
         if (gifUrl) {
-          const tempGifMessage = createTempGifMessage({
-            gifUrl,
-            messageText: trimmed,
-            conversationId: currentConversationId,
-            senderId: Number(currentUserId),
-          });
+          const response = await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
+          if (response && response.length > 0) {
+            const newMessage = response[0];
 
-          updateConversationMessagesCache(tempGifMessage);
-          updateConversationsListCache(tempGifMessage);
-
-          const sentGifMessages = await sendGifMessage(gifUrl, trimmed, parentMessage?.id);
-
-          console.log(sentGifMessages);
-
-          sentGifMessages.forEach((msg: IMessage) => {
-            if (msg?.id && !isViewingFirstPage) {
-              loadMessageWindow(msg.id, false);
-            }
-          });
-
+            updateConversationMessagesCache(newMessage);
+            updateConversationsListCache(newMessage);
+          }
           setSelectedMessage(null);
           return;
         }

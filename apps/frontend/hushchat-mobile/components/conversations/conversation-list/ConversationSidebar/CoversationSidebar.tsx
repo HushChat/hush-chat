@@ -1,18 +1,17 @@
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
-import ChatInterfaceMobile from "./ChatInterfaceMobile";
 import { PLATFORM } from "@/constants/platformConstants";
-import ChatInterfaceWeb from "@/components/conversations/ChatInterface/ChatInterfaceWeb";
-import { ChatComponentProps } from "@/types/chat/types";
+import ConversationSidebarMobile from "@/components/conversations/conversation-list/ConversationSidebar/ConversationSidebarMobile";
+import ConversationSidebarWeb from "@/components/conversations/conversation-list/ConversationSidebar/ConversationSidebarWeb";
 
 const INTERFACE_COMPONENTS = {
-  mobile: ChatInterfaceMobile,
-  web: ChatInterfaceWeb,
+  mobile: ConversationSidebarMobile,
+  web: ConversationSidebarWeb,
 } as const;
 
 type InterfaceComponent = (typeof INTERFACE_COMPONENTS)[keyof typeof INTERFACE_COMPONENTS];
 
-export default function ChatInterface(props: ChatComponentProps) {
+export default function ConversationSidebar() {
   const isMobileLayout = useIsMobileLayout();
 
   const mobileSelected = !PLATFORM.IS_WEB || isMobileLayout;
@@ -21,5 +20,5 @@ export default function ChatInterface(props: ChatComponentProps) {
     ? INTERFACE_COMPONENTS.mobile
     : INTERFACE_COMPONENTS.web;
 
-  return <SelectedComponent {...props} />;
+  return <SelectedComponent />;
 }

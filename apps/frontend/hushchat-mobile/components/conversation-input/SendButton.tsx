@@ -13,14 +13,13 @@ export const SendButton = ({ showSend, isSending, onPress }: SendButtonProps) =>
   if (isSending) {
     return <ActivityIndicator size="small" color={COLOR_ACTIVITY} />;
   }
+  if (!showSend) {
+    return null;
+  }
 
   return (
     <Pressable onPress={onPress} disabled={!showSend}>
-      <Ionicons
-        name={showSend ? "send" : "mic-sharp"}
-        size={ICON_SIZE}
-        className="!text-gray-500 dark:!text-gray-400"
-      />
+      <Ionicons name={"send"} size={ICON_SIZE} className="!text-gray-500 dark:!text-gray-400" />
     </Pressable>
   );
 };
