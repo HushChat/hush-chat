@@ -21,6 +21,7 @@ interface IRenderMessageParams {
   viewReactions: (messageId: number, position: { x: number; y: number }, isOpen: boolean) => void;
   onNavigateToMessage?: (messageId: number) => void;
   targetMessageId?: number | null;
+  shouldHighlight?: boolean;
   webMessageInfoPress?: (messageId: number) => void;
   markMessageAsUnread: (msg: IMessage) => void;
   onEditMessage?: (msg: IMessage) => void;
@@ -53,6 +54,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       viewReactions,
       onNavigateToMessage,
       targetMessageId,
+      shouldHighlight,
       webMessageInfoPress,
       markMessageAsUnread,
       onEditMessage,
@@ -73,6 +75,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       index,
       !!conversationAPIResponse?.isGroup
     );
+
+    const shouldHighlightThisMessage = shouldHighlight && targetMessageId === item.id;
 
     return (
       <ConversationMessageItem
@@ -95,7 +99,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         showSenderAvatar={showSenderAvatar}
         showSenderName={showSenderName}
         onNavigateToMessage={onNavigateToMessage}
-        targetMessageId={targetMessageId}
+        targetMessageId={shouldHighlightThisMessage ? targetMessageId : null}
         webMessageInfoPress={webMessageInfoPress}
         onMarkMessageAsUnread={markMessageAsUnread}
         onEditMessage={onEditMessage}

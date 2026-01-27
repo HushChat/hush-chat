@@ -31,6 +31,8 @@ interface IUseSendMessageHandlerParams {
     messageText: string,
     parentMessageId?: number | null
   ) => Promise<IMessage[]>;
+  loadMessageWindow: (messageId: number, highlighted?: boolean) => Promise<void>;
+  isViewingFirstPage: boolean;
 }
 
 let tempMessageIdCounter = -1;
@@ -79,6 +81,8 @@ export const useSendMessageHandler = ({
   uploadFilesFromWebWithCaptions,
   handleCloseImagePreview,
   sendGifMessage,
+  loadMessageWindow,
+  isViewingFirstPage,
 }: IUseSendMessageHandlerParams) => {
   const { updateConversationMessagesCache, updateConversationsListCache, replaceTempMessage } =
     useConversationMessagesQuery(currentConversationId, { enabled: false });
@@ -187,7 +191,6 @@ export const useSendMessageHandler = ({
             updateConversationMessagesCache(newMessage);
             updateConversationsListCache(newMessage);
           }
-
           setSelectedMessage(null);
           return;
         }
@@ -266,6 +269,12 @@ export const useSendMessageHandler = ({
               replaceTempMessage(tempId, result.messageId);
             }
           });
+        }
+
+        const latest = results[results.length - 1].signed;
+
+        if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
+          loadMessageWindow(latest.messageId, false);
         }
 
         const failedCount = results.filter((r) => !r.success).length;
