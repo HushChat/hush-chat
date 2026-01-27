@@ -1,9 +1,9 @@
 package com.platform.software.config.interceptors.websocket;
 
 import com.platform.software.chat.notification.entity.DeviceType;
-import com.platform.software.chat.user.activitystatus.UserActivityStatusWSService;
 import com.platform.software.chat.user.activitystatus.dto.UserActivityWSSubscriptionData;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
+import com.platform.software.chat.user.activitystatus.service.UserActivityStatusService;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.common.constants.GeneralConstants;
@@ -32,16 +32,16 @@ public class WebSocketSessionManager {
     private final Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos = new ConcurrentHashMap<>();
 
     private final SimpMessagingTemplate template;
-    private final UserActivityStatusWSService userActivityStatusWSService;
+    private final UserActivityStatusService userActivityStatusService;
 
     public WebSocketSessionManager(
             SimpMessagingTemplate template,
-            UserActivityStatusWSService userActivityStatusWSService,
-            UserService userService
+            UserService userService,
+            UserActivityStatusService userActivityStatusService
     ) {
         this.template = template;
-        this.userActivityStatusWSService = userActivityStatusWSService;
         this.userService = userService;
+        this.userActivityStatusService = userActivityStatusService;
     }
 
     /**
@@ -64,7 +64,7 @@ public class WebSocketSessionManager {
         webSocketSessionInfos.put(sessionKey, webSocketSessionInfoDAO);
 
         UserStatusEnum normalizedStatus = normalizeStatus(userStatus);
-        userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, deviceType);
+        userActivityStatusService.invokeUserOnline(email, workspaceId, deviceType, normalizedStatus);
         logger.info("registered stomp session for user: {}", sessionKey);
     }
 
@@ -88,7 +88,7 @@ public class WebSocketSessionManager {
             webSocketSessionInfos.put(sessionKey, existingSession);
 
             UserStatusEnum normalizedStatus = normalizeStatus(userStatus);
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, device);
+            userActivityStatusService.invokeUserOnline(email, workspaceId, deviceType, normalizedStatus);
 
             logger.debug("session re connected for user: {}", sessionKey);
         }
@@ -145,7 +145,7 @@ public class WebSocketSessionManager {
                 device = deviceType.getName();
             }
 
-            userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, normalizedStatus, device);
+            userActivityStatusService.invokeUserOnline(email, workspaceId, device, normalizedStatus);
         }
     }
 
@@ -175,7 +175,7 @@ public class WebSocketSessionManager {
             List<WebSocketSessionInfoDAO> sessions = getSessionsForUser(workspaceId, email);
             if(sessions == null || sessions.isEmpty()) {
                 logger.debug("no active sessions remain for user: {}", sessionKey);
-                userActivityStatusWSService.invokeUserIsActive(workspaceId, email, webSocketSessionInfos, UserStatusEnum.OFFLINE, deviceType);
+                userActivityStatusService.invokeUserOffline(email, workspaceId, deviceType);
             }
             logger.debug("removed session for user: {}", sessionKey);
         }

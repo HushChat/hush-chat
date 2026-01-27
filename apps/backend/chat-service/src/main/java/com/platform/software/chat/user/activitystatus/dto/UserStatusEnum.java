@@ -3,6 +3,7 @@ package com.platform.software.chat.user.activitystatus.dto;
 public enum UserStatusEnum {
     ONLINE("ONLINE"),
     OFFLINE("OFFLINE"),
+    AWAY("AWAY"),
     BUSY("BUSY"),
     AVAILABLE("AVAILABLE");
 
