@@ -19,7 +19,8 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
 import { AppText } from "@/components/AppText";
-import { Href, router } from "expo-router";
+import { router } from "expo-router";
+import { CONVERSATION } from "@/constants/routes";
 
 interface SearchedConversationListProps {
   searchedConversationsResult: ISearchResults;
@@ -157,13 +158,7 @@ export default function SearchedConversationList({
             conversation={conversation}
             searchQuery={searchQuery}
             onConversationItemPress={() => {
-              if (firstMessage?.id) {
-                router.push(
-                  `/conversations/${conversation.id}?messageId=${firstMessage.id}` as Href
-                );
-              } else {
-                handleChatPress(setSelectedConversation)(conversation);
-              }
+              router.push(CONVERSATION(conversation.id, firstMessage?.id));
             }}
             isCurrentUser={isCurrentUser}
           />
