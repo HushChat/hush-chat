@@ -1,4 +1,4 @@
-package com.platform.software.chat.user.activitystatus;
+package com.platform.software.chat.user.activitystatus.service;
 
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.notification.entity.DeviceType;

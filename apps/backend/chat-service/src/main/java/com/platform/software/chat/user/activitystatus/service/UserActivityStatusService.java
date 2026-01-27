@@ -1,7 +1,6 @@
 package com.platform.software.chat.user.activitystatus.service;
 
 import com.platform.software.chat.notification.entity.DeviceType;
-import com.platform.software.chat.user.activitystatus.UserActivityStatusWSService;
 import com.platform.software.chat.user.activitystatus.dto.UserActivityInfo;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import jakarta.annotation.PostConstruct;
