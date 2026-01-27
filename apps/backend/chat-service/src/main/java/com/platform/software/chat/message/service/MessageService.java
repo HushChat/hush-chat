@@ -268,6 +268,8 @@ public class MessageService {
                 messageDTO.getParentMessageId(), 
                 savedMessage
             );
+
+            messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
             
             if (messageDTO.isGifAttachment()) {
                 MessageAttachment messageAttachment = messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
