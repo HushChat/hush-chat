@@ -72,24 +72,28 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         return buildConversationDTOs(results, userId);
     }
 
+    private JPAQuery<Tuple> getConversationQuery(Long conversationId) {
+        return queryFactory
+                .select(qConversationParticipant, qConversation, qUser)
+                .from(qConversationParticipant)
+                .leftJoin(qConversationParticipant.conversation, qConversation)
+                .leftJoin(qConversationParticipant.user, qUser)
+                .where(qConversationParticipant.conversation.id.eq(conversationId))
+                .where(qConversationParticipant.isActive.isTrue());
+    }
+
     @Override
     public Optional<ConversationDTO> findConversationByUserIdAndConversationId(Long userId, Long conversationId) {
-        // Single query to check participation and get all participants
-        List<Tuple> results = queryFactory
-            .select(qConversationParticipant, qConversation, qUser)
-            .from(qConversationParticipant)
-            .leftJoin(qConversationParticipant.conversation, qConversation)
-            .leftJoin(qConversationParticipant.user, qUser)
-            .where(qConversationParticipant.isActive.isTrue())
-            .where(qConversationParticipant.conversation.id.eq(
-                    queryFactory.select(qConversationParticipant.conversation.id) // inner query to check if the user is in the conversation
-                        .from(qConversationParticipant)
-                        .where(qConversationParticipant.user.id.eq(userId)
-                            .and(qConversationParticipant.conversation.id.eq(conversationId)))
-                        .where(qConversationParticipant.isActive.isTrue())
-                        .limit(1)
+        List<Tuple> results = getConversationQuery(conversationId)
+                .where(qConversationParticipant.conversation.id.eq(
+                        queryFactory.select(qConversationParticipant.conversation.id)
+                                .from(qConversationParticipant)
+                                .where(qConversationParticipant.user.id.eq(userId)
+                                        .and(qConversationParticipant.conversation.id.eq(conversationId))
+                                        .and(qConversationParticipant.isActive.isTrue()))
+                                .limit(1)
                 ))
-            .fetch();
+                .fetch();
 
         if (results.isEmpty()) {
             return Optional.empty();
@@ -101,15 +105,7 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
 
     @Override
     public Optional<ConversationDTO> getConversationById(Long conversationId) {
-        // Query to get conversation and all its participants
-        List<Tuple> results = queryFactory
-                .select(qConversationParticipant, qConversation, qUser)
-                .from(qConversationParticipant)
-                .leftJoin(qConversationParticipant.conversation, qConversation)
-                .leftJoin(qConversationParticipant.user, qUser)
-                .where(qConversationParticipant.conversation.id.eq(conversationId))
-                .where(qConversationParticipant.isActive.isTrue())
-                .fetch();
+        List<Tuple> results = getConversationQuery(conversationId).fetch();
 
         if (results.isEmpty()) {
             return Optional.empty();

@@ -135,7 +135,14 @@ public class ConversationUtilService {
         });
     }
 
-    public ConversationDTO getConversationDTOOrThrow(Long conversationId) {
+    /**
+     * Retrieves a ConversationDTO for system use only by conversation ID, throwing an exception if not found.
+     *
+     * @param conversationId the ID of the conversation
+     * @return the ConversationDTO if found
+     * @throws CustomBadRequestException if the conversation is not found
+     */
+    public ConversationDTO getConversationDTOForSystemUseOnly(Long conversationId) {
         return conversationParticipantRepository
                 .getConversationById(conversationId)
                 .orElseThrow(() -> {

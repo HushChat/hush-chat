@@ -58,7 +58,7 @@ public class MessagePublisherService {
         ConversationParticipantViewDTO senderParticipant = null;
 
         if(messageType == MessageTypeEnum.BOT_MESSAGE) {
-            conversationDTO = conversationUtilService.getConversationDTOOrThrow(conversationId);
+            conversationDTO = conversationUtilService.getConversationDTOForSystemUseOnly(conversationId);
         } else {
             conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
             senderParticipant = conversationDTO.getParticipants().stream()
