@@ -8,11 +8,13 @@ import usePanelManager from "@/hooks/useWebPanelManager";
 import { useLinkConversation } from "@/hooks/useLinkConversation";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useConversationsQuery } from "@/query/useConversationsQuery";
+import { useConversationNavigation } from "@/contexts/ConversationNavigationContext";
 import ConversationThreadScreen from "@/app/conversation-threads";
 import ConversationSidePanel from "@/components/conversations/conversation-info-panel/ConversationSidePanel";
 
 export default function ChatInterfaceWeb() {
   const { setSelectionMode, setSelectedMessageIds } = useConversationStore();
+  const { messageToJump: contextMessageToJump, clearMessageToJump } = useConversationNavigation();
 
   const { id } = useGlobalSearchParams<{ id?: string }>();
   const conversationId = id ? Number(id) : null;
@@ -22,8 +24,16 @@ export default function ChatInterfaceWeb() {
   const [selectedConversation, setSelectedConversation] = useState<IConversation | null>(null);
 
   const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
-  const [messageToJump, setMessageToJump] = useState<number | null>(null);
+  const [localMessageToJump, setLocalMessageToJump] = useState<number | null>(null);
   const [selectedMessageId, setSelectedMessageId] = useState<number>(0);
+
+  // Combine both sources - context (from sidebar) and local (from side panel)
+  const messageToJump = contextMessageToJump ?? localMessageToJump;
+
+  const handleMessageJumped = useCallback(() => {
+    clearMessageToJump();
+    setLocalMessageToJump(null);
+  }, [clearMessageToJump]);
 
   const { activePanel, isPanelOpen, isPanelContentReady, panelWidth, openPanel, closePanel } =
     usePanelManager(screenWidth);
@@ -46,8 +56,11 @@ export default function ChatInterfaceWeb() {
     closePanel();
   }, [closePanel, selectedConversation?.id]);
 
+  // For side panel search
   const handleSearchMessageClick = useCallback((message: any) => {
-    setMessageToJump(message.id);
+    if (message?.id) {
+      setLocalMessageToJump(message.id);
+    }
   }, []);
 
   const handleForwardPanelClose = useCallback(() => {
@@ -90,7 +103,7 @@ export default function ChatInterfaceWeb() {
           webForwardPress={handleShowForward}
           webMessageInfoPress={handleShowMessageInfo}
           messageToJump={messageToJump}
-          onMessageJumped={() => setMessageToJump(null)}
+          onMessageJumped={handleMessageJumped}
         />
       )}
 

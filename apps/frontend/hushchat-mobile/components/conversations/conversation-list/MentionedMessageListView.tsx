@@ -14,7 +14,7 @@ import FormattedText from "@/components/FormattedText";
 
 type TMentionedMessagesOverlay = {
   onClose?: () => void;
-  onMessageClicked?: (message: any) => void;
+  onMessageClicked?: (conversationId: number, messageId: number) => void;
   setSelectedConversation?: (conversation: IConversation | null) => void;
 };
 
@@ -55,7 +55,7 @@ export default function MentionedMessageListView({
         if (setSelectedConversation) {
           setSelectedConversation(conversation);
         }
-        onMessageClicked?.(message);
+        onMessageClicked?.(message?.conversationId, message?.id);
       }
     },
     [isMobileLayout, onMessageClicked]

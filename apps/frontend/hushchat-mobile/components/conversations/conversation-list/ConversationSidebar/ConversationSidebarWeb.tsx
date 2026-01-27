@@ -7,6 +7,7 @@ import { getConversationFilters } from "@/constants/conversationFilters";
 import { useConversationList } from "@/hooks/useConversationList";
 import { useConversationSearch } from "@/hooks/useConversationSearch";
 import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
+import { useConversationNavigation } from "@/contexts/ConversationNavigationContext";
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
 import SearchBar from "@/components/SearchBar";
@@ -22,6 +23,7 @@ export default function ConversationSidebarWeb() {
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
 
   const screenWidth = Dimensions.get("window").width;
+  const { jumpToMessage } = useConversationNavigation();
 
   const {
     selectedConversationType,
@@ -54,11 +56,23 @@ export default function ConversationSidebarWeb() {
     router.push(CONVERSATION(conversation.id));
   }, []);
 
-  const handleSearchMessageClick = useCallback((message: any) => {
-    if (message?.conversationId) {
-      router.push(CONVERSATION(message.conversationId));
-    }
-  }, []);
+  const handleSearchMessageClick = useCallback(
+    (conversationId: number, messageId: number) => {
+      router.push(CONVERSATION(conversationId));
+      jumpToMessage(messageId);
+    },
+    [jumpToMessage]
+  );
+
+  const handleMentionedMessageClick = useCallback(
+    (message: any) => {
+      if (message?.conversationId && message?.id) {
+        router.push(CONVERSATION(message.conversationId));
+        jumpToMessage(message.id);
+      }
+    },
+    [jumpToMessage]
+  );
 
   usePublishUserActivity({
     conversations,
@@ -120,6 +134,7 @@ export default function ConversationSidebarWeb() {
           errorWhileSearchingConversation={searchError?.message}
           searchQuery={searchInput}
           refetchSearchResults={refetchSearch}
+          onMessageClick={handleSearchMessageClick}
         />
       </View>
 
@@ -148,7 +163,7 @@ export default function ConversationSidebarWeb() {
         >
           <MentionedMessageListView
             onClose={() => setShowMentionedMessages(false)}
-            onMessageClicked={handleSearchMessageClick}
+            onMessageClicked={handleMentionedMessageClick}
             setSelectedConversation={handleSelectConversation}
           />
         </MotionView>

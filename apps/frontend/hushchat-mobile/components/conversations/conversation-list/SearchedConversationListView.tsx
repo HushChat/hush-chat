@@ -30,6 +30,7 @@ interface SearchedConversationListProps {
   onArchive: (conversationId: number) => Promise<void>;
   onDelete: (conversationId: number) => void;
   onRefresh: () => void;
+  onMessageClick?: (conversationId: number, messageId: number) => void;
 }
 
 // Stable empty array reference to avoid unnecessary re-renders
@@ -53,6 +54,7 @@ export default function SearchedConversationList({
   onArchive,
   onDelete,
   onRefresh,
+  onMessageClick,
 }: SearchedConversationListProps) {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -141,12 +143,9 @@ export default function SearchedConversationList({
         return <SectionHeader title={item._headerTitle} />;
       }
 
-      // For different section types, the item itself is the data
       const { _sectionType } = item;
 
-      // For messages section, the item is a conversation with messages
       if (_sectionType === ConversationSearchResultKeys.MESSAGES) {
-        // The item is already a conversation object
         const conversation = item as unknown as IConversation;
         const firstMessage = conversation.messages?.[0];
         const isCurrentUser = firstMessage && Number(currentUserId) === firstMessage.senderId;
@@ -155,15 +154,17 @@ export default function SearchedConversationList({
           <SearchedItem
             conversation={conversation}
             searchQuery={searchQuery}
-            onConversationItemPress={() => handleChatPress(setSelectedConversation)(conversation)}
+            onConversationItemPress={(conv) => {
+              if (firstMessage?.id) {
+                onMessageClick?.(conv.id, firstMessage.id);
+              }
+            }}
             isCurrentUser={isCurrentUser}
           />
         );
       }
 
-      // For users section, the item is a user
       if (_sectionType === ConversationSearchResultKeys.USERS) {
-        // The item is already a user object
         const user = item as TUser;
         return (
           <UserListItem
@@ -174,9 +175,7 @@ export default function SearchedConversationList({
         );
       }
 
-      // For chats section, the item is a conversation
       if (_sectionType === ConversationSearchResultKeys.CHATS) {
-        // The item is already a conversation object
         const conversation = item as unknown as IConversation;
         return (
           <ConversationListItem
@@ -201,6 +200,7 @@ export default function SearchedConversationList({
       onArchive,
       onDelete,
       onRefresh,
+      onMessageClick,
     ]
   );
 

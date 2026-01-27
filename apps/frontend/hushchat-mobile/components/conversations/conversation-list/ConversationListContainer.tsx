@@ -27,6 +27,7 @@ export interface ConversationListContainerProps {
   errorWhileSearchingConversation?: string;
   searchQuery?: string;
   refetchSearchResults?: () => void;
+  onMessageClick?: (conversationId: number, messageId: number) => void;
 }
 
 export default function ConversationListContainer({
@@ -44,6 +45,7 @@ export default function ConversationListContainer({
   errorWhileSearchingConversation,
   searchQuery = "",
   refetchSearchResults,
+  onMessageClick,
 }: ConversationListContainerProps) {
   const { openModal, closeModal } = useModalContext();
   const {
@@ -130,6 +132,7 @@ export default function ConversationListContainer({
         onArchive={handleArchivePress}
         onDelete={handleDeleteConversation}
         onRefresh={conversationsRefetch}
+        onMessageClick={onMessageClick}
       />
     );
   }
