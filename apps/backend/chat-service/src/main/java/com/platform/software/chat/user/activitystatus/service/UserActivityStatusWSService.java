@@ -9,7 +9,6 @@ import com.platform.software.config.interceptors.websocket.WebSocketSessionManag
 import com.platform.software.config.workspace.WorkspaceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -23,7 +22,6 @@ public class UserActivityStatusWSService {
     private final SimpMessagingTemplate template;
     private final WebSocketSessionManager webSocketSessionManager;
 
-    @Async
     public void invokeUserActivityStatus(String workspaceId, String email, UserStatusEnum status, String deviceType) {
         WorkspaceContext.setCurrentWorkspace(workspaceId);
 

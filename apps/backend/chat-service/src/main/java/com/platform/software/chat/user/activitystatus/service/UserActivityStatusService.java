@@ -1,10 +1,12 @@
 package com.platform.software.chat.user.activitystatus.service;
 
 import com.platform.software.chat.notification.entity.DeviceType;
+import com.platform.software.chat.user.activitystatus.dto.ActivityStatusEvent;
 import com.platform.software.chat.user.activitystatus.dto.UserActivityInfo;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.*;
@@ -13,14 +15,13 @@ import java.util.concurrent.*;
 @Service
 public class UserActivityStatusService {
 
-    private final UserActivityStatusWSService userActivityStatusWSService;
-
     private final ConcurrentHashMap<String, UserActivityInfo> userPresence = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ScheduledFuture<?>> offlineSchedulers = new ConcurrentHashMap<>();
     private final ScheduledThreadPoolExecutor scheduler;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public UserActivityStatusService(UserActivityStatusWSService userActivityStatusWSService) {
-        this.userActivityStatusWSService = userActivityStatusWSService;
+    public UserActivityStatusService(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
         int poolSize = Math.max(4, Runtime.getRuntime().availableProcessors());
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(
@@ -71,7 +72,9 @@ public class UserActivityStatusService {
         UserActivityInfo currentPresence = userPresence.get(email);
         if (currentPresence == null || currentPresence.getStatus() != userStatusEnum) {
             userPresence.put(email, new UserActivityInfo(workspace, email, userStatusEnum, DeviceType.fromString(deviceType)));
-            userActivityStatusWSService.invokeUserActivityStatus(workspace, email, userStatusEnum, deviceType);
+            eventPublisher.publishEvent(new ActivityStatusEvent(
+                    workspace, email, userStatusEnum, deviceType
+            ));
         }
     }
 
@@ -96,14 +99,18 @@ public class UserActivityStatusService {
 
         //broadcast as away
         userPresence.put(email, new UserActivityInfo(workspace, email, UserStatusEnum.AWAY, DeviceType.fromString(deviceType)));
-        userActivityStatusWSService.invokeUserActivityStatus(workspace, email, UserStatusEnum.AWAY, deviceType);
+        eventPublisher.publishEvent(new ActivityStatusEvent(
+                workspace, email, UserStatusEnum.AWAY, deviceType
+        ));
 
         //broadcast as offline after 15 minutes
         ScheduledFuture<?> offlineTask = scheduler.schedule(() -> {
             UserActivityInfo presence = userPresence.get(email);
             if (presence != null && presence.getStatus().equals(UserStatusEnum.AWAY)) {
                 userPresence.put(email, new UserActivityInfo(workspace, email, UserStatusEnum.OFFLINE, DeviceType.fromString(deviceType)));
-                userActivityStatusWSService.invokeUserActivityStatus(workspace, email, UserStatusEnum.OFFLINE, deviceType);
+                eventPublisher.publishEvent(new ActivityStatusEvent(
+                        workspace, email, UserStatusEnum.OFFLINE, deviceType
+                ));
                 offlineSchedulers.remove(email);
             }
         }, 15, TimeUnit.MINUTES);
