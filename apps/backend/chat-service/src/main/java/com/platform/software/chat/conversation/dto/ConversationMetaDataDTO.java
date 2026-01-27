@@ -29,6 +29,7 @@ public class ConversationMetaDataDTO {
     private Date pinnedMessageUntil;
     private boolean notifyOnMentionsOnly;
     private DeviceType deviceType;
+    private Boolean onlyAdminsCanPinMessages;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();
@@ -39,6 +40,7 @@ public class ConversationMetaDataDTO {
         this.description = conversation.getDescription();
         this.signedImageUrl = conversation.getSignedImageUrl();
         this.onlyAdminsCanSendMessages = conversation.getOnlyAdminsCanSendMessages();
+        this.onlyAdminsCanPinMessages = conversation.getOnlyAdminsCanPinMessages();
         this.pinnedMessageUntil = conversation.getPinnedMessageUntil() != null
                 ? Date.from(conversation.getPinnedMessageUntil().toInstant())
                 : null;

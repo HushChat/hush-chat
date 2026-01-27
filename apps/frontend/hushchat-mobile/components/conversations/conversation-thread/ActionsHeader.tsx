@@ -145,20 +145,21 @@ const ActionsHeader = ({
           {!message.isUnsend && message.messageText && (
             <HeaderAction iconName="copy-outline" onPress={() => onCopy(message)} />
           )}
-
           {canEdit && !isForwardedMessage && onEdit && (
             <HeaderAction iconName="pencil-outline" onPress={handleEdit} />
           )}
-
           {message.senderId === Number(user.id) && !message.isUnsend && (
             <HeaderAction iconName="trash-outline" onPress={() => onUnsend(message)} />
           )}
 
-          <HeaderAction
-            iconName={isPinned ? "pin" : "pin-outline"}
-            onPress={() => handleTogglePinMessage()}
-            color={isPinned ? "#6B4EFF" : "#6B7280"}
-          />
+          {!conversation?.onlyAdminsCanPinMessages ||
+            (conversation?.isCurrentUserAdmin && (
+              <HeaderAction
+                iconName={isPinned ? "pin" : "pin-outline"}
+                onPress={() => handleTogglePinMessage()}
+                color={isPinned ? "#6B4EFF" : "#6B7280"}
+              />
+            ))}
 
           {currentUserIsSender &&
             !message.isUnsend &&
@@ -170,7 +171,6 @@ const ActionsHeader = ({
                 onPress={() => onSelectMessageInfo(conversation, message)}
               />
             )}
-
           <HeaderAction iconName="arrow-redo-outline" onPress={() => onForward(message)} />
         </View>
       </View>

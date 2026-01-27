@@ -2,6 +2,7 @@ import {
   archiveConversationById,
   ConversationFilterCriteria,
   editMessageById,
+  makeOnlyAdminsCanPinMessages,
   setLastSeenMessageByConversationId,
   toggleConversationFavorite,
   toggleNotifyOnlyOnMention,
@@ -104,4 +105,11 @@ export const useEditMessageMutation = createMutationHook<
     [
       conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
     ] as string[][]
+);
+
+export const useUpdateOnlyAdminsCanPinMessagesMutation = createMutationHook<
+  IConversation,
+  { conversationId: number; onlyAdminsCanPinMessages: boolean }
+>(({ conversationId, onlyAdminsCanPinMessages }) =>
+  makeOnlyAdminsCanPinMessages(conversationId, onlyAdminsCanPinMessages)
 );

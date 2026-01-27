@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_only_admins_can_pin_messages_to_conversation
+      author: ransilu
+      tag: release-15.1
+      changes:
+        - addColumn:
+            tableName: conversation
+            columns:
+              - column:
+                  name: only_admins_can_pin_messages
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

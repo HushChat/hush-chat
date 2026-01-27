@@ -14,6 +14,7 @@ interface PinnedMessageBarProps {
   isGifUrl?: boolean;
   onPress?: () => void;
   onUnpin?: () => void;
+  permissionToUnpin: boolean;
 }
 
 export const PinnedMessageBar = ({
@@ -22,6 +23,7 @@ export const PinnedMessageBar = ({
   isGifUrl,
   onPress,
   onUnpin,
+  permissionToUnpin,
 }: PinnedMessageBarProps) => {
   const { isDark } = useAppTheme();
 
@@ -67,13 +69,15 @@ export const PinnedMessageBar = ({
         )}
       </View>
 
-      <Pressable
-        onPress={onUnpin}
-        className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 items-center justify-center ml-3"
-        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      >
-        <Ionicons name="close" size={14} color={isDark ? "#FAFAF9" : "#050506"} />
-      </Pressable>
+      {permissionToUnpin ? (
+        <Pressable
+          onPress={onUnpin}
+          className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 items-center justify-center ml-3"
+          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+        >
+          <Ionicons name="close" size={14} color={isDark ? "#FAFAF9" : "#050506"} />
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 };

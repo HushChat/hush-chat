@@ -90,6 +90,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/messages/${messageId}/mark-unread`,
   PUBLISH_MESSAGES: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/messages/publish-messages`,
+  UPDATE_ONLY_ADMINS_CAN_PIN_MESSAGES: (conversationId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/group-message-pin-permission`,
 };
 
 export const USER_API_ENDPOINTS = {

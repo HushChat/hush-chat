@@ -35,4 +35,6 @@ public interface ConversationQueryRepository {
 
     long clearExpiredPinnedMessageFromConversation(Long conversationId);
 
+    long updateGroupMessagePinPermission(Long conversationId, Boolean isAdminOnlyCanPinGroupMessage);
+
 }
