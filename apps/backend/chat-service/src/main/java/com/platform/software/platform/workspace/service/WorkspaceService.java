@@ -3,6 +3,8 @@ package com.platform.software.platform.workspace.service;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserRepository;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
@@ -28,19 +30,21 @@ import java.util.List;
 public class WorkspaceService {
     Logger logger = LoggerFactory.getLogger(WorkspaceService.class);
 
-    @Value("${workspace.bot.user.id}")
-    private Long workspaceBotUserId;
+    @Value("${workspace.bot.user.mail}")
+    private String workspaceBotUserMail;
 
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
     private final DatabaseSchemaService databaseSchemaService;
     private final MessageService messageService;
+    private final UserRepository userRepository;
 
-    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService, MessageService messageService) {
+    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService, MessageService messageService, UserRepository userRepository) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
         this.databaseSchemaService = databaseSchemaService;
         this.messageService = messageService;
+        this.userRepository = userRepository;
     }
 
     public void requestCreateWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO, String loggedInUserEmail) {
@@ -156,14 +160,15 @@ public class WorkspaceService {
      */
     public MessageViewDTO createBotMessage(MessageUpsertDTO messageDTO, Long conversationId) {
 
-        //TODO: Bot user id should be fetched from workspace table
+        ChatUser botUser = userRepository.findByEmail(workspaceBotUserMail)
+                .orElseThrow(() -> new CustomInternalServerErrorException("Workspace bot user not found"));
 
         if (WorkspaceContext.getCurrentWorkspace() == null){
             throw new CustomBadRequestException("Workspace is not set");
         }
 
         return messageService.createBotMessage(
-                messageDTO, conversationId, workspaceBotUserId
+                messageDTO, conversationId, botUser.getId()
         );
     }
 }
