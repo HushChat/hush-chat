@@ -7,6 +7,9 @@ databaseChangeLog:
             tableName: chat_user
             columns:
               - column:
+                  name: id
+                  valueSequenceNext: chat_user_generator
+              - column:
                   name: username
                   value: hushchat_bot
               - column:
@@ -29,7 +32,7 @@ databaseChangeLog:
                   value: AVAILABLE
               - column:
                   name: created_at
-                  valueDate: now()
+                  valueComputed: NOW()
               - column:
                   name: updated_at
-                  valueDate: now()
+                  valueComputed: NOW()
