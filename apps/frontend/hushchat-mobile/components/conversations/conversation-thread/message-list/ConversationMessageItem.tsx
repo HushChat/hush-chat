@@ -45,6 +45,7 @@ import { CONVERSATION, MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import { MessageActions } from "@/components/conversations/conversation-thread/message-list/MessageActions";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -78,6 +79,7 @@ interface MessageItemProps {
   webMessageInfoPress?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
   onEditMessage?: (message: IMessage) => void;
+  isFirstInGroup?: boolean;
 }
 
 const REMOVE_ONE = 1;
@@ -107,6 +109,7 @@ export const ConversationMessageItem = ({
   webMessageInfoPress,
   onMarkMessageAsUnread,
   onEditMessage,
+  isFirstInGroup = true,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -535,18 +538,25 @@ export const ConversationMessageItem = ({
               senderName={senderName}
               messageTime={messageTime}
               messageIsUnsend={message.isUnsend}
-              selectionMode={selectionMode}
-              currentUserId={currentUserId}
-              onOpenPicker={handleOpenPicker}
-              onOpenMenu={openWebMenuAtEvent}
-              messageText={message.messageText}
               isRead={message.isReadByEveryone}
               onClickSendernName={handleNamePress}
+              isFirstInGroup={isFirstInGroup}
             />
 
             {renderParentMessage()}
 
-            <View className={isCurrentUser ? "self-end" : "self-start"}>
+            <View className={isCurrentUser ? "self-end flex-row" : "self-start flex-row"}>
+              {isCurrentUser && (
+                <MessageActions
+                  messageText={message.messageText}
+                  messageIsUnsend={message.isUnsend}
+                  selectionMode={selectionMode}
+                  onOpenPicker={handleOpenPicker}
+                  onOpenMenu={openWebMenuAtEvent}
+                  currentUserId={currentUserId}
+                  isCurrentUser={isCurrentUser}
+                />
+              )}
               <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
@@ -565,6 +575,17 @@ export const ConversationMessageItem = ({
                   isMobileLayout={isMobileLayout}
                 />
               </MessageHighlightWrapper>
+              {!isCurrentUser && (
+                <MessageActions
+                  messageText={message.messageText}
+                  messageIsUnsend={message.isUnsend}
+                  selectionMode={selectionMode}
+                  onOpenPicker={handleOpenPicker}
+                  onOpenMenu={openWebMenuAtEvent}
+                  currentUserId={currentUserId}
+                  isCurrentUser={isCurrentUser}
+                />
+              )}
             </View>
 
             <MessageReactions

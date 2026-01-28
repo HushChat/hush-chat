@@ -3,7 +3,7 @@ import { SectionListData } from "react-native";
 import { ConversationMessageItem } from "@/components/conversations/conversation-thread/message-list/ConversationMessageItem";
 import { IMessage, ConversationAPIResponse } from "@/types/chat/types";
 import { shouldShowSenderAvatar, shouldShowSenderName } from "@/utils/messageUtils";
-
+import { shouldGroupMessages } from "@/utils/messageGroupingUtils";
 interface IRenderMessageParams {
   currentUserId: number | null | undefined;
   openPickerMessageId: string | null;
@@ -61,6 +61,9 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
     const isSelected = selectedMessageIds.has(Number(item.id));
 
+    const nextMessage = index < section.data.length - 1 ? section.data[index + 1] : null;
+    const isFirstInGroup = !shouldGroupMessages(nextMessage, item);
+
     const showSenderAvatar = shouldShowSenderAvatar(
       section.data,
       index,
@@ -99,6 +102,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         webMessageInfoPress={webMessageInfoPress}
         onMarkMessageAsUnread={markMessageAsUnread}
         onEditMessage={onEditMessage}
+        isFirstInGroup={isFirstInGroup}
       />
     );
   };
