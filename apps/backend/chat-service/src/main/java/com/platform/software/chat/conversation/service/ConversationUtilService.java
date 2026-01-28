@@ -135,6 +135,23 @@ public class ConversationUtilService {
         });
     }
 
+    /**
+     * Retrieves a ConversationDTO for system use only by conversation ID, throwing an exception if not found.
+     *
+     * @param conversationId the ID of the conversation
+     * @return the ConversationDTO if found
+     * @throws CustomBadRequestException if the conversation is not found
+     */
+    public ConversationDTO getConversationDTOForSystemUseOnly(Long conversationId) {
+        return conversationParticipantRepository
+                .getConversationById(conversationId)
+                .orElseThrow(() -> {
+                    logger.warn("conversation not found or access denied. conversationId={}",
+                            conversationId);
+                    return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
+                });
+    }
+
     /** Returns the conversation participant if the given user is an admin of the specified group conversation and the conversation is not deleted; otherwise, throws an exception.
      *
      * @param userId the ID of the user

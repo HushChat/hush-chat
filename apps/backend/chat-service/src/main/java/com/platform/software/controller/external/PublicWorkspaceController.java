@@ -1,5 +1,7 @@
 package com.platform.software.controller.external;
 
+import com.platform.software.chat.message.dto.MessageUpsertDTO;
+import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.platform.workspace.service.WorkspaceService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.HttpStatus;
@@ -31,5 +33,17 @@ public class PublicWorkspaceController {
     ){
         workspaceService.approveCreateWorkspaceRequest(workspaceId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @ApiOperation(value = "create bot messages for a conversation", response = MessageViewDTO.class)
+    @PostMapping("{conversationId}/message")
+    public ResponseEntity<MessageViewDTO> createBotMessages(
+            @PathVariable Long conversationId,
+            @RequestBody MessageUpsertDTO messageDTO
+    ) {
+        MessageViewDTO newMessage = workspaceService.createBotMessage(
+                messageDTO, conversationId
+        );
+        return new ResponseEntity<>(newMessage, HttpStatus.OK);
     }
 }
