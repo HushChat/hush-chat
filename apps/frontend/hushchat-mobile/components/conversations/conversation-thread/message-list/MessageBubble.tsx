@@ -64,7 +64,7 @@ export const MessageBubble = ({
     const forwardedMsg = message.originalForwardedMessage;
 
     return (
-      <View className="flex flex-row items-center gap-x-2 mb-2 p-2 bg-black/5 rounded-lg border-l-4 border-purple-400">
+      <View className="flex flex-row items-center gap-x-2 mb-2 p-2 bg-black/20 rounded-lg border-l-4 border-purple-400">
         <InitialsAvatar
           name={forwardedMsg?.senderFirstName || ""}
           size={AvatarSize.extraSmall}
