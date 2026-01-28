@@ -45,6 +45,7 @@ import { CONVERSATION, MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import { MessageActions } from "@/components/conversations/conversation-thread/message-list/MessageActions";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -537,11 +538,6 @@ export const ConversationMessageItem = ({
               senderName={senderName}
               messageTime={messageTime}
               messageIsUnsend={message.isUnsend}
-              selectionMode={selectionMode}
-              currentUserId={currentUserId}
-              onOpenPicker={handleOpenPicker}
-              onOpenMenu={openWebMenuAtEvent}
-              messageText={message.messageText}
               isRead={message.isReadByEveryone}
               onClickSendernName={handleNamePress}
               showMessageTime={isFirstInGroup}
@@ -549,7 +545,18 @@ export const ConversationMessageItem = ({
 
             {renderParentMessage()}
 
-            <View className={isCurrentUser ? "self-end" : "self-start"}>
+            <View className={isCurrentUser ? "self-end flex-row" : "self-start flex-row"}>
+              {isCurrentUser && (
+                <MessageActions
+                  messageText={message.messageText}
+                  messageIsUnsend={message.isUnsend}
+                  selectionMode={selectionMode}
+                  onOpenPicker={handleOpenPicker}
+                  onOpenMenu={openWebMenuAtEvent}
+                  currentUserId={currentUserId}
+                  isCurrentUser={isCurrentUser}
+                />
+              )}
               <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
@@ -566,6 +573,17 @@ export const ConversationMessageItem = ({
                   isMessageEdited={isMessageEdited}
                 />
               </MessageHighlightWrapper>
+              {!isCurrentUser && (
+                <MessageActions
+                  messageText={message.messageText}
+                  messageIsUnsend={message.isUnsend}
+                  selectionMode={selectionMode}
+                  onOpenPicker={handleOpenPicker}
+                  onOpenMenu={openWebMenuAtEvent}
+                  currentUserId={currentUserId}
+                  isCurrentUser={isCurrentUser}
+                />
+              )}
             </View>
 
             <MessageReactions
