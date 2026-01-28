@@ -561,6 +561,7 @@ export const ConversationMessageItem = ({
                   onBubblePress={handleBubblePress}
                   onMentionClick={handleMentionClick}
                   isMessageEdited={isMessageEdited}
+                  isMobileLayout={isMobileLayout}
                 />
               </MessageHighlightWrapper>
             </View>
