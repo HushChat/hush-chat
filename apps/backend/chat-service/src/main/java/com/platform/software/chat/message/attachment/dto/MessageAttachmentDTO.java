@@ -14,6 +14,7 @@ public class MessageAttachmentDTO implements ModelMapper<MessageAttachment> {
     private String originalFileName;
     private String indexedFileName;
     private String fileUrl;
+    private String thumbnailUrl;
     private AttachmentTypeEnum type;
     private Date updatedAt;
 
