@@ -1,15 +1,14 @@
-package com.platform.software.chat.user.activitystatus;
+package com.platform.software.chat.user.activitystatus.service;
 
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusDTO;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.common.constants.WebSocketTopicConstants;
-import com.platform.software.config.interceptors.websocket.WebSocketSessionInfoDAO;
+import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.workspace.WorkspaceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -21,9 +20,9 @@ public class UserActivityStatusWSService {
 
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final SimpMessagingTemplate template;
+    private final WebSocketSessionManager webSocketSessionManager;
 
-    @Async
-    public void invokeUserIsActive(String workspaceId, String email, Map<String, WebSocketSessionInfoDAO> webSocketSessionInfos, UserStatusEnum status, String deviceType) {
+    public void invokeUserActivityStatus(String workspaceId, String email, UserStatusEnum status, String deviceType) {
         WorkspaceContext.setCurrentWorkspace(workspaceId);
 
         // TODO: cache, must be sure about the cache evict
@@ -34,7 +33,7 @@ public class UserActivityStatusWSService {
         // and return a map of session keys to the specific conversation IDs that matched
         Set<Long> conversationIdSet = new HashSet<>(conversationIds);
 
-        Map<String, Set<Long>> matchingSessionKeysWithConversations = webSocketSessionInfos.entrySet().stream()
+        Map<String, Set<Long>> matchingSessionKeysWithConversations = webSocketSessionManager.getWebSocketSessionInfos().entrySet().stream()
             .map(entry -> {
                 Set<Long> visibleConversations = entry.getValue().getVisibleConversations();
                 if (visibleConversations == null || visibleConversations.isEmpty()) {
