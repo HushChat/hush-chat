@@ -12,6 +12,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 export type TFileWithCaption = {
   file: File;
   caption: string;
+  isMarkdownEnabled: boolean;
 };
 
 interface IUseSendMessageHandlerParams {
@@ -42,12 +43,14 @@ const createTempImageMessage = ({
   conversationId,
   senderId,
   tempId,
+  isMarkdownEnabled,
 }: {
   file: File;
   messageText: string;
   conversationId: number;
   senderId: number;
   tempId: number;
+  isMarkdownEnabled: boolean;
 }): IMessage => ({
   id: tempId,
   isForwarded: false,
@@ -68,6 +71,7 @@ const createTempImageMessage = ({
     },
   ],
   hasAttachment: true,
+  isMarkdownEnabled: isMarkdownEnabled,
 });
 
 export const useSendMessageHandler = ({
@@ -117,7 +121,13 @@ export const useSendMessageHandler = ({
   );
 
   const handleSendMessage = useCallback(
-    async (message: string, parentMessage?: IMessage, files?: File[], gifUrl?: string) => {
+    async (
+      message: string,
+      isMarkdownEnabled: boolean,
+      parentMessage?: IMessage,
+      files?: File[],
+      gifUrl?: string
+    ) => {
       const trimmed = message?.trim() ?? "";
       const filesToSend = files || [];
 
@@ -141,6 +151,7 @@ export const useSendMessageHandler = ({
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
               tempId,
+              isMarkdownEnabled,
             });
 
             updateConversationMessagesCache(tempMsg);
@@ -154,12 +165,14 @@ export const useSendMessageHandler = ({
               conversationId: currentConversationId,
               senderId: Number(currentUserId),
               tempId: generateTempMessageId(),
+              isMarkdownEnabled,
             })
           );
 
           const filesWithCaptions: TFileWithCaption[] = renamedFiles.map((file) => ({
             file,
             caption: trimmed,
+            isMarkdownEnabled,
           }));
 
           const parentMsgId = parentMessage?.id ?? null;
@@ -196,6 +209,7 @@ export const useSendMessageHandler = ({
           conversationId: currentConversationId,
           message: trimmed,
           parentMessageId: parentMessage?.id,
+          isMarkdownEnabled: isMarkdownEnabled,
         });
 
         setSelectedMessage(null);
@@ -225,13 +239,14 @@ export const useSendMessageHandler = ({
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
-          ({ file, caption }, index) => ({
+          ({ file, caption, isMarkdownEnabled }, index) => ({
             file: renameFile(file, index),
             caption: caption.trim(),
+            isMarkdownEnabled,
           })
         );
 
-        preparedFiles.forEach(({ file, caption }) => {
+        preparedFiles.forEach(({ file, caption, isMarkdownEnabled }) => {
           const tempId = generateTempMessageId();
           tempMessageIds.push(tempId);
 
@@ -241,6 +256,7 @@ export const useSendMessageHandler = ({
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
             tempId,
+            isMarkdownEnabled,
           });
 
           updateConversationMessagesCache(tempMsg);
@@ -254,6 +270,7 @@ export const useSendMessageHandler = ({
             conversationId: currentConversationId,
             senderId: Number(currentUserId),
             tempId: generateTempMessageId(),
+            isMarkdownEnabled: lastItem.isMarkdownEnabled,
           })
         );
 

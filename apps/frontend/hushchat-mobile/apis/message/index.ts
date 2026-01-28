@@ -56,6 +56,7 @@ export const forwardMessages = async (params: {
   conversationIds: number[];
   userIds: number[];
   customText: string;
+  isMarkdownEnabled: boolean;
 }) => {
   try {
     const response = await axios.put(MESSAGE_API_ENDPOINTS.FORWARD, {
@@ -63,6 +64,7 @@ export const forwardMessages = async (params: {
       conversationIds: params.conversationIds,
       userIds: params.userIds,
       customText: params.customText,
+      isMarkdownEnabled: params.isMarkdownEnabled,
     });
     return { data: response.data };
   } catch (error: unknown) {

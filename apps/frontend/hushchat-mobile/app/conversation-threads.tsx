@@ -87,7 +87,6 @@ const ConversationThreadScreen = ({
     selectedMessageIds,
     setSelectedMessageIds,
     setSelectedConversationId,
-    setIsMarkdownEnabled,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
   const currentConversationId = conversationId || Number(params.conversationId);
@@ -366,13 +365,11 @@ const ConversationThreadScreen = ({
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-    setIsMarkdownEnabled(true);
   }, [
     currentConversationId,
     setSelectionMode,
     setSelectedMessageIds,
     handleCloseImagePreview,
-    setIsMarkdownEnabled,
     handleCancelEdit,
   ]);
 

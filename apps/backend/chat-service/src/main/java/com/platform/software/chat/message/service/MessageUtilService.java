@@ -123,7 +123,7 @@ public class MessageUtilService {
 
         validateInteractionAllowed(conversation, senderUserId);
 
-        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
+        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType, message.getIsMarkdownEnabled());
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
 
         try {
@@ -149,7 +149,7 @@ public class MessageUtilService {
 
         isBotMessageAllowedOrThrow(conversation);
 
-        Message botMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
+        Message botMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType, message.getIsMarkdownEnabled());
 
         try {
             return messageRepository.saveMessageWthSearchVector(botMessage);

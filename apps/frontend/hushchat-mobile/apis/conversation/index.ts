@@ -170,12 +170,14 @@ export const archiveConversationById = async (conversationId: number) => {
 export const sendMessageByConversationId = async (
   conversationId: number,
   message: string,
+  isMarkdownEnabled: boolean,
   parentMessageId?: number
 ): Promise<ApiResponse<IMessage>> => {
   try {
     const response = await axios.post(CONVERSATION_API_ENDPOINTS.MESSAGES(conversationId), {
       messageText: message,
       parentMessageId: parentMessageId ?? null,
+      isMarkdownEnabled: isMarkdownEnabled,
     });
     return { data: response.data };
   } catch (error) {
@@ -203,12 +205,13 @@ export const getMessagesAroundMessageId = async (
 export const editMessageById = async (
   conversationId: number,
   messageId: number,
-  messageText: string
+  messageText: string,
+  isMarkdownEnabled: boolean
 ): Promise<ApiResponse<IMessage>> => {
   try {
     const response = await axios.put(
       CONVERSATION_API_ENDPOINTS.EDIT_MESSAGE(conversationId, messageId),
-      { messageText }
+      { messageText, isMarkdownEnabled }
     );
     return { data: response.data };
   } catch (error: unknown) {

@@ -93,9 +93,9 @@ export const usePatchConversationQuery = createMutationHook<
 
 export const useSendMessageMutation = createMutationHook<
   IMessage,
-  { conversationId: number; message: string; parentMessageId?: number }
->(({ conversationId, message, parentMessageId }) =>
-  sendMessageByConversationId(conversationId, message, parentMessageId)
+  { conversationId: number; message: string; parentMessageId?: number; isMarkdownEnabled: boolean }
+>(({ conversationId, message, parentMessageId, isMarkdownEnabled }) =>
+  sendMessageByConversationId(conversationId, message, isMarkdownEnabled, parentMessageId)
 );
 
 export const useAddMessageReactionMutation = createMutationHook<

@@ -87,4 +87,7 @@ public class Message extends AuditModel {
     @NotNull
     @Column(name = "is_edited", nullable = false)
     private Boolean isEdited = false;
+
+    @NotNull
+    private Boolean isMarkdownEnabled = false;
 }

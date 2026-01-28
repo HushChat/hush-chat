@@ -144,6 +144,7 @@ export const MessageBubble = ({
               mentions={message.mentions}
               isCurrentUser={isCurrentUser}
               onMentionPress={handleMentionPress}
+              isMarkdownEnabled={message.isMarkdownEnabled}
             />
           ) : message.isUnsend ? (
             <UnsendMessagePreview unsendMessage={message} />
