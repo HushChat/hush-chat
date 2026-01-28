@@ -56,12 +56,10 @@ export function useMessageActions(
   const [unsendMessageState, setUnsendMessageState] = useState<IBasicMessage | null>(null);
 
   const { refetch: refetchConversationList } = useConversationsQuery();
-  const { updateConversationMessagesCache } = useConversationMessagesQuery(
-    Number(conversation?.id),
-    {
+  const { updateConversationMessagesCache, updateConversationsListCache } =
+    useConversationMessagesQuery(Number(conversation?.id), {
       enabled: false,
-    }
-  );
+    });
 
   /**
    * Pin/Unpin Messages
@@ -89,9 +87,14 @@ export function useMessageActions(
         }
       );
 
-      updateConversationMessagesCache(
-        buildSystemPinMessage(conversation.id, Number(currentUserId), isUnpinAction)
+      const systemMessage = buildSystemPinMessage(
+        conversation.id,
+        Number(currentUserId),
+        isUnpinAction
       );
+
+      updateConversationMessagesCache(systemMessage);
+      updateConversationsListCache(systemMessage);
     },
     (error) => {
       ToastUtils.error(error as string);
