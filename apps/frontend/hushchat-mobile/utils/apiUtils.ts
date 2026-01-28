@@ -48,6 +48,23 @@ export function isPublicEndpoint(url?: string): boolean {
   return PUBLIC_ENDPOINTS.some((endpoint) => url.includes(endpoint));
 }
 
+/**
+ * Checks if a given URL is an external URL (not base API URL).
+ * @param url - The full URL or relative path
+ * @param baseURL - The base API URL
+ */
+function isExternalUrl(url?: string, baseURL?: string): boolean {
+  if (!url) return false;
+
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return false;
+  }
+
+  if (!baseURL) return true;
+
+  return !url.startsWith(baseURL);
+}
+
 export const setupAuthorizationHeader = () => {
   // Request interceptor - adds auth token to requests
   axios.interceptors.request.use(
@@ -56,6 +73,11 @@ export const setupAuthorizationHeader = () => {
     ): Promise<InternalAxiosRequestConfig<unknown>> => {
       try {
         if (isPublicEndpoint(config.url)) {
+          return config;
+        }
+
+        const baseURL = config.baseURL || axios.defaults.baseURL;
+        if (isExternalUrl(config.url, baseURL)) {
           return config;
         }
 

@@ -9,12 +9,35 @@ import { useUpdateCache } from "@/query/config/useUpdateCache";
 import { ToastUtils } from "@/utils/toastUtils";
 import { PaginatedResponse } from "@/types/common/types";
 import { conversationQueryKeys, conversationMessageQueryKeys } from "@/constants/queryKeys";
-import type { IBasicMessage, IMessage, ConversationAPIResponse } from "@/types/chat/types";
+import {
+  IBasicMessage,
+  IMessage,
+  ConversationAPIResponse,
+  MessageTypeEnum,
+} from "@/types/chat/types";
 import { useRouter } from "expo-router";
 import { CHATS_PATH } from "@/constants/routes";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getCriteria } from "@/utils/conversationUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+
+export const buildSystemPinMessage = (
+  conversationId: number,
+  userId: number,
+  isUnpin: boolean
+): IMessage => ({
+  id: Date.now(),
+  senderId: userId,
+  senderFirstName: "You",
+  senderLastName: "",
+  messageText: isUnpin ? "You unpinned a message today" : "You pinned a message today",
+  createdAt: new Date().toISOString(),
+  conversationId,
+  isForwarded: false,
+  isUnsend: false,
+  messageType: MessageTypeEnum.SYSTEM_EVENT,
+});
 
 export function useMessageActions(
   conversation: ConversationAPIResponse | undefined,
@@ -33,6 +56,10 @@ export function useMessageActions(
   const [unsendMessageState, setUnsendMessageState] = useState<IBasicMessage | null>(null);
 
   const { refetch: refetchConversationList } = useConversationsQuery();
+  const { updateConversationMessagesCache, updateConversationsListCache } =
+    useConversationMessagesQuery(Number(conversation?.id), {
+      enabled: false,
+    });
 
   /**
    * Pin/Unpin Messages
@@ -40,18 +67,34 @@ export function useMessageActions(
   const { mutate: togglePinMessage } = usePinMessageMutation(
     undefined,
     () => {
-      const newPinnedState =
-        conversation?.pinnedMessage?.id === selectedPinnedMessage?.id
-          ? null
-          : selectedPinnedMessage;
+      if (!conversation || !selectedPinnedMessage || !currentUserId) {
+        return;
+      }
+
+      const isUnpinAction = conversation.pinnedMessage?.id === selectedPinnedMessage.id;
 
       updateCache(
-        conversationQueryKeys.metaDataById(
-          Number(currentUserId ?? 0),
-          Number(conversation?.id ?? 0)
-        ),
-        (prev) => (prev ? { ...prev, pinnedMessage: newPinnedState } : prev)
+        conversationQueryKeys.metaDataById(Number(currentUserId), Number(conversation.id)),
+        (previousConversation) => {
+          if (!previousConversation) {
+            return previousConversation;
+          }
+
+          return {
+            ...previousConversation,
+            pinnedMessage: isUnpinAction ? null : selectedPinnedMessage,
+          };
+        }
       );
+
+      const systemMessage = buildSystemPinMessage(
+        conversation.id,
+        Number(currentUserId),
+        isUnpinAction
+      );
+
+      updateConversationMessagesCache(systemMessage);
+      updateConversationsListCache(systemMessage);
     },
     (error) => {
       ToastUtils.error(error as string);

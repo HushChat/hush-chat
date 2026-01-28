@@ -41,4 +41,6 @@ public interface ConversationParticipantQueryRepository {
     long chatUserIdByConversationParticipantId(Long conversationParticipantId);
 
     List<Long> findOneToOneConversationIdsByUserEmail(String email);
+
+     Optional<ConversationDTO> getConversationById(Long conversationId);
 }
