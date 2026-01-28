@@ -73,7 +73,7 @@ const GroupConfigurationForm = ({
       ToastUtils.success(
         "Group created successfully! It will become available once approved by the admin."
       );
-      
+
       if (!PLATFORM.IS_WEB || isMobileInBrowser) {
         router.push({
           pathname: CHAT_VIEW_PATH,
