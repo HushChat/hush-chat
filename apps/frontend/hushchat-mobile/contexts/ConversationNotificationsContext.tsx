@@ -46,11 +46,25 @@ interface ConversationNotificationsContextValue {
   notificationConversation: IConversation | null;
   clearNotificationConversation: () => void;
   updateConversation: (conversationId: string | number, updates: Partial<IConversation>) => void;
+  totalUnreadCount: number;
 }
 
 const ConversationNotificationsContext = createContext<
   ConversationNotificationsContextValue | undefined
 >(undefined);
+
+/**
+ * Helper function to calculate total unread count from cache
+ */
+const calculateTotalUnreadCount = (
+  cache: InfiniteData<PaginatedResult<IConversation>> | undefined
+): number => {
+  if (!cache?.pages) return 0;
+
+  return cache.pages.reduce((total, page) => {
+    return total + page.content.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+  }, 0);
+};
 
 export const ConversationNotificationsProvider = ({ children }: { children: ReactNode }) => {
   const [notificationConversation, setNotificationConversation] = useState<IConversation | null>(
@@ -58,6 +72,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   );
   const { selectedConversationType } = useConversationStore();
   const [userStatus, setUserStatus] = useState<IUserStatus | null>(null);
+  const [totalUnreadCount, setTotalUnreadCount] = useState<number>(0);
 
   // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
@@ -81,6 +96,44 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
     [loggedInUserId, criteria]
   );
+
+  /**
+   * Subscribe to query cache changes to update total unread count
+   * This works even when the tab is not focused
+   */
+  useEffect(() => {
+    const initialCache =
+      queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(conversationsQueryKey);
+    setTotalUnreadCount(calculateTotalUnreadCount(initialCache));
+
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event?.query?.queryKey) {
+        const eventKey = event.query.queryKey;
+        const isConversationsQuery =
+          Array.isArray(eventKey) &&
+          Array.isArray(conversationsQueryKey) &&
+          eventKey.length >= conversationsQueryKey.length &&
+          conversationsQueryKey.every((key, index) => {
+            if (typeof key === "object" && typeof eventKey[index] === "object") {
+              return JSON.stringify(key) === JSON.stringify(eventKey[index]);
+            }
+            return key === eventKey[index];
+          });
+
+        if (isConversationsQuery) {
+          const updatedCache =
+            queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(
+              conversationsQueryKey
+            );
+          setTotalUnreadCount(calculateTotalUnreadCount(updatedCache));
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [queryClient, conversationsQueryKey]);
 
   /**
    * Message-received -> update unread and move to top
@@ -546,12 +599,14 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
       }
     );
   }, [userStatus, queryClient, conversationsQueryKey]);
+
   return (
     <ConversationNotificationsContext.Provider
       value={{
         notificationConversation,
         clearNotificationConversation,
         updateConversation,
+        totalUnreadCount,
       }}
     >
       {children}

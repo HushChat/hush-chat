@@ -131,7 +131,41 @@ public class MessageService {
                 conversationId,
                 messageViewDTO,
                 loggedInUserId,
-                savedMessage
+                savedMessage,
+                MessageTypeEnum.TEXT
+        ));
+
+        return messageViewDTO;
+    }
+
+    /**
+     * Create bot message view dto.
+     *
+     * @param messageDTO     the message dto
+     * @param conversationId the conversation id
+     * @param loggedInUserId the logged-in user id
+     * @return the message view dto
+     */
+    @Transactional
+    public MessageViewDTO createBotMessage(
+            MessageUpsertDTO messageDTO,
+            Long conversationId,
+            Long loggedInUserId
+    ) {
+        Message savedMessage = messageUtilService.createBotMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
+        MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+
+        messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
+
+        conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
+
+        eventPublisher.publishEvent(new MessageCreatedEvent(
+                WorkspaceContext.getCurrentWorkspace(),
+                conversationId,
+                messageViewDTO,
+                loggedInUserId,
+                savedMessage,
+                MessageTypeEnum.BOT_MESSAGE
         ));
 
         return messageViewDTO;
@@ -237,7 +271,7 @@ public class MessageService {
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
         messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace(), MessageTypeEnum.ATTACHMENT
         );
         return signedURLResponseDTO;
     }
@@ -270,6 +304,8 @@ public class MessageService {
                 messageDTO.getParentMessageId(), 
                 savedMessage
             );
+
+            messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
             
             if (messageDTO.isGifAttachment()) {
                 MessageAttachment messageAttachment = messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
@@ -282,7 +318,8 @@ public class MessageService {
                     conversationId,
                     messageViewDTO,
                     loggedInUserId,
-                    savedMessage
+                    savedMessage,
+                    MessageTypeEnum.ATTACHMENT
                 ));
             } else {
                 SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(
@@ -326,7 +363,8 @@ public class MessageService {
                 conversationId,
                 messageViewDTO,
                 loggedInUserId,
-                message
+                message,
+                MessageTypeEnum.TEXT
             ));
         }
     }
@@ -417,7 +455,8 @@ public class MessageService {
                             message.getConversation().getId(),
                             messageViewDTO,
                             loggedInUserId,
-                            message
+                            message,
+                            MessageTypeEnum.TEXT
                     ));
                 }
 

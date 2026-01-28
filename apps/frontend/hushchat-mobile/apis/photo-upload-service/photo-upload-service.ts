@@ -196,6 +196,7 @@ export function useMessageAttachmentUploader(
   onUploadComplete?: UploadCompletionCallback
 ) {
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
   const getSignedUrls = async (
     files: LocalFile[],
@@ -355,9 +356,12 @@ export function useMessageAttachmentUploader(
       const results: UploadResult[] = [];
       const successfulMessageIds: number[] = [];
 
+      setUploadProgress({});
+
       for (let i = 0; i < validFiles.length; i++) {
         const { file } = validFiles[i];
         const signed = signedUrls[i];
+        const fileKey = i.toString();
 
         if (!signed || !signed.url) {
           results.push({
@@ -368,18 +372,32 @@ export function useMessageAttachmentUploader(
           continue;
         }
 
+        setUploadProgress((prev) => ({
+          ...prev,
+          [fileKey]: 0,
+        }));
+
         try {
           const blob = await (await fetch(file.uri)).blob();
 
           const contentType = file.type || blob.type || "application/octet-stream";
 
-          await fetch(signed.url, {
-            method: "PUT",
-            body: blob,
+          await axios.put(signed.url, blob, {
             headers: {
               "Content-Type": contentType,
             },
+            onUploadProgress: (event) => {
+              if (!event.total) return;
+
+              const percentCompleted = Math.round((event.loaded * 100) / event.total);
+
+              setUploadProgress((prev) => ({
+                ...prev,
+                [fileKey]: percentCompleted,
+              }));
+            },
           });
+
           results.push({
             success: true,
             fileName: file.name,
@@ -413,6 +431,7 @@ export function useMessageAttachmentUploader(
       return allResults;
     } finally {
       setIsUploadingWebFiles(false);
+      setUploadProgress({});
       validFiles.forEach(({ file }) => {
         try {
           URL.revokeObjectURL(file._blobUrl);
@@ -444,5 +463,6 @@ export function useMessageAttachmentUploader(
     uploadFilesFromWebWithCaptions,
     isUploading: isUploadingWebFiles,
     sendGifMessage,
+    uploadProgress,
   };
 }

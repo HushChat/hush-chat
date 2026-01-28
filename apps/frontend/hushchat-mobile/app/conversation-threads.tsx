@@ -300,6 +300,7 @@ const ConversationThreadScreen = ({
     isUploading: isUploadingImages,
     error: uploadError,
     sendGifMessage,
+    uploadProgress,
   } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
@@ -591,6 +592,7 @@ const ConversationThreadScreen = ({
                     isGroupChat={isGroupChat}
                     replyToMessage={selectedMessage}
                     onCancelReply={handleCancelReply}
+                    uploadProgress={uploadProgress}
                   />
                 ) : (
                   <>

@@ -133,7 +133,6 @@ const FilePreviewPane = ({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-1 items-center justify-center px-6 py-4">{renderPreviewContent()}</View>
-
       <View style={styles.inputContainer}>
         <ConversationInput
           ref={inputRef}
