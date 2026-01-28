@@ -2,7 +2,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack, Redirect, useSegments } from "expo-router";
-import Head from "expo-router/head";
 import { StatusBar } from "expo-status-bar";
 import "react-native-worklets";
 import "@/global.css";
@@ -17,6 +16,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { DynamicBrowserTitle } from "@/hooks/useDynamicBrowserTitle";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
@@ -40,15 +40,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView>
-      <Head>
-        <title>HushChat</title>
-      </Head>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
             <WebSocketProvider>
               <AppLifecycleManager />
               <ConversationNotificationsProvider>
+                <DynamicBrowserTitle />
                 <ModalProvider>
                   <Gate ready={appReady} isAuthenticated={isAuthenticated} />
                   <Toast
