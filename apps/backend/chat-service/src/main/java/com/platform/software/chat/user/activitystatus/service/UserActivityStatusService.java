@@ -4,11 +4,14 @@ import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.activitystatus.dto.ActivityStatusEvent;
 import com.platform.software.chat.user.activitystatus.dto.UserActivityInfo;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
+import com.platform.software.chat.user.entity.ChatUserStatus;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 
 
@@ -63,15 +66,15 @@ public class UserActivityStatusService {
      */
     public void invokeUserOnline(String email, String workspace, String deviceType, UserStatusEnum userStatusEnum) {
         //cancel any scheduled offline task
-        ScheduledFuture<?> pendingOfflineTask = offlineSchedulers.remove(email);
+        ScheduledFuture<?> pendingOfflineTask = offlineSchedulers.remove(activityStatusKey(workspace, email));
         if (pendingOfflineTask != null) {
             pendingOfflineTask.cancel(false);
         }
 
         //broadcast as online
-        UserActivityInfo currentPresence = userPresence.get(email);
-        if (currentPresence == null || currentPresence.getStatus() != userStatusEnum) {
-            userPresence.put(email, new UserActivityInfo(workspace, email, userStatusEnum, DeviceType.fromString(deviceType)));
+        UserActivityInfo currentPresence = userPresence.get(activityStatusKey(workspace, email));
+        if (currentPresence == null || currentPresence.getStatus() != userStatusEnum || currentPresence.getDeviceType() != DeviceType.fromString(deviceType)) {
+            userPresence.put(activityStatusKey(workspace, email), new UserActivityInfo(workspace, email, userStatusEnum, DeviceType.fromString(deviceType)));
             eventPublisher.publishEvent(new ActivityStatusEvent(
                     workspace, email, userStatusEnum, deviceType
             ));
@@ -92,30 +95,69 @@ public class UserActivityStatusService {
      */
     public void invokeUserOffline(String email, String workspace , String deviceType) {
 
-        ScheduledFuture<?> existingTask = offlineSchedulers.remove(email);
+        ScheduledFuture<?> existingTask = offlineSchedulers.remove(activityStatusKey(workspace, email));
         if (existingTask != null) {
             existingTask.cancel(false);
         }
 
         //broadcast as away
-        userPresence.put(email, new UserActivityInfo(workspace, email, UserStatusEnum.AWAY, DeviceType.fromString(deviceType)));
+        userPresence.put(activityStatusKey(workspace, email), new UserActivityInfo(workspace, email, UserStatusEnum.AWAY, DeviceType.fromString(deviceType)));
         eventPublisher.publishEvent(new ActivityStatusEvent(
                 workspace, email, UserStatusEnum.AWAY, deviceType
         ));
 
         //broadcast as offline after 15 minutes
         ScheduledFuture<?> offlineTask = scheduler.schedule(() -> {
-            UserActivityInfo presence = userPresence.get(email);
+            UserActivityInfo presence = userPresence.get(activityStatusKey(workspace, email));
             if (presence != null && presence.getStatus().equals(UserStatusEnum.AWAY)) {
-                userPresence.put(email, new UserActivityInfo(workspace, email, UserStatusEnum.OFFLINE, DeviceType.fromString(deviceType)));
+                userPresence.put(activityStatusKey(workspace, email), new UserActivityInfo(workspace, email, UserStatusEnum.OFFLINE, DeviceType.fromString(deviceType)));
                 eventPublisher.publishEvent(new ActivityStatusEvent(
                         workspace, email, UserStatusEnum.OFFLINE, deviceType
                 ));
-                offlineSchedulers.remove(email);
+                offlineSchedulers.remove(activityStatusKey(workspace, email));
             }
         }, 15, TimeUnit.MINUTES);
 
-        offlineSchedulers.put(email, offlineTask);
+        offlineSchedulers.put(activityStatusKey(workspace, email), offlineTask);
+    }
+
+    /**
+     * Retrieves the current activity status of a user in a specific workspace.
+     *
+     * @param workspaceId  identifier of the workspace
+     * @param email        unique identifier of the user
+     * @return             current activity status of the user, or null if not found
+     */
+    public DeviceType getUserDeviceType(String workspaceId, String email) {
+        UserActivityInfo info = userPresence.get(activityStatusKey(workspaceId, email));
+        if (info != null) {
+            return info.getDeviceType();
+        }
+        return null;
+    }
+
+    /**
+     * Retrieves the current chat user status of a user in a specific workspace.
+     *
+     * @param workspaceId  identifier of the workspace
+     * @param email        unique identifier of the user
+     * @return             current chat user status of the user, or OFFLINE if not found
+     */
+    public ChatUserStatus getUserChatStatus(String workspaceId, String email) {
+        UserActivityInfo info = userPresence.get(activityStatusKey(workspaceId, email));
+
+        if (info != null) {
+            return info.getStatus().toChatUserStatus();
+        }
+        return ChatUserStatus.OFFLINE;
+    }
+
+    /**
+     * Generates a unique key for storing and retrieving user activity status
+     * based on workspace and email.
+     */
+    private String activityStatusKey(String workspace, String email) {
+        return String.format("%s:%s", workspace, URLEncoder.encode(email, StandardCharsets.UTF_8));
     }
 
     @PreDestroy
