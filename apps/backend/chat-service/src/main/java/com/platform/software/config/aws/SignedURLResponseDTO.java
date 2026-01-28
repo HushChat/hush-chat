@@ -2,10 +2,13 @@ package com.platform.software.config.aws;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.platform.software.chat.message.dto.MessageViewDTO;
 import lombok.Data;
 
 @Data
 public class SignedURLResponseDTO {
+    private MessageViewDTO message;
     private List<SignedURLDTO> signedUrls;
 
     public List<SignedURLDTO> getSignedURLs() {
