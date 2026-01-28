@@ -13,9 +13,9 @@ import ConversationSidePanel from "@/components/conversations/conversation-info-
 
 export default function ChatInterfaceWeb() {
   const { setSelectionMode, setSelectedMessageIds } = useConversationStore();
-
-  const { id } = useGlobalSearchParams<{ id?: string }>();
+  const { id, messageId } = useGlobalSearchParams<{ id?: string; messageId?: string }>();
   const conversationId = id ? Number(id) : null;
+  const initialMessageId = messageId ? Number(messageId) : null;
 
   const { conversationsPages } = useConversationsQuery({});
   const conversations = conversationsPages?.pages.flatMap((page) => page.content) ?? [];
@@ -45,6 +45,12 @@ export default function ChatInterfaceWeb() {
   useEffect(() => {
     closePanel();
   }, [closePanel, selectedConversation?.id]);
+
+  useEffect(() => {
+    if (initialMessageId) {
+      setMessageToJump(initialMessageId);
+    }
+  }, [initialMessageId]);
 
   const handleSearchMessageClick = useCallback((message: any) => {
     setMessageToJump(message.id);
