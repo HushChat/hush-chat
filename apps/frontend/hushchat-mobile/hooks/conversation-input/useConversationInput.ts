@@ -9,6 +9,7 @@ import { useMentions } from "@/hooks/conversation-input/useMentions";
 import { useReplyHandler } from "@/hooks/conversation-input/useReplyHandler";
 import { useFilePicker } from "@/hooks/conversation-input/useFilePicker";
 import { useTypingActivity } from "@/hooks/conversation-input/useTypingActivity";
+import { useAudioRecording } from "@/hooks/useAudioRecording";
 
 type TConversationInputOptions = Pick<
   ConversationInputProps,
@@ -293,6 +294,8 @@ export function useConversationInput({
 
   const isValidMessage = currentMessage.trim().length > 0;
 
+  const audio = useAudioRecording({ conversationId });
+
   return {
     messageTextInputRef,
 
@@ -338,5 +341,7 @@ export function useConversationInput({
     handleSendButtonPress,
 
     placeholder: resolvedPlaceholderText,
+
+    audio,
   };
 }

@@ -19,6 +19,7 @@ import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { RecordingDisplayBar } from "@/components/conversation-input/ConversationInput/RecordingDisplayBar";
 
 const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputProps>(
   (
@@ -118,6 +119,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
           />
         )}
 
+        {input.audio.isRecording && <RecordingDisplayBar audio={input.audio} />}
+
         <View
           className={classNames(
             "p-4 bg-background-light dark:bg-background-dark",
@@ -171,10 +174,13 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
               hideSendButton={hideSendButton}
               disabled={disabled}
               isValidMessage={input.isValidMessage}
-              isSending={isSending}
+              isSending={isSending || input.audio.isRecordUploading}
+              isRecording={input.audio.isRecording}
               onOpenEmojiPicker={openEmojiPicker}
               onOpenGifPicker={openGifPicker}
               onSendPress={handleSendPress}
+              onStartRecording={input.audio.handleStartRecording}
+              onStopRecording={input.audio.handleStopRecording}
             />
           </View>
 

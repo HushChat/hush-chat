@@ -32,6 +32,7 @@ export enum MessageAttachmentTypeEnum {
   MEDIA = "MEDIA",
   DOCS = "DOCS",
   GIF = "GIF",
+  AUDIO = "AUDIO",
 }
 
 export interface IMessageAttachment {
@@ -48,6 +49,7 @@ export enum MessageTypeEnum {
   TEXT = "TEXT",
   ATTACHMENT = "ATTACHMENT",
   SYSTEM_EVENT = "SYSTEM_EVENT",
+  AUDIO = "AUDIO",
 }
 
 export interface IMessage {

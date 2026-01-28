@@ -1,6 +1,6 @@
-import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
+import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from "@/constants/mediaConstants";
 
-export type FileType = "image" | "video" | "document";
+export type FileType = "image" | "video" | "audio" | "document";
 
 /**
  * Determines file type based on file extension.
@@ -21,6 +21,10 @@ export const getFileType = (fileName: string): FileType => {
 
   if (VIDEO_EXTENSIONS.includes(ext)) {
     return "video";
+  }
+
+  if (AUDIO_EXTENSIONS.includes(ext)) {
+    return "audio";
   }
 
   return "document";

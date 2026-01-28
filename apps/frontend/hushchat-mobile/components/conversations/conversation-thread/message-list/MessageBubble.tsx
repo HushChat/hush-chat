@@ -57,6 +57,9 @@ export const MessageBubble = ({
     }
   };
 
+  // const hasAudio = isAudioAttachment(message.messageAttachments[0] ?? {});
+  // console.log("hasAudio", hasAudio)
+
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments && !hasGif}>
       {selectionMode && (
@@ -132,6 +135,16 @@ export const MessageBubble = ({
               )}
             </View>
           )}
+
+          {/*{hasAudio && (*/}
+          {/*  <View className={messageContent ? "mb-2" : ""}>*/}
+          {/*      <AudioMessagePreview*/}
+          {/*        audioUrl={message?.messageAttachments[0].fileUrl}*/}
+          {/*        isCurrentUser={isCurrentUser}*/}
+          {/*      />*/}
+          {/*  </View>*/}
+          {/*)}*/}
+
           {hasAttachments && !hasGifMedia && (
             <View className={messageContent ? "mb-2" : ""}>
               {renderFileGrid(attachments, isCurrentUser)}

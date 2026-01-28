@@ -278,3 +278,7 @@ export const hasGif = (message?: IMessage | IBasicMessage): boolean => {
 export const getGifUrl = (message?: IMessage | IBasicMessage): string | undefined => {
   return getGifAttachment(message)?.indexedFileName;
 };
+
+export const isAudioAttachment = (messageAttachment: IMessageAttachment): boolean => {
+  return messageAttachment.type === MessageAttachmentTypeEnum.AUDIO;
+};

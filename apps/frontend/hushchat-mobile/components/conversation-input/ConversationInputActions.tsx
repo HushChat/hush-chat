@@ -29,9 +29,12 @@ interface IConversationInputActionProps {
   disabled?: boolean;
   isValidMessage: boolean;
   isSending: boolean;
+  isRecording?: boolean;
   onOpenEmojiPicker: () => void;
   onOpenGifPicker: () => void;
   onSendPress: () => void;
+  onStartRecording?: () => void;
+  onStopRecording?: () => void;
 }
 
 export const ConversationInputActions = memo(
@@ -42,9 +45,12 @@ export const ConversationInputActions = memo(
     disabled,
     isValidMessage,
     isSending,
+    isRecording = false,
     onOpenEmojiPicker,
     onOpenGifPicker,
     onSendPress,
+    onStartRecording,
+    onStopRecording,
   }: IConversationInputActionProps) => {
     return (
       <View className="flex-row gap-2 items-center ml-1">
@@ -66,7 +72,14 @@ export const ConversationInputActions = memo(
 
         {!hideSendButton && (
           <View className="ml-1">
-            <SendButton showSend={isValidMessage} isSending={isSending} onPress={onSendPress} />
+            <SendButton
+              showSend={isValidMessage}
+              isSending={isSending}
+              isRecording={isRecording}
+              onPress={onSendPress}
+              onStartRecording={onStartRecording}
+              onStopRecording={onStopRecording}
+            />
           </View>
         )}
       </View>

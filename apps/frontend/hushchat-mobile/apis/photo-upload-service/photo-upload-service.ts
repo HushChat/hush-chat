@@ -18,6 +18,7 @@ import {
   MAX_DOCUMENT_SIZE_KB,
   MAX_IMAGE_SIZE_KB,
   MAX_VIDEO_SIZE_KB,
+  MAX_VOICE_SIZE_KB,
 } from "@/constants/mediaConstants";
 import { IMessage } from "@/types/chat/types";
 import { getFileType } from "@/utils/files/getFileType";
@@ -32,6 +33,7 @@ export const MAX_IMAGE_KB = 1024 * 5;
 const sizeMap = {
   image: MAX_IMAGE_SIZE_KB,
   video: MAX_VIDEO_SIZE_KB,
+  audio: MAX_VOICE_SIZE_KB,
   document: MAX_DOCUMENT_SIZE_KB,
 };
 
