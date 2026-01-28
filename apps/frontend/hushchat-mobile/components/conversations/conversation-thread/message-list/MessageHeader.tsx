@@ -16,6 +16,7 @@ interface IMessageHeaderProps {
   selectionMode: boolean;
   currentUserId: string;
   isRead?: boolean;
+  showMessageTime?: boolean;
   onOpenPicker: () => void;
   onOpenMenu: (event: GestureResponderEvent) => void;
   onClickSendernName?: () => void;
@@ -32,6 +33,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   selectionMode,
   currentUserId,
   isRead = false,
+  showMessageTime = true,
   onOpenPicker,
   onOpenMenu,
   onClickSendernName,
@@ -63,15 +65,17 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
         </Pressable>
       )}
 
-      <View className="flex-row items-center gap-1">
-        <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-          {messageTime}
-        </AppText>
+      {showMessageTime && (
+        <View className="flex-row items-center gap-1">
+          <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+            {messageTime}
+          </AppText>
 
-        {isCurrentUser && !messageIsUnsend && (
-          <Ionicons name="checkmark-done" size={14} color={isRead ? "#3B82F6" : "#9CA3AF"} />
-        )}
-      </View>
+          {isCurrentUser && !messageIsUnsend && (
+            <Ionicons name="checkmark-done" size={14} color={isRead ? "#3B82F6" : "#9CA3AF"} />
+          )}
+        </View>
+      )}
 
       {!isCurrentUser && (
         <MessageActions

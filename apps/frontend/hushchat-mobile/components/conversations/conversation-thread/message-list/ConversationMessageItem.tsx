@@ -78,6 +78,7 @@ interface MessageItemProps {
   webMessageInfoPress?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
   onEditMessage?: (message: IMessage) => void;
+  isFirstInGroup?: boolean;
 }
 
 const REMOVE_ONE = 1;
@@ -107,6 +108,7 @@ export const ConversationMessageItem = ({
   webMessageInfoPress,
   onMarkMessageAsUnread,
   onEditMessage,
+  isFirstInGroup = true,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -542,6 +544,7 @@ export const ConversationMessageItem = ({
               messageText={message.messageText}
               isRead={message.isReadByEveryone}
               onClickSendernName={handleNamePress}
+              showMessageTime={isFirstInGroup}
             />
 
             {renderParentMessage()}
