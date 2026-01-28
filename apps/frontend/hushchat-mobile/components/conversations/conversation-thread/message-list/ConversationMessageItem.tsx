@@ -540,7 +540,7 @@ export const ConversationMessageItem = ({
               messageIsUnsend={message.isUnsend}
               isRead={message.isReadByEveryone}
               onClickSendernName={handleNamePress}
-              showMessageTime={isFirstInGroup}
+              isFirstInGroup={isFirstInGroup}
             />
 
             {renderParentMessage()}
