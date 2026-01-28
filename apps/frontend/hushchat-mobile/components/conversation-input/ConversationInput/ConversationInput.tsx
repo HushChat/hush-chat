@@ -8,7 +8,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 const ConversationInput = forwardRef<HTMLTextAreaElement | null, ConversationInputProps>(
   (props, ref) => {
     const isMobileLayout = useIsMobileLayout();
-    const mobileSelected = !PLATFORM.IS_WEB || isMobileLayout;
+    const mobileSelected = !PLATFORM.IS_WEB && isMobileLayout;
 
     if (mobileSelected) {
       return <ConversationInputMobile {...props} />;

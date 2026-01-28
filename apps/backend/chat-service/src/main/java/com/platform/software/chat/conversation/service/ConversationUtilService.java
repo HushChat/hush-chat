@@ -11,6 +11,7 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.message.dto.MessageForwardRequestDTO;
@@ -132,6 +133,23 @@ public class ConversationUtilService {
                 conversationId, loggedInUserId);
             return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
         });
+    }
+
+    /**
+     * Retrieves a ConversationDTO for system use only by conversation ID, throwing an exception if not found.
+     *
+     * @param conversationId the ID of the conversation
+     * @return the ConversationDTO if found
+     * @throws CustomBadRequestException if the conversation is not found
+     */
+    public ConversationDTO getConversationDTOForSystemUseOnly(Long conversationId) {
+        return conversationParticipantRepository
+                .getConversationById(conversationId)
+                .orElseThrow(() -> {
+                    logger.warn("conversation not found or access denied. conversationId={}",
+                            conversationId);
+                    return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
+                });
     }
 
     /** Returns the conversation participant if the given user is an admin of the specified group conversation and the conversation is not deleted; otherwise, throws an exception.
@@ -380,11 +398,13 @@ public class ConversationUtilService {
         for (MessageAttachment attachment : attachments) {
             MessageAttachmentDTO dto = new MessageAttachmentDTO();
             try {
-                String fileViewSignedURL = cloudPhotoHandlingService
-                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                if (!attachment.getType().equals(AttachmentTypeEnum.GIF)) {
+                    String fileViewSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                    dto.setFileUrl(fileViewSignedURL);
+                }
 
                 dto.setId(attachment.getId());
-                dto.setFileUrl(fileViewSignedURL);
                 dto.setIndexedFileName(attachment.getIndexedFileName());
                 dto.setOriginalFileName(attachment.getOriginalFileName());
                 dto.setType(attachment.getType());

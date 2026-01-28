@@ -90,5 +90,14 @@
     "email": "ethan@chat.com",
     "active": true,
     "deleted": false
+  },
+  {
+    "id": 11,
+    "username": "hush_chat_bot",
+    "firstName": "HushChat",
+    "lastName": "Bot",
+    "email": "bot@gethush.chat",
+    "active": true,
+    "deleted": false
   }
 ]

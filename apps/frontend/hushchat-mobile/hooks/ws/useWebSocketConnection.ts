@@ -31,6 +31,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { HEARTBEAT_INTERVAL, useHeartbeat } from "@/hooks/ws/wsHeartbeat";
 import { publishTypingStatus, publishUserActivity } from "@/hooks/ws/wsPublisher";
 import { CONFIG } from "@/constants/ws/wsConfig";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 const encoder = new TextEncoder();
 
@@ -42,6 +43,7 @@ export default function useWebSocketConnection() {
     user: { id },
   } = useUserStore();
   const { startHeartbeat, stopHeartbeat, updateLastMessageTime } = useHeartbeat();
+  const isMobileLayout = useIsMobileLayout();
 
   // WebSocket reference
   const wsRef = useRef<WebSocket | null>(null);
@@ -263,7 +265,7 @@ export default function useWebSocketConnection() {
 
       const { idToken, workspace } = await getAllTokens();
       const deviceId = await getDeviceId();
-      const deviceType = getDeviceType();
+      const deviceType = getDeviceType(isMobileLayout);
 
       // Validate required data
       if (!idToken) {
@@ -467,6 +469,7 @@ export default function useWebSocketConnection() {
     scheduleReconnect,
     updateLastMessageTime,
     updateState,
+    isMobileLayout,
   ]);
 
   connectWebSocketRef.current = connectWebSocket;
@@ -641,11 +644,11 @@ export default function useWebSocketConnection() {
         return false;
       }
 
-      const deviceType = getDeviceType();
+      const deviceType = getDeviceType(isMobileLayout);
       const deviceId = await getDeviceId();
       return publishUserActivity(wsRef.current, { ...data, deviceType, deviceId });
     },
-    [connectionStatus]
+    [connectionStatus, isMobileLayout]
   );
 
   // Publish typing status

@@ -12,4 +12,5 @@ public class MessageCreatedEvent {
     private final MessageViewDTO messageViewDTO;
     private final Long userId;
     private final Message message;
+    private final MessageTypeEnum messageType;
 }
