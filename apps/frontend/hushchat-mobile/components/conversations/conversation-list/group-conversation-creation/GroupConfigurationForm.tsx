@@ -19,6 +19,7 @@ import { useConversationStore } from "@/store/conversation/useConversationStore"
 import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
 import { AppText, AppTextInput } from "@/components/AppText";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 const COLORS = {
   primaryBlue: "#3b82f6",
@@ -55,6 +56,8 @@ const GroupConfigurationForm = ({
   } = useUserStore();
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
+  const isMobileInBrowser = useIsMobileLayout();
+
   const { mutate: createGroup, isPending: submitting } = useCreateGroupConversationMutation(
     {
       userId: Number(userId),
@@ -70,6 +73,18 @@ const GroupConfigurationForm = ({
       ToastUtils.success(
         "Group created successfully! It will become available once approved by the admin."
       );
+      
+      if (!PLATFORM.IS_WEB || isMobileInBrowser) {
+        router.push({
+          pathname: CHAT_VIEW_PATH,
+          params: {
+            conversationId: conversation.id,
+            conversationName: conversation.name,
+          },
+        });
+      } else {
+        setSelectedConversation(conversation);
+      }
     },
     () => {
       ToastUtils.error("Failed to create group!");

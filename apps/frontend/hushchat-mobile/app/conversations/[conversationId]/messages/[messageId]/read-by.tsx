@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
-import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel";
+import MessageInfoPanel from "@/components/conversations/conversation-thread/MessageInfoPanel.native";
 
 export default function ConversationMessageReadByScreen() {
   const { conversationId, messageId } = useLocalSearchParams<{

@@ -35,14 +35,12 @@ const COLORS = {
 interface GroupChatInfoProps {
   conversation: IConversation;
   onBack: () => void;
-  setSelectedConversation: (conversation: null) => void;
   onShowMediaAttachments: () => void;
 }
 
 export default function GroupChatInfo({
   conversation,
   onBack,
-  setSelectedConversation,
   onShowMediaAttachments,
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
@@ -335,7 +333,6 @@ export default function GroupChatInfo({
                 isPinned={conversationInfo?.pinned || false}
                 isMuted={!!conversationInfo?.mutedUntil}
                 onBack={onBack}
-                setSelectedConversation={setSelectedConversation}
                 onShowMediaAttachments={onShowMediaAttachments}
               />
               <ActionItem

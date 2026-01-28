@@ -19,14 +19,12 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 interface OneToOneChatInfoProps {
   conversation: IConversation;
   onBack: () => void;
-  setSelectedConversation: (conversation: null) => void;
   onShowMediaAttachments: () => void;
 }
 
 export default function OneToOneChatInfo({
   conversation,
   onBack,
-  setSelectedConversation,
   onShowMediaAttachments,
 }: OneToOneChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
@@ -134,7 +132,6 @@ export default function OneToOneChatInfo({
             isPinned={conversationInfo?.pinned || false}
             isMuted={!!conversationInfo?.mutedUntil}
             onBack={onBack}
-            setSelectedConversation={setSelectedConversation}
             onShowMediaAttachments={onShowMediaAttachments}
           />
           <ActionItem

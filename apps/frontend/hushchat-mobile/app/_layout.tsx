@@ -16,6 +16,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { DynamicBrowserTitle } from "@/hooks/useDynamicBrowserTitle";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
@@ -45,6 +46,7 @@ export default function RootLayout() {
             <WebSocketProvider>
               <AppLifecycleManager />
               <ConversationNotificationsProvider>
+                <DynamicBrowserTitle />
                 <ModalProvider>
                   <Gate ready={appReady} isAuthenticated={isAuthenticated} />
                   <Toast

@@ -130,7 +130,41 @@ public class MessageService {
                 conversationId,
                 messageViewDTO,
                 loggedInUserId,
-                savedMessage
+                savedMessage,
+                MessageTypeEnum.TEXT
+        ));
+
+        return messageViewDTO;
+    }
+
+    /**
+     * Create bot message view dto.
+     *
+     * @param messageDTO     the message dto
+     * @param conversationId the conversation id
+     * @param loggedInUserId the logged-in user id
+     * @return the message view dto
+     */
+    @Transactional
+    public MessageViewDTO createBotMessage(
+            MessageUpsertDTO messageDTO,
+            Long conversationId,
+            Long loggedInUserId
+    ) {
+        Message savedMessage = messageUtilService.createBotMessage(conversationId, loggedInUserId, messageDTO, MessageTypeEnum.TEXT);
+        MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
+
+        messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
+
+        conversationParticipantRepository.restoreParticipantsByConversationId(conversationId);
+
+        eventPublisher.publishEvent(new MessageCreatedEvent(
+                WorkspaceContext.getCurrentWorkspace(),
+                conversationId,
+                messageViewDTO,
+                loggedInUserId,
+                savedMessage,
+                MessageTypeEnum.BOT_MESSAGE
         ));
 
         return messageViewDTO;
@@ -169,12 +203,12 @@ public class MessageService {
 
         messageUtilService.checkInteractionRestrictionBetweenOneToOneConversation(conversation);
 
+        MessageHistory newMessageHistory = getMessageHistoryEntity(message);
         message.setMessageText(messageDTO.getMessageText());
         message.setIsEdited(true);
-        MessageHistory newMessageHistory = getMessageHistoryEntity(messageDTO, message);
 
         try {
-            Message updatedMessage = messageRepository.save(message);
+            Message updatedMessage = messageRepository.saveMessageWthSearchVector(message);
             messageHistoryRepository.save(newMessageHistory);
 
             MessageViewDTO messageViewDTO = new MessageViewDTO(updatedMessage);
@@ -192,9 +226,9 @@ public class MessageService {
         }
     }
 
-    private static MessageHistory getMessageHistoryEntity(MessageUpsertDTO messageDTO, Message message) {
+    private static MessageHistory getMessageHistoryEntity(Message message) {
         MessageHistory newMessageHistory = new MessageHistory();
-        newMessageHistory.setMessageText(messageDTO.getMessageText());
+        newMessageHistory.setMessageText(message.getMessageText());
         newMessageHistory.setMessage(message);
         return newMessageHistory;
     }
@@ -235,7 +269,7 @@ public class MessageService {
 
         MessageViewDTO messageViewDTO = getMessageViewDTO(loggedInUserId, messageDTO.getParentMessageId(), savedMessage);
         messagePublisherService.invokeNewMessageToParticipants(
-                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace()
+                conversationId, messageViewDTO, loggedInUserId, WorkspaceContext.getCurrentWorkspace(), MessageTypeEnum.ATTACHMENT
         );
         return signedURLResponseDTO;
     }
@@ -268,9 +302,12 @@ public class MessageService {
                 messageDTO.getParentMessageId(), 
                 savedMessage
             );
+
+            messageMentionService.saveMessageMentions(savedMessage, messageViewDTO);
             
             if (messageDTO.isGifAttachment()) {
-                messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+                MessageAttachment messageAttachment = messageAttachmentService.createGifAttachment(messageDTO.getGifUrl(), savedMessage);
+                messageViewDTO.setMessageAttachments(List.of(new MessageAttachmentDTO(messageAttachment)));
                 
                 setLastSeenMessageForMessageSentUser(savedMessage.getConversation(), savedMessage, savedMessage.getSender());
                 
@@ -279,7 +316,8 @@ public class MessageService {
                     conversationId,
                     messageViewDTO,
                     loggedInUserId,
-                    savedMessage
+                    savedMessage,
+                    MessageTypeEnum.ATTACHMENT
                 ));
             } else {
                 SignedURLResponseDTO signedURLResponseDTO = messageAttachmentService.uploadFilesForMessage(
@@ -323,7 +361,8 @@ public class MessageService {
                 conversationId,
                 messageViewDTO,
                 loggedInUserId,
-                message
+                message,
+                MessageTypeEnum.TEXT
             ));
         }
     }
@@ -413,7 +452,8 @@ public class MessageService {
                             message.getConversation().getId(),
                             messageViewDTO,
                             loggedInUserId,
-                            message
+                            message,
+                            MessageTypeEnum.TEXT
                     ));
                 }
 
