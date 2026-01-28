@@ -251,7 +251,7 @@ export const ConversationMessageItem = ({
       },
       {
         id: 3,
-        name: "Select message",
+        name: "Forward message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
       },
@@ -550,6 +550,7 @@ export const ConversationMessageItem = ({
               <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
+                  currentUserId={currentUserId}
                   isCurrentUser={isCurrentUser}
                   hasText={hasText}
                   hasAttachments={hasAttachments}
