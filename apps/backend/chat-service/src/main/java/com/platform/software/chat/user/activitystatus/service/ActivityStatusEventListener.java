@@ -1,6 +1,7 @@
 package com.platform.software.chat.user.activitystatus.service;
 
 import com.platform.software.chat.user.activitystatus.dto.ActivityStatusEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -16,7 +17,7 @@ public class ActivityStatusEventListener {
     }
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void onActivityStatusChange(ActivityStatusEvent event) {
         userActivityStatusWSService.invokeUserActivityStatus(
                 event.workspaceId(),
