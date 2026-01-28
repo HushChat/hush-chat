@@ -149,7 +149,7 @@ public class MessageUtilService {
 
         isBotMessageAllowedOrThrow(conversation);
 
-        Message botMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
+        Message botMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType, message.getIsMarkdownEnabled());
 
         try {
             return messageRepository.saveMessageWthSearchVector(botMessage);
