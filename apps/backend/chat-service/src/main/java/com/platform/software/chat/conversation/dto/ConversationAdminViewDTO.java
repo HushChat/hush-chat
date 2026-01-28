@@ -1,4 +1,5 @@
 package com.platform.software.chat.conversation.dto;
+import com.platform.software.chat.conversation.entity.ConversationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class ConversationAdminViewDTO {
     private Date createdAt;
     private String description;
     private String imageIndexedName;
+    private ConversationStatus status;
     private boolean isDeleted;
     private Long createdByUserId;
     private String createdByUserFirstName;

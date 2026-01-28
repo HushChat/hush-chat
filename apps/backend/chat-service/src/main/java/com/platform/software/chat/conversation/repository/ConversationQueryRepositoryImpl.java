@@ -2,6 +2,7 @@ package com.platform.software.chat.conversation.repository;
 
 import com.platform.software.chat.conversation.dto.*;
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationStatus;
 import com.platform.software.chat.conversation.entity.QConversation;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
@@ -151,7 +152,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 ? conversationFilterCriteria.getIsMuted()
                 : false;
 
-        BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId);
+        BooleanExpression whereConditions = qConversationParticipant.user.id.eq(userId)
+                .and(qConversation.status.eq(ConversationStatus.ACTIVE));
 
         whereConditions = whereConditions.and(
                 qMessage.isNotNull().or(qConversation.isGroup.eq(true))
@@ -183,7 +185,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                                         .from(qMessage2)
                                         .where(qMessage2.conversation.eq(qConversation)))))
                 .where(whereConditions);
-        
+
 
         List<Tuple> blockingRelationships = jpaQueryFactory
                 .select(qUserBlock.blocker.id, qUserBlock.blocked.id)
@@ -271,7 +273,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                             if (otherParticipant.getUser().getFirstName() != null
                                     && otherParticipant.getUser().getLastName() != null) {
                                 String name = otherParticipant.getUser().getFirstName() + " " + otherParticipant.getUser().getLastName();
-                                
+
                                 dto.setName(name);
 
                                 Long otherUserId = otherParticipant.getUser().getId();
@@ -372,7 +374,8 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                 .from(qConversation)
                 .join(qConversation.conversationParticipants, qConversationParticipant)
                 .where(qConversation.id.eq(conversationId)
-                        .and(qConversationParticipant.user.id.eq(userId)))
+                        .and(qConversationParticipant.user.id.eq(userId))
+                        .and(qConversation.status.eq(ConversationStatus.ACTIVE)))
                 .fetchFirst();
 
         if(conversation == null) {
@@ -495,6 +498,7 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         qConversation.createdAt,
                         qConversation.description,
                         qConversation.imageIndexedName,
+                        qConversation.status,
                         qConversation.deleted,
                         qConversation.createdBy.id,
                         qConversation.createdBy.firstName,

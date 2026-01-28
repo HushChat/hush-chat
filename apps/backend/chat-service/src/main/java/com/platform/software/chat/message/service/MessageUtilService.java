@@ -1,6 +1,7 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversation.entity.ConversationStatus;
 import com.platform.software.chat.conversation.repository.ConversationRepository;
 import com.platform.software.chat.conversation.service.ConversationPermissionGuard;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
@@ -78,7 +79,7 @@ public class MessageUtilService {
             }
         } else {
             boolean isActive = conversationRepository.getIsActiveByConversationIdAndUserId(conversation.getId(), senderUserId);
-            if (!isActive) {
+            if (!isActive || !conversation.getStatus().equals(ConversationStatus.ACTIVE)) {
                 logger.warn("User {} attempted to interact in inactive group conversation {}",
                     senderUserId, conversation.getId());
                 throw new CustomForbiddenException("Cannot interact in inactive group conversation");
