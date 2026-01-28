@@ -29,6 +29,7 @@ export type SignedUrl = {
   indexedFileName: string;
   url: string;
   messageId?: number;
+  rawMessage?: any;
 };
 
 export type UploadResult = {
@@ -37,6 +38,7 @@ export type UploadResult = {
   error?: string;
   signed?: SignedUrl | null;
   messageId?: number;
+  rawMessage?: any;
 };
 
 type State = {
@@ -92,9 +94,18 @@ function passesFilters(
     return { ok: false, reason: `File too large (> ${maxSizeKB} KB)` };
   }
   if (allow && allow.length > 0) {
-    const ok = allow.some((m) =>
-      m.includes("*") ? file.type.startsWith(m.split("/")[0] + "/") : file.type === m
-    );
+    if (allow.includes("*/*") || allow.includes("*")) {
+      return { ok: true };
+    }
+
+    const ok = allow.some((m) => {
+      if (m.endsWith("/*")) {
+        const prefix = m.slice(0, -1);
+        return file.type.startsWith(prefix);
+      }
+      return file.type === m;
+    });
+
     if (!ok) return { ok: false, reason: `Blocked MIME type: ${file.type}` };
   }
   return { ok: true };
@@ -197,7 +208,7 @@ export function useNativePickerUpload(
           const result = await DocumentPicker.getDocumentAsync({
             multiple: Boolean(o.multiple),
             copyToCacheDirectory: true,
-            // type: '*/*' // keep open; filter later via allowedMimeTypes
+            type: o.allowedMimeTypes ?? "*/*",
           });
           if (result.canceled) return null;
 
@@ -260,7 +271,13 @@ export function useNativePickerUpload(
           } else {
             try {
               await putToSignedUrl(f, s.url);
-              results.push({ success: true, fileName: f.name, signed: s });
+              results.push({
+                success: true,
+                fileName: f.name,
+                signed: s,
+                messageId: s.messageId,
+                rawMessage: s.rawMessage,
+              });
 
               if (s.messageId) {
                 successfulMessageIds.push(s.messageId);

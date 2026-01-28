@@ -295,13 +295,14 @@ const ConversationThreadScreen = ({
   });
 
   const {
-    pickAndUploadImagesAndVideos,
     uploadFilesFromWebWithCaptions,
-    pickAndUploadDocuments,
     isUploading: isUploadingImages,
     error: uploadError,
     sendGifMessage,
     uploadProgress,
+    pickImagesAndVideos,
+    pickDocuments,
+    uploadFiles,
   } = useMessageAttachmentUploader(currentConversationId);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
@@ -314,24 +315,33 @@ const ConversationThreadScreen = ({
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
 
-  const { handleSendMessage, handleSendFilesWithCaptions, handleMobileUploadOptimisticUpdate } =
-    useSendMessageHandler({
-      currentConversationId,
-      currentUserId,
-      selectedMessage,
-      setSelectedMessage,
-      sendMessage,
-      uploadFilesFromWebWithCaptions,
-      handleCloseImagePreview,
-      updateConversationMessagesCache,
-      sendGifMessage,
-    });
+  const {
+    handleSendMessage,
+    handleSendFilesWithCaptions,
+    handleMobileUploadOptimisticUpdate,
+    handleMobileUploadComplete,
+  } = useSendMessageHandler({
+    currentConversationId,
+    currentUserId,
+    selectedMessage,
+    setSelectedMessage,
+    sendMessage,
+    uploadFilesFromWebWithCaptions,
+    handleCloseImagePreview,
+    updateConversationMessagesCache,
+    sendGifMessage,
+  });
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadDocuments("", handleMobileUploadOptimisticUpdate);
+      const files = await pickDocuments();
+      if (!files || files.length === 0) return;
 
-      if (results?.some((r) => r.success)) {
+      const tempIdMap = await handleMobileUploadOptimisticUpdate(files);
+      const results = await uploadFiles(files, "");
+
+      if (results && results.length > 0) {
+        handleMobileUploadComplete(results, tempIdMap);
         setSelectedMessage(null);
       } else if (uploadError) {
         ToastUtils.error(uploadError);
@@ -339,12 +349,25 @@ const ConversationThreadScreen = ({
     } catch {
       ToastUtils.error("Failed to pick or upload documents.");
     }
-  }, [pickAndUploadDocuments, setSelectedMessage, uploadError, handleMobileUploadOptimisticUpdate]);
+  }, [
+    pickDocuments,
+    uploadFiles,
+    setSelectedMessage,
+    uploadError,
+    handleMobileUploadOptimisticUpdate,
+    handleMobileUploadComplete,
+  ]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadImagesAndVideos("", handleMobileUploadOptimisticUpdate);
-      if (results?.some((r) => r.success)) {
+      const files = await pickImagesAndVideos();
+      if (!files || files.length === 0) return;
+
+      const tempIdMap = await handleMobileUploadOptimisticUpdate(files);
+      const results = await uploadFiles(files, "");
+
+      if (results && results.length > 0) {
+        handleMobileUploadComplete(results, tempIdMap);
         setSelectedMessage(null);
       } else if (uploadError) {
         ToastUtils.error(uploadError);
@@ -353,10 +376,12 @@ const ConversationThreadScreen = ({
       ToastUtils.error("Failed to pick or upload images.");
     }
   }, [
-    pickAndUploadImagesAndVideos,
+    pickImagesAndVideos,
+    uploadFiles,
     setSelectedMessage,
     uploadError,
     handleMobileUploadOptimisticUpdate,
+    handleMobileUploadComplete,
   ]);
 
   const handleSendFilesFromPreview = useCallback(

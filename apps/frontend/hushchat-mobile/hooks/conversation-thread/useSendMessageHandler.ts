@@ -7,7 +7,6 @@ import { UploadResult, LocalFile } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
 import { getFileType } from "@/utils/files/getFileType";
-import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 
@@ -84,38 +83,6 @@ export const createTempImageMessage = ({
   };
 };
 
-export const createTempGifMessage = ({
-  gifUrl,
-  messageText,
-  conversationId,
-  senderId,
-}: {
-  gifUrl: string;
-  messageText: string;
-  conversationId: number;
-  senderId: number;
-}): IMessage => ({
-  id: generateTempMessageId(),
-  isForwarded: false,
-  senderId,
-  senderFirstName: "",
-  senderLastName: "",
-  messageText,
-  createdAt: new Date().toISOString(),
-  conversationId,
-  messageAttachments: [
-    {
-      fileUrl: gifUrl,
-      originalFileName: "tenor_gif.gif",
-      indexedFileName: gifUrl,
-      mimeType: "image/gif",
-      type: MessageAttachmentTypeEnum.GIF,
-      updatedAt: new Date().toISOString(),
-    },
-  ],
-  hasAttachment: true,
-});
-
 export const useSendMessageHandler = ({
   currentConversationId,
   currentUserId,
@@ -139,11 +106,6 @@ export const useSendMessageHandler = ({
       const timestamp = format(new Date(), "yyyy-MM-dd HH-mm-ss");
       const ext = file.name.split(".").pop() || "";
       const fileType = getFileType(file.name);
-
-      if (fileType === "unsupported") {
-        ToastUtils.error("Unsupported file type");
-        throw new Error("Unsupported file type");
-      }
 
       let newName: string;
 
@@ -344,8 +306,10 @@ export const useSendMessageHandler = ({
     ]
   );
   const handleMobileUploadOptimisticUpdate = useCallback(
-    async (files: LocalFile[]) => {
-      if (!files || files.length === 0) return;
+    async (files: LocalFile[]): Promise<Map<string, number>> => {
+      const tempIdMap = new Map<string, number>();
+
+      if (!files || files.length === 0) return tempIdMap;
 
       await queryClient.cancelQueries({
         queryKey: conversationMessageQueryKeys.messages(Number(userId), currentConversationId),
@@ -353,11 +317,12 @@ export const useSendMessageHandler = ({
 
       files.forEach((file) => {
         const tempId = generateTempMessageId();
+        tempIdMap.set(file.name, tempId);
+
         const tempMsg = createTempImageMessage({
           fileUri: file.uri,
           fileName: file.name,
           fileType: file.type,
-          fileSize: file.size,
           messageText: "",
           conversationId: currentConversationId,
           senderId: Number(currentUserId),
@@ -367,6 +332,8 @@ export const useSendMessageHandler = ({
         updateConversationMessagesCache(tempMsg);
         updateConversationsListCache(tempMsg);
       });
+
+      return tempIdMap;
     },
     [
       currentConversationId,
@@ -378,9 +345,26 @@ export const useSendMessageHandler = ({
     ]
   );
 
+  const handleMobileUploadComplete = useCallback(
+    (results: UploadResult[], tempIdMap: Map<string, number>) => {
+      if (!results || results.length === 0 || !replaceTempMessage) return;
+
+      results.forEach((result) => {
+        if (result.success && result.messageId) {
+          const tempId = tempIdMap.get(result.fileName);
+          if (tempId) {
+            replaceTempMessage(tempId, result.messageId);
+          }
+        }
+      });
+    },
+    [replaceTempMessage]
+  );
+
   return {
     handleSendMessage,
     handleSendFilesWithCaptions,
     handleMobileUploadOptimisticUpdate,
+    handleMobileUploadComplete,
   } as const;
 };

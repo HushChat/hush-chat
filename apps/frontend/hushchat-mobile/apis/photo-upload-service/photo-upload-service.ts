@@ -65,6 +65,7 @@ const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[]
         url: item.signedUrl.url,
         indexedFileName: item.signedUrl.indexedFileName,
         messageId: item.id,
+        rawMessage: item,
       }));
   }
   return [];
@@ -232,7 +233,7 @@ export function useMessageAttachmentUploader(
     gifUrl: string,
     messageText: string = "",
     parentMessageId?: number | null
-  ): Promise<IMessage> => {
+  ): Promise<IMessage[]> => {
     const attachments: TAttachmentUploadRequest[] = [
       {
         messageText,
@@ -446,6 +447,26 @@ export function useMessageAttachmentUploader(
     return uploadFilesFromWebWithCaptions(filesWithCaptions);
   };
 
+  const pickImagesAndVideos = async () => {
+    return hook.pick({
+      source: "media",
+      mediaKind: "all",
+      multiple: true,
+      maxSizeKB: MAX_VIDEO_SIZE_KB,
+      allowedMimeTypes: ["image/*", "video/*"],
+      allowsEditing: false,
+    });
+  };
+
+  const pickDocuments = async () => {
+    return hook.pick({
+      source: "document",
+      multiple: true,
+      maxSizeKB: MAX_DOCUMENT_SIZE_KB,
+      allowedMimeTypes: ["*/*"],
+    });
+  };
+
   return {
     ...hook,
     pickAndUploadImagesAndVideos,
@@ -455,5 +476,8 @@ export function useMessageAttachmentUploader(
     isUploading: isUploadingWebFiles,
     sendGifMessage,
     uploadProgress,
+    pickImagesAndVideos,
+    pickDocuments,
+    uploadFiles: hook.upload,
   };
 }
