@@ -305,7 +305,7 @@ export const useSendMessageHandler = ({
       replaceTempMessage,
     ]
   );
-  const handleMobileUploadOptimisticUpdate = useCallback(
+  const initializeMobileUploads = useCallback(
     async (files: LocalFile[]): Promise<Map<string, number>> => {
       const tempIdMap = new Map<string, number>();
 
@@ -364,7 +364,7 @@ export const useSendMessageHandler = ({
   return {
     handleSendMessage,
     handleSendFilesWithCaptions,
-    handleMobileUploadOptimisticUpdate,
+    initializeMobileUploads,
     handleMobileUploadComplete,
   } as const;
 };

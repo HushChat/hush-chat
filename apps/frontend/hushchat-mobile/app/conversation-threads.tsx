@@ -318,7 +318,7 @@ const ConversationThreadScreen = ({
   const {
     handleSendMessage,
     handleSendFilesWithCaptions,
-    handleMobileUploadOptimisticUpdate,
+    initializeMobileUploads,
     handleMobileUploadComplete,
   } = useSendMessageHandler({
     currentConversationId,
@@ -337,7 +337,7 @@ const ConversationThreadScreen = ({
       const files = await pickDocuments();
       if (!files || files.length === 0) return;
 
-      const tempIdMap = await handleMobileUploadOptimisticUpdate(files);
+      const tempIdMap = await initializeMobileUploads(files);
       const results = await uploadFiles(files, "");
 
       if (results && results.length > 0) {
@@ -354,7 +354,7 @@ const ConversationThreadScreen = ({
     uploadFiles,
     setSelectedMessage,
     uploadError,
-    handleMobileUploadOptimisticUpdate,
+    initializeMobileUploads,
     handleMobileUploadComplete,
   ]);
 
@@ -363,7 +363,7 @@ const ConversationThreadScreen = ({
       const files = await pickImagesAndVideos();
       if (!files || files.length === 0) return;
 
-      const tempIdMap = await handleMobileUploadOptimisticUpdate(files);
+      const tempIdMap = await initializeMobileUploads(files);
       const results = await uploadFiles(files, "");
 
       if (results && results.length > 0) {
@@ -380,7 +380,7 @@ const ConversationThreadScreen = ({
     uploadFiles,
     setSelectedMessage,
     uploadError,
-    handleMobileUploadOptimisticUpdate,
+    initializeMobileUploads,
     handleMobileUploadComplete,
   ]);
 
