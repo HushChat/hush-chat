@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { PLATFORM } from "@/constants/platformConstants";
+import { IMessage } from "@/types/chat/types";
 
 export type PickSource = "media" | "document";
 export type MediaKind = "image" | "video" | "all";
@@ -29,6 +30,7 @@ export type SignedUrl = {
   indexedFileName: string;
   url: string;
   messageId?: number;
+  rawMessage?: IMessage;
 };
 
 export type UploadResult = {
@@ -37,6 +39,7 @@ export type UploadResult = {
   error?: string;
   signed?: SignedUrl | null;
   messageId?: number;
+  rawMessage?: IMessage;
 };
 
 type State = {
@@ -92,9 +95,18 @@ function passesFilters(
     return { ok: false, reason: `File too large (> ${maxSizeKB} KB)` };
   }
   if (allow && allow.length > 0) {
-    const ok = allow.some((m) =>
-      m.includes("*") ? file.type.startsWith(m.split("/")[0] + "/") : file.type === m
-    );
+    if (allow.includes("*/*") || allow.includes("*")) {
+      return { ok: true };
+    }
+
+    const ok = allow.some((m) => {
+      if (m.endsWith("/*")) {
+        const prefix = m.slice(0, -1);
+        return file.type.startsWith(prefix);
+      }
+      return file.type === m;
+    });
+
     if (!ok) return { ok: false, reason: `Blocked MIME type: ${file.type}` };
   }
   return { ok: true };
@@ -197,7 +209,7 @@ export function useNativePickerUpload(
           const result = await DocumentPicker.getDocumentAsync({
             multiple: Boolean(o.multiple),
             copyToCacheDirectory: true,
-            // type: '*/*' // keep open; filter later via allowedMimeTypes
+            type: o.allowedMimeTypes ?? "*/*",
           });
           if (result.canceled) return null;
 
@@ -260,7 +272,13 @@ export function useNativePickerUpload(
           } else {
             try {
               await putToSignedUrl(f, s.url);
-              results.push({ success: true, fileName: f.name, signed: s });
+              results.push({
+                success: true,
+                fileName: f.name,
+                signed: s,
+                messageId: s.messageId,
+                rawMessage: s.rawMessage,
+              });
 
               if (s.messageId) {
                 successfulMessageIds.push(s.messageId);
@@ -303,9 +321,18 @@ export function useNativePickerUpload(
   );
 
   const pickAndUpload = useCallback(
-    async (opts?: Partial<PickAndUploadOptions>, messageText: string = "") => {
+    async (
+      opts?: Partial<PickAndUploadOptions>,
+      messageText: string = "",
+      onPickSuccess?: (files: LocalFile[]) => Promise<void> | void
+    ) => {
       const picked = await pick(opts);
       if (!picked || picked.length === 0) return [];
+
+      if (onPickSuccess) {
+        await onPickSuccess(picked);
+      }
+
       return await upload(picked, messageText);
     },
     [pick, upload]
