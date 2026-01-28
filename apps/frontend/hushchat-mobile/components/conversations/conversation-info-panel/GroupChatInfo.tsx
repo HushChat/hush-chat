@@ -236,6 +236,7 @@ export default function GroupChatInfo({
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <ChatInfoHeader
         title={conversation.name ?? ""}
+        description={conversation.description}
         onBack={onBack}
         showActions
         onPressChat={() =>
