@@ -63,6 +63,7 @@ export interface IMessage {
   conversationId: number;
   parentMessage?: IMessage;
   isForwarded: boolean;
+  originalForwardedMessage?: IMessage;
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
