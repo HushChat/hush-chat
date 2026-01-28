@@ -78,11 +78,8 @@ export const useSetLastSeenMessageMutation = createMutationHook<
 export const useUpdateMessageRestrictionsMutation = createMutationHook<
   IConversation,
   { conversationId: number; onlyAdminsCanSendMessages: boolean }
->(
-  ({ conversationId, onlyAdminsCanSendMessages }) =>
-    updateMessageRestrictions(conversationId, onlyAdminsCanSendMessages),
-  (keyParams: { userId: number; conversationId: number }) => () =>
-    [conversationQueryKeys.metaDataById(keyParams.userId, keyParams.conversationId)] as string[][]
+>(({ conversationId, onlyAdminsCanSendMessages }) =>
+  updateMessageRestrictions(conversationId, onlyAdminsCanSendMessages)
 );
 
 export const useToggleNotifyOnlyOnMentionMutation = createMutationHook<
