@@ -70,6 +70,7 @@ export interface IMessage {
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
   isEdited?: boolean;
+  isIncludeUrlMetadata: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -363,4 +364,11 @@ export interface GifPickerProps {
   visible: boolean;
   onClose: () => void;
   onGifSelect: (gifUrl: string) => void;
+}
+
+export interface TMessageUrlMetadata {
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  domain?: string;
 }
