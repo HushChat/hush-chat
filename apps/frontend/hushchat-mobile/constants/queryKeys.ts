@@ -10,7 +10,7 @@ export const CONVERSATION_MESSAGE_QUERY_BASE_KEY = "conversation-messages";
 const CONVERSATION_ATTACHMENTS_QUERY_BASE_KEY = "conversation-attachments";
 const MESSAGE_REACTION_QUERY_BASE_KEY = "message-reactions";
 const MESSAGE_QUERY_BASE_KEY = "messages";
-const USER_QUERY_BASE_KEY = "users";
+export const USER_QUERY_BASE_KEY = "users";
 const GIF_QUERY_BASE_KEY = "gifs";
 
 export const conversationQueryKeys = {

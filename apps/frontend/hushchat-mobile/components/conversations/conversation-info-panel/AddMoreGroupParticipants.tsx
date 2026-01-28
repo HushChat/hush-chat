@@ -9,6 +9,10 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { MotionView } from "@/motion/MotionView";
 import { AppText } from "@/components/AppText";
+import { useUpdateCache } from "@/query/config/useUpdateCache";
+import { conversationQueryKeys, USER_QUERY_BASE_KEY } from "@/constants/queryKeys";
+import { PaginatedResponse } from "@/types/common/types";
+import { ConversationParticipant } from "@/types/chat/types";
 
 interface AddParticipantsProps {
   conversationId: number;
@@ -23,11 +27,66 @@ export default function AddMoreGroupParticipants({
 }: AddParticipantsProps) {
   const screenWidth = Dimensions.get("window").width;
   const [selectedUsers, setSelectedUsers] = useState<TUser[]>([]);
+  const updateCache = useUpdateCache();
 
   const { mutate: addParticipants } = useCreateAddParticipantsMutation(
-    { conversationId: conversationId, keyword: "" },
+    undefined,
     () => {
+      const newParticipants: ConversationParticipant[] = selectedUsers.map((user) => ({
+        id: user.id,
+        role: "MEMBER",
+        user: user,
+      }));
+
+      updateCache(
+        conversationQueryKeys.ConversationParticipants(conversationId, ""),
+        (prev: { pages: PaginatedResponse<ConversationParticipant>[] } | undefined) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            pages: prev.pages
+              .map((page, index) => {
+                if (index === prev.pages.length - 1) {
+                  return {
+                    ...page,
+                    content: [...page.content, ...newParticipants],
+                  };
+                }
+                return page;
+              })
+              .map((page, index) => {
+                if (index === 0) {
+                  return {
+                    ...page,
+                    totalElements: (page.totalElements || 0) + newParticipants.length,
+                  };
+                }
+                return page;
+              }),
+          };
+        }
+      );
+
+      updateCache(
+        [USER_QUERY_BASE_KEY, ""],
+        (prev: { pages: PaginatedResponse<TUser>[] } | undefined) => {
+          if (!prev) return prev;
+
+          const newParticipantIds = new Set(selectedUsers.map((u) => u.id));
+
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              content: page.content.filter((user) => !newParticipantIds.has(user.id)),
+            })),
+          };
+        }
+      );
+
       onClose();
+      setSelectedUsers([]);
     },
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));

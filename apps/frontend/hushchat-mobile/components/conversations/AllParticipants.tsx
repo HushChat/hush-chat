@@ -10,6 +10,9 @@ import {
 import { ParticipantRow } from "@/components/conversations/ParticipantsRow";
 import { Ionicons } from "@expo/vector-icons";
 import { useConversationParticipantQuery } from "@/query/useConversationParticipantQuery";
+import { conversationQueryKeys } from "@/constants/queryKeys";
+import { useUpdateCache } from "@/query/config/useUpdateCache";
+import { PaginatedResponse } from "@/types/common/types";
 import { ConversationParticipant } from "@/types/chat/types";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
@@ -30,8 +33,9 @@ interface AllParticipantsProps {
 
 export const AllParticipants = ({ conversationId, visible, onClose }: AllParticipantsProps) => {
   const screenWidth = Dimensions.get("window").width;
+  const updateCache = useUpdateCache();
 
-  const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
+  const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useConversationParticipantQuery(conversationId);
 
   const allParticipants = useMemo(
@@ -48,7 +52,10 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
     }
   };
 
+  const [removeParticipantId, setRemoveParticipantId] = React.useState<number | null>(null);
+
   const removeParticipant = (participantId: number) => {
+    setRemoveParticipantId(participantId);
     openModal({
       type: MODAL_TYPES.confirm,
       title: "Remove Participant",
@@ -70,11 +77,39 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
   };
 
   const handleRemoveParticipant = useRemoveConversationParticipantMutation(
-    { conversationId },
+    undefined,
     async () => {
       closeModal();
       ToastUtils.success("Participant removed successfully!");
-      await refetch();
+
+      updateCache(
+        conversationQueryKeys.ConversationParticipants(conversationId, ""),
+        (prev: { pages: PaginatedResponse<ConversationParticipant>[] } | undefined) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            pages: prev.pages.map((page, index) => {
+              const newContent = page.content.filter(
+                (participant) => participant.id !== removeParticipantId
+              );
+
+              if (index === 0) {
+                return {
+                  ...page,
+                  content: newContent,
+                  totalElements: (page.totalElements || 0) - 1,
+                };
+              }
+
+              return {
+                ...page,
+                content: newContent,
+              };
+            }),
+          };
+        }
+      );
     },
     (error) => {
       closeModal();
@@ -82,7 +117,12 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
     }
   );
 
+  const [updateRoleId, setUpdateRoleId] = React.useState<number | null>(null);
+  const [updateRoleAdminStatus, setUpdateRoleAdminStatus] = React.useState<boolean>(false);
+
   const updateConversationParticipantRole = (participantId: number, makeAdmin: boolean) => {
+    setUpdateRoleId(participantId);
+    setUpdateRoleAdminStatus(makeAdmin);
     openModal({
       type: MODAL_TYPES.confirm,
       title: "Update Participant Role",
@@ -109,7 +149,30 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
     async () => {
       closeModal();
       ToastUtils.success("Participant role updated successfully!");
-      await refetch();
+
+      updateCache(
+        conversationQueryKeys.ConversationParticipants(conversationId, ""),
+        (prev: { pages: PaginatedResponse<ConversationParticipant>[] } | undefined) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              content: page.content.map((participant) =>
+                participant.user.id === updateRoleId
+                  ? {
+                      ...participant,
+                      role: (updateRoleAdminStatus
+                        ? "ADMIN"
+                        : "MEMBER") as ConversationParticipant["role"],
+                    }
+                  : participant
+              ),
+            })),
+          };
+        }
+      );
     },
     (error) => {
       closeModal();

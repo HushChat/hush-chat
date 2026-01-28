@@ -54,7 +54,7 @@ const MobileParticipantContextMenu = ({
         icon: "shield-checkmark-outline",
         onPress: () =>
           handleOptionPress(() =>
-            handleToggleAdmin(participant.id, participant.role !== chatUserRole.ADMIN)
+            handleToggleAdmin(participant.user.id, participant.role !== chatUserRole.ADMIN)
           ),
       },
     ];
