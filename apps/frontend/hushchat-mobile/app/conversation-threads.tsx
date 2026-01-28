@@ -338,6 +338,8 @@ const ConversationThreadScreen = ({
       if (!files || files.length === 0) return;
 
       const tempIdMap = await initializeMobileUploads(files);
+
+      // Add caption for attachments when enabled (replace "" with actual caption)
       const results = await uploadFiles(files, "");
 
       if (results && results.length > 0) {

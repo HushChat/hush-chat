@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { PLATFORM } from "@/constants/platformConstants";
+import { IMessage } from "@/types/chat/types";
 
 export type PickSource = "media" | "document";
 export type MediaKind = "image" | "video" | "all";
@@ -29,7 +30,7 @@ export type SignedUrl = {
   indexedFileName: string;
   url: string;
   messageId?: number;
-  rawMessage?: any;
+  rawMessage?: IMessage;
 };
 
 export type UploadResult = {
@@ -38,7 +39,7 @@ export type UploadResult = {
   error?: string;
   signed?: SignedUrl | null;
   messageId?: number;
-  rawMessage?: any;
+  rawMessage?: IMessage;
 };
 
 type State = {

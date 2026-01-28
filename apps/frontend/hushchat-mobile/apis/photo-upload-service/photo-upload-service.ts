@@ -252,52 +252,6 @@ export function useMessageAttachmentUploader(
 
   const hook = useNativePickerUpload(getSignedUrls, handleUploadSuccess);
 
-  const pickAndUploadImagesAndVideos = async (
-    messageText: string = "",
-    onPickSuccess?: (files: LocalFile[]) => Promise<void> | void
-  ) => {
-    const results = await hook.pickAndUpload(
-      {
-        source: "media",
-        mediaKind: "all",
-        multiple: true,
-        maxSizeKB: MAX_VIDEO_SIZE_KB,
-        allowedMimeTypes: ["image/*", "video/*"],
-        allowsEditing: false,
-      },
-      messageText,
-      onPickSuccess
-    );
-
-    if (results && onUploadComplete) {
-      await onUploadComplete(results);
-    }
-
-    return results;
-  };
-
-  const pickAndUploadDocuments = async (
-    messageText: string = "",
-    onPickSuccess?: (files: LocalFile[]) => Promise<void> | void
-  ) => {
-    const results = await hook.pickAndUpload(
-      {
-        source: "document",
-        multiple: true,
-        maxSizeKB: MAX_DOCUMENT_SIZE_KB,
-        allowedMimeTypes: ["*/*"],
-      },
-      messageText,
-      onPickSuccess
-    );
-
-    if (results && onUploadComplete) {
-      await onUploadComplete(results);
-    }
-
-    return results;
-  };
-
   const uploadFilesFromWebWithCaptions = async (
     filesWithCaptions: TFileWithCaption[],
     parentMessageId?: number | null
@@ -469,8 +423,6 @@ export function useMessageAttachmentUploader(
 
   return {
     ...hook,
-    pickAndUploadImagesAndVideos,
-    pickAndUploadDocuments,
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
     isUploading: isUploadingWebFiles,
