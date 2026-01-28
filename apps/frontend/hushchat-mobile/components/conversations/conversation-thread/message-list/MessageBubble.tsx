@@ -26,6 +26,7 @@ interface IMessageBubbleProps {
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
   isMessageEdited?: boolean;
+  isMobileLayout?: boolean;
 }
 
 export const MessageBubble = ({
@@ -42,6 +43,7 @@ export const MessageBubble = ({
   onMentionClick,
   style,
   isMessageEdited,
+  isMobileLayout,
 }: IMessageBubbleProps) => {
   const messageContent = message.messageText;
   const hasGifMedia = hasGif(message);
@@ -89,7 +91,8 @@ export const MessageBubble = ({
             "rounded-lg border-2",
             {
               "max-w-[310px]": hasMedia || hasGifMedia || hasAttachments,
-              "max-w-[600px]": PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+              "max-w-[600px]": PLATFORM.IS_WEB && !hasMedia && !hasGifMedia && !isMobileLayout,
+              "max-w-[85vw]": PLATFORM.IS_WEB && isMobileLayout && !hasMedia && !hasGifMedia,
               "max-w-[280px]": !PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
             },
             {
