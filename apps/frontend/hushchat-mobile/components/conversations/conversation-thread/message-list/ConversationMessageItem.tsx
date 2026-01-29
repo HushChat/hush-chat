@@ -41,9 +41,10 @@ import { router } from "expo-router";
 import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
 import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
-import { CONVERSATION } from "@/constants/routes";
+import { CONVERSATION, MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 const COLORS = {
   TRANSPARENT: "transparent",
@@ -109,6 +110,8 @@ export const ConversationMessageItem = ({
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
+
+  const isMobileLayout = useIsMobileLayout();
 
   const queryClient = useQueryClient();
 
@@ -218,6 +221,16 @@ export const ConversationMessageItem = ({
 
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
 
+  const handleMessageInfoClickForMobileBrowser = useCallback(
+    (conversationId: number, messageId: number) => {
+      router.push({
+        pathname: MESSAGE_READ_PARTICIPANTS,
+        params: { conversationId, messageId },
+      });
+    },
+    []
+  );
+
   const webOptions: IOption[] = useMemo(() => {
     if (message.isUnsend || isSystemEvent) {
       return [];
@@ -238,7 +251,7 @@ export const ConversationMessageItem = ({
       },
       {
         id: 3,
-        name: "Select message",
+        name: "Forward message",
         iconName: "checkmark-circle-outline",
         action: () => onStartSelectionWith(Number(message.id)),
       },
@@ -256,7 +269,13 @@ export const ConversationMessageItem = ({
         id: 5,
         name: "Message Info",
         iconName: "information-circle-outline",
-        action: () => webMessageInfoPress && webMessageInfoPress(message.id),
+        action: () =>
+          !isMobileLayout
+            ? webMessageInfoPress?.(message.id)
+            : handleMessageInfoClickForMobileBrowser(
+                Number(conversationAPIResponse?.id),
+                message.id
+              ),
       });
 
       if (canEdit && !isForwardedMessage) {
@@ -531,6 +550,7 @@ export const ConversationMessageItem = ({
               <MessageHighlightWrapper shouldHighlight={message.id === targetMessageId}>
                 <MessageBubble
                   message={message}
+                  currentUserId={currentUserId}
                   isCurrentUser={isCurrentUser}
                   hasText={hasText}
                   hasAttachments={hasAttachments}
@@ -542,6 +562,7 @@ export const ConversationMessageItem = ({
                   onBubblePress={handleBubblePress}
                   onMentionClick={handleMentionClick}
                   isMessageEdited={isMessageEdited}
+                  isMobileLayout={isMobileLayout}
                 />
               </MessageHighlightWrapper>
             </View>

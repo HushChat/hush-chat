@@ -14,7 +14,7 @@ interface ASTNode {
 export const useMarkdownRules = (
   handleLinkPress: (url: string) => void,
   isCurrentUser: boolean,
-  onWebContextMenu: (e: any, url: string) => void
+  onWebContextMenu: (e: any, url: string, text: string) => void
 ) => {
   return useMemo(
     () => ({
@@ -63,6 +63,10 @@ export const useMarkdownRules = (
           };
         }
 
+        const textContent = node.children
+          ? node.children.map((child) => child.content).join("")
+          : "";
+
         const content = isSpecial ? node.children.map((child) => child.content).join("") : children;
         const isHoverable = PLATFORM.IS_WEB && !isSpecial;
 
@@ -72,7 +76,9 @@ export const useMarkdownRules = (
             style={activeStyle}
             onPress={() => handleLinkPress(url)}
             className={isHoverable ? "hover:underline hover:decoration-[#7dd3fc]" : ""}
-            {...(isHoverable && { onContextMenu: (e: any) => onWebContextMenu(e, url) })}
+            {...(isHoverable && {
+              onContextMenu: (e: any) => onWebContextMenu(e, url, textContent),
+            })}
           >
             {content}
           </AppText>

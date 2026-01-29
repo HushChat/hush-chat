@@ -1,8 +1,8 @@
 export const ACCEPT_DOC_TYPES = "*";
 
 export const MAX_IMAGE_SIZE_KB = 5 * 1024; // 5MB
-export const MAX_VIDEO_SIZE_KB = 50 * 1024; // 50MB
-export const MAX_DOCUMENT_SIZE_KB = 25 * 1024; // 25MB
+export const MAX_VIDEO_SIZE_KB = 250 * 1024; // 250MB
+export const MAX_DOCUMENT_SIZE_KB = 35 * 1024; // 35MB
 export const SIZES = ["Bytes", "KB", "MB"];
 
 export const IMAGE_EXTENSIONS = [
@@ -20,6 +20,7 @@ export const IMAGE_EXTENSIONS = [
 
 export const VIDEO_EXTENSIONS = [
   "mp4",
+  "video/mp4",
   "mov",
   "webm",
   "avi",
