@@ -322,6 +322,7 @@ export function useMessageAudioUploader(
     const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
     const tempMessage = {
       ...messagesWithSignedUrl[0],
+      hasAttachment: true,
       messageAttachments: [
         {
           fileUrl: files[0]?.uri,
