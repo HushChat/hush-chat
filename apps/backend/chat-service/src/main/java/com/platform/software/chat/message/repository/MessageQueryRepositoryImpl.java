@@ -9,10 +9,8 @@ import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.controller.external.IdBasedPageRequest;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -40,11 +38,6 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
     private static final QChatUser sender = QChatUser.chatUser;
 
     private final JPAQueryFactory queryFactory;
-
-    private enum Direction {
-        BEFORE,
-        AFTER
-    }
 
     public MessageQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.queryFactory = jpaQueryFactory;
@@ -213,64 +206,64 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
-        JPAQuery<Message> baseQuery = queryFactory
-                .selectDistinct(message)
+        Long validTargetId = queryFactory.select(message.id)
                 .from(message)
-                .leftJoin(message.attachments, messageAttachment).fetchJoin()
-                .join(message.conversation, conversation).fetchJoin()
-                .join(message.sender, sender).fetchJoin()
-                .where(conditions);
-
-        Message targetMessage = baseQuery.clone()
-                .where(message.id.eq(messageId))
+                .innerJoin(message.conversation, conversation)
+                .innerJoin(message.sender, sender)
+                .where(conditions.and(message.id.eq(messageId)))
                 .fetchOne();
 
-        if (targetMessage == null) {
+        if (validTargetId == null) {
             return new MessageWindowPage<>(Collections.emptyList(), PageRequest.of(0, windowSize * 2 + 1), 0, false, false);
         }
 
-        List<Message> before = baseQuery.clone()
-                .where(message.id.lt(targetMessage.getId()))
+        // Fetch windowSize + 1 to detect if more exists without a separate query
+        List<Long> beforeIds = queryFactory.select(message.id)
+                .from(message)
+                .innerJoin(message.conversation, conversation)
+                .innerJoin(message.sender, sender)
+                .where(conditions.and(message.id.lt(validTargetId)))
                 .orderBy(message.id.desc())
-                .limit(windowSize)
+                .limit(windowSize + 1)
                 .fetch();
 
-        List<Message> after = baseQuery.clone()
-                .where(message.id.gt(targetMessage.getId()))
-                .orderBy(message.id.asc())
-                .limit(windowSize)
-                .fetch();
-
-        Long lastBeforeId = getOldestFetchedMessageIdOrFallback(before, targetMessage.getId());
-        Long lastAfterId  = getOldestFetchedMessageIdOrFallback(after, targetMessage.getId());
-
-        boolean hasMoreBefore = existsMessageInDirection(baseQuery, lastBeforeId, Direction.BEFORE);
-        boolean hasMoreAfter = existsMessageInDirection(baseQuery, lastAfterId, Direction.AFTER);
-
-        Collections.reverse(after);
-        List<Message> messages = new ArrayList<>(after);
-        messages.add(targetMessage);
-        messages.addAll(before);
-
-        Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
-
-        return new MessageWindowPage<>(messages, pageable, messages.size(), hasMoreBefore, hasMoreAfter);
-    }
-
-    private Long getOldestFetchedMessageIdOrFallback(List<Message> messages, Long fallbackId) {
-        return messages.isEmpty() ? fallbackId : messages.getLast().getId();
-    }
-
-    private boolean existsMessageInDirection(JPAQuery<Message> baseQuery, Long id, Direction direction) {
-        JPAQuery<Message> query = baseQuery.clone();
-
-        if (direction == Direction.BEFORE) {
-            query.where(message.id.lt(id)).orderBy(message.id.desc());
-        } else {
-            query.where(message.id.gt(id)).orderBy(message.id.asc());
+        boolean hasMoreBefore = beforeIds.size() > windowSize;
+        if (hasMoreBefore) {
+            beforeIds.remove(beforeIds.size() - 1); // Remove the extra probe item
         }
 
-        return query.limit(1).fetchFirst() != null;
+        List<Long> afterIds = queryFactory.select(message.id)
+                .from(message)
+                .innerJoin(message.conversation, conversation)
+                .innerJoin(message.sender, sender)
+                .where(conditions.and(message.id.gt(validTargetId)))
+                .orderBy(message.id.asc())
+                .limit(windowSize + 1)
+                .fetch();
+
+        boolean hasMoreAfter = afterIds.size() > windowSize;
+        if (hasMoreAfter) {
+            afterIds.remove(afterIds.size() - 1);
+        }
+
+        List<Long> allIdsToFetch = new ArrayList<>();
+        allIdsToFetch.add(validTargetId);
+        allIdsToFetch.addAll(beforeIds);
+        allIdsToFetch.addAll(afterIds);
+
+        List<Message> fetchedMessages = queryFactory
+                .selectDistinct(message)
+                .from(message)
+                .leftJoin(message.attachments, messageAttachment).fetchJoin()
+                .innerJoin(message.conversation, conversation).fetchJoin()
+                .innerJoin(message.sender, sender).fetchJoin()
+                .where(message.id.in(allIdsToFetch))
+                .fetch();
+
+        fetchedMessages.sort(Comparator.comparing(Message::getId).reversed());
+
+        Pageable pageable = PageRequest.of(0, windowSize * 2 + 1);
+        return new MessageWindowPage<>(fetchedMessages, pageable, fetchedMessages.size(), hasMoreBefore, hasMoreAfter);
     }
 
     @Override
