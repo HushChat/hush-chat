@@ -41,16 +41,14 @@ export const MessageActions: React.FC<IMessageActionsProps> = ({
   );
 
   return (
-    <View className="flex-row items-center">
-      {!isCurrentUser && <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>}
+    <View className={`flex-row ${isCurrentUser ? "" : "flex-row-reverse"} items-center`}>
+      <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>
 
       <MessageAction onPress={onOpenPicker} disabled={!currentUserId || selectionMode}>
         <View className="p-1 rounded items-center justify-center">
           <Ionicons name="happy-outline" size={16} color="#9CA3AF" />
         </View>
       </MessageAction>
-
-      {isCurrentUser && <MessageAction onPress={handleCopy}>{CopyIconContent}</MessageAction>}
 
       <MessageAction onPress={onOpenMenu} disabled={selectionMode} style={{ marginLeft: 6 }}>
         <View className="p-1 rounded items-center justify-center">
