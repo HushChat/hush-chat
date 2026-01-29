@@ -79,6 +79,7 @@ interface MessageItemProps {
   webMessageInfoPress?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
   onEditMessage?: (message: IMessage) => void;
+  isMessageGroup?: boolean;
   isFirstInGroup?: boolean;
 }
 
@@ -109,7 +110,8 @@ export const ConversationMessageItem = ({
   webMessageInfoPress,
   onMarkMessageAsUnread,
   onEditMessage,
-  isFirstInGroup = true,
+  isMessageGroup,
+  isFirstInGroup,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -516,7 +518,7 @@ export const ConversationMessageItem = ({
 
   const ContentBlock = () => (
     <View style={styles.contentBlockWrapper}>
-      <View className="group mb-3">
+      <View className={`group ${isFirstInGroup && "mb-3"}`}>
         <View className="flex-row mx-2">
           {showSenderAvatar ? (
             <View className="mr-2 pt-1 w-10 h-10">
@@ -540,7 +542,7 @@ export const ConversationMessageItem = ({
               messageIsUnsend={message.isUnsend}
               isRead={message.isReadByEveryone}
               onClickSendernName={handleNamePress}
-              isFirstInGroup={isFirstInGroup}
+              isMessageGroup={isMessageGroup}
             />
 
             {renderParentMessage()}

@@ -57,3 +57,26 @@ export const shouldGroupMessages = (
 
   return timeDiff <= GROUP_TIME_THRESHOLD_MS;
 };
+
+/**
+ * Determines if a message is the first message in a group
+ * A message is the first in a group if:
+ * - It's the first message overall (no previous message), OR
+ * - It shouldn't be grouped with the previous message (new sender or time gap)
+ *
+ * Use this to show avatar, sender name, or add top margin
+ */
+export const isFirstMessageInGroup = (
+  currentMessage: IMessage | null,
+  previousMessage: IMessage | null
+): boolean => {
+  if (!currentMessage) {
+    return false;
+  }
+
+  if (!previousMessage) {
+    return true;
+  }
+
+  return !shouldGroupMessages(currentMessage, previousMessage);
+};

@@ -12,7 +12,7 @@ interface IMessageHeaderProps {
   messageTime: string;
   messageIsUnsend?: boolean;
   isRead?: boolean;
-  isFirstInGroup?: boolean;
+  isMessageGroup?: boolean;
   onClickSendernName?: () => void;
 }
 
@@ -24,7 +24,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   messageTime,
   messageIsUnsend,
   isRead = false,
-  isFirstInGroup = true,
+  isMessageGroup,
   onClickSendernName,
 }) => {
   return (
@@ -42,7 +42,7 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
         </Pressable>
       )}
 
-      {isFirstInGroup && (
+      {isMessageGroup && (
         <View className="flex-row items-center gap-1">
           <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
             {messageTime}
