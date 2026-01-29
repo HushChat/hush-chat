@@ -28,8 +28,6 @@ export const AudioMessagePreview = ({
   const [error, setError] = useState(false);
   const [trackWidth, setTrackWidth] = useState<number>(0);
 
-  console.log(audioUrl);
-
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -224,7 +222,7 @@ export const AudioMessagePreview = ({
   }
 
   return (
-    <View className="flex-row items-center p-3 min-w-[250px] max-w-[350px]">
+    <View className="flex-row items-center min-w-[250px] max-w-[350px]">
       <Pressable
         onPress={handlePlayPause}
         className={classNames(
