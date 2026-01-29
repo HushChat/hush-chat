@@ -12,6 +12,7 @@ import {
   IMessageWithSignedUrl,
   TAttachmentUploadRequest,
 } from "@/apis/photo-upload-service/photo-upload-service";
+import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 
 const MAX_AUDIO_MB = 10;
 const BYTES_PER_MB = 1024 * 1024;
@@ -304,6 +305,8 @@ export function useMessageAudioUploader(
   const handleUploadSuccess = async (messageIds: number[]) => {
     await publishMessageEvents(conversationId, messageIds);
   };
+  const { updateConversationMessagesCache, updateConversationsListCache } =
+    useConversationMessagesQuery(conversationId, { enabled: false });
 
   const getSignedUrls = async (
     files: LocalFile[],
@@ -317,6 +320,16 @@ export function useMessageAudioUploader(
     }));
 
     const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
+    const tempMessage = {
+      ...messagesWithSignedUrl[0],
+      messageAttachments: [
+        {
+          type: "AUDIO",
+        },
+      ],
+    };
+    updateConversationMessagesCache(tempMessage);
+    updateConversationsListCache(tempMessage);
 
     return extractSignedUrls(messagesWithSignedUrl);
   };
