@@ -346,6 +346,15 @@ public class ConversationService {
                     );
                     messageViewDTO.setSenderSignedImageUrl(signedUrl);
 
+                    if (messageViewDTO.getOriginalForwardedMessage() != null) {
+                        String forwardedMessageSenderSignedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                                MediaSizeEnum.SMALL,
+                                messageViewDTO.getOriginalForwardedMessage().getImageIndexedName());
+
+                        messageViewDTO.getOriginalForwardedMessage().setSenderSignedImageUrl(forwardedMessageSenderSignedUrl);
+                    }
+
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
                         messageViewDTO.setReactionSummary(summary != null ? summary : new MessageReactionSummaryDTO());

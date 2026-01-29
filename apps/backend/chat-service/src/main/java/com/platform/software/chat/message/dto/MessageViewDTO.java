@@ -27,6 +27,7 @@ public class MessageViewDTO {
     private MessageReactionSummaryDTO reactionSummary;
     private BasicMessageDTO parentMessage;
     private Boolean isForwarded;
+    private BasicMessageDTO originalForwardedMessage;
     private Boolean isUnsend;
     private Boolean isEdited;
     private String senderSignedImageUrl;
@@ -43,6 +44,11 @@ public class MessageViewDTO {
         Message parent = message.getParentMessage();
         if (parent != null && !message.getIsUnsend()) {
             this.parentMessage = new BasicMessageDTO(parent);
+        }
+
+        Message forwadedMessage = message.getForwardedMessage();
+        if (forwadedMessage != null) {
+            this.originalForwardedMessage = new BasicMessageDTO(forwadedMessage);
         }
     }
 
