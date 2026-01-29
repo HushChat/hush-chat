@@ -21,6 +21,7 @@ public class BasicMessageDTO {
     private Boolean isUnsend;
     private Boolean hasAttachment;
     private List<MessageAttachmentDTO> messageAttachments;
+    private String imageIndexedName;
     private String senderSignedImageUrl;
 
     public BasicMessageDTO(Message message) {
@@ -31,6 +32,7 @@ public class BasicMessageDTO {
         this.senderLastName = message.getSender().getLastName();
         this.messageText = message.getMessageText();
         this.isUnsend = message.getIsUnsend();
+        this.imageIndexedName = message.getSender().getImageIndexedName();
         this.hasAttachment = message.getAttachments() != null
                 && !message.getAttachments().isEmpty();
 

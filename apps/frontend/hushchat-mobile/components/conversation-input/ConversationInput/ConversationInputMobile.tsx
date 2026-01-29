@@ -146,7 +146,6 @@ const ConversationInputMobile = ({
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}
-                autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
                 inputHeight={input.inputHeight}
