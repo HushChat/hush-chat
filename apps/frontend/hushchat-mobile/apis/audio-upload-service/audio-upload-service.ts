@@ -324,6 +324,7 @@ export function useMessageAudioUploader(
       ...messagesWithSignedUrl[0],
       messageAttachments: [
         {
+          fileUrl: files[0]?.uri,
           type: "AUDIO",
         },
       ],
@@ -360,8 +361,6 @@ export function useMessageAudioUploader(
       if (results && onUploadComplete) {
         await onUploadComplete(results);
       }
-
-      URL.revokeObjectURL(localFile.uri);
 
       return results || [];
     } catch (error) {
