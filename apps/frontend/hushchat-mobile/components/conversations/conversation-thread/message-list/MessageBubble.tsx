@@ -9,7 +9,8 @@ import { MessageLabel } from "@/components/conversations/conversation-thread/com
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
 import { PLATFORM } from "@/constants/platformConstants";
-import { getGifUrl, hasGif } from "@/utils/messageUtils";
+import { getGifUrl, hasGif, isAudioAttachment } from "@/utils/messageUtils";
+import { AudioMessagePreview } from "@/components/conversations/conversation-thread/message-list/AudioMessagePreview";
 
 interface IMessageBubbleProps {
   message: IMessage;
@@ -57,8 +58,7 @@ export const MessageBubble = ({
     }
   };
 
-  // const hasAudio = isAudioAttachment(message.messageAttachments[0] ?? {});
-  // console.log("hasAudio", hasAudio)
+  const hasAudio = attachments.length > 0 && isAudioAttachment(attachments[0]);
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments && !hasGif}>
@@ -97,10 +97,11 @@ export const MessageBubble = ({
             },
             {
               "bg-primary-light dark:bg-primary-dark rounded-tr-none":
-                (hasText || hasMedia || hasGifMedia) && isCurrentUser,
+                (hasText || hasMedia || hasGifMedia || hasAudio) && isCurrentUser,
               "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
                 (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
-              "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
+              "bg-transparent":
+                !(hasText || hasMedia || hasGifMedia || hasAudio) || message.isUnsend,
 
               "border-sky-500 dark:border-sky-400": selected && selectionMode,
               "border-transparent": !(selected && selectionMode),
@@ -136,16 +137,16 @@ export const MessageBubble = ({
             </View>
           )}
 
-          {/*{hasAudio && (*/}
-          {/*  <View className={messageContent ? "mb-2" : ""}>*/}
-          {/*      <AudioMessagePreview*/}
-          {/*        audioUrl={message?.messageAttachments[0].fileUrl}*/}
-          {/*        isCurrentUser={isCurrentUser}*/}
-          {/*      />*/}
-          {/*  </View>*/}
-          {/*)}*/}
+          {hasAttachments && hasAudio && (
+            <View className={messageContent ? "mb-2" : ""}>
+              <AudioMessagePreview
+                audioUrl={message?.messageAttachments?.[0]?.fileUrl || ""}
+                isCurrentUser={isCurrentUser}
+              />
+            </View>
+          )}
 
-          {hasAttachments && !hasGifMedia && (
+          {hasAttachments && !hasGifMedia && !hasAudio && (
             <View className={messageContent ? "mb-2" : ""}>
               {renderFileGrid(attachments, isCurrentUser)}
             </View>

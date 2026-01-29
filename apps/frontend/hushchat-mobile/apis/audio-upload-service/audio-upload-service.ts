@@ -12,7 +12,6 @@ import {
   IMessageWithSignedUrl,
   TAttachmentUploadRequest,
 } from "@/apis/photo-upload-service/photo-upload-service";
-import { MAX_VOICE_SIZE_KB } from "@/constants/mediaConstants";
 
 const MAX_AUDIO_MB = 10;
 const BYTES_PER_MB = 1024 * 1024;
@@ -371,17 +370,7 @@ export function useMessageAudioUploader(
     }
 
     try {
-      const response = await hook.pickAndUpload(
-        {
-          source: "media",
-          mediaKind: "all",
-          multiple: false,
-          maxSizeKB: MAX_VOICE_SIZE_KB,
-          allowedMimeTypes: ["*/*"],
-          allowsEditing: false,
-        },
-        ""
-      );
+      const response = await hook.upload([localFile], "");
 
       if (response && onUploadComplete) {
         await onUploadComplete(response);

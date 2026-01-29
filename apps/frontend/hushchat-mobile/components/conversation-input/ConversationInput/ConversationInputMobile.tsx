@@ -14,6 +14,7 @@ import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { RecordingDisplayBar } from "@/components/conversation-input/ConversationInput/RecordingDisplayBar";
 
 const ConversationInputMobile = ({
   conversationId,
@@ -126,6 +127,8 @@ const ConversationInputMobile = ({
         />
       )}
 
+      {input.audio.isRecording && <RecordingDisplayBar audio={input.audio} />}
+
       <View className="p-3 bg-background-light dark:bg-background-dark border-gray-200 dark:border-red-800">
         <Animated.View className="overflow-hidden">
           <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
@@ -166,10 +169,13 @@ const ConversationInputMobile = ({
               hideSendButton={hideSendButton}
               disabled={disabled}
               isValidMessage={input.isValidMessage}
-              isSending={isSending}
+              isSending={isSending || input.audio.isRecordUploading}
+              isRecording={input.audio.isRecording}
               onOpenEmojiPicker={openEmojiPicker}
               onOpenGifPicker={openGifPicker}
               onSendPress={handleSendButtonPress}
+              onStartRecording={input.audio.handleStartRecording}
+              onStopRecording={input.audio.handleStopRecording}
             />
           </View>
         </Animated.View>
