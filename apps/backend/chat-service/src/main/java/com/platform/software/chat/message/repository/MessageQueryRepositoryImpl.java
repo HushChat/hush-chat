@@ -10,6 +10,7 @@ import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -134,35 +135,50 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             conditions = conditions.and(message.createdAt.after(Date.from(participant.getLastDeletedTime().toInstant())));
         }
 
-        Long total = queryFactory
-            .select(message.id.countDistinct())
-            .from(message)
-            .innerJoin(message.conversation, conversation)
-            .innerJoin(message.sender, sender)
-            .where(conditions)
-            .fetchOne();
-
-        JPAQuery<Message> query = queryFactory
-            .selectDistinct(message)
-            .from(message)
-            .leftJoin(message.attachments, messageAttachment).fetchJoin()
-            .innerJoin(message.conversation, conversation).fetchJoin()
-            .innerJoin(message.sender, sender).fetchJoin()
-            .limit(idBasedPageRequest.getSize());
-
         // Add cursor-based pagination conditions
+        OrderSpecifier<?> orderSpecifier;
         if (idBasedPageRequest.getAfterId() != null) {
             conditions = conditions.and(message.id.gt(idBasedPageRequest.getAfterId()));
-            query.orderBy(message.id.asc());
+            orderSpecifier = message.id.asc();
         } else if (idBasedPageRequest.getBeforeId() != null) {
             conditions = conditions.and(message.id.lt(idBasedPageRequest.getBeforeId()));
-            query.orderBy(message.id.desc());
+            orderSpecifier = message.id.desc();
         } else {
-            query.orderBy(message.id.desc());
+            orderSpecifier = message.id.desc();
         }
 
-        query.where(conditions);
-        List<Message> messages = query.fetch();
+        Long total = queryFactory
+                .select(message.id.count())
+                .from(message)
+                .innerJoin(message.conversation, conversation)
+                .innerJoin(message.sender, sender)
+                .where(conditions)
+                .fetchOne();
+
+        List<Long> messageIds = queryFactory
+                .select(message.id)
+                .from(message)
+                .innerJoin(message.conversation, conversation)
+                .innerJoin(message.sender, sender)
+                .where(conditions)
+                .orderBy(orderSpecifier)
+                .limit(idBasedPageRequest.getSize())
+                .fetch();
+
+        if (messageIds.isEmpty()) {
+            return new PageImpl<>(List.of(), PageRequest.of(0, idBasedPageRequest.getSize().intValue()), total != null ? total : 0L);
+        }
+
+        List<Message> messages = queryFactory
+                .selectDistinct(message)
+                .from(message)
+                .leftJoin(message.attachments, messageAttachment).fetchJoin()
+                .innerJoin(message.conversation, conversation).fetchJoin()
+                .innerJoin(message.sender, sender).fetchJoin()
+                .where(message.id.in(messageIds))
+                .orderBy(orderSpecifier) // Apply same order to ensure result list matches
+                .fetch();
+
         if (idBasedPageRequest.getAfterId() != null) {
             messages = messages.reversed(); // if the query fetches with after id, it will fetch asc order, so for the frontend display, it has to be revered
         }
