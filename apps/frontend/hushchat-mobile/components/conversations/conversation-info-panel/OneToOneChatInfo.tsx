@@ -44,7 +44,10 @@ export default function OneToOneChatInfo({
       refetch();
       closeModal();
     },
-    (error) => ToastUtils.error(getAPIErrorMsg(error))
+    (error) => {
+      closeModal();
+      ToastUtils.error((error as string) || getAPIErrorMsg(error));
+    }
   );
 
   const unblockUserMutation = useUnblockUserMutation(
@@ -56,7 +59,10 @@ export default function OneToOneChatInfo({
       refetch();
       closeModal();
     },
-    (error) => ToastUtils.error(getAPIErrorMsg(error))
+    (error) => {
+      closeModal();
+      ToastUtils.error((error as string) || getAPIErrorMsg(error));
+    }
   );
 
   const handleBlockUser = () => {
