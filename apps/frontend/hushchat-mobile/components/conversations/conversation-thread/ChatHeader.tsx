@@ -93,7 +93,7 @@ const ChatHeader = ({
               name={conversationInfo.conversationName}
               size={AvatarSize.small}
               imageUrl={conversationInfo.signedImageUrl}
-              showOnlineStatus={true}
+              showOnlineStatus={!isGroupChat}
               userStatus={currentStatus}
               deviceType={currentDevice}
             />

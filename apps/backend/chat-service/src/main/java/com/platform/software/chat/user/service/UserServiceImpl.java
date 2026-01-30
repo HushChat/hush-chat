@@ -38,6 +38,7 @@ import com.platform.software.platform.workspace.repository.WorkspaceRepository;
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -67,6 +68,9 @@ import static com.platform.software.common.constants.GeneralConstants.USER_NOT_C
 public class UserServiceImpl implements UserService {
     private final RedisCacheService cacheService;
     Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
+    @Value("${workspace.bot.user.mail}")
+    private String workspaceBotUserMail;
 
     private final UserRepository userRepository;
     private final CognitoService cognitoService;
@@ -339,6 +343,12 @@ public class UserServiceImpl implements UserService {
         if (userId.equals(blockId)) {
             logger.warn("user {} attempted to block themselves", userId);
             throw new CustomBadRequestException("Cannot block yourself!");
+        }
+
+        Optional<ChatUser> botUser = userRepository.findByEmail(workspaceBotUserMail);
+        if (botUser.isPresent() && blockId.equals(botUser.get().getId())) {
+            logger.warn("user {} attempted to block bot user {}", userId, blockId);
+            throw new CustomBadRequestException("Cannot block bot!");
         }
 
         ChatUser blocker = getUserOrThrow(userId);
