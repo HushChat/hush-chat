@@ -62,24 +62,28 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
 
     @Override
     public ConversationReadInfo findConversationReadInfoByConversationIdAndUserId(
-        Long conversationId, Long userId) {
+            Long conversationId, Long userId) {
 
-        return queryFactory
-            .select(Projections.constructor(
-                ConversationReadInfo.class,
-                qConversationReadStatus.message.id,
-                qMessage.id.count()
-            ))
-            .from(qMessage)
-            .leftJoin(qConversationReadStatus)
-            .on(qConversationReadStatus.conversation.id.eq(conversationId)
-                .and(qConversationReadStatus.user.id.eq(userId)))
-            .where(qMessage.conversation.id.eq(conversationId)
-                .and(qMessage.isUnsend.isFalse())
-                .and(qConversationReadStatus.message.id.isNull()
-                    .or(qMessage.id.gt(qConversationReadStatus.message.id))))
-            .groupBy(qConversationReadStatus.message.id)
-            .fetchOne();
+        Long lastSeenMessageId = queryFactory
+                .select(qConversationReadStatus.message.id)
+                .from(qConversationReadStatus)
+                .where(qConversationReadStatus.conversation.id.eq(conversationId)
+                        .and(qConversationReadStatus.user.id.eq(userId)))
+                .fetchOne();
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(qMessage.count())
+                .from(qMessage)
+                .where(qMessage.conversation.id.eq(conversationId)
+                        .and(qMessage.isUnsend.isFalse()));
+
+        if (lastSeenMessageId != null) {
+            countQuery.where(qMessage.id.gt(lastSeenMessageId));
+        }
+
+        Long unreadCount = countQuery.fetchOne();
+
+        return new ConversationReadInfo(lastSeenMessageId, unreadCount == null ? 0L : unreadCount);
     }
 
     private JPAQuery<ConversationUnreadCount> buildUnreadCountQuery(Long userId) {
