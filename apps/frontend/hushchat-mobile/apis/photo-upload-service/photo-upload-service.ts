@@ -56,7 +56,7 @@ export interface IMessageWithSignedUrl {
   } | null;
 }
 
-const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[] => {
+export const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[] => {
   if (Array.isArray(response)) {
     return response
       .filter((item) => item.signedUrl && item.signedUrl.url)
@@ -197,35 +197,31 @@ export function useMessageAttachmentUploader(
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
-  const getSignedUrls = async (
+  const getMessagesWithSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
     parentMessageId?: number | null
-  ): Promise<SignedUrl[] | null> => {
+  ): Promise<IMessage[] | null> => {
     const attachments: TAttachmentUploadRequest[] = files.map((file) => ({
       messageText,
       fileName: file.name,
       parentMessageId,
     }));
 
-    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
-
-    return extractSignedUrls(messagesWithSignedUrl);
+    return await createMessagesWithAttachments(conversationId, attachments);
   };
 
-  const getSignedUrlsWithCaptions = async (
+  const getAttachmentsWithCaptions = async (
     filesWithCaptions: { file: LocalFile; caption: string }[],
     parentMessageId?: number | null
-  ): Promise<SignedUrl[] | null> => {
+  ): Promise<IMessage[] | null> => {
     const attachments: TAttachmentUploadRequest[] = filesWithCaptions.map(({ file, caption }) => ({
       messageText: caption,
       fileName: file.name,
       parentMessageId,
     }));
 
-    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
-
-    return extractSignedUrls(messagesWithSignedUrl);
+    return await createMessagesWithAttachments(conversationId, attachments);
   };
 
   const sendGifMessage = async (
@@ -249,7 +245,7 @@ export function useMessageAttachmentUploader(
     await publishMessageEvents(conversationId, messageIds);
   };
 
-  const hook = useNativePickerUpload(getSignedUrls, handleUploadSuccess);
+  const hook = useNativePickerUpload(getMessagesWithSignedUrls, handleUploadSuccess);
 
   const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
     const results = await hook.pickAndUpload(
@@ -329,10 +325,12 @@ export function useMessageAttachmentUploader(
     }
 
     try {
-      const signedUrls = await getSignedUrlsWithCaptions(
+      const messagesWithSignedUrl = await getAttachmentsWithCaptions(
         validFiles.map(({ file, caption }) => ({ file, caption })),
         parentMessageId
       );
+
+      const signedUrls = extractSignedUrls(messagesWithSignedUrl);
 
       if (!signedUrls || signedUrls.length === 0) {
         throw new Error("No signed URLs returned from server");
@@ -413,7 +411,16 @@ export function useMessageAttachmentUploader(
         await onUploadComplete(allResults);
       }
 
-      return allResults;
+      const resultsWithMessages = allResults.map((result) => {
+        const matchingMessage = messagesWithSignedUrl?.find((msg) => msg.id === result.messageId);
+
+        return {
+          ...result,
+          newMessage: matchingMessage,
+        };
+      });
+
+      return resultsWithMessages;
     } finally {
       setIsUploadingWebFiles(false);
       setUploadProgress({});
