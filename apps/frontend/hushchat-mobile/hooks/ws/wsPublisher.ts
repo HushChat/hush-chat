@@ -1,6 +1,5 @@
 import { TypingIndicatorWSData, UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { logInfo } from "@/utils/logger";
-import { getDeviceType } from "@/utils/commonUtils";
 import { getDeviceId } from "@/utils/deviceIdUtils";
 import { WS_DESTINATIONS } from "@/constants/apiConstants";
 import {
@@ -11,6 +10,7 @@ import {
   HEADER_DEVICE_TYPE,
   TITLES,
 } from "@/constants/constants";
+import { DeviceType } from "@/types/chat/types";
 
 const encoder = new TextEncoder();
 
@@ -57,7 +57,7 @@ const publishToWebSocket = (
 
   try {
     const body = JSON.stringify(data);
-    const deviceType = (data as any).deviceType ?? getDeviceType();
+    const deviceType = (data as any).deviceType ?? DeviceType.UNKNOWN;
     const deviceId = (data as any).deviceId ?? getDeviceId();
     ws.send(buildStompSendFrame(destination, body, deviceType, deviceId).buffer);
     return true;

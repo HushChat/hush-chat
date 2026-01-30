@@ -12,6 +12,7 @@ import {
   reportConversation,
   ReportReason,
   joinConversationByInvite,
+  sendInviteToWorkspace,
 } from "@/apis/conversation";
 import { blockUser, changePassword, updateUserAvailabilityStatus } from "@/apis/user";
 import { createMutationHook } from "@/query/config/createMutationFactory";
@@ -154,3 +155,7 @@ export const useJoinConversationByInviteMutation = createMutationHook<
 );
 
 export const useUpdateAvailabilityStatusMutation = createMutationHook(updateUserAvailabilityStatus);
+
+export const useSendInviteMutation = createMutationHook<void, { email: string }[]>(
+  sendInviteToWorkspace
+);

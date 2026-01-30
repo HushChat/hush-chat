@@ -214,8 +214,8 @@ const capitalizeFirstLetter = (word: string): string => {
   return trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase();
 };
 
-const getDeviceType = (): DeviceType => {
-  if (PLATFORM.IS_WEB) return DeviceType.WEB;
+const getDeviceType = (isMobileView: boolean): DeviceType => {
+  if (!isMobileView) return DeviceType.WEB;
   return DeviceType.MOBILE;
 };
 

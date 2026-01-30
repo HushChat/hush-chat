@@ -2,11 +2,7 @@ package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.readstatus.dto.MessageSeenEvent;
 import com.platform.software.chat.conversation.dto.ConversationEventCreated;
-import com.platform.software.chat.message.dto.MessagePinEvent;
-import com.platform.software.chat.message.dto.MessageReactionEvent;
-import com.platform.software.chat.message.dto.MessageUnsentEvent;
-import com.platform.software.chat.message.dto.MessageCreatedEvent;
-import com.platform.software.chat.message.dto.MessageUpdatedEvent;
+import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.notification.service.ChatNotificationService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -30,7 +26,8 @@ public class ChatEventListener {
                 event.getConversationId(),
                 event.getMessageViewDTO(),
                 event.getUserId(),
-                event.getWorkspaceId()
+                event.getWorkspaceId(),
+                event.getMessageType()
         );
 
         chatNotificationService.sendMessageNotificationsToParticipants(
@@ -47,7 +44,8 @@ public class ChatEventListener {
                 event.conversationId(),
                 event.messageViewDTO(),
                 event.actorUserId(),
-                event.workspaceId()
+                event.workspaceId(),
+                MessageTypeEnum.TEXT
         );
     }
 

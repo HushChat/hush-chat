@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { JSX, ReactNode } from "react";
+import React, { JSX } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
@@ -63,6 +63,7 @@ export interface IMessage {
   conversationId: number;
   parentMessage?: IMessage;
   isForwarded: boolean;
+  originalForwardedMessage?: IMessage;
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
@@ -82,17 +83,6 @@ export interface IFilter {
   key: ConversationType;
   label: string;
   isActive: boolean;
-}
-
-export interface ChatComponentProps {
-  chatItemList: ReactNode;
-  conversationsRefetch: () => void;
-  conversationsLoading: boolean;
-  filters: IFilter[];
-  selectedConversation: IConversation | null;
-  setSelectedConversation: (conversation: IConversation | null) => void;
-  onSearchQueryInserting?: (searchQuery: string) => void;
-  searchQuery?: string;
 }
 
 export enum ConversationType {
@@ -149,12 +139,6 @@ export interface IMessageReaction {
   reactionType: ReactionType;
   count: number;
   reactedByCurrentUser: boolean;
-}
-
-export interface IMessageReactions {
-  messageId: number;
-  reactions: IMessageReaction[];
-  totalReactionsCount: number;
 }
 
 export interface IMessageReactionRequest {

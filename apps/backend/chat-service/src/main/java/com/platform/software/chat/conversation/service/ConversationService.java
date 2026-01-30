@@ -356,6 +356,15 @@ public class ConversationService {
                     );
                     messageViewDTO.setSenderSignedImageUrl(signedUrl);
 
+                    if (messageViewDTO.getOriginalForwardedMessage() != null) {
+                        String forwardedMessageSenderSignedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                                MediaSizeEnum.SMALL,
+                                messageViewDTO.getOriginalForwardedMessage().getImageIndexedName());
+
+                        messageViewDTO.getOriginalForwardedMessage().setSenderSignedImageUrl(forwardedMessageSenderSignedUrl);
+                    }
+
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
                         messageViewDTO.setReactionSummary(summary != null ? summary : new MessageReactionSummaryDTO());
@@ -1108,6 +1117,10 @@ public class ConversationService {
 
         boolean isPinningAction = !currentlyPinned;
 
+        ConversationEventType eventType = isPinningAction
+        ? ConversationEventType.MESSAGE_PINNED
+        : ConversationEventType.MESSAGE_UNPINNED;
+
         ZonedDateTime pinnedUntil = null;
 
         if (durationKey != null && isPinningAction) {
@@ -1124,14 +1137,11 @@ public class ConversationService {
         try {
             conversationRepository.save(conversation);
 
-            if (isPinningAction) {
-                conversationEventService.createMessageWithConversationEvent(
-                        conversationId,
-                        userId,
-                        null,
-                        ConversationEventType.MESSAGE_PINNED
-                );
-            }
+            conversationEventService.createMessageWithConversationEvent(
+                    conversationId,
+                    userId,
+                    null,
+                    eventType);
 
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
 

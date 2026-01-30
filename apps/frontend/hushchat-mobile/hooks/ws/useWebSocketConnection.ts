@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/store/auth/authStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/store/user/useUserStore";
-import { getAllTokens } from "@/utils/authUtils";
+import { getAllTokens, refreshIdToken } from "@/utils/authUtils";
 import { getWSBaseURL } from "@/utils/apiUtils";
 import { CONNECTED_RESPONSE, ERROR_RESPONSE, MESSAGE_RESPONSE } from "@/constants/wsConstants";
 import {
@@ -31,6 +31,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { HEARTBEAT_INTERVAL, useHeartbeat } from "@/hooks/ws/wsHeartbeat";
 import { publishTypingStatus, publishUserActivity } from "@/hooks/ws/wsPublisher";
 import { CONFIG } from "@/constants/ws/wsConfig";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 const encoder = new TextEncoder();
 
@@ -42,6 +43,7 @@ export default function useWebSocketConnection() {
     user: { id },
   } = useUserStore();
   const { startHeartbeat, stopHeartbeat, updateLastMessageTime } = useHeartbeat();
+  const isMobileLayout = useIsMobileLayout();
 
   // WebSocket reference
   const wsRef = useRef<WebSocket | null>(null);
@@ -263,7 +265,7 @@ export default function useWebSocketConnection() {
 
       const { idToken, workspace } = await getAllTokens();
       const deviceId = await getDeviceId();
-      const deviceType = getDeviceType();
+      const deviceType = getDeviceType(isMobileLayout);
 
       // Validate required data
       if (!idToken) {
@@ -279,10 +281,16 @@ export default function useWebSocketConnection() {
       if (!validateToken(idToken)) {
         logInfo("Aborting WebSocket connection due to invalid or expired token");
         updateState({
-          shouldStopRetrying: true,
+          shouldStopRetrying: false,
           status: WebSocketStatus.Error,
           isConnecting: false,
         });
+        try {
+          await refreshIdToken();
+        } catch {
+          logInfo("Token refresh failed during WebSocket connection attempt");
+        }
+        scheduleReconnect();
         return;
       }
 
@@ -461,6 +469,7 @@ export default function useWebSocketConnection() {
     scheduleReconnect,
     updateLastMessageTime,
     updateState,
+    isMobileLayout,
   ]);
 
   connectWebSocketRef.current = connectWebSocket;
@@ -503,15 +512,6 @@ export default function useWebSocketConnection() {
       }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
     }
   }, [isAppActive, isAuthenticated, updateState]);
-
-  // Pause/resume heartbeat based on visibility
-  useEffect(() => {
-    if (!isAppActive && wsRef.current?.readyState === WebSocket.OPEN) {
-      stopHeartbeat();
-    } else if (isAppActive && wsRef.current?.readyState === WebSocket.OPEN) {
-      startHeartbeat(wsRef.current);
-    }
-  }, [isAppActive, startHeartbeat, stopHeartbeat]);
 
   // Handle network status changes
   useEffect(() => {
@@ -644,11 +644,11 @@ export default function useWebSocketConnection() {
         return false;
       }
 
-      const deviceType = getDeviceType();
+      const deviceType = getDeviceType(isMobileLayout);
       const deviceId = await getDeviceId();
       return publishUserActivity(wsRef.current, { ...data, deviceType, deviceId });
     },
-    [connectionStatus]
+    [connectionStatus, isMobileLayout]
   );
 
   // Publish typing status

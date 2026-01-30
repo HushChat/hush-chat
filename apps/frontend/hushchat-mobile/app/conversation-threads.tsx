@@ -298,6 +298,7 @@ const ConversationThreadScreen = ({
     isUploading: isUploadingImages,
     error: uploadError,
     sendGifMessage,
+    uploadProgress,
   } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
@@ -566,8 +567,8 @@ const ConversationThreadScreen = ({
 
         <KeyboardAvoidingView
           className="flex-1"
-          behavior={PLATFORM.IS_IOS ? "padding" : undefined}
-          keyboardVerticalOffset={PLATFORM.IS_IOS ? 90 : 0}
+          behavior="padding"
+          keyboardVerticalOffset={PLATFORM.IS_IOS ? 90 : insets.bottom + 10}
         >
           <ImageBackground
             source={Images.chatBackground}
@@ -593,6 +594,7 @@ const ConversationThreadScreen = ({
                     isGroupChat={isGroupChat}
                     replyToMessage={selectedMessage}
                     onCancelReply={handleCancelReply}
+                    uploadProgress={uploadProgress}
                   />
                 ) : (
                   <>

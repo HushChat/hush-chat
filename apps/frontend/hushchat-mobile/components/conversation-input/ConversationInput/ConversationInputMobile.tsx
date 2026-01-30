@@ -146,7 +146,6 @@ const ConversationInputMobile = ({
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}
-                autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
                 inputHeight={input.inputHeight}
@@ -206,7 +205,7 @@ const ConversationInputMobile = ({
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={(gifUrl) => {
-              onSendMessage?.("", undefined, undefined, gifUrl);
+              onSendMessage?.("", replyToMessage ?? undefined, undefined, gifUrl);
             }}
           />
         </>

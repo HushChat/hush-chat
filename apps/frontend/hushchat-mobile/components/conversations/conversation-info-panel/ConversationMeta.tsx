@@ -7,7 +7,6 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { IMessage } from "@/types/chat/types";
 import { RefObject } from "react";
 import { LastMessagePreviewContent } from "@/components/LastMessagePreviewContent";
-import { hasGif } from "@/utils/messageUtils";
 
 interface Props {
   lastMessage: IMessage | undefined;
@@ -27,31 +26,8 @@ const ConversationMeta = ({
   isGroup,
 }: Props) => {
   const messageContent = LastMessagePreviewContent({ lastMessage, isGroup });
-  const isGif = hasGif(lastMessage);
 
   const renderMessagePreview = () => {
-    if (isGif) {
-      return (
-        <View className="flex-row items-center gap-1 flex-1">
-          <MaterialIcons
-            name="gif"
-            size={20}
-            className="text-gray-600 dark:text-text-secondary-dark"
-            color="#4B5563"
-          />
-          <AppText
-            className="text-gray-600 dark:text-text-secondary-dark text-sm"
-            numberOfLines={1}
-            style={{
-              fontFamily: "Poppins-Regular, OpenMoji-Color",
-            }}
-          >
-            GIF
-          </AppText>
-        </View>
-      );
-    }
-
     if (typeof messageContent === "string") {
       return (
         <AppText
