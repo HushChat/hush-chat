@@ -1,5 +1,4 @@
 import { Image, TouchableOpacity, View, Dimensions, StyleSheet } from "react-native";
-import ChatInfoNameBar from "@/components/conversations/conversation-info-panel/common/ChatInfoNameBar";
 import React, { useEffect, useRef, useState } from "react";
 import { DEFAULT_ACTIVE_OPACITY, DEFAULT_HIT_SLOP } from "@/constants/ui";
 import { Ionicons } from "@expo/vector-icons";
@@ -109,7 +108,7 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
     >
       <View className="flex-row justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark">
         <AppText className="text-xl font-semibold text-gray-900 dark:text-white">
-          All Participants
+          Group Settings
         </AppText>
         <TouchableOpacity onPress={onClose} className="p-2">
           <Ionicons name="close-outline" size={22} color="#6B7280" />
@@ -139,14 +138,14 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
         </TouchableOpacity>
       </View>
 
-      <View className="items-center">
-        <View className="flex-row items-center">
+      <View className="px-6">
+        <View className="flex-row items-center justify-between">
           {isEditing ? (
-            <>
+            <View className="flex-row items-center flex-1 gap-3">
               <AppTextInput
                 value={newTitle}
                 onChangeText={setNewTitle}
-                className="text-xl text-text-primary-light dark:text-text-primary-dark border-b border-gray-300 min-w-[150px]"
+                className="text-xl text-text-primary-light dark:text-text-primary-dark bg-gray-200 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl flex-1 px-4 py-3 max-w-[280px] outline-none"
                 placeholder="Enter new title"
                 autoFocus
                 onSubmitEditing={handleSave}
@@ -155,61 +154,85 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
                 maxLength={100}
                 submitBehavior="blurAndSubmit"
               />
-              {newTitle.trim() !== (conversation.name ?? "").trim() && (
-                <TouchableOpacity onPress={handleSave} disabled={conversationAPILoading}>
-                  <Ionicons name="checkmark" size={24} color="#10B981" />
-                </TouchableOpacity>
-              )}
-            </>
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={
+                  conversationAPILoading || newTitle.trim() === (conversation.name ?? "").trim()
+                }
+                className={`p-3 rounded-xl ${
+                  newTitle.trim() !== (conversation.name ?? "").trim()
+                    ? "bg-[#583fc6] dark:bg-[#322082] active:bg-[#4731a8] dark:active:bg-[#23165c]"
+                    : "bg-gray-300 dark:bg-gray-800 opacity-40"
+                }`}
+              >
+                <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
           ) : (
             <>
-              <ChatInfoNameBar title={newTitle} />
+              <View className="flex-1 mr-4">
+                <AppText className="text-xl font-bold text-gray-900 dark:text-white">
+                  {newTitle}
+                </AppText>
+              </View>
               <TouchableOpacity
                 onPress={() => setIsEditing(true)}
                 hitSlop={DEFAULT_HIT_SLOP}
                 activeOpacity={DEFAULT_ACTIVE_OPACITY}
+                className="p-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800"
               >
-                <Ionicons name="pencil-outline" size={20} color="#ccc" />
+                <Ionicons name="pencil-outline" size={20} color="#6B7280" />
               </TouchableOpacity>
             </>
           )}
         </View>
       </View>
 
-      <View className="dark:bg-background-dark mt-4 w-full px-4">
+      <View className="mt-6 px-6">
         {isEditingDescription ? (
-          <View>
-            <View className="flex-row items-start mt-2 px-4 w-full">
-              <AppTextInput
-                value={description}
-                onChangeText={setDescription}
-                placeholder="Enter group description"
-                multiline
-                autoFocus
-                className="text-base text-black bg-white rounded-md px-4 py-2 flex-1"
-                editable={!conversationAPILoading}
-              />
-
-              {description.trim() !== (conversation.description ?? "").trim() && (
-                <TouchableOpacity onPress={handleSave} disabled={conversationAPILoading}>
-                  <Ionicons name="checkmark" size={24} color="#10B981" />
-                </TouchableOpacity>
-              )}
-            </View>
+          <View className="flex-row items-start gap-3">
+            <AppTextInput
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Enter group description"
+              multiline
+              autoFocus
+              className="text-base text-text-primary-light dark:text-text-primary-dark bg-gray-200 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 flex-1 min-h-[200px] max-w-[280px] outline-none"
+              textAlignVertical="top"
+              editable={!conversationAPILoading}
+            />
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={
+                conversationAPILoading ||
+                description.trim() === (conversation.description ?? "").trim()
+              }
+              className={`p-3 rounded-xl mt-1 ${
+                description.trim() !== (conversation.description ?? "").trim()
+                  ? "bg-[#583fc6] dark:bg-[#322082] active:bg-[#4731a8] dark:active:bg-[#23165c]"
+                  : "bg-gray-300 dark:bg-gray-800 opacity-40"
+              }`}
+            >
+              <Ionicons name="checkmark" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
-            onPress={() => setIsEditingDescription(true)}
-            activeOpacity={DEFAULT_ACTIVE_OPACITY}
-          >
+          <View className="flex-row items-start justify-between">
             <AppText
-              className="text-base italic text-gray-400 text-left"
-              numberOfLines={3}
+              className="text-base text-gray-500 dark:text-gray-400 flex-1 mr-4"
+              numberOfLines={4}
               ellipsizeMode="tail"
             >
-              {description ? description : "Add group description"}
+              {description || "No description set"}
             </AppText>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setIsEditingDescription(true)}
+              activeOpacity={DEFAULT_ACTIVE_OPACITY}
+              className="p-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800"
+            >
+              <Ionicons name="pencil-outline" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
