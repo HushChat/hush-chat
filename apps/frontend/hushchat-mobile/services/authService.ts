@@ -10,7 +10,10 @@ export async function loginUser(email: string, password: string) {
         email,
         password,
       },
-      { skipErrorToast: true }
+      {
+        skipErrorToast: true,
+        withCredentials: true,
+      }
     );
     return {
       success: true,
