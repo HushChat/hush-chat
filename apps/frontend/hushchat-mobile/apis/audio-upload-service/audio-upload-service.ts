@@ -1,5 +1,4 @@
 import { Audio } from "expo-av";
-import { Platform } from "react-native";
 import {
   LocalFile,
   SignedUrl,
@@ -13,6 +12,7 @@ import {
   TAttachmentUploadRequest,
 } from "@/apis/photo-upload-service/photo-upload-service";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+import { PLATFORM } from "@/constants/platformConstants";
 
 const MAX_AUDIO_MB = 10;
 const BYTES_PER_MB = 1024 * 1024;
@@ -389,7 +389,6 @@ export function useMessageAudioUploader(
         await onUploadComplete(response);
       }
 
-      URL.revokeObjectURL(localFile.uri);
       return response || [];
     } catch (error) {
       logWarn("Failed to upload native audio file:", error);
@@ -410,7 +409,7 @@ export const AudioRecorder = {
    * @returns Recording instance (Audio.Recording for native, MediaRecorder data for web)
    */
   startRecording: async (): Promise<RecordingSession | null> => {
-    if (Platform.OS === "web") {
+    if (PLATFORM.IS_WEB) {
       const result = await startAudioRecordingWeb();
       if (!result) return null;
       return {

@@ -29,7 +29,41 @@ export const AudioMessagePreview = ({
   const [trackWidth, setTrackWidth] = useState<number>(0);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadDuration = async () => {
+      if (providedDuration || !audioUrl) return;
+
+      if (PLATFORM.IS_WEB) {
+        const tempAudio = new window.Audio(audioUrl);
+        tempAudio.onloadedmetadata = () => {
+          if (isMounted && tempAudio.duration && isFinite(tempAudio.duration)) {
+            setDuration(Math.floor(tempAudio.duration));
+          }
+        };
+      } else {
+        try {
+          const { sound, status } = await Audio.Sound.createAsync(
+            { uri: audioUrl },
+            { shouldPlay: false }
+          );
+
+          if (isMounted && status.isLoaded && status.durationMillis) {
+            setDuration(Math.floor(status.durationMillis / 1000));
+          }
+
+          await sound.unloadAsync();
+        } catch {
+          console.log("Could not fetch duration for:", audioUrl);
+        }
+      }
+    };
+
+    loadDuration();
+
     return () => {
+      isMounted = false;
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -37,7 +71,7 @@ export const AudioMessagePreview = ({
 
       if (webAudioRef.current) {
         webAudioRef.current.pause();
-        webAudioRef.current.src = ""; // Force the browser to release the stream
+        webAudioRef.current.src = "";
         webAudioRef.current = null;
       }
 
@@ -47,7 +81,7 @@ export const AudioMessagePreview = ({
         sound.unloadAsync().catch((err) => logError("Error unloading sound:", err));
       }
     };
-  }, []);
+  }, [audioUrl, providedDuration]);
 
   // Web Audio initialization
   const initWebAudio = () => {
