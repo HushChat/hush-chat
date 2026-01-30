@@ -348,13 +348,21 @@ public class ConversationService {
                     MessageViewDTO messageViewDTO = new MessageViewDTO(message, lastSeenMessageId);
 
                     String imageIndexedName = messageViewDTO.getImageIndexedName();
-                    if (imageIndexedName != null) {
-                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+
+                    String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.SMALL,
+                            imageIndexedName
+                    );
+                    messageViewDTO.setSenderSignedImageUrl(signedUrl);
+
+                    if (messageViewDTO.getOriginalForwardedMessage() != null) {
+                        String forwardedMessageSenderSignedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
                                 MediaPathEnum.RESIZED_PROFILE_PICTURE,
                                 MediaSizeEnum.SMALL,
-                                imageIndexedName
-                        );
-                        messageViewDTO.setSenderSignedImageUrl(signedUrl);
+                                messageViewDTO.getOriginalForwardedMessage().getImageIndexedName());
+
+                        messageViewDTO.getOriginalForwardedMessage().setSenderSignedImageUrl(forwardedMessageSenderSignedUrl);
                     }
 
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
@@ -463,11 +471,10 @@ public class ConversationService {
             UserViewDTO user = new UserViewDTO(participant.getUser());
 
             String imageIndexedName = participant.getUser().getImageIndexedName();
-            if (imageIndexedName != null) {
-                String signedImageUrl =
-                        cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
-                user.setSignedImageUrl(signedImageUrl);
-            }
+
+            String signedImageUrl =
+                    cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL, imageIndexedName);
+            user.setSignedImageUrl(signedImageUrl);
 
             participantViewDTO.setUser(user);
             return participantViewDTO;
@@ -686,7 +693,7 @@ public class ConversationService {
      * @return the smallest last-read message ID among other participants, or {@code null}
      *         if no other participants have read statuses recorded or if any participant has null
      */
-    private Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
+    public Long getLastReadMessageIdByParticipants(Long conversationId, Long loggedInUserId) {
         // read statuses of every participant, with their user id and last read message id
         Map<Long, Long> userReadStatuses =
             new HashMap<>(conversationReadStatusRepository.findLastReadMessageIdsByConversationId(conversationId));
@@ -1115,6 +1122,10 @@ public class ConversationService {
 
         boolean isPinningAction = !currentlyPinned;
 
+        ConversationEventType eventType = isPinningAction
+        ? ConversationEventType.MESSAGE_PINNED
+        : ConversationEventType.MESSAGE_UNPINNED;
+
         ZonedDateTime pinnedUntil = null;
 
         if (durationKey != null && isPinningAction) {
@@ -1131,16 +1142,21 @@ public class ConversationService {
         try {
             conversationRepository.save(conversation);
 
-            if (isPinningAction) {
-                conversationEventService.createMessageWithConversationEvent(
-                        conversationId,
-                        userId,
-                        null,
-                        ConversationEventType.MESSAGE_PINNED
-                );
-            }
+            conversationEventService.createMessageWithConversationEvent(
+                    conversationId,
+                    userId,
+                    null,
+                    eventType);
 
             cacheService.evictByPatternsForCurrentWorkspace(List.of(CacheNames.GET_CONVERSATION_META_DATA));
+
+            eventPublisher.publishEvent(new MessagePinEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversationId,
+                    isPinningAction ? new BasicMessageDTO(message) : null,
+                    userId
+            ));
+
         } catch (Exception exception) {
             logger.error("Failed to pin messageId: {} in conversationId: {}", messageId, conversationId, exception);
             throw new CustomBadRequestException("Failed to pin message in conversation");
@@ -1525,10 +1541,12 @@ public class ConversationService {
                 .findMessageSeenGroupParticipants(conversationId, messageId, userId,pageable);
 
         return users.map(user -> {
+            String imageIndexName = user.getImageIndexedName();
+
             String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
                     MediaPathEnum.RESIZED_PROFILE_PICTURE,
                     MediaSizeEnum.SMALL,
-                    user.getImageIndexedName()
+                    imageIndexName
             );
 
             UserBasicViewDTO userBasicViewDTO = new UserBasicViewDTO(user);

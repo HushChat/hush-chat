@@ -11,6 +11,7 @@ import com.platform.software.chat.conversationparticipant.entity.ConversationPar
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.repository.ConversationParticipantRepository;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
+import com.platform.software.chat.message.attachment.entity.AttachmentTypeEnum;
 import com.platform.software.chat.message.attachment.entity.MessageAttachment;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.message.dto.MessageForwardRequestDTO;
@@ -24,6 +25,7 @@ import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.exception.CustomResourceNotFoundException;
 import com.platform.software.utils.CommonUtils;
 
 import org.slf4j.Logger;
@@ -108,9 +110,11 @@ public class ConversationUtilService {
     public ConversationParticipant getConversationParticipantOrThrow(Long conversationId, Long userId) {
         return  conversationParticipantRepository
             .findByConversationIdAndUser_IdAndConversationDeletedFalse(conversationId, userId)
-            .orElseThrow(() -> new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
-                .formatted(conversationId))
-            );
+            .orElseThrow(() -> {
+            logger.error("conversation participant not found or access denied. conversationId={}, userId={}", 
+                conversationId, userId);
+            return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
+        });
     }
 
     /**
@@ -124,10 +128,28 @@ public class ConversationUtilService {
     public ConversationDTO getConversationDTOOrThrow(Long loggedInUserId, Long conversationId) {
         return conversationParticipantRepository
             .findConversationByUserIdAndConversationId(loggedInUserId, conversationId)
-            .orElseThrow(() ->
-                new CustomBadRequestException("Cannot find participant conversation with ID %s or dont have permission for this"
-                    .formatted(conversationId))
-            );
+            .orElseThrow(() -> {
+            logger.warn("conversation not found or access denied. conversationId={}, userId={}", 
+                conversationId, loggedInUserId);
+            return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
+        });
+    }
+
+    /**
+     * Retrieves a ConversationDTO for system use only by conversation ID, throwing an exception if not found.
+     *
+     * @param conversationId the ID of the conversation
+     * @return the ConversationDTO if found
+     * @throws CustomBadRequestException if the conversation is not found
+     */
+    public ConversationDTO getConversationDTOForSystemUseOnly(Long conversationId) {
+        return conversationParticipantRepository
+                .getConversationById(conversationId)
+                .orElseThrow(() -> {
+                    logger.warn("conversation not found or access denied. conversationId={}",
+                            conversationId);
+                    return new CustomResourceNotFoundException("Conversation not found or you don't have access to it");
+                });
     }
 
     /** Returns the conversation participant if the given user is an admin of the specified group conversation and the conversation is not deleted; otherwise, throws an exception.
@@ -250,10 +272,7 @@ public class ConversationUtilService {
     }
 
     public String getImageViewSignedUrl(MediaPathEnum path, MediaSizeEnum size, String imageIndexedName) {
-        if (imageIndexedName != null && !imageIndexedName.isEmpty()) {
-            return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
-        }
-        return imageIndexedName;
+        return cloudPhotoHandlingService.getPhotoViewSignedURL(path, size, imageIndexedName);
     }
 
     /**
@@ -379,11 +398,13 @@ public class ConversationUtilService {
         for (MessageAttachment attachment : attachments) {
             MessageAttachmentDTO dto = new MessageAttachmentDTO();
             try {
-                String fileViewSignedURL = cloudPhotoHandlingService
-                        .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                if (!attachment.getType().equals(AttachmentTypeEnum.GIF)) {
+                    String fileViewSignedURL = cloudPhotoHandlingService
+                            .getPhotoViewSignedURL(attachment.getIndexedFileName());
+                    dto.setFileUrl(fileViewSignedURL);
+                }
 
                 dto.setId(attachment.getId());
-                dto.setFileUrl(fileViewSignedURL);
                 dto.setIndexedFileName(attachment.getIndexedFileName());
                 dto.setOriginalFileName(attachment.getOriginalFileName());
                 dto.setType(attachment.getType());

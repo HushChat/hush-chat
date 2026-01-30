@@ -16,9 +16,6 @@ export const useConversationParticipantQuery = (conversationId: number, keyword:
     queryKey: conversationQueryKeys.ConversationParticipants(conversationId, keyword),
     queryFn: (pageParam: number) =>
       getConversationParticipants(conversationId, keyword, pageParam, 10),
-    options: {
-      staleTime: 5 * 60 * 1000, // 5 minutes stale time
-    },
     initialPageParam: 0,
   });
 

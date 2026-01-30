@@ -50,8 +50,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        long heartbeatServer = 10000;
-        long heartbeatClient = 10000;
+        long heartbeatServer = 25000;
+        long heartbeatClient = 25000;
 
         config.enableSimpleBroker("/topic")
             .setHeartbeatValue(new long[]{heartbeatServer, heartbeatClient})

@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Pressable, View, StyleSheet, ViewStyle, TextStyle, Image } from "react-native";
+import React, { useCallback } from "react";
+import { Pressable, View, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
@@ -12,9 +12,13 @@ import { useMessageUrlMetadataQuery } from "@/query/useMessageUrlMetadataQuery";
 import { PLATFORM } from "@/constants/platformConstants";
 import LinkPreviewCard from "@/components/conversations/LinkPreviewCard";
 import { getGifUrl, hasGif } from "@/utils/messageUtils";
+import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
+import { AppText } from "@/components/AppText";
+import { formatDateTime } from "@/utils/commonUtils";
 
 interface IMessageBubbleProps {
   message: IMessage;
+  currentUserId: string;
   isCurrentUser: boolean;
   hasText: boolean;
   hasAttachments: boolean;
@@ -28,10 +32,12 @@ interface IMessageBubbleProps {
   style?: ViewStyle | ViewStyle[];
   messageTextStyle?: TextStyle;
   isMessageEdited?: boolean;
+  isMobileLayout?: boolean;
 }
 
 export const MessageBubble = ({
   message,
+  currentUserId,
   isCurrentUser,
   hasText,
   hasAttachments,
@@ -44,33 +50,56 @@ export const MessageBubble = ({
   onMentionClick,
   style,
   isMessageEdited,
+  isMobileLayout,
 }: IMessageBubbleProps) => {
   const messageContent = message.messageText;
-
-  const bubbleMaxWidthStyle = useMemo(() => {
-    if (message.isIncludeUrlMetadata) {
-      return PLATFORM.IS_WEB ? styles.maxWidthWebForLink : styles.maxWidthRegular;
-    }
-
-    return hasAttachments ? styles.maxWidthAttachments : styles.maxWidthRegular;
-  }, [message]);
+  const hasGifMedia = hasGif(message);
+  const gifUrl = getGifUrl(message);
 
   const { messageUrlMetadata, isMessageUrlMetadataFetching } = useMessageUrlMetadataQuery(
     message.id,
     message.isIncludeUrlMetadata
   );
-  const hasGifMedia = hasGif(message);
-  const gifUrl = getGifUrl(message);
 
   const handleMentionPress = (username: string) => {
     if (!onMentionClick || !message.mentions) return;
-
     const mentionedUser = message.mentions.find((user) => user.username === username);
-
     if (mentionedUser) {
       onMentionClick(mentionedUser);
     }
   };
+
+  const forwardedMessage = useCallback(() => {
+    const forwardedMsg = message.originalForwardedMessage;
+
+    return (
+      <View className="flex flex-row items-center gap-x-2 mb-2 p-2 bg-black/20 rounded-lg border-l-4 border-purple-400">
+        <InitialsAvatar
+          name={forwardedMsg?.senderFirstName || ""}
+          size={AvatarSize.extraSmall}
+          imageUrl={forwardedMsg?.senderSignedImageUrl}
+        />
+
+        <View>
+          <AppText
+            className={classNames(
+              "text-xs font-bold",
+              isCurrentUser ? "text-white" : "dark:text-secondary-light text-gray-800"
+            )}
+          >
+            {forwardedMsg?.senderId && String(forwardedMsg?.senderId) === currentUserId
+              ? "You"
+              : `${forwardedMsg?.senderFirstName} ${forwardedMsg?.senderLastName}`}
+          </AppText>
+          <AppText
+            className={classNames("text-[10px]", isCurrentUser ? "text-gray-200" : "text-gray-500")}
+          >
+            {formatDateTime(forwardedMsg?.createdAt ?? "")}
+          </AppText>
+        </View>
+      </View>
+    );
+  }, [isCurrentUser, currentUserId, message.originalForwardedMessage]);
 
   return (
     <Pressable onPress={onBubblePress} disabled={!messageContent && !hasAttachments && !hasGif}>
@@ -90,7 +119,7 @@ export const MessageBubble = ({
       )}
 
       <View
-        className={classNames("rounded-xl", isCurrentUser ? "items-end" : "items-start")}
+        className={classNames("rounded-2xl", isCurrentUser ? "items-end" : "items-start")}
         style={style}
       >
         <MessageLabel
@@ -101,36 +130,29 @@ export const MessageBubble = ({
 
         <View
           className={classNames(
-            "rounded-lg border-2",
+            "rounded-2xl overflow-hidden",
             {
               "max-w-[310px]": hasMedia || hasGifMedia || hasAttachments,
-              "max-w-[600px]": PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
+              "max-w-[600px]": PLATFORM.IS_WEB && !hasMedia && !hasGifMedia && !isMobileLayout,
+              "max-w-[85vw]": PLATFORM.IS_WEB && isMobileLayout && !hasMedia && !hasGifMedia,
               "max-w-[280px]": !PLATFORM.IS_WEB && !hasMedia && !hasGifMedia,
             },
             {
-              "bg-primary-light dark:bg-primary-dark rounded-tr-none":
+              "bg-primary-light dark:bg-primary-dark rounded-tr-sm":
                 (hasText || hasMedia || hasGifMedia) && isCurrentUser,
-              "bg-secondary-light dark:bg-secondary-dark rounded-tl-none":
+
+              "bg-secondary-light dark:bg-secondary-dark rounded-tl-sm":
                 (hasText || hasMedia || hasGifMedia) && !isCurrentUser,
-              "bg-transparent": !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
 
-              "border-sky-500 dark:border-sky-400": selected && selectionMode,
-              "border-transparent": !(selected && selectionMode),
-
-              "shadow-sm": isForwardedMessage,
-
-              "px-3 py-2": !(hasMedia && !messageContent && messageUrlMetadata) && !hasGifMedia,
-              "p-1": messageUrlMetadata,
-            }
+              "bg-transparent shadow-none":
+                !(hasText || hasMedia || hasGifMedia) || message.isUnsend,
+            },
+            {
+              "border-2 border-sky-500": selected && selectionMode,
+              "border-0": !(selected && selectionMode),
+            },
+            "px-3 py-2"
           )}
-          style={{
-            ...bubbleMaxWidthStyle,
-            ...(isForwardedMessage
-              ? isCurrentUser
-                ? { borderRightColor: "#60A5FA30" }
-                : { borderLeftColor: "#9CA3AF30" }
-              : {}),
-          }}
         >
           {hasGifMedia && !message.isUnsend && (
             <View className={messageContent ? "mb-2" : ""}>
@@ -149,6 +171,7 @@ export const MessageBubble = ({
               )}
             </View>
           )}
+
           {hasAttachments && !hasGifMedia && (
             <View className={messageContent ? "mb-2" : ""}>
               {renderFileGrid(attachments, isCurrentUser)}
@@ -168,12 +191,16 @@ export const MessageBubble = ({
                 onMentionPress={handleMentionPress}
               />
             ) : (
-              <FormattedText
-                text={message.messageText}
-                mentions={message.mentions}
-                isCurrentUser={isCurrentUser}
-                onMentionPress={handleMentionPress}
-              />
+              <View className="flex-col gap-y-1">
+                {message.isForwarded && forwardedMessage()}
+
+                <FormattedText
+                  text={message.messageText}
+                  mentions={message.mentions}
+                  isCurrentUser={isCurrentUser}
+                  onMentionPress={handleMentionPress}
+                />
+              </View>
             )
           ) : null}
         </View>
@@ -181,15 +208,3 @@ export const MessageBubble = ({
     </Pressable>
   );
 };
-
-const styles = StyleSheet.create({
-  maxWidthAttachments: {
-    maxWidth: 305,
-  },
-  maxWidthRegular: {
-    maxWidth: "100%",
-  },
-  maxWidthWebForLink: {
-    maxWidth: "40%",
-  },
-});

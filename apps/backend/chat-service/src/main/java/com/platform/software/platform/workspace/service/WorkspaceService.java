@@ -1,5 +1,11 @@
 package com.platform.software.platform.workspace.service;
 
+import com.platform.software.chat.message.dto.MessageUpsertDTO;
+import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.service.MessageService;
+import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserRepository;
+import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomInternalServerErrorException;
 import com.platform.software.exception.MigrationException;
@@ -15,6 +21,7 @@ import com.platform.software.platform.workspaceuser.repository.WorkspaceUserRepo
 import com.platform.software.utils.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,14 +30,21 @@ import java.util.List;
 public class WorkspaceService {
     Logger logger = LoggerFactory.getLogger(WorkspaceService.class);
 
+    @Value("${workspace.bot.user.mail}")
+    private String workspaceBotUserMail;
+
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceUserRepository workspaceUserRepository;
     private final DatabaseSchemaService databaseSchemaService;
+    private final MessageService messageService;
+    private final UserRepository userRepository;
 
-    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService) {
+    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceUserRepository workspaceUserRepository, DatabaseSchemaService databaseSchemaService, MessageService messageService, UserRepository userRepository) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceUserRepository = workspaceUserRepository;
         this.databaseSchemaService = databaseSchemaService;
+        this.messageService = messageService;
+        this.userRepository = userRepository;
     }
 
     public void requestCreateWorkspace(WorkspaceUpsertDTO workspaceUpsertDTO, String loggedInUserEmail) {
@@ -108,10 +122,10 @@ public class WorkspaceService {
 
         WorkspaceUtils.runInGlobalSchema(() -> {
             Workspace workspace = workspaceRepository.findById(workspaceId)
-                    .orElseThrow(() -> new CustomBadRequestException("Workspace with ID '" + workspaceId + "' not found"));
+                    .orElseThrow(() -> new CustomBadRequestException("Workspace not found!"));
 
             if (workspace.getStatus() != null && workspace.getStatus().equals(WorkspaceStatus.ACTIVE)) {
-                throw new CustomBadRequestException("Workspace with ID '" + workspaceId + "' is already active");
+                throw new CustomBadRequestException("Workspace is already active!");
             }
 
             createWorkspace(new WorkspaceUpsertDTO(workspace.getName(), workspace.getDescription(), workspace.getImageUrl()));
@@ -130,8 +144,31 @@ public class WorkspaceService {
     public List<String> getAllWorkspaces(){
         return WorkspaceUtils.runInGlobalSchema(() -> workspaceRepository.findAllByWorkspaceIdentifierIsNotNull()
                 .stream()
+                .filter(workspace -> workspace.getStatus() != WorkspaceStatus.PENDING)
                 .map(Workspace::getWorkspaceIdentifier)
                 .filter(id -> !id.isBlank())
-                .toList());
+                .toList()
+        );
+    }
+
+    /**
+     * Create bot message in a conversation
+     *
+     * @param messageDTO      the message data
+     * @param conversationId  the ID of the conversation
+     * @return MessageViewDTO
+     */
+    public MessageViewDTO createBotMessage(MessageUpsertDTO messageDTO, Long conversationId) {
+
+        ChatUser botUser = userRepository.findByEmail(workspaceBotUserMail)
+                .orElseThrow(() -> new CustomInternalServerErrorException("Workspace bot user not found"));
+
+        if (WorkspaceContext.getCurrentWorkspace() == null){
+            throw new CustomBadRequestException("Workspace is not set");
+        }
+
+        return messageService.createBotMessage(
+                messageDTO, conversationId, botUser.getId()
+        );
     }
 }

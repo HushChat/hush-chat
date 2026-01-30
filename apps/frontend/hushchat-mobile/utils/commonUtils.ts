@@ -76,6 +76,7 @@ const getInitials = (name: string): string => {
     .split(" ")
     .filter((word) => word.length > 0)
     .map((word) => word[0]?.toUpperCase() || "")
+    .slice(0, 2)
     .join("");
 };
 
@@ -213,8 +214,8 @@ const capitalizeFirstLetter = (word: string): string => {
   return trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase();
 };
 
-const getDeviceType = (): DeviceType => {
-  if (PLATFORM.IS_WEB) return DeviceType.WEB;
+const getDeviceType = (isMobileView: boolean): DeviceType => {
+  if (!isMobileView) return DeviceType.WEB;
   return DeviceType.MOBILE;
 };
 

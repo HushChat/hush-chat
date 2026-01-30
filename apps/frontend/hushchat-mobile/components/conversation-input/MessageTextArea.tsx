@@ -67,7 +67,7 @@ const MessageTextArea = forwardRef<TextInput, IMessageTextAreaProps>(
         paddingVertical: PLATFORM.IS_WEB ? verticalPadding : verticalPadding / 2,
         paddingRight: INPUT_PADDING_RIGHT_PX,
         fontSize: INPUT_FONT_SIZE,
-        fontFamily: "Poppins-Regular",
+        fontFamily: "Poppins-Regular, OpenMoji-Color",
         ...(PLATFORM.IS_WEB && {
           lineHeight: lineHeight + WEB_LINE_HEIGHT_ADJUST,
           overflowY: "auto" as const,

@@ -122,6 +122,7 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             accessor.getSessionAttributes().put(Constants.JWT_CLAIM_EMAIL, email);
             accessor.getSessionAttributes().put(GeneralConstants.WORKSPACE_ID, workspaceId);
             accessor.getSessionAttributes().put(GeneralConstants.DEVICE_TYPE, deviceType);
+            accessor.getSessionAttributes().put(GeneralConstants.DEVICE_ID, deviceId);
 
             // Use sessionKey as the principal identifier
             Principal principal = () -> createUserPrinciple(workspaceId, email);

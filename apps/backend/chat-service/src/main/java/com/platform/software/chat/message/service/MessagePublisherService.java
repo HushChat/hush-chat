@@ -1,13 +1,12 @@
 package com.platform.software.chat.message.service;
 
 import com.platform.software.chat.conversation.dto.ConversationDTO;
+import com.platform.software.chat.conversation.readstatus.dto.MessageReadStatusWSResponseDTO;
 import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
-import com.platform.software.chat.message.dto.MessageUnsentWSResponseDTO;
-import com.platform.software.chat.message.dto.MessageReactionWSResponseDTO;
-import com.platform.software.chat.message.dto.MessageViewDTO;
+import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.ReactionTypeEnum;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.notification.entity.DeviceType;
@@ -53,13 +52,20 @@ public class MessagePublisherService {
      */
     @Transactional(readOnly = true)
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId,
-            String workspaceId) {
-        ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
+            String workspaceId, MessageTypeEnum messageType) {
 
-        ConversationParticipantViewDTO senderParticipant = conversationDTO.getParticipants().stream()
-                .filter(p -> p.getUser().getId().equals(senderId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));;
+        ConversationDTO conversationDTO = null;
+        ConversationParticipantViewDTO senderParticipant = null;
+
+        if(messageType == MessageTypeEnum.BOT_MESSAGE) {
+            conversationDTO = conversationUtilService.getConversationDTOForSystemUseOnly(conversationId);
+        } else {
+            conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
+            senderParticipant = conversationDTO.getParticipants().stream()
+                    .filter(p -> p.getUser().getId().equals(senderId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));
+        }
 
         // when sending ws message, conversation name need to be named of the message
         // sender for non group conversations
@@ -86,14 +92,23 @@ public class MessagePublisherService {
         }
         messageViewDTO.setMessageAttachments(attachmentDTOs);
 
+        if (messageViewDTO.getImageIndexedName() != null) {
+            String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                    MediaSizeEnum.SMALL, messageViewDTO.getImageIndexedName());
+            messageViewDTO.setSenderSignedImageUrl(signedUrl);
+        }
+
         conversationDTO.setMessages(List.of(messageViewDTO));
 
-        DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
-                WorkspaceContext.getCurrentWorkspace(),
-                senderParticipant.getUser().getEmail()
-        );
-        conversationDTO.setDeviceType(deviceType);
+        if (senderParticipant != null) {
+            DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    senderParticipant.getUser().getEmail()
+            );
+            conversationDTO.setDeviceType(deviceType);
+        }
 
+        ConversationDTO finalConversationDTO = conversationDTO;
         conversationDTO.getParticipants().stream()
                 .filter(p -> p.getUser() != null && p.getUser().getId() != null)
                 .filter(p -> !p.getUser().getId().equals(senderId))
@@ -102,14 +117,13 @@ public class MessagePublisherService {
                     if (email == null)
                         return;
 
-                    ConversationDTO payload = getConversationDTO(participant, conversationDTO);
-                    if (payload.getImageIndexedName() != null && !payload.getImageIndexedName().isBlank()) {
-                        payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
-                                payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE ,
-                                MediaSizeEnum.MEDIUM,
-                                payload.getImageIndexedName())
-                        );
-                    }
+                    ConversationDTO payload = getConversationDTO(participant, finalConversationDTO);
+
+                    payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
+                            payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                            MediaSizeEnum.MEDIUM,
+                            payload.getImageIndexedName())
+                    );
 
                     webSocketSessionManager.sendMessageToUser(
                             workspaceId,
@@ -187,7 +201,6 @@ public class MessagePublisherService {
      *                             null on removal
      * @param previousReactionType the previous reaction type before the action, if
      *                             any
-     * @param action               the reaction action type (ADD, UPDATE, REMOVE)
      * @param workspaceId          the workspace (tenant) identifier
      */
     @Async
@@ -221,5 +234,110 @@ public class MessagePublisherService {
                         email,
                         WebSocketTopicConstants.MESSAGE_REACTION,
                         payload));
+    }
+  
+    /**
+     * Notify conversation participants in real time when a message is marked as
+     * read/seen.
+     * <p>
+     * The user who marked the message as read (actor) is explicitly excluded from
+     * receiving the WebSocket event, as their UI state is already updated locally.
+     *
+     * @param workspaceId       the workspace (tenant) identifier
+     * @param conversationId    the conversation ID where the message was read
+     * @param actorUserId       the user ID who marked the message as read
+     * @param lastSeenMessageId the ID of the last seen/read message
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageReadStatusToParticipants(
+            String workspaceId,
+            Long conversationId,
+            Long actorUserId,
+            Long lastSeenMessageId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId,
+                actorUserId);
+
+        MessageReadStatusWSResponseDTO payload = new MessageReadStatusWSResponseDTO(conversationId, lastSeenMessageId);
+
+        participants.stream()
+                .filter(p -> p.getId() != null)
+                .map(ChatUser::getEmail)
+                .filter(email -> email != null && !email.isBlank())
+                .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                        workspaceId,
+                        email,
+                        WebSocketTopicConstants.MESSAGE_READ,
+                        payload));
+    }
+
+    /**
+      * Notify conversation participants in real time when a message is updated.
+      * @param conversationId the conversation ID
+      * @param messageViewDTO the updated message view DTO
+      * @param actorUserId    the user ID who updated the message
+      * @param workspaceId    the workspace identifier
+      */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessageUpdatedToParticipants(
+            Long conversationId,
+            MessageViewDTO messageViewDTO,
+            Long actorUserId,
+            String workspaceId
+    ) {
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(
+                conversationId,
+                actorUserId);
+
+        participants.stream()
+                        .filter(p -> p.getId() != null)
+                        .map(ChatUser::getEmail)
+                        .filter(email -> email != null && !email.isBlank())
+                        .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                                workspaceId,
+                                email,
+                                WebSocketTopicConstants.MESSAGE_UPDATED,
+                                messageViewDTO));
+        }
+  
+    /**
+     * Notify conversation participants in real time when a message is pinned.
+     * <p>
+     * The user who initiated the pin action (actor) is explicitly excluded
+     * from receiving the WebSocket event, as their UI state is already updated
+     * locally.
+     *
+     * @param conversationId the conversation ID where the message was pinned
+     * @param pinnedMessage  the pinned message entity
+     * @param actorUserId    the user ID who initiated the pin action
+     * @param workspaceId    the workspace (tenant) identifier
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void invokeMessagePinToParticipants(
+            String workspaceId,
+            Long conversationId,
+            BasicMessageDTO pinnedMessage,
+            Long actorUserId
+    ) {
+        MessagePinWSResponseDTO payload = new MessagePinWSResponseDTO();
+        payload.setConversationId(conversationId);
+
+        payload.setPinnedMessage(pinnedMessage);
+
+        List<ChatUser> participants = conversationUtilService.getAllActiveParticipantsExceptSender(conversationId, actorUserId);
+
+        participants.stream()
+                .filter(p -> p.getId() != null)
+                .map(ChatUser::getEmail)
+                .filter(email -> email != null && !email.isBlank())
+                .forEach(email -> webSocketSessionManager.sendMessageToUser(
+                        workspaceId,
+                        email,
+                        WebSocketTopicConstants.MESSAGE_PINNED,
+                        payload
+                ));
     }
 }

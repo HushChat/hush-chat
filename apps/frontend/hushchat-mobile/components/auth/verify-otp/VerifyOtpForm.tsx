@@ -1,12 +1,15 @@
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { FormHeader, FormButton, ErrorMessage, FormContainer } from "@/components/FormComponents";
 import TextField from "@/components/forms/TextField";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
+import { router } from "expo-router";
+import { AUTH_REGISTER_PATH } from "@/constants/routes";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
 type TVerifyOtpFormProps = {
-  colors: any;
   errorMessage: string;
   confirmationCode: string;
   onCodeChange: (code: string) => void;
@@ -16,7 +19,6 @@ type TVerifyOtpFormProps = {
 };
 
 export const VerifyOtpForm = ({
-  colors,
   errorMessage,
   confirmationCode,
   onCodeChange,
@@ -24,51 +26,98 @@ export const VerifyOtpForm = ({
   onResendOtp,
   isLoading,
 }: TVerifyOtpFormProps) => {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 1024;
+  const { colors } = useAuthThemeColors();
+
+  const handleBack = () => {
+    router.replace(AUTH_REGISTER_PATH);
+  };
+
   return (
-    <FormContainer>
-      <FormHeader
-        title="Verify OTP"
-        subtitle="Enter the verification code sent to your email."
-        colors={colors}
-      />
+    <FormContainer style={isMobile ? { flex: 1 } : undefined}>
+      <View style={{ flex: 1 }}>
+        <View>
+          <TouchableOpacity
+            style={styles.backButtonTop}
+            onPress={handleBack}
+            activeOpacity={DEFAULT_ACTIVE_OPACITY}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
+              <AppText style={[styles.backButtonText, { color: colors.textSecondary }]}>
+                Back
+              </AppText>
+            </View>
+          </TouchableOpacity>
 
-      {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
+          <FormHeader
+            title="Check your email"
+            subtitle="We've sent a 6-digit verification code to your email"
+            colors={colors}
+          />
 
-      <View style={styles.fieldsContainer}>
-        <TextField
-          name="otp"
-          placeholder="OTP"
-          keyboardType="numeric"
-          autoCapitalize="none"
-          formValues={{ otp: confirmationCode }}
-          formErrors={{ otp: "" }}
-          showErrors={false}
-          onValueChange={({ value }) => onCodeChange(value)}
-        />
+          {!!errorMessage && <ErrorMessage message={errorMessage} colors={colors} />}
+
+          <View style={styles.fieldsContainer}>
+            <TextField
+              name="otp"
+              placeholder="OTP"
+              keyboardType="numeric"
+              autoCapitalize="none"
+              formValues={{ otp: confirmationCode }}
+              formErrors={{ otp: "" }}
+              showErrors={false}
+              size="md"
+              onValueChange={({ value }) => onCodeChange(value)}
+            />
+          </View>
+
+          <View style={styles.resendContainer}>
+            <AppText style={[styles.resendText, { color: colors.textSecondary }]}>
+              Didn&apos;t receive the code?{" "}
+            </AppText>
+
+            <TouchableOpacity onPress={onResendOtp} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
+              <AppText style={[styles.resendLink, { color: colors.primary }]}>Resend</AppText>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Spacer */}
+        <View style={{ flex: isMobile ? 1 : 0, minHeight: 20 }} />
+
+        <View>
+          <FormButton
+            title={isLoading ? "Verifying..." : "Verify and Continue"}
+            onPress={onSubmit}
+            disabled={isLoading}
+            colors={colors}
+            style={styles.submitButton}
+          />
+
+          <View style={styles.bottomLinkContainer}>
+            <AppText style={[styles.resendText, { color: colors.textSecondary }]}>
+              Wrong email?{" "}
+            </AppText>
+            <TouchableOpacity onPress={handleBack} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
+              <AppText style={[styles.resendLink, { color: colors.primary }]}>Go back</AppText>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-
-      <View style={styles.resendContainer}>
-        <AppText style={[styles.resendText, { color: colors.textSecondary }]}>
-          Didn&apos;t receive the verification code?{" "}
-        </AppText>
-
-        <TouchableOpacity onPress={onResendOtp} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
-          <AppText style={[styles.resendLink, { color: colors.primary }]}>Resend</AppText>
-        </TouchableOpacity>
-      </View>
-
-      <FormButton
-        title={isLoading ? "Verifying..." : "Verify & Proceed"}
-        onPress={onSubmit}
-        disabled={isLoading}
-        colors={colors}
-        style={styles.submitButton}
-      />
     </FormContainer>
   );
 };
 
 const styles = StyleSheet.create({
+  backButtonTop: {
+    marginBottom: 10,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
   fieldsContainer: {
     flexDirection: "column",
     gap: 10,
@@ -86,9 +135,14 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14,
-    textDecorationLine: "underline",
+    fontWeight: "500",
   },
   submitButton: {
     marginTop: 24,
+  },
+  bottomLinkContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

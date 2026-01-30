@@ -6,7 +6,6 @@ import { useGetAllMessageSeenParticipantsQuery } from "@/query/useGetAllMessageS
 import { TUser } from "@/types/user/types";
 import { AppText } from "@/components/AppText";
 import InitialsAvatar from "@/components/InitialsAvatar";
-import { Image } from "expo-image";
 
 interface MessageInfoProps {
   conversationId: number;
@@ -15,8 +14,6 @@ interface MessageInfoProps {
   visible: boolean;
   panelWidth?: number;
 }
-
-const SIZE = 40;
 
 export default function MessageInfoPanel({
   conversationId,
@@ -57,18 +54,11 @@ export default function MessageInfoPanel({
 
   const renderParticipant = ({ item }: { item: TUser }) => (
     <View className="flex-row items-center px-4 py-3">
-      {item.signedImageUrl ? (
-        <Image
-          source={{ uri: item.signedImageUrl }}
-          style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2 }}
-          className="bg-gray-200"
-          contentFit="cover"
-          transition={200}
-          cachePolicy="memory-disk"
-        />
-      ) : (
-        <InitialsAvatar name={`${item.firstName ?? ""} ${item.lastName}`} size="sm" />
-      )}
+      <InitialsAvatar
+        name={`${item.firstName ?? ""} ${item.lastName}`}
+        size="sm"
+        imageUrl={item.signedImageUrl}
+      />
 
       <View className="ml-3 flex-1">
         <AppText className="text-base font-medium text-gray-900 dark:text-gray-100">

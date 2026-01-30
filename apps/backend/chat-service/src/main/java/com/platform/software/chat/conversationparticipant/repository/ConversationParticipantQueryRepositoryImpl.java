@@ -7,6 +7,7 @@ import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantFilterCriteriaDTO;
 import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.conversationparticipant.entity.ConversationParticipant;
+import com.platform.software.chat.conversationparticipant.entity.ConversationParticipantRoleEnum;
 import com.platform.software.chat.conversationparticipant.entity.QConversationParticipant;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -19,6 +20,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -70,30 +72,46 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         return buildConversationDTOs(results, userId);
     }
 
+    private JPAQuery<Tuple> getConversationQuery(Long conversationId) {
+        return queryFactory
+                .select(qConversationParticipant, qConversation, qUser)
+                .from(qConversationParticipant)
+                .leftJoin(qConversationParticipant.conversation, qConversation)
+                .leftJoin(qConversationParticipant.user, qUser)
+                .where(qConversationParticipant.conversation.id.eq(conversationId))
+                .where(qConversationParticipant.isActive.isTrue());
+    }
+
     @Override
     public Optional<ConversationDTO> findConversationByUserIdAndConversationId(Long userId, Long conversationId) {
-        // Single query to check participation and get all participants
-        List<Tuple> results = queryFactory
-            .select(qConversationParticipant, qConversation, qUser)
-            .from(qConversationParticipant)
-            .leftJoin(qConversationParticipant.conversation, qConversation)
-            .leftJoin(qConversationParticipant.user, qUser)
-            .where(qConversationParticipant.isActive.isTrue())
-            .where(qConversationParticipant.conversation.id.eq(
-                    queryFactory.select(qConversationParticipant.conversation.id) // inner query to check if the user is in the conversation
-                        .from(qConversationParticipant)
-                        .where(qConversationParticipant.user.id.eq(userId)
-                            .and(qConversationParticipant.conversation.id.eq(conversationId)))
-                        .where(qConversationParticipant.isActive.isTrue())
-                        .limit(1)
+        List<Tuple> results = getConversationQuery(conversationId)
+                .where(qConversationParticipant.conversation.id.eq(
+                        queryFactory.select(qConversationParticipant.conversation.id)
+                                .from(qConversationParticipant)
+                                .where(qConversationParticipant.user.id.eq(userId)
+                                        .and(qConversationParticipant.conversation.id.eq(conversationId))
+                                        .and(qConversationParticipant.isActive.isTrue()))
+                                .limit(1)
                 ))
-            .fetch();
+                .fetch();
 
         if (results.isEmpty()) {
             return Optional.empty();
         }
 
         List<ConversationDTO> conversationDTOs = buildConversationDTOs(results, userId);
+        return conversationDTOs.isEmpty() ? Optional.empty() : Optional.of(conversationDTOs.getFirst());
+    }
+
+    @Override
+    public Optional<ConversationDTO> getConversationById(Long conversationId) {
+        List<Tuple> results = getConversationQuery(conversationId).fetch();
+
+        if (results.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<ConversationDTO> conversationDTOs = buildConversationDTOs(results, null);
         return conversationDTOs.isEmpty() ? Optional.empty() : Optional.of(conversationDTOs.getFirst());
     }
 
@@ -199,12 +217,18 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
     @Override
     @Transactional
     public long updateIsActiveById(Long id, Boolean isActive) {
-        return queryFactory
-            .update(qConversationParticipant)
-            .set(qConversationParticipant.isActive, isActive)
-            .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now())
-            .where(qConversationParticipant.id.eq(id))
-            .execute();
+        JPAUpdateClause updateClause = queryFactory
+                .update(qConversationParticipant)
+                .set(qConversationParticipant.isActive, isActive)
+                .set(qConversationParticipant.inactiveFrom, isActive ? null : ZonedDateTime.now());
+
+        if (!isActive) {
+            updateClause.set(qConversationParticipant.role, ConversationParticipantRoleEnum.MEMBER);
+        }
+
+        return updateClause
+                .where(qConversationParticipant.id.eq(id))
+                .execute();
     }
 
     @Override
@@ -346,8 +370,7 @@ public class ConversationParticipantQueryRepositoryImpl implements ConversationP
         BooleanBuilder where = new BooleanBuilder();
 
         where.and(qConversationParticipant.conversation.id.eq(conversationId))
-                .and(qConversationParticipant.isActive.isTrue())
-                .and(qConversationParticipant.isDeleted.isFalse());
+                .and(qConversationParticipant.isActive.isTrue());
 
         if (StringUtils.hasText(filterCriteria.getKeyword())) {
             String keyword = filterCriteria.getKeyword().trim();

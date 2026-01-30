@@ -3,12 +3,12 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
-import { SIZES } from "@/constants/mediaConstants"; // or mediaConstants
+import { SIZES } from "@/constants/mediaConstants";
 import { getFileType } from "@/utils/files/getFileType";
 import { isLocalPreviewSupported } from "@/utils/filePreviewUtils";
 import { AppText } from "@/components/AppText";
-import ConversationInput from "@/components/conversation-input/ConversationInput";
 import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
+import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 
 type TFilePreviewPaneProps = {
   file: File;
@@ -20,6 +20,7 @@ type TFilePreviewPaneProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
 };
 
 const FilePreviewPane = ({
@@ -32,9 +33,10 @@ const FilePreviewPane = ({
   isGroupChat = false,
   replyToMessage,
   onCancelReply,
+  inputRef,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
-  const [fileType, setFileType] = useState<"image" | "document" | "video" | "unsupported">("image");
+  const [fileType, setFileType] = useState<"image" | "document" | "video">("document");
   const [loading, setLoading] = useState(false);
 
   const isDark = colorScheme.get() === "dark";
@@ -49,17 +51,24 @@ const FilePreviewPane = ({
     const type = getFileType(file.name);
     setFileType(type);
 
-    if (isIframePreviewable) {
-      setLoading(true);
+    if (type === "image" || type === "video" || isIframePreviewable) {
+      if (isIframePreviewable) {
+        setLoading(true);
+      }
+
+      const objUrl = URL.createObjectURL(file);
+      setUrl(objUrl);
+
+      return () => {
+        URL.revokeObjectURL(objUrl);
+        setLoading(false);
+      };
+    } else {
+      setUrl("");
+      return () => {
+        setLoading(false);
+      };
     }
-
-    const objUrl = URL.createObjectURL(file);
-    setUrl(objUrl);
-
-    return () => {
-      URL.revokeObjectURL(objUrl);
-      setLoading(false);
-    };
   }, [file, isIframePreviewable]);
 
   const prettySize = useMemo(() => {
@@ -120,9 +129,9 @@ const FilePreviewPane = ({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-1 items-center justify-center px-6 py-4">{renderPreviewContent()}</View>
-
       <View style={styles.inputContainer}>
         <ConversationInput
+          ref={inputRef}
           conversationId={conversationId}
           onSendMessage={onSendFiles}
           disabled={isSending}

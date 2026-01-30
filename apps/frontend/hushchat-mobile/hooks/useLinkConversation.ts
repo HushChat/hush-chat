@@ -24,7 +24,7 @@ export function useLinkConversation({
       previousConversationId.current = initialConversationId;
     }
 
-    if (!initialConversationId || conversations.length === 0 || hasInitialized.current) {
+    if (!initialConversationId || hasInitialized.current) {
       return;
     }
 

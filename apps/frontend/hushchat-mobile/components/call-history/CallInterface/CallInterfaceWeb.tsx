@@ -44,7 +44,9 @@ const CallInterface = ({
                 <AppText className="text-xl sm:text-2xl font-bold text-text-primary-light dark:text-text-primary-dark">
                   Calls
                 </AppText>
-                <RefreshButton onRefresh={refetchCallLogs} isLoading={isCallLogsLoading} />
+                {__DEV__ && (
+                  <RefreshButton onRefresh={refetchCallLogs} isLoading={isCallLogsLoading} />
+                )}
               </View>
 
               <View className="px-4 sm:px-6 py-3">

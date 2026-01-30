@@ -21,6 +21,7 @@ jobs:
       CLOUD_AWS_ACCESS_KEY: ${{ secrets.DEV_CLOUD_AWS_ACCESS_KEY }}
       CLOUD_AWS_SECRET_KEY: ${{ secrets.DEV_CLOUD_AWS_SECRET_KEY }}
       PRIVATE_BUCKET_NAME: ${{ vars.DEV_PRIVATE_BUCKET_NAME }}
+      CLOUD_FRONT_URL: ${{ vars.DEV_CLOUD_FRONT_URL }}
 
       # Logging / ELK
       LOG_ELK_HOST: ${{ vars.DEV_LOG_ELK_HOST }}
@@ -62,6 +63,10 @@ jobs:
       TENOR_API_KEY: ${{ vars.TENOR_API_KEY }}
       TENOR_API_BASE_URL: ${{ vars.TENOR_API_BASE_URL }}
 
+      #Ratelimit
+      RATE_LIMITING_ENABLED: ${{ vars.RATE_LIMITING_ENABLED }}
+      RATE_LIMITING_REQUESTS_PER_MINUTE: ${{ vars.RATE_LIMITING_REQUESTS_PER_MINUTE }}
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -73,6 +78,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: Set up Node.js + Install dependencies
         uses: ./.github/actions/setup-node-yarn-install

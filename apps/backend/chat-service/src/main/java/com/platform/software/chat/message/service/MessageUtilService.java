@@ -13,6 +13,7 @@ import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.repository.MessageRepository;
 import com.platform.software.chat.user.entity.ChatUser;
+import com.platform.software.chat.user.repository.UserBlockRepository;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.aws.CloudPhotoHandlingService;
 import com.platform.software.exception.CustomBadRequestException;
@@ -21,6 +22,7 @@ import com.platform.software.exception.CustomInternalServerErrorException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,12 +33,16 @@ import java.util.List;
 public class MessageUtilService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${workspace.bot.allowed-conversations}")
+    private List<Long> allowedBotConversations;
+
     private final ConversationUtilService conversationUtilService;
     private final UserService userService;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
     private final ConversationPermissionGuard conversationPermissionGuard;
+    private final UserBlockRepository userBlockRepository;
 
     /**
      * Retrieves the recipient ID for a one-to-one conversation.
@@ -68,7 +74,7 @@ public class MessageUtilService {
                     senderUserId, recipientId, conversation.getId());
 
                 // TODO: Replace with CustomBusinessRuleException once we standardize business rule violations
-                throw new CustomBadRequestException("Cannot interact with blocked conversations");
+                throw new CustomBadRequestException("Something went wrong!");
             }
         } else {
             boolean isActive = conversationRepository.getIsActiveByConversationIdAndUserId(conversation.getId(), senderUserId);
@@ -129,6 +135,31 @@ public class MessageUtilService {
     }
 
     /**
+     * Creates a new bot message in the specified conversation.
+     * No validation on bot message
+     *
+     * @param conversationId the ID of the conversation
+     * @param senderUserId the ID of the bot user sending the message
+     * @param message the message details
+     * @return the saved Message entity
+     */
+    public Message createBotMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
+        ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+
+        isBotMessageAllowedOrThrow(conversation);
+
+        Message botMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
+
+        try {
+            return messageRepository.saveMessageWthSearchVector(botMessage);
+        } catch (Exception e) {
+            logger.error("conversation message save failed.", e);
+            throw new CustomInternalServerErrorException("Failed to send message");
+        }
+    }
+
+    /**
      * Enriches parent message attachment DTOs with signed URLs for secure file access.
      *
      * @param messageAttachmentDTOs the list of message attachment DTOs to enrich with signed URLs
@@ -144,8 +175,10 @@ public class MessageUtilService {
 
         for (MessageAttachmentDTO messageAttachmentDTO : messageAttachmentDTOs) {
             try {
-                String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageAttachmentDTO.getIndexedFileName());
-                messageAttachmentDTO.setFileUrl(signedUrl);
+                if (!messageAttachmentDTO.getType().equals(AttachmentTypeEnum.GIF)) {
+                    String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(messageAttachmentDTO.getIndexedFileName());
+                    messageAttachmentDTO.setFileUrl(signedUrl);
+                }
 
                 attachmentDTOsWithSignedUrl.add(messageAttachmentDTO);
             } catch (Exception e) {
@@ -156,5 +189,39 @@ public class MessageUtilService {
         }
 
         return  attachmentDTOsWithSignedUrl;
+    }
+
+    /**
+     * Verifies if an interaction is restricted due to a block between users in 1-to-1 conversations.
+     * <p>
+     * This method checks if the provided conversation is a direct message (non-group).
+     * If so, it queries the {@code userBlockRepository} to determine if either participant
+     * has blocked the other.
+     * </p>
+     * * @param conversation the {@link Conversation} to check for block restrictions.
+     * @throws CustomBadRequestException if the conversation is 1-to-1 and a block exists
+     * between the participants.
+     */
+    public void checkInteractionRestrictionBetweenOneToOneConversation(Conversation conversation) {
+        if (!conversation.getIsGroup()) {
+            boolean isBlocked = userBlockRepository.existsBlockBetweenUsers(conversation.getId());
+            if (isBlocked) {
+                throw new CustomBadRequestException("Something went wrong!");
+            }
+        }
+    }
+
+    /**
+     * Checks if bot messages are allowed in the specified conversation.
+     *
+     * @param conversation the conversation to check
+     * @throws CustomBadRequestException if bot messages are not allowed in the conversation
+     */
+    public void isBotMessageAllowedOrThrow(Conversation conversation) {
+        //TODO: Move this to DB
+        if(!allowedBotConversations.contains(conversation.getId())) {
+            logger.warn("Bot message attempted in disallowed conversation {}", conversation.getId());
+            throw new CustomBadRequestException("Bot messages are not allowed in this conversation");
+        }
     }
 }

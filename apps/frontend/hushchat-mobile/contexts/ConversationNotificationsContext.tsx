@@ -9,7 +9,7 @@ import {
 } from "react";
 import { eventBus } from "@/services/eventBus";
 import { IConversation, IMessage, IUserStatus } from "@/types/chat/types";
-import { playMessageSound } from "@/utils/playSound";
+import { playMessageSound, SoundType } from "@/utils/playSound";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { updatePaginatedItemInCache } from "@/query/config/updatePaginatedItemInCache";
 import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
@@ -28,10 +28,12 @@ import {
   MessageReactionPayload,
   MessageUnsentPayload,
 } from "@/types/ws/types";
+import { useMessageReadListener } from "@/hooks/useMessageReadListener";
+import { useMessagePinnedListener } from "@/hooks/useMessagePinnedListener";
 
 const PAGE_SIZE = 20;
 
-interface PaginatedResult<T> {
+export interface PaginatedResult<T> {
   content: T[];
   last?: boolean;
   totalElements?: number;
@@ -44,11 +46,25 @@ interface ConversationNotificationsContextValue {
   notificationConversation: IConversation | null;
   clearNotificationConversation: () => void;
   updateConversation: (conversationId: string | number, updates: Partial<IConversation>) => void;
+  totalUnreadCount: number;
 }
 
 const ConversationNotificationsContext = createContext<
   ConversationNotificationsContextValue | undefined
 >(undefined);
+
+/**
+ * Helper function to calculate total unread count from cache
+ */
+const calculateTotalUnreadCount = (
+  cache: InfiniteData<PaginatedResult<IConversation>> | undefined
+): number => {
+  if (!cache?.pages) return 0;
+
+  return cache.pages.reduce((total, page) => {
+    return total + page.content.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+  }, 0);
+};
 
 export const ConversationNotificationsProvider = ({ children }: { children: ReactNode }) => {
   const [notificationConversation, setNotificationConversation] = useState<IConversation | null>(
@@ -56,20 +72,68 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   );
   const { selectedConversationType } = useConversationStore();
   const [userStatus, setUserStatus] = useState<IUserStatus | null>(null);
+  const [totalUnreadCount, setTotalUnreadCount] = useState<number>(0);
 
   // separate state for new conversation events (prevents unread logic running)
   const [createdConversation, setCreatedConversation] = useState<IConversation | null>(null);
-
   const queryClient = useQueryClient();
   const criteria = useMemo(() => getCriteria(selectedConversationType), [selectedConversationType]);
   const {
     user: { id: loggedInUserId, email },
   } = useUserStore();
 
+  /**
+   * Message read listener to update read status in messages
+   */
+  useMessageReadListener({ loggedInUserId: Number(loggedInUserId) });
+
+  /**
+   * Message pinned listener to update pinned message in conversation metadata
+   */
+  useMessagePinnedListener({ loggedInUserId: Number(loggedInUserId) });
+
   const conversationsQueryKey = useMemo(
     () => conversationQueryKeys.allConversations(Number(loggedInUserId), criteria),
     [loggedInUserId, criteria]
   );
+
+  /**
+   * Subscribe to query cache changes to update total unread count
+   * This works even when the tab is not focused
+   */
+  useEffect(() => {
+    const initialCache =
+      queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(conversationsQueryKey);
+    setTotalUnreadCount(calculateTotalUnreadCount(initialCache));
+
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event?.query?.queryKey) {
+        const eventKey = event.query.queryKey;
+        const isConversationsQuery =
+          Array.isArray(eventKey) &&
+          Array.isArray(conversationsQueryKey) &&
+          eventKey.length >= conversationsQueryKey.length &&
+          conversationsQueryKey.every((key, index) => {
+            if (typeof key === "object" && typeof eventKey[index] === "object") {
+              return JSON.stringify(key) === JSON.stringify(eventKey[index]);
+            }
+            return key === eventKey[index];
+          });
+
+        if (isConversationsQuery) {
+          const updatedCache =
+            queryClient.getQueryData<InfiniteData<PaginatedResult<IConversation>>>(
+              conversationsQueryKey
+            );
+          setTotalUnreadCount(calculateTotalUnreadCount(updatedCache));
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [queryClient, conversationsQueryKey]);
 
   /**
    * Message-received -> update unread and move to top
@@ -149,7 +213,13 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         setNotificationConversation(conversation);
 
         if (!conversation.mutedByLoggedInUser) {
-          void playMessageSound();
+          const messages = conversation.messages || [];
+          const lastMessage = messages[messages.length - 1];
+          const isMentioned = lastMessage?.mentions?.some(
+            (user) => Number(user.id) === Number(loggedInUserId)
+          );
+
+          void playMessageSound(isMentioned ? SoundType.MENTION : SoundType.NORMAL);
         }
       }
     };
@@ -159,7 +229,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     return () => {
       eventBus.off(WEBSOCKET_EVENTS.MESSAGE, handleIncomingWebSocketConversation);
     };
-  }, []);
+  }, [loggedInUserId]);
 
   /**
    * Conversation created listener (group added / new group)
@@ -308,6 +378,9 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
     };
   }, [queryClient, conversationsQueryKey, loggedInUserId]);
 
+  /**
+   * Message reaction listener
+   */
   useEffect(() => {
     const handleMessageReaction = (payload: MessageReactionPayload) => {
       const { conversationId, messageId } = payload;
@@ -410,6 +483,76 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
   }, []);
 
   /**
+   * Message updated listener
+   */
+  useEffect(() => {
+    const handleMessageUpdated = (updatedMessage: IMessage) => {
+      if (!updatedMessage?.id || !updatedMessage?.conversationId) return;
+
+      const { conversationId, id: messageId } = updatedMessage;
+
+      const threadKey = conversationMessageQueryKeys.messages(
+        Number(loggedInUserId),
+        conversationId
+      );
+
+      queryClient.setQueryData<InfiniteData<PaginatedResult<IMessage>>>(threadKey, (old) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            content: page.content.map((msg) =>
+              msg.id === messageId ? { ...msg, ...updatedMessage, isEdited: true } : msg
+            ),
+          })),
+        };
+      });
+
+      // 2. Update conversation list cache if it shows the last message
+      queryClient.setQueryData<InfiniteData<PaginatedResult<IConversation>>>(
+        conversationsQueryKey,
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              content: page.content.map((conv) => {
+                if (conv.id !== conversationId) return conv;
+
+                const messages = conv.messages ?? [];
+                if (messages.length === 0) return conv;
+
+                const lastIndex = messages.length - 1;
+                const lastMessage = messages[lastIndex];
+
+                if (lastMessage?.id !== messageId) return conv;
+
+                const updatedMessages = [...messages];
+                updatedMessages[lastIndex] = {
+                  ...lastMessage,
+                  ...updatedMessage,
+                  isEdited: true,
+                };
+
+                return { ...conv, messages: updatedMessages };
+              }),
+            })),
+          };
+        }
+      );
+    };
+
+    eventBus.on(CONVERSATION_EVENTS.MESSAGE_UPDATED, handleMessageUpdated);
+    return () => {
+      eventBus.off(CONVERSATION_EVENTS.MESSAGE_UPDATED, handleMessageUpdated);
+    };
+  }, [queryClient, loggedInUserId, conversationsQueryKey]);
+
+  /**
    * Apply presence changes into cache
    */
   useEffect(() => {
@@ -463,6 +606,7 @@ export const ConversationNotificationsProvider = ({ children }: { children: Reac
         notificationConversation,
         clearNotificationConversation,
         updateConversation,
+        totalUnreadCount,
       }}
     >
       {children}

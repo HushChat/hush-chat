@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { JSX, ReactNode } from "react";
+import React, { JSX } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
 
@@ -63,6 +63,7 @@ export interface IMessage {
   conversationId: number;
   parentMessage?: IMessage;
   isForwarded: boolean;
+  originalForwardedMessage?: IMessage;
   isUnsend?: boolean;
   mentions?: TUser[];
   messageAttachments?: IMessageAttachment[];
@@ -83,17 +84,6 @@ export interface IFilter {
   key: ConversationType;
   label: string;
   isActive: boolean;
-}
-
-export interface ChatComponentProps {
-  chatItemList: ReactNode;
-  conversationsRefetch: () => void;
-  conversationsLoading: boolean;
-  filters: IFilter[];
-  selectedConversation: IConversation | null;
-  setSelectedConversation: (conversation: IConversation | null) => void;
-  onSearchQueryInserting?: (searchQuery: string) => void;
-  searchQuery?: string;
 }
 
 export enum ConversationType {
@@ -150,12 +140,6 @@ export interface IMessageReaction {
   reactionType: ReactionType;
   count: number;
   reactedByCurrentUser: boolean;
-}
-
-export interface IMessageReactions {
-  messageId: number;
-  reactions: IMessageReaction[];
-  totalReactionsCount: number;
 }
 
 export interface IMessageReactionRequest {
@@ -255,6 +239,10 @@ export interface TMessageForward {
   customText: string;
 }
 
+export interface TMessageForwardResponse {
+  forwardedTo: number[];
+}
+
 export interface ConversationInfo {
   conversationId: number;
   conversationName: string;
@@ -337,6 +325,7 @@ export interface ConversationInputProps {
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
   hideSendButton?: boolean;
+  onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
   editingMessage?: IMessage | null;
   onCancelEdit?: () => void;
   onEditMessage?: (messageId: number, newText: string) => void;
@@ -353,33 +342,10 @@ export interface IThumbnailItemProps {
   onPress: (index: number) => void;
 }
 
-export interface IThumbnailStripBaseProps {
-  attachments: IMessageAttachment[];
-  currentIndex: number;
-  thumbnails: Record<number, string>;
-  onSelectIndex: (index: number) => void;
-}
-
 export interface IConfirmDialogProps {
   visible: boolean;
   onCancel: () => void;
   onConfirm: () => void;
-}
-
-export interface IMediaViewerBaseProps {
-  attachment: IMessageAttachment | undefined;
-  isVideo: boolean;
-}
-
-export interface IUseVideoThumbnailsOptions {
-  windowSize?: number;
-  quality?: number;
-  captureTime?: number;
-}
-
-export interface IConfirmDialogState {
-  visible: boolean;
-  existingFileUri: string | null;
 }
 
 export const PIN_MESSAGE_OPTIONS = [

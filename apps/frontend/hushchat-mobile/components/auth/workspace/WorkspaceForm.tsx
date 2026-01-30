@@ -1,18 +1,20 @@
-import { TWorkspaceFormProps, Workspace, WorkspaceStatus } from "@/types/login/types";
+import { Workspace, WorkspaceStatus } from "@/types/login/types";
 import React, { useState } from "react";
-import { FormButton, FormContainer, FormHeader, LinkText } from "@/components/FormComponents";
+import { FormButton, FormContainer, FormHeader } from "@/components/FormComponents";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
 import WorkspaceDropdown from "@/components/auth/workspace/WorkspaceDropdown";
 import { CHATS_PATH, WORKSPACE_CREATE_PATH, WORKSPACE_REGISTER_PATH } from "@/constants/routes";
 import { useSaveWorkspace } from "@/hooks/auth/useSaveWorkspace";
 import { useAuthStore } from "@/store/auth/authStore";
-import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
 import { AppText } from "@/components/AppText";
 import { useUserWorkspacesQuery } from "@/query/useUserWorkspacesQuery";
 import { ToastUtils } from "@/utils/toastUtils";
+import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import { useAuthThemeColors } from "@/hooks/useAuthThemeColors";
 
-const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
+const WorkspaceForm = () => {
+  const { colors } = useAuthThemeColors();
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const router = useRouter();
   const { saveWorkspace } = useSaveWorkspace();
@@ -51,8 +53,8 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
   return (
     <FormContainer>
       <FormHeader
-        title="Select a Workspace"
-        subtitle="Choose your workspace to get started"
+        title="Choose a workspace"
+        subtitle="Select a workspace to continue, or create a new one for your team"
         colors={colors}
       />
 
@@ -63,7 +65,6 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
           workspaces={workspaces}
           selectedWorkspace={selectedWorkspace}
           onSelectWorkspace={onSelectWorkspace}
-          showErrors={showErrors}
           errorKey="workspace"
           loading={isLoadingWorkspaces}
         />
@@ -80,33 +81,34 @@ const WorkspaceForm = ({ colors, showErrors }: TWorkspaceFormProps) => {
           title={
             selectedWorkspace?.status === WorkspaceStatus.PENDING
               ? "Continue to Registration"
-              : "Next"
+              : "Continue"
           }
           onPress={handleContinue}
           disabled={!selectedWorkspace || isLoadingWorkspaces}
           colors={colors}
         />
 
-        <View className="gap-2 items-center">
-          <LinkText
-            text="Don't have a workspace?"
-            linkText="Create one"
-            colors={colors}
-            onPress={() => router.push(WORKSPACE_CREATE_PATH)}
-          />
-          {!PLATFORM.IS_WEB && (
-            <View className="flex-row items-center">
-              <AppText className="text-base" style={{ color: colors.textSecondary }}>
-                Use a different account?
-              </AppText>
+        <View style={styles.separatorContainer}>
+          <AppText style={[styles.separatorText, { color: colors.textSecondary }]}>or</AppText>
+        </View>
 
-              <TouchableOpacity onPress={() => router.push("/login")}>
-                <AppText className="ml-1 font-semibold underline" style={{ color: colors.primary }}>
-                  Login
-                </AppText>
-              </TouchableOpacity>
-            </View>
-          )}
+        <TouchableOpacity
+          style={[styles.createButton, { borderColor: colors.primary }]}
+          onPress={() => router.push(WORKSPACE_CREATE_PATH)}
+          activeOpacity={DEFAULT_ACTIVE_OPACITY}
+        >
+          <AppText style={[styles.createButtonText, { color: colors.primary }]}>
+            + Create new workspace
+          </AppText>
+        </TouchableOpacity>
+
+        <View style={styles.footerContainer}>
+          <AppText style={[styles.footerText, { color: colors.textSecondary }]}>Not you? </AppText>
+          <TouchableOpacity onPress={() => router.push("/login")}>
+            <AppText style={[styles.footerLink, { color: colors.primary }]}>
+              Sign in with a different account
+            </AppText>
+          </TouchableOpacity>
         </View>
       </View>
     </FormContainer>
@@ -119,5 +121,37 @@ const styles = StyleSheet.create({
   formContainer: {
     flexDirection: "column",
     gap: 12,
+  },
+  separatorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 4,
+  },
+  separatorText: {
+    fontSize: 14,
+  },
+  createButton: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  footerContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 14,
+  },
+  footerLink: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

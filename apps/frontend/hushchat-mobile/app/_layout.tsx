@@ -16,9 +16,11 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { DynamicBrowserTitle } from "@/hooks/useDynamicBrowserTitle";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { useRefreshOnAppStateChange } from "@/hooks/useRefreshOnAppStateChange";
 
 const TOAST_OFFSET_IOS = 60;
 const TOAST_OFFSET_ANDROID = 40;
@@ -28,6 +30,10 @@ export default function RootLayout() {
 
   const [fontsLoaded] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
+    "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
+    "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
+    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
+    "OpenMoji-Color": require("../assets/fonts/OpenMoji-color-colr0_svg.ttf"),
   });
   const queryClient = createQueryClient();
   const { isAuthenticated, appReady } = useAppInitialization(fontsLoaded);
@@ -38,7 +44,9 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
             <WebSocketProvider>
+              <AppLifecycleManager />
               <ConversationNotificationsProvider>
+                <DynamicBrowserTitle />
                 <ModalProvider>
                   <Gate ready={appReady} isAuthenticated={isAuthenticated} />
                   <Toast
@@ -86,4 +94,9 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
       </Stack>
     </>
   );
+}
+
+function AppLifecycleManager() {
+  useRefreshOnAppStateChange();
+  return null;
 }
