@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import classNames from "classnames";
 import { Audio, AVPlaybackStatus } from "expo-av";
+import * as FileSystem from "expo-file-system";
 import { PLATFORM } from "@/constants/platformConstants";
 import { logError } from "@/utils/logger";
 
@@ -28,72 +29,118 @@ export const AudioMessagePreview = ({
   const [error, setError] = useState(false);
   const [trackWidth, setTrackWidth] = useState<number>(0);
 
+  const [soundSource, setSoundSource] = useState<string | null>(null);
+  const [isCaching, setIsCaching] = useState(true);
+
   useEffect(() => {
     let isMounted = true;
 
-    const loadDuration = async () => {
-      if (providedDuration || !audioUrl) return;
+    setIsCaching(true);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setError(false);
 
-      if (PLATFORM.IS_WEB) {
-        const tempAudio = new window.Audio(audioUrl);
-        tempAudio.onloadedmetadata = () => {
-          if (isMounted && tempAudio.duration && isFinite(tempAudio.duration)) {
-            setDuration(Math.floor(tempAudio.duration));
+    const cacheAudio = async () => {
+      try {
+        if (PLATFORM.IS_WEB) {
+          const response = await fetch(audioUrl);
+          if (!response.ok) throw new Error("Network response was not ok");
+
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+
+          if (isMounted) {
+            setSoundSource(blobUrl);
+            setIsCaching(false);
           }
-        };
-      } else {
-        try {
-          const { sound, status } = await Audio.Sound.createAsync(
-            { uri: audioUrl },
-            { shouldPlay: false }
-          );
+        } else {
+          const urlWithoutParams = audioUrl.split("?")[0];
+          const fileName = urlWithoutParams.split("/").pop() || `audio_${Date.now()}`;
+          const cleanFileName = fileName.replace(/[^a-zA-Z0-9.]/g, "_");
 
-          if (isMounted && status.isLoaded && status.durationMillis) {
-            setDuration(Math.floor(status.durationMillis / 1000));
+          const cacheDir = (FileSystem as any).cacheDirectory;
+          const fileUri = `${cacheDir}audio_${cleanFileName}`;
+
+          const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+          if (fileInfo.exists) {
+            if (isMounted) {
+              setSoundSource(fileUri);
+              setIsCaching(false);
+            }
+          } else {
+            // Download new file
+            const { uri } = await FileSystem.downloadAsync(audioUrl, fileUri);
+            if (isMounted) {
+              setSoundSource(uri);
+              setIsCaching(false);
+            }
           }
-
-          await sound.unloadAsync();
-        } catch {
-          console.log("Could not fetch duration for:", audioUrl);
+        }
+      } catch (err) {
+        console.warn("Cache/Download failed, falling back to stream", err);
+        if (isMounted) {
+          setSoundSource(audioUrl);
+          setIsCaching(false);
         }
       }
     };
 
-    loadDuration();
+    if (audioUrl) {
+      cacheAudio();
+    }
+
+    // When audioUrl changes, destroy the OLD player immediately
+    return () => {
+      isMounted = false;
+      cleanupAudioPlayers();
+    };
+  }, [audioUrl]);
+
+  // Helper to destroy players
+  const cleanupAudioPlayers = async () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    // Cleanup Web
+    if (webAudioRef.current) {
+      webAudioRef.current.pause();
+      webAudioRef.current.src = "";
+      webAudioRef.current = null;
+    }
+
+    // Cleanup Native
+    if (nativeSoundRef.current) {
+      const sound = nativeSoundRef.current;
+      nativeSoundRef.current = null; // Detach ref first
+
+      await sound.unloadAsync();
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    // Only fetch duration on WEB. Native calculates it upon Play to save resources.
+    if (PLATFORM.IS_WEB && !providedDuration && soundSource) {
+      const tempAudio = new window.Audio(soundSource);
+      tempAudio.onloadedmetadata = () => {
+        if (isMounted && tempAudio.duration && isFinite(tempAudio.duration)) {
+          setDuration(Math.floor(tempAudio.duration));
+        }
+      };
+    }
 
     return () => {
       isMounted = false;
-
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-
-      if (webAudioRef.current) {
-        webAudioRef.current.pause();
-        webAudioRef.current.src = "";
-        webAudioRef.current = null;
-      }
-
-      if (nativeSoundRef.current) {
-        const sound = nativeSoundRef.current;
-        nativeSoundRef.current = null;
-        sound.unloadAsync().catch((err) => logError("Error unloading sound:", err));
-      }
     };
-  }, [audioUrl, providedDuration]);
+  }, [soundSource, providedDuration]);
 
-  // Web Audio initialization
   const initWebAudio = () => {
-    if (!webAudioRef.current) {
-      const audio = new window.Audio(audioUrl);
-      audio.preload = "metadata";
-
-      audio.onloadedmetadata = () => {
-        if (audio.duration && isFinite(audio.duration)) {
-          setDuration(Math.floor(audio.duration));
-        }
-      };
+    if (!webAudioRef.current && soundSource) {
+      const audio = new window.Audio(soundSource);
 
       audio.onended = () => {
         setIsPlaying(false);
@@ -105,18 +152,23 @@ export const AudioMessagePreview = ({
       };
 
       audio.onerror = () => {
-        logError("Web audio error:", audioUrl);
-        setError(true);
+        console.error("Web audio playback error");
+        if (soundSource !== audioUrl) {
+          setSoundSource(audioUrl);
+        } else {
+          setError(true);
+        }
       };
 
       webAudioRef.current = audio;
     }
   };
 
-  // Native Audio initialization
   const initNativeAudio = async () => {
-    if (!nativeSoundRef.current) {
+    if (!nativeSoundRef.current && soundSource) {
       try {
+        if (soundSource.startsWith("blob:")) return;
+
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: false,
           playsInSilentModeIOS: true,
@@ -124,7 +176,11 @@ export const AudioMessagePreview = ({
           playThroughEarpieceAndroid: false,
         });
 
-        const { sound } = await Audio.Sound.createAsync({ uri: audioUrl });
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: soundSource },
+          { shouldPlay: false }
+        );
+
         nativeSoundRef.current = sound;
 
         const status = await sound.getStatusAsync();
@@ -132,16 +188,13 @@ export const AudioMessagePreview = ({
           setDuration(Math.floor(status.durationMillis / 1000));
         }
 
-        // Set up status callback for native
         sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-          if (status.isLoaded) {
-            if (status.didJustFinish) {
-              setIsPlaying(false);
-              setCurrentTime(0);
-              if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-              }
+          if (status.isLoaded && status.didJustFinish) {
+            setIsPlaying(false);
+            setCurrentTime(0);
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
             }
           }
         });
@@ -152,72 +205,50 @@ export const AudioMessagePreview = ({
     }
   };
 
-  // Web playback handler
-  const handleWebPlayPause = async () => {
-    if (!webAudioRef.current) initWebAudio();
-    const audio = webAudioRef.current;
-    if (!audio) return;
+  const handlePlayPause = async () => {
+    setError(false);
+    if (!soundSource) return;
 
-    try {
+    if (PLATFORM.IS_WEB) {
+      if (!webAudioRef.current) initWebAudio();
+      const audio = webAudioRef.current;
+      if (!audio) return;
+
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
+        if (intervalRef.current) clearInterval(intervalRef.current);
       } else {
         await audio.play();
         setIsPlaying(true);
-
-        // Update progress every 100ms
         intervalRef.current = setInterval(() => {
           setCurrentTime(Math.floor(audio.currentTime));
         }, 100);
       }
-    } catch (err) {
-      logError("Web play error:", err);
-      setError(true);
-    }
-  };
+    } else {
+      if (!nativeSoundRef.current) await initNativeAudio();
+      const sound = nativeSoundRef.current;
+      if (!sound) return;
 
-  // Native playback handler
-  const handleNativePlayPause = async () => {
-    if (!nativeSoundRef.current) await initNativeAudio();
-    const sound = nativeSoundRef.current;
-    if (!sound) return;
-
-    try {
       if (isPlaying) {
         await sound.pauseAsync();
         setIsPlaying(false);
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
+        if (intervalRef.current) clearInterval(intervalRef.current);
       } else {
         await sound.playAsync();
         setIsPlaying(true);
-
-        // Update progress every 100ms
         intervalRef.current = setInterval(async () => {
-          const status = await sound.getStatusAsync();
-          if (status.isLoaded && status.positionMillis !== undefined) {
-            setCurrentTime(Math.floor(status.positionMillis / 1000));
+          if (!nativeSoundRef.current) return;
+          try {
+            const status = await sound.getStatusAsync();
+            if (status.isLoaded && status.positionMillis !== undefined) {
+              setCurrentTime(Math.floor(status.positionMillis / 1000));
+            }
+          } catch (e) {
+            console.log(e);
           }
         }, 100);
       }
-    } catch (err) {
-      logError("Native play error:", err);
-      setError(true);
-    }
-  };
-
-  const handlePlayPause = () => {
-    if (PLATFORM.IS_WEB) {
-      handleWebPlayPause();
-    } else {
-      handleNativePlayPause();
     }
   };
 
@@ -231,9 +262,7 @@ export const AudioMessagePreview = ({
     if (PLATFORM.IS_WEB && webAudioRef.current) {
       webAudioRef.current.currentTime = newTime;
     } else if (nativeSoundRef.current) {
-      nativeSoundRef.current.setPositionAsync(newTime * 1000).catch((err) => {
-        logError("Seek error:", err);
-      });
+      nativeSoundRef.current.setPositionAsync(newTime * 1000).catch(() => {});
     }
   };
 
@@ -250,7 +279,17 @@ export const AudioMessagePreview = ({
     return (
       <View className="flex-row items-center p-3">
         <Ionicons name="alert-circle" size={20} color="#EF4444" />
-        <AppText className="text-xs text-red-500 ml-2">Unable to load audio</AppText>
+        <AppText className="text-xs text-red-500 ml-2">Unavailable</AppText>
+      </View>
+    );
+  }
+
+  if (isCaching) {
+    return (
+      <View className="flex-row items-center min-w-[250px] p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
+        {/* Fixed: Removed animate-pulse to prevent crash */}
+        <View className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 mr-3" />
+        <AppText className="text-xs text-gray-400">Loading...</AppText>
       </View>
     );
   }
