@@ -50,7 +50,7 @@ public class CloudFrontCookieService {
     private static final Logger log = LoggerFactory.getLogger(CloudFrontCookieService.class);
 
     private final CloudFrontUtilities cloudFrontUtilities;
-    private PrivateKey cachedPrivateKey;
+    private volatile PrivateKey cachedPrivateKey;
 
     public CloudFrontCookieService() {
         this.cloudFrontUtilities = CloudFrontUtilities.create();
@@ -105,7 +105,7 @@ public class CloudFrontCookieService {
     private void addCookie(HttpServletResponse response, String name, String value) {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
-        cookie.setHttpOnly(false);
+        cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setDomain(cloudFrontCookieDomain);
         cookie.setMaxAge(cookieExpirationMinutes * 60);
@@ -115,7 +115,7 @@ public class CloudFrontCookieService {
     private void clearCookie(HttpServletResponse response, String name) {
         Cookie cookie = new Cookie(name, "");
         cookie.setPath("/");
-        cookie.setHttpOnly(false);
+        cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setDomain(cloudFrontCookieDomain);
         cookie.setMaxAge(0);
@@ -124,7 +124,11 @@ public class CloudFrontCookieService {
 
     private PrivateKey getPrivateKey() throws Exception {
         if (cachedPrivateKey == null) {
-            cachedPrivateKey = loadPrivateKey();
+            synchronized (this) {
+                if (cachedPrivateKey == null) {
+                    cachedPrivateKey = loadPrivateKey();
+                }
+            }
         }
         return cachedPrivateKey;
     }

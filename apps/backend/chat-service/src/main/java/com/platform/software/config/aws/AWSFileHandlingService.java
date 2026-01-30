@@ -56,7 +56,7 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
     @Override
     public String getPhotoViewSignedURL(String imageIndexedName) {
 
-        if (imageIndexedName == null) {
+        if (imageIndexedName == null || imageIndexedName.trim().isEmpty()) {
             return null;
         }
 
