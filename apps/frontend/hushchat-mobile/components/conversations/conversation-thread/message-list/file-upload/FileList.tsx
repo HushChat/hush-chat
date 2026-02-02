@@ -8,17 +8,9 @@ type TFileListProps = {
   onSelect: (index: number) => void;
   onRemoveFile: (index: number) => void;
   isSending: boolean;
-  uploadProgress: Record<string, number>;
 };
 
-const FileList = ({
-  files,
-  selectedIndex,
-  onSelect,
-  onRemoveFile,
-  isSending,
-  uploadProgress,
-}: TFileListProps) => (
+const FileList = ({ files, selectedIndex, onSelect, onRemoveFile, isSending }: TFileListProps) => (
   <View className="w-64 bg-secondary-light/50 dark:bg-background-dark items-center border-r border-gray-200 dark:border-gray-800 custom-scrollbar">
     <ScrollView
       className="flex-1"
@@ -34,7 +26,6 @@ const FileList = ({
             onSelect={() => onSelect(index)}
             onRemove={onRemoveFile}
             isSending={isSending}
-            uploadProgress={uploadProgress[index.toString()] ?? 0}
           />
         </View>
       ))}
