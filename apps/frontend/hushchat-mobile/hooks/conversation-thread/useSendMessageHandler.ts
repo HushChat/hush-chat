@@ -37,43 +37,6 @@ interface IUseSendMessageHandlerParams {
 let tempMessageIdCounter = -1;
 export const generateTempMessageId = (): number => tempMessageIdCounter--;
 
-const createTempImageMessage = ({
-  file,
-  messageText,
-  conversationId,
-  senderId,
-  tempId,
-  isMarkdownEnabled,
-}: {
-  file: File;
-  messageText: string;
-  conversationId: number;
-  senderId: number;
-  tempId: number;
-  isMarkdownEnabled: boolean;
-}): IMessage => ({
-  id: tempId,
-  isForwarded: false,
-  senderId,
-  senderFirstName: "",
-  senderLastName: "",
-  messageText,
-  createdAt: new Date().toISOString(),
-  conversationId,
-  messageAttachments: [
-    {
-      fileUrl: URL.createObjectURL(file),
-      originalFileName: file.name,
-      indexedFileName: "",
-      mimeType: file.type,
-      type: MessageAttachmentTypeEnum.MEDIA,
-      updatedAt: "",
-    },
-  ],
-  hasAttachment: true,
-  isMarkdownEnabled: isMarkdownEnabled,
-});
-
 export const useSendMessageHandler = ({
   currentConversationId,
   currentUserId,
@@ -139,35 +102,7 @@ export const useSendMessageHandler = ({
         if (validFiles.length > 0) {
           const renamedFiles = validFiles.map((file, index) => renameFile(file, index));
 
-          const tempMessageIds: number[] = [];
-
-          renamedFiles.forEach((file) => {
-            const tempId = generateTempMessageId();
-            tempMessageIds.push(tempId);
-
-            const tempMsg = createTempImageMessage({
-              file,
-              messageText: trimmed,
-              conversationId: currentConversationId,
-              senderId: Number(currentUserId),
-              tempId,
-              isMarkdownEnabled,
-            });
-
-            updateConversationMessagesCache(tempMsg);
-          });
-
           const lastFile = renamedFiles[renamedFiles.length - 1];
-          updateConversationsListCache(
-            createTempImageMessage({
-              file: lastFile,
-              messageText: trimmed || `Sent ${renamedFiles.length} file(s)`,
-              conversationId: currentConversationId,
-              senderId: Number(currentUserId),
-              tempId: generateTempMessageId(),
-              isMarkdownEnabled,
-            })
-          );
 
           const filesWithCaptions: TFileWithCaption[] = renamedFiles.map((file) => ({
             file,
@@ -179,14 +114,31 @@ export const useSendMessageHandler = ({
 
           const results = await uploadFilesFromWebWithCaptions(filesWithCaptions, parentMsgId);
 
-          if (replaceTempMessage) {
-            results.forEach((result, index) => {
-              if (result.success && result.messageId && index < tempMessageIds.length) {
-                const tempId = tempMessageIds[index];
-                replaceTempMessage(tempId, result.messageId);
-              }
-            });
-          }
+          results.forEach((result) => {
+            if (result.success && result.messageId) {
+              const newMessage = result.newMessage ?? ({} as IMessage);
+              const file = lastFile;
+
+              const messageAttachments = [
+                {
+                  fileUrl: URL.createObjectURL(file),
+                  originalFileName: file.name,
+                  indexedFileName: "",
+                  mimeType: file.type,
+                  type: MessageAttachmentTypeEnum.MEDIA,
+                  updatedAt: "",
+                },
+              ];
+
+              const updatingCacheMessage = {
+                ...newMessage,
+                messageAttachments,
+              };
+
+              updateConversationMessagesCache(updatingCacheMessage ?? ({} as IMessage));
+              updateConversationsListCache(result?.newMessage ?? ({} as IMessage));
+            }
+          });
 
           setSelectedMessage(null);
           return;
@@ -235,7 +187,6 @@ export const useSendMessageHandler = ({
       if (!filesWithCaptions || filesWithCaptions.length === 0) return;
 
       const parentMsgId = selectedMessage?.id ?? null;
-      const tempMessageIds: number[] = [];
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
@@ -246,44 +197,37 @@ export const useSendMessageHandler = ({
           })
         );
 
-        preparedFiles.forEach(({ file, caption, isMarkdownEnabled }) => {
-          const tempId = generateTempMessageId();
-          tempMessageIds.push(tempId);
-
-          const tempMsg = createTempImageMessage({
-            file,
-            messageText: caption,
-            conversationId: currentConversationId,
-            senderId: Number(currentUserId),
-            tempId,
-            isMarkdownEnabled,
-          });
-
-          updateConversationMessagesCache(tempMsg);
-        });
-
-        const lastItem = preparedFiles[preparedFiles.length - 1];
-        updateConversationsListCache(
-          createTempImageMessage({
-            file: lastItem.file,
-            messageText: lastItem.caption || `Sent ${preparedFiles.length} file(s)`,
-            conversationId: currentConversationId,
-            senderId: Number(currentUserId),
-            tempId: generateTempMessageId(),
-            isMarkdownEnabled: lastItem.isMarkdownEnabled,
-          })
-        );
-
         const results = await uploadFilesFromWebWithCaptions(preparedFiles, parentMsgId);
 
-        if (replaceTempMessage) {
-          results.forEach((result, index) => {
-            if (result.success && result.messageId && index < tempMessageIds.length) {
-              const tempId = tempMessageIds[index];
-              replaceTempMessage(tempId, result.messageId);
-            }
-          });
-        }
+        results.forEach((result) => {
+          if (result.success && result.messageId) {
+            const match = preparedFiles.find((item) => item.file.name === result.fileName);
+
+            if (!match) return;
+
+            const file = match.file;
+            const newMessage = result.newMessage ?? ({} as IMessage);
+
+            const messageAttachments = [
+              {
+                fileUrl: URL.createObjectURL(file),
+                originalFileName: file.name,
+                indexedFileName: "",
+                mimeType: file.type,
+                type: MessageAttachmentTypeEnum.MEDIA,
+                updatedAt: "",
+              },
+            ];
+
+            const updatingCacheMessage = {
+              ...newMessage,
+              messageAttachments,
+            };
+
+            updateConversationMessagesCache(updatingCacheMessage);
+            updateConversationsListCache(result.newMessage ?? ({} as IMessage));
+          }
+        });
 
         const failedCount = results.filter((r) => !r.success).length;
         if (failedCount > 0) {
