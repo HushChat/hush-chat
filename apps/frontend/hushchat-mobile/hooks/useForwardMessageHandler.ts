@@ -15,6 +15,7 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
     useConversationStore();
   const [selectedConversations, setSelectedConversations] = useState<TConversation[]>([]);
   const [customText, setCustomText] = useState<string>("");
+  const [isMarkdownEnabled, setIsMarkdownEnabled] = useState<boolean>(false);
   const {
     user: { id: userId },
   } = useUserStore();
@@ -61,6 +62,7 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
       conversationIds: conversationIds.length > 0 ? conversationIds : undefined,
       userIds: userIds.length > 0 ? userIds : undefined,
       customText: customText,
+      isMarkdownEnabled: isMarkdownEnabled,
     });
   };
 
@@ -79,5 +81,7 @@ export const useForwardMessageHandler = (onSuccess?: () => void) => {
     canSend,
     resetSelection,
     handleSend,
+    isMarkdownEnabled,
+    setIsMarkdownEnabled,
   };
 };

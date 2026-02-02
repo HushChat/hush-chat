@@ -12,6 +12,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 export type TFileWithCaption = {
   file: File;
   caption: string;
+  isMarkdownEnabled: boolean;
 };
 
 interface IUseSendMessageHandlerParams {
@@ -83,7 +84,13 @@ export const useSendMessageHandler = ({
   );
 
   const handleSendMessage = useCallback(
-    async (message: string, parentMessage?: IMessage, files?: File[], gifUrl?: string) => {
+    async (
+      message: string,
+      isMarkdownEnabled: boolean,
+      parentMessage?: IMessage,
+      files?: File[],
+      gifUrl?: string
+    ) => {
       const trimmed = message?.trim() ?? "";
       const filesToSend = files || [];
 
@@ -100,6 +107,7 @@ export const useSendMessageHandler = ({
           const filesWithCaptions: TFileWithCaption[] = renamedFiles.map((file) => ({
             file,
             caption: trimmed,
+            isMarkdownEnabled,
           }));
 
           const parentMsgId = parentMessage?.id ?? null;
@@ -153,6 +161,7 @@ export const useSendMessageHandler = ({
           conversationId: currentConversationId,
           message: trimmed,
           parentMessageId: parentMessage?.id,
+          isMarkdownEnabled: isMarkdownEnabled,
         });
 
         setSelectedMessage(null);
@@ -181,9 +190,10 @@ export const useSendMessageHandler = ({
 
       try {
         const preparedFiles: TFileWithCaption[] = filesWithCaptions.map(
-          ({ file, caption }, index) => ({
+          ({ file, caption, isMarkdownEnabled }, index) => ({
             file: renameFile(file, index),
             caption: caption.trim(),
+            isMarkdownEnabled,
           })
         );
 

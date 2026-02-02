@@ -17,6 +17,8 @@ export interface ConversationForwardPanelBaseProps {
   handleSend: () => void;
   resetSelection: () => void;
   sourceConversationId: number;
+  isMarkdownEnabled: boolean;
+  setIsMarkdownEnabled: (enabled: boolean) => void;
 }
 
 const ConversationForwardPanelBase = ({
@@ -30,6 +32,8 @@ const ConversationForwardPanelBase = ({
   handleSend,
   resetSelection,
   sourceConversationId,
+  isMarkdownEnabled,
+  setIsMarkdownEnabled,
 }: ConversationForwardPanelBaseProps) => {
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
@@ -48,6 +52,8 @@ const ConversationForwardPanelBase = ({
               onControlledValueChange={setCustomText}
               hideSendButton
               hideEmojiGifPickers
+              controlledMarkdownEnabled={isMarkdownEnabled}
+              onControlledMarkdownChange={setIsMarkdownEnabled}
             />
           </View>
         </View>
