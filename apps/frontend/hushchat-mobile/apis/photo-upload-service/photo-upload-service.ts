@@ -11,7 +11,6 @@ import {
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
 import { createMessagesWithAttachments, publishMessageEvents } from "@/apis/conversation";
-import { logWarn } from "@/utils/logger";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useState } from "react";
 import {
@@ -287,7 +286,8 @@ export function useMessageAttachmentUploader(
 
   const uploadFilesFromWebWithCaptions = async (
     filesWithCaptions: TFileWithCaption[],
-    parentMessageId?: number | null
+    parentMessageId?: number | null,
+    onUploadStart?: (pairs: { message: IMessage; file: LocalFile }[]) => void
   ): Promise<UploadResult[]> => {
     if (!filesWithCaptions || filesWithCaptions.length === 0) return [];
 
@@ -336,15 +336,33 @@ export function useMessageAttachmentUploader(
         throw new Error("No signed URLs returned from server");
       }
 
+      if (onUploadStart) {
+        const optimisticPairs: { message: IMessage; file: LocalFile }[] = [];
+
+        const initialProgress: Record<string, number> = {};
+
+        for (let i = 0; i < validFiles.length; i++) {
+          const signed = signedUrls[i];
+          if (signed && signed.messageId) {
+            const msg = messagesWithSignedUrl?.find((m) => m.id === signed.messageId);
+            if (msg) {
+              optimisticPairs.push({ message: msg, file: validFiles[i].file });
+              initialProgress[signed.messageId.toString()] = 0;
+            }
+          }
+        }
+
+        setUploadProgress((prev) => ({ ...prev, ...initialProgress }));
+
+        onUploadStart(optimisticPairs);
+      }
+
       const results: UploadResult[] = [];
       const successfulMessageIds: number[] = [];
-
-      setUploadProgress({});
 
       for (let i = 0; i < validFiles.length; i++) {
         const { file } = validFiles[i];
         const signed = signedUrls[i];
-        const fileKey = i.toString();
 
         if (!signed || !signed.url) {
           results.push({
@@ -355,6 +373,8 @@ export function useMessageAttachmentUploader(
           continue;
         }
 
+        const fileKey = signed.messageId?.toString() ?? i.toString();
+
         setUploadProgress((prev) => ({
           ...prev,
           [fileKey]: 0,
@@ -363,6 +383,8 @@ export function useMessageAttachmentUploader(
         try {
           const blob = await (await fetch(file.uri)).blob();
 
+          const totalFileSize = file.size || blob.size;
+
           const contentType = file.type || blob.type || "application/octet-stream";
 
           await axios.put(signed.url, blob, {
@@ -370,9 +392,11 @@ export function useMessageAttachmentUploader(
               "Content-Type": contentType,
             },
             onUploadProgress: (event) => {
-              if (!event.total) return;
+              const total = event.total || totalFileSize;
 
-              const percentCompleted = Math.round((event.loaded * 100) / event.total);
+              if (!total) return;
+
+              const percentCompleted = Math.round((event.loaded * 100) / total);
 
               setUploadProgress((prev) => ({
                 ...prev,
@@ -424,13 +448,6 @@ export function useMessageAttachmentUploader(
     } finally {
       setIsUploadingWebFiles(false);
       setUploadProgress({});
-      validFiles.forEach(({ file }) => {
-        try {
-          URL.revokeObjectURL(file._blobUrl);
-        } catch (err) {
-          logWarn("Failed to revoke object URL:", file._blobUrl, err);
-        }
-      });
     }
   };
 

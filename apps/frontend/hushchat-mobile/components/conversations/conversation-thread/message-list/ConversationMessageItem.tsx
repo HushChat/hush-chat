@@ -78,6 +78,7 @@ interface MessageItemProps {
   webMessageInfoPress?: (messageId: number) => void;
   onMarkMessageAsUnread: (message: IMessage) => void;
   onEditMessage?: (message: IMessage) => void;
+  uploadProgress?: number;
 }
 
 const REMOVE_ONE = 1;
@@ -107,6 +108,7 @@ export const ConversationMessageItem = ({
   webMessageInfoPress,
   onMarkMessageAsUnread,
   onEditMessage,
+  uploadProgress,
 }: MessageItemProps) => {
   const attachments = message.messageAttachments ?? [];
   const hasAttachments = attachments.length > 0;
@@ -563,6 +565,7 @@ export const ConversationMessageItem = ({
                   onMentionClick={handleMentionClick}
                   isMessageEdited={isMessageEdited}
                   isMobileLayout={isMobileLayout}
+                  uploadProgress={uploadProgress}
                 />
               </MessageHighlightWrapper>
             </View>
