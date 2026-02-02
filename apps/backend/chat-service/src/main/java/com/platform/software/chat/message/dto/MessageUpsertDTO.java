@@ -13,7 +13,7 @@ public class MessageUpsertDTO {
     private DocUploadRequestDTO files;
     private Long parentMessageId;
     private String gifUrl;
-    private Boolean isMarkdownEnabled;
+    private Boolean isMarkdownEnabled = false;
 
     public MessageUpsertDTO(String messageText) {
         this.messageText = messageText;
