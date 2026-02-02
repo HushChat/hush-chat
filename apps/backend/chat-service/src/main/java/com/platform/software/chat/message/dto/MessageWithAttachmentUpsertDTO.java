@@ -13,7 +13,7 @@ public class MessageWithAttachmentUpsertDTO {
     private Long parentMessageId;
     private String gifUrl;
     private AttachmentTypeEnum attachmentType;
-    private Boolean isMarkdownEnabled;
+    private Boolean isMarkdownEnabled = false;
 
     public MessageUpsertDTO getMessageUpsertDTO() {
         MessageUpsertDTO messageUpsertDTO = new MessageUpsertDTO();
