@@ -234,7 +234,7 @@ export function useMessageAttachmentUploader(
     gifUrl: string,
     messageText: string = "",
     parentMessageId?: number | null
-  ): Promise<IMessage> => {
+  ): Promise<IMessage[]> => {
     const attachments: TAttachmentUploadRequest[] = [
       {
         messageText,

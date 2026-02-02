@@ -13,11 +13,3 @@ databaseChangeLog:
                   defaultValueBoolean: false
                   constraints:
                     nullable: false
-
-        - update:
-            tableName: message
-            columns:
-              - column:
-                  name: is_markdown_enabled
-                  valueBoolean: true
-            where: conversation_id = 1462
