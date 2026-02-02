@@ -71,12 +71,13 @@ public class MessageService {
         return messageRepository.findMessagesAndAttachmentsByMessageId(conversationId, messageId, participant);
     }
 
-    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType) {
+    public static Message buildMessage(String messageText, Conversation conversation, ChatUser loggedInUser, MessageTypeEnum messageType, Boolean isMarkdownEnabled) {
         Message newMessage = new Message();
         newMessage.setMessageText(messageText);
         newMessage.setConversation(conversation);
         newMessage.setSender(loggedInUser);
         newMessage.setMessageType(messageType);
+        newMessage.setIsMarkdownEnabled(isMarkdownEnabled);
         return newMessage;
     }
 
@@ -197,7 +198,7 @@ public class MessageService {
             throw new CustomBadRequestException("Cannot edit a forwarded message!");
         }
 
-        if (message.getMessageText().equals(messageDTO.getMessageText())) {
+        if (message.getMessageText().equals(messageDTO.getMessageText()) && message.getIsMarkdownEnabled().equals(messageDTO.getIsMarkdownEnabled())) {
             return new MessageViewDTO(message);
         }
 
@@ -206,6 +207,7 @@ public class MessageService {
         MessageHistory newMessageHistory = getMessageHistoryEntity(message);
         message.setMessageText(messageDTO.getMessageText());
         message.setIsEdited(true);
+        message.setIsMarkdownEnabled(messageDTO.getIsMarkdownEnabled());
 
         try {
             Message updatedMessage = messageRepository.saveMessageWthSearchVector(message);
@@ -422,7 +424,7 @@ public class MessageService {
         List<Message> forwardingMessages = new ArrayList<>();
         for (ConversationDTO targetConversation : targetConversations) {
             messages.forEach(message -> {
-                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType());
+                Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType(), message.getIsMarkdownEnabled());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
                 forwardingMessages.add(newMessage);
@@ -434,7 +436,8 @@ public class MessageService {
                         messageForwardRequestDTO.getCustomText(),
                         targetConversation.getModel(),
                         loggedInUser,
-                        MessageTypeEnum.TEXT
+                        MessageTypeEnum.TEXT,
+                        messageForwardRequestDTO.getIsMarkdownEnabled()
                 );
                 forwardingMessages.add(customMessage);
             }

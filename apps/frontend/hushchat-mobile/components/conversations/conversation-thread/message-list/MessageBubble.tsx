@@ -195,6 +195,7 @@ export const MessageBubble = ({
                 mentions={message.mentions}
                 isCurrentUser={isCurrentUser}
                 onMentionPress={handleMentionPress}
+                isMarkdownEnabled={message.isMarkdownEnabled}
               />
             </View>
           ) : message.isUnsend ? (

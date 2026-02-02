@@ -28,6 +28,8 @@ const ConversationInputMobile = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  controlledMarkdownEnabled,
+  onControlledMarkdownChange,
   editingMessage,
   onCancelEdit,
   onEditMessage,
@@ -65,6 +67,8 @@ const ConversationInputMobile = ({
     editingMessage,
     onCancelEdit,
     onEditMessage,
+    controlledMarkdownEnabled,
+    onControlledMarkdownChange,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -169,6 +173,8 @@ const ConversationInputMobile = ({
               onOpenEmojiPicker={openEmojiPicker}
               onOpenGifPicker={openGifPicker}
               onSendPress={handleSendButtonPress}
+              isMarkdownEnabled={input.isMarkdownEnabled}
+              onToggleMarkdown={() => input.setIsMarkdownEnabled((prev) => !prev)}
             />
           </View>
         </Animated.View>
@@ -205,7 +211,7 @@ const ConversationInputMobile = ({
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={(gifUrl) => {
-              onSendMessage?.("", replyToMessage ?? undefined, undefined, gifUrl);
+              onSendMessage?.("", false, replyToMessage ?? undefined, undefined, gifUrl);
             }}
           />
         </>

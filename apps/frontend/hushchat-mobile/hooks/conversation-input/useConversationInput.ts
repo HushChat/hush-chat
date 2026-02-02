@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo, useEffect } from "react";
+import { useCallback, useRef, useMemo, useEffect, useState } from "react";
 import { TextInput, TextInputSelectionChangeEvent } from "react-native";
 import { useEnterSubmit } from "@/utils/commonUtils";
 import { useSpecialCharHandler } from "@/hooks/useSpecialCharHandler";
@@ -25,6 +25,8 @@ type TConversationInputOptions = Pick<
   | "editingMessage"
   | "onCancelEdit"
   | "onEditMessage"
+  | "controlledMarkdownEnabled"
+  | "onControlledMarkdownChange"
 >;
 
 export function useConversationInput({
@@ -37,6 +39,8 @@ export function useConversationInput({
   onCancelReply,
   controlledValue,
   onControlledValueChange,
+  controlledMarkdownEnabled,
+  onControlledMarkdownChange,
   onTypingStatusChange,
   editingMessage,
   onCancelEdit,
@@ -49,6 +53,25 @@ export function useConversationInput({
   const maxLines = 6;
   const lineHeight = 22;
   const verticalPadding = 12;
+
+  const [internalMarkdownEnabled, setInternalMarkdownEnabled] = useState<boolean>(
+    editingMessage?.isMarkdownEnabled ?? false
+  );
+
+  const isMarkdownControlled = controlledMarkdownEnabled !== undefined;
+
+  const isMarkdownEnabled = isMarkdownControlled
+    ? controlledMarkdownEnabled
+    : internalMarkdownEnabled;
+
+  const setIsMarkdownEnabled = (value: boolean | ((prev: boolean) => boolean)) => {
+    if (isMarkdownControlled && onControlledMarkdownChange) {
+      const resolvedValue = typeof value === "function" ? value(isMarkdownEnabled) : value;
+      onControlledMarkdownChange(resolvedValue);
+    } else {
+      setInternalMarkdownEnabled(value);
+    }
+  };
 
   const isControlledMode = controlledValue !== undefined;
   const isEditMode = !!editingMessage;
@@ -102,6 +125,8 @@ export function useConversationInput({
   }, [editingMessage?.id]);
 
   useEffect(() => {
+    setIsMarkdownEnabled(editingMessage?.isMarkdownEnabled ?? false);
+
     if (!editingMessage && editingMessageRef.current) {
       if (isControlledMode) {
         onControlledValueChange?.("");
@@ -191,7 +216,11 @@ export function useConversationInput({
           return;
         }
 
-        editMessageCallbackRef.current?.(editingMessageRef.current.id, processedMessage);
+        editMessageCallbackRef.current?.(
+          editingMessageRef.current.id,
+          processedMessage,
+          isMarkdownEnabled
+        );
 
         if (!isControlledMode) {
           messageInputController.updateTypedMessageText("");
@@ -206,6 +235,7 @@ export function useConversationInput({
         if (isControlledMode) {
           sendMessageCallbackRef.current(
             processedMessage,
+            isMarkdownEnabled,
             replyManagerRef.current.activeReplyTargetMessage ?? undefined
           );
           return;
@@ -219,12 +249,15 @@ export function useConversationInput({
 
       sendMessageCallbackRef.current(
         processedMessage,
+        isMarkdownEnabled,
         replyManagerRef.current.activeReplyTargetMessage ?? undefined
       );
 
       autoHeightController.animateHeightResetToMinimum();
       mentionsController.clearActiveMentionQuery();
       mentionsController.clearValidMentions();
+
+      setIsMarkdownEnabled(false);
 
       if (replyManagerRef.current.isReplyModeActive) {
         replyManagerRef.current.cancelReplyMode();
@@ -243,6 +276,7 @@ export function useConversationInput({
       mentionsController.clearActiveMentionQuery,
       mentionsController.clearValidMentions,
       typingActivity.stopTyping,
+      isMarkdownEnabled,
     ]
   );
 
@@ -338,5 +372,7 @@ export function useConversationInput({
     handleSendButtonPress,
 
     placeholder: resolvedPlaceholderText,
+    isMarkdownEnabled,
+    setIsMarkdownEnabled,
   };
 }

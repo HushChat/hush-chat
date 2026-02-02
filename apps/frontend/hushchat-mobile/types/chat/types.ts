@@ -71,6 +71,7 @@ export interface IMessage {
   messageType?: MessageTypeEnum;
   hasAttachment?: boolean;
   isEdited?: boolean;
+  isMarkdownEnabled?: boolean;
 }
 
 export interface IMessageView extends IMessage {
@@ -236,6 +237,7 @@ export interface TMessageForward {
   conversationIds: number[];
   userIds?: number[];
   customText: string;
+  isMarkdownEnabled: boolean;
 }
 
 export interface TMessageForwardResponse {
@@ -309,6 +311,7 @@ export interface ConversationInputProps {
   conversationId: number;
   onSendMessage: (
     message: string,
+    isMarkdownEnabled: boolean,
     parentMessage?: IMessage,
     files?: File[],
     gifUrl?: string
@@ -323,11 +326,13 @@ export interface ConversationInputProps {
   isGroupChat?: boolean;
   controlledValue?: string;
   onControlledValueChange?: (text: string) => void;
+  controlledMarkdownEnabled?: boolean;
+  onControlledMarkdownChange?: (enabled: boolean) => void;
   hideSendButton?: boolean;
   onTypingStatusChange?: (isTyping: boolean, conversationId: number) => void;
   editingMessage?: IMessage | null;
   onCancelEdit?: () => void;
-  onEditMessage?: (messageId: number, newText: string) => void;
+  onEditMessage?: (messageId: number, newText: string, isMarkdownEnabled: boolean) => void;
   hideEmojiGifPickers?: boolean;
 }
 
