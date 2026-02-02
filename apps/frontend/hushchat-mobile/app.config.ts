@@ -15,6 +15,7 @@ export default () => ({
     ios: {
       supportsTablet: true,
       associatedDomains: ["applinks:app.gethush.chat"],
+      bundleIdentifier: "com.hush.chat"
     },
     android: {
       adaptiveIcon: {
@@ -38,7 +39,7 @@ export default () => ({
       package: "com.hush.chat",
       versionCode: 2,
       useNextNotificationsApi: true,
-      googleServicesFile: "./android/app/google-services.json",
+      googleServicesFile: "./google-services.json",
     },
     web: {
       bundler: "metro",
