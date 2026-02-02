@@ -118,7 +118,8 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
             .and(message.sender.isNotNull())
-            .and(message.conversation.deleted.eq(false));
+            .and(message.conversation.deleted.eq(false))
+            .and(message.isStored.eq(true));
 
         if(!participant.getIsActive()) {
             conditions = conditions.and(message.createdAt.before(Date.from(participant.getInactiveFrom().toInstant())));

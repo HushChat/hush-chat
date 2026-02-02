@@ -355,6 +355,9 @@ public class MessageService {
                 !message.getConversation().getId().equals(conversationId)) {
                 continue;
             }
+
+            // attachments considered as successfully sent after acknowledging its being uploaded s3 bucket correctly.
+            message.setIsStored(true);
             
             MessageViewDTO messageViewDTO = new MessageViewDTO(message);
             
@@ -427,6 +430,7 @@ public class MessageService {
                 Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType(), message.getIsMarkdownEnabled());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
+                newMessage.setIsStored(true);
                 forwardingMessages.add(newMessage);
             });
 
@@ -439,6 +443,7 @@ public class MessageService {
                         MessageTypeEnum.TEXT,
                         messageForwardRequestDTO.getIsMarkdownEnabled()
                 );
+                customMessage.setIsStored(true);
                 forwardingMessages.add(customMessage);
             }
 
