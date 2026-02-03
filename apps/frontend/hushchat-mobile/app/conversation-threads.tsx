@@ -88,7 +88,6 @@ const ConversationThreadScreen = ({
     selectedMessageIds,
     setSelectedMessageIds,
     setSelectedConversationId,
-    setIsMarkdownEnabled,
   } = useConversationStore();
   const searchedMessageId = PLATFORM.IS_WEB ? messageToJump : Number(params.messageId);
   const currentConversationId = conversationId || Number(params.conversationId);
@@ -327,6 +326,7 @@ const ConversationThreadScreen = ({
     isUploading: isUploadingImages,
     error: uploadError,
     sendGifMessage,
+    uploadProgress,
   } = useMessageAttachmentUploader(currentConversationId);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
@@ -416,13 +416,11 @@ const ConversationThreadScreen = ({
     setSelectionMode(false);
     setSelectedMessageIds(EMPTY_SET);
     handleCloseImagePreview();
-    setIsMarkdownEnabled(true);
   }, [
     currentConversationId,
     setSelectionMode,
     setSelectedMessageIds,
     handleCloseImagePreview,
-    setIsMarkdownEnabled,
     handleCancelEdit,
   ]);
 
@@ -647,6 +645,7 @@ const ConversationThreadScreen = ({
                     isGroupChat={isGroupChat}
                     replyToMessage={selectedMessage}
                     onCancelReply={handleCancelReply}
+                    uploadProgress={uploadProgress}
                   />
                 ) : (
                   <>

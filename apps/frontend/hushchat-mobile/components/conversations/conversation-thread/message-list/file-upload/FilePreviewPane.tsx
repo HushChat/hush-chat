@@ -21,6 +21,8 @@ type TFilePreviewPaneProps = {
   replyToMessage?: any;
   onCancelReply?: () => void;
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  isMarkdownEnabled: boolean;
+  onMarkdownChange: (enabled: boolean) => void;
 };
 
 const FilePreviewPane = ({
@@ -34,6 +36,8 @@ const FilePreviewPane = ({
   replyToMessage,
   onCancelReply,
   inputRef,
+  isMarkdownEnabled,
+  onMarkdownChange,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
   const [fileType, setFileType] = useState<"image" | "document" | "video">("document");
@@ -129,7 +133,6 @@ const FilePreviewPane = ({
   return (
     <View className="flex-1 bg-background-light dark:bg-background-dark">
       <View className="flex-1 items-center justify-center px-6 py-4">{renderPreviewContent()}</View>
-
       <View style={styles.inputContainer}>
         <ConversationInput
           ref={inputRef}
@@ -143,6 +146,8 @@ const FilePreviewPane = ({
           controlledValue={caption}
           onControlledValueChange={onCaptionChange}
           hideSendButton
+          controlledMarkdownEnabled={isMarkdownEnabled}
+          onControlledMarkdownChange={onMarkdownChange}
         />
       </View>
     </View>

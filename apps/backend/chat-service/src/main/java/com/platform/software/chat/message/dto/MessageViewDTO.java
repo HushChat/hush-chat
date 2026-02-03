@@ -27,6 +27,7 @@ public class MessageViewDTO {
     private MessageReactionSummaryDTO reactionSummary;
     private BasicMessageDTO parentMessage;
     private Boolean isForwarded;
+    private BasicMessageDTO originalForwardedMessage;
     private Boolean isUnsend;
     private Boolean isEdited;
     private String senderSignedImageUrl;
@@ -34,7 +35,7 @@ public class MessageViewDTO {
     private Boolean isReadByEveryone;
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
-
+    private Boolean isMarkdownEnabled;
     private SignedURLDTO signedUrl;
 
     public MessageViewDTO(Message message) {
@@ -43,6 +44,11 @@ public class MessageViewDTO {
         Message parent = message.getParentMessage();
         if (parent != null && !message.getIsUnsend()) {
             this.parentMessage = new BasicMessageDTO(parent);
+        }
+
+        Message forwadedMessage = message.getForwardedMessage();
+        if (forwadedMessage != null) {
+            this.originalForwardedMessage = new BasicMessageDTO(forwadedMessage);
         }
     }
 
@@ -74,6 +80,7 @@ public class MessageViewDTO {
         this.isUnsend = message.getIsUnsend();
         this.isEdited = message.getIsEdited();
         this.messageType = message.getMessageType();
+        this.isMarkdownEnabled = message.getIsMarkdownEnabled();
         this.hasAttachment = message.getAttachments() != null 
             && !message.getAttachments().isEmpty();
 

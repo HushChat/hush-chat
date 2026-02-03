@@ -8,6 +8,7 @@ import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.ReactionTypeEnum;
+import com.platform.software.chat.user.activitystatus.service.UserActivityStatusService;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.service.UserUtilService;
@@ -30,16 +31,17 @@ public class MessagePublisherService {
     private final WebSocketSessionManager webSocketSessionManager;
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
+    private final UserActivityStatusService userActivityStatusService;
 
     public MessagePublisherService(
-            ConversationUtilService conversationUtilService,
-            WebSocketSessionManager webSocketSessionManager,
+            ConversationUtilService conversationUtilService, WebSocketSessionManager webSocketSessionManager,
             MessageAttachmentRepository messageAttachmentRepository,
-            CloudPhotoHandlingService cloudPhotoHandlingService) {
+            CloudPhotoHandlingService cloudPhotoHandlingService, UserActivityStatusService userActivityStatusService) {
         this.conversationUtilService = conversationUtilService;
         this.webSocketSessionManager = webSocketSessionManager;
         this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
+        this.userActivityStatusService = userActivityStatusService;
     }
 
     /**
@@ -52,13 +54,20 @@ public class MessagePublisherService {
      */
     @Transactional(readOnly = true)
     public void invokeNewMessageToParticipants(Long conversationId, MessageViewDTO messageViewDTO, Long senderId,
-            String workspaceId) {
-        ConversationDTO conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
+            String workspaceId, MessageTypeEnum messageType) {
 
-        ConversationParticipantViewDTO senderParticipant = conversationDTO.getParticipants().stream()
-                .filter(p -> p.getUser().getId().equals(senderId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));
+        ConversationDTO conversationDTO = null;
+        ConversationParticipantViewDTO senderParticipant = null;
+
+        if(messageType == MessageTypeEnum.BOT_MESSAGE) {
+            conversationDTO = conversationUtilService.getConversationDTOForSystemUseOnly(conversationId);
+        } else {
+            conversationDTO = conversationUtilService.getConversationDTOOrThrow(senderId, conversationId);
+            senderParticipant = conversationDTO.getParticipants().stream()
+                    .filter(p -> p.getUser().getId().equals(senderId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Sender not found in conversation participant list"));
+        }
 
         // when sending ws message, conversation name need to be named of the message
         // sender for non group conversations
@@ -93,12 +102,15 @@ public class MessagePublisherService {
 
         conversationDTO.setMessages(List.of(messageViewDTO));
 
-        DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
-                WorkspaceContext.getCurrentWorkspace(),
-                senderParticipant.getUser().getEmail()
-        );
-        conversationDTO.setDeviceType(deviceType);
+        if (senderParticipant != null) {
+            DeviceType deviceType = userActivityStatusService.getUserDeviceType(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    senderParticipant.getUser().getEmail()
+            );
+            conversationDTO.setDeviceType(deviceType);
+        }
 
+        ConversationDTO finalConversationDTO = conversationDTO;
         conversationDTO.getParticipants().stream()
                 .filter(p -> p.getUser() != null && p.getUser().getId() != null)
                 .filter(p -> !p.getUser().getId().equals(senderId))
@@ -107,7 +119,7 @@ public class MessagePublisherService {
                     if (email == null)
                         return;
 
-                    ConversationDTO payload = getConversationDTO(participant, conversationDTO);
+                    ConversationDTO payload = getConversationDTO(participant, finalConversationDTO);
 
                     payload.setSignedImageUrl(cloudPhotoHandlingService.getPhotoViewSignedURL(
                             payload.getIsGroup() ? MediaPathEnum.RESIZED_GROUP_PICTURE : MediaPathEnum.RESIZED_PROFILE_PICTURE,

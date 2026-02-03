@@ -26,6 +26,7 @@ import com.platform.software.chat.message.repository.MessageReactionRepository;
 import com.platform.software.chat.message.service.MessageService;
 import com.platform.software.chat.message.service.MessageUtilService;
 import com.platform.software.chat.notification.entity.DeviceType;
+import com.platform.software.chat.user.activitystatus.service.UserActivityStatusService;
 import com.platform.software.chat.user.dto.UserBasicViewDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.entity.ChatUser;
@@ -39,7 +40,6 @@ import com.platform.software.config.aws.DocUploadRequestDTO;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.cache.CacheNames;
 import com.platform.software.config.cache.RedisCacheService;
-import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
@@ -82,7 +82,7 @@ public class ConversationService {
     private final RedisCacheService cacheService;
     private final ConversationParticipantCommandRepository participantCommandRepository;
     private final ConversationReportRepository reportRepository;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final UserActivityStatusService userActivityStatusService;
     private final ConversationReadStatusRepository conversationReadStatusRepository;
     private final ConversationEventRepository conversationEventRepository;
     private final ConversationEventMessageService conversationEventMessageService;
@@ -355,6 +355,15 @@ public class ConversationService {
                             imageIndexedName
                     );
                     messageViewDTO.setSenderSignedImageUrl(signedUrl);
+
+                    if (messageViewDTO.getOriginalForwardedMessage() != null) {
+                        String forwardedMessageSenderSignedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                MediaPathEnum.RESIZED_PROFILE_PICTURE,
+                                MediaSizeEnum.SMALL,
+                                messageViewDTO.getOriginalForwardedMessage().getImageIndexedName());
+
+                        messageViewDTO.getOriginalForwardedMessage().setSenderSignedImageUrl(forwardedMessageSenderSignedUrl);
+                    }
 
                     if (hasReactions && !messageViewDTO.getIsUnsend()) {
                         MessageReactionSummaryDTO summary = reactionSummaryMap.get(message.getId());
@@ -1377,12 +1386,12 @@ public class ConversationService {
                 conversationMetaDataDTO.setSignedImageUrl(null);
             }
 
-            ChatUserStatus status = webSocketSessionManager.getUserChatStatus(
+            ChatUserStatus status = userActivityStatusService.getUserChatStatus(
                     WorkspaceContext.getCurrentWorkspace(),
                     directOtherMeta.getEmail()
             );
 
-            DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+            DeviceType deviceType = userActivityStatusService.getUserDeviceType(
                     WorkspaceContext.getCurrentWorkspace(),
                     directOtherMeta.getEmail());
                     

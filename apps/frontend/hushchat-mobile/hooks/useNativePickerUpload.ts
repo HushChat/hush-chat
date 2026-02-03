@@ -2,6 +2,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { PLATFORM } from "@/constants/platformConstants";
+import { IMessage } from "@/types/chat/types";
+import { extractSignedUrls } from "@/apis/photo-upload-service/photo-upload-service";
 
 export type PickSource = "media" | "document";
 export type MediaKind = "image" | "video" | "all";
@@ -38,6 +40,7 @@ export type UploadResult = {
   error?: string;
   signed?: SignedUrl | null;
   messageId?: number;
+  newMessage?: IMessage;
 };
 
 type State = {
@@ -117,7 +120,7 @@ async function putToSignedUrl(file: LocalFile, signedUrl: string): Promise<void>
  * You inject how to get signed URLs (per your endpoint), we handle the rest.
  */
 export function useNativePickerUpload(
-  getSignedUrls: (files: LocalFile[], messageText?: string) => Promise<SignedUrl[] | null>,
+  getSignedUrls: (files: LocalFile[], messageText?: string) => Promise<IMessage[] | null>,
   onUploadSuccess?: (messageIds: number[]) => Promise<void>
 ) {
   const [state, setState] = useState<State>({
@@ -241,8 +244,9 @@ export function useNativePickerUpload(
         results: [],
       }));
       try {
-        const signed = await getSignedUrls(files, messageText);
-        console.log("signed", signed);
+        const newMessages = await getSignedUrls(files, messageText);
+        const signed = extractSignedUrls(newMessages);
+
         if (!signed || signed.length === 0) throw new Error("No signed URLs returned from server");
 
         const results: UploadResult[] = [];

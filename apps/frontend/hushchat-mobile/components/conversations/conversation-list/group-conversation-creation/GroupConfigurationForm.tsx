@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
-import { Image } from "expo-image";
+import { View, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { IConversation, IGroupConversation } from "@/types/chat/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
@@ -15,7 +14,6 @@ import {
 } from "@/apis/photo-upload-service/photo-upload-service";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
-import UploadIndicator from "@/components/UploadIndicator";
 import { useCreateGroupConversationMutation } from "@/query/post/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
@@ -23,11 +21,6 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { getCriteria } from "@/utils/conversationUtils";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
-
-const COLORS = {
-  primaryBlue: "#3b82f6",
-  white: "#ffffff",
-};
 
 export interface IGroupConfigurationFormProps {
   participantUserIds: number[];
@@ -42,14 +35,16 @@ const GroupConfigurationForm = ({
   onSuccess,
   setSelectedConversation,
   initialName = "",
-  submitLabel = "Create group",
+  submitLabel = "Create Group",
 }: IGroupConfigurationFormProps) => {
   const [groupName, setGroupName] = useState(initialName);
   const [uploading, setUploading] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const [imagePickerResult, setImagePickerResult] = useState<ImagePickerResult | undefined>();
   const [groupDescription, setGroupDescription] = useState("");
   const [imageAssetData, setImageAssetData] = useState(null);
+
+  const hasImage = imagePickerResult?.assets && imagePickerResult.assets.length > 0;
+
   const isValid = useMemo(
     () => groupName.trim().length > 0 && participantUserIds.length > 0,
     [groupName, participantUserIds]
@@ -71,7 +66,7 @@ const GroupConfigurationForm = ({
       onSuccess?.(conversation.id);
 
       if (conversation.signedImageUrl && imageAssetData !== null) {
-        uploadImageToSignedUrl(imageAssetData?.fileUri, conversation?.signedImageUrl);
+        void uploadImageToSignedUrl(imageAssetData?.fileUri, conversation?.signedImageUrl);
       }
 
       if (!PLATFORM.IS_WEB || isMobileInBrowser) {
@@ -121,80 +116,80 @@ const GroupConfigurationForm = ({
   };
 
   return (
-    <View className="px-4 pt-5 dark:bg-background-dark">
-      <View className="items-center py-10 rounded-3xl max-w-3xl w-full mx-auto bg-background-light dark:bg-background-dark">
+    <View className="flex-1 bg-background-light dark:bg-background-dark px-5 py-6">
+      <View className="items-center mb-8">
         <TouchableOpacity
           onPress={uploadImageResult}
           disabled={uploading}
           activeOpacity={DEFAULT_ACTIVE_OPACITY}
         >
-          <View style={styles.avatarContainer}>
-            {imagePickerResult?.assets && imagePickerResult.assets.length > 0 && !imageError ? (
-              <View className="w-160 h-160 rounded-full bg-white dark:bg-gray-800 items-center justify-center overflow-hidden">
-                <Image
-                  source={{ uri: imagePickerResult?.assets[0].uri }}
-                  style={styles.avatarImage}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  onError={() => setImageError(true)}
-                />
-                <UploadIndicator isUploading={uploading} />
+          <View className="relative">
+            {uploading ? (
+              <View className="w-40 h-40 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center">
+                <ActivityIndicator size="small" color="#9CA3AF" />
               </View>
             ) : (
-              <View className="w-160 h-160 rounded-full bg-white dark:bg-gray-800 items-center justify-center overflow-hidden">
-                <InitialsAvatar name={"u"} size="lg" />
-                <UploadIndicator isUploading={uploading} />
-              </View>
+              <InitialsAvatar
+                name={groupName || "G"}
+                size="lg"
+                imageUrl={hasImage ? imagePickerResult?.assets[0].uri : null}
+                showCameraIcon
+              />
             )}
-            <View style={styles.cameraIconContainer}>
-              <Ionicons name="camera" size={18} color="#fff" />
-            </View>
           </View>
         </TouchableOpacity>
       </View>
 
-      <AppText className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
-        Group name
-      </AppText>
-
-      <View className="flex-row items-center rounded-lg px-3 h-12">
-        <Ionicons name="people" size={18} color="#9CA3AF" />
-        <AppTextInput
-          value={groupName}
-          onChangeText={setGroupName}
-          placeholder="e.g. Weekend Plans"
-          placeholderTextColor="#9CA3AF"
-          className="flex-1 ml-2 text-text-primary-light dark:text-text-primary-dark outline-none"
-          returnKeyType="done"
-        />
+      <View className="mb-5">
+        <AppText className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">
+          Group name
+        </AppText>
+        <View className="h-12 rounded-xl bg-gray-100 dark:bg-gray-800 px-4 justify-center">
+          <AppTextInput
+            value={groupName}
+            onChangeText={setGroupName}
+            placeholder="Enter group name"
+            placeholderTextColor="#9CA3AF"
+            className="text-text-primary-light dark:text-text-primary-dark outline-none"
+            returnKeyType="next"
+          />
+        </View>
       </View>
 
-      <AppText className="mt-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">
-        Participants selected: {participantUserIds.length}
-      </AppText>
+      <View className="mb-5">
+        <AppText className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-2">
+          Description{" "}
+          <AppText className="text-text-secondary-light/60 dark:text-text-secondary-dark/60">
+            (optional)
+          </AppText>
+        </AppText>
+        <View className="rounded-xl bg-gray-100 dark:bg-gray-800 px-4 py-3 min-h-[88px]">
+          <AppTextInput
+            value={groupDescription}
+            onChangeText={setGroupDescription}
+            placeholder="What's this group about?"
+            placeholderTextColor="#9CA3AF"
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+            className="text-text-primary-light dark:text-text-primary-dark outline-none"
+          />
+        </View>
+      </View>
 
-      <AppText className="mt-4 text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
-        Group description
-      </AppText>
-
-      <View className="rounded-lg px-3 py-2 min-h-20 border border-gray-300 dark:border-gray-600">
-        <AppTextInput
-          value={groupDescription}
-          onChangeText={setGroupDescription}
-          placeholder="e.g. Trip planning, group work, etc."
-          placeholderTextColor="#9CA3AF"
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-          className="flex-1 ml-2 text-text-primary-light dark:text-text-primary-dark outline-none"
-        />
+      <View className="flex-row items-center mb-8">
+        <Ionicons name="people-outline" size={18} color="#9CA3AF" />
+        <AppText className="ml-2 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+          {participantUserIds.length} participant{participantUserIds.length !== 1 ? "s" : ""}{" "}
+          selected
+        </AppText>
       </View>
 
       <TouchableOpacity
         onPress={onCreate}
         disabled={!isValid || submitting}
         activeOpacity={DEFAULT_ACTIVE_OPACITY}
-        className={`mt-6 h-12 rounded-lg items-center justify-center ${
+        className={`h-12 rounded-xl items-center justify-center ${
           !isValid || submitting
             ? "bg-primary-light/60 dark:bg-primary-dark/60"
             : "bg-primary-light dark:bg-primary-dark"
@@ -203,7 +198,7 @@ const GroupConfigurationForm = ({
         {submitting ? (
           <ActivityIndicator size="small" color="#fff" />
         ) : (
-          <AppText className="text-white font-medium cursor-pointer">{submitLabel}</AppText>
+          <AppText className="text-white font-semibold">{submitLabel}</AppText>
         )}
       </TouchableOpacity>
     </View>
@@ -211,25 +206,3 @@ const GroupConfigurationForm = ({
 };
 
 export default GroupConfigurationForm;
-
-const styles = StyleSheet.create({
-  avatarContainer: {
-    position: "relative",
-  },
-  avatarImage: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-  },
-
-  cameraIconContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: COLORS.primaryBlue,
-    borderRadius: 16,
-    padding: 4,
-    borderWidth: 2,
-    borderColor: COLORS.white,
-  },
-});

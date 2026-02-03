@@ -22,6 +22,7 @@ import com.platform.software.exception.CustomInternalServerErrorException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,6 +32,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageUtilService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Value("${workspace.bot.allowed-conversations}")
+    private List<Long> allowedBotConversations;
 
     private final ConversationUtilService conversationUtilService;
     private final UserService userService;
@@ -119,11 +123,36 @@ public class MessageUtilService {
 
         validateInteractionAllowed(conversation, senderUserId);
 
-        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType);
+        Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType, message.getIsMarkdownEnabled());
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
 
         try {
             return messageRepository.saveMessageWthSearchVector(newMessage);
+        } catch (Exception e) {
+            logger.error("conversation message save failed.", e);
+            throw new CustomInternalServerErrorException("Failed to send message");
+        }
+    }
+
+    /**
+     * Creates a new bot message in the specified conversation.
+     * No validation on bot message
+     *
+     * @param conversationId the ID of the conversation
+     * @param senderUserId the ID of the bot user sending the message
+     * @param message the message details
+     * @return the saved Message entity
+     */
+    public Message createBotMessage(Long conversationId, Long senderUserId, MessageUpsertDTO message, MessageTypeEnum messageType) {
+        ChatUser loggedInUser = userService.getUserOrThrow(senderUserId);
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+
+        isBotMessageAllowedOrThrow(conversation);
+
+        Message botMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType, message.getIsMarkdownEnabled());
+
+        try {
+            return messageRepository.saveMessageWthSearchVector(botMessage);
         } catch (Exception e) {
             logger.error("conversation message save failed.", e);
             throw new CustomInternalServerErrorException("Failed to send message");
@@ -179,6 +208,20 @@ public class MessageUtilService {
             if (isBlocked) {
                 throw new CustomBadRequestException("Something went wrong!");
             }
+        }
+    }
+
+    /**
+     * Checks if bot messages are allowed in the specified conversation.
+     *
+     * @param conversation the conversation to check
+     * @throws CustomBadRequestException if bot messages are not allowed in the conversation
+     */
+    public void isBotMessageAllowedOrThrow(Conversation conversation) {
+        //TODO: Move this to DB
+        if(!allowedBotConversations.contains(conversation.getId())) {
+            logger.warn("Bot message attempted in disallowed conversation {}", conversation.getId());
+            throw new CustomBadRequestException("Bot messages are not allowed in this conversation");
         }
     }
 }

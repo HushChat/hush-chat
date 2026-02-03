@@ -8,9 +8,11 @@ import PreviewFooter from "@/components/conversations/conversation-thread/messag
 import { usePasteHandler } from "@/hooks/usePasteHandler";
 import { ACCEPT_DOC_TYPES } from "@/constants/mediaConstants";
 
-export type FileWithCaption = {
+export type PreviewFile = {
+  id: string;
   file: File;
   caption: string;
+  isMarkdownEnabled: boolean;
 };
 
 type TFilePreviewOverlayProps = {
@@ -18,16 +20,17 @@ type TFilePreviewOverlayProps = {
   conversationId: number;
   onClose: () => void;
   onRemoveFile: (index: number) => void;
-  onSendFiles: (filesWithCaptions: FileWithCaption[]) => void;
+  onSendFiles: (previewFiles: PreviewFile[]) => void;
   onFileSelect: (files: File[]) => void;
   isSending?: boolean;
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
+  uploadProgress: Record<string, number>;
 };
 
 const FilePreviewOverlay = ({
-  files,
+  files: incomingFiles,
   conversationId,
   onClose,
   onRemoveFile,
@@ -37,149 +40,143 @@ const FilePreviewOverlay = ({
   isGroupChat = false,
   replyToMessage,
   onCancelReply,
+  uploadProgress,
 }: TFilePreviewOverlayProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [captions, setCaptions] = useState<Map<number, string>>(new Map());
+  const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const captionInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setCaptions((prev) => {
-      const newCaptions = new Map(prev);
-      files.forEach((_, index) => {
-        if (!newCaptions.has(index)) {
-          newCaptions.set(index, "");
-        }
-      });
-      Array.from(newCaptions.keys()).forEach((key) => {
-        if (key >= files.length) {
-          newCaptions.delete(key);
-        }
-      });
-      return newCaptions;
+    if (incomingFiles.length === 0) {
+      setPreviewFiles([]);
+      return;
+    }
+
+    setPreviewFiles((prev) => {
+      if (incomingFiles.length === prev.length) return prev;
+
+      const existingFiles = new Set(prev.map((p) => p.file));
+      const newItems: PreviewFile[] = incomingFiles
+        .filter((f) => !existingFiles.has(f))
+        .map((file) => ({
+          id: Math.random().toString(36).substring(7),
+          file,
+          caption: "",
+          isMarkdownEnabled: false,
+        }));
+
+      return [...prev, ...newItems];
     });
-  }, [files.length]);
+  }, [incomingFiles]);
 
   useEffect(() => {
-    if (selectedIndex >= files.length) {
-      setSelectedIndex(Math.max(0, files.length - 1));
+    if (selectedIndex >= previewFiles.length && previewFiles.length > 0) {
+      setSelectedIndex(previewFiles.length - 1);
     }
-  }, [files.length, selectedIndex]);
+  }, [previewFiles.length, selectedIndex]);
 
-  const handlePasteFilesInPreview = useCallback(
-    (newFiles: File[]) => {
-      onFileSelect(newFiles);
-    },
-    [onFileSelect]
-  );
-
-  usePasteHandler({
-    enabled: true,
-    onPasteFiles: handlePasteFilesInPreview,
-    inputRef: captionInputRef,
-  });
-
-  const handleCaptionChange = useCallback(
-    (text: string) => {
-      setCaptions((prev) => {
-        const newCaptions = new Map(prev);
-        newCaptions.set(selectedIndex, text);
-        return newCaptions;
-      });
+  const handleMarkdownChange = useCallback(
+    (isEnabled: boolean) => {
+      setPreviewFiles((prev) =>
+        prev.map((item, idx) =>
+          idx === selectedIndex ? { ...item, isMarkdownEnabled: isEnabled } : item
+        )
+      );
     },
     [selectedIndex]
   );
 
-  const getCurrentCaption = useCallback(() => {
-    return captions.get(selectedIndex) || "";
-  }, [captions, selectedIndex]);
-
-  const onHiddenPickerChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { files: chosen } = e.target;
-      if (chosen && chosen.length > 0) {
-        const { errors, validFiles } = validateFiles(chosen, files.length);
-        errors.forEach((err) => ToastUtils.error(err));
-        if (validFiles.length > 0) onFileSelect(validFiles);
-      }
-      e.target.value = "";
+  const handleCaptionChange = useCallback(
+    (text: string) => {
+      setPreviewFiles((prev) =>
+        prev.map((item, idx) => (idx === selectedIndex ? { ...item, caption: text } : item))
+      );
     },
-    [files.length, onFileSelect]
+    [selectedIndex]
   );
-
-  const handleAddMore = useCallback(() => {
-    if (files.length >= MAX_FILES) {
-      ToastUtils.error(`Maximum ${MAX_FILES} files allowed.`);
-      return;
-    }
-    fileInputRef.current?.click();
-  }, [files.length]);
 
   const handleRemoveFile = useCallback(
     (index: number) => {
-      setCaptions((prev) => {
-        const newCaptions = new Map<number, string>();
-        prev.forEach((caption, key) => {
-          if (key < index) {
-            newCaptions.set(key, caption);
-          } else if (key > index) {
-            newCaptions.set(key - 1, caption);
-          }
-        });
-        return newCaptions;
-      });
       onRemoveFile(index);
+      setPreviewFiles((prev) => prev.filter((_, i) => i !== index));
     },
     [onRemoveFile]
   );
 
   const handleSend = useCallback(() => {
-    const filesWithCaptions: FileWithCaption[] = files.map((file, index) => ({
-      file,
-      caption: captions.get(index) || "",
-    }));
-    onSendFiles(filesWithCaptions);
-    setCaptions(new Map());
-  }, [files, captions, onSendFiles]);
+    onSendFiles(previewFiles);
+  }, [previewFiles, onSendFiles]);
 
-  const handleClose = useCallback(() => {
-    setCaptions(new Map());
-    onClose();
-  }, [onClose]);
+  const handleAddMore = useCallback(() => {
+    if (previewFiles.length >= MAX_FILES) {
+      ToastUtils.error(`Maximum ${MAX_FILES} files allowed.`);
+      return;
+    }
+    fileInputRef.current?.click();
+  }, [previewFiles.length]);
 
-  if (files.length === 0) return null;
+  const onHiddenPickerChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { files: chosen } = e.target;
+      if (chosen && chosen.length > 0) {
+        const { errors, validFiles } = validateFiles(chosen, previewFiles.length);
+        errors.forEach((err) => ToastUtils.error(err));
+        if (validFiles.length > 0) onFileSelect(validFiles);
+      }
+      e.target.value = "";
+    },
+    [previewFiles.length, onFileSelect]
+  );
+
+  usePasteHandler({
+    enabled: true,
+    onPasteFiles: (newFiles) => onFileSelect(newFiles),
+    inputRef: captionInputRef,
+  });
+
+  if (previewFiles.length === 0) return null;
+
+  const currentItem = previewFiles[selectedIndex];
 
   return (
     <View style={styles.container} className="bg-background-light dark:bg-background-dark">
       <View style={styles.contentRow}>
         <FileList
-          files={files}
+          files={previewFiles.map((p) => p.file)}
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
           onRemoveFile={handleRemoveFile}
-        />
-        <FilePreviewPane
-          file={files[selectedIndex]}
-          conversationId={conversationId}
-          caption={getCurrentCaption()}
-          onCaptionChange={handleCaptionChange}
-          onSendFiles={handleSend}
           isSending={isSending}
-          isGroupChat={isGroupChat}
-          replyToMessage={replyToMessage}
-          onCancelReply={onCancelReply}
-          inputRef={captionInputRef}
+          uploadProgress={uploadProgress}
         />
+        {currentItem && (
+          <FilePreviewPane
+            file={currentItem.file}
+            conversationId={conversationId}
+            caption={currentItem.caption}
+            onCaptionChange={handleCaptionChange}
+            onSendFiles={handleSend}
+            isSending={isSending}
+            isGroupChat={isGroupChat}
+            replyToMessage={replyToMessage}
+            onCancelReply={onCancelReply}
+            inputRef={captionInputRef}
+            isMarkdownEnabled={currentItem.isMarkdownEnabled}
+            onMarkdownChange={handleMarkdownChange}
+          />
+        )}
       </View>
 
       <PreviewFooter
         isSending={isSending}
-        isAtLimit={files.length >= MAX_FILES}
-        hasFiles={files.length > 0}
+        isAtLimit={previewFiles.length >= MAX_FILES}
+        hasFiles={previewFiles.length > 0}
         onAddMore={handleAddMore}
-        onClose={handleClose}
+        onClose={onClose}
         onSend={handleSend}
-        fileCount={files.length}
+        fileCount={previewFiles.length}
       />
       <input
         ref={fileInputRef}
@@ -196,16 +193,7 @@ const FilePreviewOverlay = ({
 export default FilePreviewOverlay;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    overflow: "visible",
-  },
-  contentRow: {
-    flex: 1,
-    flexDirection: "row",
-    overflow: "visible",
-  },
-  hiddenInput: {
-    display: "none",
-  },
+  container: { flex: 1, overflow: "visible" },
+  contentRow: { flex: 1, flexDirection: "row", overflow: "visible" },
+  hiddenInput: { display: "none" },
 });

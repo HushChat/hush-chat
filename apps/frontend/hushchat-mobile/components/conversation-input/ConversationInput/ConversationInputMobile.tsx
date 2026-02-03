@@ -28,6 +28,8 @@ const ConversationInputMobile = ({
   controlledValue,
   onControlledValueChange,
   hideSendButton = false,
+  controlledMarkdownEnabled,
+  onControlledMarkdownChange,
   editingMessage,
   onCancelEdit,
   onEditMessage,
@@ -65,6 +67,8 @@ const ConversationInputMobile = ({
     editingMessage,
     onCancelEdit,
     onEditMessage,
+    controlledMarkdownEnabled,
+    onControlledMarkdownChange,
   });
 
   const handleAddButtonPress = useCallback(() => {
@@ -106,11 +110,8 @@ const ConversationInputMobile = ({
   const handleKeyPress = useCallback(
     (e: any) => {
       input.specialCharHandler(e);
-      if (!hideSendButton) {
-        input.enterSubmitHandler(e);
-      }
     },
-    [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
+    [input.specialCharHandler, hideSendButton]
   );
 
   return (
@@ -146,7 +147,6 @@ const ConversationInputMobile = ({
                 value={input.message}
                 placeholder={input.placeholder}
                 disabled={disabled}
-                autoFocus
                 minHeight={input.minHeight}
                 maxHeight={input.maxHeight}
                 inputHeight={input.inputHeight}
@@ -170,6 +170,8 @@ const ConversationInputMobile = ({
               onOpenEmojiPicker={openEmojiPicker}
               onOpenGifPicker={openGifPicker}
               onSendPress={handleSendButtonPress}
+              isMarkdownEnabled={input.isMarkdownEnabled}
+              onToggleMarkdown={() => input.setIsMarkdownEnabled((prev) => !prev)}
             />
           </View>
         </Animated.View>
@@ -206,7 +208,7 @@ const ConversationInputMobile = ({
             visible={showGifPicker}
             onClose={closeGifPicker}
             onGifSelect={(gifUrl) => {
-              onSendMessage?.("", replyToMessage ?? undefined, undefined, gifUrl);
+              onSendMessage?.("", false, replyToMessage ?? undefined, undefined, gifUrl);
             }}
           />
         </>
