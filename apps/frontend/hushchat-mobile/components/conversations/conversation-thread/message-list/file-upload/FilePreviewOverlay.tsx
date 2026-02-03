@@ -107,7 +107,6 @@ const FilePreviewOverlay = ({
 
   const handleSend = useCallback(() => {
     onSendFiles(previewFiles);
-    setPreviewFiles([]);
   }, [previewFiles, onSendFiles]);
 
   const handleAddMore = useCallback(() => {
