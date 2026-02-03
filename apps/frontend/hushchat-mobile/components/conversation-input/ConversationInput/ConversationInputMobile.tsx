@@ -110,11 +110,8 @@ const ConversationInputMobile = ({
   const handleKeyPress = useCallback(
     (e: any) => {
       input.specialCharHandler(e);
-      if (!hideSendButton) {
-        input.enterSubmitHandler(e);
-      }
     },
-    [input.specialCharHandler, input.enterSubmitHandler, hideSendButton]
+    [input.specialCharHandler, hideSendButton]
   );
 
   return (
