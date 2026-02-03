@@ -133,11 +133,9 @@ const GroupConfigurationForm = ({
                 name={groupName || "G"}
                 size="lg"
                 imageUrl={hasImage ? imagePickerResult?.assets[0].uri : null}
+                showCameraIcon
               />
             )}
-            <View className="absolute bottom-3 right-0 bg-primary-light dark:bg-primary-dark rounded-full p-1.5 border-2 border-white dark:border-background-dark">
-              <Ionicons name="camera" size={18} color="#fff" />
-            </View>
           </View>
         </TouchableOpacity>
       </View>
