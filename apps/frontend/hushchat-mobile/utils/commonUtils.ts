@@ -219,6 +219,43 @@ const getDeviceType = (isMobileView: boolean): DeviceType => {
   return DeviceType.MOBILE;
 };
 
+const isS3UrlExpired = (signedUrl: string | null | undefined): boolean => {
+  try {
+    if (!signedUrl) {
+      return true;
+    }
+
+    const url = new URL(signedUrl);
+    const params = url.searchParams;
+
+    // get the creation date and duration
+    const amzDate = params.get("X-Amz-Date");
+    const expiresAfterStr = params.get("X-Amz-Expires");
+
+    if (!amzDate || !expiresAfterStr) {
+      return true;
+    }
+
+    const expiresAfter = parseInt(expiresAfterStr, 10);
+    if (isNaN(expiresAfter)) {
+      return true;
+    }
+
+    // format X-Amz-Date
+    const formattedDate = amzDate.replace(
+      /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/,
+      "$1-$2-$3T$4:$5:$6Z"
+    );
+
+    const creationTimestamp = new Date(formattedDate).getTime();
+    const expiryTimestamp = creationTimestamp + expiresAfter * 1000;
+
+    return Date.now() > expiryTimestamp;
+  } catch {
+    return true;
+  }
+};
+
 export {
   getLastMessageTime,
   getNavigationTheme,
@@ -236,4 +273,5 @@ export {
   capitalizeFirstLetter,
   getDeviceType,
   formatDateTime,
+  isS3UrlExpired,
 };
