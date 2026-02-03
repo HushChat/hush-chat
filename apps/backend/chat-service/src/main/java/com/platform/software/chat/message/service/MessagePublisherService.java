@@ -8,6 +8,7 @@ import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.repository.MessageAttachmentRepository;
 import com.platform.software.chat.message.dto.*;
 import com.platform.software.chat.message.entity.ReactionTypeEnum;
+import com.platform.software.chat.user.activitystatus.service.UserActivityStatusService;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.service.UserUtilService;
@@ -30,16 +31,17 @@ public class MessagePublisherService {
     private final WebSocketSessionManager webSocketSessionManager;
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final CloudPhotoHandlingService cloudPhotoHandlingService;
+    private final UserActivityStatusService userActivityStatusService;
 
     public MessagePublisherService(
-            ConversationUtilService conversationUtilService,
-            WebSocketSessionManager webSocketSessionManager,
+            ConversationUtilService conversationUtilService, WebSocketSessionManager webSocketSessionManager,
             MessageAttachmentRepository messageAttachmentRepository,
-            CloudPhotoHandlingService cloudPhotoHandlingService) {
+            CloudPhotoHandlingService cloudPhotoHandlingService, UserActivityStatusService userActivityStatusService) {
         this.conversationUtilService = conversationUtilService;
         this.webSocketSessionManager = webSocketSessionManager;
         this.messageAttachmentRepository = messageAttachmentRepository;
         this.cloudPhotoHandlingService = cloudPhotoHandlingService;
+        this.userActivityStatusService = userActivityStatusService;
     }
 
     /**
@@ -101,7 +103,7 @@ public class MessagePublisherService {
         conversationDTO.setMessages(List.of(messageViewDTO));
 
         if (senderParticipant != null) {
-            DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+            DeviceType deviceType = userActivityStatusService.getUserDeviceType(
                     WorkspaceContext.getCurrentWorkspace(),
                     senderParticipant.getUser().getEmail()
             );
