@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { TouchableOpacity, View, ImageStyle, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,6 +6,7 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { IMessageAttachment } from "@/types/chat/types";
 import { getFileType } from "@/utils/files/getFileType";
 import { staticStyles } from "./imageGrid.styles";
+import { AppText } from "@/components/AppText";
 
 interface IMediaItemProps {
   attachment: IMessageAttachment;
@@ -13,6 +14,9 @@ interface IMediaItemProps {
   onPress?: () => void;
   showOverlay?: boolean;
   remainingCount?: number;
+  isCurrentUser: boolean;
+  isStored?: boolean;
+  isUploading?: boolean;
 }
 
 const PLAY_ICON_SIZE = 40;
@@ -25,31 +29,59 @@ const VideoPlayOverlay = () => (
   </View>
 );
 
-export const MediaItem = ({ attachment, style, onPress }: IMediaItemProps) => {
+export const MediaItem = ({
+  attachment,
+  style,
+  onPress,
+  isCurrentUser,
+  isStored,
+  isUploading = false,
+}: IMediaItemProps) => {
+  const [hasError, setHasError] = useState<boolean>(false);
+
   const fileName = attachment.originalFileName || attachment.indexedFileName || "";
   const isVideo = getFileType(fileName) === "video";
+
+  const isPendingUpload = isCurrentUser && !isStored && isUploading;
 
   const imageSource = useMemo(() => {
     if (isVideo) return;
     return attachment.fileUrl;
   }, [isVideo, attachment]);
 
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={DEFAULT_ACTIVE_OPACITY}
-      style={staticStyles.imageItemContainer}
-    >
-      <Image
-        source={{ uri: imageSource }}
-        placeholder={{ uri: imageSource }}
-        style={style}
-        contentFit="contain"
-        cachePolicy="memory-disk"
-      />
+  if (hasError && !isPendingUpload) {
+    return (
+      <View>
+        <AppText className="text-red-500 text-sm mt-1.5">Upload failed. Re-upload again</AppText>
+      </View>
+    );
+  }
 
-      {isVideo && <VideoPlayOverlay />}
-    </TouchableOpacity>
+  if (!hasError) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={DEFAULT_ACTIVE_OPACITY}
+        style={staticStyles.imageItemContainer}
+      >
+        <Image
+          source={{ uri: imageSource }}
+          placeholder={{ uri: imageSource }}
+          style={style}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          onError={() => setHasError(true)}
+        />
+
+        {isVideo && <VideoPlayOverlay />}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View>
+      <AppText>Still uploading</AppText>
+    </View>
   );
 };
 

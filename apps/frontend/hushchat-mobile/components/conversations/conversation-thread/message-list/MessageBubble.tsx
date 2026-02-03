@@ -182,7 +182,7 @@ export const MessageBubble = ({
 
           {hasAttachments && !hasGifMedia && (
             <View className={messageContent ? "mb-2" : ""}>
-              {renderFileGrid(attachments, isCurrentUser)}
+              {renderFileGrid(attachments, isCurrentUser, message.isStored, isUploading)}
             </View>
           )}
 

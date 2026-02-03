@@ -72,6 +72,7 @@ export interface IMessage {
   hasAttachment?: boolean;
   isEdited?: boolean;
   isMarkdownEnabled?: boolean;
+  isStored?: boolean;
 }
 
 export interface IMessageView extends IMessage {
