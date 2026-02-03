@@ -126,7 +126,7 @@ public class MessageUtilService {
         Message newMessage = MessageService.buildMessage(message.getMessageText(), conversation, loggedInUser, messageType, message.getIsMarkdownEnabled());
 
         // attachment need to re-evaluate to check being upload to s3 correctly
-        newMessage.setIsStored(!messageType.equals(MessageTypeEnum.ATTACHMENT));
+        newMessage.setIsStored(!messageType.equals(MessageTypeEnum.ATTACHMENT) || message.getGifUrl() != null);
 
         addParentMessageIfReply(conversationId, message.getParentMessageId(), newMessage);
 
