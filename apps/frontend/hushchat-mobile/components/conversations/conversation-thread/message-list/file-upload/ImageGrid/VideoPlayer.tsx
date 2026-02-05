@@ -24,7 +24,7 @@ export const VideoPlayer = ({ uri, style }: { uri?: string; style: any }) => {
 
 const ErrorView = ({ style }: { style: any }) => (
   <View
-    className="justify-center items-center bg-neutral-900 overflow-hidden w-full h-full rounded-lg"
+    className="justify-center items-center bg-neutral-900 overflow-hidden w-full h-full rounded-lg p-2"
     style={style}
   >
     <Ionicons name="alert-circle" size={40} color="#ef4444" />
