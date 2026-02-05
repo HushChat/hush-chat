@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useUserStore } from "@/store/user/useUserStore";
-import { conversationMessageQueryKeys } from "@/constants/queryKeys";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { conversationMessageQueryKeys, conversationQueryKeys } from "@/constants/queryKeys";
 import { usePaginatedQueryWithCursor } from "@/query/usePaginatedQueryWithCursor";
 import { eventBus } from "@/services/eventBus";
 import { CONVERSATION_EVENTS } from "@/constants/ws/webSocketEventKeys";
@@ -9,8 +10,9 @@ import {
   CursorPaginatedResponse,
   getConversationMessagesByCursor,
   getMessagesAroundMessageId,
+  ConversationFilterCriteria,
 } from "@/apis/conversation";
-import type { IMessage, IConversation } from "@/types/chat/types";
+import { IMessage, IConversation, ConversationType } from "@/types/chat/types";
 import { OffsetPaginatedResponse } from "@/query/usePaginatedQueryWithOffset";
 import { ToastUtils } from "@/utils/toastUtils";
 import { logError } from "@/utils/logger";
@@ -19,6 +21,64 @@ import { skipRetryOnAccessDenied } from "@/utils/apiErrorUtils";
 
 const PAGE_SIZE = 20;
 
+const getCriteriaFromType = (type: ConversationType): ConversationFilterCriteria => {
+  switch (type) {
+    case ConversationType.ARCHIVED:
+      return { isArchived: true };
+    case ConversationType.FAVORITES:
+      return { isFavorite: true, isArchived: false };
+    case ConversationType.MUTED:
+      return { isMuted: true, isArchived: false };
+    case ConversationType.GROUPS:
+      return { isGroup: true, isArchived: false } as any;
+    case ConversationType.UNREAD:
+      return { hasUnread: true, isArchived: false } as any;
+    case ConversationType.ALL:
+    default:
+      return { isArchived: false };
+  }
+};
+
+const isConversationCompliant = (
+  conversation: IConversation,
+  filterType: ConversationType,
+  currentUserId: number
+): boolean => {
+  const isArchived = conversation.archivedByLoggedInUser;
+  const isMuted = conversation.mutedByLoggedInUser;
+  const isFavorite = conversation.favoriteByLoggedInUser;
+  const isGroup = conversation.isGroup;
+
+  switch (filterType) {
+    case ConversationType.ALL:
+      return !isArchived;
+
+    case ConversationType.ARCHIVED:
+      return isArchived;
+
+    case ConversationType.FAVORITES:
+      return isFavorite && !isArchived;
+
+    case ConversationType.MUTED:
+      return isMuted && !isArchived;
+
+    case ConversationType.GROUPS:
+      return isGroup && !isArchived;
+
+    case ConversationType.UNREAD:
+      return !isMuted && !isArchived;
+
+    case ConversationType.MENTIONED: {
+      const lastMessage = conversation.messages?.[0];
+      const hasMention = lastMessage?.mentions?.some((u) => u.id === currentUserId) ?? false;
+      return hasMention && !isArchived;
+    }
+
+    default:
+      return !isArchived;
+  }
+};
+
 export function useConversationMessagesQuery(
   conversationId: number,
   options?: { enabled?: boolean }
@@ -26,6 +86,8 @@ export function useConversationMessagesQuery(
   const {
     user: { id: userId },
   } = useUserStore();
+
+  const { selectedConversationType } = useConversationStore();
 
   const queryClient = useQueryClient();
   const previousConversationId = useRef<number | null>(null);
@@ -139,8 +201,10 @@ export function useConversationMessagesQuery(
   const updateConversationsListCache = useCallback(
     (newMessage: IMessage) => {
       let found = false;
-      const listQueryKey = ["conversations", userId];
+      const activeCriteria = getCriteriaFromType(selectedConversationType);
+      const listQueryKey = conversationQueryKeys.allConversations(Number(userId), activeCriteria);
 
+      // 3. Update Cache
       queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
         { queryKey: listQueryKey },
         (oldData) => {
@@ -196,7 +260,7 @@ export function useConversationMessagesQuery(
         queryClient.invalidateQueries({ queryKey: listQueryKey });
       }
     },
-    [queryClient, conversationId, userId]
+    [queryClient, conversationId, userId, selectedConversationType]
   );
 
   const replaceTempMessage = useCallback(
@@ -229,10 +293,24 @@ export function useConversationMessagesQuery(
       conversationId: number;
       messageWithConversation: IConversation;
     }) => {
+      const messages = messageWithConversation.messages || [];
+
       if (msgConversationId === conversationId) {
-        const messages = messageWithConversation.messages || [];
         messages.forEach((msg) => {
           updateConversationMessagesCache(msg);
+        });
+      }
+
+      const shouldUpdateList = isConversationCompliant(
+        messageWithConversation,
+        selectedConversationType,
+        Number(userId)
+      );
+
+      console.log("shouldUpdateList", shouldUpdateList);
+
+      if (shouldUpdateList) {
+        messages.forEach((msg) => {
           updateConversationsListCache(msg);
         });
       }
@@ -243,7 +321,13 @@ export function useConversationMessagesQuery(
     return () => {
       eventBus.off(CONVERSATION_EVENTS.NEW_MESSAGE, handleNewMessage);
     };
-  }, [conversationId, updateConversationMessagesCache, updateConversationsListCache]);
+  }, [
+    conversationId,
+    userId,
+    selectedConversationType,
+    updateConversationMessagesCache,
+    updateConversationsListCache,
+  ]);
 
   return {
     pages,
