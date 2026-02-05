@@ -12,7 +12,7 @@ import {
 } from "@/hooks/useNativePickerUpload";
 import { createMessagesWithAttachments, publishMessageEvents } from "@/apis/conversation";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MAX_DOCUMENT_SIZE_KB,
   MAX_IMAGE_SIZE_KB,
@@ -20,6 +20,8 @@ import {
 } from "@/constants/mediaConstants";
 import { IMessage } from "@/types/chat/types";
 import { getFileType } from "@/utils/files/getFileType";
+import { useAttachmentUploadStore } from "@/store/attachmentUpload/useAttachmentUploadStore";
+import { PLATFORM } from "@/constants/platformConstants";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -197,6 +199,25 @@ export function useMessageAttachmentUploader(
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
+  const { addPendingId, removePendingIds } = useAttachmentUploadStore();
+
+  useEffect(() => {
+    if (!PLATFORM.IS_WEB) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      const pendingCount = useAttachmentUploadStore.getState().pendingMessageIds.size;
+
+      if (pendingCount > 0) {
+        event.preventDefault();
+        event.returnValue = "Uploads in progress. Changes may not be saved.";
+        return event.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
   const getMessagesWithSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
@@ -351,6 +372,9 @@ export function useMessageAttachmentUploader(
         throw new Error("No signed URLs returned from server");
       }
 
+      const idsToAdd = signedUrls.map((s) => s.messageId).filter((id): id is number => !!id);
+      idsToAdd.forEach((id) => addPendingId(id));
+
       if (onUploadStart) {
         const optimisticPairs: { message: IMessage; file: LocalFile }[] = [];
 
@@ -442,6 +466,7 @@ export function useMessageAttachmentUploader(
 
       if (successfulMessageIds.length > 0) {
         await publishMessageEvents(conversationId, successfulMessageIds);
+        removePendingIds(successfulMessageIds);
       }
 
       const allResults = [...results, ...skipped];

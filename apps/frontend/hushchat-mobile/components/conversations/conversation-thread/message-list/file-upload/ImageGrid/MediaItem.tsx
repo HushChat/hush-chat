@@ -49,7 +49,7 @@ export const MediaItem = ({
     return attachment.fileUrl;
   }, [isVideo, attachment]);
 
-  if (hasError && !isPendingUpload) {
+  if (hasError) {
     return (
       <View>
         <AppText className="text-red-500 text-sm mt-1.5">Upload failed. Re-upload again</AppText>
@@ -57,31 +57,31 @@ export const MediaItem = ({
     );
   }
 
-  if (!hasError) {
+  if (isPendingUpload) {
     return (
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={DEFAULT_ACTIVE_OPACITY}
-        style={staticStyles.imageItemContainer}
-      >
-        <Image
-          source={{ uri: imageSource }}
-          placeholder={{ uri: imageSource }}
-          style={style}
-          contentFit="contain"
-          cachePolicy="memory-disk"
-          onError={() => setHasError(true)}
-        />
-
-        {isVideo && <VideoPlayOverlay />}
-      </TouchableOpacity>
+      <View style={style} className="items-center justify-center">
+        <AppText>Still uploading</AppText>
+      </View>
     );
   }
 
   return (
-    <View>
-      <AppText>Still uploading</AppText>
-    </View>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={DEFAULT_ACTIVE_OPACITY}
+      style={staticStyles.imageItemContainer}
+    >
+      <Image
+        source={{ uri: imageSource }}
+        placeholder={{ uri: imageSource }}
+        style={style}
+        contentFit="contain"
+        cachePolicy="memory-disk"
+        onError={() => !isVideo && setHasError(true)}
+      />
+
+      {isVideo && <VideoPlayOverlay />}
+    </TouchableOpacity>
   );
 };
 
