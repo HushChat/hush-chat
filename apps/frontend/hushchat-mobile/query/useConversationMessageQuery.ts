@@ -200,65 +200,79 @@ export function useConversationMessagesQuery(
 
   const updateConversationsListCache = useCallback(
     (newMessage: IMessage) => {
-      let found = false;
       const activeCriteria = getCriteriaFromType(selectedConversationType);
-      const listQueryKey = conversationQueryKeys.allConversations(Number(userId), activeCriteria);
 
-      // 3. Update Cache
-      queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
-        { queryKey: listQueryKey },
-        (oldData) => {
-          if (!oldData) return oldData;
+      const queryKeysMap = {
+        selectedConversation: conversationQueryKeys.allConversations(
+          Number(userId),
+          activeCriteria
+        ),
+        allConversation: conversationQueryKeys.allConversations(Number(userId), {}),
+      };
 
-          return {
-            ...oldData,
-            pages: oldData?.pages?.map((page) => {
-              const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
+      Object.entries(queryKeysMap).forEach(([keyName, listQueryKey]) => {
+        let foundInThisList = false;
 
-              if (conversationIndex === -1) return page;
+        queryClient.setQueriesData<InfiniteData<OffsetPaginatedResponse<IConversation>>>(
+          { queryKey: listQueryKey },
+          (oldData) => {
+            if (!oldData) return oldData;
 
-              found = true;
+            return {
+              ...oldData,
+              pages: oldData?.pages?.map((page) => {
+                const conversationIndex = page.content.findIndex((c) => c.id === conversationId);
 
-              const existingConversation = page.content[conversationIndex];
-              const existingLastMessage = existingConversation.messages?.[0];
+                if (conversationIndex === -1) return page;
 
-              const shouldUpdateMessage =
-                !existingLastMessage ||
-                new Date(newMessage.createdAt) >= new Date(existingLastMessage.createdAt) ||
-                newMessage.id === existingLastMessage.id;
+                foundInThisList = true;
 
-              if (!shouldUpdateMessage) {
-                return page;
-              }
+                const existingConversation = page.content[conversationIndex];
 
-              const updatedConversation: IConversation = {
-                ...existingConversation,
-                messages: [newMessage],
-              };
+                if (keyName === "allConversation" && existingConversation.archivedByLoggedInUser) {
+                  return page;
+                }
 
-              const otherConversations = page.content.filter((c) => c.id !== conversationId);
-              const { pinned, unpinned } = separatePinnedItems(
-                otherConversations,
-                (c) => c.pinnedByLoggedInUser
-              );
+                const existingLastMessage = existingConversation.messages?.[0];
 
-              let newContent: IConversation[];
+                const shouldUpdateMessage =
+                  !existingLastMessage ||
+                  new Date(newMessage.createdAt) >= new Date(existingLastMessage.createdAt) ||
+                  newMessage.id === existingLastMessage.id;
 
-              if (updatedConversation.pinnedByLoggedInUser) {
-                newContent = [updatedConversation, ...pinned, ...unpinned];
-              } else {
-                newContent = [...pinned, updatedConversation, ...unpinned];
-              }
+                if (!shouldUpdateMessage) {
+                  return page;
+                }
 
-              return { ...page, content: newContent };
-            }),
-          };
+                const updatedConversation: IConversation = {
+                  ...existingConversation,
+                  messages: [newMessage],
+                };
+
+                const otherConversations = page.content.filter((c) => c.id !== conversationId);
+                const { pinned, unpinned } = separatePinnedItems(
+                  otherConversations,
+                  (c) => c.pinnedByLoggedInUser
+                );
+
+                let newContent: IConversation[];
+
+                if (updatedConversation.pinnedByLoggedInUser) {
+                  newContent = [updatedConversation, ...pinned, ...unpinned];
+                } else {
+                  newContent = [...pinned, updatedConversation, ...unpinned];
+                }
+
+                return { ...page, content: newContent };
+              }),
+            };
+          }
+        );
+
+        if (!foundInThisList) {
+          queryClient.invalidateQueries({ queryKey: listQueryKey });
         }
-      );
-
-      if (!found) {
-        queryClient.invalidateQueries({ queryKey: listQueryKey });
-      }
+      });
     },
     [queryClient, conversationId, userId, selectedConversationType]
   );
@@ -306,8 +320,6 @@ export function useConversationMessagesQuery(
         selectedConversationType,
         Number(userId)
       );
-
-      console.log("shouldUpdateList", shouldUpdateList);
 
       if (shouldUpdateList) {
         messages.forEach((msg) => {
