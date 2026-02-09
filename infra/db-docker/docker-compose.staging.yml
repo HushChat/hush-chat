@@ -28,6 +28,7 @@ networks:
   infra_network_staging:
     name: infra_network_staging
     driver: bridge
+    external: true
   elk_network_staging:
     name: elk_network_staging
     driver: bridge
