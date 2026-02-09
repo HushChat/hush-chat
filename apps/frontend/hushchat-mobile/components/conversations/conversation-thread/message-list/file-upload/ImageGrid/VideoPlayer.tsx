@@ -28,6 +28,6 @@ const ErrorView = ({ style }: { style: any }) => (
     style={style}
   >
     <Ionicons name="alert-circle" size={40} color="#ef4444" />
-    <AppText className="text-red-500 mt-2 font-medium">Cannot play video</AppText>
+    <AppText className="text-red-500 mt-2 font-medium">Upload failed. Re-upload again</AppText>
   </View>
 );
