@@ -17,13 +17,15 @@ export function ProfileActions({
   isLoading,
 }: IProfileActionsProps) {
   return (
-    <View className="mt-6 px-4">
+    <View className="mt-5 px-4 mb-4">
       <View className="max-w-3xl w-full mx-auto">
         <TouchableOpacity
           onPress={onUpdate}
           disabled={isUpdateDisabled}
-          className={`py-4 rounded-xl items-center mb-3 ${
-            !isUpdateDisabled ? "bg-blue-500" : "bg-gray-400"
+          className={`py-4 rounded-lg items-center mb-3 ${
+            !isUpdateDisabled
+              ? "bg-primary-light dark:bg-primary-dark"
+              : "bg-gray-300 dark:bg-gray-700"
           }`}
         >
           {isLoading ? (
@@ -36,9 +38,11 @@ export function ProfileActions({
         <TouchableOpacity
           onPress={onLogout}
           disabled={isLoading}
-          className="bg-red-500 py-4 rounded-xl items-center"
+          className="border border-red-500 dark:border-red-400 py-4 rounded-lg items-center"
         >
-          <AppText className="text-white text-base font-semibold">Logout</AppText>
+          <AppText className="text-red-500 dark:text-red-400 text-base font-semibold">
+            Logout
+          </AppText>
         </TouchableOpacity>
       </View>
     </View>

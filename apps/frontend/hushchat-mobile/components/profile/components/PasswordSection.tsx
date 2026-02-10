@@ -46,8 +46,10 @@ export function PasswordSection({
   } = passwordVisibility;
 
   return (
-    <View className="mt-6">
-      <AppText className="text-lg dark:text-white font-semibold mb-4">Change Password</AppText>
+    <View className="bg-white dark:bg-gray-800/50 rounded-xl p-5">
+      <AppText className="text-base font-semibold text-text-primary-light dark:text-text-primary-dark mb-4">
+        Change Password
+      </AppText>
 
       <ProfileField
         label="Current Password"

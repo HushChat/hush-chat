@@ -20,20 +20,27 @@ export default function AvailabilitySection({ status }: { status: chatUserStatus
   }, [isAvailable, mutate]);
 
   return (
-    <View className="flex-row items-center justify-between">
-      <View>
-        <AppText className="text-lg font-semibold">BUSY</AppText>
-      </View>
+    <View className="bg-white dark:bg-gray-800/50 rounded-xl p-5 mb-5">
+      <View className="flex-row items-center justify-between">
+        <View>
+          <AppText className="text-base font-semibold text-text-primary-light dark:text-text-primary-dark">
+            Busy Mode
+          </AppText>
+          <AppText className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            When enabled, notifications will be silenced
+          </AppText>
+        </View>
 
-      <Switch
-        value={!isAvailable}
-        onValueChange={toggleAvailability}
-        trackColor={{ false: "#767577", true: "#6B4EFF" }}
-        thumbColor="#000000"
-        {...(PLATFORM.IS_WEB && {
-          activeThumbColor: "#000000",
-        })}
-      />
+        <Switch
+          value={!isAvailable}
+          onValueChange={toggleAvailability}
+          trackColor={{ false: "#767577", true: "#6B4EFF" }}
+          thumbColor="#f4f4f5"
+          {...(PLATFORM.IS_WEB && {
+            activeThumbColor: "#f4f4f5",
+          })}
+        />
+      </View>
     </View>
   );
 }

@@ -73,13 +73,15 @@ export function ProfileField({
   };
 
   return (
-    <View className="mb-6 border-b border-gray-600 pb-2">
-      <AppText className="text-sm text-gray-400 mb-1">{label}</AppText>
+    <View className="mb-4">
+      <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+        {label}
+      </AppText>
 
       {isEditable ? (
-        <View className="flex-row items-center">
+        <View className="flex-row items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3">
           <AppTextInput
-            className="text-base dark:text-white text-black py-1 flex-1"
+            className="text-base text-text-primary-light dark:text-text-primary-dark flex-1"
             value={value || ""}
             onChangeText={handleTextChange}
             placeholder={placeholder}
@@ -100,9 +102,11 @@ export function ProfileField({
           )}
         </View>
       ) : (
-        <AppText className="text-base dark:text-white text-black">
-          {value || "Not provided"}
-        </AppText>
+        <View className="bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3">
+          <AppText className="text-base text-text-primary-light dark:text-text-primary-dark">
+            {value || "Not provided"}
+          </AppText>
+        </View>
       )}
 
       {shouldShowError && <AppText className="text-red-500 text-xs mt-1">{error}</AppText>}
