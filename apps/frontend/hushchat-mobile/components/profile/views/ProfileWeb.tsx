@@ -15,13 +15,13 @@ export const ProfileWeb = () => {
       showsHorizontalScrollIndicator={true}
     >
       <View className="flex-1 flex-row">
-        <View className="w-full max-w-[460px] border-r border-gray-200 dark:border-gray-800">
+        <View className="w-full max-w-[500px] min-w-[360px] border-r border-gray-200 dark:border-gray-800">
           <ProfileForm />
         </View>
         <View className="flex-1">
           <Placeholder
             image={Images.userProfile}
-            title="My ProfileForm"
+            title="My Profile"
             showBackground={false}
             imageWidth={50}
             imageHeight={80}
