@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Dimensions, Pressable, ScrollView, View, StyleSheet } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { router } from "expo-router";
-import { CHAT_VIEW_PATH, SEARCH_VIEW_PATH } from "@/constants/routes";
+import { CHAT_VIEW_PATH, SEARCH_VIEW_PATH, CONVERSATION } from "@/constants/routes";
 import { ConversationParticipant, IConversation } from "@/types/chat/types";
 import { useGroupConversationInfoQuery } from "@/query/useGroupConversationInfoQuery";
 import ChatInfoCommonAction from "@/components/conversations/conversation-info-panel/common/ChatInfoCommonAction";
@@ -27,6 +27,10 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
 import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
+import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import { TUser } from "@/types/user/types";
+import { useMutation } from "@tanstack/react-query";
+import { createOneToOneConversation } from "@/apis/conversation";
 
 const COLORS = {
   button: "#3b82f6",
@@ -45,23 +49,52 @@ export default function GroupChatInfo({
 }: GroupChatInfoProps) {
   const { openModal, closeModal } = useModalContext();
 
+  const {
+    user: { id: userId },
+  } = useUserStore();
+
   const [screenWidth, setScreenWidth] = useState<number>(Dimensions.get("window").width);
   const [allParticipants, setAllParticipants] = useState<ConversationParticipant[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
+
+  const [showProfilePreviewModal, setShowProfilePreviewModal] = useState(false);
+  const [selectedPreviewUser, setSelectedPreviewUser] = useState<TUser | null>(null);
+
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        router.push(CONVERSATION(result.data.id));
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessageMentionedUser = useCallback(
+    (user: TUser) => {
+      if (String(userId) === String(user.id)) return;
+
+      setShowProfilePreviewModal(false);
+      createConversation(user.id);
+    },
+    [createConversation, userId]
+  );
+
+  const handleParticipantPress = useCallback((participant: ConversationParticipant) => {
+    setSelectedPreviewUser(participant.user);
+    setShowProfilePreviewModal(true);
+  }, []);
 
   const { conversationInfo, isLoadingConversationInfo, refetch } = useGroupConversationInfoQuery(
     conversation.id
   );
 
-  const {
-    user: { id: userId },
-  } = useUserStore();
-
   const { pages: participantsPages, error: participantsError } = useConversationParticipantQuery(
     conversation.id
   );
 
-  const { panelWidth, activePanel, isPanelContentReady, openPanel, closePanel } =
+  const { activePanel, isPanelContentReady, openPanel, closePanel } =
     useWebPanelManager(screenWidth);
 
   useEffect(() => {
@@ -282,7 +315,11 @@ export default function GroupChatInfo({
 
           <View>
             {allParticipants.map((participant) => (
-              <ParticipantRow key={participant.id.toString()} participant={participant} />
+              <ParticipantRow
+                key={participant.id.toString()}
+                participant={participant}
+                onPress={handleParticipantPress}
+              />
             ))}
           </View>
           <Pressable
@@ -361,7 +398,6 @@ export default function GroupChatInfo({
           conversationId={conversation.id}
           onClose={closePanel}
           visible={activePanel === PanelType.PARTICIPANTS}
-          panelWidth={panelWidth}
         />
       )}
 
@@ -401,6 +437,18 @@ export default function GroupChatInfo({
             visible={activePanel === PanelType.GROUP_PREFERENCES}
           />
         </View>
+      )}
+
+      {showProfilePreviewModal && (
+        <MentionProfileModal
+          visible={showProfilePreviewModal}
+          user={selectedPreviewUser}
+          onClose={() => {
+            setShowProfilePreviewModal(false);
+            setSelectedPreviewUser(null);
+          }}
+          onMessagePress={handleMessageMentionedUser}
+        />
       )}
     </View>
   );
