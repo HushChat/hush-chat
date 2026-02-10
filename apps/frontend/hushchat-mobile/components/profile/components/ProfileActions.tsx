@@ -1,7 +1,7 @@
 import React from "react";
-import { View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { AppText } from "@/components/AppText";
-import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
+import LoadingState from "@/components/LoadingState";
 
 interface IProfileActionsProps {
   onUpdate: () => void;
@@ -18,31 +18,27 @@ export function ProfileActions({
 }: IProfileActionsProps) {
   return (
     <View className="mt-6 px-4">
-      <View className="max-w-3xl w-full mx-auto gap-3">
+      <View className="max-w-3xl w-full mx-auto">
         <TouchableOpacity
           onPress={onUpdate}
           disabled={isUpdateDisabled}
-          activeOpacity={DEFAULT_ACTIVE_OPACITY}
-          className={`py-4 rounded-lg items-center ${
-            !isUpdateDisabled
-              ? "bg-primary-light dark:bg-primary-dark"
-              : "bg-gray-300 dark:bg-gray-700"
+          className={`py-4 rounded-xl items-center mb-3 ${
+            !isUpdateDisabled ? "bg-blue-500" : "bg-gray-400"
           }`}
         >
           {isLoading ? (
-            <ActivityIndicator color="#ffffff" size={20} />
+            <LoadingState />
           ) : (
-            <AppText className="text-white text-base font-semibold">Update Profile</AppText>
+            <AppText className="text-white text-base font-semibold">Update</AppText>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={onLogout}
           disabled={isLoading}
-          activeOpacity={DEFAULT_ACTIVE_OPACITY}
-          className="border border-red-500 py-4 rounded-lg items-center"
+          className="bg-red-500 py-4 rounded-xl items-center"
         >
-          <AppText className="text-red-500 text-base font-semibold">Logout</AppText>
+          <AppText className="text-white text-base font-semibold">Logout</AppText>
         </TouchableOpacity>
       </View>
     </View>
