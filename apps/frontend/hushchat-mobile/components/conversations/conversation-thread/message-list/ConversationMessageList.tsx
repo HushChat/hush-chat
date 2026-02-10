@@ -4,7 +4,14 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, SectionList, SectionListRenderItemInfo, View } from "react-native";
+import {
+  ActivityIndicator,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  SectionList,
+  SectionListRenderItemInfo,
+  View,
+} from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
@@ -18,7 +25,7 @@ import { useMessageReactions } from "@/hooks/conversation-thread/useMessageReact
 import { useMessageActions } from "@/hooks/conversation-thread/useMessageActions";
 import { useMessageOverlays } from "@/hooks/conversation-thread/useMessageOverlays";
 import { createRenderMessage } from "@/components/conversations/conversation-thread/message-list/renderMessage";
-import { LoadRecentMessagesButton } from "@/components/conversations/conversation-thread/message-list/components/LoadRecentMessagesButton";
+
 import { useRouter } from "expo-router";
 import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
 import { UnreadMessageSection } from "@/components/UnreadMessageSection";
@@ -228,6 +235,31 @@ const ConversationMessageList = ({
     [renderMessage, unreadMeta]
   );
 
+  const isLoadingNewerRef = useRef(false);
+
+  useEffect(() => {
+    isLoadingNewerRef.current = isFetchingNewer;
+  }, [isFetchingNewer]);
+
+  /**
+   * In an inverted SectionList, contentOffset.y ≈ 0 means the user is at the
+   * visual bottom (newest-message end). Detect proximity and auto-load newer
+   * messages so the user doesn't have to tap a button.
+   */
+  const NEWER_LOAD_THRESHOLD_PX = 150;
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!hasMoreNewer || isLoadingNewerRef.current) return;
+
+      const { contentOffset } = event.nativeEvent;
+      if (contentOffset.y < NEWER_LOAD_THRESHOLD_PX) {
+        onLoadNewer();
+      }
+    },
+    [hasMoreNewer, onLoadNewer]
+  );
+
   const renderLoadingFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
     return (
@@ -288,13 +320,17 @@ const ConversationMessageList = ({
         showsVerticalScrollIndicator={false}
         onEndReached={onLoadMore}
         onEndReachedThreshold={0.1}
+        onScroll={handleScroll}
+        scrollEventThrottle={200}
         ListFooterComponent={renderLoadingFooter}
         ListHeaderComponent={
-          <LoadRecentMessagesButton
-            onLoadNewer={onLoadNewer}
-            hasMoreNewer={hasMoreNewer}
-            isFetchingNewer={isFetchingNewer}
-          />
+          isFetchingNewer ? (
+            <View className="py-4">
+              <ActivityIndicator />
+            </View>
+          ) : (
+            <View className="h-4" />
+          )
         }
         onTouchEnd={closeAll}
         onScrollBeginDrag={closeAll}
