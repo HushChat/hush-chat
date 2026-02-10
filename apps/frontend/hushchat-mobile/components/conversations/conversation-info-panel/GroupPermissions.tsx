@@ -7,6 +7,8 @@ import { MotionView } from "@/motion/MotionView";
 import { IConversation } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useUpdateMessageRestrictionsMutation } from "@/query/patch/queries";
+import { useUpdateCache } from "@/query/config/useUpdateCache";
+import { conversationQueryKeys } from "@/constants/queryKeys";
 
 interface IGroupPermissionsProps {
   conversation: IConversation;
@@ -21,6 +23,7 @@ export default function GroupPermissions({
 }: IGroupPermissionsProps) {
   const screenWidth = Dimensions.get("window").width;
   const { user } = useUserStore();
+  const updateCache = useUpdateCache();
 
   const [onlyAdminsCanSendMessages, setOnlyAdminsCanSendMessages] = useState<boolean>(
     conversation.onlyAdminsCanSendMessages
@@ -29,8 +32,14 @@ export default function GroupPermissions({
   const [membersCanAddParticipants, setMembersCanAddParticipants] = useState(true);
 
   const updateOnlyAdminCanSendMessage = useUpdateMessageRestrictionsMutation(
-    { userId: Number(user.id), conversationId: Number(conversation?.id) },
-    () => {}
+    undefined,
+    (data: IConversation) => {
+      updateCache(
+        conversationQueryKeys.metaDataById(Number(user.id ?? 0), Number(conversation?.id ?? 0)),
+        (prev) =>
+          prev ? { ...prev, onlyAdminsCanSendMessages: data.onlyAdminsCanSendMessages } : prev
+      );
+    }
   );
 
   const handleToggleOnlyAdmins = (newValue: boolean) => {
