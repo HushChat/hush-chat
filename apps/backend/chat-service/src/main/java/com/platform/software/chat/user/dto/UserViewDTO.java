@@ -3,7 +3,6 @@ package com.platform.software.chat.user.dto;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -16,7 +15,6 @@ public class UserViewDTO {
     private String firstName;
     private String lastName;
     private String username;
-    @JsonIgnore
     private String email;
     private String imageIndexedName;
     private String signedImageUrl;
