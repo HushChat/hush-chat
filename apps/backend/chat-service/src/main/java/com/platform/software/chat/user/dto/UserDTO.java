@@ -15,6 +15,7 @@ public class UserDTO implements ModelMapper<ChatUser> {
     private String firstName;
     private String username;
     private String lastName;
+    @JsonIgnore
     private String email;
     private Boolean active = false;
     private Boolean deleted = false;
