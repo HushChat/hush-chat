@@ -9,6 +9,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 export default function AvailabilitySection({ status }: { status: chatUserStatus }) {
   const { setUserStatus } = useUserStore();
   const isAvailable = status === chatUserStatus.AVAILABLE;
+  const isBusy = !isAvailable;
 
   const { mutate } = useUpdateAvailabilityStatusMutation({}, (data: chatUserStatus) => {
     setUserStatus(data);
@@ -20,20 +21,25 @@ export default function AvailabilitySection({ status }: { status: chatUserStatus
   }, [isAvailable, mutate]);
 
   return (
-    <View className="flex-row items-center justify-between">
-      <View>
-        <AppText className="text-lg font-semibold">BUSY</AppText>
-      </View>
+    <View className="mb-4">
+      <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+        Status
+      </AppText>
+      <View className="flex-row items-center justify-between bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3">
+        <AppText className={`text-base font-medium ${isBusy ? "text-red-500" : "text-green-500"}`}>
+          {isBusy ? "Busy" : "Available"}
+        </AppText>
 
-      <Switch
-        value={!isAvailable}
-        onValueChange={toggleAvailability}
-        trackColor={{ false: "#767577", true: "#6B4EFF" }}
-        thumbColor="#000000"
-        {...(PLATFORM.IS_WEB && {
-          activeThumbColor: "#000000",
-        })}
-      />
+        <Switch
+          value={isBusy}
+          onValueChange={toggleAvailability}
+          trackColor={{ false: "#d1d5db", true: "#6B4EFF" }}
+          thumbColor="#ffffff"
+          {...(PLATFORM.IS_WEB && {
+            activeThumbColor: "#ffffff",
+          })}
+        />
+      </View>
     </View>
   );
 }

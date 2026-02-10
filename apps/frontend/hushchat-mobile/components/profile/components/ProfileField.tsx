@@ -26,24 +26,10 @@ export interface IProfileFieldProps {
 }
 
 const PROFILE_COLORS = {
-  CAMERA_BG: "#3b82f6",
-  WHITE: "#ffffff",
   PLACEHOLDER: "#9ca3af",
-  BLUE_500: "#3b82f6",
 } as const;
 
-const PROFILE_SIZES = {
-  AVATAR: {
-    WIDTH: 160,
-    HEIGHT: 160,
-    BORDER_RADIUS: 80,
-  },
-  CAMERA_ICON: 18,
-  PASSWORD_ICON: 20,
-  SCROLL_CONTENT_PADDING_BOTTOM: 40,
-  MIN_DESKTOP_WIDTH: 900,
-  SIDEBAR_MAX_WIDTH: 460,
-} as const;
+const ICON_SIZE = 20;
 
 const getInputPlatformStyles = (isWeb: boolean) => ({
   backgroundColor: "transparent",
@@ -73,13 +59,15 @@ export function ProfileField({
   };
 
   return (
-    <View className="mb-6 border-b border-gray-600 pb-2">
-      <AppText className="text-sm text-gray-400 mb-1">{label}</AppText>
+    <View className="mb-4">
+      <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+        {label}
+      </AppText>
 
       {isEditable ? (
-        <View className="flex-row items-center">
+        <View className="relative">
           <AppTextInput
-            className="text-base dark:text-white text-black py-1 flex-1"
+            className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-base text-text-primary-light dark:text-text-primary-dark"
             value={value || ""}
             onChangeText={handleTextChange}
             placeholder={placeholder}
@@ -90,19 +78,24 @@ export function ProfileField({
             style={getInputPlatformStyles(PLATFORM.IS_WEB)}
           />
           {rightIcon && (
-            <TouchableOpacity onPress={onRightIconPress} className="ml-2">
+            <TouchableOpacity
+              onPress={onRightIconPress}
+              className="absolute top-1/2 -translate-y-1/2 right-4"
+            >
               <Ionicons
                 name={rightIcon as any}
-                size={PROFILE_SIZES.PASSWORD_ICON}
+                size={ICON_SIZE}
                 color={PROFILE_COLORS.PLACEHOLDER}
               />
             </TouchableOpacity>
           )}
         </View>
       ) : (
-        <AppText className="text-base dark:text-white text-black">
-          {value || "Not provided"}
-        </AppText>
+        <View className="bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3">
+          <AppText className="text-base text-gray-600 dark:text-gray-400">
+            {value || "Not provided"}
+          </AppText>
+        </View>
       )}
 
       {shouldShowError && <AppText className="text-red-500 text-xs mt-1">{error}</AppText>}
