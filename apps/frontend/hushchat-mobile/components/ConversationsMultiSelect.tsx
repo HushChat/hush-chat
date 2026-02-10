@@ -34,7 +34,7 @@ const getDisplayName = (conversation: TConversation) => {
 };
 
 const getSubText = (conversation: TConversation) => {
-  if ("username" in conversation) return conversation.username ?? "";
+  if ("email" in conversation) return conversation.email ?? "";
   return "";
 };
 

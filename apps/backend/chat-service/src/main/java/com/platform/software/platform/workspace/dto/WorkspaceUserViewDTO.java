@@ -1,6 +1,5 @@
 package com.platform.software.platform.workspace.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +13,6 @@ public class WorkspaceUserViewDTO {
     private String firstName;
     private String lastName;
     private String username;
-    @JsonIgnore
     private String email;
     private String imageIndexedName;
     private WorkspaceUserStatus status;

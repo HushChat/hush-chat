@@ -1,6 +1,5 @@
 package com.platform.software.chat.conversation.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.platform.software.chat.user.entity.ChatUser;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +14,6 @@ public class DirectOtherMetaDTO {
     private String imageIndexedName;
     private boolean blocked;
     private String signedImageUrl;
-    @JsonIgnore
     private String email;
 
     public DirectOtherMetaDTO(ChatUser otherUser, boolean blocked) {

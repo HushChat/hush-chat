@@ -78,7 +78,7 @@ export const ParticipantRow = ({
             {`${participant.user.firstName} ${participant.user.lastName}`}
           </AppText>
           <AppText className="text-sm text-gray-500 dark:text-gray-400">
-            {participant.user.username}
+            {participant.user.email}
           </AppText>
         </View>
         {PLATFORM.IS_WEB && showMenu && (
