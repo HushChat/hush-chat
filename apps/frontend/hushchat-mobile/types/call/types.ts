@@ -4,7 +4,7 @@ type TCallParticipant = {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   joinedAt: string;
   leftAt: string;
 };

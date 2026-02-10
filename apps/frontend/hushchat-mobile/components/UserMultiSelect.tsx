@@ -59,7 +59,7 @@ export const UserMultiSelectList = ({
       renderItemRow={(user, isSelected, toggle) => (
         <SelectableListItem
           title={`${user.firstName} ${user.lastName}`}
-          subtitle={user.email}
+          subtitle={`@${user.username}`}
           isSelected={isSelected}
           onToggle={() => toggle(user)}
         />

@@ -89,7 +89,7 @@ export interface UserView {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   signedImageUrl: string;
 }
 

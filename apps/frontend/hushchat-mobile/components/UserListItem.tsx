@@ -40,7 +40,7 @@ const UserListItem = ({ user, isSelected, onToggle }: UserListItemProps) => {
             className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
             numberOfLines={1}
           >
-            {user.email}
+            @{user.username}
           </Text>
         </View>
         {isSelected && (

@@ -198,7 +198,7 @@ export default function Profile() {
             onChangeText={setLastName}
             placeholder="Enter last name"
           />
-          <ProfileField label="Email" value={user?.email} />
+
         </View>
       </View>
 

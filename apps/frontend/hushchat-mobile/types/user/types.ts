@@ -5,7 +5,7 @@ export const UserSchema = yup.object({
   id: yup.string().nullable().notRequired(),
   firstName: yup.string().required(),
   lastName: yup.string().required(),
-  email: yup.string().required(),
+  email: yup.string().nullable().notRequired(),
   active: yup.boolean().required(),
   signedImageUrl: yup.string().nullable().notRequired(),
 });
@@ -43,7 +43,7 @@ export type TUser = {
   firstName: string;
   lastName: string;
   username: string;
-  email: string;
+  email?: string;
   active?: boolean;
   conversationId?: number;
   signedImageUrl: string;

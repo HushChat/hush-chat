@@ -1,6 +1,5 @@
 import { useAuthStore } from '@/store/auth/authStore';
 import { useEffect, useRef, useState } from 'react';
-import { useUserStore } from '@/store/user/useUserStore';
 import { getAllTokens, decodeJWTToken } from '@/utils/authUtils';
 import { getWSBaseURL } from '@/utils/apiUtils';
 import { emitNewMessage } from '@/services/eventBus';
@@ -49,10 +48,8 @@ const decodeAndValidateToken = (
 
 export default function useWebSocketConnection() {
   const { isAuthenticated } = useAuthStore();
-  const {
-    user: { email },
-  } = useUserStore();
   const wsRef = useRef<WebSocket | null>(null);
+  const emailRef = useRef<string>('');
   const shouldStopRetrying = useRef(false);
 
   const [connectionStatus, setConnectionStatus] = useState<WebSocketStatus>(
@@ -105,6 +102,9 @@ export default function useWebSocketConnection() {
           return;
         }
 
+        const decoded = decodeJWTToken(idToken) as DecodedJWTPayload;
+        emailRef.current = decoded.email;
+
         const wsUrl = `${mainServiceWsBaseUrl}/ws-message-subscription`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
@@ -139,7 +139,7 @@ export default function useWebSocketConnection() {
               ...Array.from(new TextEncoder().encode('SUBSCRIBE\n')),
               ...Array.from(
                 new TextEncoder().encode(
-                  `destination:${MESSAGE_RECEIVED_TOPIC}${encodeURIComponent(email)}\n`,
+                  `destination:${MESSAGE_RECEIVED_TOPIC}${encodeURIComponent(emailRef.current)}\n`,
                 ),
               ),
               ...Array.from(new TextEncoder().encode('id:sub-0\n')),
@@ -220,7 +220,7 @@ export default function useWebSocketConnection() {
       }
       setConnectionStatus(WebSocketStatus.Disconnected);
     };
-  }, [email, isAuthenticated]);
+  }, [isAuthenticated]);
 
   // return the connection status
   return { connectionStatus };
