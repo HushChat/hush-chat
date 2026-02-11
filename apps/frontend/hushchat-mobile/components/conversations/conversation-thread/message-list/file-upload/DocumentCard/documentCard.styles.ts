@@ -10,6 +10,12 @@ export const staticStyles = StyleSheet.create({
   documentCardRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 18,
+  },
+  documentMainContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 1,
   },
   documentIconContainer: {
     width: 40,
@@ -17,7 +23,7 @@ export const staticStyles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 6,
   },
   documentIconText: {
     fontSize: 8,
