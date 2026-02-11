@@ -538,6 +538,16 @@ export const sendInviteToWorkspace = async (invites: { email: string }[]) => {
   }
 };
 
+export const getAttachmentDownloadUrl = async (
+  conversationId: number,
+  attachmentId: number
+): Promise<string> => {
+  const response = await axios.get(
+    CONVERSATION_API_ENDPOINTS.GET_ATTACHMENT_DOWNLOAD_URL(conversationId, attachmentId)
+  );
+  return response.data.downloadUrl;
+};
+
 export const getConversationAttachments = async (
   conversationId: number,
   criteria: AttachmentFilterCriteria,
