@@ -67,6 +67,21 @@ export const getAllUsers = async (
   }
 };
 
+export const getWorkspaceChatUsers = async (
+  keyword: string = "",
+  page: number = 0,
+  size: number = 20
+) => {
+  try {
+    const response = await axios.get(WORKSPACE_ENDPOINTS.WORKSPACE_CHAT_USERS, {
+      params: { keyword, page, size },
+    });
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
 export const sendTokenToBackend = async (device: DeviceToken) => {
   try {
     const response = await axios.post(USER_API_ENDPOINTS.SAVE_TOKEN, device);
