@@ -1,5 +1,5 @@
 export const URL_REGEX = /\b((?:https?:\/\/)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?)/i;
-export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i;
+export const EMAIL_REGEX = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
 export const PHONE_REGEX = /\+?[0-9][0-9\s-]{8,}[0-9]/;
 export const MENTION_REGEX = /(^|\s)@([a-zA-Z0-9._-]+)([.,!?;:]*)/;
 export const HASHTAG_REGEX = /(^|\s)(#[a-z\d-_]+)/;
