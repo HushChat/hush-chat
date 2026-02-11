@@ -579,7 +579,7 @@ public class ConversationService {
         ConversationParticipant loggedInParticipant =
                 conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
 
-        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant);
+        Page<Message> messages = messageService.getRecentVisibleMessages(idBasedPageRequest, conversationId, loggedInParticipant, loggedInUserId);
 
         return getMessageViewDTOs(messages, conversationId, loggedInUserId);
     }

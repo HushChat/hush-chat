@@ -237,6 +237,7 @@ const ConversationThreadScreen = ({
     showImagePreview,
     open: handleOpenImagePicker,
     close: handleCloseImagePreview,
+    closeOverlay,
     removeAt: handleRemoveFile,
     addMore: handleAddMoreFiles,
   } = useImagePreview();
@@ -471,6 +472,7 @@ const ConversationThreadScreen = ({
         webMessageInfoPress={webMessageInfoPress}
         lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
         onEditMessage={handleStartEditWithClearReply}
+        uploadProgress={uploadProgress}
       />
     );
   }, [
@@ -494,6 +496,7 @@ const ConversationThreadScreen = ({
     handleTargetMessageScrolled,
     lastSeenMessageInfo,
     handleStartEditWithClearReply,
+    uploadProgress,
   ]);
 
   const renderTextInput = useCallback(() => {
@@ -514,7 +517,7 @@ const ConversationThreadScreen = ({
         onOpenImagePickerNative={handleOpenImagePickerNative}
         onOpenDocumentPickerNative={handleOpenDocumentPickerNative}
         disabled={isLoadingConversationMessages}
-        isSending={isSendingMessage || isUploadingImages || isEditingMessage}
+        isSending={isSendingMessage || isEditingMessage}
         replyToMessage={selectedMessage}
         onCancelReply={handleCancelReply}
         isGroupChat={isGroupChat}
@@ -592,7 +595,7 @@ const ConversationThreadScreen = ({
                     isGroupChat={isGroupChat}
                     replyToMessage={selectedMessage}
                     onCancelReply={handleCancelReply}
-                    uploadProgress={uploadProgress}
+                    closeOverlay={closeOverlay}
                   />
                 ) : (
                   <>

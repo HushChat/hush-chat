@@ -24,6 +24,7 @@ interface IRenderMessageParams {
   webMessageInfoPress?: (messageId: number) => void;
   markMessageAsUnread: (msg: IMessage) => void;
   onEditMessage?: (msg: IMessage) => void;
+  uploadProgress: Record<string, number>;
 }
 
 export const createRenderMessage = (params: IRenderMessageParams) => {
@@ -56,6 +57,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       webMessageInfoPress,
       markMessageAsUnread,
       onEditMessage,
+      uploadProgress,
     } = params;
 
     const isCurrentUser = currentUserId && Number(currentUserId) === item.senderId;
@@ -73,6 +75,8 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
       index,
       !!conversationAPIResponse?.isGroup
     );
+
+    const progress = uploadProgress[String(item.id)];
 
     return (
       <ConversationMessageItem
@@ -99,6 +103,7 @@ export const createRenderMessage = (params: IRenderMessageParams) => {
         webMessageInfoPress={webMessageInfoPress}
         onMarkMessageAsUnread={markMessageAsUnread}
         onEditMessage={onEditMessage}
+        uploadProgress={progress}
       />
     );
   };

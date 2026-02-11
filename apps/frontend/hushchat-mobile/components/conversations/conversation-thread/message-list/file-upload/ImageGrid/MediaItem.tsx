@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { TouchableOpacity, View, ImageStyle, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,6 +6,7 @@ import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { IMessageAttachment } from "@/types/chat/types";
 import { getFileType } from "@/utils/files/getFileType";
 import { staticStyles } from "./imageGrid.styles";
+import { AppText } from "@/components/AppText";
 
 interface IMediaItemProps {
   attachment: IMessageAttachment;
@@ -13,6 +14,9 @@ interface IMediaItemProps {
   onPress?: () => void;
   showOverlay?: boolean;
   remainingCount?: number;
+  isCurrentUser: boolean;
+  isStored?: boolean;
+  isUploading?: boolean;
 }
 
 const PLAY_ICON_SIZE = 40;
@@ -25,14 +29,41 @@ const VideoPlayOverlay = () => (
   </View>
 );
 
-export const MediaItem = ({ attachment, style, onPress }: IMediaItemProps) => {
+export const MediaItem = ({
+  attachment,
+  style,
+  onPress,
+  isCurrentUser,
+  isStored,
+  isUploading = false,
+}: IMediaItemProps) => {
+  const [hasError, setHasError] = useState<boolean>(false);
+
   const fileName = attachment.originalFileName || attachment.indexedFileName || "";
   const isVideo = getFileType(fileName) === "video";
+
+  const isPendingUpload = isCurrentUser && !isStored && isUploading;
 
   const imageSource = useMemo(() => {
     if (isVideo) return;
     return attachment.fileUrl;
   }, [isVideo, attachment]);
+
+  if (hasError) {
+    return (
+      <View>
+        <AppText className="text-red-500 text-sm mt-1.5">Upload failed. Re-upload again</AppText>
+      </View>
+    );
+  }
+
+  if (isPendingUpload) {
+    return (
+      <View style={style} className="items-center justify-center">
+        <AppText>Still uploading</AppText>
+      </View>
+    );
+  }
 
   return (
     <TouchableOpacity
@@ -46,6 +77,7 @@ export const MediaItem = ({ attachment, style, onPress }: IMediaItemProps) => {
         style={style}
         contentFit="contain"
         cachePolicy="memory-disk"
+        onError={() => !isVideo && setHasError(true)}
       />
 
       {isVideo && <VideoPlayOverlay />}
