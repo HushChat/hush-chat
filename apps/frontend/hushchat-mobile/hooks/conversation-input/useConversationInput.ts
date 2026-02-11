@@ -339,9 +339,10 @@ export function useConversationInput({
 
     inputHeight: autoHeightController.currentInputHeight,
     minHeight: autoHeightController.minimumInputHeight,
-    maxHeight: autoHeightController.maximumInputHeight,
+    maxHeight: autoHeightController.currentMaxHeight,
     animatedContainerStyle: autoHeightController.animatedHeightStyle,
     handleContentSizeChange: autoHeightController.handleTextContainerSizeChange,
+    handleManualResize: autoHeightController.handleManualResize,
 
     mentionQuery: mentionsController.activeMentionQueryText,
     mentionVisible: mentionsController.isMentionSuggestionsVisible,
