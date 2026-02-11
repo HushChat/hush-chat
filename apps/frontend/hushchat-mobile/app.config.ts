@@ -38,7 +38,7 @@ export default () => ({
       package: "com.hush.chat",
       versionCode: 2,
       useNextNotificationsApi: true,
-      googleServicesFile: "./android/app/google-services.json",
+      googleServicesFile: "./google-services.json",
     },
     web: {
       bundler: "metro",
