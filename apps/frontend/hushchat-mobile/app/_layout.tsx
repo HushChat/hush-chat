@@ -89,6 +89,7 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
         <Stack.Screen name="group-conversation/configure" />
         <Stack.Screen name="settings/contact" />
         <Stack.Screen name="settings/invite" />
+        <Stack.Screen name="settings/all-users" />
         <Stack.Screen name="settings/change-workspace" />
         <Stack.Screen name="mentioned-messages-view" />
       </Stack>

@@ -121,6 +121,10 @@ export const GIF_API_ENDPOINTS = {
   SEARCH: `${GIF_API_BASE}/search`,
 };
 
+export const WORKSPACE_ADMIN_ENDPOINTS = {
+  GET_ALL_USERS: `${WORKSPACE_ADMIN_API_BASE}/users`,
+};
+
 export const WS_DESTINATIONS = {
   SUBSCRIBED_CONVERSATIONS: "/app/subscribed-conversations",
   TYPING: "/app/typing",
