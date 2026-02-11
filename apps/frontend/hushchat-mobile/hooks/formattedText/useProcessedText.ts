@@ -2,7 +2,7 @@ import { TUser } from "@/types/user/types";
 import { useMemo } from "react";
 import { HASHTAG_REGEX, MENTION_REGEX, PHONE_REGEX } from "@/constants/regex";
 
-export const useProcessedText = (text: string, mentions: TUser[]) => {
+export const useProcessedText = (text: string, mentions: TUser[], isGroup?: boolean) => {
   return useMemo(() => {
     const splitRegex = /(`{3}[\s\S]*?`{3}|`[^`]+`)/g;
     const parts = text.split(splitRegex);
@@ -19,9 +19,9 @@ export const useProcessedText = (text: string, mentions: TUser[]) => {
           const cleanUsername = username.replace(/\.$/, "");
           const finalPunctuation = (username.endsWith(".") ? "." : "") + (punctuation || "");
 
-          const isValid = mentions?.some(
-            (m) => m.username.toLowerCase() === cleanUsername.toLowerCase()
-          );
+          const isValid =
+            (isGroup && cleanUsername.toLowerCase() === "all") ||
+            mentions?.some((m) => m.username.toLowerCase() === cleanUsername.toLowerCase());
 
           return isValid
             ? `${space}[@${cleanUsername}](mention:${cleanUsername})${finalPunctuation}`
@@ -45,5 +45,5 @@ export const useProcessedText = (text: string, mentions: TUser[]) => {
         return newPart;
       })
       .join("");
-  }, [text, mentions]);
+  }, [text, mentions, isGroup]);
 };

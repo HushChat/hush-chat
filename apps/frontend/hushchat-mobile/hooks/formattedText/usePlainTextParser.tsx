@@ -6,7 +6,8 @@ export const usePlainTextParser = (
   text: string,
   mentions: TUser[],
   rules: Record<string, any>,
-  styles: Record<string, any>
+  styles: Record<string, any>,
+  isGroup?: boolean
 ) => {
   return useMemo(() => {
     const emailParts = text.split(EMAIL_REGEX);
@@ -50,9 +51,9 @@ export const usePlainTextParser = (
           const cleanUsername = username.replace(/\.$/, "");
           const finalPunctuation = (username.endsWith(".") ? "." : "") + punctuation;
 
-          const isValid = mentions?.some(
-            (m) => m.username.toLowerCase() === cleanUsername.toLowerCase()
-          );
+          const isValid =
+            (isGroup && cleanUsername.toLowerCase() === "all") ||
+            mentions?.some((m) => m.username.toLowerCase() === cleanUsername.toLowerCase());
 
           const beforeText = urlPart.substring(lastIndex, match.index) + space;
           if (beforeText) {
@@ -102,5 +103,5 @@ export const usePlainTextParser = (
         return tokens.length > 0 ? tokens : urlPart;
       });
     });
-  }, [text, mentions, rules, styles]);
+  }, [text, mentions, rules, styles, isGroup]);
 };
