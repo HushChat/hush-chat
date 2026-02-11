@@ -535,4 +535,24 @@ public class UserServiceImpl implements UserService {
         ChatUser user = getUserByEmail(email);
         return user.getAvailabilityStatus().getName();
     }
+
+    @Override
+    public void disableUser(Long userId) {
+        ChatUser user = validateAndGetUser(userId);
+
+        user.setActive(false);
+
+        try {
+            userRepository.save(user);
+
+            cacheService.evictByLastPartsForCurrentWorkspace(
+                    List.of(CacheNames.FIND_USER_BY_ID + ":" + user.getId()));
+
+            logger.info("User {} has been disabled successfully", userId);
+
+        } catch (Exception exception) {
+            logger.error("Failed to disable user id: {}", user.getId(), exception);
+            throw new CustomInternalServerErrorException("Failed to disable user");
+        }
+    }
 }
