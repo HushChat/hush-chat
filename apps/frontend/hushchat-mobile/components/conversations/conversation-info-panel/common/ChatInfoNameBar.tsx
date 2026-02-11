@@ -6,6 +6,7 @@ import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 type ChatInfoNameBarProps = {
   title: string;
+  description?: string;
   isWebView?: boolean;
   showActions?: boolean;
   onPressChat?: () => void;
@@ -15,6 +16,7 @@ type ChatInfoNameBarProps = {
 
 export default function ChatInfoNameBar({
   title,
+  description,
   showActions = false,
   onPressChat,
   onPressCall,
@@ -23,12 +25,23 @@ export default function ChatInfoNameBar({
   const isMobileLayout = useIsMobileLayout();
   return (
     <View className="px-4 py-[14px] flex-row items-center justify-between">
-      <AppText
-        className={`font-semibold text-black dark:text-white ${!isMobileLayout ? "text-lg" : "text-xl"}`}
-        numberOfLines={1}
-      >
-        {title}
-      </AppText>
+      <View className="flex-1">
+        <AppText
+          className={`font-semibold text-black dark:text-white ${!isMobileLayout ? "text-lg" : "text-xl"}`}
+          numberOfLines={1}
+        >
+          {title}
+        </AppText>
+        {description && (
+          <AppText
+            className="text-sm text-gray-500 dark:text-gray-400 mt-0.5"
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {description}
+          </AppText>
+        )}
+      </View>
 
       {showActions && isMobileLayout && (
         <View className="flex-row gap-[10px]">
