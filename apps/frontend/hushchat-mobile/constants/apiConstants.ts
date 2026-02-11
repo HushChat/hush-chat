@@ -83,6 +83,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
   GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
+  GET_ATTACHMENT_DOWNLOAD_URL: (conversationId: number, attachmentId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/attachments/${attachmentId}/download-url`,
   TOGGLE_NOTIFY_ONLY_ON_MENTIONS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/notifications/mentions-only`,
   JOIN_VIA_INVITE_LINK: (token: string) => `${CONVERSATION_API_BASE}/invite-link/${token}/join`,

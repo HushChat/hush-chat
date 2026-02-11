@@ -13,6 +13,8 @@ import com.platform.software.chat.message.attachment.service.AttachmentFilterCri
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/conversations/{conversationId}/attachments")
 public class ConversationAttachmentController {
@@ -40,5 +42,15 @@ public class ConversationAttachmentController {
         Page<MessageAttachmentDTO> attachments = messageAttachmentService.getAttachments(conversationId, filterCriteria,
                 pageable);
         return new ResponseEntity<>(attachments, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get a fresh download URL for an attachment")
+    @GetMapping("/{attachmentId}/download-url")
+    public ResponseEntity<Map<String, String>> getAttachmentDownloadUrl(
+        @PathVariable Long conversationId,
+        @PathVariable Long attachmentId
+    ) {
+        String downloadUrl = messageAttachmentService.getAttachmentDownloadUrl(conversationId, attachmentId);
+        return new ResponseEntity<>(Map.of("downloadUrl", downloadUrl), HttpStatus.OK);
     }
 }
