@@ -65,9 +65,10 @@ public class WorkspaceAdminController {
     @ApiOperation(value = "Get all workspace users", response = WorkspaceUserViewDTO.class)
     @GetMapping("/users")
     public ResponseEntity<Page<WorkspaceUserViewDTO>> getAllWorkspaceUsers(
-            Pageable pageable
+            Pageable pageable,
+            @RequestParam(required = false) String keyword
     ) {
-        Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsers(pageable);
+        Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsers(pageable, keyword);
         return new ResponseEntity<>(workspaceUsers, HttpStatus.OK);
     }
 

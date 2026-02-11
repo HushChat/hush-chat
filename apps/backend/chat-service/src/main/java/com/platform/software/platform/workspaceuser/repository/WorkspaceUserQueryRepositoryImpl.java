@@ -96,4 +96,22 @@ public class WorkspaceUserQueryRepositoryImpl implements WorkspaceUserQueryRepos
 
         return new PageImpl<>(results, pageable, total);
     }
+
+    @Override
+    public Page<WorkspaceUser> fetchWorkspaceUsersPageByEmails(Pageable pageable, List<String> emails) {
+
+        JPAQuery<WorkspaceUser> query = jpaQueryFactory
+                .select(qWorkspaceUser)
+                .from(qWorkspaceUser)
+                .where(qWorkspaceUser.email.in(emails));
+
+        long total = query.fetchCount();
+
+        List<WorkspaceUser> results = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
+    }
 }

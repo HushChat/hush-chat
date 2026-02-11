@@ -53,7 +53,7 @@ public interface UserService {
 
     void unblockUser(Long userId, Long blockId);
 
-    Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable);
+    Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable, String keyword);
 
     UserProfileDTO getUserProfile(Long id);
 

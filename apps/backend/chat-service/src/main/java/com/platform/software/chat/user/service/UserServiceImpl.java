@@ -439,11 +439,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable) {
+    public Page<WorkspaceUserViewDTO> getAllWorkspaceUsers(Pageable pageable, String keyword) {
 
-        Page<WorkspaceUser> workspaceUserPage = WorkspaceUtils.runInGlobalSchema(
-                () -> workspaceUserRepository.fetchWorkspaceUsersPage(pageable)
-        );
+        Page<WorkspaceUser> workspaceUserPage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            List<String> matchingEmails = userQueryRepository.searchUserEmailsByKeyword(keyword);
+            if (matchingEmails.isEmpty()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            }
+            workspaceUserPage = WorkspaceUtils.runInGlobalSchema(
+                    () -> workspaceUserRepository.fetchWorkspaceUsersPageByEmails(pageable, matchingEmails)
+            );
+        } else {
+            workspaceUserPage = WorkspaceUtils.runInGlobalSchema(
+                    () -> workspaceUserRepository.fetchWorkspaceUsersPage(pageable)
+            );
+        }
 
         List<WorkspaceUser> workspaceUsers = workspaceUserPage.getContent();
         List<String> emails = workspaceUsers.stream()

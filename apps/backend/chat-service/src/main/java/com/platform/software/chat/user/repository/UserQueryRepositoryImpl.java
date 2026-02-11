@@ -92,4 +92,26 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                 .where(chatUser.email.in(emails))
                 .fetch();
     }
+
+    @Override
+    public List<String> searchUserEmailsByKeyword(String keyword) {
+        String trimmed = keyword.trim();
+        String[] parts = trimmed.split("\\s+");
+
+        BooleanBuilder where = new BooleanBuilder();
+
+        for (String part : parts) {
+            where.and(
+                    chatUser.firstName.containsIgnoreCase(part)
+                            .or(chatUser.lastName.containsIgnoreCase(part))
+                            .or(chatUser.email.containsIgnoreCase(part))
+            );
+        }
+
+        return queryFactory
+                .select(chatUser.email)
+                .from(chatUser)
+                .where(where)
+                .fetch();
+    }
 }

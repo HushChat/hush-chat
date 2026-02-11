@@ -10,4 +10,5 @@ import java.util.List;
 public interface UserQueryRepository {
     Page<ChatUser> findAllUsersByCriteria(Pageable pageable, UserFilterCriteriaDTO userFilterCriteriaDTO, Long loggedInUserId);
     List<ChatUser> fetchChatUsersByEmails(List<String> emails);
+    List<String> searchUserEmailsByKeyword(String keyword);
 }
