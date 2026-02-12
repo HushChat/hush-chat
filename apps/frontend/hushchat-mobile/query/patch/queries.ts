@@ -8,7 +8,7 @@ import {
   updateMessageRestrictions,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
-import { updateUser } from "@/apis/user";
+import { toggleWorkspaceUserRole, updateUser } from "@/apis/user";
 import {
   ConversationReadInfo,
   IConversation,
@@ -21,6 +21,7 @@ import {
   conversationMessageQueryKeys,
   conversationQueryKeys,
   userQueryKeys,
+  workspaceAdminQueryKeys,
 } from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
 import { forwardMessages, markMessageAsUnread, unsendMessage } from "@/apis/message";
@@ -104,4 +105,10 @@ export const useEditMessageMutation = createMutationHook<
     [
       conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
     ] as string[][]
+);
+
+export const useToggleUserRoleMutation = createMutationHook<void, { email: string }>(
+  ({ email }) => toggleWorkspaceUserRole(email),
+  (keyParams: { userId: number }) => () =>
+    [workspaceAdminQueryKeys.chatUserById(keyParams.userId), ["workspace-chat-users"]] as string[][]
 );

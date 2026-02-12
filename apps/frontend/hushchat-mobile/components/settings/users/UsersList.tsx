@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { PLATFORM } from "@/constants/platformConstants";
 import BackButton from "@/components/BackButton";
 import { router } from "expo-router";
@@ -10,10 +10,12 @@ import SearchBar from "@/components/SearchBar";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { TUser } from "@/types/user/types";
 import useDebounce from "@/hooks/useDebounce";
+import UserEditForm from "@/components/settings/users/UserEditForm";
 
 export default function UsersList() {
   const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const debouncedKeyword = useDebounce(searchText, 300);
 
   const { usersPages, isLoadingUsers, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -24,24 +26,26 @@ export default function UsersList() {
   const renderUserItem = ({ item }: { item: TUser }) => {
     const fullName = `${item.firstName} ${item.lastName}`.trim();
     return (
-      <View className="flex-row items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-        <InitialsAvatar
-          name={fullName || "Unknown User"}
-          imageUrl={item.signedImageUrl}
-          size="sm"
-        />
-        <View className="flex-1">
-          <AppText className="text-text-primary-light dark:text-text-primary-dark font-medium text-base">
-            {fullName || "Unknown User"}
-          </AppText>
-          <AppText
-            className="text-gray-500 dark:text-text-secondary-dark text-sm"
-            numberOfLines={1}
-          >
-            {item.email}
-          </AppText>
+      <Pressable onPress={() => setSelectedUserId(item.id)}>
+        <View className="flex-row items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+          <InitialsAvatar
+            name={fullName || "Unknown User"}
+            imageUrl={item.signedImageUrl}
+            size="sm"
+          />
+          <View className="flex-1">
+            <AppText className="text-text-primary-light dark:text-text-primary-dark font-medium text-base">
+              {fullName || "Unknown User"}
+            </AppText>
+            <AppText
+              className="text-gray-500 dark:text-text-secondary-dark text-sm"
+              numberOfLines={1}
+            >
+              {item.email}
+            </AppText>
+          </View>
         </View>
-      </View>
+      </Pressable>
     );
   };
 
@@ -50,6 +54,19 @@ export default function UsersList() {
       fetchNextPage();
     }
   };
+
+  if (selectedUserId !== null) {
+    return (
+      <View className="flex-1 w-[700px]">
+        <View
+          className="flex-1 px-4 bg-background-light dark:bg-background-dark"
+          style={{ paddingTop: insets.top + 12 }}
+        >
+          <UserEditForm userId={selectedUserId} onBack={() => setSelectedUserId(null)} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 w-[700px]">

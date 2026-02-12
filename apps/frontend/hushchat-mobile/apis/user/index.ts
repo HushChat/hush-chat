@@ -114,6 +114,24 @@ export const getUserWorkspaces = async () => {
   }
 };
 
+export const getWorkspaceChatUserById = async (userId: number) => {
+  try {
+    const response = await axios.get(WORKSPACE_ENDPOINTS.WORKSPACE_CHAT_USER_BY_ID(userId));
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const toggleWorkspaceUserRole = async (email: string) => {
+  try {
+    const response = await axios.patch(WORKSPACE_ENDPOINTS.TOGGLE_USER_ROLE(email));
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
 export const updateUserAvailabilityStatus = async (status: chatUserStatus) => {
   try {
     const response = await axios.patch(

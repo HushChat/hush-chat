@@ -200,6 +200,19 @@ export type TUser = {
   workspaceName?: string;
 };
 
+export type TAdminUserView = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  imageIndexedName: string | null;
+  signedImageUrl: string | null;
+  workspaceName: string | null;
+  workspaceRole: WorkspaceUserRole;
+  status: string | null;
+};
+
 export type DeviceToken = {
   token: string;
   platform: "MOBILE" | "WEB";

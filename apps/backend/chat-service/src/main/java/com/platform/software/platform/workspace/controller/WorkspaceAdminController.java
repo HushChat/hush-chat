@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.dto.ConversationAdminViewDTO;
 import com.platform.software.chat.conversation.service.ConversationService;
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
+import com.platform.software.chat.user.dto.UserViewDTO;
 import com.platform.software.chat.user.service.UserService;
 import com.platform.software.config.interceptors.WorkspaceAdminRestrictedAccess;
 import com.platform.software.config.security.AuthenticatedUser;
@@ -71,6 +72,13 @@ public class WorkspaceAdminController {
     ) {
         Page<WorkspaceUserViewDTO> workspaceUsers = userService.getAllWorkspaceUsers(pageable);
         return new ResponseEntity<>(workspaceUsers, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get chat user details by id", response = UserViewDTO.class)
+    @GetMapping("/chat-users/{userId}")
+    public ResponseEntity<UserViewDTO> getChatUserById(@PathVariable Long userId) {
+        UserViewDTO user = userService.findUserById(userId, WorkspaceContext.getCurrentWorkspace());
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Get all chat users in workspace", response = UserDTO.class)
