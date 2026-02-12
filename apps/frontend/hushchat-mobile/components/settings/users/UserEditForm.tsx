@@ -5,7 +5,10 @@ import BackButton from "@/components/BackButton";
 import InitialsAvatar from "@/components/InitialsAvatar";
 import { ProfileField } from "@/components/profile/components/ProfileField";
 import { useWorkspaceChatUserByIdQuery } from "@/query/useWorkspaceChatUserByIdQuery";
-import { useToggleUserRoleMutation, useUpdateUserMutation } from "@/query/patch/queries";
+import {
+  useToggleUserRoleMutation,
+  useUpdateWorkspaceChatUserMutation,
+} from "@/query/patch/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
 import { ToastUtils } from "@/utils/toastUtils";
@@ -43,7 +46,7 @@ export default function UserEditForm({ userId, onBack }: UserEditFormProps) {
     }
   );
 
-  const { mutate: updateUser, isPending: isSaving } = useUpdateUserMutation(
+  const { mutate: updateChatUser, isPending: isSaving } = useUpdateWorkspaceChatUserMutation(
     { userId },
     () => {
       ToastUtils.success("User updated successfully");
@@ -60,11 +63,11 @@ export default function UserEditForm({ userId, onBack }: UserEditFormProps) {
 
   const handleSave = () => {
     if (!user || !hasNameChanges) return;
-    updateUser({
-      id: String(user.id),
+    updateChatUser({
+      userId: user.id,
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      imageFileName: user.imageIndexedName ?? null,
+      imageIndexedName: user.imageIndexedName ?? null,
     });
   };
 

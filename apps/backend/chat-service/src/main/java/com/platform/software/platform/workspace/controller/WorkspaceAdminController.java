@@ -2,6 +2,7 @@ package com.platform.software.platform.workspace.controller;
 
 import com.platform.software.chat.conversation.dto.ConversationAdminViewDTO;
 import com.platform.software.chat.conversation.service.ConversationService;
+import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.dto.UserDTO;
 import com.platform.software.chat.user.dto.UserFilterCriteriaDTO;
 import com.platform.software.chat.user.dto.UserViewDTO;
@@ -79,6 +80,14 @@ public class WorkspaceAdminController {
     public ResponseEntity<UserViewDTO> getChatUserById(@PathVariable Long userId) {
         UserViewDTO user = userService.findUserById(userId, WorkspaceContext.getCurrentWorkspace());
         return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Update chat user by id", response = UserViewDTO.class)
+    @PutMapping("/chat-users/{userId}")
+    public ResponseEntity<UserViewDTO> updateChatUser(@PathVariable Long userId, @Valid @RequestBody UserDTO userDTO) {
+        userDTO.setId(userId);
+        ChatUser updatedUser = userService.updateUser(userDTO);
+        return ResponseEntity.ok(new UserViewDTO(updatedUser));
     }
 
     @ApiOperation(value = "Get all chat users in workspace", response = UserDTO.class)

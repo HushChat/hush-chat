@@ -123,6 +123,18 @@ export const getWorkspaceChatUserById = async (userId: number) => {
   }
 };
 
+export const updateWorkspaceChatUser = async (
+  userId: number,
+  data: { firstName: string; lastName: string; imageIndexedName?: string | null }
+) => {
+  try {
+    const response = await axios.put(WORKSPACE_ENDPOINTS.UPDATE_CHAT_USER(userId), data);
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
 export const toggleWorkspaceUserRole = async (email: string) => {
   try {
     const response = await axios.patch(WORKSPACE_ENDPOINTS.TOGGLE_USER_ROLE(email));
