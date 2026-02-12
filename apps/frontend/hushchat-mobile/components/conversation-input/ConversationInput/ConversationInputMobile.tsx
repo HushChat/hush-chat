@@ -12,12 +12,15 @@ import { MessageTextArea } from "@/components/conversation-input/MessageTextArea
 import { EmojiPickerComponent } from "@/components/conversation-input/EmojiPicker";
 import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
+import { FileInput } from "@/components/conversation-input/FileInput";
 import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { PLATFORM } from "@/constants/platformConstants";
 
 const ConversationInputMobile = ({
   conversationId,
   onSendMessage,
+  onOpenImagePicker,
   onOpenImagePickerNative,
   onOpenDocumentPickerNative,
   disabled = false,
@@ -52,6 +55,7 @@ const ConversationInputMobile = ({
   const input = useConversationInput({
     conversationId,
     onSendMessage,
+    onOpenImagePicker,
     onOpenImagePickerNative,
     disabled,
     replyToMessage,
@@ -82,18 +86,26 @@ const ConversationInputMobile = ({
   const handleMediaPickerSelect = useCallback(() => {
     setMobileMenuVisible(false);
 
-    setTimeout(() => {
-      onOpenImagePickerNative?.();
-    }, 500);
-  }, [onOpenImagePickerNative]);
+    if (PLATFORM.IS_WEB) {
+      input.fileInputRef.current?.click();
+    } else {
+      setTimeout(() => {
+        onOpenImagePickerNative?.();
+      }, 500);
+    }
+  }, [onOpenImagePickerNative, input.fileInputRef]);
 
   const handleDocumentPickerSelect = useCallback(() => {
     setMobileMenuVisible(false);
 
-    setTimeout(() => {
-      onOpenDocumentPickerNative?.();
-    }, 800);
-  }, [onOpenDocumentPickerNative]);
+    if (PLATFORM.IS_WEB) {
+      input.documentInputRef.current?.click();
+    } else {
+      setTimeout(() => {
+        onOpenDocumentPickerNative?.();
+      }, 800);
+    }
+  }, [onOpenDocumentPickerNative, input.documentInputRef]);
 
   const handleSendButtonPress = useCallback(() => {
     if (!hideSendButton) {
@@ -176,6 +188,13 @@ const ConversationInputMobile = ({
           </View>
         </Animated.View>
       </View>
+
+      {PLATFORM.IS_WEB && !isControlledMode && !input.isEditMode && (
+        <>
+          <FileInput ref={input.fileInputRef} onChange={input.handleFileChange} accept="image/*,video/*" />
+          <FileInput ref={input.documentInputRef} onChange={input.handleDocumentChange} accept="*" />
+        </>
+      )}
 
       {!isControlledMode && !input.isEditMode && (
         <MobileAttachmentModal

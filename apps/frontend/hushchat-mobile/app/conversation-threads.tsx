@@ -309,26 +309,32 @@ const ConversationThreadScreen = ({
 
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
-      } else if (uploadError) {
-        ToastUtils.error(uploadError);
+      } else {
+        const firstError = results?.find((r) => !r.success && r.error)?.error;
+        if (firstError) {
+          ToastUtils.error(firstError);
+        }
       }
     } catch {
       ToastUtils.error("Failed to pick or upload documents.");
     }
-  }, [pickAndUploadDocuments, setSelectedMessage, uploadError]);
+  }, [pickAndUploadDocuments, setSelectedMessage]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImagesAndVideos();
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
-      } else if (uploadError) {
-        ToastUtils.error(uploadError);
+      } else {
+        const firstError = results?.find((r) => !r.success && r.error)?.error;
+        if (firstError) {
+          ToastUtils.error(firstError);
+        }
       }
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickAndUploadImagesAndVideos, setSelectedMessage, uploadError]);
+  }, [pickAndUploadImagesAndVideos, setSelectedMessage]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
