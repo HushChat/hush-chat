@@ -7,6 +7,7 @@ import FilePreviewPane from "./FilePreviewPane";
 import PreviewFooter from "@/components/conversations/conversation-thread/message-list/file-upload/PreviewFooter.tsx";
 import { usePasteHandler } from "@/hooks/usePasteHandler";
 import { ACCEPT_DOC_TYPES } from "@/constants/mediaConstants";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
 export type PreviewFile = {
   id: string;
@@ -42,6 +43,7 @@ const FilePreviewOverlay = ({
   onCancelReply,
   uploadProgress,
 }: TFilePreviewOverlayProps) => {
+  const isMobile = useIsMobileLayout();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([]);
 
@@ -142,7 +144,7 @@ const FilePreviewOverlay = ({
 
   return (
     <View style={styles.container} className="bg-background-light dark:bg-background-dark">
-      <View style={styles.contentRow}>
+      <View style={isMobile ? styles.contentColumn : styles.contentRow}>
         <FileList
           files={previewFiles.map((p) => p.file)}
           selectedIndex={selectedIndex}
@@ -150,6 +152,7 @@ const FilePreviewOverlay = ({
           onRemoveFile={handleRemoveFile}
           isSending={isSending}
           uploadProgress={uploadProgress}
+          horizontal={isMobile}
         />
         {currentItem && (
           <FilePreviewPane
@@ -195,5 +198,6 @@ export default FilePreviewOverlay;
 const styles = StyleSheet.create({
   container: { flex: 1, overflow: "visible" },
   contentRow: { flex: 1, flexDirection: "row", overflow: "visible" },
+  contentColumn: { flex: 1, flexDirection: "column", overflow: "visible" },
   hiddenInput: { display: "none" },
 });
