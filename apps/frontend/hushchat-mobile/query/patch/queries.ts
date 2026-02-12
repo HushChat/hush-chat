@@ -8,7 +8,12 @@ import {
   updateMessageRestrictions,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
-import { toggleWorkspaceUserRole, updateUser, updateWorkspaceChatUser } from "@/apis/user";
+import {
+  toggleSuspendWorkspaceUser,
+  toggleWorkspaceUserRole,
+  updateUser,
+  updateWorkspaceChatUser,
+} from "@/apis/user";
 import {
   ConversationReadInfo,
   IConversation,
@@ -119,6 +124,12 @@ export const useUpdateWorkspaceChatUserMutation = createMutationHook<
 >(
   ({ userId, firstName, lastName, imageIndexedName }) =>
     updateWorkspaceChatUser(userId, { firstName, lastName, imageIndexedName }),
+  (keyParams: { userId: number }) => () =>
+    [workspaceAdminQueryKeys.chatUserById(keyParams.userId), ["workspace-chat-users"]] as string[][]
+);
+
+export const useToggleSuspendUserMutation = createMutationHook<void, { email: string }>(
+  ({ email }) => toggleSuspendWorkspaceUser(email),
   (keyParams: { userId: number }) => () =>
     [workspaceAdminQueryKeys.chatUserById(keyParams.userId), ["workspace-chat-users"]] as string[][]
 );

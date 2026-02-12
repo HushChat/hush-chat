@@ -135,6 +135,15 @@ export const updateWorkspaceChatUser = async (
   }
 };
 
+export const toggleSuspendWorkspaceUser = async (email: string) => {
+  try {
+    const response = await axios.patch(WORKSPACE_ENDPOINTS.SUSPEND_USER, { email });
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
 export const toggleWorkspaceUserRole = async (email: string) => {
   try {
     const response = await axios.patch(WORKSPACE_ENDPOINTS.TOGGLE_USER_ROLE(email));

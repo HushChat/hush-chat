@@ -29,6 +29,7 @@ export const WORKSPACE_ENDPOINTS = {
   TOGGLE_USER_ROLE: (email: string) =>
     `${WORKSPACE_ADMIN_API_BASE}/users/${encodeURIComponent(email)}/role`,
   UPDATE_CHAT_USER: (userId: number) => `${WORKSPACE_ADMIN_API_BASE}/chat-users/${userId}`,
+  SUSPEND_USER: `${WORKSPACE_ADMIN_API_BASE}/suspend`,
 };
 
 export const SETTINGS_API_BASE = "/settings";

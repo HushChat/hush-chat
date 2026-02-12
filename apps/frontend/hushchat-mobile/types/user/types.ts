@@ -200,6 +200,12 @@ export type TUser = {
   workspaceName?: string;
 };
 
+export enum WorkspaceUserStatus {
+  PENDING = "PENDING",
+  ACTIVE = "ACTIVE",
+  SUSPENDED = "SUSPENDED",
+}
+
 export type TAdminUserView = {
   id: number;
   firstName: string;
@@ -210,6 +216,7 @@ export type TAdminUserView = {
   signedImageUrl: string | null;
   workspaceName: string | null;
   workspaceRole: WorkspaceUserRole;
+  workspaceUserStatus: WorkspaceUserStatus | null;
   status: string | null;
 };
 

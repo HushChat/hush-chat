@@ -6,11 +6,13 @@ import InitialsAvatar from "@/components/InitialsAvatar";
 import { ProfileField } from "@/components/profile/components/ProfileField";
 import { useWorkspaceChatUserByIdQuery } from "@/query/useWorkspaceChatUserByIdQuery";
 import {
+  useToggleSuspendUserMutation,
   useToggleUserRoleMutation,
   useUpdateWorkspaceChatUserMutation,
 } from "@/query/patch/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { WorkspaceUserRole } from "@/app/guards/RoleGuard";
+import { WorkspaceUserStatus } from "@/types/user/types";
 import { ToastUtils } from "@/utils/toastUtils";
 
 interface UserEditFormProps {
@@ -56,9 +58,24 @@ export default function UserEditForm({ userId, onBack }: UserEditFormProps) {
     }
   );
 
+  const { mutate: toggleSuspend, isPending: isSuspending } = useToggleSuspendUserMutation(
+    { userId },
+    () => {
+      ToastUtils.success("User status updated successfully");
+    },
+    () => {
+      ToastUtils.error("Failed to update user status");
+    }
+  );
+
   const handleToggleRole = () => {
     if (!user || isSelf) return;
     toggleRole({ email: user.email });
+  };
+
+  const handleToggleSuspend = () => {
+    if (!user || isSelf) return;
+    toggleSuspend({ email: user.email });
   };
 
   const handleSave = () => {
@@ -94,6 +111,7 @@ export default function UserEditForm({ userId, onBack }: UserEditFormProps) {
 
   const fullName = `${firstName} ${lastName}`.trim();
   const isAdmin = user.workspaceRole === WorkspaceUserRole.ADMIN;
+  const isSuspended = user.workspaceUserStatus === WorkspaceUserStatus.SUSPENDED;
 
   return (
     <View className="flex-1">
@@ -185,6 +203,48 @@ export default function UserEditForm({ userId, onBack }: UserEditFormProps) {
           {isSelf && (
             <AppText className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               You cannot change your own role.
+            </AppText>
+          )}
+        </View>
+
+        <View className="mt-2 mb-4">
+          <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-2">
+            Account Status
+          </AppText>
+          <View className="flex-row items-center justify-between bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3">
+            <View
+              className={`px-3 py-1 rounded-full ${isSuspended ? "bg-red-100 dark:bg-red-900/40" : "bg-green-100 dark:bg-green-900/40"}`}
+            >
+              <AppText
+                className={`text-sm font-medium ${isSuspended ? "text-red-700 dark:text-red-300" : "text-green-700 dark:text-green-300"}`}
+              >
+                {isSuspended ? "Suspended" : "Active"}
+              </AppText>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleToggleSuspend}
+              disabled={isSelf || isSuspending}
+              className={`px-4 py-2 rounded-lg ${
+                isSelf || isSuspending
+                  ? "bg-gray-300 dark:bg-gray-700"
+                  : isSuspended
+                    ? "bg-green-500"
+                    : "bg-red-500"
+              }`}
+            >
+              {isSuspending ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <AppText className="text-white text-sm font-medium">
+                  {isSuspended ? "Unsuspend" : "Suspend"}
+                </AppText>
+              )}
+            </TouchableOpacity>
+          </View>
+          {isSelf && (
+            <AppText className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              You cannot suspend your own account.
             </AppText>
           )}
         </View>
