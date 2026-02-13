@@ -563,6 +563,7 @@ export const ConversationMessageItem = ({
                   onMentionClick={handleMentionClick}
                   isMessageEdited={isMessageEdited}
                   isMobileLayout={isMobileLayout}
+                  isGroup={isGroupChat}
                 />
               </MessageHighlightWrapper>
             </View>

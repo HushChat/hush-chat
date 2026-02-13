@@ -31,6 +31,7 @@ interface IMessageBubbleProps {
   messageTextStyle?: TextStyle;
   isMessageEdited?: boolean;
   isMobileLayout?: boolean;
+  isGroup?: boolean;
 }
 
 export const MessageBubble = ({
@@ -49,6 +50,7 @@ export const MessageBubble = ({
   style,
   isMessageEdited,
   isMobileLayout,
+  isGroup,
 }: IMessageBubbleProps) => {
   const messageContent = message.messageText;
   const hasGifMedia = hasGif(message);
@@ -181,6 +183,7 @@ export const MessageBubble = ({
                 isCurrentUser={isCurrentUser}
                 onMentionPress={handleMentionPress}
                 isMarkdownEnabled={message.isMarkdownEnabled}
+                isGroup={isGroup}
               />
             </View>
           ) : message.isUnsend ? (
