@@ -20,6 +20,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: body,
     icon: "/favicon.png",
+    tag: "conversation-" + conversationId,
+    renotify: true,
     data: {
       conversationId: conversationId,
       messageId: messageId,
