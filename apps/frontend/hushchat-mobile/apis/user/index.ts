@@ -67,6 +67,21 @@ export const getAllUsers = async (
   }
 };
 
+export const getWorkspaceChatUsers = async (
+  keyword: string = "",
+  page: number = 0,
+  size: number = 20
+) => {
+  try {
+    const response = await axios.get(WORKSPACE_ENDPOINTS.WORKSPACE_CHAT_USERS, {
+      params: { keyword, page, size },
+    });
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
 export const sendTokenToBackend = async (device: DeviceToken) => {
   try {
     const response = await axios.post(USER_API_ENDPOINTS.SAVE_TOKEN, device);
@@ -94,6 +109,45 @@ export const getUserWorkspaces = async () => {
   try {
     const response = await axios.get(WORKSPACE_ENDPOINTS.GET);
     return response.data;
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const getWorkspaceChatUserById = async (userId: number) => {
+  try {
+    const response = await axios.get(WORKSPACE_ENDPOINTS.WORKSPACE_CHAT_USER_BY_ID(userId));
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const updateWorkspaceChatUser = async (
+  userId: number,
+  data: { firstName: string; lastName: string; imageIndexedName?: string | null }
+) => {
+  try {
+    const response = await axios.put(WORKSPACE_ENDPOINTS.UPDATE_CHAT_USER(userId), data);
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const toggleSuspendWorkspaceUser = async (email: string) => {
+  try {
+    const response = await axios.patch(WORKSPACE_ENDPOINTS.SUSPEND_USER, { email });
+    return { data: response.data };
+  } catch (error: unknown) {
+    return { error: getAPIErrorMsg(error) };
+  }
+};
+
+export const toggleWorkspaceUserRole = async (email: string) => {
+  try {
+    const response = await axios.patch(WORKSPACE_ENDPOINTS.TOGGLE_USER_ROLE(email));
+    return { data: response.data };
   } catch (error: unknown) {
     return { error: getAPIErrorMsg(error) };
   }
