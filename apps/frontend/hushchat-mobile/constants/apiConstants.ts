@@ -24,12 +24,6 @@ export const WORKSPACE_ENDPOINTS = {
   REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
   INVITE_TO_WORKSPACE: `${WORKSPACE_ADMIN_API_BASE}/invite`,
-  WORKSPACE_CHAT_USERS: `${WORKSPACE_ADMIN_API_BASE}/chat-users`,
-  WORKSPACE_CHAT_USER_BY_ID: (userId: number) => `${WORKSPACE_ADMIN_API_BASE}/chat-users/${userId}`,
-  TOGGLE_USER_ROLE: (email: string) =>
-    `${WORKSPACE_ADMIN_API_BASE}/users/${encodeURIComponent(email)}/role`,
-  UPDATE_CHAT_USER: (userId: number) => `${WORKSPACE_ADMIN_API_BASE}/chat-users/${userId}`,
-  SUSPEND_USER: `${WORKSPACE_ADMIN_API_BASE}/suspend`,
 };
 
 export const SETTINGS_API_BASE = "/settings";
