@@ -16,11 +16,13 @@ export const ParticipantRow = ({
   showMenu = false,
   onRemove,
   onToggleRole,
+  onAvatarPress,
 }: {
   participant: ConversationParticipant;
   showMenu?: boolean;
   onRemove?: (participantId: number) => void;
   onToggleRole?: (participantId: number, isAdmin: boolean) => void;
+  onAvatarPress?: (participant: ConversationParticipant) => void;
 }) => {
   const chevronButtonRef = useRef<View>(null);
   const [showOptions, setShowOptions] = useState(false);
@@ -68,11 +70,13 @@ export const ParticipantRow = ({
         )}
         onLongPress={handleLongPress}
       >
-        <InitialsAvatar
-          name={`${participant.user.firstName} ${participant.user.lastName}`}
-          size={AvatarSize.medium}
-          imageUrl={participant.user.signedImageUrl || null}
-        />
+        <Pressable onPress={() => onAvatarPress?.(participant)} disabled={!onAvatarPress}>
+          <InitialsAvatar
+            name={`${participant.user.firstName} ${participant.user.lastName}`}
+            size={AvatarSize.medium}
+            imageUrl={participant.user.signedImageUrl || null}
+          />
+        </Pressable>
         <View className="flex-1 ml-3">
           <AppText className="text-base font-medium text-gray-900 dark:text-white">
             {`${participant.user.firstName} ${participant.user.lastName}`}

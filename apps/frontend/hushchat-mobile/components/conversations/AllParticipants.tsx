@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   TouchableOpacity,
@@ -21,6 +21,13 @@ import {
 } from "@/query/delete/queries";
 import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
+import ProfileCardModal from "@/components/ProfileCardModal";
+import { TUser } from "@/types/user/types";
+import { useUserStore } from "@/store/user/useUserStore";
+import { createOneToOneConversation } from "@/apis/conversation";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { CONVERSATION } from "@/constants/routes";
 
 interface AllParticipantsProps {
   conversationId: number;
@@ -30,6 +37,11 @@ interface AllParticipantsProps {
 
 export const AllParticipants = ({ conversationId, visible, onClose }: AllParticipantsProps) => {
   const screenWidth = Dimensions.get("window").width;
+  const router = useRouter();
+  const currentUserId = useUserStore.getState().user.id;
+
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<TUser | null>(null);
 
   const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useConversationParticipantQuery(conversationId);
@@ -117,6 +129,32 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
     }
   );
 
+  const handleAvatarPress = useCallback(
+    (participant: ConversationParticipant) => {
+      if (String(participant.user.id) === String(currentUserId)) return;
+      setSelectedUser(participant.user);
+      setShowProfileModal(true);
+    },
+    [currentUserId]
+  );
+
+  const { mutate: createConversation } = useMutation({
+    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
+    onSuccess: (result) => {
+      if (result.data) {
+        router.push(CONVERSATION(result.data.id));
+      } else if (result.error) {
+        ToastUtils.error(result.error);
+      }
+    },
+  });
+
+  const handleMessagePress = useCallback(() => {
+    if (!selectedUser || String(selectedUser.id) === String(currentUserId)) return;
+    setShowProfileModal(false);
+    createConversation(selectedUser.id);
+  }, [selectedUser, currentUserId, createConversation]);
+
   return (
     <MotionView
       visible={visible}
@@ -141,6 +179,7 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
             showMenu={conversationInfo?.admin}
             onRemove={removeParticipant}
             onToggleRole={updateConversationParticipantRole}
+            onAvatarPress={handleAvatarPress}
           />
         )}
         keyExtractor={(item) => item.id.toString()}
@@ -157,6 +196,22 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
         className="flex-1 bg-background-light dark:bg-background-dark custom-scrollbar"
         contentContainerStyle={styles.listContentContainer}
       />
+      {selectedUser && (
+        <ProfileCardModal
+          visible={showProfileModal}
+          onClose={() => {
+            setShowProfileModal(false);
+            setSelectedUser(null);
+          }}
+          data={{
+            name: `${selectedUser.firstName} ${selectedUser.lastName}`.trim(),
+            imageUrl: selectedUser.signedImageUrl,
+            username: selectedUser.username,
+            isGroup: false,
+          }}
+          onMessagePress={handleMessagePress}
+        />
+      )}
     </MotionView>
   );
 };
