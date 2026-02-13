@@ -228,7 +228,6 @@ public class UserServiceImpl implements UserService {
         }
         WorkspaceUser workspaceUser = workspaceUserService.getWorkspaceUserByEmailAndWorkspaceIdentifier(userViewDTO.getEmail(), workspaceIdentifier);
         userViewDTO.setWorkspaceRole(workspaceUser.getRole());
-        userViewDTO.setWorkspaceUserStatus(workspaceUser.getStatus());
         return userViewDTO;
     }
 

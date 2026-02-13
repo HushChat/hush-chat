@@ -3,7 +3,6 @@ package com.platform.software.chat.user.dto;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.platform.workspaceuser.entity.WorkspaceUserRole;
-import com.platform.software.platform.workspaceuser.entity.WorkspaceUserStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -21,7 +20,6 @@ public class UserViewDTO {
     private String signedImageUrl;
     private String workspaceName;
     private WorkspaceUserRole workspaceRole;
-    private WorkspaceUserStatus workspaceUserStatus;
     private UserStatusEnum status;
 
     public UserViewDTO(ChatUser user) {

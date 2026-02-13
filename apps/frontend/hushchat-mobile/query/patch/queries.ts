@@ -8,12 +8,7 @@ import {
   updateMessageRestrictions,
 } from "@/apis/conversation";
 import { createMutationHook } from "@/query/config/createMutationFactory";
-import {
-  toggleSuspendWorkspaceUser,
-  toggleWorkspaceUserRole,
-  updateUser,
-  updateWorkspaceChatUser,
-} from "@/apis/user";
+import { updateUser } from "@/apis/user";
 import {
   ConversationReadInfo,
   IConversation,
@@ -26,7 +21,6 @@ import {
   conversationMessageQueryKeys,
   conversationQueryKeys,
   userQueryKeys,
-  workspaceAdminQueryKeys,
 } from "@/constants/queryKeys";
 import { IUser } from "@/types/user/types";
 import { forwardMessages, markMessageAsUnread, unsendMessage } from "@/apis/message";
@@ -110,26 +104,4 @@ export const useEditMessageMutation = createMutationHook<
     [
       conversationMessageQueryKeys.messages(keyParams.userId, keyParams.conversationId),
     ] as string[][]
-);
-
-export const useToggleUserRoleMutation = createMutationHook<void, { email: string }>(
-  ({ email }) => toggleWorkspaceUserRole(email),
-  (keyParams: { userId: number }) => () =>
-    [workspaceAdminQueryKeys.chatUserById(keyParams.userId), ["workspace-chat-users"]] as string[][]
-);
-
-export const useUpdateWorkspaceChatUserMutation = createMutationHook<
-  void,
-  { userId: number; firstName: string; lastName: string; imageIndexedName?: string | null }
->(
-  ({ userId, firstName, lastName, imageIndexedName }) =>
-    updateWorkspaceChatUser(userId, { firstName, lastName, imageIndexedName }),
-  (keyParams: { userId: number }) => () =>
-    [workspaceAdminQueryKeys.chatUserById(keyParams.userId), ["workspace-chat-users"]] as string[][]
-);
-
-export const useToggleSuspendUserMutation = createMutationHook<void, { email: string }>(
-  ({ email }) => toggleSuspendWorkspaceUser(email),
-  (keyParams: { userId: number }) => () =>
-    [workspaceAdminQueryKeys.chatUserById(keyParams.userId), ["workspace-chat-users"]] as string[][]
 );

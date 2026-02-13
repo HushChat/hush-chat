@@ -3,7 +3,6 @@ import Contact from "@/app/settings/contact";
 import { FC } from "react";
 import ChangeWorkspace from "@/app/settings/change-workspace";
 import Invite from "@/app/settings/invite";
-import Users from "@/app/settings/users";
 import { ALL_ROLES, WorkspaceUserRole } from "@/app/guards/RoleGuard";
 
 type TMenuItem = {
@@ -28,12 +27,6 @@ const baseMenuItems: TMenuItem[] = [
     key: "invite",
     label: "Invite",
     icon: "person-add",
-    allowedRoles: [WorkspaceUserRole.ADMIN],
-  },
-  {
-    key: "users",
-    label: "Users",
-    icon: "people",
     allowedRoles: [WorkspaceUserRole.ADMIN],
   },
 ];
@@ -68,6 +61,5 @@ export const getSettingsMenuItems = (
 export const settingsPanels: Record<string, FC> = {
   contact: Contact,
   invite: Invite,
-  users: Users,
   changeWorkspace: ChangeWorkspace,
 };
