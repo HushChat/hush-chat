@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, Pressable, ScrollView, View, StyleSheet } from "react-native";
 import ChatInfoHeader from "@/components/conversations/conversation-info-panel/common/ChatInfoHeader";
 import ActionItem from "@/components/conversations/conversation-info-panel/common/ActionItem";
 import { router } from "expo-router";
-import { CHAT_VIEW_PATH, CONVERSATION, SEARCH_VIEW_PATH } from "@/constants/routes";
+import { CHAT_VIEW_PATH, SEARCH_VIEW_PATH } from "@/constants/routes";
 import { ConversationParticipant, IConversation } from "@/types/chat/types";
 import { useGroupConversationInfoQuery } from "@/query/useGroupConversationInfoQuery";
 import ChatInfoCommonAction from "@/components/conversations/conversation-info-panel/common/ChatInfoCommonAction";
@@ -28,9 +28,7 @@ import { AppText } from "@/components/AppText";
 import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
 import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
 import ProfileCardModal from "@/components/ProfileCardModal";
-import { TUser } from "@/types/user/types";
-import { createOneToOneConversation } from "@/apis/conversation";
-import { useMutation } from "@tanstack/react-query";
+import { useProfileCardModal } from "@/hooks/useProfileCardModal";
 
 const COLORS = {
   button: "#3b82f6",
@@ -65,8 +63,14 @@ export default function GroupChatInfo({
     conversation.id
   );
 
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<TUser | null>(null);
+  const {
+    showProfileModal,
+    selectedUser,
+    profileCardData,
+    openProfileCardFromParticipant: handleAvatarPress,
+    closeProfileCard,
+    handleMessagePress,
+  } = useProfileCardModal();
 
   const { panelWidth, activePanel, isPanelContentReady, openPanel, closePanel } =
     useWebPanelManager(screenWidth);
@@ -137,32 +141,6 @@ export default function GroupChatInfo({
       ToastUtils.error(getAPIErrorMsg(error));
     }
   );
-
-  const handleAvatarPress = useCallback(
-    (participant: ConversationParticipant) => {
-      if (String(participant.user.id) === String(userId)) return;
-      setSelectedUser(participant.user);
-      setShowProfileModal(true);
-    },
-    [userId]
-  );
-
-  const { mutate: createConversation } = useMutation({
-    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
-    onSuccess: (result) => {
-      if (result.data) {
-        router.push(CONVERSATION(result.data.id));
-      } else if (result.error) {
-        ToastUtils.error(result.error);
-      }
-    },
-  });
-
-  const handleMessagePress = useCallback(() => {
-    if (!selectedUser || String(selectedUser.id) === String(userId)) return;
-    setShowProfileModal(false);
-    createConversation(selectedUser.id);
-  }, [selectedUser, userId, createConversation]);
 
   const handleExitGroup = () =>
     openModal({
@@ -440,19 +418,11 @@ export default function GroupChatInfo({
         </View>
       )}
 
-      {selectedUser && (
+      {selectedUser && profileCardData && (
         <ProfileCardModal
           visible={showProfileModal}
-          onClose={() => {
-            setShowProfileModal(false);
-            setSelectedUser(null);
-          }}
-          data={{
-            name: `${selectedUser.firstName} ${selectedUser.lastName}`.trim(),
-            imageUrl: selectedUser.signedImageUrl,
-            username: selectedUser.username,
-            isGroup: false,
-          }}
+          onClose={closeProfileCard}
+          data={profileCardData}
           onMessagePress={handleMessagePress}
         />
       )}
