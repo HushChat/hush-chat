@@ -1,14 +1,12 @@
 import http from "k6/http";
 import { SharedArray } from "k6/data";
 
-// NOTE - set BASE_URL and ACCESS_TOKEN
-
 const TARGET_CONVERSATION_ID = 0;
-const BASE_URL = "<baseURL>";
-const TENANT = "<tenant>";
+const BASE_URL = (__ENV.BASE_URL || "").trim();
+const TENANT = (__ENV.TENANT || "").trim();
 
 const ALL_TOKENS = new SharedArray("tokens", function () {
-  return JSON.parse(open("./tokens.json"));
+  return JSON.parse(open("../tokens.json"));
 });
 
 /*
@@ -32,11 +30,13 @@ export default function () {
   if (!currentUser) return;
 
   const messageNum = __ITER + 1;
-  const url = `${BASE_URL}/conversations/${TARGET_CONVERSATION_ID}/messages`;
+  const url = `${BASE_URL}/conversations/${TARGET_CONVERSATION_ID}/messages/upload-message-signed-url`;
 
-  const payload = JSON.stringify({
-    messageText: `Message ${messageNum} from ${currentUser.note}`,
-  });
+  const payload = JSON.stringify([
+    {
+      gifUrl: "<gif url>",
+    },
+  ]);
 
   const params = {
     headers: {
