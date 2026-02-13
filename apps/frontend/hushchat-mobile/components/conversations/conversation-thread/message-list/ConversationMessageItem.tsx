@@ -27,7 +27,7 @@ import { useRemoveMessageReactionMutation } from "@/query/delete/queries";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { conversationMessageQueryKeys } from "@/constants/queryKeys";
 import { logInfo } from "@/utils/logger";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
@@ -36,12 +36,12 @@ import { MessageBubble } from "@/components/conversations/conversation-thread/me
 import { MessageReactions } from "@/components/conversations/conversation-thread/message-list/MessageReactions";
 import { isImageAttachment, isVideoAttachment } from "@/utils/messageHelpers";
 import { TUser } from "@/types/user/types";
-import { MentionProfileModal } from "@/components/conversations/conversation-thread/message-list/MentionProfileModel";
+import ProfileCardModal from "@/components/ProfileCardModal";
 import { router } from "expo-router";
-import { createOneToOneConversation } from "@/apis/conversation";
 import { AppText } from "@/components/AppText";
 import { MessageHighlightWrapper } from "@/components/MessageHighlightWrapper";
-import { CONVERSATION, MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
+import { MESSAGE_READ_PARTICIPANTS } from "@/constants/routes";
+import { useProfileCardModal } from "@/hooks/useProfileCardModal";
 import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
 import { useModalContext } from "@/context/modal-context";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
@@ -126,8 +126,14 @@ export const ConversationMessageItem = ({
     x: 0,
     y: 0,
   });
-  const [showProfilePreviewModal, setShowProfilePreviewModal] = useState(false);
-  const [selectedPreviewUser, setSelectedPreviewUser] = useState<TUser | null>(null);
+  const {
+    showProfileModal: showProfilePreviewModal,
+    selectedUser: selectedPreviewUser,
+    profileCardData,
+    openProfileCard,
+    closeProfileCard: closeProfilePreview,
+    handleMessagePress: handleProfileMessagePress,
+  } = useProfileCardModal();
   const pinnedMessageId = conversationAPIResponse?.pinnedMessage?.id;
   const isThisMessagePinned = pinnedMessageId === message.id;
   const parentMessage = message.parentMessage;
@@ -345,27 +351,6 @@ export const ConversationMessageItem = ({
     isSystemEvent,
   ]);
 
-  const { mutate: createConversation } = useMutation({
-    mutationFn: (targetUserId: number) => createOneToOneConversation(targetUserId),
-    onSuccess: (result) => {
-      if (result.data) {
-        router.push(CONVERSATION(result.data.id));
-      } else if (result.error) {
-        ToastUtils.error(result.error);
-      }
-    },
-  });
-
-  const handleMessageMentionedUser = useCallback(
-    (user: TUser) => {
-      if (currentUserId === String(user.id)) return;
-
-      setShowProfilePreviewModal(false);
-      createConversation(user.id);
-    },
-    [createConversation]
-  );
-
   const addReaction = useAddMessageReactionMutation(
     undefined,
     () => {
@@ -456,12 +441,12 @@ export const ConversationMessageItem = ({
     ]
   );
 
-  const handleMentionClick = useCallback((user: TUser) => {
-    if (currentUserId === String(user.id)) return;
-
-    setSelectedPreviewUser(user);
-    setShowProfilePreviewModal(true);
-  }, []);
+  const handleMentionClick = useCallback(
+    (user: TUser) => {
+      openProfileCard(user);
+    },
+    [openProfileCard]
+  );
 
   const handleNamePress = useCallback(() => {
     if (!message.senderId || String(message.senderId) === currentUserId) return;
@@ -475,9 +460,8 @@ export const ConversationMessageItem = ({
       signedImageUrl: message.senderSignedImageUrl || "",
     };
 
-    setSelectedPreviewUser(senderAsUser);
-    setShowProfilePreviewModal(true);
-  }, [message, currentUserId]);
+    openProfileCard(senderAsUser);
+  }, [message, currentUserId, openProfileCard]);
 
   const renderParentMessage = () => {
     if (!parentMessage || message.isUnsend) return null;
@@ -582,15 +566,14 @@ export const ConversationMessageItem = ({
               onViewReactions={handleViewReactions}
             />
 
-            <MentionProfileModal
-              visible={showProfilePreviewModal}
-              user={selectedPreviewUser}
-              onClose={() => {
-                setShowProfilePreviewModal(false);
-                setSelectedPreviewUser(null);
-              }}
-              onMessagePress={handleMessageMentionedUser}
-            />
+            {selectedPreviewUser && profileCardData && (
+              <ProfileCardModal
+                visible={showProfilePreviewModal}
+                onClose={closeProfilePreview}
+                data={profileCardData}
+                onMessagePress={handleProfileMessagePress}
+              />
+            )}
           </View>
         </View>
       </View>
