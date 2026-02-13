@@ -15,6 +15,7 @@ export default () => ({
     ios: {
       supportsTablet: true,
       associatedDomains: ["applinks:app.gethush.chat"],
+      bundleIdentifier: "com.hush.chat"
     },
     android: {
       adaptiveIcon: {
