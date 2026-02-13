@@ -200,26 +200,6 @@ export type TUser = {
   workspaceName?: string;
 };
 
-export enum WorkspaceUserStatus {
-  PENDING = "PENDING",
-  ACTIVE = "ACTIVE",
-  SUSPENDED = "SUSPENDED",
-}
-
-export type TAdminUserView = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  imageIndexedName: string | null;
-  signedImageUrl: string | null;
-  workspaceName: string | null;
-  workspaceRole: WorkspaceUserRole;
-  workspaceUserStatus: WorkspaceUserStatus | null;
-  status: string | null;
-};
-
 export type DeviceToken = {
   token: string;
   platform: "MOBILE" | "WEB";
