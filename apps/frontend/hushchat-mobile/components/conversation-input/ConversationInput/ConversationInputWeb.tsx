@@ -165,6 +165,7 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
                   onSelectionChange={input.handleSelectionChange}
                   onKeyPress={handleKeyPress}
                   onSubmitEditing={handleSubmitEditing}
+                  validMentionUsernames={input.validMentionUsernames}
                 />
               </Animated.View>
             </View>
