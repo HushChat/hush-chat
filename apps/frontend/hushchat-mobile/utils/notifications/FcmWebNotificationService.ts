@@ -52,12 +52,13 @@ export const FcmWebNotificationService: INotificationService = {
           icon: "/favicon.png",
           badge: "/favicon.png",
           tag: `conversation-${conversationId}`,
+          renotify: true,
           data: {
             conversationId: conversationId,
             messageId: messageId,
             url: conversationId ? `/conversations/${conversationId}` : "/",
           },
-        });
+        } as NotificationOptions);
 
         notification.onclick = (event) => {
           event.preventDefault();
