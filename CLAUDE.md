@@ -115,3 +115,28 @@ Copy `.env.example` to `.env`. Key groups: Database, AWS/S3, Redis, AWS Cognito,
 - `docker-compose.staging.yml` — staging variant
 - `infra/db-docker/docker-compose.yml` — local PostgreSQL + Redis
 - Backend runs on port 3092, frontend on port 8081 (Nginx)
+
+
+## Critical Rules
+
+- Never bypass workspace schema resolution.
+- Never access the database without WorkspaceContext set.
+- Never write raw SQL unless necessary.
+- Always use DTOs in controllers (never return entities directly).
+- Always prefer QueryDSL over custom JPQL.
+- Never introduce inline styles in React Native.
+- Use existing components before creating new ones.
+
+## Performance Considerations
+
+- Avoid N+1 queries (always consider fetch joins).
+- Index high-frequency columns.
+- Avoid loading full message history without pagination.
+- Be mindful of WebSocket broadcast scope.
+
+## Security
+
+- All endpoints must require authentication unless explicitly public.
+- Never trust client-provided workspace IDs.
+- Always derive workspace from token context.
+- Validate file uploads and enforce size limits.
