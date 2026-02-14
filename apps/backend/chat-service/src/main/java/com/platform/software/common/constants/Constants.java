@@ -4,7 +4,10 @@ import java.util.Set;
 
 public class Constants {
     public static final String X_TENANT_HEADER = "X-Tenant";
+    public static final String X_DEVICE_TYPE = "X-Device-Type";
     public static final String DEFAULT_TEST_TENANT_ID = "localhost";
+    public static final String WEB_CLIENT_DEVICE_TYPE = "WEB";
+    public static final String MOBILE_CLIENT_DEVICE_TYPE = "MOBILE";
     public static final String EMAIL_ATTR = "email";
     public static final String X_PUBLIC_KEY = "X-Public-Key";
     public static final String X_PLATFORM_ID_HEADER = "X-Platform-Id";

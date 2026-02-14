@@ -18,6 +18,7 @@ export const HEADER_AUTHORIZATION = "Authorization";
 export const HEADER_WORKSPACE_ID = "Workspace-Id";
 export const HEADER_HEART_BEAT = "heart-beat";
 export const HEADER_ACCEPT_VERSION = "accept-version";
+export const X_DEVICE_TYPE = "X-Device-Type";
 
 export const TITLES = {
   ARCHIVE_CHAT: (conversationType: ConversationType) =>

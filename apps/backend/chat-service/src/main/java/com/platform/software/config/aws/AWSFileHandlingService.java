@@ -1,6 +1,8 @@
 package com.platform.software.config.aws;
 
 import com.amazonaws.HttpMethod;
+import com.platform.software.common.constants.Constants;
+import com.platform.software.common.context.DeviceContext;
 import com.platform.software.common.model.MediaPathEnum;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -13,12 +15,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import static com.platform.software.common.constants.GeneralConstants.LOCAL;
+
 @Service
 public class AWSFileHandlingService implements CloudPhotoHandlingService {
     Logger logger = LoggerFactory.getLogger(AWSFileHandlingService.class);
 
     @Value("${cloud.front.url}")
     private String cloudFrontUrl;
+
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
 
     private final S3Service s3Service;
 
@@ -43,28 +50,36 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
         String objectKey = String.format(mediaPathEnum.getName(), fileName);
         String signedURL = s3Service.getPrivateBucketSignedURL(objectKey, HttpMethod.PUT);
 
-        SignedURLDTO signedURLDTO = new SignedURLDTO(signedURL, fileName, objectKey);
-        return signedURLDTO;
+        return new SignedURLDTO(signedURL, fileName, objectKey);
     }
 
     @Override
     public String getPhotoViewSignedURL(String imageIndexedName) {
+
         if (imageIndexedName == null || imageIndexedName.trim().isEmpty()) {
             return null;
         }
 
-        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+        if (activeProfile.equals(LOCAL) || DeviceContext.getCurrentDevice().equals(Constants.MOBILE_CLIENT_DEVICE_TYPE)) {
+            return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+        }
+
+        return cloudFrontUrl + imageIndexedName;
     }
 
     @Override
     public String getPhotoViewSignedURL(MediaPathEnum mediaPathEnum, MediaSizeEnum size, String fileName) {
-        if (fileName == null || fileName.trim().isEmpty()) {
+        if (fileName == null) {
             return null;
         }
 
         String imageIndexedName = String.format(mediaPathEnum.getName(), size.getName(), fileName);
 
-        return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+        if (activeProfile.equals(LOCAL) || DeviceContext.getCurrentDevice().equals(Constants.MOBILE_CLIENT_DEVICE_TYPE)) {
+            return s3Service.getPrivateBucketViewSignedURL(imageIndexedName);
+        }
+
+        return cloudFrontUrl + imageIndexedName;
     }
 
     @Override

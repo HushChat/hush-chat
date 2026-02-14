@@ -3,6 +3,8 @@ package com.platform.software.chat.user.controller;
 import com.platform.software.chat.user.activitystatus.dto.UserStatusEnum;
 import com.platform.software.chat.user.dto.*;
 
+import com.platform.software.config.aws.CloudFrontCookieService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -30,10 +32,10 @@ public class UserController {
     private final CognitoService cognitoService;
 
     public UserController(
-        UserService userService, 
-        CallLogService callLogService,
-        CognitoService cognitoService
-        ) {
+            UserService userService,
+            CallLogService callLogService,
+            CognitoService cognitoService
+    ) {
         this.userService = userService;
         this.callLogService = callLogService;
         this.cognitoService = cognitoService;
@@ -77,7 +79,9 @@ public class UserController {
      */
     @ApiOperation(value = "Get logged in user", response = UserViewDTO.class)
     @GetMapping("whoami")
-    public ResponseEntity<UserViewDTO> getLoggedInUser(@AuthenticatedUser UserDetails authenticatedUser) {
+    public ResponseEntity<UserViewDTO> getLoggedInUser(
+            @AuthenticatedUser UserDetails authenticatedUser
+    ) {
         UserViewDTO user = userService.findUserById(authenticatedUser.getId(), authenticatedUser.getWorkspaceId());
         return ResponseEntity.ok(user);
     }
