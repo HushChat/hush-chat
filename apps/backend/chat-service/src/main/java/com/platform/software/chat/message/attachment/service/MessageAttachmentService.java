@@ -132,7 +132,9 @@ public class MessageAttachmentService {
             return attachment.getIndexedFileName();
         }
 
-        return cloudPhotoHandlingService.getPhotoViewSignedURL(attachment.getIndexedFileName());
+        return cloudPhotoHandlingService.getDownloadSignedURL(
+            attachment.getIndexedFileName(), attachment.getOriginalFileName()
+        );
     }
 
     public Page<MessageAttachmentDTO> getAttachments(Long conversationId, AttachmentFilterCriteria attachmentFilterCriteria, Pageable pageable) {
