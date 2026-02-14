@@ -66,6 +66,7 @@ export const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): Sign
         url: item.signedUrl.url,
         indexedFileName: item.signedUrl.indexedFileName,
         messageId: item.id,
+        createdAt: item.createdAt,
       }));
   }
   return [];

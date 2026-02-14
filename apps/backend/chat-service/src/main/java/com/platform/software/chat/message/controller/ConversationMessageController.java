@@ -4,6 +4,7 @@ import com.platform.software.chat.conversation.readstatus.dto.ConversationReadIn
 import com.platform.software.chat.conversation.readstatus.dto.MessageLastSeenRequestDTO;
 import com.platform.software.chat.conversation.readstatus.service.ConversationReadStatusService;
 import com.platform.software.chat.conversation.service.ConversationService;
+import com.platform.software.chat.message.dto.MessagePageResult;
 import com.platform.software.chat.message.dto.MessageUpsertDTO;
 import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.dto.MessageWindowPage;
@@ -128,12 +129,12 @@ public class ConversationMessageController {
      */
     @ApiOperation(value = "get messages from a conversation", response = MessageViewDTO.class)
     @GetMapping("")
-    public ResponseEntity<Page<MessageViewDTO>> getMessages(
+    public ResponseEntity<MessagePageResult<MessageViewDTO>> getMessages(
             @PathVariable Long conversationId,
             @AuthenticatedUser UserDetails userDetails,
             IdBasedPageRequest idBasedPageRequest
     ) {
-        Page<MessageViewDTO> messages = conversationService.getMessages(idBasedPageRequest, conversationId, userDetails.getId());
+        MessagePageResult<MessageViewDTO> messages = conversationService.getMessages(idBasedPageRequest, conversationId, userDetails.getId());
         return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 

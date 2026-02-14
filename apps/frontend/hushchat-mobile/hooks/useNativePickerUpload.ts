@@ -31,6 +31,7 @@ export type SignedUrl = {
   indexedFileName: string;
   url: string;
   messageId?: number;
+  createdAt?: string;
 };
 
 export type UploadResult = {
