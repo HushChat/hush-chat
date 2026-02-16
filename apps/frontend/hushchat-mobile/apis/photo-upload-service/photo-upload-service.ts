@@ -40,6 +40,7 @@ export type TAttachmentUploadRequest = {
   fileName?: string;
   parentMessageId?: number | null;
   gifUrl?: string;
+  isMarkdownEnabled: boolean;
 };
 
 export interface IMessageWithSignedUrl {
@@ -56,7 +57,7 @@ export interface IMessageWithSignedUrl {
   } | null;
 }
 
-const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[] => {
+export const extractSignedUrls = (response: IMessageWithSignedUrl[] | any): SignedUrl[] => {
   if (Array.isArray(response)) {
     return response
       .filter((item) => item.signedUrl && item.signedUrl.url)
@@ -197,47 +198,49 @@ export function useMessageAttachmentUploader(
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
-  const getSignedUrls = async (
+  const getMessagesWithSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
-    parentMessageId?: number | null
-  ): Promise<SignedUrl[] | null> => {
+    parentMessageId?: number | null,
+    isMarkdownEnabled?: boolean
+  ): Promise<IMessage[] | null> => {
     const attachments: TAttachmentUploadRequest[] = files.map((file) => ({
       messageText,
       fileName: file.name,
       parentMessageId,
+      isMarkdownEnabled: isMarkdownEnabled ?? false,
     }));
 
-    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
-
-    return extractSignedUrls(messagesWithSignedUrl);
+    return await createMessagesWithAttachments(conversationId, attachments);
   };
 
-  const getSignedUrlsWithCaptions = async (
-    filesWithCaptions: { file: LocalFile; caption: string }[],
+  const getAttachmentsWithCaptions = async (
+    filesWithCaptions: { file: LocalFile; caption: string; isMarkdownEnabled: boolean }[],
     parentMessageId?: number | null
-  ): Promise<SignedUrl[] | null> => {
-    const attachments: TAttachmentUploadRequest[] = filesWithCaptions.map(({ file, caption }) => ({
-      messageText: caption,
-      fileName: file.name,
-      parentMessageId,
-    }));
+  ): Promise<IMessage[] | null> => {
+    const attachments: TAttachmentUploadRequest[] = filesWithCaptions.map(
+      ({ file, caption, isMarkdownEnabled }) => ({
+        messageText: caption,
+        fileName: file.name,
+        parentMessageId,
+        isMarkdownEnabled,
+      })
+    );
 
-    const messagesWithSignedUrl = await createMessagesWithAttachments(conversationId, attachments);
-
-    return extractSignedUrls(messagesWithSignedUrl);
+    return await createMessagesWithAttachments(conversationId, attachments);
   };
 
   const sendGifMessage = async (
     gifUrl: string,
     messageText: string = "",
     parentMessageId?: number | null
-  ): Promise<IMessage> => {
+  ): Promise<IMessage[]> => {
     const attachments: TAttachmentUploadRequest[] = [
       {
         messageText,
         gifUrl,
         parentMessageId,
+        isMarkdownEnabled: false,
       },
     ];
 
@@ -249,7 +252,7 @@ export function useMessageAttachmentUploader(
     await publishMessageEvents(conversationId, messageIds);
   };
 
-  const hook = useNativePickerUpload(getSignedUrls, handleUploadSuccess);
+  const hook = useNativePickerUpload(getMessagesWithSignedUrls, handleUploadSuccess);
 
   const pickAndUploadImagesAndVideos = async (messageText: string = "") => {
     const results = await hook.pickAndUpload(
@@ -305,10 +308,14 @@ export function useMessageAttachmentUploader(
       _blobUrl: "",
     });
 
-    const validFiles: { file: LocalFile & { _blobUrl: string }; caption: string }[] = [];
+    const validFiles: {
+      file: LocalFile & { _blobUrl: string };
+      caption: string;
+      isMarkdownEnabled: boolean;
+    }[] = [];
     const skipped: UploadResult[] = [];
 
-    for (const { file, caption } of filesWithCaptions) {
+    for (const { file, caption, isMarkdownEnabled } of filesWithCaptions) {
       const category = getFileType(file.type);
 
       const maxSize = sizeMap[category];
@@ -325,14 +332,20 @@ export function useMessageAttachmentUploader(
 
       const lf = toLocal(file);
       lf._blobUrl = lf.uri;
-      validFiles.push({ file: lf, caption });
+      validFiles.push({ file: lf, caption, isMarkdownEnabled });
     }
 
     try {
-      const signedUrls = await getSignedUrlsWithCaptions(
-        validFiles.map(({ file, caption }) => ({ file, caption })),
+      const messagesWithSignedUrl = await getAttachmentsWithCaptions(
+        validFiles.map(({ file, caption, isMarkdownEnabled }) => ({
+          file,
+          caption,
+          isMarkdownEnabled,
+        })),
         parentMessageId
       );
+
+      const signedUrls = extractSignedUrls(messagesWithSignedUrl);
 
       if (!signedUrls || signedUrls.length === 0) {
         throw new Error("No signed URLs returned from server");
@@ -413,7 +426,16 @@ export function useMessageAttachmentUploader(
         await onUploadComplete(allResults);
       }
 
-      return allResults;
+      const resultsWithMessages = allResults.map((result) => {
+        const matchingMessage = messagesWithSignedUrl?.find((msg) => msg.id === result.messageId);
+
+        return {
+          ...result,
+          newMessage: matchingMessage,
+        };
+      });
+
+      return resultsWithMessages;
     } finally {
       setIsUploadingWebFiles(false);
       setUploadProgress({});
@@ -429,11 +451,13 @@ export function useMessageAttachmentUploader(
 
   const uploadFilesFromWeb = async (
     files: File[],
-    messageText: string = ""
+    messageText: string = "",
+    isMarkdownEnabled: boolean
   ): Promise<UploadResult[]> => {
     const filesWithCaptions = files.map((file) => ({
       file,
       caption: messageText,
+      isMarkdownEnabled,
     }));
     return uploadFilesFromWebWithCaptions(filesWithCaptions);
   };

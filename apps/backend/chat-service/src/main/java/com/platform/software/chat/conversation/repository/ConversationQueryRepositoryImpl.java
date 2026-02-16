@@ -11,10 +11,10 @@ import com.platform.software.chat.message.dto.MessageViewDTO;
 import com.platform.software.chat.message.entity.Message;
 import com.platform.software.chat.message.entity.QMessage;
 import com.platform.software.chat.notification.entity.DeviceType;
+import com.platform.software.chat.user.activitystatus.service.UserActivityStatusService;
 import com.platform.software.chat.user.entity.ChatUserStatus;
 import com.platform.software.chat.user.entity.QChatUser;
 import com.platform.software.chat.user.entity.QUserBlock;
-import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
 import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.utils.CommonUtils;
@@ -31,7 +31,6 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -46,12 +45,12 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     private static final QConversationParticipant qConversationParticipant = QConversationParticipant.conversationParticipant;
     private static final QMessage qMessage = QMessage.message;
     private static final QMessage qMessage2 = QMessage.message;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final UserActivityStatusService userActivityStatusService;
     private static final QUserBlock qUserBlock = QUserBlock.userBlock;
 
-    public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory, @Lazy WebSocketSessionManager webSocketSessionManager) {
+    public ConversationQueryRepositoryImpl(JPAQueryFactory jpaQueryFactory, UserActivityStatusService userActivityStatusService) {
         this.jpaQueryFactory = jpaQueryFactory;
-        this.webSocketSessionManager = webSocketSessionManager;
+        this.userActivityStatusService = userActivityStatusService;
     }
 
     @Override
@@ -276,11 +275,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
 
                                 Long otherUserId = otherParticipant.getUser().getId();
 
-                                ChatUserStatus status = webSocketSessionManager.getUserChatStatus(
+                                ChatUserStatus status = userActivityStatusService.getUserChatStatus(
                                         WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail());
 
-                                DeviceType deviceType = webSocketSessionManager.getUserDeviceType(
+                                DeviceType deviceType = userActivityStatusService.getUserDeviceType(
                                         WorkspaceContext.getCurrentWorkspace(),
                                         otherParticipant.getUser().getEmail());
 

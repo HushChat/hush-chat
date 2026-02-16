@@ -8,5 +8,7 @@ public interface CloudPhotoHandlingService {
     String getPhotoViewSignedURL(String imageIndexedName);
     String getPhotoViewSignedURL(MediaPathEnum mediaPathEnum, MediaSizeEnum size, String fileName);
 
+    String getDownloadSignedURL(String imageIndexedName, String originalFileName);
+
     SignedURLResponseDTO generateSignedURLForMessageAttachmentsUpload(DocUploadRequestDTO attachmentsUploadRequestDTO, Long requestId);
 }

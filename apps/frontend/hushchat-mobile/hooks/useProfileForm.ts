@@ -14,6 +14,7 @@ import {
   MAX_IMAGE_KB,
 } from "@/apis/photo-upload-service/photo-upload-service";
 import { ImagePickerResult } from "expo-image-picker/src/ImagePicker.types";
+import { isS3UrlExpired } from "@/utils/commonUtils";
 
 export function useProfileForm() {
   const { user, fetchUserData } = useUserStore();
@@ -171,6 +172,11 @@ export function useProfileForm() {
   ]);
 
   const syncUserData = useCallback(() => {
+    if (isS3UrlExpired(user.signedImageUrl)) {
+      fetchUserData();
+      return;
+    }
+
     setValues((prev) => ({
       ...prev,
       firstName: user?.firstName || "",

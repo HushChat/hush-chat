@@ -21,6 +21,8 @@ import {
 } from "@/query/delete/queries";
 import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
+import ProfileCardModal from "@/components/ProfileCardModal";
+import { useProfileCardModal } from "@/hooks/useProfileCardModal";
 
 interface AllParticipantsProps {
   conversationId: number;
@@ -30,6 +32,15 @@ interface AllParticipantsProps {
 
 export const AllParticipants = ({ conversationId, visible, onClose }: AllParticipantsProps) => {
   const screenWidth = Dimensions.get("window").width;
+
+  const {
+    showProfileModal,
+    selectedUser,
+    profileCardData,
+    openProfileCardFromParticipant: handleAvatarPress,
+    closeProfileCard,
+    handleMessagePress,
+  } = useProfileCardModal();
 
   const { pages, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useConversationParticipantQuery(conversationId);
@@ -141,6 +152,7 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
             showMenu={conversationInfo?.admin}
             onRemove={removeParticipant}
             onToggleRole={updateConversationParticipantRole}
+            onAvatarPress={handleAvatarPress}
           />
         )}
         keyExtractor={(item) => item.id.toString()}
@@ -157,6 +169,14 @@ export const AllParticipants = ({ conversationId, visible, onClose }: AllPartici
         className="flex-1 bg-background-light dark:bg-background-dark custom-scrollbar"
         contentContainerStyle={styles.listContentContainer}
       />
+      {selectedUser && profileCardData && (
+        <ProfileCardModal
+          visible={showProfileModal}
+          onClose={closeProfileCard}
+          data={profileCardData}
+          onMessagePress={handleMessagePress}
+        />
+      )}
     </MotionView>
   );
 };

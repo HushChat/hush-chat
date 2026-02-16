@@ -17,6 +17,8 @@ public class MessageForwardRequestDTO {
 
     private String customText;
 
+    private Boolean isMarkdownEnabled = false;
+
     public void addConversationIds(Set<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return;

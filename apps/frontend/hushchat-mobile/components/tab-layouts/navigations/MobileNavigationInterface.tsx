@@ -8,6 +8,7 @@ import { PLATFORM } from "@/constants/platformConstants";
 import { INavigationItem } from "@/types/navigation/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
+import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 interface MobileNavigationInterfaceProps extends BottomTabBarProps {
   navigationItems: INavigationItem[];
 }
@@ -21,6 +22,7 @@ const MobileNavigationInterface = ({
   navigationItems,
 }: MobileNavigationInterfaceProps) => {
   const insets = useSafeAreaInsets();
+  const { totalUnreadCount } = useConversationNotificationsContext();
   const filteredRoutes = state.routes.filter((route) => !EXCLUDED_ROUTES.includes(route.name));
 
   const TabBarContent = () => (
@@ -72,6 +74,13 @@ const MobileNavigationInterface = ({
               }`}
             >
               <Ionicons name={iconName} size={24} color={isFocused ? "#ffffff" : "#6B7280"} />
+              {navigationItem?.name === "conversations" && totalUnreadCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-green-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
+                  <AppText className="text-white text-[10px] font-bold leading-tight">
+                    {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                  </AppText>
+                </View>
+              )}
             </View>
 
             <AppText

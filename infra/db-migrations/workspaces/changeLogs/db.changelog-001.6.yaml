@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_is_mark_down_enabled_to_message
+      author: ransilu
+      tag: release-16.1
+      changes:
+        - addColumn:
+            tableName: message
+            columns:
+              - column:
+                  name: is_markdown_enabled
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

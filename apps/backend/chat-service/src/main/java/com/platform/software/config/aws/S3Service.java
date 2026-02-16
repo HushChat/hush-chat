@@ -78,4 +78,27 @@ public class S3Service {
     public String getPrivateBucketViewSignedURL(String objectKey) {
         return getPrivateBucketSignedURL(objectKey, HttpMethod.GET);
     }
+
+    public String getPrivateBucketDownloadSignedURL(String objectKey, String originalFileName) {
+        try {
+            java.util.Date expiration = new java.util.Date();
+            long expTimeMillis = Instant.now().toEpochMilli();
+            expTimeMillis += 1000 * 60 * 3;
+            expiration.setTime(expTimeMillis);
+
+            GeneratePresignedUrlRequest generatePresignedUrlRequest =
+                new GeneratePresignedUrlRequest(privateBucketName, objectKey)
+                    .withMethod(HttpMethod.GET)
+                    .withExpiration(expiration);
+            generatePresignedUrlRequest.addRequestParameter(
+                "response-content-disposition",
+                "attachment; filename=\"" + originalFileName + "\""
+            );
+            URL url = s3Client.generatePresignedUrl(generatePresignedUrlRequest);
+            return url.toString();
+        } catch (AmazonServiceException e) {
+            logger.error(e.getErrorMessage());
+            throw new CustomInternalServerErrorException("failed to get download url!");
+        }
+    }
 }

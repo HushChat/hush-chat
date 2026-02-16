@@ -100,6 +100,10 @@ export const userQueryKeys = {
   changePassword: () => [USER_QUERY_BASE_KEY, "change-password"],
 };
 
+export const workspaceAdminQueryKeys = {
+  chatUserById: (userId: number) => ["workspace-chat-user", userId],
+};
+
 export const gifQueryKeys = {
   trendingGifs: (userId: number) => [GIF_QUERY_BASE_KEY, "trending", userId],
   searchGifs: (userId: number, searchQuery: string) => [GIF_QUERY_BASE_KEY, userId, searchQuery],

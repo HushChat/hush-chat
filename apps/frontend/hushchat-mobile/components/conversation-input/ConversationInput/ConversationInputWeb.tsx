@@ -34,6 +34,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       controlledValue,
       onControlledValueChange,
       hideSendButton = false,
+      controlledMarkdownEnabled,
+      onControlledMarkdownChange,
       editingMessage,
       onCancelEdit,
       onEditMessage,
@@ -71,6 +73,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       editingMessage,
       onCancelEdit,
       onEditMessage,
+      controlledMarkdownEnabled,
+      onControlledMarkdownChange,
     });
 
     const handleKeyPress = useCallback(
@@ -100,7 +104,7 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
 
     const handleGifSelect = useCallback(
       (gifUrl: string) => {
-        onSendMessage?.("", replyToMessage ?? undefined, undefined, gifUrl);
+        onSendMessage?.("", false, replyToMessage ?? undefined, undefined, gifUrl);
       },
       [onSendMessage]
     );
@@ -161,6 +165,7 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
                   onSelectionChange={input.handleSelectionChange}
                   onKeyPress={handleKeyPress}
                   onSubmitEditing={handleSubmitEditing}
+                  validMentionUsernames={input.validMentionUsernames}
                 />
               </Animated.View>
             </View>
@@ -175,6 +180,8 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
               onOpenEmojiPicker={openEmojiPicker}
               onOpenGifPicker={openGifPicker}
               onSendPress={handleSendPress}
+              isMarkdownEnabled={input.isMarkdownEnabled}
+              onToggleMarkdown={() => input.setIsMarkdownEnabled((prev) => !prev)}
             />
           </View>
 
