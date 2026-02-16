@@ -134,4 +134,9 @@ export const WS_DESTINATIONS = {
   SUBSCRIBED_CONVERSATIONS: "/app/subscribed-conversations",
   TYPING: "/app/typing",
   HEARTBEAT: "/app/heartbeat",
+  CALL_INITIATE: "/app/call/initiate",
+  CALL_ANSWER: "/app/call/answer",
+  CALL_ICE_CANDIDATE: "/app/call/ice-candidate",
+  CALL_END: "/app/call/end",
+  CALL_REJECT: "/app/call/reject",
 };

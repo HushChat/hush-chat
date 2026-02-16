@@ -693,10 +693,15 @@ export default function useWebSocketConnection() {
     }, CONFIG.CONNECTION_DEBOUNCE_DELAY);
   }, [closeExistingConnection, updateState]);
 
+  const getWebSocket = useCallback((): WebSocket | null => {
+    return wsRef.current;
+  }, []);
+
   return {
     connectionStatus,
     publishActivity,
     publishTyping,
     forceReconnect,
+    getWebSocket,
   };
 }

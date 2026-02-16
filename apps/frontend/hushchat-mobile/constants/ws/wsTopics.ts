@@ -16,6 +16,14 @@ export const WS_TOPICS = {
   user: {
     onlineStatus: "/topic/online-status/",
   },
+  call: {
+    incoming: "/topic/call-incoming/",
+    answer: "/topic/call-answer/",
+    iceCandidate: "/topic/ice-candidate/",
+    ended: "/topic/call-ended/",
+    rejected: "/topic/call-rejected/",
+    busy: "/topic/call-busy/",
+  },
 } as const;
 
 // All topic string values ("/topic/...")
@@ -34,4 +42,10 @@ export const TOPICS = [
   { destination: WS_TOPICS.message.read, id: "sub-message-read" },
   { destination: WS_TOPICS.message.updated, id: "sub-message-updated" },
   { destination: WS_TOPICS.message.pinned, id: "sub-message-pinned" },
+  { destination: WS_TOPICS.call.incoming, id: "sub-call-incoming" },
+  { destination: WS_TOPICS.call.answer, id: "sub-call-answer" },
+  { destination: WS_TOPICS.call.iceCandidate, id: "sub-call-ice-candidate" },
+  { destination: WS_TOPICS.call.ended, id: "sub-call-ended" },
+  { destination: WS_TOPICS.call.rejected, id: "sub-call-rejected" },
+  { destination: WS_TOPICS.call.busy, id: "sub-call-busy" },
 ] as const;

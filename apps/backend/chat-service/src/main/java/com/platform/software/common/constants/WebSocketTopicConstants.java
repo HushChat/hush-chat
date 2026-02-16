@@ -45,4 +45,22 @@ public final class WebSocketTopicConstants {
     /** Message updated event */
     public static final String MESSAGE_UPDATED = "/topic/message-updated/";
 
+    /** Incoming call event */
+    public static final String CALL_INCOMING = "/topic/call-incoming/";
+
+    /** Call answer (SDP answer) event */
+    public static final String CALL_ANSWER = "/topic/call-answer/";
+
+    /** ICE candidate exchange event */
+    public static final String CALL_ICE_CANDIDATE = "/topic/ice-candidate/";
+
+    /** Call ended event */
+    public static final String CALL_ENDED = "/topic/call-ended/";
+
+    /** Call rejected event */
+    public static final String CALL_REJECTED = "/topic/call-rejected/";
+
+    /** Call busy event */
+    public static final String CALL_BUSY = "/topic/call-busy/";
+
 }

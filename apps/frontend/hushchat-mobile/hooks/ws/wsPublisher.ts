@@ -82,3 +82,24 @@ export const publishUserActivity = (
 export const publishTypingStatus = (ws: WebSocket | null, data: TypingIndicatorWSData): boolean => {
   return publishToWebSocket(ws, WS_DESTINATIONS.TYPING, data, TITLES.TYPING_ACTIVITY);
 };
+
+export const publishCallSignal = async (
+  ws: WebSocket | null,
+  destination: string,
+  data: Record<string, unknown>
+): Promise<boolean> => {
+  if (!canPublish(ws, "call signal")) {
+    return false;
+  }
+
+  try {
+    const body = JSON.stringify(data);
+    const deviceType = DeviceType.UNKNOWN;
+    const deviceId = await getDeviceId();
+    ws!.send(buildStompSendFrame(destination, body, deviceType, deviceId).buffer);
+    return true;
+  } catch (error) {
+    logInfo("Error publishing call signal:", error);
+    return false;
+  }
+};

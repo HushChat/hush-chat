@@ -15,6 +15,7 @@ import { useBlockUserMutation } from "@/query/post/queries";
 import { useUnblockUserMutation } from "@/query/delete/queries";
 import { useUserStore } from "@/store/user/useUserStore";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
+import { useCall } from "@/contexts/CallContext";
 
 interface OneToOneChatInfoProps {
   conversation: IConversation;
@@ -34,6 +35,7 @@ export default function OneToOneChatInfo({
   const {
     user: { id: userId },
   } = useUserStore();
+  const { initiateCall } = useCall();
 
   const blockUserMutation = useBlockUserMutation(
     { userId: Number(userId), conversationId: conversation.id },
@@ -116,6 +118,12 @@ export default function OneToOneChatInfo({
             },
           })
         }
+        onPressCall={() => {
+          if (conversationInfo?.userView) {
+            const name = `${conversationInfo.userView.firstName} ${conversationInfo.userView.lastName}`;
+            initiateCall(conversation.id, name, conversationInfo.userView.id);
+          }
+        }}
         imageUrl={conversationInfo?.userView.signedImageUrl || ""}
         onPressSearch={() =>
           router.push({

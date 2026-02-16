@@ -45,6 +45,8 @@ import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
 import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 import { getAPIErrorMessage } from "@/utils/apiErrorUtils";
+import { useCall } from "@/contexts/CallContext";
+import { useOneToOneConversationInfoQuery } from "@/query/useOneToOneConversationInfoQuery";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -76,6 +78,7 @@ const ConversationThreadScreen = ({
     user: { id: currentUserId, email },
   } = useUserStore();
   const { publishActivity } = useWebSocket();
+  const { initiateCall } = useCall();
 
   const dropZoneRef = useRef<View>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
@@ -197,6 +200,17 @@ const ConversationThreadScreen = ({
     conversationAPIResponse?.isGroup && conversationAPIResponse?.onlyAdminsCanSendMessages;
 
   const isCurrentUserAdmin = conversationAPIResponse?.isCurrentUserAdmin;
+
+  const { conversationInfo: oneToOneInfo } = useOneToOneConversationInfoQuery(
+    !isGroupChat ? currentConversationId : 0
+  );
+
+  const handlePressCall = useCallback(() => {
+    if (oneToOneInfo?.userView) {
+      const name = `${oneToOneInfo.userView.firstName} ${oneToOneInfo.userView.lastName}`;
+      initiateCall(currentConversationId, name, oneToOneInfo.userView.id);
+    }
+  }, [oneToOneInfo, currentConversationId, initiateCall]);
 
   const { editingMessage, isEditingMessage, handleStartEdit, handleCancelEdit, handleEditMessage } =
     useMessageEdit({
@@ -561,6 +575,7 @@ const ConversationThreadScreen = ({
           isLoadingConversationMessages={isLoadingConversationMessages}
           webPressSearch={webSearchPress}
           isGroupChat={isGroupChat}
+          onPressCall={!isGroupChat ? handlePressCall : undefined}
         />
 
         <KeyboardAvoidingView

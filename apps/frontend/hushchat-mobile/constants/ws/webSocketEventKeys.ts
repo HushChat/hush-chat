@@ -41,8 +41,11 @@ export const NOTIFICATION_EVENTS = {
 
 export const CALL_EVENTS = {
   INCOMING: "call:incoming",
+  ANSWER: "call:answer",
+  ICE_CANDIDATE: "call:iceCandidate",
   ENDED: "call:ended",
   REJECTED: "call:rejected",
+  BUSY: "call:busy",
 } as const;
 
 export const SYSTEM_EVENTS = {
