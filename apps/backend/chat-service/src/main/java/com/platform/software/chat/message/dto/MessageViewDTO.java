@@ -36,6 +36,8 @@ public class MessageViewDTO {
     private MessageTypeEnum messageType;
     private Boolean hasAttachment;
     private Boolean isMarkdownEnabled;
+    private Boolean isIncludeUrlMetadata = false;
+
     private SignedURLDTO signedUrl;
 
     public MessageViewDTO(Message message) {
@@ -81,7 +83,7 @@ public class MessageViewDTO {
         this.isEdited = message.getIsEdited();
         this.messageType = message.getMessageType();
         this.isMarkdownEnabled = message.getIsMarkdownEnabled();
-        this.hasAttachment = message.getAttachments() != null 
+        this.hasAttachment = message.getAttachments() != null
             && !message.getAttachments().isEmpty();
 
         if (message.getIsUnsend()) {

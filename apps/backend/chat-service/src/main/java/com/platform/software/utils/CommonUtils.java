@@ -3,6 +3,9 @@ package com.platform.software.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Instant;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import java.time.ZonedDateTime;
 import java.util.Date;
 
@@ -30,7 +33,7 @@ public class CommonUtils {
         if (messageCreatedAt == null) {
             return false;
         }
-        
+
         if (lastDeletedTime == null) {
             return true;
         }
@@ -38,5 +41,18 @@ public class CommonUtils {
         Date deletedAt = Date.from(lastDeletedTime.toInstant());
 
         return !messageCreatedAt.before(deletedAt);
+    }
+
+    private static final Pattern URL_PATTERN = Pattern.compile("(https?://\\S+)");
+
+    public static String extractUrl(String text) {
+        if (text == null || text.isEmpty()) {
+            return null;
+        }
+        Matcher matcher = URL_PATTERN.matcher(text);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+        return null;
     }
 }

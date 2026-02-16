@@ -118,6 +118,7 @@ export const MESSAGE_API_ENDPOINTS = {
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
   MENTIONED_MESSAGES: `${MESSAGE_API_BASE}/mentions`,
+  GET_URL_METADATA: (messageId: number) => `${MESSAGE_API_BASE}/urlMetadata/${messageId}`,
 };
 
 export const SETTINGS_API_ENDPOINTS = {

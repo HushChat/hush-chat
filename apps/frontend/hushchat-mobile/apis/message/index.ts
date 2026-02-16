@@ -145,3 +145,8 @@ export const getMentionedMessages = async (page: number = 0, size: number = 20) 
     return { error: axiosError?.response?.data?.error || axiosError?.message };
   }
 };
+
+export const getMessageUrlMetadata = async (messageId: number) => {
+  const response = await axios.get(MESSAGE_API_ENDPOINTS.GET_URL_METADATA(messageId));
+  return response.data;
+};
