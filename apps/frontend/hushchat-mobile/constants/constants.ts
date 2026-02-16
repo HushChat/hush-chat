@@ -29,6 +29,8 @@ export const TITLES = {
   DELETE_CHAT: "Delete chat",
   PIN_CONVERSATION: "Pin Conversation",
   UNPIN_CONVERSATION: "Unpin Conversation",
+  MUTE_CONVERSATION: "Mute Conversation",
+  UNMUTE_CONVERSATION: "Unmute Conversation",
   USER_ACTIVITY: "user activity",
   TYPING_ACTIVITY: "typing activity",
 };

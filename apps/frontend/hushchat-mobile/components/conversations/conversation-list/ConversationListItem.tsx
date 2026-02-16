@@ -117,6 +117,7 @@ const ConversationListItem = ({
         conversationId={conversation.id}
         isFavorite={conversation.favoriteByLoggedInUser}
         isPinned={conversation.pinnedByLoggedInUser}
+        isMuted={conversation.mutedByLoggedInUser}
         handleArchivePress={handleArchivePress}
         handleDeletePress={handleDeletePress}
         conversationsRefetch={conversationsRefetch}

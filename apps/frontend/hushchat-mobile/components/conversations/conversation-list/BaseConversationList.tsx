@@ -274,6 +274,7 @@ export default function BaseConversationList<T>({
           conversationId={selectedConversation.id}
           isFavorite={selectedConversation.favoriteByLoggedInUser ?? false}
           isPinned={selectedConversation.pinnedByLoggedInUser ?? false}
+          isMuted={selectedConversation.mutedByLoggedInUser ?? false}
           isGroup={selectedConversation.isGroup}
           isBlocked={isBlocked}
           isActive={isActive}

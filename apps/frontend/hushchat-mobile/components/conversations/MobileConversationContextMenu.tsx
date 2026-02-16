@@ -17,11 +17,13 @@ import {
 } from "@/query/post/queries";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useOneToOneConversationInfoQuery } from "@/query/useOneToOneConversationInfoQuery";
+import { useToggleMuteConversation } from "@/hooks/useToggleMuteConversation";
 
 interface MobileConversationContextMenuProps {
   conversationId: number;
   isFavorite: boolean;
   isPinned: boolean;
+  isMuted?: boolean;
   visible: boolean;
   isGroup?: boolean;
   isBlocked?: boolean;
@@ -33,6 +35,7 @@ const MobileConversationContextMenu = ({
   conversationId,
   isFavorite,
   isPinned,
+  isMuted = false,
   isGroup = false,
   isBlocked = false,
   isActive = true,
@@ -52,6 +55,17 @@ const MobileConversationContextMenu = ({
 
   const { conversationInfo: oneToOneInfo } = useOneToOneConversationInfoQuery(
     !isGroup ? conversationId : 0
+  );
+
+  const handleClose = useCallback(() => {
+    setSheetVisible(false);
+    onClose();
+  }, [onClose]);
+
+  const { isMutedState, handleToggleMute } = useToggleMuteConversation(
+    conversationId,
+    isMuted,
+    handleClose
   );
 
   const togglePinConversation = useTogglePinConversationMutation(
@@ -126,11 +140,6 @@ const MobileConversationContextMenu = ({
     setSheetVisible(visible);
   }, [visible]);
 
-  const handleClose = useCallback(() => {
-    setSheetVisible(false);
-    onClose();
-  }, [onClose]);
-
   const chatOptions: BottomSheetOption[] = useMemo(() => {
     const options: BottomSheetOption[] = [
       isPinned
@@ -183,9 +192,15 @@ const MobileConversationContextMenu = ({
               }
             },
           },
+      {
+        id: "3",
+        title: isMutedState ? TITLES.UNMUTE_CONVERSATION : TITLES.MUTE_CONVERSATION,
+        icon: isMutedState ? "notifications-off-outline" : "notifications-outline",
+        onPress: handleToggleMute,
+      },
     ];
     options.push({
-      id: "3",
+      id: "4",
       title: TITLES.DELETE_CHAT,
       icon: "trash-outline",
       destructive: true,
@@ -198,7 +213,7 @@ const MobileConversationContextMenu = ({
       options.push(
         isBlocked
           ? {
-              id: "4",
+              id: "5",
               title: "Unblock User",
               icon: "person-add-outline",
               onPress: () => {
@@ -207,7 +222,7 @@ const MobileConversationContextMenu = ({
               },
             }
           : {
-              id: "4",
+              id: "5",
               title: "Block User",
               icon: "person-remove-outline",
               destructive: true,
@@ -220,7 +235,7 @@ const MobileConversationContextMenu = ({
     }
     if (isGroup && isActive) {
       options.push({
-        id: "5",
+        id: "6",
         title: "Exit Group",
         icon: "exit-outline",
         destructive: true,
@@ -236,12 +251,14 @@ const MobileConversationContextMenu = ({
     conversationId,
     isFavorite,
     isPinned,
+    isMutedState,
     isGroup,
     isBlocked,
     isActive,
     oneToOneInfo,
     handleToggleFavorites,
     togglePinConversation,
+    handleToggleMute,
     handleClose,
     blockUserMutation,
     unblockUserMutation,
