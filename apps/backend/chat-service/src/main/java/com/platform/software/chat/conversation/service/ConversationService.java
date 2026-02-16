@@ -123,6 +123,7 @@ public class ConversationService {
     public Conversation createConversation(Long loggedInUserId, List<Long> participantIds, boolean isGroup) {
         Conversation conversation = new Conversation();
         conversation.setIsGroup(isGroup);
+        conversation.setStatus(isGroup ? ConversationStatus.PENDING : ConversationStatus.ACTIVE);
         conversation.setCreatedBy(userService.getUserOrThrow(loggedInUserId));
         List<ConversationParticipant> participants = new ArrayList<>();
 
@@ -203,10 +204,9 @@ public class ConversationService {
      *
      * @param groupConversationDTO the DTO containing group conversation details
      * @param loggedInUserId       the ID of the user creating the group conversation
-     * @return a ConversationDTO with the created group conversation data
      */
     @Transactional
-    public ConversationDTO createGroupConversation(
+    public void createGroupConversation(
             GroupConversationUpsertDTO groupConversationDTO,
             Long loggedInUserId
     ) {
@@ -237,19 +237,8 @@ public class ConversationService {
             conversation.setImageIndexedName(conversationDTOWithSignedUrl.getImageIndexedName());
             conversation.setSignedImageUrl(conversationDTOWithSignedUrl.getSignedImageUrl());
 
-            savedConversationDTO = saveConversationAndBuildDTO(conversation);
+            saveConversationAndBuildDTO(conversation);
         }
-
-        eventPublisher.publishEvent(new ConversationCreatedEvent(
-            WorkspaceContext.getCurrentWorkspace(),
-            savedConversationDTO.getId(),
-            loggedInUserId,
-            savedConversationDTO
-        ));
-
-        triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
-
-        return savedConversationDTO;
     }
 
     /**
@@ -264,6 +253,7 @@ public class ConversationService {
                 Collections.emptyList(),
                 ConversationEventType.GROUP_CREATED
         );
+
         // Event 2: Users Added
         List<Long> targetsForAddEvent = initialParticipantIds.stream()
                 .filter(id -> !id.equals(actorUserId))
@@ -1041,7 +1031,7 @@ public class ConversationService {
         ConversationParticipant adminParticipant = conversationUtilService.getLoggedInUserIfAdminAndValidConversation(adminUserId, conversationId);
         Conversation conversation = adminParticipant.getConversation();
 
-        if (conversation.getOnlyAdminsCanSendMessages() != null && 
+        if (conversation.getOnlyAdminsCanSendMessages() != null &&
             conversation.getOnlyAdminsCanSendMessages().equals(conversationPermissionUpdateDTO.getOnlyAdminsCanSendMessages())) {
             return buildConversationDTO(conversation);
         }
@@ -1392,7 +1382,7 @@ public class ConversationService {
             DeviceType deviceType = userActivityStatusService.getUserDeviceType(
                     WorkspaceContext.getCurrentWorkspace(),
                     directOtherMeta.getEmail());
-                    
+
             conversationMetaDataDTO.setDeviceType(deviceType);
             conversationMetaDataDTO.setChatUserStatus(status);
 
@@ -1668,5 +1658,44 @@ public class ConversationService {
         participant.setNotifyOnMentionsOnly(!participant.getNotifyOnMentionsOnly());
         conversationParticipantRepository.save(participant);
         return participant.getNotifyOnMentionsOnly();
+    }
+
+    /**
+     * Approves a group conversation by setting its status to ACTIVE.
+     *
+     * @param conversationId the ID of the conversation to delete
+     */
+    @Transactional
+    public void approveConversationById(Long conversationId) {
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+        if (!conversation.getIsGroup()) {
+            throw new CustomBadRequestException("Only group conversations can be approved");
+        }
+
+        if(conversation.getStatus() == ConversationStatus.ACTIVE) {
+            logger.info("Conversation {} already active", conversationId);
+            return;
+        }
+
+        conversation.setStatus(ConversationStatus.ACTIVE);
+        try {
+            ConversationDTO savedConversationDTO = saveConversationAndBuildDTO(conversation);
+
+            List<Long> participantIds = conversation.getConversationParticipants().stream()
+                    .map(cp -> cp.getUser().getId())
+                    .toList();
+
+            eventPublisher.publishEvent(new ConversationCreatedEvent(
+                    WorkspaceContext.getCurrentWorkspace(),
+                    conversation.getId(),
+                    conversation.getCreatedBy().getId(),
+                    savedConversationDTO
+            ));
+
+            triggerGroupCreationEvents(conversation.getId(), conversation.getCreatedBy().getId(), participantIds);
+        } catch (Exception e) {
+            logger.error("Failed to approve conversationId: {}", conversationId, e);
+            throw new CustomInternalServerErrorException("Failed to approve conversation");
+        }
     }
 }

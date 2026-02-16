@@ -132,4 +132,18 @@ public class WorkspaceAdminController {
         workspaceUserService.toggleUserRole(userDetails, WorkspaceContext.getCurrentWorkspace(), email);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    /**
+     * Approve group conversation by id
+     * @param conversationId The id of the conversation to approve
+     * @return A {@link ResponseEntity} with HTTP status {@code 204 No Content} if the operation succeeds.
+     */
+    @ApiOperation(value = "Approve group conversation by id", response = ConversationAdminViewDTO.class)
+    @PatchMapping("/conversations/{conversationId}")
+    public ResponseEntity<Void> approveGroupConversation(
+            @PathVariable Long conversationId
+    ) {
+        conversationService.approveConversationById(conversationId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
