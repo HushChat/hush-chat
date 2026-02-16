@@ -13,12 +13,11 @@ import { useConversationsQuery } from "@/query/useConversationsQuery";
 import {
   useBlockUserMutation,
   useTogglePinConversationMutation,
-  useToggleMuteConversationMutation,
   useExitGroupConversationMutation,
 } from "@/query/post/queries";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useOneToOneConversationInfoQuery } from "@/query/useOneToOneConversationInfoQuery";
-import { MODAL_BUTTON_VARIANTS, MODAL_TYPES } from "@/components/Modal";
+import { useToggleMuteConversation } from "@/hooks/useToggleMuteConversation";
 
 interface MobileConversationContextMenuProps {
   conversationId: number;
@@ -32,13 +31,6 @@ interface MobileConversationContextMenuProps {
   onClose: () => void;
 }
 
-const MUTE_OPTIONS = [
-  { label: "15 mins", value: "15m" },
-  { label: "1 hour", value: "1h" },
-  { label: "1 day", value: "1d" },
-  { label: "Always", value: "always" },
-];
-
 const MobileConversationContextMenu = ({
   conversationId,
   isFavorite,
@@ -51,7 +43,6 @@ const MobileConversationContextMenu = ({
   onClose,
 }: MobileConversationContextMenuProps) => {
   const [sheetVisible, setSheetVisible] = useState(visible);
-  const [isMutedState, setIsMutedState] = useState(isMuted);
 
   const { selectedConversationType } = useConversationStore();
   const criteria = getCriteria(selectedConversationType);
@@ -59,11 +50,22 @@ const MobileConversationContextMenu = ({
   const {
     user: { id: userId },
   } = useUserStore();
-  const { openModal, closeModal } = useModalContext();
+  const { closeModal } = useModalContext();
   const { refetch } = useConversationsQuery(getCriteria(selectedConversationType));
 
   const { conversationInfo: oneToOneInfo } = useOneToOneConversationInfoQuery(
     !isGroup ? conversationId : 0
+  );
+
+  const handleClose = useCallback(() => {
+    setSheetVisible(false);
+    onClose();
+  }, [onClose]);
+
+  const { isMutedState, handleToggleMute } = useToggleMuteConversation(
+    conversationId,
+    isMuted,
+    handleClose
   );
 
   const togglePinConversation = useTogglePinConversationMutation(
@@ -75,14 +77,6 @@ const MobileConversationContextMenu = ({
     () => {
       refetch();
     },
-    (error) => {
-      ToastUtils.error(getAPIErrorMsg(error));
-    }
-  );
-
-  const toggleMuteConversation = useToggleMuteConversationMutation(
-    { userId: Number(userId), criteria },
-    () => setIsMutedState(!isMutedState),
     (error) => {
       ToastUtils.error(getAPIErrorMsg(error));
     }
@@ -145,56 +139,6 @@ const MobileConversationContextMenu = ({
   useEffect(() => {
     setSheetVisible(visible);
   }, [visible]);
-
-  useEffect(() => {
-    setIsMutedState(isMuted);
-  }, [isMuted]);
-
-  const handleClose = useCallback(() => {
-    setSheetVisible(false);
-    onClose();
-  }, [onClose]);
-
-  const performMuteMutation = useCallback(
-    (payload: { conversationId: number; duration: string | null }) =>
-      toggleMuteConversation.mutate(payload, {
-        onSuccess: () => {
-          setIsMutedState(payload.duration !== null);
-          refetch();
-        },
-        onError: (error) => ToastUtils.error(getAPIErrorMsg(error)),
-      }),
-    [toggleMuteConversation, refetch]
-  );
-
-  const handleToggleMute = useCallback(() => {
-    handleClose();
-    if (isMutedState) {
-      performMuteMutation({ conversationId, duration: null });
-      return;
-    }
-
-    openModal({
-      type: MODAL_TYPES.confirm,
-      title: TITLES.MUTE_CONVERSATION,
-      description: "Select how long you want to mute this conversation",
-      buttons: [
-        ...MUTE_OPTIONS.map((option) => ({
-          text: option.label,
-          onPress: () => {
-            performMuteMutation({ conversationId, duration: option.value });
-            closeModal();
-          },
-        })),
-        {
-          text: "Cancel",
-          onPress: closeModal,
-          variant: MODAL_BUTTON_VARIANTS.destructive,
-        },
-      ],
-      icon: "volume-off-outline",
-    });
-  }, [isMutedState, handleClose, openModal, closeModal, performMuteMutation, conversationId]);
 
   const chatOptions: BottomSheetOption[] = useMemo(() => {
     const options: BottomSheetOption[] = [
