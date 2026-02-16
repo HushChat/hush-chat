@@ -13,6 +13,8 @@ interface LinkPreviewCardProps {
   isFetching: boolean;
   mentions?: TUser[];
   onMentionPress?: (username: string) => void;
+  isMarkdownEnabled?: boolean;
+  isGroup?: boolean;
 }
 
 export default function LinkPreviewCard({
@@ -22,6 +24,8 @@ export default function LinkPreviewCard({
   isFetching,
   mentions,
   onMentionPress,
+  isMarkdownEnabled,
+  isGroup,
 }: LinkPreviewCardProps) {
   const truncatedDescription = useMemo(() => {
     if (!messageUrlMetadata?.description) return "";
@@ -72,6 +76,8 @@ export default function LinkPreviewCard({
         mentions={mentions}
         isCurrentUser={isCurrentUser}
         onMentionPress={onMentionPress}
+        isMarkdownEnabled={isMarkdownEnabled}
+        isGroup={isGroup}
       />
     </TouchableOpacity>
   );

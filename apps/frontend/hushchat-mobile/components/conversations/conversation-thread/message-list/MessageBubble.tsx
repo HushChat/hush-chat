@@ -203,6 +203,8 @@ export const MessageBubble = ({
                   mentions={message.mentions}
                   isCurrentUser={isCurrentUser}
                   onMentionPress={handleMentionPress}
+                  isMarkdownEnabled={message.isMarkdownEnabled}
+                  isGroup={isGroup}
                 />
               </View>
             )
