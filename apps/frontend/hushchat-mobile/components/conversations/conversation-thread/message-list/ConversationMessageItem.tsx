@@ -13,9 +13,11 @@ import {
   IOption,
   ReactionType,
   MessageTypeEnum,
+  MessageAttachmentTypeEnum,
   PIN_MESSAGE_OPTIONS,
   IMessageAttachment,
 } from "@/types/chat/types";
+import { getAttachmentDownloadUrl } from "@/apis/conversation";
 import { PLATFORM } from "@/constants/platformConstants";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -119,6 +121,12 @@ export const ConversationMessageItem = ({
     () => attachments.some((a) => isImageAttachment(a) || isVideoAttachment(a)),
     [attachments]
   );
+
+  const hasDownloadableAttachments = useMemo(
+    () => attachments.some((a) => a.type !== MessageAttachmentTypeEnum.GIF),
+    [attachments]
+  );
+
   const { openModal, closeModal } = useModalContext();
 
   const [webMenuVisible, setWebMenuVisible] = useState<boolean>(false);
@@ -227,6 +235,23 @@ export const ConversationMessageItem = ({
 
   const handleWebMenuClose = useCallback(() => setWebMenuVisible(false), []);
 
+  const handleDownloadAttachment = useCallback(async () => {
+    const downloadable = attachments.find((a) => a.type !== MessageAttachmentTypeEnum.GIF);
+    if (!downloadable?.id) return;
+
+    try {
+      const url = await getAttachmentDownloadUrl(message.conversationId, downloadable.id);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = downloadable.originalFileName || "download";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    } catch (error) {
+      ToastUtils.error(getAPIErrorMsg(error));
+    }
+  }, [attachments, message.conversationId]);
+
   const handleMessageInfoClickForMobileBrowser = useCallback(
     (conversationId: number, messageId: number) => {
       router.push({
@@ -262,6 +287,15 @@ export const ConversationMessageItem = ({
         action: () => onStartSelectionWith(Number(message.id)),
       },
     ];
+
+    if (hasDownloadableAttachments) {
+      options.push({
+        id: 8,
+        name: "Download Attachment",
+        iconName: "download-outline" as keyof typeof Ionicons.glyphMap,
+        action: handleDownloadAttachment,
+      });
+    }
 
     if (isCurrentUser && !message.isUnsend) {
       options.push({
@@ -316,6 +350,8 @@ export const ConversationMessageItem = ({
     isSystemEvent,
     webMessageInfoPress,
     onMarkMessageAsUnread,
+    hasDownloadableAttachments,
+    handleDownloadAttachment,
   ]);
 
   const handleLongPress = useCallback(
