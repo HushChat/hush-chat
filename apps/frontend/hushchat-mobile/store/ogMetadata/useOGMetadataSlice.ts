@@ -1,6 +1,26 @@
 import { TMessageUrlMetadata } from "@/types/chat/types";
 import { StateCreator } from "zustand";
 
+const MAX_CACHE_SIZE = 150;
+
+/**
+ * Trims a metadata record to keep only the newest entries (highest message IDs).
+ */
+function trimMetadata(
+  metadata: Record<number, TMessageUrlMetadata>
+): Record<number, TMessageUrlMetadata> {
+  const keys = Object.keys(metadata).map(Number);
+  if (keys.length <= MAX_CACHE_SIZE) return metadata;
+
+  keys.sort((a, b) => b - a);
+  const keysToKeep = keys.slice(0, MAX_CACHE_SIZE);
+  const trimmed: Record<number, TMessageUrlMetadata> = {};
+  for (const key of keysToKeep) {
+    trimmed[key] = metadata[key];
+  }
+  return trimmed;
+}
+
 export interface OGMetadataState {
   metadata: Record<number, TMessageUrlMetadata>;
   pendingMessageIds: Set<number>;
@@ -19,13 +39,13 @@ export const createOGMetadataSlice: StateCreator<OGMetadataState> = (set, get) =
 
   setMetadata: (messageId, data) => {
     set((state) => ({
-      metadata: { ...state.metadata, [messageId]: data },
+      metadata: trimMetadata({ ...state.metadata, [messageId]: data }),
     }));
   },
 
   setBulkMetadata: (data) => {
     set((state) => ({
-      metadata: { ...state.metadata, ...data },
+      metadata: trimMetadata({ ...state.metadata, ...data }),
     }));
   },
 
