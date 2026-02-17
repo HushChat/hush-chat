@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { View } from "react-native";
 import { AppText } from "@/components/AppText";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
@@ -7,12 +7,35 @@ import VideoRenderer from "@/components/call/VideoRenderer";
 import { useCallStore } from "@/store/call/useCallStore";
 import { useCallDuration } from "@/hooks/call/useCallDuration";
 import { CallState } from "@/types/call/callSignaling";
+import { PLATFORM } from "@/constants/platformConstants";
 
 interface ActiveCallViewProps {
   onEndCall: () => void;
   onToggleAudio: () => void;
   onToggleVideo: () => void;
 }
+
+/** Plays the remote audio stream via a hidden <audio> element (web only) */
+const RemoteAudioPlayer = ({ stream }: { stream: MediaStream | null }) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!PLATFORM.IS_WEB || !stream) return;
+
+    const audio = new Audio();
+    audio.srcObject = stream;
+    audio.autoplay = true;
+    audioRef.current = audio;
+
+    return () => {
+      audio.srcObject = null;
+      audio.pause();
+      audioRef.current = null;
+    };
+  }, [stream]);
+
+  return null;
+};
 
 const ActiveCallView = ({ onEndCall, onToggleAudio, onToggleVideo }: ActiveCallViewProps) => {
   const activeCall = useCallStore((s) => s.activeCall);
@@ -29,6 +52,11 @@ const ActiveCallView = ({ onEndCall, onToggleAudio, onToggleVideo }: ActiveCallV
 
   return (
     <View className="absolute inset-0 z-50 bg-gray-900">
+      {/* Hidden audio player for remote stream (only when video element is not rendering) */}
+      {!(activeCall.isVideo && remoteStream && activeCall.isRemoteVideoEnabled) && (
+        <RemoteAudioPlayer stream={remoteStream} />
+      )}
+
       {/* Remote video (full screen) or avatar */}
       {activeCall.isVideo && remoteStream && activeCall.isRemoteVideoEnabled ? (
         <VideoRenderer stream={remoteStream} className="absolute inset-0" />
