@@ -22,18 +22,19 @@ export interface FormattedTextProps {
   onHashtagPress?: (hashtag: string) => void;
   isCurrentUser: boolean;
   isMarkdownEnabled?: boolean;
+  isGroup?: boolean;
 }
 
 const FormattedText = (props: FormattedTextProps) => {
-  const { text, mentions = [], isCurrentUser, isMarkdownEnabled } = props;
+  const { text, mentions = [], isCurrentUser, isMarkdownEnabled, isGroup } = props;
 
   const { markdownStyles } = useMarkdownStyles(isCurrentUser);
   const handleLinkPress = useLinkHandler(props);
   const { menuVisible, menuPos, openMenu, closeMenu, copyLink, copyText } = useWebContextMenu();
   const rules = useMarkdownRules(handleLinkPress, isCurrentUser, openMenu);
 
-  const processedText = useProcessedText(text, mentions);
-  const plainTextContent = usePlainTextParser(text, mentions, rules, markdownStyles);
+  const processedText = useProcessedText(text, mentions, isGroup);
+  const plainTextContent = usePlainTextParser(text, mentions, rules, markdownStyles, isGroup);
 
   const markdownItInstance = useMemo(() => MarkdownIt({ linkify: true, typographer: true }), []);
 

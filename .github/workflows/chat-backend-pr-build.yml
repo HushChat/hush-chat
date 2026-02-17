@@ -14,6 +14,57 @@ jobs:
     name: Build
     runs-on: [self-hosted, on-premise]
 
+    env:
+      # AWS / S3
+      CLOUD_AWS_ACCESS_KEY: ${{ secrets.DEV_CLOUD_AWS_ACCESS_KEY }}
+      CLOUD_AWS_SECRET_KEY: ${{ secrets.DEV_CLOUD_AWS_SECRET_KEY }}
+      PRIVATE_BUCKET_NAME: ${{ vars.DEV_PRIVATE_BUCKET_NAME }}
+      CLOUD_FRONT_URL: ${{ vars.DEV_CLOUD_FRONT_URL }}
+
+      # Logging / ELK
+      LOG_ELK_HOST: ${{ vars.DEV_LOG_ELK_HOST }}
+      LOG_ELK_PORT: ${{ vars.DEV_LOG_ELK_PORT }}
+
+      # Health Checks
+      HEALTH_CHECK_REDIS_SECRET_KEY: ${{ secrets.DEV_HEALTH_CHECK_REDIS_SECRET_KEY }}
+      HEALTH_CHECK_COMMIT_INFO_SECRET_KEY: ${{ secrets.DEV_HEALTH_CHECK_COMMIT_INFO_SECRET_KEY }}
+
+      # AWS Cognito
+      AWS_COGNITO_USERPOOL_ID: ${{ vars.DEV_AWS_COGNITO_USER_POOL_ID }}
+      AWS_COGNITO_REGION: ${{ vars.DEV_AWS_COGNITO_REGION }}
+      AWS_COGNITO_JWKS_URL: ${{ vars.DEV_AWS_COGNITO_JWKS_URL }}
+      AWS_COGNITO_CLIENT_ID: ${{ secrets.DEV_AWS_COGNITO_CLIENT_ID }}
+
+      # Chat unit test users
+      TEST_CHAT_ADMIN_EMAIL: ${{ vars.DEV_CHAT_ADMIN_EMAIL }}
+      TEST_CHAT_ADMIN_PASSWORD: ${{ vars.DEV_CHAT_ADMIN_PASSWORD }}
+      TEST_CHAT_PARTICIPANT_EMAIL: ${{ vars.DEV_CHAT_PARTICIPANT_EMAIL }}
+      TEST_CHAT_PARTICIPANT_PASSWORD: ${{ vars.DEV_CHAT_PARTICIPANT_PASSWORD }}
+
+      # Email service
+      EMAIL_DEFAULT_SENDER: ${{ vars.EMAIL_DEFAULT_SENDER }}
+
+      SENDGRID_API_KEY: ${{ vars.SENDGRID_API_KEY }}
+      SENDGRID_FROM_MAIL: ${{ vars.SENDGRID_FROM_MAIL }}
+
+      AWS_SES_ACCESS_KEY: ${{ vars.AWS_SES_ACCESS_KEY }}
+      AWS_SES_SECRET_KEY: ${{ vars.AWS_SES_SECRET_KEY }}
+      AWS_SES_REGION: ${{ vars.AWS_SES_REGION }}
+      AWS_SES_FROM_MAIL: ${{ vars.AWS_SES_FROM_MAIL }}
+
+      FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
+
+      #Public api key
+      PUBLIC_API_KEY: ${{ vars.PUBLIC_API_KEY}}
+
+      # Tenor / GIF
+      TENOR_API_KEY: ${{ vars.TENOR_API_KEY }}
+      TENOR_API_BASE_URL: ${{ vars.TENOR_API_BASE_URL }}
+
+      #Ratelimit
+      RATE_LIMITING_ENABLED: ${{ vars.RATE_LIMITING_ENABLED }}
+      RATE_LIMITING_REQUESTS_PER_MINUTE: ${{ vars.RATE_LIMITING_REQUESTS_PER_MINUTE }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,4 +87,4 @@ jobs:
 
       - name: Compile and test the chat service
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-        run: mvn -f apps/backend/chat-service/pom.xml clean compile
+        run: mvn -f apps/backend/chat-service/pom.xml clean install

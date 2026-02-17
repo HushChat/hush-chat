@@ -27,6 +27,8 @@ import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
 import GroupInvite from "@/components/conversations/conversation-info-panel/GroupInvite";
 import GroupPreferences from "@/components/conversations/conversation-info-panel/GroupPreferences";
+import ProfileCardModal from "@/components/ProfileCardModal";
+import { useProfileCardModal } from "@/hooks/useProfileCardModal";
 
 const COLORS = {
   button: "#3b82f6",
@@ -60,6 +62,15 @@ export default function GroupChatInfo({
   const { pages: participantsPages, error: participantsError } = useConversationParticipantQuery(
     conversation.id
   );
+
+  const {
+    showProfileModal,
+    selectedUser,
+    profileCardData,
+    openProfileCardFromParticipant: handleAvatarPress,
+    closeProfileCard,
+    handleMessagePress,
+  } = useProfileCardModal();
 
   const { panelWidth, activePanel, isPanelContentReady, openPanel, closePanel } =
     useWebPanelManager(screenWidth);
@@ -282,7 +293,11 @@ export default function GroupChatInfo({
 
           <View>
             {allParticipants.map((participant) => (
-              <ParticipantRow key={participant.id.toString()} participant={participant} />
+              <ParticipantRow
+                key={participant.id.toString()}
+                participant={participant}
+                onAvatarPress={handleAvatarPress}
+              />
             ))}
           </View>
           <Pressable
@@ -401,6 +416,15 @@ export default function GroupChatInfo({
             visible={activePanel === PanelType.GROUP_PREFERENCES}
           />
         </View>
+      )}
+
+      {selectedUser && profileCardData && (
+        <ProfileCardModal
+          visible={showProfileModal}
+          onClose={closeProfileCard}
+          data={profileCardData}
+          onMessagePress={handleMessagePress}
+        />
       )}
     </View>
   );
