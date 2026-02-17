@@ -12,13 +12,16 @@ import { ToastUtils } from "@/utils/toastUtils";
 import { useUserStore } from "@/store/user/useUserStore";
 
 const CALL_TIMEOUT_MS = 60000;
+const WEBRTC_CONNECT_TIMEOUT_MS = 30000;
 
 export function useCallManager() {
   const { getWebSocket } = useWebSocket();
   const webrtcRef = useRef<WebRTCService | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callLogIdRef = useRef<number>(0);
+  const pendingIceCandidatesRef = useRef<string[]>([]);
 
   const {
     status,
@@ -52,10 +55,15 @@ export function useCallManager() {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
     }
+    if (connectTimeoutRef.current) {
+      clearTimeout(connectTimeoutRef.current);
+      connectTimeoutRef.current = null;
+    }
   }, []);
 
   const cleanupCall = useCallback(() => {
     clearTimers();
+    pendingIceCandidatesRef.current = [];
     if (webrtcRef.current) {
       webrtcRef.current.cleanup();
       webrtcRef.current = null;
@@ -63,12 +71,68 @@ export function useCallManager() {
     resetCallState();
   }, [clearTimers, resetCallState]);
 
+  const handleEndCall = useCallback(() => {
+    const state = useCallStore.getState();
+    logInfo("handleEndCall called, current status:", state.status);
+    if (state.callLogId && state.callLogId !== 0) {
+      const ws = getWebSocket();
+      publishCallSignal(ws, WS_DESTINATIONS.CALL_END, {
+        callLogId: state.callLogId,
+      });
+    }
+
+    endCallStore();
+    clearTimers();
+    if (webrtcRef.current) {
+      webrtcRef.current.cleanup();
+      webrtcRef.current = null;
+    }
+    // Reset after a brief delay so the ENDED status can be shown
+    setTimeout(() => {
+      resetCallState();
+    }, 1000);
+  }, [getWebSocket, endCallStore, clearTimers, resetCallState]);
+
+  const flushPendingIceCandidates = useCallback(
+    async (assignedCallLogId: number) => {
+      const pending = [...pendingIceCandidatesRef.current];
+      pendingIceCandidatesRef.current = [];
+      if (pending.length === 0) return;
+
+      logInfo(`Flushing ${pending.length} buffered ICE candidates`);
+      const ws = getWebSocket();
+      for (const candidate of pending) {
+        await publishCallSignal(ws, WS_DESTINATIONS.CALL_ICE_CANDIDATE, {
+          callLogId: assignedCallLogId,
+          candidate,
+        });
+      }
+    },
+    [getWebSocket]
+  );
+
+  const startConnectTimeout = useCallback(() => {
+    if (connectTimeoutRef.current) {
+      clearTimeout(connectTimeoutRef.current);
+    }
+    connectTimeoutRef.current = setTimeout(() => {
+      const currentStatus = useCallStore.getState().status;
+      if (currentStatus === CallStatus.CONNECTING) {
+        logInfo("WebRTC connection timeout - failed to connect");
+        ToastUtils.error("Connection failed");
+        handleEndCall();
+      }
+    }, WEBRTC_CONNECT_TIMEOUT_MS);
+  }, [handleEndCall]);
+
   const createWebRTCCallbacks = useCallback(
     () => ({
       onIceCandidate: (candidate: string) => {
         const currentId = callLogIdRef.current || useCallStore.getState().callLogId;
         if (!currentId) {
-          logInfo("ICE candidate generated before callLogId assigned, skipping");
+          // Buffer candidates until callLogId is assigned (caller side)
+          pendingIceCandidatesRef.current.push(candidate);
+          logInfo("ICE candidate buffered, waiting for callLogId");
           return;
         }
         const ws = getWebSocket();
@@ -78,8 +142,13 @@ export function useCallManager() {
         });
       },
       onConnectionStateChange: (state: RTCPeerConnectionState) => {
-        logInfo("WebRTC state change:", state);
+        logInfo("WebRTC connection state:", state);
         if (state === "connected") {
+          // Clear the connect timeout since we're connected
+          if (connectTimeoutRef.current) {
+            clearTimeout(connectTimeoutRef.current);
+            connectTimeoutRef.current = null;
+          }
           setConnected();
         } else if (state === "disconnected") {
           reconnectTimerRef.current = setTimeout(() => {
@@ -99,7 +168,7 @@ export function useCallManager() {
         // Audio plays automatically via the peer connection
       },
     }),
-    [getWebSocket, setConnected]
+    [getWebSocket, setConnected, handleEndCall]
   );
 
   const initiateCall = useCallback(
@@ -111,6 +180,7 @@ export function useCallManager() {
       }
 
       try {
+        logInfo("Initiating call to conversation:", targetConversationId);
         const webrtc = new WebRTCService();
         webrtcRef.current = webrtc;
 
@@ -118,13 +188,18 @@ export function useCallManager() {
 
         await webrtc.initialize(createWebRTCCallbacks());
         const sdpOffer = await webrtc.createOffer();
+        logInfo("SDP offer created, length:", sdpOffer.length);
 
         const ws = getWebSocket();
-        publishCallSignal(ws, WS_DESTINATIONS.CALL_INITIATE, {
+        const sent = await publishCallSignal(ws, WS_DESTINATIONS.CALL_INITIATE, {
           conversationId: targetConversationId,
           sdp: sdpOffer,
           isVideo: false,
         });
+
+        if (!sent) {
+          throw new Error("Failed to send call initiation signal");
+        }
 
         startOutgoingCall({
           callLogId: 0,
@@ -152,12 +227,14 @@ export function useCallManager() {
         cleanupCall();
       }
     },
-    [getWebSocket, startOutgoingCall, createWebRTCCallbacks, cleanupCall]
+    [getWebSocket, startOutgoingCall, createWebRTCCallbacks, cleanupCall, handleEndCall]
   );
 
   const acceptCall = useCallback(async () => {
     const state = useCallStore.getState();
+    logInfo("acceptCall called, status:", state.status, "callLogId:", state.callLogId, "hasSdp:", !!state.remoteSdp);
     if (state.status !== CallStatus.INCOMING_RINGING || !state.remoteSdp || !state.callLogId) {
+      logInfo("acceptCall: preconditions not met, returning");
       return;
     }
 
@@ -169,21 +246,30 @@ export function useCallManager() {
       callLogIdRef.current = state.callLogId;
 
       await webrtc.initialize(createWebRTCCallbacks());
+      logInfo("WebRTC initialized for callee, processing offer...");
       const sdpAnswer = await webrtc.handleOffer(state.remoteSdp);
+      logInfo("SDP answer created, length:", sdpAnswer.length);
 
       const ws = getWebSocket();
-      publishCallSignal(ws, WS_DESTINATIONS.CALL_ANSWER, {
+      const sent = await publishCallSignal(ws, WS_DESTINATIONS.CALL_ANSWER, {
         callLogId: state.callLogId,
         sdp: sdpAnswer,
       });
 
-      logInfo("Call accepted, answer sent");
+      if (!sent) {
+        throw new Error("Failed to send call answer signal");
+      }
+
+      logInfo("Call accepted, answer sent for callLogId:", state.callLogId);
+
+      // Start a timeout for the WebRTC connection phase
+      startConnectTimeout();
     } catch (error) {
       logError("Failed to accept call:", error);
       ToastUtils.error("Failed to accept call. Check microphone permissions.");
       cleanupCall();
     }
-  }, [getWebSocket, setConnecting, createWebRTCCallbacks, cleanupCall]);
+  }, [getWebSocket, setConnecting, createWebRTCCallbacks, cleanupCall, startConnectTimeout]);
 
   const rejectCall = useCallback(() => {
     const state = useCallStore.getState();
@@ -196,27 +282,6 @@ export function useCallManager() {
 
     cleanupCall();
   }, [getWebSocket, cleanupCall]);
-
-  const handleEndCall = useCallback(() => {
-    const state = useCallStore.getState();
-    if (state.callLogId && state.callLogId !== 0) {
-      const ws = getWebSocket();
-      publishCallSignal(ws, WS_DESTINATIONS.CALL_END, {
-        callLogId: state.callLogId,
-      });
-    }
-
-    endCallStore();
-    clearTimers();
-    if (webrtcRef.current) {
-      webrtcRef.current.cleanup();
-      webrtcRef.current = null;
-    }
-    // Reset after a brief delay so the ENDED status can be shown
-    setTimeout(() => {
-      resetCallState();
-    }, 1000);
-  }, [getWebSocket, endCallStore, clearTimers, resetCallState]);
 
   const toggleMute = useCallback(() => {
     if (webrtcRef.current) {
@@ -235,6 +300,7 @@ export function useCallManager() {
   useEffect(() => {
     const handleIncoming = (data: CallSignalingPayload) => {
       const currentStatus = useCallStore.getState().status;
+      logInfo("Incoming call signal received, current status:", currentStatus);
       if (currentStatus !== CallStatus.IDLE) {
         // Already in a call - this will be handled by the server as busy
         return;
@@ -252,18 +318,26 @@ export function useCallManager() {
 
     const handleAnswer = async (data: CallSignalingPayload) => {
       const state = useCallStore.getState();
+      logInfo("Answer signal received, current status:", state.status, "callLogId:", data.callLogId);
       if (state.status !== CallStatus.OUTGOING_RINGING) return;
 
       // Update callLogId from server response
       callLogIdRef.current = data.callLogId;
       useCallStore.setState({ callLogId: data.callLogId });
 
-      // Update WebRTC callbacks with real callLogId
       if (webrtcRef.current) {
         try {
           setConnecting();
+          logInfo("Processing answer SDP, length:", data.sdp?.length || 0);
           await webrtcRef.current.handleAnswer(data.sdp || "");
           clearTimers();
+
+          // Start a timeout for the WebRTC connection phase
+          startConnectTimeout();
+
+          // Flush any ICE candidates that were buffered before callLogId was assigned
+          await flushPendingIceCandidates(data.callLogId);
+          logInfo("Answer processed and ICE candidates flushed");
         } catch (error) {
           logError("Failed to handle answer:", error);
           handleEndCall();
@@ -279,11 +353,16 @@ export function useCallManager() {
 
     const handleEnded = (data: CallSignalingPayload) => {
       const state = useCallStore.getState();
+      logInfo("Call ended signal received, status:", state.status, "reason:", data.reason);
       if (state.status === CallStatus.IDLE) return;
 
       // Handle "answered_elsewhere" - another device answered
-      if (data.reason === "answered_elsewhere" && state.status === CallStatus.INCOMING_RINGING) {
-        cleanupCall();
+      if (data.reason === "answered_elsewhere") {
+        if (state.status === CallStatus.INCOMING_RINGING) {
+          // We didn't answer - dismiss the incoming call UI
+          cleanupCall();
+        }
+        // If we're CONNECTING/CONNECTED, we ARE the answering device - ignore
         return;
       }
 
@@ -347,6 +426,8 @@ export function useCallManager() {
     cleanupCall,
     clearTimers,
     handleEndCall,
+    flushPendingIceCandidates,
+    startConnectTimeout,
   ]);
 
   return {

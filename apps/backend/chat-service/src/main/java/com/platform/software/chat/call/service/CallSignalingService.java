@@ -12,6 +12,7 @@ import com.platform.software.chat.notification.repository.ChatNotificationReposi
 import com.platform.software.chat.notification.service.NotificationServiceFactory;
 import com.platform.software.chat.user.entity.ChatUser;
 import com.platform.software.chat.user.service.UserService;
+import com.platform.software.common.constants.Constants;
 import com.platform.software.common.constants.GeneralConstants;
 import com.platform.software.common.constants.WebSocketTopicConstants;
 import com.platform.software.config.interceptors.websocket.WebSocketSessionManager;
@@ -64,13 +65,30 @@ public class CallSignalingService {
         this.chatNotificationRepository = chatNotificationRepository;
     }
 
+    private Long resolveUserId(Map<String, Object> sessionAttrs) {
+        String workspaceId = (String) sessionAttrs.get(GeneralConstants.WORKSPACE_ID);
+        String email = (String) sessionAttrs.get(Constants.JWT_CLAIM_EMAIL);
+        logger.debug("Resolving user ID for workspace={}, email={}", workspaceId, email);
+        if (workspaceId == null || email == null) {
+            logger.error("Missing session attributes: workspaceId={}, email={}", workspaceId, email);
+            throw new IllegalStateException("Missing required session attributes for call signaling");
+        }
+        WorkspaceContext.setCurrentWorkspace(workspaceId);
+        ChatUser user = userService.getUserByEmail(email);
+        if (user == null) {
+            logger.error("User not found for email={} in workspace={}", email, workspaceId);
+            throw new IllegalStateException("User not found for email: " + email);
+        }
+        return user.getId();
+    }
+
     @Transactional
     public void initiateCall(CallInitiateDTO dto, Map<String, Object> sessionAttrs) {
         String workspaceId = (String) sessionAttrs.get(GeneralConstants.WORKSPACE_ID);
-        Long callerId = Long.valueOf((String) sessionAttrs.get(GeneralConstants.USER_ID_ATTR));
 
         try {
             WorkspaceContext.setCurrentWorkspace(workspaceId);
+            Long callerId = resolveUserId(sessionAttrs);
 
             // Validate caller is in conversation
             conversationUtilService.getConversationParticipantOrThrow(dto.getConversationId(), callerId);
@@ -161,17 +179,17 @@ public class CallSignalingService {
                     savedCallLog.getId(), callerId, callee.getId());
 
         } catch (Exception e) {
-            logger.error("Failed to initiate call for conversation {}: {}", dto.getConversationId(), e.getMessage());
+            logger.error("Failed to initiate call for conversation {}: {}", dto.getConversationId(), e.getMessage(), e);
         }
     }
 
     @Transactional
     public void answerCall(CallAnswerDTO dto, Map<String, Object> sessionAttrs) {
         String workspaceId = (String) sessionAttrs.get(GeneralConstants.WORKSPACE_ID);
-        Long answererId = Long.valueOf((String) sessionAttrs.get(GeneralConstants.USER_ID_ATTR));
 
         try {
             WorkspaceContext.setCurrentWorkspace(workspaceId);
+            Long answererId = resolveUserId(sessionAttrs);
 
             ActiveCallInfo activeCall = activeCallsByCallLogId.get(dto.getCallLogId());
             if (activeCall == null) {
@@ -214,19 +232,20 @@ public class CallSignalingService {
             logger.info("Call answered: callLogId={}, answerer={}", dto.getCallLogId(), answererId);
 
         } catch (Exception e) {
-            logger.error("Failed to answer call {}: {}", dto.getCallLogId(), e.getMessage());
+            logger.error("Failed to answer call {}: {}", dto.getCallLogId(), e.getMessage(), e);
         }
     }
 
     public void forwardIceCandidate(CallIceCandidateDTO dto, Map<String, Object> sessionAttrs) {
         String workspaceId = (String) sessionAttrs.get(GeneralConstants.WORKSPACE_ID);
-        Long senderId = Long.valueOf((String) sessionAttrs.get(GeneralConstants.USER_ID_ATTR));
 
         try {
             WorkspaceContext.setCurrentWorkspace(workspaceId);
+            Long senderId = resolveUserId(sessionAttrs);
 
             ActiveCallInfo activeCall = activeCallsByCallLogId.get(dto.getCallLogId());
             if (activeCall == null) {
+                logger.warn("ICE candidate: no active call for callLogId {}", dto.getCallLogId());
                 return;
             }
 
@@ -258,10 +277,10 @@ public class CallSignalingService {
     @Transactional
     public void endCall(CallEndDTO dto, Map<String, Object> sessionAttrs) {
         String workspaceId = (String) sessionAttrs.get(GeneralConstants.WORKSPACE_ID);
-        Long enderId = Long.valueOf((String) sessionAttrs.get(GeneralConstants.USER_ID_ATTR));
 
         try {
             WorkspaceContext.setCurrentWorkspace(workspaceId);
+            Long enderId = resolveUserId(sessionAttrs);
 
             ActiveCallInfo activeCall = activeCallsByCallLogId.get(dto.getCallLogId());
             if (activeCall == null) {
@@ -315,10 +334,10 @@ public class CallSignalingService {
     @Transactional
     public void rejectCall(CallRejectDTO dto, Map<String, Object> sessionAttrs) {
         String workspaceId = (String) sessionAttrs.get(GeneralConstants.WORKSPACE_ID);
-        Long rejecterId = Long.valueOf((String) sessionAttrs.get(GeneralConstants.USER_ID_ATTR));
 
         try {
             WorkspaceContext.setCurrentWorkspace(workspaceId);
+            Long rejecterId = resolveUserId(sessionAttrs);
 
             ActiveCallInfo activeCall = activeCallsByCallLogId.get(dto.getCallLogId());
             if (activeCall == null) {

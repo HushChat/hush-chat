@@ -11,12 +11,14 @@ import lombok.Setter;
 import java.time.ZonedDateTime;
 
 @Entity
+@Table(name = "call_log")
 @Setter
 @Getter
 public class CallLog extends AuditModel {
 
     @Id
-    @GeneratedValue(generator = "call_log_generator")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "call_log_generator")
+    @SequenceGenerator(name = "call_log_generator", sequenceName = "call_log_generator", allocationSize = 50)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

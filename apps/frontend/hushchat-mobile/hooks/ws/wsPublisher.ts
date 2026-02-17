@@ -34,7 +34,7 @@ export const buildStompSendFrame = (
     ...Array.from(encoder.encode(`${HEADER_DESTINATION}:${destination}\n`)),
     ...Array.from(encoder.encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
     ...Array.from(encoder.encode(`${HEADER_DEVICE_TYPE}:${deviceType}\n`)),
-    ...Array.from(encoder.encode(`${HEADER_CONTENT_LENGTH}:${body.length}\n`)),
+    ...Array.from(encoder.encode(`${HEADER_CONTENT_LENGTH}:${encoder.encode(body).byteLength}\n`)),
     ...Array.from(encoder.encode(`${HEADER_CONTENT_TYPE}:application/json\n`)),
     0x0a,
     ...Array.from(encoder.encode(body)),
