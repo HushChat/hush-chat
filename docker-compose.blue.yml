@@ -1,7 +1,7 @@
 services:
-  backend_staging:
+  backend_blue:
     build: apps/backend/chat-service
-    container_name: chat_service_backend_staging
+    container_name: chat_service_backend_blue
     ports:
       - "3093:3092"
     restart: always
@@ -45,18 +45,18 @@ services:
     volumes:
       - ./infra/db-migrations/workspaces:/app/db-migrations
     networks:
-      - infra_network_staging
+      - infra_network
 
-  frontend_staging:
+  frontend_blue:
     build: apps/frontend/hushchat-mobile
-    container_name: chat_service_frontend_staging
+    container_name: chat_service_frontend_blue
     ports:
       - "8082:80"
     restart: always
     networks:
-      - infra_network_staging
+      - infra_network
 
 networks:
-  infra_network_staging:
+  infra_network:
     external: true
-    name: infra_network_staging
+    name: infra_network
