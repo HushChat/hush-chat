@@ -29,6 +29,7 @@ import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
+import { useBatchOGMetadataFetch } from "@/hooks/useBatchOGMetadataFetch";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
 import { useSetLastSeenMessageMutation } from "@/query/patch/queries";
@@ -148,6 +149,8 @@ const ConversationThreadScreen = ({
   } = useConversationMessagesQuery(currentConversationId, {
     enabled: shouldFetchMessages,
   });
+
+  useBatchOGMetadataFetch(conversationMessagesPages);
 
   const { updateConversation } = useConversationNotificationsContext();
 

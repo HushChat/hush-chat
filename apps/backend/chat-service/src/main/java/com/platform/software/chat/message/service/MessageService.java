@@ -828,4 +828,30 @@ public class MessageService {
         }
         return (element != null) ? element.attr("content") : null;
     }
+
+    /**
+     * Fetches URL metadata for a batch of messages in parallel.
+     *
+     * @param messageIds the list of message IDs to process
+     * @return a map of messageId to MessageUrlMetadataDTO (entries with null metadata are excluded)
+     */
+    public Map<Long, MessageUrlMetadataDTO> getBatchMessageUrlMetadata(List<Long> messageIds) {
+        Map<Long, MessageUrlMetadataDTO> result = new HashMap<>();
+        if (messageIds == null || messageIds.isEmpty()) {
+            return result;
+        }
+
+        for (Long messageId : messageIds) {
+            try {
+                MessageUrlMetadataDTO dto = getMessageUrlMetadata(messageId);
+                if (dto != null) {
+                    result.put(messageId, dto);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to fetch URL metadata for message {}", messageId, e);
+            }
+        }
+
+        return result;
+    }
 }
