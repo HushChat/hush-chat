@@ -34,7 +34,7 @@ export const buildStompSendFrame = (
     ...Array.from(encoder.encode(`${HEADER_DESTINATION}:${destination}\n`)),
     ...Array.from(encoder.encode(`${DEVICE_ID_KEY}:${deviceId}\n`)),
     ...Array.from(encoder.encode(`${HEADER_DEVICE_TYPE}:${deviceType}\n`)),
-    ...Array.from(encoder.encode(`${HEADER_CONTENT_LENGTH}:${body.length}\n`)),
+    ...Array.from(encoder.encode(`${HEADER_CONTENT_LENGTH}:${encoder.encode(body).byteLength}\n`)),
     ...Array.from(encoder.encode(`${HEADER_CONTENT_TYPE}:application/json\n`)),
     0x0a,
     ...Array.from(encoder.encode(body)),
@@ -81,4 +81,25 @@ export const publishUserActivity = (
 
 export const publishTypingStatus = (ws: WebSocket | null, data: TypingIndicatorWSData): boolean => {
   return publishToWebSocket(ws, WS_DESTINATIONS.TYPING, data, TITLES.TYPING_ACTIVITY);
+};
+
+export const publishCallSignal = async (
+  ws: WebSocket | null,
+  destination: string,
+  data: Record<string, unknown>
+): Promise<boolean> => {
+  if (!canPublish(ws, "call signal")) {
+    return false;
+  }
+
+  try {
+    const body = JSON.stringify(data);
+    const deviceType = DeviceType.UNKNOWN;
+    const deviceId = await getDeviceId();
+    ws!.send(buildStompSendFrame(destination, body, deviceType, deviceId).buffer);
+    return true;
+  } catch (error) {
+    logInfo("Error publishing call signal:", error);
+    return false;
+  }
 };

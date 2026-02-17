@@ -10,15 +10,16 @@ interface WebSocketContextValue {
   connectionStatus: WebSocketStatus;
   publishActivity: (data: UserActivityWSSubscriptionData) => Promise<boolean>;
   publishTyping: (data: TypingIndicatorWSData) => Promise<boolean>;
+  getWebSocket: () => WebSocket | null;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue | undefined>(undefined);
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
-  const { connectionStatus, publishActivity, publishTyping } = useWebSocketConnection();
+  const { connectionStatus, publishActivity, publishTyping, getWebSocket } = useWebSocketConnection();
 
   return (
-    <WebSocketContext.Provider value={{ connectionStatus, publishActivity, publishTyping }}>
+    <WebSocketContext.Provider value={{ connectionStatus, publishActivity, publishTyping, getWebSocket }}>
       {children}
     </WebSocketContext.Provider>
   );

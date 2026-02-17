@@ -9,6 +9,12 @@ import {
   emitUserStatus,
   emitUserTyping,
   emitMessageUpdated,
+  emitCallIncoming,
+  emitCallAnswer,
+  emitCallIceCandidate,
+  emitCallEnded,
+  emitCallRejected,
+  emitCallBusy,
 } from "@/services/eventBus";
 import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
 import {
@@ -18,6 +24,7 @@ import {
   TypingIndicatorPayload,
   MessagePinnedPayload,
 } from "@/types/ws/types";
+import { CallSignalingPayload } from "@/types/call/signalingTypes";
 import { logDebug, logInfo } from "@/utils/logger";
 
 export type TopicHandler = (body: string) => void;
@@ -66,6 +73,36 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
   [WS_TOPICS.message.pinned]: (body) => {
     const pinnedMessage = JSON.parse(body) as MessagePinnedPayload;
     emitMessagePinned(pinnedMessage);
+  },
+
+  [WS_TOPICS.call.incoming]: (body) => {
+    const payload = JSON.parse(body) as CallSignalingPayload;
+    emitCallIncoming(payload);
+  },
+
+  [WS_TOPICS.call.answer]: (body) => {
+    const payload = JSON.parse(body) as CallSignalingPayload;
+    emitCallAnswer(payload);
+  },
+
+  [WS_TOPICS.call.iceCandidate]: (body) => {
+    const payload = JSON.parse(body) as CallSignalingPayload;
+    emitCallIceCandidate(payload);
+  },
+
+  [WS_TOPICS.call.ended]: (body) => {
+    const payload = JSON.parse(body) as CallSignalingPayload;
+    emitCallEnded(payload);
+  },
+
+  [WS_TOPICS.call.rejected]: (body) => {
+    const payload = JSON.parse(body) as CallSignalingPayload;
+    emitCallRejected(payload);
+  },
+
+  [WS_TOPICS.call.busy]: (body) => {
+    const payload = JSON.parse(body) as CallSignalingPayload;
+    emitCallBusy(payload);
   },
 };
 

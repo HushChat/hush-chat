@@ -16,7 +16,9 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { CallProvider } from "@/contexts/CallContext";
 import { DynamicBrowserTitle } from "@/hooks/useDynamicBrowserTitle";
+import CallOverlayContainer from "@/components/call/CallOverlayContainer";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
@@ -45,17 +47,20 @@ export default function RootLayout() {
           <ThemeProvider value={getNavigationTheme(colorScheme)}>
             <WebSocketProvider>
               <AppLifecycleManager />
-              <ConversationNotificationsProvider>
-                <DynamicBrowserTitle />
-                <ModalProvider>
-                  <Gate ready={appReady} isAuthenticated={isAuthenticated} />
-                  <Toast
-                    config={toastConfig}
-                    topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
-                  />
-                  <StatusBar style="auto" />
-                </ModalProvider>
-              </ConversationNotificationsProvider>
+              <CallProvider>
+                <ConversationNotificationsProvider>
+                  <DynamicBrowserTitle />
+                  <ModalProvider>
+                    <CallOverlayContainer />
+                    <Gate ready={appReady} isAuthenticated={isAuthenticated} />
+                    <Toast
+                      config={toastConfig}
+                      topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                    />
+                    <StatusBar style="auto" />
+                  </ModalProvider>
+                </ConversationNotificationsProvider>
+              </CallProvider>
             </WebSocketProvider>
           </ThemeProvider>
         </QueryClientProvider>

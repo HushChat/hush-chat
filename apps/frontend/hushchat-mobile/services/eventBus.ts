@@ -9,6 +9,7 @@ import {
   MessagePinnedPayload,
 } from "@/types/ws/types";
 import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
+import { CallSignalingPayload } from "@/types/call/signalingTypes";
 import {
   CALL_EVENTS,
   CONVERSATION_EVENTS,
@@ -53,15 +54,13 @@ export type WebSocketEvents = {
   [NOTIFICATION_EVENTS.SHOW]: NotificationPayload;
   [NOTIFICATION_EVENTS.CLEAR]: { conversationId?: number };
 
-  // Call events (if you have voice/video calling)
-  [CALL_EVENTS.INCOMING]: {
-    callId: string;
-    from: string;
-    conversationId: number;
-    type: "voice" | "video";
-  };
-  [CALL_EVENTS.ENDED]: { callId: string; duration?: number };
-  [CALL_EVENTS.REJECTED]: { callId: string; reason?: string };
+  // Call events
+  [CALL_EVENTS.INCOMING]: CallSignalingPayload;
+  [CALL_EVENTS.ANSWER]: CallSignalingPayload;
+  [CALL_EVENTS.ICE_CANDIDATE]: CallSignalingPayload;
+  [CALL_EVENTS.ENDED]: CallSignalingPayload;
+  [CALL_EVENTS.REJECTED]: CallSignalingPayload;
+  [CALL_EVENTS.BUSY]: CallSignalingPayload;
 
   // System events
   [SYSTEM_EVENTS.MAINTENANCE]: { message: string; scheduledTime?: string };
@@ -158,6 +157,31 @@ export const emitMessagePinned = (pinnedMessage: MessagePinnedPayload) => {
 //     console.debug(`🔥 Event: ${type}`, data);
 //   });
 // };
+
+// Call event helpers
+export const emitCallIncoming = (data: CallSignalingPayload) => {
+  eventBus.emit(CALL_EVENTS.INCOMING, data);
+};
+
+export const emitCallAnswer = (data: CallSignalingPayload) => {
+  eventBus.emit(CALL_EVENTS.ANSWER, data);
+};
+
+export const emitCallIceCandidate = (data: CallSignalingPayload) => {
+  eventBus.emit(CALL_EVENTS.ICE_CANDIDATE, data);
+};
+
+export const emitCallEnded = (data: CallSignalingPayload) => {
+  eventBus.emit(CALL_EVENTS.ENDED, data);
+};
+
+export const emitCallRejected = (data: CallSignalingPayload) => {
+  eventBus.emit(CALL_EVENTS.REJECTED, data);
+};
+
+export const emitCallBusy = (data: CallSignalingPayload) => {
+  eventBus.emit(CALL_EVENTS.BUSY, data);
+};
 
 // Cleanup helper
 export const removeAllListeners = () => {
