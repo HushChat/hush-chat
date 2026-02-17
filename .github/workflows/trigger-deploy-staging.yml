@@ -6,7 +6,7 @@ on:
 
 jobs:
   trigger-deployment:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, on-premise]
     if: ${{ !github.event.repository.fork }}
 
     steps:

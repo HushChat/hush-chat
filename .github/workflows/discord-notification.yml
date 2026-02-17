@@ -8,7 +8,7 @@ on:
 
 jobs:
   notify-opened:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, on-premise]
     if: github.event.action == 'opened'
     steps:
       - name: Send Discord Notification - PR Opened
@@ -56,7 +56,7 @@ jobs:
             -d @/tmp/discord_payload.json
 
   notify-merged:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, on-premise]
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     steps:
       - name: Send Discord Notification - PR Merged
