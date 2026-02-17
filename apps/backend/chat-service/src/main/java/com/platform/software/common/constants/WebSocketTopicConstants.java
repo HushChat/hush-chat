@@ -45,4 +45,7 @@ public final class WebSocketTopicConstants {
     /** Message updated event */
     public static final String MESSAGE_UPDATED = "/topic/message-updated/";
 
+    /** Call signaling event */
+    public static final String CALL_SIGNAL = "/topic/call-signal/";
+
 }

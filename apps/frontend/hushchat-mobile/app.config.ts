@@ -15,6 +15,10 @@ export default () => ({
     ios: {
       supportsTablet: true,
       associatedDomains: ["applinks:app.gethush.chat"],
+      infoPlist: {
+        NSCameraUsageDescription: "HushChat needs camera access for video calls.",
+        NSMicrophoneUsageDescription: "HushChat needs microphone access for voice and video calls.",
+      },
     },
     android: {
       adaptiveIcon: {
@@ -34,6 +38,11 @@ export default () => ({
           ],
           category: ["BROWSABLE", "DEFAULT"],
         },
+      ],
+      permissions: [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
       ],
       package: "com.hush.chat",
       versionCode: 2,

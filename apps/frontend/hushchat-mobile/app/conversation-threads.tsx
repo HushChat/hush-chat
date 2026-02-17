@@ -43,6 +43,7 @@ import { getAllTokens } from "@/utils/authUtils";
 import { UserActivityWSSubscriptionData } from "@/types/ws/types";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
+import { useCallActions } from "@/components/call/CallOverlayProvider";
 import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 import { getAPIErrorMessage } from "@/utils/apiErrorUtils";
 
@@ -193,6 +194,7 @@ const ConversationThreadScreen = ({
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);
   const isGroupChat = conversationAPIResponse?.isGroup;
+  const { initiateCall } = useCallActions();
   const isOnlyAdminsCanSendMessages =
     conversationAPIResponse?.isGroup && conversationAPIResponse?.onlyAdminsCanSendMessages;
 
@@ -561,6 +563,24 @@ const ConversationThreadScreen = ({
           isLoadingConversationMessages={isLoadingConversationMessages}
           webPressSearch={webSearchPress}
           isGroupChat={isGroupChat}
+          onVoiceCall={() =>
+            initiateCall(
+              currentConversationId,
+              false,
+              conversationInfo.conversationName,
+              undefined,
+              conversationInfo.signedImageUrl
+            )
+          }
+          onVideoCall={() =>
+            initiateCall(
+              currentConversationId,
+              true,
+              conversationInfo.conversationName,
+              undefined,
+              conversationInfo.signedImageUrl
+            )
+          }
         />
 
         <KeyboardAvoidingView
