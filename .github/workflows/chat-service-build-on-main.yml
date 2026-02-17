@@ -14,7 +14,7 @@ on:
 jobs:
   build-chat-service:
     name: Build Chat Service
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, on-premise]
 
     env:
       # AWS / S3
