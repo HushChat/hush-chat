@@ -80,6 +80,7 @@ const ConversationThreadScreen = ({
   const dropZoneRef = useRef<View>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const hasRedirectedRef = useRef(false);
+  const [isViewingFirstPage, setIsViewingFirstPage] = useState<boolean>(true);
 
   const {
     selectionMode,
@@ -144,10 +145,35 @@ const ConversationThreadScreen = ({
     updateConversationMessagesCache,
     updateConversationsListCache,
     targetMessageId,
+    shouldHighlight,
     clearTargetMessage,
   } = useConversationMessagesQuery(currentConversationId, {
     enabled: shouldFetchMessages,
   });
+
+  const handleViewableMessagesChanged = useCallback(
+    (visibleMessageIds: number[]) => {
+      const pages = conversationMessagesPages?.pages || [];
+
+      if (pages.length === 0 || visibleMessageIds.length === 0) {
+        setIsViewingFirstPage(false);
+        return;
+      }
+
+      const firstPage = pages.find((page) => page.firstPage === true);
+      if (!firstPage || !firstPage.content) {
+        setIsViewingFirstPage(false);
+        return;
+      }
+
+      const isFirstPageVisible = visibleMessageIds.some((id) =>
+        firstPage.content.some((msg) => msg.id === id)
+      );
+
+      setIsViewingFirstPage(isFirstPageVisible);
+    },
+    [conversationMessagesPages]
+  );
 
   const { updateConversation } = useConversationNotificationsContext();
 
@@ -213,9 +239,9 @@ const ConversationThreadScreen = ({
   );
 
   const handleNavigateToMessage = useCallback(
-    (messageId: number) => {
+    (messageId: number, highlight: boolean = true) => {
       if (loadMessageWindow) {
-        void loadMessageWindow(messageId);
+        void loadMessageWindow(messageId, highlight);
         onMessageJumped?.();
       }
     },
@@ -309,26 +335,45 @@ const ConversationThreadScreen = ({
 
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
+
+        const latest = results[results.length - 1].signed;
+
+        if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
+          loadMessageWindow(latest.messageId, false);
+        }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
     } catch {
       ToastUtils.error("Failed to pick or upload documents.");
     }
-  }, [pickAndUploadDocuments, setSelectedMessage, uploadError]);
+  }, [pickAndUploadDocuments, setSelectedMessage, uploadError, hasPreviousPage, fetchPreviousPage]);
 
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
       const results = await pickAndUploadImagesAndVideos();
+
       if (results?.some((r) => r.success)) {
         setSelectedMessage(null);
+
+        const latest = results[results.length - 1].signed;
+
+        if (latest?.messageId && loadMessageWindow && !isViewingFirstPage) {
+          loadMessageWindow(latest.messageId, false);
+        }
       } else if (uploadError) {
         ToastUtils.error(uploadError);
       }
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickAndUploadImagesAndVideos, setSelectedMessage, uploadError]);
+  }, [
+    pickAndUploadImagesAndVideos,
+    setSelectedMessage,
+    uploadError,
+    hasPreviousPage,
+    fetchPreviousPage,
+  ]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
@@ -336,6 +381,10 @@ const ConversationThreadScreen = ({
       setSelectedMessage(null);
       updateConversationMessagesCache(newMessage);
       updateConversationsListCache(newMessage);
+
+      if (newMessage.id && loadMessageWindow && !isViewingFirstPage) {
+        loadMessageWindow(newMessage.id, false);
+      }
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
   );
@@ -350,13 +399,15 @@ const ConversationThreadScreen = ({
     handleCloseImagePreview,
     updateConversationMessagesCache,
     sendGifMessage,
+    loadMessageWindow,
+    isViewingFirstPage,
   });
 
   const handleSendFilesFromPreview = useCallback(
     async (filesWithCaptions: FileWithCaption[]) => {
       await handleSendFilesWithCaptions(filesWithCaptions);
     },
-    [handleSendFilesWithCaptions]
+    [handleSendFilesWithCaptions, hasPreviousPage, fetchPreviousPage]
   );
 
   useEffect(() => {
@@ -467,10 +518,12 @@ const ConversationThreadScreen = ({
         setSelectedConversation={setSelectedConversationId}
         onNavigateToMessage={handleNavigateToMessage}
         targetMessageId={targetMessageId}
+        shouldHighlight={shouldHighlight}
         onTargetMessageScrolled={handleTargetMessageScrolled}
         webMessageInfoPress={webMessageInfoPress}
         lastSeenMessageId={lastSeenMessageInfo?.lastSeenMessageId}
         onEditMessage={handleStartEditWithClearReply}
+        onViewableMessagesChanged={handleViewableMessagesChanged}
       />
     );
   }, [

@@ -4,7 +4,13 @@
  * Renders the message thread for a single conversation using an inverted FlatList.
  */
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, SectionList, SectionListRenderItemInfo, View } from "react-native";
+import {
+  ActivityIndicator,
+  SectionList,
+  SectionListRenderItemInfo,
+  View,
+  ViewToken,
+} from "react-native";
 import { ConversationAPIResponse, IMessage, TPickerState } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import ActionsHeader from "@/components/conversations/conversation-thread/ActionsHeader";
@@ -40,7 +46,9 @@ interface IMessagesListProps {
   onTargetMessageScrolled?: () => void;
   webMessageInfoPress?: (messageId: number) => void;
   lastSeenMessageId?: number | null;
+  shouldHighlight?: boolean;
   onEditMessage?: (message: IMessage) => void;
+  onViewableMessagesChanged?: (visibleMessageIds: number[]) => void;
 }
 
 const ConversationMessageList = ({
@@ -56,10 +64,12 @@ const ConversationMessageList = ({
   isFetchingNewer,
   onNavigateToMessage,
   targetMessageId,
+  shouldHighlight,
   onTargetMessageScrolled,
   webMessageInfoPress,
   lastSeenMessageId,
   onEditMessage,
+  onViewableMessagesChanged,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -161,6 +171,18 @@ const ConversationMessageList = ({
     }
   }, [targetMessageId, groupedSections, onTargetMessageScrolled]);
 
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+    minimumViewTime: 100,
+  }).current;
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems && viewableItems.length > 0) {
+      const visibleMessageIds = viewableItems.map((item) => item.item.id);
+      onViewableMessagesChanged?.(visibleMessageIds);
+    }
+  }).current;
+
   const handleMessageInfoClick = useCallback((conversationId: number, messageId: number) => {
     router.push({
       pathname: MESSAGE_READ_PARTICIPANTS,
@@ -187,6 +209,7 @@ const ConversationMessageList = ({
         viewReactions,
         onNavigateToMessage,
         targetMessageId,
+        shouldHighlight,
         webMessageInfoPress,
         markMessageAsUnread,
         onEditMessage,
@@ -208,6 +231,7 @@ const ConversationMessageList = ({
       viewReactions,
       onNavigateToMessage,
       targetMessageId,
+      shouldHighlight,
       webMessageInfoPress,
       markMessageAsUnread,
       onEditMessage,
@@ -298,6 +322,8 @@ const ConversationMessageList = ({
         }
         onTouchEnd={closeAll}
         onScrollBeginDrag={closeAll}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         extraData={{
           selectionMode,
           selectedMessageIdsSize: selectedMessageIds.size,
