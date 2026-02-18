@@ -69,6 +69,7 @@ export default () => ({
           granularPermissions: ["audio", "photo"],
         },
       ],
+      "expo-notifications",
     ],
     experiments: {
       typedRoutes: true,

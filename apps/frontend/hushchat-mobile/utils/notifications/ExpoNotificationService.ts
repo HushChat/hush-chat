@@ -11,10 +11,33 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
-    shouldShowBanner: false,
-    shouldShowList: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
+
+let responseListenerRegistered = false;
+
+function registerNotificationResponseListener() {
+  if (responseListenerRegistered) return;
+  responseListenerRegistered = true;
+
+  Notifications.addNotificationResponseReceivedListener((response) => {
+    const data = response.notification.request.content.data;
+    const conversationId = data?.conversationId as string;
+    const messageId = data?.messageId as string;
+
+    if (conversationId) {
+      router.push({
+        pathname: CHAT_VIEW_PATH,
+        params: {
+          conversationId: conversationId,
+          ...(messageId && { messageId: messageId }),
+        },
+      });
+    }
+  });
+}
 
 export const ExpoNotificationService: INotificationService = {
   async registerDevice() {
@@ -29,21 +52,7 @@ export const ExpoNotificationService: INotificationService = {
       return null;
     }
 
-    Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data;
-      const conversationId = data?.conversationId as string;
-      const messageId = data?.messageId as string;
-
-      if (conversationId) {
-        router.push({
-          pathname: CHAT_VIEW_PATH,
-          params: {
-            conversationId: conversationId,
-            ...(messageId && { messageId: messageId }),
-          },
-        });
-      }
-    });
+    registerNotificationResponseListener();
 
     return (
       await Notifications.getExpoPushTokenAsync({
