@@ -24,6 +24,12 @@ export const WORKSPACE_ENDPOINTS = {
   REGISTER_WORKSPACE: `${WORKSPACES_API_BASE}/register`,
   CREATE_WORKSPACE: WORKSPACES_API_BASE,
   INVITE_TO_WORKSPACE: `${WORKSPACE_ADMIN_API_BASE}/invite`,
+  WORKSPACE_CHAT_USERS: `${WORKSPACE_ADMIN_API_BASE}/chat-users`,
+  WORKSPACE_CHAT_USER_BY_ID: (userId: number) => `${WORKSPACE_ADMIN_API_BASE}/chat-users/${userId}`,
+  TOGGLE_USER_ROLE: (email: string) =>
+    `${WORKSPACE_ADMIN_API_BASE}/users/${encodeURIComponent(email)}/role`,
+  UPDATE_CHAT_USER: (userId: number) => `${WORKSPACE_ADMIN_API_BASE}/chat-users/${userId}`,
+  SUSPEND_USER: `${WORKSPACE_ADMIN_API_BASE}/suspend`,
 };
 
 export const SETTINGS_API_BASE = "/settings";
@@ -83,6 +89,8 @@ export const CONVERSATION_API_ENDPOINTS = {
     `${CONVERSATION_API_BASE}/${conversationId}/invite-link`,
   GET_CONVERSATION_ATTACHMENTS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/attachments`,
+  GET_ATTACHMENT_DOWNLOAD_URL: (conversationId: number, attachmentId: number) =>
+    `${CONVERSATION_API_BASE}/${conversationId}/attachments/${attachmentId}/download-url`,
   TOGGLE_NOTIFY_ONLY_ON_MENTIONS: (conversationId: number) =>
     `${CONVERSATION_API_BASE}/${conversationId}/notifications/mentions-only`,
   JOIN_VIA_INVITE_LINK: (token: string) => `${CONVERSATION_API_BASE}/invite-link/${token}/join`,
@@ -110,6 +118,7 @@ export const MESSAGE_API_ENDPOINTS = {
   FORWARD: `${MESSAGE_API_BASE}/forward`,
   UNSEND: (messageId: number) => `${MESSAGE_API_BASE}/${messageId}/unsend`,
   MENTIONED_MESSAGES: `${MESSAGE_API_BASE}/mentions`,
+  GET_URL_METADATA: (messageId: number) => `${MESSAGE_API_BASE}/urlMetadata/${messageId}`,
 };
 
 export const SETTINGS_API_ENDPOINTS = {

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Modal, View, Pressable, ScrollView } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Modal, View, Pressable, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -12,12 +12,19 @@ import {
   useThumbnailScroll,
 } from "@/hooks/useImagePreviewHooks";
 import { VideoPlayer } from "@/components/conversations/conversation-thread/message-list/file-upload/ImageGrid/VideoPlayer";
+import { useConversationStore } from "@/store/conversation/useConversationStore";
+import { getAttachmentDownloadUrl } from "@/apis/conversation";
+import { downloadFileWeb } from "@/utils/messageUtils";
+import { ToastUtils } from "@/utils/toastUtils";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface IHeaderProps {
   fileName: string;
   isVideo: boolean;
   currentIndex: number;
   totalCount: number;
+  isDownloading: boolean;
+  onDownload: () => void;
   onClose: () => void;
 }
 
@@ -31,26 +38,57 @@ interface IMediaViewerProps {
   isVideo: boolean;
 }
 
-const Header = ({ fileName, isVideo, currentIndex, totalCount, onClose }: IHeaderProps) => (
-  <View className="bg-background-light dark:bg-background-dark px-6 py-4 flex-row justify-between items-center">
-    <View className="flex-1">
-      <AppText className="text-gray-900 dark:text-white text-base font-normal" numberOfLines={1}>
-        {fileName || (isVideo ? "Video" : "Image")}
-      </AppText>
-      <AppText className="text-gray-500 dark:text-[#8696A0] text-sm mt-0.5">
-        {currentIndex + 1} of {totalCount}
-      </AppText>
+const Header = ({
+  fileName,
+  isVideo,
+  currentIndex,
+  totalCount,
+  isDownloading,
+  onDownload,
+  onClose,
+}: IHeaderProps) => {
+  const isDark = useAppTheme();
+  const themeColors = {
+    primary: isDark ? "#563dc4" : "#6B4EFF",
+    icon: isDark ? "#9ca3af" : "#6B7280",
+  };
+
+  return (
+    <View className="bg-background-light dark:bg-background-dark px-6 py-4 flex-row justify-between items-center">
+      <View className="flex-1">
+        <AppText className="text-gray-900 dark:text-white text-base font-normal" numberOfLines={1}>
+          {fileName || (isVideo ? "Video" : "Image")}
+        </AppText>
+        <AppText className="text-gray-500 dark:text-[#8696A0] text-sm mt-0.5">
+          {currentIndex + 1} of {totalCount}
+        </AppText>
+      </View>
+      <View className="flex-row gap-2 ml-4">
+        <Pressable
+          onPress={onDownload}
+          disabled={isDownloading}
+          className="p-2 active:opacity-60 cursor-pointer"
+          accessibilityLabel="Download media"
+          accessibilityRole="button"
+        >
+          {isDownloading ? (
+            <ActivityIndicator size="small" color={themeColors.icon} />
+          ) : (
+            <Ionicons name="download-outline" size={24} color={themeColors.primary} />
+          )}
+        </Pressable>
+        <Pressable
+          onPress={onClose}
+          className="p-2 active:opacity-60 cursor-pointer"
+          accessibilityLabel="Close preview"
+          accessibilityRole="button"
+        >
+          <Ionicons name="close" size={24} color={themeColors.icon} />
+        </Pressable>
+      </View>
     </View>
-    <Pressable
-      onPress={onClose}
-      className="p-2 active:opacity-60 cursor-pointer ml-4"
-      accessibilityLabel="Close preview"
-      accessibilityRole="button"
-    >
-      <Ionicons name="close" size={24} color="#8696A0" />
-    </Pressable>
-  </View>
-);
+  );
+};
 
 const NavigationButton = ({ direction, onPress }: INavigationButtonProps) => {
   const iconName = direction === "prev" ? "chevron-back" : "chevron-forward";
@@ -86,7 +124,9 @@ const MediaViewer = ({ attachment, isVideo }: IMediaViewerProps) => {
 
 export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImagePreviewProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isDownloading, setIsDownloading] = useState(false);
   const thumbnailScrollRef = useRef<ScrollView>(null);
+  const selectedConversationId = useConversationStore((s) => s.selectedConversationId);
 
   const currentAttachment = images[currentIndex];
   const currentFileName = currentAttachment?.originalFileName || "";
@@ -111,6 +151,23 @@ export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImageP
     thumbnailSize: THUMBNAIL.SIZE_WEB,
   });
 
+  const handleDownload = useCallback(async () => {
+    if (!currentAttachment) return;
+    const fileName = currentAttachment.originalFileName || "download";
+    setIsDownloading(true);
+    try {
+      let url = currentAttachment.fileUrl;
+      if (currentAttachment.id && selectedConversationId) {
+        url = await getAttachmentDownloadUrl(selectedConversationId, currentAttachment.id);
+      }
+      await downloadFileWeb(url, fileName);
+    } catch {
+      ToastUtils.error("Failed to download file");
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [currentAttachment, selectedConversationId]);
+
   if (!visible) return null;
 
   return (
@@ -127,6 +184,8 @@ export const MediaPreview = ({ visible, images, initialIndex, onClose }: TImageP
           isVideo={isCurrentVideo}
           currentIndex={currentIndex}
           totalCount={images.length}
+          isDownloading={isDownloading}
+          onDownload={handleDownload}
           onClose={onClose}
         />
 

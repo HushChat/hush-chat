@@ -29,8 +29,12 @@ import com.platform.software.config.workspace.WorkspaceContext;
 import com.platform.software.controller.external.IdBasedPageRequest;
 import com.platform.software.exception.CustomBadRequestException;
 import com.platform.software.exception.CustomResourceNotFoundException;
+import com.platform.software.utils.CommonUtils;
 import com.platform.software.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,6 +44,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -381,6 +388,12 @@ public class MessageService {
      */
     private static MessageViewDTO getMessageViewDTO(Long loggedInUserId, Long parentMessageId, Message savedMessage) {
         MessageViewDTO messageViewDTO = new MessageViewDTO(savedMessage);
+
+        String extractedUrl = CommonUtils.extractUrl(messageViewDTO.getMessageText());
+        if (extractedUrl != null) {
+            messageViewDTO.setIsIncludeUrlMetadata(true);
+        }
+
         return messageViewDTO;
     }
 
@@ -734,5 +747,90 @@ public class MessageService {
         });
 
         return messageMentionDTOPages;
+    }
+
+    /**
+     * Scrapes and extracts metadata from the first URL found within a specific message's text.
+     *
+     * @param messageId the ID of the message to process
+     * @return a {@link MessageUrlMetadataDTO} containing the scraped preview data,
+     * or {@code null} if the message contains no valid URL
+     * @throws CustomBadRequestException if the message does not exist or if an error
+     * occurs while connecting to and parsing the external URL
+     */
+    public MessageUrlMetadataDTO getMessageUrlMetadata(Long messageId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new CustomBadRequestException("Message not found"));
+
+        String extractedUrl = null;
+
+        MessageUrlMetadataDTO dto = new MessageUrlMetadataDTO();
+        try {
+            // We pretend to be whatsApp to get modified meta tags if pages have dynamic rendering depend on user agent
+            // eg :- If you use a standard browser User-Agent, you might get the standard GitHub logo, title, description etc.
+            String userAgent = "FacebookExternalHit/1.1";
+
+            extractedUrl = CommonUtils.extractUrl(message.getMessageText());
+            if (extractedUrl == null) {
+                return null;
+            }
+
+            dto.setSiteUrl(extractedUrl);
+
+            Document document = Jsoup.connect(extractedUrl)
+                    .userAgent(userAgent)
+                    .timeout(10000)
+                    .get();
+
+            dto.setTitle(getMetaTagContent(document, "og:title"));
+            if (dto.getTitle() == null) {
+                dto.setTitle(document.title());
+            }
+
+            dto.setDescription(getMetaTagContent(document, "og:description"));
+            if (dto.getDescription() == null) {
+                dto.setDescription(getMetaTagContent(document, "description"));
+            }
+
+            dto.setImageUrl(getMetaTagContent(document, "og:image"));
+            if (dto.getImageUrl() == null) {
+                dto.setImageUrl(getMetaTagContent(document, "twitter:image"));
+            }
+
+            try {
+                String fullUrl = document.location();
+                URI uri = new URI(fullUrl);
+                String domain = uri.getHost();
+                if (domain != null && domain.startsWith("www.")) {
+                    domain = domain.substring(4);
+                }
+
+                dto.setDomain(domain);
+
+            } catch (URISyntaxException e) {
+                dto.setDomain(extractedUrl);
+            }
+
+        } catch (IOException exception) {
+            logger.error("failed to extract domain for url: {}", extractedUrl, exception);
+            return null;
+        }
+
+        return dto;
+    }
+
+    /**
+     * Extracts the content attribute of a meta tag from the provided HTML document.
+     *
+     * @param doc      the Jsoup {@link Document} representing the parsed HTML page
+     * @param property the name or property attribute value to search for (e.g., "og:title", "description")
+     * @return the string value of the {@code content} attribute if found; {@code null} otherwise
+     */
+    private String getMetaTagContent(Document doc, String property) {
+        Element element = doc.select("meta[property=" + property + "]").first();
+        if (element == null) {
+            element = doc.select("meta[name=" + property + "]").first();
+        }
+        return (element != null) ? element.attr("content") : null;
     }
 }

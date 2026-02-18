@@ -8,7 +8,9 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { MessageLabel } from "@/components/conversations/conversation-thread/composer/MessageLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
+import { useMessageUrlMetadataQuery } from "@/query/useMessageUrlMetadataQuery";
 import { PLATFORM } from "@/constants/platformConstants";
+import LinkPreviewCard from "@/components/conversations/LinkPreviewCard";
 import { getGifUrl, hasGif } from "@/utils/messageUtils";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { AppText } from "@/components/AppText";
@@ -33,6 +35,7 @@ interface IMessageBubbleProps {
   messageTextStyle?: TextStyle;
   isMessageEdited?: boolean;
   isMobileLayout?: boolean;
+  isGroup?: boolean;
   uploadProgress?: number;
 }
 
@@ -52,11 +55,17 @@ export const MessageBubble = ({
   style,
   isMessageEdited,
   isMobileLayout,
+  isGroup,
   uploadProgress,
 }: IMessageBubbleProps) => {
   const messageContent = message.messageText;
   const hasGifMedia = hasGif(message);
   const gifUrl = getGifUrl(message);
+
+  const { messageUrlMetadata, isMessageUrlMetadataFetching } = useMessageUrlMetadataQuery(
+    message.id,
+    message.isIncludeUrlMetadata
+  );
 
   const isUploading = useAttachmentUploadStore(selectIsMessageUploading(message.id));
 
@@ -190,20 +199,34 @@ export const MessageBubble = ({
             </View>
           )}
 
-          {!message.isUnsend && messageContent ? (
-            <View className="flex-col gap-y-1">
-              {message.isForwarded && forwardedMessage()}
-
-              <FormattedText
-                text={message.messageText}
-                mentions={message.mentions}
+          {message.isUnsend ? (
+            <UnsendMessagePreview unsendMessage={message} />
+          ) : messageContent ? (
+            message.isIncludeUrlMetadata && messageUrlMetadata ? (
+              <LinkPreviewCard
+                messageText={message.messageText}
+                messageUrlMetadata={messageUrlMetadata}
+                isFetching={isMessageUrlMetadataFetching}
                 isCurrentUser={isCurrentUser}
+                mentions={message.mentions}
                 onMentionPress={handleMentionPress}
                 isMarkdownEnabled={message.isMarkdownEnabled}
+                isGroup={isGroup}
               />
-            </View>
-          ) : message.isUnsend ? (
-            <UnsendMessagePreview unsendMessage={message} />
+            ) : (
+              <View className="flex-col gap-y-1">
+                {message.isForwarded && forwardedMessage()}
+
+                <FormattedText
+                  text={message.messageText}
+                  mentions={message.mentions}
+                  isCurrentUser={isCurrentUser}
+                  onMentionPress={handleMentionPress}
+                  isMarkdownEnabled={message.isMarkdownEnabled}
+                  isGroup={isGroup}
+                />
+              </View>
+            )
           ) : null}
         </View>
       </View>

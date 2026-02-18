@@ -71,7 +71,7 @@ export const getDocumentViewerUrl = (fileUrl: string, fileName: string): string 
       return fileUrl;
     }
 
-    return `https://docs.google.com/gview?embedded=true&url=${encodedUrl}`;
+    return "";
   }
-  return fileUrl;
+  return "";
 };

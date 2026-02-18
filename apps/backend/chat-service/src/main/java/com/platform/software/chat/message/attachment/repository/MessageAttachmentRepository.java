@@ -14,4 +14,6 @@ public interface MessageAttachmentRepository extends JpaRepository<MessageAttach
     List<MessageAttachment> findByMessage_ConversationId(Long conversationId);
 
     Optional<MessageAttachment> findByIdAndMessage_Sender_Id(Long id, Long senderId);
+
+    Optional<MessageAttachment> findByIdAndMessage_ConversationId(Long id, Long conversationId);
 }

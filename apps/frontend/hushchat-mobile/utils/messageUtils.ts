@@ -278,3 +278,11 @@ export const hasGif = (message?: IMessage | IBasicMessage): boolean => {
 export const getGifUrl = (message?: IMessage | IBasicMessage): string | undefined => {
   return getGifAttachment(message)?.indexedFileName;
 };
+
+// Helper function to truncate text based on character count
+export const truncateCharacters = (text: string, limit: number) => {
+  if (text.length > limit) {
+    return text.substring(0, limit) + "...";
+  }
+  return text;
+};

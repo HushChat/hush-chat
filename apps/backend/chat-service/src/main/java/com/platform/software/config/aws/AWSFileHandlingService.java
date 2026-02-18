@@ -68,6 +68,15 @@ public class AWSFileHandlingService implements CloudPhotoHandlingService {
     }
 
     @Override
+    public String getDownloadSignedURL(String imageIndexedName, String originalFileName) {
+        if (imageIndexedName == null || imageIndexedName.trim().isEmpty()) {
+            return null;
+        }
+
+        return s3Service.getPrivateBucketDownloadSignedURL(imageIndexedName, originalFileName);
+    }
+
+    @Override
     public SignedURLResponseDTO generateSignedURLForMessageAttachmentsUpload(DocUploadRequestDTO attachmentRequestDTO, Long requestId) {
         String objectKey = String.format(MediaPathEnum.MESSAGE_ATTACHMENT.getName(), requestId);
         return getSignedURLToUpload(attachmentRequestDTO, objectKey, DocUploadRequestDTO.class);

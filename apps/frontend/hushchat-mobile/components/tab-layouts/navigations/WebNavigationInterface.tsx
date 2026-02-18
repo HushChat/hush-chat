@@ -6,6 +6,7 @@ import { INavigationItem } from "@/types/navigation/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import classNames from "classnames";
 import { AppText } from "@/components/AppText";
+import { useConversationNotificationsContext } from "@/contexts/ConversationNotificationsContext";
 
 interface WebNavigationInterfaceProps {
   navigationItems: INavigationItem[];
@@ -14,6 +15,7 @@ interface WebNavigationInterfaceProps {
 const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { totalUnreadCount } = useConversationNotificationsContext();
 
   const SideBarContent = () => (
     <View className="bg-background-light dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 h-full flex-col items-center py-3 w-[80px]">
@@ -65,6 +67,13 @@ const WebNavigationInterface = ({ navigationItems }: WebNavigationInterfaceProps
                       size={24}
                     />
                   </AppText>
+                  {item.name === "conversations" && totalUnreadCount > 0 && (
+                    <View className="absolute -top-1 -right-1 bg-green-500 rounded-full min-w-[20px] h-5 items-center justify-center px-1">
+                      <AppText className="text-white text-[10px] font-bold leading-tight">
+                        {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                      </AppText>
+                    </View>
+                  )}
                 </View>
 
                 <View className="absolute left-16 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none z-20">

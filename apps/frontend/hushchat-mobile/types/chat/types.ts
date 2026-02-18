@@ -72,6 +72,7 @@ export interface IMessage {
   hasAttachment?: boolean;
   isEdited?: boolean;
   isMarkdownEnabled?: boolean;
+  isIncludeUrlMetadata: boolean;
   isStored?: boolean;
 }
 
@@ -370,4 +371,11 @@ export interface GifPickerProps {
   visible: boolean;
   onClose: () => void;
   onGifSelect: (gifUrl: string) => void;
+}
+
+export interface TMessageUrlMetadata {
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  domain?: string;
 }

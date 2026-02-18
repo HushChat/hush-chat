@@ -157,6 +157,7 @@ const ConversationInputMobile = ({
                 onSelectionChange={input.handleSelectionChange}
                 onKeyPress={handleKeyPress}
                 onSubmitEditing={handleSubmitEditing}
+                validMentionUsernames={input.validMentionUsernames}
               />
             </View>
 

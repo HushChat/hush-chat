@@ -82,8 +82,8 @@ export const conversationMessageQueryKeys = {
     conversationId,
     userId,
   ],
-
   messageReactions: (messageId: number) => [MESSAGE_REACTION_QUERY_BASE_KEY, messageId],
+  messageUrlMetadata: (messageId: number) => ["message-url-metadata", messageId],
 };
 
 export const messageQueryKeys = {
@@ -98,6 +98,10 @@ export const userQueryKeys = {
   userWorkspace: (userId: number) => [USER_QUERY_BASE_KEY, WORKSPACES, userId],
 
   changePassword: () => [USER_QUERY_BASE_KEY, "change-password"],
+};
+
+export const workspaceAdminQueryKeys = {
+  chatUserById: (userId: number) => ["workspace-chat-user", userId],
 };
 
 export const gifQueryKeys = {

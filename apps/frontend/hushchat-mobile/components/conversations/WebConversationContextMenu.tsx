@@ -4,6 +4,7 @@ import { TITLES } from "@/constants/constants";
 import { ToastUtils } from "@/utils/toastUtils";
 import WebChatContextMenu from "@/components/WebContextMenu";
 import { useCommonConversationInfoActions } from "@/hooks/conversation-info/useCommonConversationInfoActions";
+import { useToggleMuteConversation } from "@/hooks/useToggleMuteConversation";
 
 interface ConversationWebChatContextMenuProps {
   visible: boolean;
@@ -12,6 +13,7 @@ interface ConversationWebChatContextMenuProps {
   conversationId: number;
   isFavorite: boolean;
   isPinned: boolean;
+  isMuted: boolean;
   handleArchivePress: (conversationId: number) => void;
   handleDeletePress: (conversationId: number) => void;
   conversationsRefetch: () => void;
@@ -24,6 +26,7 @@ const ConversationWebChatContextMenu = ({
   conversationId,
   isFavorite: initialFavorite,
   isPinned: initialPinned,
+  isMuted: initialMuted,
   handleArchivePress,
   handleDeletePress,
   conversationsRefetch,
@@ -34,6 +37,12 @@ const ConversationWebChatContextMenu = ({
       initialPinned,
       initialFavorite,
     });
+
+  const { isMutedState, handleToggleMute } = useToggleMuteConversation(
+    conversationId,
+    initialMuted,
+    onClose
+  );
 
   const handleOptionSelect = useCallback(
     async (action: () => Promise<void> | void) => {
@@ -85,6 +94,12 @@ const ConversationWebChatContextMenu = ({
           },
       {
         id: 4,
+        name: isMutedState ? TITLES.UNMUTE_CONVERSATION : TITLES.MUTE_CONVERSATION,
+        iconName: isMutedState ? "notifications-off-outline" : "notifications-outline",
+        action: handleToggleMute,
+      },
+      {
+        id: 5,
         name: TITLES.DELETE_CHAT,
         iconName: "trash-outline",
         action: () => handleDeletePress(conversationId),
@@ -95,10 +110,12 @@ const ConversationWebChatContextMenu = ({
       selectedConversationType,
       isFavorite,
       isPinned,
+      isMutedState,
       handleArchivePress,
       conversationId,
       toggleFavorite,
       togglePin,
+      handleToggleMute,
       handleDeletePress,
     ]
   );

@@ -411,6 +411,12 @@
             <version>4.19.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.21.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

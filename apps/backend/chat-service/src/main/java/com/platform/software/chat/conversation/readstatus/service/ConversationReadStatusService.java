@@ -40,7 +40,6 @@ public class ConversationReadStatusService {
     @Transactional
     public ConversationReadInfo setConversationLastSeenMessage(Long conversationId, Long loggedInUserId, MessageLastSeenRequestDTO messageLastSeenRequestDTO) {
         ConversationParticipant conversationParticipant = conversationUtilService.getConversationParticipantOrThrow(conversationId, loggedInUserId);
-        Message message = messageUtilService.getMessageOrThrow(conversationId, messageLastSeenRequestDTO.getMessageId());
 
         ConversationReadStatus updatingStatus = conversationReadStatusRepository
             .findByConversationIdAndUserId(conversationId, loggedInUserId)
@@ -51,15 +50,17 @@ public class ConversationReadStatusService {
                 return newStatus;
             });
 
-        // Early return if the message is already set to avoid unnecessary updates
+        // Early return if the read position is already at or ahead of the requested message
         if (updatingStatus.getMessage() != null &&
-            updatingStatus.getMessage().getId().equals(message.getId())) {
+            updatingStatus.getMessage().getId() >= messageLastSeenRequestDTO.getMessageId()) {
             return conversationReadStatusRepository.findConversationReadInfoByConversationIdAndUserId(
                 conversationId,
                 loggedInUserId
             );
         }
 
+        // Only validate message exists for actual forward updates
+        Message message = messageUtilService.getMessageOrThrow(conversationId, messageLastSeenRequestDTO.getMessageId());
         updatingStatus.setMessage(message);
 
         try {

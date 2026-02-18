@@ -18,6 +18,9 @@ interface IFilePreviewItemProps {
   isSelected: boolean;
   onSelect: () => void;
   onRemove: (index: number) => void;
+  isSending?: boolean;
+  uploadProgress?: number;
+  compact?: boolean;
 }
 
 interface IMediaPreviewProps {
@@ -140,6 +143,9 @@ export const FilePreviewItem = ({
   isSelected,
   onSelect,
   onRemove,
+  isSending,
+  uploadProgress = 0,
+  compact = false,
 }: IFilePreviewItemProps) => {
   const { previewUrl, fileType } = useFilePreview(file);
   const iconColor = useIconColor();
@@ -167,6 +173,58 @@ export const FilePreviewItem = ({
         return <ImagePreviewThumbnail uri={previewUrl} isSelected={isSelected} />;
     }
   };
+
+  if (compact) {
+    return (
+      <TouchableOpacity
+        onPress={onSelect}
+        activeOpacity={DEFAULT_ACTIVE_OPACITY}
+        className={classNames(
+          "w-40 relative rounded-xl p-2 border",
+          "bg-secondary-light/60 dark:bg-secondary-dark/70",
+          "border-gray-200 dark:border-gray-700",
+          isSelected && "border border-primary-light dark:border-primary-dark shadow-sm"
+        )}
+        accessibilityLabel={`${file?.name || "File"}, ${formattedSize}`}
+        accessibilityRole="button"
+        accessibilityState={{ selected: isSelected }}
+      >
+        <View className="flex-row items-center">
+          {renderPreview()}
+          <View className="flex-1 min-w-0 pr-1">
+            <AppText
+              className="text-[11px] leading-[14px] font-semibold text-text-primary-light dark:text-text-primary-dark"
+              numberOfLines={1}
+            >
+              {file?.name || "file"}
+            </AppText>
+            <AppText className="text-[10px] text-text-secondary-light dark:text-text-secondary-dark mt-0.5">
+              {formattedSize}
+            </AppText>
+          </View>
+          <TouchableOpacity
+            onPress={handleRemove}
+            className="p-0.5 rounded-md bg-transparent"
+            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+            accessibilityLabel="Remove file"
+            accessibilityRole="button"
+          >
+            <Ionicons name="trash-outline" size={14} color="#ef4444" />
+          </TouchableOpacity>
+        </View>
+        {isSending && (
+          <View className="mt-1">
+            <View className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <View
+                className="h-full bg-primary-light dark:bg-primary-dark rounded-full"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </View>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
@@ -212,6 +270,25 @@ export const FilePreviewItem = ({
           <Ionicons name="trash-outline" size={16} color="#ef4444" />
         </TouchableOpacity>
       </View>
+
+      {isSending && (
+        <View className=" px-4 py-3 border-t border-gray-200 dark:border-gray-800">
+          <View className="flex-row justify-between mb-1.5">
+            <AppText className="text-xs font-bold text-primary-light dark:text-primary-dark">
+              Uploading...
+            </AppText>
+            <AppText className="text-xs font-bold text-primary-light dark:text-primary-dark">
+              {uploadProgress}%
+            </AppText>
+          </View>
+          <View className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <View
+              className="h-full bg-primary-light dark:bg-primary-dark rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </View>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };

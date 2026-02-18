@@ -11,6 +11,7 @@ import com.platform.software.config.aws.DocUploadRequestDTO;
 import com.platform.software.config.aws.SignedURLDTO;
 import com.platform.software.config.aws.SignedURLResponseDTO;
 import com.platform.software.exception.CustomBadRequestException;
+import com.platform.software.exception.CustomResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -120,6 +121,20 @@ public class MessageAttachmentService {
         if (Constants.DOCUMENT_EXTENSIONS.contains(extension)) return AttachmentTypeEnum.DOCUMENT;
         
         return AttachmentTypeEnum.OTHER;
+    }
+
+    public String getAttachmentDownloadUrl(Long conversationId, Long attachmentId) {
+        MessageAttachment attachment = messageAttachmentRepository
+            .findByIdAndMessage_ConversationId(attachmentId, conversationId)
+            .orElseThrow(() -> new CustomResourceNotFoundException("Attachment not found"));
+
+        if (attachment.getType() == AttachmentTypeEnum.GIF) {
+            return attachment.getIndexedFileName();
+        }
+
+        return cloudPhotoHandlingService.getDownloadSignedURL(
+            attachment.getIndexedFileName(), attachment.getOriginalFileName()
+        );
     }
 
     public Page<MessageAttachmentDTO> getAttachments(Long conversationId, AttachmentFilterCriteria attachmentFilterCriteria, Pageable pageable) {
