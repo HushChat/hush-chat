@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { JSX } from "react";
 import { TUser } from "@/types/user/types";
 import { PagePaginatedQueryResult } from "@/query/usePaginatedQuery";
+import { LocalFile } from "@/hooks/useNativePickerUpload";
 
 export interface IConversation {
   id: number;
@@ -32,6 +33,7 @@ export enum MessageAttachmentTypeEnum {
   MEDIA = "MEDIA",
   DOCS = "DOCS",
   GIF = "GIF",
+  AUDIO = "AUDIO",
 }
 
 export interface IMessageAttachment {
@@ -335,6 +337,7 @@ export interface ConversationInputProps {
   onCancelEdit?: () => void;
   onEditMessage?: (messageId: number, newText: string, isMarkdownEnabled: boolean) => void;
   hideEmojiGifPickers?: boolean;
+  onSendVoiceMessage?: (file: LocalFile) => Promise<void>;
 }
 
 export type TNavigationDirection = "prev" | "next";

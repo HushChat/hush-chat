@@ -70,6 +70,9 @@ export const useSendMessageHandler = ({
         case "video":
           newName = `HushChat Video ${currentConversationId}-${index} ${timestamp}.${ext}`;
           break;
+        case "audio":
+          newName = `HushChat Audio ${currentConversationId}-${index} ${timestamp}.${ext}`;
+          break;
         case "document":
           newName = file.name;
           break;

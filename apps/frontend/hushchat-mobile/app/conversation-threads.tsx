@@ -29,6 +29,7 @@ import { getAPIErrorMsg, navigateBackOrFallback } from "@/utils/commonUtils";
 import { ToastUtils } from "@/utils/toastUtils";
 
 import type { ConversationInfo, IMessage, TPickerState } from "@/types/chat/types";
+import { MessageAttachmentTypeEnum } from "@/types/chat/types";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { useUserStore } from "@/store/user/useUserStore";
 import { useFetchLastSeenMessageStatusForConversation } from "@/query/useFetchLastSeenMessageStatusForConversation";
@@ -313,6 +314,7 @@ const ConversationThreadScreen = ({
     pickAndUploadImagesAndVideos,
     uploadFilesFromWebWithCaptions,
     pickAndUploadDocuments,
+    uploadVoiceMessage,
     isUploading: isUploadingImages,
     error: uploadError,
     sendGifMessage,
@@ -354,6 +356,46 @@ const ConversationThreadScreen = ({
       updateConversationsListCache(newMessage);
     },
     (error) => ToastUtils.error(getAPIErrorMsg(error))
+  );
+
+  const handleSendVoiceMessage = useCallback(
+    async (file: import("@/hooks/useNativePickerUpload").LocalFile) => {
+      try {
+        const results = await uploadVoiceMessage(file);
+
+        results?.forEach((result) => {
+          if (result.success && result.newMessage) {
+            const newMessage = result.newMessage;
+
+            const messageAttachments = [
+              {
+                fileUrl: file.uri,
+                originalFileName: file.name,
+                indexedFileName: "",
+                mimeType: file.type,
+                type: MessageAttachmentTypeEnum.AUDIO,
+                updatedAt: "",
+              },
+            ];
+
+            const updatingCacheMessage = {
+              ...newMessage,
+              messageAttachments,
+            };
+
+            updateConversationMessagesCache(updatingCacheMessage as IMessage);
+            updateConversationsListCache(newMessage);
+          }
+        });
+
+        if (results?.some((r) => r.success)) {
+          setSelectedMessage(null);
+        }
+      } catch {
+        ToastUtils.error("Failed to send voice message.");
+      }
+    },
+    [uploadVoiceMessage, setSelectedMessage, updateConversationMessagesCache, updateConversationsListCache]
   );
 
   const { handleSendMessage, handleSendFilesWithCaptions } = useSendMessageHandler({
@@ -537,6 +579,7 @@ const ConversationThreadScreen = ({
         editingMessage={editingMessage}
         onCancelEdit={handleCancelEdit}
         onEditMessage={handleEditMessage}
+        onSendVoiceMessage={handleSendVoiceMessage}
       />
     );
   }, [
@@ -560,6 +603,7 @@ const ConversationThreadScreen = ({
     editingMessage,
     handleCancelEdit,
     handleEditMessage,
+    handleSendVoiceMessage,
   ]);
 
   return (

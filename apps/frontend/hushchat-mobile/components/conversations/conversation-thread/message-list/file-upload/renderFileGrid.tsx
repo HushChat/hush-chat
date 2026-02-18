@@ -6,6 +6,7 @@ import { ImageGrid } from "@/components/conversations/conversation-thread/messag
 import { useFileGrid } from "@/hooks/conversation-thread/useFileGrid";
 import MediaPreview from "@/components/conversations/conversation-thread/composer/image-preview/MediaPreview";
 import { DocumentPreview } from "@/components/conversations/conversation-thread/message-list/file-upload/DocumentCard/DocumentPreview";
+import { VoiceMessagePlayer } from "@/components/conversations/conversation-thread/message-list/VoiceMessagePlayer";
 
 const GRID_CONFIG = {
   MAX_WIDTH: 280,
@@ -34,12 +35,14 @@ const RenderFileGrid = ({
   const {
     mediaItems,
     documents,
+    audioItems,
     previewVisible,
     selectedImageIndex,
     openPreview,
     closePreview,
     hasMedia,
     hasDocuments,
+    hasAudio,
   } = useFileGrid(attachments);
 
   const handleOpenDocPreview = (doc: IMessageAttachment) => {
@@ -52,7 +55,7 @@ const RenderFileGrid = ({
     setSelectedDoc(null);
   };
 
-  if (!hasMedia && !hasDocuments) return null;
+  if (!hasMedia && !hasDocuments && !hasAudio) return null;
 
   return (
     <>
@@ -67,6 +70,12 @@ const RenderFileGrid = ({
               isCurrentUser={isCurrentUser}
               onPreview={() => handleOpenDocPreview(doc)}
             />
+          </View>
+        ))}
+
+        {audioItems.map((audio, index) => (
+          <View key={audio.id || `audio-${index}`} className="mb-1">
+            <VoiceMessagePlayer attachment={audio} isCurrentUser={isCurrentUser} />
           </View>
         ))}
 

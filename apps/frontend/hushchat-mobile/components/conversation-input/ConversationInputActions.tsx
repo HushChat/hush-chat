@@ -1,9 +1,10 @@
 import React, { memo, ReactNode } from "react";
 import { TouchableOpacity, View } from "react-native";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 import { SendButton } from "@/components/conversation-input/SendButton";
 import { MarkdownToggle } from "@/components/conversation-input/MarkdownToggle";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface IComposerIconButtonProps {
   onPress: () => void;
@@ -35,6 +36,8 @@ interface IConversationInputActionProps {
   onSendPress: () => void;
   isMarkdownEnabled: boolean;
   onToggleMarkdown: () => void;
+  onMicPress?: () => void;
+  isRecording?: boolean;
 }
 
 export const ConversationInputActions = memo(
@@ -50,7 +53,12 @@ export const ConversationInputActions = memo(
     onSendPress,
     isMarkdownEnabled,
     onToggleMarkdown,
+    onMicPress,
+    isRecording,
   }: IConversationInputActionProps) => {
+    const { isDark } = useAppTheme();
+    const showMicButton = !isEditMode && !isValidMessage && !isRecording && onMicPress;
+
     return (
       <View className="flex-row gap-2 items-center ml-1">
         {!isEditMode && !hideEmojiGifPickers && (
@@ -75,7 +83,17 @@ export const ConversationInputActions = memo(
 
         {!hideSendButton && (
           <View className="ml-1">
-            <SendButton hasContent={isValidMessage} isSending={isSending} onPress={onSendPress} />
+            {showMicButton ? (
+              <ComposerIconButton onPress={onMicPress} disabled={disabled}>
+                <Ionicons
+                  name="mic-outline"
+                  size={22}
+                  color={isDark ? "#9ca3af" : "#6b7280"}
+                />
+              </ComposerIconButton>
+            ) : (
+              <SendButton hasContent={isValidMessage} isSending={isSending} onPress={onSendPress} />
+            )}
           </View>
         )}
       </View>
