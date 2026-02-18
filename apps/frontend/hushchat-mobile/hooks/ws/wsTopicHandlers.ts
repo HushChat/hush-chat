@@ -1,5 +1,6 @@
 import { WS_TOPICS, WSTopic } from "@/constants/ws/wsTopics";
 import {
+  emitCallSignal,
   emitConversationCreated,
   emitMessagePinned,
   emitMessageReaction,
@@ -18,6 +19,7 @@ import {
   TypingIndicatorPayload,
   MessagePinnedPayload,
 } from "@/types/ws/types";
+import { CallSignalPayload } from "@/types/call/callSignaling";
 import { logDebug, logInfo } from "@/utils/logger";
 
 export type TopicHandler = (body: string) => void;
@@ -66,6 +68,11 @@ export const WS_TOPIC_HANDLERS: Record<WSTopic, TopicHandler> = {
   [WS_TOPICS.message.pinned]: (body) => {
     const pinnedMessage = JSON.parse(body) as MessagePinnedPayload;
     emitMessagePinned(pinnedMessage);
+  },
+
+  [WS_TOPICS.call.signal]: (body) => {
+    const signal = JSON.parse(body) as CallSignalPayload;
+    emitCallSignal(signal);
   },
 };
 

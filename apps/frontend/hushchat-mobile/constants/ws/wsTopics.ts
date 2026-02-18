@@ -16,6 +16,9 @@ export const WS_TOPICS = {
   user: {
     onlineStatus: "/topic/online-status/",
   },
+  call: {
+    signal: "/topic/call-signal/",
+  },
 } as const;
 
 // All topic string values ("/topic/...")
@@ -34,4 +37,5 @@ export const TOPICS = [
   { destination: WS_TOPICS.message.read, id: "sub-message-read" },
   { destination: WS_TOPICS.message.updated, id: "sub-message-updated" },
   { destination: WS_TOPICS.message.pinned, id: "sub-message-pinned" },
+  { destination: WS_TOPICS.call.signal, id: "sub-call-signal" },
 ] as const;

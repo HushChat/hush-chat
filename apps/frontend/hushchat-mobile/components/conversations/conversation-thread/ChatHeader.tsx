@@ -20,6 +20,8 @@ interface ChatHeaderProps {
   isLoadingConversationMessages: boolean;
   webPressSearch?: () => void;
   isGroupChat: boolean;
+  onVoiceCall?: () => void;
+  onVideoCall?: () => void;
 }
 
 const ChatHeader = ({
@@ -30,6 +32,8 @@ const ChatHeader = ({
   isLoadingConversationMessages,
   webPressSearch,
   isGroupChat,
+  onVoiceCall,
+  onVideoCall,
 }: ChatHeaderProps) => {
   const isMobileLayout = useIsMobileLayout();
 
@@ -110,23 +114,42 @@ const ChatHeader = ({
           </TouchableOpacity>
         </View>
 
-        {!isMobileLayout && (
-          <View className="flex-row items-center gap-1">
-            <TouchableOpacity
-              className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
-              onPress={webPressSearch}
-            >
-              <Ionicons name="search" size={20} color={"#6B7280"} />
-            </TouchableOpacity>
+        <View className="flex-row items-center gap-1">
+          {!isGroupChat && (
+            <>
+              <TouchableOpacity
+                className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
+                onPress={onVoiceCall}
+              >
+                <Ionicons name="call-outline" size={20} color={"#6B7280"} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
+                onPress={onVideoCall}
+              >
+                <Ionicons name="videocam-outline" size={20} color={"#6B7280"} />
+              </TouchableOpacity>
+            </>
+          )}
 
-            {__DEV__ && (
-              <RefreshButton
-                onRefresh={refetchConversationMessages}
-                isLoading={isLoadingConversationMessages}
-              />
-            )}
-          </View>
-        )}
+          {!isMobileLayout && (
+            <>
+              <TouchableOpacity
+                className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
+                onPress={webPressSearch}
+              >
+                <Ionicons name="search" size={20} color={"#6B7280"} />
+              </TouchableOpacity>
+
+              {__DEV__ && (
+                <RefreshButton
+                  onRefresh={refetchConversationMessages}
+                  isLoading={isLoadingConversationMessages}
+                />
+              )}
+            </>
+          )}
+        </View>
       </View>
     </View>
   );

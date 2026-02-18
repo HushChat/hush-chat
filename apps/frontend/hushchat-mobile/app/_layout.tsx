@@ -17,6 +17,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import { DynamicBrowserTitle } from "@/hooks/useDynamicBrowserTitle";
+import CallOverlayProvider from "@/components/call/CallOverlayProvider";
 
 import { AUTH_LOGIN_PATH } from "@/constants/routes";
 import { useAppInitialization } from "@/hooks/useAppInitialization";
@@ -48,12 +49,14 @@ export default function RootLayout() {
               <ConversationNotificationsProvider>
                 <DynamicBrowserTitle />
                 <ModalProvider>
-                  <Gate ready={appReady} isAuthenticated={isAuthenticated} />
-                  <Toast
-                    config={toastConfig}
-                    topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
-                  />
-                  <StatusBar style="auto" />
+                  <CallOverlayProvider>
+                    <Gate ready={appReady} isAuthenticated={isAuthenticated} />
+                    <Toast
+                      config={toastConfig}
+                      topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                    />
+                    <StatusBar style="auto" />
+                  </CallOverlayProvider>
                 </ModalProvider>
               </ConversationNotificationsProvider>
             </WebSocketProvider>
