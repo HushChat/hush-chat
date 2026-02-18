@@ -27,6 +27,7 @@ import { SwipeableMessageRow } from "@/gestures/components/SwipeableMessageRow";
 import { useAddMessageReactionMutation } from "@/query/post/queries";
 import { useRemoveMessageReactionMutation } from "@/query/delete/queries";
 import { ToastUtils } from "@/utils/toastUtils";
+import { copyToClipboard } from "@/utils/messageUtils";
 import { getAPIErrorMsg } from "@/utils/commonUtils";
 import { useConversationStore } from "@/store/conversation/useConversationStore";
 import { useQueryClient } from "@tanstack/react-query";
@@ -337,6 +338,17 @@ export const ConversationMessageItem = ({
       });
     }
 
+    options.push({
+      id: 9,
+      name: "Copy Message Link",
+      iconName: "link-outline" as keyof typeof Ionicons.glyphMap,
+      action: () => {
+        const baseUrl = PLATFORM.IS_WEB ? window.location.origin : "";
+        const link = `${baseUrl}/conversations/${conversationAPIResponse?.id}?messageId=${message.id}`;
+        copyToClipboard(link);
+      },
+    });
+
     return options;
   }, [
     message,
@@ -352,6 +364,7 @@ export const ConversationMessageItem = ({
     onMarkMessageAsUnread,
     hasDownloadableAttachments,
     handleDownloadAttachment,
+    conversationAPIResponse?.id,
   ]);
 
   const handleLongPress = useCallback(
