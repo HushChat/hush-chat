@@ -50,12 +50,17 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MessageService {
     private final Logger logger = LoggerFactory.getLogger(MessageService.class);
+
+    private final ExecutorService metadataExecutor = Executors.newFixedThreadPool(10);
 
     private final MessageRepository messageRepository;
     private final ConversationUtilService conversationUtilService;
@@ -830,28 +835,49 @@ public class MessageService {
     }
 
     /**
-     * Fetches URL metadata for a batch of messages in parallel.
+     * Retrieves URL metadata for multiple messages concurrently.
+     * <p>
+     * This method fetches URL metadata for a batch of message IDs in parallel using CompletableFuture.
+     * Each message is processed asynchronously via the configured {@code metadataExecutor}. If any
+     * individual fetch operation fails, it logs the error and excludes that message from the result.
+     * </p>
      *
-     * @param messageIds the list of message IDs to process
-     * @return a map of messageId to MessageUrlMetadataDTO (entries with null metadata are excluded)
+     * @param messageIds the list of message IDs to fetch URL metadata for; can be {@code null} or empty
+     * @return a map where keys are message IDs and values are their corresponding {@link MessageUrlMetadataDTO};
+     *         returns an empty map if {@code messageIds} is {@code null} or empty, or if all fetch operations fail
+     * @throws RuntimeException if the thread is interrupted while waiting for all futures to complete
+     *                          (wraps {@link InterruptedException})
+     *
+     * @see #getMessageUrlMetadata(Long)
+     * @see MessageUrlMetadataDTO
      */
     public Map<Long, MessageUrlMetadataDTO> getBatchMessageUrlMetadata(List<Long> messageIds) {
-        Map<Long, MessageUrlMetadataDTO> result = new HashMap<>();
         if (messageIds == null || messageIds.isEmpty()) {
-            return result;
+            return new HashMap<>();
         }
 
-        for (Long messageId : messageIds) {
-            try {
-                MessageUrlMetadataDTO dto = getMessageUrlMetadata(messageId);
-                if (dto != null) {
-                    result.put(messageId, dto);
-                }
-            } catch (Exception e) {
-                logger.error("Failed to fetch URL metadata for message {}", messageId, e);
-            }
-        }
+        List<CompletableFuture<Map.Entry<Long, MessageUrlMetadataDTO>>> futures = messageIds.stream()
+                .map(messageId -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        MessageUrlMetadataDTO dto = getMessageUrlMetadata(messageId);
 
-        return result;
+                        if (dto != null) {
+                            return (Map.Entry<Long, MessageUrlMetadataDTO>) new AbstractMap.SimpleEntry<>(messageId, dto);
+                        }
+                        return null;
+                    } catch (Exception e) {
+                        logger.error("failed to fetch url metadata for message {}", messageId, e);
+                        return null;
+                    }
+                }, metadataExecutor))
+                .toList();
+
+        // wait till all the tasks are completed
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
