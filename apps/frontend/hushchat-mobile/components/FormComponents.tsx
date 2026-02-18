@@ -1,5 +1,13 @@
 import React from "react";
-import { View, TouchableOpacity, ViewStyle, StyleSheet, StyleProp } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  ViewStyle,
+  StyleSheet,
+  StyleProp,
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { AuthColors } from "@/types/login/types";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
@@ -14,6 +22,7 @@ interface FormButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
+  loading?: boolean;
   colors: AuthColors;
   style?: ViewStyle;
 }
@@ -54,36 +63,48 @@ export const FormButton: React.FC<FormButtonProps> = ({
   title,
   onPress,
   disabled = false,
+  loading = false,
   colors,
   style,
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    disabled={disabled}
-    activeOpacity={DEFAULT_ACTIVE_OPACITY}
-    style={[
-      styles.button,
-      disabled && styles.buttonDisabled,
-      {
-        backgroundColor: disabled ? colors.buttonDisabled : colors.primary,
-        boxShadow: colors.primary,
-      },
-      style,
-    ]}
-  >
-    <AppText
+}) => {
+  const isDisabled = disabled || loading;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={isDisabled}
+      activeOpacity={DEFAULT_ACTIVE_OPACITY}
       style={[
-        styles.buttonText,
-        disabled ? { color: colors.textSecondary } : styles.buttonTextEnabled,
+        styles.button,
+        isDisabled && styles.buttonDisabled,
+        {
+          backgroundColor: isDisabled ? colors.buttonDisabled : colors.primary,
+          boxShadow: colors.primary,
+        },
+        style,
       ]}
     >
-      {title}
-    </AppText>
-  </TouchableOpacity>
-);
+      {loading ? (
+        <ActivityIndicator size="small" color={COLORS.WHITE} />
+      ) : (
+        <AppText
+          style={[
+            styles.buttonText,
+            isDisabled ? { color: colors.textSecondary } : styles.buttonTextEnabled,
+          ]}
+        >
+          {title}
+        </AppText>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => (
   <View style={styles.errorContainer}>
+    <View style={styles.errorIconContainer}>
+      <Ionicons name="alert-circle" size={18} color={COLORS.ERROR_TEXT} />
+    </View>
     <AppText style={styles.errorText}>{message}</AppText>
   </View>
 );
@@ -117,8 +138,8 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   button: {
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingVertical: 14,
     marginBottom: 20,
   },
   buttonDisabled: {
@@ -137,10 +158,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.ERROR_BG,
     borderColor: COLORS.ERROR_BORDER,
     borderWidth: 1,
+    borderRadius: 12,
     padding: 14,
     marginBottom: 20,
     flexDirection: "row",
     alignItems: "center",
+  },
+  errorIconContainer: {
+    marginRight: 10,
   },
   errorText: {
     color: COLORS.ERROR_TEXT,

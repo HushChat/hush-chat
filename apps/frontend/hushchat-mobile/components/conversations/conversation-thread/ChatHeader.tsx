@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { AppText } from "@/components/AppText";
@@ -40,6 +40,7 @@ const ChatHeader = ({
 
   const currentStatus = userPresence?.status ?? conversationInfo.chatUserStatus;
   const currentDevice = userPresence?.deviceType ?? conversationInfo.deviceType;
+  const isOnline = currentStatus === chatUserStatus.ONLINE;
 
   const handleProfileNavigate = useCallback(() => {
     handleConversationNavigation(onShowProfile, conversationInfo.conversationId, isMobileLayout);
@@ -67,7 +68,10 @@ const ChatHeader = ({
   }, [conversationInfo.conversationId]);
 
   return (
-    <View className="bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+    <View
+      className="bg-background-light dark:bg-background-dark px-4 py-2.5"
+      style={headerStyles.shadow}
+    >
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1">
           {isMobileLayout && (
@@ -102,10 +106,14 @@ const ChatHeader = ({
                 {conversationInfo.conversationName}
               </AppText>
 
-              <TypingIndicator
-                conversationId={conversationInfo.conversationId}
-                isGroupChat={isGroupChat}
-              />
+              {!isGroupChat && isOnline ? (
+                <AppText className="text-xs text-success font-medium">online</AppText>
+              ) : (
+                <TypingIndicator
+                  conversationId={conversationInfo.conversationId}
+                  isGroupChat={isGroupChat}
+                />
+              )}
             </View>
           </TouchableOpacity>
         </View>
@@ -113,7 +121,7 @@ const ChatHeader = ({
         {!isMobileLayout && (
           <View className="flex-row items-center gap-1">
             <TouchableOpacity
-              className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
+              className="rounded-full p-2 hover:bg-secondary-light dark:hover:bg-secondary-dark active:bg-gray-200 dark:active:bg-gray-600"
               onPress={webPressSearch}
             >
               <Ionicons name="search" size={20} color={"#6B7280"} />
@@ -133,3 +141,14 @@ const ChatHeader = ({
 };
 
 export default ChatHeader;
+
+const headerStyles = StyleSheet.create({
+  shadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 10,
+  },
+});

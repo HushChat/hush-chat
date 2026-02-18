@@ -132,7 +132,7 @@ export default function GroupSettings({ conversation, onClose, visible }: IGroup
             )}
 
             <UploadIndicator isUploading={uploading} />
-            <View className="absolute bottom-5 ml-32 bg-blue-500 rounded-2xl p-1 border-2 border-white">
+            <View className="absolute bottom-5 ml-32 bg-primary-light dark:bg-primary-dark rounded-2xl p-1 border-2 border-white">
               <Ionicons name="camera" size={18} color="#fff" />
             </View>
           </View>

@@ -140,7 +140,7 @@ export function MultiSelectList<T>({
           return <AppText className="text-center mt-4">No results</AppText>;
         }}
         ListFooterComponent={
-          isFetchingNextPage ? <ActivityIndicator size="small" color="#3B82F6" /> : null
+          isFetchingNextPage ? <ActivityIndicator size="small" color="#6B4EFF" /> : null
         }
       />
     </View>

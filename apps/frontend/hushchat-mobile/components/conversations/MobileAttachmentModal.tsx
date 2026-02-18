@@ -75,7 +75,7 @@ const MobileAttachmentModal = ({
                 className="flex-row items-center py-3 px-4 active:bg-gray-100 dark:active:bg-gray-700"
                 onPress={() => handleOptionPress("media", onOpenMediaPicker)}
               >
-                <MaterialIcons name="photo-library" size={20} color="#3B82F6" />
+                <MaterialIcons name="photo-library" size={20} color="#6B4EFF" />
                 <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
                   Photos & Videos
                 </AppText>
@@ -89,7 +89,7 @@ const MobileAttachmentModal = ({
                 className="flex-row items-center py-3 px-4 active:bg-gray-100 dark:active:bg-gray-700"
                 onPress={() => handleOptionPress("documents", onOpenDocumentPicker)}
               >
-                <MaterialIcons name="insert-drive-file" size={20} color="#3B82F6" />
+                <MaterialIcons name="insert-drive-file" size={20} color="#6B4EFF" />
                 <AppText className="text-sm ml-3 text-gray-900 dark:text-gray-100 font-medium">
                   Documents
                 </AppText>

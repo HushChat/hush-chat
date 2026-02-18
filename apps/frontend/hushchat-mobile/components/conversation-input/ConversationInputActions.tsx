@@ -16,7 +16,8 @@ const ComposerIconButton = ({ onPress, disabled, children }: IComposerIconButton
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className="p-1.5 justify-center items-center"
+      className="p-2 justify-center items-center rounded-full active:bg-gray-100 dark:active:bg-gray-800"
+      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
     >
       {children}
     </TouchableOpacity>
@@ -52,24 +53,24 @@ export const ConversationInputActions = memo(
     onToggleMarkdown,
   }: IConversationInputActionProps) => {
     return (
-      <View className="flex-row gap-2 items-center ml-1">
+      <View className="flex-row gap-1 items-center ml-1">
         {!isEditMode && !hideEmojiGifPickers && (
           <>
             <ComposerIconButton onPress={onOpenEmojiPicker} disabled={disabled}>
               <MaterialIcons
                 name="emoji-emotions"
-                size={22}
+                size={24}
                 className="text-gray-500 dark:text-gray-400"
               />
             </ComposerIconButton>
 
             <ComposerIconButton onPress={onOpenGifPicker} disabled={disabled}>
-              <AntDesign name="gif" size={22} className="text-gray-500 dark:text-gray-400" />
+              <AntDesign name="gif" size={24} className="text-gray-500 dark:text-gray-400" />
             </ComposerIconButton>
           </>
         )}
 
-        <View className="ml-1">
+        <View className="ml-0.5">
           <MarkdownToggle enabled={isMarkdownEnabled} onToggle={onToggleMarkdown} />
         </View>
 

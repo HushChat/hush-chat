@@ -2,20 +2,18 @@
  * CallLogItem
  *
  * Represents a single call entry in the call history list.
- * This component is a reusable UI item for rendering individual call logs
- * inside the call history panel.
  */
 
 import React, { useCallback, useMemo } from "react";
-import { View, TouchableOpacity } from "react-native";
-import classNames from "classnames";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import InitialsAvatar from "@/components/InitialsAvatar";
-import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { PLATFORM } from "@/constants/platformConstants";
 import { CallDirection, Direction, ICallLog } from "@/types/call/types";
 import { formatRelativeTime, handleConversationNavigation } from "@/utils/commonUtils";
 import { AppText } from "@/components/AppText";
+import { ListItem } from "@/components/ui/ListItem";
+import { Divider } from "@/components/ui/Divider";
 
 type CallItemProps = {
   callLog: ICallLog | null | undefined;
@@ -33,58 +31,47 @@ const CallLogItem = ({ callLog, direction, missed }: CallItemProps) => {
     [callLog?.callStartedAt]
   );
 
-  const handleAvatarPress = useCallback(() => {
+  const handlePress = useCallback(() => {
     if (callLog) handleConversationNavigation(() => {}, callLog.callLogId);
   }, [callLog]);
 
-  const arrowColor = missed ? "#ef4444" : "#22c55e";
+  const arrowColor = missed ? "#EF4444" : "#22C55E";
   const arrowName = "arrow-up-outline";
   const arrowRotation = direction === CallDirection.outgoing ? "45deg" : "-135deg";
 
   const rightIconName = callLog?.isVideo ? "videocam-outline" : "call-outline";
-  const rightIconColor = "#9ca3af";
 
   return (
-    <View
-      className={classNames(
-        "flex-row items-center px-4 py-3",
-        PLATFORM.IS_WEB &&
-          "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark cursor-pointer"
-      )}
-    >
-      <TouchableOpacity onPress={handleAvatarPress} activeOpacity={DEFAULT_ACTIVE_OPACITY}>
-        <InitialsAvatar name={name} />
-      </TouchableOpacity>
-
-      <View className="flex-1 ml-3">
-        <View className="flex-row items-center justify-between mb-0.5">
-          <AppText
-            numberOfLines={1}
-            className="text-text-primary-light dark:text-text-primary-dark font-medium text-base"
-          >
-            {name}
-          </AppText>
-        </View>
-
-        <View className="flex-row items-center">
-          <Ionicons
-            name={arrowName}
-            size={16}
-            color={arrowColor}
-            style={{ transform: [{ rotate: arrowRotation }] }}
-          />
-          <AppText
-            numberOfLines={1}
-            className="ml-2 text-text-secondary-light dark:text-text-secondary-dark text-sm flex-1"
-          >
-            {timeText}
-          </AppText>
-        </View>
-      </View>
-      <View className="ml-3">
-        <Ionicons name={rightIconName} size={20} color={rightIconColor} />
-      </View>
-    </View>
+    <>
+      <ListItem
+        leading={<InitialsAvatar name={name} onPress={handlePress} />}
+        title={name}
+        subtitle={
+          <View className="flex-row items-center">
+            <Ionicons
+              name={arrowName}
+              size={16}
+              color={arrowColor}
+              style={{ transform: [{ rotate: arrowRotation }] }}
+            />
+            <AppText
+              className="ml-2 text-text-secondary-light dark:text-text-secondary-dark text-sm flex-1"
+              numberOfLines={1}
+            >
+              {timeText}
+            </AppText>
+          </View>
+        }
+        trailing={<Ionicons name={rightIconName} size={20} color="#9CA3AF" />}
+        onPress={handlePress}
+        className={
+          PLATFORM.IS_WEB
+            ? "mx-1 rounded-2xl hover:bg-secondary-light dark:hover:bg-secondary-dark cursor-pointer"
+            : ""
+        }
+      />
+      <Divider indent={76} />
+    </>
   );
 };
 

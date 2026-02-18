@@ -155,7 +155,7 @@ export default function UserEditForm({ userId, onBack }: UserEditFormProps) {
           <TouchableOpacity
             onPress={handleSave}
             disabled={isSaving}
-            className="bg-blue-500 rounded-lg py-3 mb-4 items-center"
+            className="bg-primary-light dark:bg-primary-dark rounded-xl py-3 mb-4 items-center"
           >
             {isSaving ? (
               <ActivityIndicator size="small" color="#fff" />
@@ -188,7 +188,7 @@ export default function UserEditForm({ userId, onBack }: UserEditFormProps) {
                   ? "bg-gray-300 dark:bg-gray-700"
                   : isAdmin
                     ? "bg-red-500"
-                    : "bg-blue-500"
+                    : "bg-primary-light dark:bg-primary-dark"
               }`}
             >
               {isToggling ? (

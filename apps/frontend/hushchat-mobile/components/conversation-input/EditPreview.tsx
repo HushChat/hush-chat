@@ -11,10 +11,10 @@ interface IEditPreviewProps {
 
 export const EditPreview = ({ message, onCancelEdit }: IEditPreviewProps) => {
   return (
-    <View className="flex-row items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500">
-      <Ionicons name="pencil" size={18} color="#3B82F6" />
+    <View className="flex-row items-center px-4 py-2 bg-secondary-light dark:bg-secondary-dark border-l-4 border-primary-light dark:border-primary-dark">
+      <Ionicons name="pencil" size={18} color="#6B4EFF" />
       <View className="flex-1 ml-3">
-        <AppText className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+        <AppText className="text-xs text-primary-light dark:text-primary-dark font-medium">
           Editing Message
         </AppText>
         <AppText className="text-sm text-gray-600 dark:text-gray-300 mt-0.5" numberOfLines={1}>

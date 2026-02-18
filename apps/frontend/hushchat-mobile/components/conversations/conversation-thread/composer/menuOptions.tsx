@@ -14,7 +14,7 @@ export const getConversationMenuOptions = (
     id: 1,
     name: "Upload Images & Videos",
     iconComponent: (props: { size: number }) => (
-      <MaterialIcons name="photo-library" size={props.size} color="#3B82F6" />
+      <MaterialIcons name="photo-library" size={props.size} color="#6B4EFF" />
     ),
     action: () => {
       fileInputRef.current?.click();
@@ -24,7 +24,7 @@ export const getConversationMenuOptions = (
     id: 2,
     name: "Upload Documents",
     iconComponent: (props: { size: number }) => (
-      <MaterialIcons name="insert-drive-file" size={props.size} color="#3B82F6" />
+      <MaterialIcons name="insert-drive-file" size={props.size} color="#6B4EFF" />
     ),
     action: () => {
       documentInputRef.current?.click();

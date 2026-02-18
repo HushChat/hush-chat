@@ -51,9 +51,9 @@ import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 const COLORS = {
   TRANSPARENT: "transparent",
   ICON_MUTED: "#9CA3AF",
-  ICON_PRIMARY: "#3B82F6",
+  ICON_PRIMARY: "#6B4EFF",
   FORWARDED_INCOMING_BORDER: "#9CA3AF30",
-  FORWARDED_OUTGOING_BORDER: "#60A5FA30",
+  FORWARDED_OUTGOING_BORDER: "#6B4EFF30",
 };
 
 interface MessageItemProps {
@@ -553,14 +553,12 @@ export const ConversationMessageItem = ({
               isGroupChat={isGroupChat}
               showSenderName={showSenderName}
               senderName={senderName}
-              messageTime={messageTime}
               messageIsUnsend={message.isUnsend}
               selectionMode={selectionMode}
               currentUserId={currentUserId}
               onOpenPicker={handleOpenPicker}
               onOpenMenu={openWebMenuAtEvent}
               messageText={message.messageText}
-              isRead={message.isReadByEveryone}
               onClickSendernName={handleNamePress}
             />
 
@@ -584,6 +582,9 @@ export const ConversationMessageItem = ({
                   isMessageEdited={isMessageEdited}
                   isMobileLayout={isMobileLayout}
                   isGroup={isGroupChat}
+                  messageTime={messageTime}
+                  isRead={message.isReadByEveryone}
+                  showTail={showSenderName || showSenderAvatar}
                 />
               </MessageHighlightWrapper>
             </View>

@@ -8,7 +8,7 @@ export const UnreadBadge = ({ count }: { count: number }) => {
 
   return (
     <View
-      className="bg-blue-500 dark:bg-blue-600 rounded-full min-w-[20px] h-5 px-1.5 items-center justify-center ml-2"
+      className="bg-primary-light dark:bg-primary-dark rounded-full min-w-[20px] h-5 px-1.5 items-center justify-center ml-2"
       accessibilityRole="text"
       accessibilityLabel={`Unread messages: ${display}`}
       importantForAccessibility="yes"

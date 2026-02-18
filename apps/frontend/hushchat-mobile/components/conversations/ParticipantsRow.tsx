@@ -66,7 +66,7 @@ export const ParticipantRow = ({
           "group flex-row items-center px-6 py-4 active:bg-gray-100 dark:active:bg-gray-800",
           PLATFORM.IS_WEB &&
             showMenu &&
-            "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark"
+            "mx-1 rounded-2xl hover:bg-secondary-light dark:hover:bg-secondary-dark"
         )}
         onLongPress={handleLongPress}
       >

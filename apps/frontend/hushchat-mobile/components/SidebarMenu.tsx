@@ -41,9 +41,9 @@ export default function SidebarMenu({
             className={classNames(
               "flex-row items-center gap-3 py-3 px-4 rounded-xl mb-1",
               "active:bg-secondary-light dark:active:bg-secondary-dark",
-              PLATFORM.IS_WEB && "hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
+              PLATFORM.IS_WEB && "hover:bg-secondary-light dark:hover:bg-secondary-dark",
               isSelected
-                ? "bg-blue-100/60 dark:bg-secondary-dark"
+                ? "bg-secondary-light dark:bg-secondary-dark"
                 : "bg-background-light dark:bg-background-dark"
             )}
           >

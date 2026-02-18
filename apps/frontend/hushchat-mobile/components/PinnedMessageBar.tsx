@@ -31,7 +31,7 @@ export const PinnedMessageBar = ({
       className="flex-row items-center px-4 py-3 bg-secondary-light/40 dark:bg-secondary-dark/40 border-l-4 border-primary-light dark:border-primary-dark shadow-sm"
       style={styles.containerShadow}
     >
-      <View className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-blue-400/10 items-center justify-center mr-3">
+      <View className="w-8 h-8 rounded-full bg-primary-light/10 dark:bg-primary-dark/20 items-center justify-center mr-3">
         <Ionicons
           name="pin"
           size={16}

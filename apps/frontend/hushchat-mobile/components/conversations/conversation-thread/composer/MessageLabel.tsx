@@ -34,7 +34,7 @@ export const MessageLabel = ({
   if (!isForwardedMessage && !isMessageEdited) return null;
 
   const textColorClass = isCurrentUser ? "text-primary-light" : "text-gray-500 dark:text-gray-400";
-  const iconColor = isCurrentUser ? "#3B82F6" : "#6B7280";
+  const iconColor = isCurrentUser ? "#6B4EFF" : "#6B7280";
 
   return (
     <View

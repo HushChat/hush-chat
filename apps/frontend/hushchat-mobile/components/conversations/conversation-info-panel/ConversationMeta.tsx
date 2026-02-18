@@ -1,5 +1,6 @@
 import { GestureResponderEvent, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import classNames from "classnames";
 import ChevronButton from "@/components/ChevronButton";
 import { AppText } from "@/components/AppText";
 import { UnreadBadge } from "@/components/ui/UnreadBadge";
@@ -15,6 +16,7 @@ interface Props {
   chevronButtonRef: RefObject<View | null>;
   onChevronPress: (e: GestureResponderEvent) => void;
   isGroup: boolean;
+  hasUnread?: boolean;
 }
 
 const ConversationMeta = ({
@@ -24,6 +26,7 @@ const ConversationMeta = ({
   chevronButtonRef,
   onChevronPress,
   isGroup,
+  hasUnread = false,
 }: Props) => {
   const messageContent = LastMessagePreviewContent({ lastMessage, isGroup });
 
@@ -31,10 +34,15 @@ const ConversationMeta = ({
     if (typeof messageContent === "string") {
       return (
         <AppText
-          className="text-gray-600 dark:text-text-secondary-dark text-sm flex-1"
+          className={classNames(
+            "text-sm flex-1",
+            hasUnread
+              ? "text-text-primary-light dark:text-text-primary-dark font-medium"
+              : "text-gray-600 dark:text-text-secondary-dark"
+          )}
           numberOfLines={1}
           style={{
-            fontFamily: "Poppins-Regular, OpenMoji-Color",
+            fontFamily: hasUnread ? "Poppins-Medium" : "Poppins-Regular, OpenMoji-Color",
           }}
         >
           {messageContent}

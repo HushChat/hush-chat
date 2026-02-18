@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { StyleSheet, View, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,6 +36,27 @@ const sizeClasses: Record<AvatarSizeType, { container: string; text: string }> =
   sm: { container: "w-10 h-10", text: "text-base" },
   md: { container: "w-12 h-12", text: "text-lg" },
   lg: { container: "w-40 h-40", text: "text-6xl" },
+};
+
+const AVATAR_PALETTE = [
+  "#6B4EFF", // purple (brand)
+  "#3B82F6", // blue
+  "#10B981", // emerald
+  "#F59E0B", // amber
+  "#EF4444", // red
+  "#8B5CF6", // violet
+  "#EC4899", // pink
+  "#14B8A6", // teal
+  "#F97316", // orange
+  "#6366F1", // indigo
+];
+
+const getAvatarColor = (name: string): string => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
 };
 
 const COLORS = {
@@ -80,6 +101,7 @@ const InitialsAvatar = ({
 }: IInitialsAvatarProps) => {
   const { container, text } = sizeClasses[size];
   const [hasError, setHasError] = useState<boolean>(false);
+  const avatarBgColor = useMemo(() => getAvatarColor(name || ""), [name]);
 
   useEffect(() => {
     setHasError(false);
@@ -101,7 +123,8 @@ const InitialsAvatar = ({
     <Wrapper {...wrapperProps}>
       <View style={styles.container}>
         <View
-          className={`${container} rounded-full bg-primary-light dark:bg-primary-dark items-center justify-center`}
+          className={`${container} rounded-full items-center justify-center`}
+          style={!shouldShowImage ? { backgroundColor: avatarBgColor } : undefined}
         >
           {shouldShowImage ? (
             <Image

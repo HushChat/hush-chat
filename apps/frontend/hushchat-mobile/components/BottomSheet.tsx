@@ -10,9 +10,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { scheduleOnRN } from "react-native-worklets";
+import * as Haptics from "expo-haptics";
 import { DEFAULT_ACTIVE_OPACITY } from "@/constants/ui";
 import { AppText } from "@/components/AppText";
 import { MotionView } from "@/motion/MotionView";
+import { PLATFORM } from "@/constants/platformConstants";
 
 export interface BottomSheetOption {
   id: string;
@@ -43,6 +45,9 @@ const BottomSheet = ({ visible, onClose, options, title }: BottomSheetProps) => 
   const handleClose = () => scheduleOnRN(onClose);
 
   const handleOptionPress = (option: BottomSheetOption) => {
+    if (!PLATFORM.IS_WEB) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     option.onPress();
     handleClose();
   };
@@ -75,14 +80,14 @@ const BottomSheet = ({ visible, onClose, options, title }: BottomSheetProps) => 
             visible={visible}
             from={{ translateY: SCREEN_HEIGHT }}
             to={{ translateY: 0 }}
-            duration={{ enter: 300, exit: 250 }}
-            easing="standard"
+            duration={{ enter: 350, exit: 250 }}
+            easing="springy"
             pointerEvents="box-none"
             style={styles.sheetContainer}
             className="bg-background-light dark:bg-background-dark rounded-t-3xl"
           >
             <View className="items-center py-3">
-              <View className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+              <View className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full" />
             </View>
 
             {title && (

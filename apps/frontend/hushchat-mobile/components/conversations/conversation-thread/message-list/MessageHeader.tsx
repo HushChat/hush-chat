@@ -1,7 +1,6 @@
 import React from "react";
 import { GestureResponderEvent, View, Pressable } from "react-native";
 import classNames from "classnames";
-import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import { MessageActions } from "./MessageActions";
 
@@ -11,11 +10,9 @@ interface IMessageHeaderProps {
   showSenderName: boolean;
   senderName: string;
   messageText?: string;
-  messageTime: string;
   messageIsUnsend?: boolean;
   selectionMode: boolean;
   currentUserId: string;
-  isRead?: boolean;
   onOpenPicker: () => void;
   onOpenMenu: (event: GestureResponderEvent) => void;
   onClickSendernName?: () => void;
@@ -27,11 +24,9 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
   showSenderName,
   senderName,
   messageText,
-  messageTime,
   messageIsUnsend,
   selectionMode,
   currentUserId,
-  isRead = false,
   onOpenPicker,
   onOpenMenu,
   onClickSendernName,
@@ -57,21 +52,11 @@ export const MessageHeader: React.FC<IMessageHeaderProps> = ({
 
       {isGroupChat && showSenderName && (
         <Pressable onPress={onClickSendernName}>
-          <AppText className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">
+          <AppText className="text-sm font-semibold text-primary-light dark:text-primary-dark">
             {isCurrentUser ? "You" : senderName}
           </AppText>
         </Pressable>
       )}
-
-      <View className="flex-row items-center gap-1">
-        <AppText className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-          {messageTime}
-        </AppText>
-
-        {isCurrentUser && !messageIsUnsend && (
-          <Ionicons name="checkmark-done" size={14} color={isRead ? "#3B82F6" : "#9CA3AF"} />
-        )}
-      </View>
 
       {!isCurrentUser && (
         <MessageActions

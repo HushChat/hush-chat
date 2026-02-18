@@ -11,6 +11,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { ProfileCardModal } from "@/components/ProfileCardModal";
 import { AppText } from "@/components/AppText";
 import ConversationMeta from "@/components/conversations/conversation-info-panel/ConversationMeta";
+import { Divider } from "@/components/ui/Divider";
 
 const ConversationListItem = ({
   conversation,
@@ -19,6 +20,7 @@ const ConversationListItem = ({
   handleArchivePress,
   handleDeletePress,
   conversationsRefetch,
+  showDivider = true,
 }: {
   conversation: IConversation;
   handleChatPress: () => void;
@@ -26,6 +28,7 @@ const ConversationListItem = ({
   handleArchivePress: (conversationId: number) => void;
   handleDeletePress: (conversationId: number) => void;
   conversationsRefetch: () => void;
+  showDivider?: boolean;
 }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -35,6 +38,7 @@ const ConversationListItem = ({
 
   const lastMessage = conversation.messages?.at(-1);
   const lastMessageTime = getLastMessageTime(lastMessage?.createdAt || "");
+  const hasUnread = conversation.unreadCount > 0;
 
   const handleOptionsPress = useCallback((e: GestureResponderEvent) => {
     e.stopPropagation();
@@ -55,10 +59,11 @@ const ConversationListItem = ({
       <Pressable
         className={classNames(
           "group flex-row items-center gap-3 px-4 py-3 active:bg-secondary-light dark:active:bg-secondary-dark",
-          PLATFORM.IS_WEB && "mx-1 rounded-2xl hover:bg-blue-100/60 hover:dark:bg-secondary-dark",
+          PLATFORM.IS_WEB &&
+            "mx-1 rounded-2xl hover:bg-secondary-light dark:hover:bg-secondary-dark",
           {
             "bg-background-light dark:bg-background-dark": !isConversationSelected,
-            "bg-blue-100/60 dark:bg-secondary-dark": isConversationSelected,
+            "bg-secondary-light dark:bg-secondary-dark": isConversationSelected,
           }
         )}
         onPress={handleChatPress}
@@ -82,16 +87,28 @@ const ConversationListItem = ({
 
         <View className="flex-1 mr-3">
           <View className="flex-row items-center justify-between mb-1">
-            <AppText className="text-text-primary-light dark:text-text-primary-dark font-medium text-base">
+            <AppText
+              className={classNames(
+                "text-text-primary-light dark:text-text-primary-dark text-base",
+                hasUnread ? "font-semibold" : "font-medium"
+              )}
+            >
               {conversation.name}
             </AppText>
             <View className="flex-row items-center gap-1">
               {conversation.pinnedByLoggedInUser && (
                 <View className="rotate-45">
-                  <MaterialIcons name="push-pin" size={14} color="#3B82F6" />
+                  <MaterialIcons name="push-pin" size={14} color="#6B4EFF" />
                 </View>
               )}
-              <AppText className="text-gray-500 dark:text-text-secondary-dark text-sm">
+              <AppText
+                className={classNames(
+                  "text-sm",
+                  hasUnread
+                    ? "text-primary-light dark:text-primary-dark font-medium"
+                    : "text-gray-500 dark:text-text-secondary-dark"
+                )}
+              >
                 {lastMessageTime}
               </AppText>
             </View>
@@ -105,10 +122,13 @@ const ConversationListItem = ({
               chevronButtonRef={chevronButtonRef}
               onChevronPress={handleOptionsPress}
               isGroup={conversation.isGroup}
+              hasUnread={hasUnread}
             />
           </View>
         </View>
       </Pressable>
+
+      {showDivider && <Divider indent={76} />}
 
       <ConversationWebContextMenu
         visible={showOptions}

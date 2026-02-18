@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   StyleSheet,
 } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { PLATFORM } from "@/constants/platformConstants";
 import { AppText } from "./AppText";
 
@@ -63,15 +64,15 @@ const buttonVariantClasses: Record<
     backgroundColor: "bg-gray-200 dark:bg-neutral-800",
     textColor: "text-gray-800 dark:text-gray-200",
   },
-  primary: { backgroundColor: "bg-blue-500", textColor: "text-white" },
+  primary: { backgroundColor: "bg-primary-light dark:bg-primary-dark", textColor: "text-white" },
   destructive: { backgroundColor: "bg-red-500", textColor: "text-white" },
 };
 
 const typeColor: Partial<Record<ModalType, string>> & { default: string } = {
-  success: "bg-green-500",
-  warning: "bg-yellow-500",
-  error: "bg-red-500",
-  confirm: "bg-blue-500",
+  success: "bg-success",
+  warning: "bg-warning",
+  error: "bg-error",
+  confirm: "bg-primary-light dark:bg-primary-dark",
   default: "bg-gray-500",
 };
 
@@ -109,7 +110,7 @@ export default function AppModal({
           key={idx}
           onPress={btn.onPress}
           className={classNames(
-            "px-4 py-2 rounded-lg min-w-[120px]",
+            "px-4 py-2.5 rounded-xl min-w-[120px]",
             backgroundColor,
             btn.className
           )}
@@ -120,37 +121,42 @@ export default function AppModal({
     });
 
   const renderModalContent = () => (
-    <View style={modalCardStyle} className="bg-white dark:bg-neutral-900">
-      {icon && (
-        <View className={classNames("self-center mb-4 p-3 rounded-full", getTypeColor(type))}>
-          <Ionicons name={icon} size={28} color="white" />
-        </View>
-      )}
+    <Animated.View
+      entering={FadeIn.duration(200).springify().damping(15)}
+      exiting={FadeOut.duration(150)}
+    >
+      <View style={modalCardStyle} className="bg-surface-light dark:bg-surface-dark">
+        {icon && (
+          <View className={classNames("self-center mb-4 p-3 rounded-full", getTypeColor(type))}>
+            <Ionicons name={icon} size={28} color="white" />
+          </View>
+        )}
 
-      {title && (
-        <AppText className="text-lg font-bold text-gray-900 dark:text-gray-100 text-center">
-          {title}
-        </AppText>
-      )}
+        {title && (
+          <AppText className="text-lg font-bold text-gray-900 dark:text-gray-100 text-center">
+            {title}
+          </AppText>
+        )}
 
-      {description && (
-        <AppText className="mt-2 text-gray-600 dark:text-gray-400 text-center">
-          {description}
-        </AppText>
-      )}
+        {description && (
+          <AppText className="mt-2 text-gray-600 dark:text-gray-400 text-center">
+            {description}
+          </AppText>
+        )}
 
-      {type === MODAL_TYPES.custom && <View className="mt-4">{children}</View>}
+        {type === MODAL_TYPES.custom && <View className="mt-4">{children}</View>}
 
-      {buttons.length > 0 && (
-        <View
-          className={classNames("flex-row justify-center gap-2 mt-6", {
-            "flex-col items-center gap-2 mt-6": buttons.length > MAX_INLINE_BUTTONS,
-          })}
-        >
-          {renderButtons(buttons)}
-        </View>
-      )}
-    </View>
+        {buttons.length > 0 && (
+          <View
+            className={classNames("flex-row justify-center gap-2 mt-6", {
+              "flex-col items-center gap-2 mt-6": buttons.length > MAX_INLINE_BUTTONS,
+            })}
+          >
+            {renderButtons(buttons)}
+          </View>
+        )}
+      </View>
+    </Animated.View>
   );
 
   if (!visible) return null;
@@ -197,8 +203,8 @@ export default function AppModal({
 const MODAL_STYLES = StyleSheet.create({
   modalCardBase: {
     maxWidth: 500,
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
   },
   modalContainerCentered: {
     justifyContent: "center",
