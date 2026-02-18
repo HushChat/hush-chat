@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import debounce from "lodash/debounce";
 import { ImageBackground, KeyboardAvoidingView, View, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -166,7 +167,21 @@ const ConversationThreadScreen = ({
     }
   );
 
+  const debouncedSetLastSeen = useRef(
+    debounce((messageId: number, convId: number) => {
+      setLastSeenMessageForConversation({ messageId, conversationId: convId });
+    }, 1000)
+  ).current;
+
   useEffect(() => {
+    return () => {
+      debouncedSetLastSeen.cancel();
+    };
+  }, [debouncedSetLastSeen]);
+
+  useEffect(() => {
+    if (hasPreviousPage) return;
+
     const messages = conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [];
 
     if (currentConversationId && messages.length > 0 && lastSeenMessageInfo !== undefined) {
@@ -179,16 +194,17 @@ const ConversationThreadScreen = ({
       const shouldUpdate =
         lastSeenMessageInfo.lastSeenMessageId === null ||
         lastSeenMessageInfo.lastSeenMessageId === undefined ||
-        firstMessage.id !== lastSeenMessageInfo.lastSeenMessageId;
+        firstMessage.id > lastSeenMessageInfo.lastSeenMessageId;
 
       if (shouldUpdate) {
-        setLastSeenMessageForConversation({
-          messageId: firstMessage.id,
-          conversationId: currentConversationId,
-        });
+        debouncedSetLastSeen(firstMessage.id, currentConversationId);
       }
     }
-  }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo]);
+
+    return () => {
+      debouncedSetLastSeen.cancel();
+    };
+  }, [currentConversationId, conversationMessagesPages, lastSeenMessageInfo, hasPreviousPage]);
 
   const [selectedMessage, setSelectedMessage] = useState<IMessage | null>(null);
   const [openPickerMessageId, setOpenPickerMessageId] = useState<string | null>(null);

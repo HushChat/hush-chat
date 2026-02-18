@@ -13,6 +13,8 @@ export function useFetchLastSeenMessageStatusForConversation(conversationId: num
     queryKey: conversationQueryKeys.lastSeenMessage(conversationId),
     queryFn: () => getLastSeenMessageByConversationId(conversationId),
     enabled: !!conversationId,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   return {

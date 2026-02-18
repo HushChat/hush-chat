@@ -72,8 +72,11 @@ export const useMarkMessageAsUnreadMutation = createMutationHook<
   { messageId: number; conversationId: number }
 >(
   markMessageAsUnread,
-  (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => () =>
-    [conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria)] as string[][]
+  (keyParams: { userId: number; criteria: ConversationFilterCriteria }) => (variables) =>
+    [
+      conversationQueryKeys.allConversations(keyParams.userId, keyParams.criteria),
+      conversationQueryKeys.lastSeenMessage(variables!.conversationId),
+    ] as string[][]
 );
 
 export const useSetLastSeenMessageMutation = createMutationHook<
