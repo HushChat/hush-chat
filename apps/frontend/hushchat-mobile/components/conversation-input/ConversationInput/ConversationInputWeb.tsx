@@ -19,6 +19,8 @@ import { useEmojiGifPicker } from "@/hooks/useEmojiGifPicker";
 import { ConversationInputActions } from "@/components/conversation-input/ConversationInputActions";
 import GifPicker from "@/components/conversation-input/GifPicker/GifPicker";
 import { useWebSocket } from "@/contexts/WebSocketContext";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+import { VoiceRecorderUI } from "@/components/conversation-input/VoiceRecorderUI";
 
 const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputProps>(
   (
@@ -40,11 +42,13 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       onCancelEdit,
       onEditMessage,
       hideEmojiGifPickers = false,
+      onSendVoiceMessage,
     },
     ref
   ) => {
     const { publishTyping } = useWebSocket();
     const isControlledMode = controlledValue !== undefined;
+    const voiceRecorder = useVoiceRecorder();
 
     const {
       showEmojiPicker,
@@ -109,6 +113,21 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
       [onSendMessage]
     );
 
+    const handleMicPress = useCallback(() => {
+      voiceRecorder.startRecording();
+    }, [voiceRecorder.startRecording]);
+
+    const handleVoiceSend = useCallback(async () => {
+      const file = await voiceRecorder.stopRecording();
+      if (file && onSendVoiceMessage) {
+        await onSendVoiceMessage(file);
+      }
+    }, [voiceRecorder.stopRecording, onSendVoiceMessage]);
+
+    const handleVoiceCancel = useCallback(() => {
+      voiceRecorder.cancelRecording();
+    }, [voiceRecorder.cancelRecording]);
+
     return (
       <View>
         {input.isEditMode && input.editingMessage && (
@@ -128,62 +147,73 @@ const ConversationInputWeb = forwardRef<HTMLTextAreaElement, ConversationInputPr
             "border-gray-200 dark:border-gray-800"
           )}
         >
-          <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
-            {!isControlledMode && !input.isEditMode && (
-              <View className="mr-1">
-                <AttachmentButton
-                  ref={input.addButtonRef}
-                  disabled={disabled}
-                  toggled={input.menuVisible}
-                  onPress={input.handleAddButtonPress}
-                />
-              </View>
-            )}
-
-            <View className="flex-1 px-2 min-h-[40px] justify-center">
-              <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
-                <MessageTextArea
-                  ref={(node) => {
-                    input.messageTextInputRef.current = node;
-                    if (typeof ref === "function") {
-                      ref(node as any);
-                    } else if (ref) {
-                      ref.current = node as any;
-                    }
-                  }}
-                  value={input.message}
-                  placeholder={input.placeholder}
-                  disabled={disabled}
-                  autoFocus
-                  minHeight={input.minHeight}
-                  maxHeight={input.maxHeight}
-                  inputHeight={input.inputHeight}
-                  lineHeight={22}
-                  verticalPadding={12}
-                  onChangeText={input.handleChangeText}
-                  onContentSizeChange={input.handleContentSizeChange}
-                  onSelectionChange={input.handleSelectionChange}
-                  onKeyPress={handleKeyPress}
-                  onSubmitEditing={handleSubmitEditing}
-                  validMentionUsernames={input.validMentionUsernames}
-                />
-              </Animated.View>
-            </View>
-
-            <ConversationInputActions
-              isEditMode={input.isEditMode}
-              hideEmojiGifPickers={hideEmojiGifPickers}
-              hideSendButton={hideSendButton}
-              disabled={disabled}
-              isValidMessage={input.isValidMessage}
+          {voiceRecorder.state.isRecording || voiceRecorder.state.isPreparing ? (
+            <VoiceRecorderUI
+              durationMs={voiceRecorder.state.durationMs}
+              onCancel={handleVoiceCancel}
+              onStop={handleVoiceSend}
               isSending={isSending}
-              onOpenEmojiPicker={openEmojiPicker}
-              onOpenGifPicker={openGifPicker}
-              onSendPress={handleSendPress}
-              isMarkdownEnabled={input.isMarkdownEnabled}
-              onToggleMarkdown={() => input.setIsMarkdownEnabled((prev) => !prev)}
             />
-          </View>
+          ) : (
+            <View className="flex-row items-center rounded-3xl bg-gray-300/30 dark:bg-secondary-dark pl-1 pr-2 py-1">
+              {!isControlledMode && !input.isEditMode && (
+                <View className="mr-1">
+                  <AttachmentButton
+                    ref={input.addButtonRef}
+                    disabled={disabled}
+                    toggled={input.menuVisible}
+                    onPress={input.handleAddButtonPress}
+                  />
+                </View>
+              )}
+
+              <View className="flex-1 px-2 min-h-[40px] justify-center">
+                <Animated.View style={input.animatedContainerStyle} className="overflow-hidden">
+                  <MessageTextArea
+                    ref={(node) => {
+                      input.messageTextInputRef.current = node;
+                      if (typeof ref === "function") {
+                        ref(node as any);
+                      } else if (ref) {
+                        ref.current = node as any;
+                      }
+                    }}
+                    value={input.message}
+                    placeholder={input.placeholder}
+                    disabled={disabled}
+                    autoFocus
+                    minHeight={input.minHeight}
+                    maxHeight={input.maxHeight}
+                    inputHeight={input.inputHeight}
+                    lineHeight={22}
+                    verticalPadding={12}
+                    onChangeText={input.handleChangeText}
+                    onContentSizeChange={input.handleContentSizeChange}
+                    onSelectionChange={input.handleSelectionChange}
+                    onKeyPress={handleKeyPress}
+                    onSubmitEditing={handleSubmitEditing}
+                    validMentionUsernames={input.validMentionUsernames}
+                  />
+                </Animated.View>
+              </View>
+
+              <ConversationInputActions
+                isEditMode={input.isEditMode}
+                hideEmojiGifPickers={hideEmojiGifPickers}
+                hideSendButton={hideSendButton}
+                disabled={disabled}
+                isValidMessage={input.isValidMessage}
+                isSending={isSending}
+                onOpenEmojiPicker={openEmojiPicker}
+                onOpenGifPicker={openGifPicker}
+                onSendPress={handleSendPress}
+                isMarkdownEnabled={input.isMarkdownEnabled}
+                onToggleMarkdown={() => input.setIsMarkdownEnabled((prev) => !prev)}
+                onMicPress={onSendVoiceMessage ? handleMicPress : undefined}
+                isRecording={voiceRecorder.state.isRecording}
+              />
+            </View>
+          )}
 
           {!isControlledMode && !input.isEditMode && (
             <>

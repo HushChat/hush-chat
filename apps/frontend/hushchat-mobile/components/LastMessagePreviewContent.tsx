@@ -1,11 +1,12 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { AppText } from "@/components/AppText";
 import LastMessagePreview from "@/components/UnsendMessagePreview";
-import { type IMessage, MessageTypeEnum } from "@/types/chat/types";
+import { type IMessage, MessageAttachmentTypeEnum, MessageTypeEnum } from "@/types/chat/types";
 import { hasGif } from "@/utils/messageUtils";
 import { useUserStore } from "@/store/user/useUserStore";
+import { isAudioAttachment } from "@/utils/messageHelpers";
 
 interface LastMessagePreviewContentProps {
   lastMessage: IMessage | undefined;
@@ -31,6 +32,24 @@ export const LastMessagePreviewContent = ({
 
   if (lastMessage.isUnsend) {
     return <LastMessagePreview unsendMessage={lastMessage} />;
+  }
+
+  const firstAttachment = lastMessage.messageAttachments?.[0];
+  const isVoice =
+    firstAttachment &&
+    (firstAttachment.type === MessageAttachmentTypeEnum.AUDIO ||
+      isAudioAttachment(firstAttachment));
+
+  if (lastMessage.hasAttachment && isVoice) {
+    return (
+      <View className="flex-row items-center gap-1">
+        <AppText className="text-gray-600 dark:text-text-secondary-dark text-sm">{prefix}</AppText>
+        <Ionicons name="mic" size={14} color="#6B7280" />
+        <AppText className="text-gray-600 dark:text-text-secondary-dark text-sm">
+          Voice Message
+        </AppText>
+      </View>
+    );
   }
 
   if (lastMessage.hasAttachment && !isGif) {

@@ -18,6 +18,9 @@ export const ParentMessageTextPreview = ({
     const firstAttachment = message.messageAttachments?.[0];
     if (!firstAttachment) return "Message";
 
+    if (firstAttachment.type === MessageAttachmentTypeEnum.AUDIO) {
+      return "Voice Message";
+    }
     if (firstAttachment.type === MessageAttachmentTypeEnum.DOCS) {
       return firstAttachment.originalFileName || "File";
     }

@@ -2,6 +2,7 @@ import {
   MAX_IMAGE_SIZE_KB,
   MAX_VIDEO_SIZE_KB,
   MAX_DOCUMENT_SIZE_KB,
+  MAX_AUDIO_SIZE_KB,
 } from "@/constants/mediaConstants";
 import { ToastUtils } from "@/utils/toastUtils";
 import { getFileType } from "@/utils/files/getFileType";
@@ -37,6 +38,9 @@ export const validateFiles = (
         break;
       case "video":
         maxSize = MAX_VIDEO_SIZE_KB;
+        break;
+      case "audio":
+        maxSize = MAX_AUDIO_SIZE_KB;
         break;
       default:
         maxSize = MAX_DOCUMENT_SIZE_KB;

@@ -32,7 +32,7 @@ public class Constants {
             "mp4", "avi", "mov", "wmv");
 
     public static final Set<String> AUDIO_EXTENSIONS = Set.of(
-            "mp3", "wav");
+            "mp3", "wav", "m4a", "aac", "ogg", "webm");
     
     public static final Set<String> DOCUMENT_EXTENSIONS = Set.of(
             "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",

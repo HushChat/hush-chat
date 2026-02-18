@@ -6,10 +6,11 @@ export const useFileGrid = (attachments: IMessageAttachment[]) => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const { images, videos, documents } = useMemo(() => {
+  const { images, videos, documents, audioItems } = useMemo(() => {
     const imgs = [];
     const vids = [];
     const docs = [];
+    const auds = [];
 
     for (const att of attachments) {
       const fileName = att.originalFileName || att.indexedFileName || "";
@@ -17,10 +18,11 @@ export const useFileGrid = (attachments: IMessageAttachment[]) => {
 
       if (type === "image") imgs.push(att);
       else if (type === "video") vids.push(att);
+      else if (type === "audio") auds.push(att);
       else docs.push(att);
     }
 
-    return { images: imgs, videos: vids, documents: docs };
+    return { images: imgs, videos: vids, documents: docs, audioItems: auds };
   }, [attachments]);
 
   const mediaItems = useMemo(() => [...images, ...videos], [images, videos]);
@@ -37,6 +39,7 @@ export const useFileGrid = (attachments: IMessageAttachment[]) => {
     images,
     videos,
     documents,
+    audioItems,
     mediaItems,
     previewVisible,
     selectedImageIndex,
@@ -46,5 +49,6 @@ export const useFileGrid = (attachments: IMessageAttachment[]) => {
     hasVideos: videos.length > 0,
     hasMedia: mediaItems.length > 0,
     hasDocuments: documents.length > 0,
+    hasAudio: audioItems.length > 0,
   };
 };

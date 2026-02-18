@@ -15,6 +15,7 @@ import { logWarn } from "@/utils/logger";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
 import { useState } from "react";
 import {
+  MAX_AUDIO_SIZE_KB,
   MAX_DOCUMENT_SIZE_KB,
   MAX_IMAGE_SIZE_KB,
   MAX_VIDEO_SIZE_KB,
@@ -29,9 +30,10 @@ export enum UploadType {
 
 export const MAX_IMAGE_KB = 1024 * 5;
 
-const sizeMap = {
+const sizeMap: Record<string, number> = {
   image: MAX_IMAGE_SIZE_KB,
   video: MAX_VIDEO_SIZE_KB,
+  audio: MAX_AUDIO_SIZE_KB,
   document: MAX_DOCUMENT_SIZE_KB,
 };
 
@@ -462,12 +464,76 @@ export function useMessageAttachmentUploader(
     return uploadFilesFromWebWithCaptions(filesWithCaptions);
   };
 
+  const uploadVoiceMessage = async (
+    file: LocalFile,
+    parentMessageId?: number | null
+  ): Promise<UploadResult[]> => {
+    setIsUploadingWebFiles(true);
+
+    try {
+      const messagesWithSignedUrl = await getMessagesWithSignedUrls(
+        [file],
+        "",
+        parentMessageId
+      );
+
+      const signedUrls = extractSignedUrls(messagesWithSignedUrl);
+
+      if (!signedUrls || signedUrls.length === 0) {
+        throw new Error("No signed URLs returned from server");
+      }
+
+      const signed = signedUrls[0];
+      const blob = await (await fetch(file.uri)).blob();
+      const contentType = file.type || blob.type || "application/octet-stream";
+
+      await axios.put(signed.url, blob, {
+        headers: { "Content-Type": contentType },
+      });
+
+      if (signed.messageId) {
+        await publishMessageEvents(conversationId, [signed.messageId]);
+      }
+
+      const matchingMessage = messagesWithSignedUrl?.find(
+        (msg) => msg.id === signed.messageId
+      );
+
+      const results: UploadResult[] = [
+        {
+          success: true,
+          fileName: file.name,
+          signed,
+          messageId: signed.messageId,
+          newMessage: matchingMessage,
+        },
+      ];
+
+      if (onUploadComplete) {
+        await onUploadComplete(results);
+      }
+
+      return results;
+    } catch (e: any) {
+      return [
+        {
+          success: false,
+          fileName: file.name,
+          error: e?.message ?? "Voice message upload failed",
+        },
+      ];
+    } finally {
+      setIsUploadingWebFiles(false);
+    }
+  };
+
   return {
     ...hook,
     pickAndUploadImagesAndVideos,
     pickAndUploadDocuments,
     uploadFilesFromWeb,
     uploadFilesFromWebWithCaptions,
+    uploadVoiceMessage,
     isUploading: isUploadingWebFiles,
     sendGifMessage,
     uploadProgress,
