@@ -73,6 +73,7 @@ export interface IMessage {
   isEdited?: boolean;
   isMarkdownEnabled?: boolean;
   isIncludeUrlMetadata: boolean;
+  isStored?: boolean;
 }
 
 export interface IMessageView extends IMessage {

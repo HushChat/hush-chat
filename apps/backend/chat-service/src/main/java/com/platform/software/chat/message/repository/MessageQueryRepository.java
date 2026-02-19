@@ -13,7 +13,7 @@ public interface MessageQueryRepository {
 
     Optional<Message> findDeletableMessage(Long messageId, Long loggedInUserId);
 
-    Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant);
+    Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant, Long requesterId);
 
     MessageWindowPage<Message> findMessagesAndAttachmentsByMessageId(Long conversationId, Long MessageId, ConversationParticipant participant);
 

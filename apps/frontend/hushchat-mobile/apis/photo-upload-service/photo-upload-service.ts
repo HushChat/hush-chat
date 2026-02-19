@@ -11,9 +11,8 @@ import {
   useNativePickerUpload,
 } from "@/hooks/useNativePickerUpload";
 import { createMessagesWithAttachments, publishMessageEvents } from "@/apis/conversation";
-import { logWarn } from "@/utils/logger";
 import { TFileWithCaption } from "@/hooks/conversation-thread/useSendMessageHandler";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MAX_DOCUMENT_SIZE_KB,
   MAX_IMAGE_SIZE_KB,
@@ -21,6 +20,8 @@ import {
 } from "@/constants/mediaConstants";
 import { IMessage } from "@/types/chat/types";
 import { getFileType } from "@/utils/files/getFileType";
+import { useAttachmentUploadStore } from "@/store/attachmentUpload/useAttachmentUploadStore";
+import { PLATFORM } from "@/constants/platformConstants";
 
 export enum UploadType {
   PROFILE = "profile",
@@ -198,6 +199,25 @@ export function useMessageAttachmentUploader(
   const [isUploadingWebFiles, setIsUploadingWebFiles] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
+  const { addPendingId, removePendingIds } = useAttachmentUploadStore();
+
+  useEffect(() => {
+    if (!PLATFORM.IS_WEB) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      const pendingCount = useAttachmentUploadStore.getState().pendingMessageIds.size;
+
+      if (pendingCount > 0) {
+        event.preventDefault();
+        event.returnValue = "Uploads in progress. Changes may not be saved.";
+        return event.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
   const getMessagesWithSignedUrls = async (
     files: LocalFile[],
     messageText: string = "",
@@ -294,158 +314,112 @@ export function useMessageAttachmentUploader(
 
   const uploadFilesFromWebWithCaptions = async (
     filesWithCaptions: TFileWithCaption[],
-    parentMessageId?: number | null
+    parentMessageId?: number | null,
+    onUploadStart?: (pairs: { message: IMessage; file: LocalFile }[]) => void
   ): Promise<UploadResult[]> => {
     if (!filesWithCaptions || filesWithCaptions.length === 0) return [];
 
     setIsUploadingWebFiles(true);
 
-    const toLocal = (f: File): LocalFile & { _blobUrl: string } => ({
-      uri: URL.createObjectURL(f),
-      name: f.name,
-      type: f.type || "application/octet-stream",
-      size: f.size,
-      _blobUrl: "",
-    });
-
-    const validFiles: {
-      file: LocalFile & { _blobUrl: string };
-      caption: string;
-      isMarkdownEnabled: boolean;
-    }[] = [];
-    const skipped: UploadResult[] = [];
-
-    for (const { file, caption, isMarkdownEnabled } of filesWithCaptions) {
+    const preparedData = filesWithCaptions.map(({ file, caption, isMarkdownEnabled }) => {
       const category = getFileType(file.type);
-
       const maxSize = sizeMap[category];
       const fileSizeKB = file.size / 1024;
 
-      if (fileSizeKB > maxSize) {
-        skipped.push({
-          success: false,
-          fileName: file.name,
-          error: `File too large (> ${maxSize / 1024} MB)`,
-        });
-        continue;
-      }
+      return {
+        file,
+        caption,
+        isMarkdownEnabled,
+        isTooLarge: fileSizeKB > maxSize,
+        maxSize,
+        localFile: {
+          uri: URL.createObjectURL(file),
+          name: file.name,
+          type: file.type || "application/octet-stream",
+          size: file.size,
+        } as LocalFile,
+      };
+    });
 
-      const lf = toLocal(file);
-      lf._blobUrl = lf.uri;
-      validFiles.push({ file: lf, caption, isMarkdownEnabled });
-    }
+    const validEntries = preparedData.filter((d) => !d.isTooLarge);
+    const skipped: UploadResult[] = preparedData
+      .filter((d) => d.isTooLarge)
+      .map((d) => ({
+        success: false,
+        fileName: d.file.name,
+        error: `File too large (> ${d.maxSize / 1024} MB)`,
+      }));
 
     try {
       const messagesWithSignedUrl = await getAttachmentsWithCaptions(
-        validFiles.map(({ file, caption, isMarkdownEnabled }) => ({
-          file,
-          caption,
-          isMarkdownEnabled,
+        validEntries.map((d) => ({
+          file: d.localFile,
+          caption: d.caption,
+          isMarkdownEnabled: d.isMarkdownEnabled,
         })),
         parentMessageId
       );
 
       const signedUrls = extractSignedUrls(messagesWithSignedUrl);
+      if (!signedUrls || signedUrls.length === 0) throw new Error("No signed URLs");
 
-      if (!signedUrls || signedUrls.length === 0) {
-        throw new Error("No signed URLs returned from server");
+      const idsToAdd = signedUrls.map((s) => s.messageId).filter((id): id is number => !!id);
+      idsToAdd.forEach((id) => addPendingId(id));
+
+      if (onUploadStart && messagesWithSignedUrl) {
+        const optimisticPairs = validEntries
+          .map((entry, i) => ({
+            message: messagesWithSignedUrl[i],
+            file: entry.localFile,
+          }))
+          .filter((p) => !!p.message);
+
+        onUploadStart(optimisticPairs);
       }
 
-      const results: UploadResult[] = [];
-      const successfulMessageIds: number[] = [];
-
-      setUploadProgress({});
-
-      for (let i = 0; i < validFiles.length; i++) {
-        const { file } = validFiles[i];
+      const uploadPromises = validEntries.map(async (entry, i) => {
         const signed = signedUrls[i];
-        const fileKey = i.toString();
+        const fileKey = signed?.messageId?.toString() ?? i.toString();
 
-        if (!signed || !signed.url) {
-          results.push({
-            success: false,
-            fileName: file.name,
-            error: "Missing signed URL for file",
-          });
-          continue;
+        if (!signed?.url) {
+          return { success: false, fileName: entry.file.name, error: "No URL" };
         }
 
-        setUploadProgress((prev) => ({
-          ...prev,
-          [fileKey]: 0,
-        }));
-
         try {
-          const blob = await (await fetch(file.uri)).blob();
-
-          const contentType = file.type || blob.type || "application/octet-stream";
-
-          await axios.put(signed.url, blob, {
-            headers: {
-              "Content-Type": contentType,
-            },
+          await axios.put(signed.url, entry.file, {
+            headers: { "Content-Type": entry.file.type || "application/octet-stream" },
             onUploadProgress: (event) => {
-              if (!event.total) return;
-
-              const percentCompleted = Math.round((event.loaded * 100) / event.total);
-
-              setUploadProgress((prev) => ({
-                ...prev,
-                [fileKey]: percentCompleted,
-              }));
+              const percent = Math.round((event.loaded * 100) / (event.total || entry.file.size));
+              setUploadProgress((prev) => ({ ...prev, [fileKey]: percent }));
             },
-          });
-
-          results.push({
-            success: true,
-            fileName: file.name,
-            signed,
-            messageId: signed.messageId,
           });
 
           if (signed.messageId) {
-            successfulMessageIds.push(signed.messageId);
+            await publishMessageEvents(conversationId, [signed.messageId]);
+            removePendingIds([signed.messageId]);
           }
-        } catch (e: any) {
-          results.push({
-            success: false,
-            fileName: file.name,
-            error: e?.message ?? "Upload failed",
+
+          return {
+            success: true,
+            fileName: entry.file.name,
+            messageId: signed.messageId,
             signed,
-          });
+            newMessage: messagesWithSignedUrl?.find((m) => m.id === signed.messageId),
+          };
+        } catch (e: any) {
+          return { success: false, fileName: entry.file.name, error: e.message, signed };
         }
-      }
-
-      if (successfulMessageIds.length > 0) {
-        await publishMessageEvents(conversationId, successfulMessageIds);
-      }
-
-      const allResults = [...results, ...skipped];
-
-      if (onUploadComplete) {
-        await onUploadComplete(allResults);
-      }
-
-      const resultsWithMessages = allResults.map((result) => {
-        const matchingMessage = messagesWithSignedUrl?.find((msg) => msg.id === result.messageId);
-
-        return {
-          ...result,
-          newMessage: matchingMessage,
-        };
       });
 
-      return resultsWithMessages;
+      const results = await Promise.all(uploadPromises);
+
+      const allResults = [...results, ...skipped];
+      if (onUploadComplete) await onUploadComplete(allResults);
+
+      return allResults;
     } finally {
       setIsUploadingWebFiles(false);
       setUploadProgress({});
-      validFiles.forEach(({ file }) => {
-        try {
-          URL.revokeObjectURL(file._blobUrl);
-        } catch (err) {
-          logWarn("Failed to revoke object URL:", file._blobUrl, err);
-        }
-      });
     }
   };
 

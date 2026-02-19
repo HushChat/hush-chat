@@ -113,12 +113,22 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         return tsvectorString;
     }
 
-    public Page<Message> findMessagesAndAttachments(Long conversationId, IdBasedPageRequest idBasedPageRequest, ConversationParticipant participant) {
+    public Page<Message> findMessagesAndAttachments(
+            Long conversationId,
+            IdBasedPageRequest idBasedPageRequest,
+            ConversationParticipant participant,
+            Long requesterId
+    ) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
 
         BooleanExpression conditions = message.conversation.id.eq(conversationId)
             .and(message.sender.isNotNull())
             .and(message.conversation.deleted.eq(false));
+
+        BooleanExpression isOwnerOrStored = message.sender.id.eq(requesterId)
+                .or(message.isStored.eq(true));
+
+        conditions = conditions.and(isOwnerOrStored);
 
         if(!participant.getIsActive()) {
             conditions = conditions.and(message.createdAt.before(Date.from(participant.getInactiveFrom().toInstant())));

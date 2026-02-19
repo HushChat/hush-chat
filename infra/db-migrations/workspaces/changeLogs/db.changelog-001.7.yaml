@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_is_stored_to_message
+      author: ransilu
+      tag: release-17.1
+      changes:
+        - addColumn:
+            tableName: message
+            columns:
+              - column:
+                  name: is_stored
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
