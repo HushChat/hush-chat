@@ -27,7 +27,6 @@ type TFilePreviewOverlayProps = {
   isGroupChat?: boolean;
   replyToMessage?: any;
   onCancelReply?: () => void;
-  uploadProgress: Record<string, number>;
   closeOverlay: () => void;
 };
 
@@ -42,7 +41,6 @@ const FilePreviewOverlay = ({
   isGroupChat = false,
   replyToMessage,
   onCancelReply,
-  uploadProgress,
   closeOverlay,
 }: TFilePreviewOverlayProps) => {
   const isMobile = useIsMobileLayout();
@@ -153,8 +151,6 @@ const FilePreviewOverlay = ({
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
           onRemoveFile={handleRemoveFile}
-          isSending={isSending}
-          uploadProgress={uploadProgress}
           horizontal={isMobile}
         />
         {currentItem && (
