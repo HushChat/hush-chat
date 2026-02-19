@@ -90,7 +90,11 @@ public class UserController {
      */
     @ApiOperation(value = "Update an user", response = UserViewDTO.class)
     @PutMapping
-    public ResponseEntity<UserViewDTO> updateUser(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserViewDTO> updateUser(
+        @Valid @RequestBody UserDTO userDTO,
+        @AuthenticatedUser UserDetails authenticatedUser
+    ) {
+        userDTO.setId(authenticatedUser.getId());
         ChatUser updatedUser = userService.updateUser(userDTO);
         return ResponseEntity.ok(new UserViewDTO(updatedUser));
     }
@@ -102,12 +106,12 @@ public class UserController {
      * @return ResponseEntity with HTTP status OK
      */
     @ApiOperation(value = "Get photo upload signed url", response = SignedURLDTO.class)
-    @PostMapping("{id}/profile/upload-photo")
+    @PostMapping("profile/upload-photo")
     public ResponseEntity<SignedURLDTO> generateSignedURLForProfilePictureUpload(
-        @PathVariable Long id,
-        @Valid @RequestBody DocUploadRequestDTO docUploadRequestDTO
+        @Valid @RequestBody DocUploadRequestDTO docUploadRequestDTO,
+        @AuthenticatedUser UserDetails authenticatedUser
     ) {
-        SignedURLDTO imageSignedDTO = userService.generateSignedURLForProfilePictureUpload(docUploadRequestDTO, id);
+        SignedURLDTO imageSignedDTO = userService.generateSignedURLForProfilePictureUpload(docUploadRequestDTO, authenticatedUser.getId());
         return ResponseEntity.ok(imageSignedDTO);
     }
 

@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.platform.software.chat.conversation.service.ConversationUtilService;
 import com.platform.software.chat.message.attachment.dto.MessageAttachmentDTO;
 import com.platform.software.chat.message.attachment.service.AttachmentFilterCriteria;
 import com.platform.software.chat.message.attachment.service.MessageAttachmentService;
+import com.platform.software.config.security.AuthenticatedUser;
+import com.platform.software.config.security.model.UserDetails;
 import io.swagger.annotations.ApiOperation;
 
 import java.util.Map;
@@ -19,9 +22,14 @@ import java.util.Map;
 @RequestMapping("/conversations/{conversationId}/attachments")
 public class ConversationAttachmentController {
     private final MessageAttachmentService messageAttachmentService;
+    private final ConversationUtilService conversationUtilService;
 
-    public ConversationAttachmentController(MessageAttachmentService messageAttachmentService) {
+    public ConversationAttachmentController(
+        MessageAttachmentService messageAttachmentService,
+        ConversationUtilService conversationUtilService
+    ) {
         this.messageAttachmentService = messageAttachmentService;
+        this.conversationUtilService = conversationUtilService;
     }
 
     /**
@@ -32,13 +40,15 @@ public class ConversationAttachmentController {
      * @param pageable       pagination information 
      * @return ResponseEntity containing a Page of MessageAttachmentDTO
      */
-    @ApiOperation(value = "Get conversation attachmnets", response = MessageAttachmentDTO.class)
+    @ApiOperation(value = "Get conversation attachments", response = MessageAttachmentDTO.class)
     @GetMapping
     public ResponseEntity<Page<MessageAttachmentDTO>> getConversationAttachments(
         @PathVariable Long conversationId,
         AttachmentFilterCriteria filterCriteria,
-        Pageable pageable
+        Pageable pageable,
+        @AuthenticatedUser UserDetails userDetails
     ) {
+        conversationUtilService.getConversationParticipantOrThrow(conversationId, userDetails.getId());
         Page<MessageAttachmentDTO> attachments = messageAttachmentService.getAttachments(conversationId, filterCriteria,
                 pageable);
         return new ResponseEntity<>(attachments, HttpStatus.OK);
@@ -48,8 +58,10 @@ public class ConversationAttachmentController {
     @GetMapping("/{attachmentId}/download-url")
     public ResponseEntity<Map<String, String>> getAttachmentDownloadUrl(
         @PathVariable Long conversationId,
-        @PathVariable Long attachmentId
+        @PathVariable Long attachmentId,
+        @AuthenticatedUser UserDetails userDetails
     ) {
+        conversationUtilService.getConversationParticipantOrThrow(conversationId, userDetails.getId());
         String downloadUrl = messageAttachmentService.getAttachmentDownloadUrl(conversationId, attachmentId);
         return new ResponseEntity<>(Map.of("downloadUrl", downloadUrl), HttpStatus.OK);
     }
