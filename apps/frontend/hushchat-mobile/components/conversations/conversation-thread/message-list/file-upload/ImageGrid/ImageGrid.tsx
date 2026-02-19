@@ -12,18 +12,9 @@ import {
 type TImageGridProps = {
   images: IMessageAttachment[];
   onImagePress: (index: number) => void;
-  isCurrentUser: boolean;
-  isStored?: boolean;
-  isUploading?: boolean;
 };
 
-export const ImageGrid = ({
-  images,
-  onImagePress,
-  isCurrentUser,
-  isStored,
-  isUploading,
-}: TImageGridProps) => {
+export const ImageGrid = ({ images, onImagePress }: TImageGridProps) => {
   const displayImages = images.slice(0, GRID_CONFIG.MAX_DISPLAY_IMAGES);
   const remainingCount = Math.max(0, images.length - GRID_CONFIG.MAX_DISPLAY_IMAGES);
 
@@ -35,9 +26,6 @@ export const ImageGrid = ({
         attachment={displayImages[0]}
         style={dynamicStyles.singleImage(aspectRatio)}
         onPress={() => onImagePress(0)}
-        isCurrentUser={isCurrentUser}
-        isStored={isStored}
-        isUploading={isUploading}
       />
     </View>
   );
@@ -48,15 +36,11 @@ export const ImageGrid = ({
         attachment={displayImages[0]}
         style={dynamicStyles.twoImagesImage}
         onPress={() => onImagePress(0)}
-        isCurrentUser={isCurrentUser}
-        isStored={isStored}
       />
       <MediaItem
         attachment={displayImages[1]}
         style={dynamicStyles.twoImagesImage}
         onPress={() => onImagePress(1)}
-        isCurrentUser={isCurrentUser}
-        isStored={isStored}
       />
     </View>
   );
@@ -67,8 +51,6 @@ export const ImageGrid = ({
         attachment={displayImages[0]}
         style={dynamicStyles.threeImagesLarge}
         onPress={() => onImagePress(0)}
-        isCurrentUser={isCurrentUser}
-        isStored={isStored}
       />
 
       <View style={staticStyles.gap}>
@@ -76,15 +58,11 @@ export const ImageGrid = ({
           attachment={displayImages[1]}
           style={dynamicStyles.threeImagesSmall}
           onPress={() => onImagePress(1)}
-          isCurrentUser={isCurrentUser}
-          isStored={isStored}
         />
         <MediaItem
           attachment={displayImages[2]}
           style={dynamicStyles.threeImagesSmall}
           onPress={() => onImagePress(2)}
-          isCurrentUser={isCurrentUser}
-          isStored={isStored}
         />
       </View>
     </View>
@@ -97,15 +75,11 @@ export const ImageGrid = ({
           attachment={displayImages[0]}
           style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(0)}
-          isCurrentUser={isCurrentUser}
-          isStored={isStored}
         />
         <MediaItem
           attachment={displayImages[1]}
           style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(1)}
-          isCurrentUser={isCurrentUser}
-          isStored={isStored}
         />
       </View>
 
@@ -114,8 +88,6 @@ export const ImageGrid = ({
           attachment={displayImages[2]}
           style={dynamicStyles.fourImagesImage}
           onPress={() => onImagePress(2)}
-          isCurrentUser={isCurrentUser}
-          isStored={isStored}
         />
         <MediaItem
           attachment={displayImages[3]}
@@ -123,8 +95,6 @@ export const ImageGrid = ({
           onPress={() => onImagePress(3)}
           showOverlay={remainingCount > 0}
           remainingCount={remainingCount}
-          isCurrentUser={isCurrentUser}
-          isStored={isStored}
         />
       </View>
     </View>

@@ -18,6 +18,8 @@ interface IFilePreviewItemProps {
   isSelected: boolean;
   onSelect: () => void;
   onRemove: (index: number) => void;
+  isSending?: boolean;
+  uploadProgress?: number;
   compact?: boolean;
 }
 
@@ -141,6 +143,8 @@ export const FilePreviewItem = ({
   isSelected,
   onSelect,
   onRemove,
+  isSending,
+  uploadProgress = 0,
   compact = false,
 }: IFilePreviewItemProps) => {
   const { previewUrl, fileType } = useFilePreview(file);
@@ -208,6 +212,16 @@ export const FilePreviewItem = ({
             <Ionicons name="trash-outline" size={14} color="#ef4444" />
           </TouchableOpacity>
         </View>
+        {isSending && (
+          <View className="mt-1">
+            <View className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <View
+                className="h-full bg-primary-light dark:bg-primary-dark rounded-full"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </View>
+          </View>
+        )}
       </TouchableOpacity>
     );
   }
@@ -256,6 +270,25 @@ export const FilePreviewItem = ({
           <Ionicons name="trash-outline" size={16} color="#ef4444" />
         </TouchableOpacity>
       </View>
+
+      {isSending && (
+        <View className=" px-4 py-3 border-t border-gray-200 dark:border-gray-800">
+          <View className="flex-row justify-between mb-1.5">
+            <AppText className="text-xs font-bold text-primary-light dark:text-primary-dark">
+              Uploading...
+            </AppText>
+            <AppText className="text-xs font-bold text-primary-light dark:text-primary-dark">
+              {uploadProgress}%
+            </AppText>
+          </View>
+          <View className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <View
+              className="h-full bg-primary-light dark:bg-primary-dark rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </View>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };

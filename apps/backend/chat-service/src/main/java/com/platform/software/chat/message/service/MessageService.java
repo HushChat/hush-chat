@@ -70,8 +70,8 @@ public class MessageService {
     private final MessageUtilService messageUtilService;
     private final MessageMentionRepository messageMentionRepository;
 
-    public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant, Long requesterId) {
-        return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant, requesterId);
+    public Page<Message> getRecentVisibleMessages(IdBasedPageRequest idBasedPageRequest, Long conversationId ,ConversationParticipant participant) {
+        return messageRepository.findMessagesAndAttachments(conversationId, idBasedPageRequest, participant);
     }
 
     public MessageWindowPage<Message> getRecentVisibleMessages(Long messageId, Long conversationId ,ConversationParticipant participant) {
@@ -362,9 +362,6 @@ public class MessageService {
                 !message.getConversation().getId().equals(conversationId)) {
                 continue;
             }
-
-            // attachments considered as successfully sent after acknowledging its being uploaded s3 bucket correctly.
-            message.setIsStored(true);
             
             MessageViewDTO messageViewDTO = new MessageViewDTO(message);
             
@@ -443,7 +440,6 @@ public class MessageService {
                 Message newMessage = MessageService.buildMessage(message.getMessageText(), targetConversation.getModel(), loggedInUser, message.getMessageType(), message.getIsMarkdownEnabled());
                 newMessage.setForwardedMessage(message);
                 newMessage.setAttachments(mapToNewAttachments(message.getAttachments(), newMessage));
-                newMessage.setIsStored(true);
                 forwardingMessages.add(newMessage);
             });
 
@@ -456,7 +452,6 @@ public class MessageService {
                         MessageTypeEnum.TEXT,
                         messageForwardRequestDTO.getIsMarkdownEnabled()
                 );
-                customMessage.setIsStored(true);
                 forwardingMessages.add(customMessage);
             }
 
