@@ -64,7 +64,8 @@ public class ChatEventListener {
 
         chatNotificationService.sendMessageReactionNotifications(
                 event.getMessage(),
-                event.getUser()
+                event.getUser(),
+                event.getConversationId()
         );
     }
 
