@@ -65,7 +65,29 @@ export function useConversationMessagesQuery(
     allowForwardPagination: inMessageWindowView,
     retry: skipRetryOnAccessDenied,
     refetchOnMount: true,
+    staleTime: inMessageWindowView ? Infinity : 0,
   });
+
+  // Auto-exit message window view when forward pagination reaches the latest page.
+  // Wait until targetMessageId is cleared (scroll completed) before exiting.
+  // On exit, rebuild cache with only the latest page using default pageParam
+  // so subsequent refetches use /messages?size=20 and older-page scrolling works correctly.
+  useEffect(() => {
+    if (inMessageWindowView && pages && !hasPreviousPage && !targetMessageId) {
+      setInMessageWindowView(false);
+
+      queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
+        queryKey,
+        (oldData) => {
+          if (!oldData?.pages?.length) return oldData;
+          return {
+            pages: [oldData.pages[0]],
+            pageParams: [undefined],
+          };
+        }
+      );
+    }
+  }, [inMessageWindowView, hasPreviousPage, targetMessageId, pages, queryClient, queryKey]);
 
   const loadMessageWindow = useCallback(
     async (targetMessageIdParam: number) => {
@@ -75,6 +97,8 @@ export function useConversationMessagesQuery(
         setInMessageWindowView(true);
 
         try {
+          await queryClient.cancelQueries({ queryKey });
+
           const messageWindowResponse = await getMessagesAroundMessageId(
             conversationId,
             targetMessageIdParam
@@ -117,6 +141,18 @@ export function useConversationMessagesQuery(
     setTargetMessageId(null);
   }, []);
 
+  // Manual refetch: exit message window view first, then reset query
+  // so it fetches the latest messages cleanly.
+  const safeInvalidateQuery = useCallback(() => {
+    if (inMessageWindowView) {
+      setInMessageWindowView(false);
+      setTargetMessageId(null);
+      queryClient.resetQueries({ queryKey });
+    } else {
+      invalidateQuery();
+    }
+  }, [inMessageWindowView, invalidateQuery, queryClient, queryKey]);
+
   const updateConversationMessagesCache = useCallback(
     (newMessage: IMessage) => {
       queryClient.setQueryData<InfiniteData<CursorPaginatedResponse<IMessage>>>(
@@ -125,6 +161,8 @@ export function useConversationMessagesQuery(
           if (!oldData) return oldData;
 
           const firstPage = oldData.pages[0];
+          if (!firstPage?.content) return oldData;
+
           const alreadyExists = firstPage.content.some((msg) => msg.id === newMessage.id);
           if (alreadyExists) return oldData;
 
@@ -256,7 +294,7 @@ export function useConversationMessagesQuery(
     hasPreviousPage,
     isFetchingPreviousPage,
     refetch,
-    invalidateQuery,
+    invalidateQuery: safeInvalidateQuery,
     updateConversationMessagesCache,
     updateConversationsListCache,
     replaceTempMessage,
