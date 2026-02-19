@@ -42,6 +42,7 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
   allowForwardPagination = false,
   retry,
   refetchOnMount,
+  staleTime,
 }: CursorPaginatedQueryOptions<T>) {
   const queryClient = useQueryClient();
 
@@ -110,6 +111,7 @@ export function usePaginatedQueryWithCursor<T extends { id: number | string }>({
 
     refetchOnMount: refetchOnMount || false,
     refetchOnWindowFocus: false,
+    staleTime,
   });
 
   return {

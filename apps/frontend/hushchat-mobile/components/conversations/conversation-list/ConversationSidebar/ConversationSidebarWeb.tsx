@@ -54,12 +54,6 @@ export default function ConversationSidebarWeb() {
     router.push(CONVERSATION(conversation.id));
   }, []);
 
-  const handleSearchMessageClick = useCallback((message: any) => {
-    if (message?.conversationId) {
-      router.push(CONVERSATION(message.conversationId));
-    }
-  }, []);
-
   usePublishUserActivity({
     conversations,
     selectedConversationId,
@@ -146,11 +140,7 @@ export default function ConversationSidebarWeb() {
           duration={{ enter: 240, exit: 200 }}
           easing={MotionEasing.pair}
         >
-          <MentionedMessageListView
-            onClose={() => setShowMentionedMessages(false)}
-            onMessageClicked={handleSearchMessageClick}
-            setSelectedConversation={handleSelectConversation}
-          />
+          <MentionedMessageListView onClose={() => setShowMentionedMessages(false)} />
         </MotionView>
       )}
     </View>

@@ -8,21 +8,15 @@ import BackButton from "@/components/BackButton";
 import { PLATFORM } from "@/constants/platformConstants";
 import { useRouter } from "expo-router";
 import { useCallback } from "react";
-import { CHAT_VIEW_PATH } from "@/constants/routes";
+import { CHAT_VIEW_PATH, CONVERSATION } from "@/constants/routes";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 import FormattedText from "@/components/FormattedText";
 
 type TMentionedMessagesOverlay = {
   onClose?: () => void;
-  onMessageClicked?: (message: any) => void;
-  setSelectedConversation?: (conversation: IConversation | null) => void;
 };
 
-export default function MentionedMessageListView({
-  onClose,
-  onMessageClicked,
-  setSelectedConversation,
-}: TMentionedMessagesOverlay) {
+export default function MentionedMessageListView({ onClose }: TMentionedMessagesOverlay) {
   const router = useRouter();
 
   const isMobileLayout = useIsMobileLayout();
@@ -52,13 +46,11 @@ export default function MentionedMessageListView({
           },
         });
       } else {
-        if (setSelectedConversation) {
-          setSelectedConversation(conversation);
-        }
-        onMessageClicked?.(message);
+        router.push(CONVERSATION(conversation.id, message.id));
+        onClose?.();
       }
     },
-    [isMobileLayout, onMessageClicked]
+    [isMobileLayout, onClose]
   );
 
   const renderEmptyComponent = () => {
