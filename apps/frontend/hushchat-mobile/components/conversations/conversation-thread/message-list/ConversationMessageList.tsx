@@ -41,6 +41,7 @@ interface IMessagesListProps {
   webMessageInfoPress?: (messageId: number) => void;
   lastSeenMessageId?: number | null;
   onEditMessage?: (message: IMessage) => void;
+  uploadProgress: Record<string, number>;
 }
 
 const ConversationMessageList = ({
@@ -60,6 +61,7 @@ const ConversationMessageList = ({
   webMessageInfoPress,
   lastSeenMessageId,
   onEditMessage,
+  uploadProgress,
 }: IMessagesListProps) => {
   const { user } = useUserStore();
   const router = useRouter();
@@ -190,6 +192,7 @@ const ConversationMessageList = ({
         webMessageInfoPress,
         markMessageAsUnread,
         onEditMessage,
+        uploadProgress,
       }),
     [
       currentUserId,
@@ -211,6 +214,7 @@ const ConversationMessageList = ({
       webMessageInfoPress,
       markMessageAsUnread,
       onEditMessage,
+      uploadProgress,
     ]
   );
 
@@ -304,6 +308,7 @@ const ConversationMessageList = ({
           hasMoreNewer,
           isFetchingNewer,
           targetMessageId,
+          uploadProgress,
         }}
       />
       {reactionsModal.visible && (
