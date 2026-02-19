@@ -206,6 +206,8 @@ export interface ConversationAPIResponse {
   isActive: boolean;
   name: string;
   pinnedMessage?: IBasicMessage | null;
+  participants?: ConversationParticipant[];
+  participantCount?: number;
 }
 
 export interface IGroupConversation {

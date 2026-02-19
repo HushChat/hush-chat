@@ -1412,6 +1412,29 @@ public class ConversationService {
             if(participant.getRole() == ConversationParticipantRoleEnum.ADMIN) {
                 conversationMetaDataDTO.setIsCurrentUserAdmin(true);
             }
+
+            Page<ConversationParticipant> participantPage = conversationParticipantRepository
+                    .findConversationParticipantsByCriteria(
+                        conversationId,
+                        PageRequest.of(0, GeneralConstants.META_PARTICIPANT_PREVIEW_SIZE),
+                        new ConversationParticipantFilterCriteriaDTO()
+                    );
+
+            List<ConversationParticipantViewDTO> participantViewDTOs = participantPage.getContent().stream()
+                    .map(p -> {
+                        ConversationParticipantViewDTO viewDTO = new ConversationParticipantViewDTO(p);
+                        UserViewDTO userViewDTO = new UserViewDTO(p.getUser());
+                        String signedUrl = cloudPhotoHandlingService.getPhotoViewSignedURL(
+                                MediaPathEnum.RESIZED_PROFILE_PICTURE, MediaSizeEnum.SMALL,
+                                p.getUser().getImageIndexedName());
+                        userViewDTO.setSignedImageUrl(signedUrl);
+                        viewDTO.setUser(userViewDTO);
+                        return viewDTO;
+                    })
+                    .toList();
+
+            conversationMetaDataDTO.setParticipants(participantViewDTOs);
+            conversationMetaDataDTO.setParticipantCount(participantPage.getTotalElements());
         }
 
         boolean isPinnedMessageExpired = conversationUtilService.clearPinnedMessageIfExpired(conversationId, userId, conversationMetaDataDTO);

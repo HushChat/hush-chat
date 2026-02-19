@@ -1,6 +1,7 @@
 package com.platform.software.chat.conversation.dto;
 
 import com.platform.software.chat.conversation.entity.Conversation;
+import com.platform.software.chat.conversationparticipant.dto.ConversationParticipantViewDTO;
 import com.platform.software.chat.message.dto.BasicMessageDTO;
 import com.platform.software.chat.notification.entity.DeviceType;
 import com.platform.software.chat.user.entity.ChatUserStatus;
@@ -9,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -29,6 +31,8 @@ public class ConversationMetaDataDTO {
     private Date pinnedMessageUntil;
     private boolean notifyOnMentionsOnly;
     private DeviceType deviceType;
+    private List<ConversationParticipantViewDTO> participants;
+    private Long participantCount;
 
     public ConversationMetaDataDTO(Conversation conversation) {
         this.id = conversation.getId();
