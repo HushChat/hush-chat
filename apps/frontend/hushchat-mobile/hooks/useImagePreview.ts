@@ -44,10 +44,6 @@ export function useImagePreview(options: Options = {}) {
     setSelectedFiles([]);
   }, []);
 
-  const closeOverlay = useCallback(() => {
-    setShowImagePreview(false);
-  }, []);
-
   const removeAt = useCallback((index: number) => {
     setSelectedFiles((prev) => {
       const next = prev.filter((_, i) => i !== index);
@@ -76,8 +72,6 @@ export function useImagePreview(options: Options = {}) {
   return {
     selectedFiles,
     showImagePreview,
-    setShowImagePreview,
-    closeOverlay,
     open,
     close,
     removeAt,

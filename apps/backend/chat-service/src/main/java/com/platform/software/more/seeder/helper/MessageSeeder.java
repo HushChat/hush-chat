@@ -90,11 +90,7 @@ public class MessageSeeder {
             }
             List<Message> messages = objectMapper.readValue(inputStream,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, Message.class));
-
-            messages.forEach(message -> {
-                message.setIsStored(true);
-                messageRepository.saveMessageWthSearchVector(message);
-            });
+            messages.forEach(messageRepository::saveMessageWthSearchVector);
 
             logger.info("finished seeding predefined messages: {}", messages.size());
 

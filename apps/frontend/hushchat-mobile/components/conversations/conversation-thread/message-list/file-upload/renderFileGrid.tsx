@@ -24,13 +24,9 @@ const dynamicStyles = {
 const RenderFileGrid = ({
   attachments,
   isCurrentUser,
-  isStored,
-  isUploading,
 }: {
   attachments: IMessageAttachment[];
   isCurrentUser: boolean;
-  isStored?: boolean;
-  isUploading?: boolean;
 }) => {
   const [docPreviewVisible, setDocPreviewVisible] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<IMessageAttachment | null>(null);
@@ -76,13 +72,7 @@ const RenderFileGrid = ({
 
         {hasMedia && (
           <View style={dynamicStyles.container(isCurrentUser)}>
-            <ImageGrid
-              images={mediaItems}
-              onImagePress={openPreview}
-              isCurrentUser={isCurrentUser}
-              isStored={isStored}
-              isUploading={isUploading}
-            />
+            <ImageGrid images={mediaItems} onImagePress={openPreview} />
           </View>
         )}
       </View>
@@ -103,16 +93,6 @@ const RenderFileGrid = ({
   );
 };
 
-export const renderFileGrid = (
-  attachments: IMessageAttachment[],
-  isCurrentUser: boolean,
-  isStored?: boolean,
-  isUploading?: boolean
-) => (
-  <RenderFileGrid
-    attachments={attachments}
-    isCurrentUser={isCurrentUser}
-    isStored={isStored}
-    isUploading={isUploading}
-  />
+export const renderFileGrid = (attachments: IMessageAttachment[], isCurrentUser: boolean) => (
+  <RenderFileGrid attachments={attachments} isCurrentUser={isCurrentUser} />
 );

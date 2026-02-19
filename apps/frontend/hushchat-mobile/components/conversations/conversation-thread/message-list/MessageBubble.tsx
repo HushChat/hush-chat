@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Pressable, View, ViewStyle, TextStyle, Image, ActivityIndicator } from "react-native";
+import { Pressable, View, ViewStyle, TextStyle, Image } from "react-native";
 import classNames from "classnames";
 import { Ionicons } from "@expo/vector-icons";
 import { IMessage, IMessageAttachment } from "@/types/chat/types";
@@ -15,8 +15,6 @@ import { getGifUrl, hasGif } from "@/utils/messageUtils";
 import InitialsAvatar, { AvatarSize } from "@/components/InitialsAvatar";
 import { AppText } from "@/components/AppText";
 import { formatDateTime } from "@/utils/commonUtils";
-import { selectIsMessageUploading } from "@/store/attachmentUpload/useAttachmentUploadSlice";
-import { useAttachmentUploadStore } from "@/store/attachmentUpload/useAttachmentUploadStore";
 
 interface IMessageBubbleProps {
   message: IMessage;
@@ -36,7 +34,6 @@ interface IMessageBubbleProps {
   isMessageEdited?: boolean;
   isMobileLayout?: boolean;
   isGroup?: boolean;
-  uploadProgress?: number;
 }
 
 export const MessageBubble = ({
@@ -56,7 +53,6 @@ export const MessageBubble = ({
   isMessageEdited,
   isMobileLayout,
   isGroup,
-  uploadProgress,
 }: IMessageBubbleProps) => {
   const messageContent = message.messageText;
   const hasGifMedia = hasGif(message);
@@ -66,8 +62,6 @@ export const MessageBubble = ({
     message.id,
     message.isIncludeUrlMetadata
   );
-
-  const isUploading = useAttachmentUploadStore(selectIsMessageUploading(message.id));
 
   const handleMentionPress = (username: string) => {
     if (!onMentionClick || !message.mentions) return;
@@ -162,19 +156,6 @@ export const MessageBubble = ({
             "px-3 py-2"
           )}
         >
-          {isUploading && !isMobileLayout && (
-            <View className="absolute inset-0 z-50 flex items-center justify-center bg-black/40">
-              <View className="bg-black/60 rounded-full p-2 items-center justify-center w-12 h-12">
-                <ActivityIndicator size="small" color="#ffffff" />
-                {uploadProgress && (
-                  <AppText className="text-[10px] text-white font-bold mt-1">
-                    {uploadProgress}%
-                  </AppText>
-                )}
-              </View>
-            </View>
-          )}
-
           {hasGifMedia && !message.isUnsend && (
             <View className={messageContent ? "mb-2" : ""}>
               {PLATFORM.IS_WEB ? (
@@ -195,7 +176,7 @@ export const MessageBubble = ({
 
           {hasAttachments && !hasGifMedia && (
             <View className={messageContent ? "mb-2" : ""}>
-              {renderFileGrid(attachments, isCurrentUser, message.isStored, isUploading)}
+              {renderFileGrid(attachments, isCurrentUser)}
             </View>
           )}
 

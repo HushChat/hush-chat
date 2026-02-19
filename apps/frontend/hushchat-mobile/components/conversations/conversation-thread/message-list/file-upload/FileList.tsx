@@ -7,6 +7,8 @@ type TFileListProps = {
   selectedIndex: number;
   onSelect: (index: number) => void;
   onRemoveFile: (index: number) => void;
+  isSending: boolean;
+  uploadProgress: Record<string, number>;
   horizontal?: boolean;
 };
 
@@ -15,6 +17,8 @@ const FileList = ({
   selectedIndex,
   onSelect,
   onRemoveFile,
+  isSending,
+  uploadProgress,
   horizontal = false,
 }: TFileListProps) => {
   if (horizontal) {
@@ -33,6 +37,8 @@ const FileList = ({
                 isSelected={index === selectedIndex}
                 onSelect={() => onSelect(index)}
                 onRemove={onRemoveFile}
+                isSending={isSending}
+                uploadProgress={uploadProgress[index.toString()] ?? 0}
                 compact
               />
             </View>
@@ -57,6 +63,8 @@ const FileList = ({
               isSelected={index === selectedIndex}
               onSelect={() => onSelect(index)}
               onRemove={onRemoveFile}
+              isSending={isSending}
+              uploadProgress={uploadProgress[index.toString()] ?? 0}
             />
           </View>
         ))}

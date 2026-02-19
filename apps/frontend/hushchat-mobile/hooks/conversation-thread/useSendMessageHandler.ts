@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { UseMutateFunction } from "@tanstack/react-query";
 import { useConversationMessagesQuery } from "@/query/useConversationMessageQuery";
 import { IMessage, MessageAttachmentTypeEnum } from "@/types/chat/types";
-import { LocalFile, UploadResult } from "@/hooks/useNativePickerUpload";
+import { UploadResult } from "@/hooks/useNativePickerUpload";
 import { ApiResponse } from "@/types/common/types";
 import { logError } from "@/utils/logger";
 import { getFileType } from "@/utils/files/getFileType";
@@ -23,8 +23,7 @@ interface IUseSendMessageHandlerParams {
   sendMessage: UseMutateFunction<ApiResponse<unknown>, unknown, unknown, unknown>;
   uploadFilesFromWebWithCaptions: (
     filesWithCaptions: TFileWithCaption[],
-    parentMessageId?: number | null,
-    onUploadStart?: (pairs: { message: IMessage; file: LocalFile }[]) => void
+    parentMessageId?: number | null
   ) => Promise<UploadResult[]>;
   handleCloseImagePreview: () => void;
   updateConversationMessagesCache: (message: IMessage) => void;
@@ -198,40 +197,44 @@ export const useSendMessageHandler = ({
           })
         );
 
-        const onUploadStart = (pairs: { message: IMessage; file: LocalFile }[]) => {
-          pairs.forEach(({ message, file }) => {
+        const results = await uploadFilesFromWebWithCaptions(preparedFiles, parentMsgId);
+
+        results.forEach((result) => {
+          if (result.success && result.messageId) {
+            const match = preparedFiles.find((item) => item.file.name === result.fileName);
+
+            if (!match) return;
+
+            const file = match.file;
+            const newMessage = result.newMessage ?? ({} as IMessage);
+
             const messageAttachments = [
               {
-                fileUrl: file.uri,
+                fileUrl: URL.createObjectURL(file),
                 originalFileName: file.name,
                 indexedFileName: "",
                 mimeType: file.type,
                 type: MessageAttachmentTypeEnum.MEDIA,
-                updatedAt: new Date().toISOString(),
+                updatedAt: "",
               },
             ];
 
             const updatingCacheMessage = {
-              ...message,
+              ...newMessage,
               messageAttachments,
             };
 
             updateConversationMessagesCache(updatingCacheMessage);
-            updateConversationsListCache(updatingCacheMessage);
-          });
-        };
-
-        const results = await uploadFilesFromWebWithCaptions(
-          preparedFiles,
-          parentMsgId,
-          onUploadStart
-        );
+            updateConversationsListCache(result.newMessage ?? ({} as IMessage));
+          }
+        });
 
         const failedCount = results.filter((r) => !r.success).length;
         if (failedCount > 0) {
           logError(`${failedCount} file(s) failed to upload`);
         }
 
+        handleCloseImagePreview();
         setSelectedMessage(null);
       } catch (error) {
         logError("Failed to send files:", error);

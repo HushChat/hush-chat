@@ -90,7 +90,4 @@ public class Message extends AuditModel {
 
     @NotNull
     private Boolean isMarkdownEnabled = false;
-
-    @NotNull
-    private Boolean isStored = false;
 }
