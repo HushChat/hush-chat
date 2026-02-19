@@ -135,8 +135,8 @@ public class ChatNotificationService {
      * @param message message
      * @param loggedInUser logged in user
      */
-    public void sendMessageReactionNotifications(Message message, ChatUser loggedInUser) {
-        List<String> tokens = chatNotificationRepository.findNonMutedTokensByUserId(message.getSender().getId());
+    public void sendMessageReactionNotifications(Message message, ChatUser loggedInUser, Long conversationId) {
+        List<String> tokens = chatNotificationRepository.findNonMutedTokensByUserId(message.getSender().getId(), conversationId);
 
         if (tokens.isEmpty()) {
             return;
