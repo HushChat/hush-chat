@@ -221,7 +221,11 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
                         qConversationParticipant.isPinned.desc().nullsLast(),
                         // Secondary sort: Among pinned conversations, most recently pinned first
                         qConversationParticipant.pinnedAt.desc().nullsLast(),
-                        // Tertiary sort: Latest message timestamp (for both pinned and non-pinned)
+                        // Tertiary sort: Active conversations before Deleted ones
+                        qConversationParticipant.isDeleted.asc().nullsFirst(),
+                        // Quaternary: Delete Time (Recently deleted first)
+                        qConversationParticipant.lastDeletedTime.desc().nullsLast(),
+                        // Quinary sort: Latest message timestamp (for both pinned and non-pinned)
                         qMessage.createdAt.desc().nullsLast(),
                         // Final sort: Conversation creation time
                         qConversation.createdAt.desc())
