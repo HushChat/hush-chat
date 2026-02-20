@@ -8,7 +8,7 @@ import UnsendMessagePreview from "@/components/UnsendMessagePreview";
 import { MessageLabel } from "@/components/conversations/conversation-thread/composer/MessageLabel";
 import { renderFileGrid } from "@/components/conversations/conversation-thread/message-list/file-upload/renderFileGrid";
 import { TUser } from "@/types/user/types";
-import { useMessageUrlMetadataQuery } from "@/query/useMessageUrlMetadataQuery";
+import { useOGMetadataStore } from "@/store/ogMetadata/useOGMetadataStore";
 import { PLATFORM } from "@/constants/platformConstants";
 import LinkPreviewCard from "@/components/conversations/LinkPreviewCard";
 import { getGifUrl, hasGif } from "@/utils/messageUtils";
@@ -62,9 +62,9 @@ export const MessageBubble = ({
   const hasGifMedia = hasGif(message);
   const gifUrl = getGifUrl(message);
 
-  const { messageUrlMetadata, isMessageUrlMetadataFetching } = useMessageUrlMetadataQuery(
-    message.id,
-    message.isIncludeUrlMetadata
+  const messageUrlMetadata = useOGMetadataStore((state) => state.metadata[message.id]);
+  const isMessageUrlMetadataFetching = useOGMetadataStore((state) =>
+    state.pendingMessageIds.has(message.id)
   );
 
   const isUploading = useAttachmentUploadStore(selectIsMessageUploading(message.id));
