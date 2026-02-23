@@ -43,6 +43,7 @@ export const CALL_EVENTS = {
   INCOMING: "call:incoming",
   ENDED: "call:ended",
   REJECTED: "call:rejected",
+  SIGNAL: "call:signal",
 } as const;
 
 export const SYSTEM_EVENTS = {

@@ -8,6 +8,7 @@ import {
   MessageReadPayload,
   MessagePinnedPayload,
 } from "@/types/ws/types";
+import { CallSignalPayload } from "@/types/call/callSignaling";
 import { IConversation, IUserStatus, IMessage } from "@/types/chat/types";
 import {
   CALL_EVENTS,
@@ -53,7 +54,7 @@ export type WebSocketEvents = {
   [NOTIFICATION_EVENTS.SHOW]: NotificationPayload;
   [NOTIFICATION_EVENTS.CLEAR]: { conversationId?: number };
 
-  // Call events (if you have voice/video calling)
+  // Call events
   [CALL_EVENTS.INCOMING]: {
     callId: string;
     from: string;
@@ -62,6 +63,7 @@ export type WebSocketEvents = {
   };
   [CALL_EVENTS.ENDED]: { callId: string; duration?: number };
   [CALL_EVENTS.REJECTED]: { callId: string; reason?: string };
+  [CALL_EVENTS.SIGNAL]: CallSignalPayload;
 
   // System events
   [SYSTEM_EVENTS.MAINTENANCE]: { message: string; scheduledTime?: string };
@@ -111,6 +113,10 @@ export const emitMessageUpdated = (message: IMessage) => {
 
 export const emitMessagePinned = (pinnedMessage: MessagePinnedPayload) => {
   eventBus.emit(CONVERSATION_EVENTS.MESSAGE_PINNED, pinnedMessage);
+};
+
+export const emitCallSignal = (signal: CallSignalPayload) => {
+  eventBus.emit(CALL_EVENTS.SIGNAL, signal);
 };
 
 // export const emitConnectionStatus = (connected: boolean, reason?: string) => {

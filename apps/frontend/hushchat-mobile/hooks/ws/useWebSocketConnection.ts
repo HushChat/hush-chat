@@ -29,7 +29,12 @@ import { getDeviceId } from "@/utils/deviceIdUtils";
 import { useAppVisibility } from "@/hooks/useAppVisibility";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { HEARTBEAT_INTERVAL, useHeartbeat } from "@/hooks/ws/wsHeartbeat";
-import { publishTypingStatus, publishUserActivity } from "@/hooks/ws/wsPublisher";
+import {
+  publishCallSignal,
+  publishTypingStatus,
+  publishUserActivity,
+} from "@/hooks/ws/wsPublisher";
+import { CallSignalPayload } from "@/types/call/callSignaling";
 import { CONFIG } from "@/constants/ws/wsConfig";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 
@@ -679,6 +684,46 @@ export default function useWebSocketConnection() {
     [connectionStatus, id]
   );
 
+  // Publish call signal
+  const publishCallSignalMessage = useCallback(
+    async (data: CallSignalPayload) => {
+      logInfo("[CALL DEBUG] publishCallSignalMessage called", {
+        connectionStatus,
+        wsExists: !!wsRef.current,
+        wsReadyState: wsRef.current?.readyState,
+        dataType: data.type,
+      });
+
+      if (connectionStatus !== WebSocketStatus.Connected) {
+        logInfo("[CALL DEBUG] BLOCKED: WebSocket not connected", {
+          status: connectionStatus,
+        });
+        return false;
+      }
+
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        logInfo("[CALL DEBUG] BLOCKED: WebSocket not in OPEN state");
+        return false;
+      }
+
+      const deviceType = getDeviceType(isMobileLayout);
+      const deviceId = await getDeviceId();
+      logInfo("[CALL DEBUG] Sending STOMP frame", {
+        deviceType,
+        deviceId,
+        destination: "call-signal",
+      });
+      const result = publishCallSignal(wsRef.current, {
+        ...data,
+        deviceType,
+        deviceId,
+      } as any);
+      logInfo("[CALL DEBUG] publishCallSignal wsPublisher result:", result);
+      return result;
+    },
+    [connectionStatus, isMobileLayout]
+  );
+
   const forceReconnect = useCallback(() => {
     logInfo("Force reconnect requested");
     updateState({
@@ -697,6 +742,7 @@ export default function useWebSocketConnection() {
     connectionStatus,
     publishActivity,
     publishTyping,
+    publishCallSignal: publishCallSignalMessage,
     forceReconnect,
   };
 }

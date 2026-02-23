@@ -1,4 +1,5 @@
 import { TypingIndicatorWSData, UserActivityWSSubscriptionData } from "@/types/ws/types";
+import { CallSignalPayload } from "@/types/call/callSignaling";
 import { logInfo } from "@/utils/logger";
 import { getDeviceId } from "@/utils/deviceIdUtils";
 import { WS_DESTINATIONS } from "@/constants/apiConstants";
@@ -48,10 +49,11 @@ export const buildStompSendFrame = (
 const publishToWebSocket = (
   ws: WebSocket | null,
   destination: string,
-  data: UserActivityWSSubscriptionData | TypingIndicatorWSData,
+  data: UserActivityWSSubscriptionData | TypingIndicatorWSData | CallSignalPayload,
   action: string
 ): boolean => {
   if (!canPublish(ws, action)) {
+    logInfo(`[CALL DEBUG] canPublish returned false for ${action}`);
     return false;
   }
 
@@ -59,7 +61,13 @@ const publishToWebSocket = (
     const body = JSON.stringify(data);
     const deviceType = (data as any).deviceType ?? DeviceType.UNKNOWN;
     const deviceId = (data as any).deviceId ?? getDeviceId();
-    ws.send(buildStompSendFrame(destination, body, deviceType, deviceId).buffer);
+    logInfo(`[CALL DEBUG] publishToWebSocket: sending ${action} to ${destination}`, {
+      bodyLength: body.length,
+      deviceType,
+      deviceIdType: typeof deviceId,
+    });
+    ws!.send(buildStompSendFrame(destination, body, deviceType, deviceId).buffer);
+    logInfo(`[CALL DEBUG] ws.send completed for ${action}`);
     return true;
   } catch (error) {
     logInfo(`Error publishing ${action}:`, error);
@@ -81,4 +89,8 @@ export const publishUserActivity = (
 
 export const publishTypingStatus = (ws: WebSocket | null, data: TypingIndicatorWSData): boolean => {
   return publishToWebSocket(ws, WS_DESTINATIONS.TYPING, data, TITLES.TYPING_ACTIVITY);
+};
+
+export const publishCallSignal = (ws: WebSocket | null, data: CallSignalPayload): boolean => {
+  return publishToWebSocket(ws, WS_DESTINATIONS.CALL_SIGNAL, data, "call signal");
 };

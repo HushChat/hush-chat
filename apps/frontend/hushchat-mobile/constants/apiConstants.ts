@@ -134,4 +134,5 @@ export const WS_DESTINATIONS = {
   SUBSCRIBED_CONVERSATIONS: "/app/subscribed-conversations",
   TYPING: "/app/typing",
   HEARTBEAT: "/app/heartbeat",
+  CALL_SIGNAL: "/app/call-signal",
 };
