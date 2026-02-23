@@ -55,6 +55,7 @@ export interface CursorPaginatedQueryOptions<T> {
 export interface AddConversationParticipantsParams {
   conversationId: number;
   newParticipantIds: number[];
+  addAllWorkspaceUsers?: boolean;
 }
 export interface ToggleMuteConversationParams {
   conversationId: number;
@@ -395,11 +396,12 @@ export const getConversationParticipants = async (
 export const addConversationParticipants = async ({
   conversationId,
   newParticipantIds,
+  addAllWorkspaceUsers,
 }: AddConversationParticipantsParams) => {
   try {
     const response = await axios.post(
       CONVERSATION_API_ENDPOINTS.CONVERSATION_PARTICIPANTS(conversationId),
-      { userIds: newParticipantIds }
+      { userIds: newParticipantIds, addAllWorkspaceUsers }
     );
     return { data: response.data };
   } catch (error: unknown) {

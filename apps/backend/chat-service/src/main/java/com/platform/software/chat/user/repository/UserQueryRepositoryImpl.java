@@ -92,4 +92,14 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                 .where(chatUser.email.in(emails))
                 .fetch();
     }
+
+    @Override
+    public List<Long> findAllActiveUserIds() {
+        return queryFactory
+                .select(chatUser.id)
+                .from(chatUser)
+                .where(chatUser.active.eq(true)
+                        .and(chatUser.deleted.eq(false)))
+                .fetch();
+    }
 }

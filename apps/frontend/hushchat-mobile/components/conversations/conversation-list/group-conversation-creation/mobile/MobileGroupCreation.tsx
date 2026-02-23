@@ -7,7 +7,13 @@ import { CHAT_VIEW_PATH } from "@/constants/routes";
 import GroupConfigurationForm from "@/components/conversations/conversation-list/group-conversation-creation/GroupConfigurationForm";
 import { AppText } from "@/components/AppText";
 
-const MobileGroupCreation = ({ participantUserIds }: { participantUserIds: number[] }) => {
+const MobileGroupCreation = ({
+  participantUserIds,
+  addAllWorkspaceUsers,
+}: {
+  participantUserIds: number[];
+  addAllWorkspaceUsers?: boolean;
+}) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -24,6 +30,7 @@ const MobileGroupCreation = ({ participantUserIds }: { participantUserIds: numbe
 
       <GroupConfigurationForm
         participantUserIds={participantUserIds}
+        addAllWorkspaceUsers={addAllWorkspaceUsers}
         onSuccess={(conversationId) =>
           router.replace({
             pathname: CHAT_VIEW_PATH,

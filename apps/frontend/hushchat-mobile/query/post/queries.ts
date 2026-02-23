@@ -72,7 +72,7 @@ export const useCreateGroupConversationMutation = createMutationHook<
 
 export const useCreateAddParticipantsMutation = createMutationHook<
   void,
-  { conversationId: number; newParticipantIds: number[] }
+  { conversationId: number; newParticipantIds: number[]; addAllWorkspaceUsers?: boolean }
 >(
   addConversationParticipants,
   (keyParams: { conversationId: number; keyword: string }) => () =>

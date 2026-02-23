@@ -536,4 +536,9 @@ public class UserServiceImpl implements UserService {
         ChatUser user = getUserByEmail(email);
         return user.getAvailabilityStatus().getName();
     }
+
+    @Override
+    public List<Long> getAllActiveUserIds() {
+        return userQueryRepository.findAllActiveUserIds();
+    }
 }
