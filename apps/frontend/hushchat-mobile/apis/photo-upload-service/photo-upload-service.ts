@@ -145,7 +145,7 @@ export const getImageSignedUrl = async (
     const endpoint =
       uploadType === UploadType.GROUP
         ? CONVERSATION_API_ENDPOINTS.GROUP_IMAGE_SIGNED_URL(id)
-        : USER_API_ENDPOINTS.PROFILE_IMAGE_SIGNED_URL(id);
+        : USER_API_ENDPOINTS.PROFILE_IMAGE_SIGNED_URL;
     const response = await axios.post(endpoint, {
       fileNames: [fileName],
       fileType,
