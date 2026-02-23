@@ -210,12 +210,18 @@ public class ConversationService {
             GroupConversationUpsertDTO groupConversationDTO,
             Long loggedInUserId
     ) {
-        if (groupConversationDTO.getParticipantUserIds() == null
-                || groupConversationDTO.getParticipantUserIds().isEmpty()) {
-            throw new CustomBadRequestException("At least one participant is required for group conversation");
+        List<Long> participantUserIds;
+        if (Boolean.TRUE.equals(groupConversationDTO.getAddAllWorkspaceUsers())) {
+            participantUserIds = userService.getAllActiveUserIds();
+        } else {
+            if (groupConversationDTO.getParticipantUserIds() == null
+                    || groupConversationDTO.getParticipantUserIds().isEmpty()) {
+                throw new CustomBadRequestException("At least one participant is required for group conversation");
+            }
+            participantUserIds = groupConversationDTO.getParticipantUserIds();
         }
 
-        List<Long> allParticipantIds = new ArrayList<>(groupConversationDTO.getParticipantUserIds());
+        List<Long> allParticipantIds = new ArrayList<>(participantUserIds);
         if (!allParticipantIds.contains(loggedInUserId)) {
             allParticipantIds.add(loggedInUserId);
         }
@@ -247,7 +253,7 @@ public class ConversationService {
             savedConversationDTO
         ));
 
-        triggerGroupCreationEvents(conversation.getId(), loggedInUserId, groupConversationDTO.getParticipantUserIds());
+        triggerGroupCreationEvents(conversation.getId(), loggedInUserId, participantUserIds);
 
         return savedConversationDTO;
     }
@@ -841,7 +847,12 @@ public class ConversationService {
     @Transactional
     public void addParticipantsToConversation(Long initiatorUserId, Long conversationId, JoinParticipantRequestDTO joinRequest) {
 
-        ValidationUtils.validate(joinRequest);
+        if (Boolean.TRUE.equals(joinRequest.getAddAllWorkspaceUsers())) {
+            List<Long> allActiveUserIds = userService.getAllActiveUserIds();
+            joinRequest.setUserIds(new HashSet<>(allActiveUserIds));
+        } else if (joinRequest.getUserIds() == null || joinRequest.getUserIds().isEmpty()) {
+            throw new CustomBadRequestException("User IDs list cannot be empty");
+        }
 
         ConversationParticipant adminParticipant =
                 conversationUtilService.getLoggedInUserIfAdminAndValidConversation(initiatorUserId, conversationId);
@@ -849,6 +860,17 @@ public class ConversationService {
 
         List<ConversationParticipant> existingParticipants =
                 findDuplicateParticipants(conversationId, joinRequest);
+
+        if (Boolean.TRUE.equals(joinRequest.getAddAllWorkspaceUsers())) {
+            Set<Long> activeExistingIds = existingParticipants.stream()
+                    .filter(ConversationParticipant::getIsActive)
+                    .map(p -> p.getUser().getId())
+                    .collect(Collectors.toSet());
+            joinRequest.getUserIds().removeAll(activeExistingIds);
+            existingParticipants = existingParticipants.stream()
+                    .filter(p -> !p.getIsActive())
+                    .collect(Collectors.toList());
+        }
 
         ParticipantProcessingResult participantProcessingResult = processExistingParticipants(existingParticipants);
 
@@ -861,6 +883,10 @@ public class ConversationService {
         List<ConversationParticipant> participantsToSave = new ArrayList<>(participantProcessingResult.reactivated());
         for (Long userId : newUserIds) {
             participantsToSave.add(createParticipant(validUsers.get(userId), conversation));
+        }
+
+        if (participantsToSave.isEmpty()) {
+            return;
         }
 
         try {

@@ -215,6 +215,7 @@ export interface IGroupConversation {
   participantUserIds?: number[];
   description?: string;
   imageFileName?: string | null;
+  addAllWorkspaceUsers?: boolean;
 }
 
 export enum ConversationSearchResultKeys {

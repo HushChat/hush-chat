@@ -3,13 +3,21 @@ import { useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
 
 const GroupConfiguration = () => {
-  const { userIds } = useLocalSearchParams<{ userIds?: string }>();
+  const { userIds, addAllWorkspaceUsers } = useLocalSearchParams<{
+    userIds?: string;
+    addAllWorkspaceUsers?: string;
+  }>();
 
   const participantUserIds = useMemo<number[]>(() => {
     return userIds ? JSON.parse(userIds) : [];
   }, [userIds]);
 
-  return <MobileGroupCreation participantUserIds={participantUserIds} />;
+  return (
+    <MobileGroupCreation
+      participantUserIds={participantUserIds}
+      addAllWorkspaceUsers={addAllWorkspaceUsers === "true"}
+    />
+  );
 };
 
 export default GroupConfiguration;
