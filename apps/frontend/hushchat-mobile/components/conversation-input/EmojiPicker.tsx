@@ -1,11 +1,20 @@
 import React, { useState, useMemo } from "react";
-import { Modal, View, TouchableOpacity, FlatList, Image, ScrollView } from "react-native";
+import {
+  Modal,
+  View,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import classNames from "classnames";
 import emojiData from "openmoji/data/openmoji.json";
 import { PLATFORM } from "@/constants/platformConstants";
 import { AppText, AppTextInput } from "@/components/AppText";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
 import { BuildConstantKeys, getBuildConstant } from "@/constants/build-constants";
 
 interface IEmojiPickerProps {
@@ -47,7 +56,6 @@ const EMOJI_BASE_URL = getBuildConstant(BuildConstantKeys.EMOJI_BASE_URL);
 const EMOJI_SIZE = 32;
 const COLS_WEB = 8;
 const COLS_MOBILE = 6;
-const NUM_COLUMNS = PLATFORM.IS_WEB ? COLS_WEB : COLS_MOBILE;
 
 export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
   visible,
@@ -58,6 +66,10 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const { isDark } = useAppTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobileLayout = useIsMobileLayout();
+  const isMobileRendering = !PLATFORM.IS_WEB || isMobileLayout;
+  const numColumns = isMobileRendering ? COLS_MOBILE : COLS_WEB;
 
   const typedEmojiData = emojiData as EmojiItem[];
 
@@ -90,7 +102,7 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
   const renderEmojiItem = ({ item }: { item: EmojiItem }) => (
     <TouchableOpacity
       className="flex-1 aspect-square justify-center items-center p-2 m-0.5 rounded-lg active:bg-gray-100 dark:active:bg-gray-800"
-      style={{ maxWidth: `${100 / NUM_COLUMNS}%` }}
+      style={{ maxWidth: `${100 / numColumns}%` }}
       onPress={() => handleEmojiSelect(item)}
     >
       {PLATFORM.IS_WEB ? (
@@ -156,7 +168,7 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
     return { position: "absolute" as const, ...anchorPosition };
   };
 
-  if (PLATFORM.IS_WEB) {
+  if (!isMobileRendering) {
     return visible ? (
       <View className="fixed inset-0 z-50" style={{ pointerEvents: visible ? "auto" : "none" }}>
         <TouchableOpacity className="absolute inset-0" onPress={onClose} activeOpacity={1} />
@@ -189,7 +201,7 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
 
           <FlatList
             data={filteredEmojis}
-            numColumns={NUM_COLUMNS}
+            numColumns={numColumns}
             keyExtractor={(item) => item.hexcode}
             renderItem={renderEmojiItem}
             contentContainerStyle={{ padding: 8 }}
@@ -210,11 +222,10 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View className={classNames("flex-1 bg-black/50", { "justify-end": !PLATFORM.IS_WEB })}>
+      <View className="flex-1 bg-black/50 justify-end items-center">
         <View
-          className={classNames("bg-white dark:bg-gray-900 overflow-hidden shadow-xl", {
-            "h-[75%] w-full rounded-t-[20px]": !PLATFORM.IS_WEB,
-          })}
+          className="bg-white dark:bg-gray-900 overflow-hidden shadow-xl h-[75%] rounded-t-[20px]"
+          style={{ width: windowWidth * 0.95 }}
         >
           <View className="flex-row justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
             <AppText className="text-lg font-semibold dark:text-white">Select Emoji</AppText>
@@ -240,7 +251,7 @@ export const EmojiPickerComponent: React.FC<IEmojiPickerProps> = ({
 
           <FlatList
             data={filteredEmojis}
-            numColumns={6}
+            numColumns={numColumns}
             keyExtractor={(item) => item.hexcode}
             renderItem={renderEmojiItem}
             contentContainerStyle={{ padding: 8 }}

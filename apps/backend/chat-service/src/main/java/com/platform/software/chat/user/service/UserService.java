@@ -60,5 +60,7 @@ public interface UserService {
     UserStatusEnum updateUserAvailability(UserDetails authenticatedUser, UserStatusEnum status);
 
     String getUserAvailabilityStatus(String email);
+
+    List<Long> getAllActiveUserIds();
 }
 

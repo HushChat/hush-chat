@@ -206,6 +206,8 @@ export interface ConversationAPIResponse {
   isActive: boolean;
   name: string;
   pinnedMessage?: IBasicMessage | null;
+  participants?: ConversationParticipant[];
+  participantCount?: number;
 }
 
 export interface IGroupConversation {
@@ -213,6 +215,7 @@ export interface IGroupConversation {
   participantUserIds?: number[];
   description?: string;
   imageFileName?: string | null;
+  addAllWorkspaceUsers?: boolean;
 }
 
 export enum ConversationSearchResultKeys {

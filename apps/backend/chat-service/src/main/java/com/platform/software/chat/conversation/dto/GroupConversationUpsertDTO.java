@@ -11,4 +11,5 @@ public class GroupConversationUpsertDTO {
     private List<Long> participantUserIds;
     private String imageFileName;
     private Boolean onlyAdminsCanSendMessages;
+    private Boolean addAllWorkspaceUsers;
 }

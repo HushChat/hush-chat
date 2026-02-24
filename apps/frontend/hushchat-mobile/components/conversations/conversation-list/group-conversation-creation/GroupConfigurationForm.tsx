@@ -28,6 +28,7 @@ export interface IGroupConfigurationFormProps {
   initialName?: string;
   submitLabel?: string;
   setSelectedConversation?: (conversation: IConversation) => void;
+  addAllWorkspaceUsers?: boolean;
 }
 
 const GroupConfigurationForm = ({
@@ -36,6 +37,7 @@ const GroupConfigurationForm = ({
   setSelectedConversation,
   initialName = "",
   submitLabel = "Create Group",
+  addAllWorkspaceUsers,
 }: IGroupConfigurationFormProps) => {
   const [groupName, setGroupName] = useState(initialName);
   const [uploading, setUploading] = useState(false);
@@ -46,8 +48,8 @@ const GroupConfigurationForm = ({
   const hasImage = imagePickerResult?.assets && imagePickerResult.assets.length > 0;
 
   const isValid = useMemo(
-    () => groupName.trim().length > 0 && participantUserIds.length > 0,
-    [groupName, participantUserIds]
+    () => groupName.trim().length > 0 && (addAllWorkspaceUsers || participantUserIds.length > 0),
+    [groupName, participantUserIds, addAllWorkspaceUsers]
   );
 
   const {
@@ -93,7 +95,7 @@ const GroupConfigurationForm = ({
     if (!isValid || submitting) return;
     const groupInfo: IGroupConversation = {
       name: groupName.trim(),
-      participantUserIds,
+      ...(addAllWorkspaceUsers ? { addAllWorkspaceUsers: true } : { participantUserIds }),
       imageFileName: imageAssetData ? imageAssetData.fileName : null,
       description: groupDescription,
     };
@@ -104,6 +106,7 @@ const GroupConfigurationForm = ({
     submitting,
     groupName,
     participantUserIds,
+    addAllWorkspaceUsers,
     groupDescription,
     createGroup,
   ]);
@@ -180,8 +183,9 @@ const GroupConfigurationForm = ({
       <View className="flex-row items-center mb-8">
         <Ionicons name="people-outline" size={18} color="#9CA3AF" />
         <AppText className="ml-2 text-sm text-text-secondary-light dark:text-text-secondary-dark">
-          {participantUserIds.length} participant{participantUserIds.length !== 1 ? "s" : ""}{" "}
-          selected
+          {addAllWorkspaceUsers
+            ? "All workspace users"
+            : `${participantUserIds.length} participant${participantUserIds.length !== 1 ? "s" : ""} selected`}
         </AppText>
       </View>
 

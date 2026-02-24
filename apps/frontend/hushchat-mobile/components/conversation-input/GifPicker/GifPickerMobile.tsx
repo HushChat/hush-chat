@@ -45,8 +45,8 @@ export const GifPickerMobile = ({ visible, onClose, onGifSelect }: GifPickerProp
   if (!visible) return null;
 
   return (
-    <View className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-      <View className="h-[400px]">
+    <View className="items-center bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+      <View className="h-[400px]" style={{ width: width * 0.95 }}>
         <GifPickerHeader onClose={handleClose} />
         <GifPickerSearch value={searchQuery} onChange={setSearchQuery} />
 

@@ -32,18 +32,22 @@ export const WebGroupCreation = ({
 }: TWebGroupCreationOverlay) => {
   const [selectedUsers, setSelectedUsers] = useState<TUser[]>([]);
   const [showConfigurationForm, setShowConfigurationForm] = useState(false);
+  const [addAllUsers, setAddAllUsers] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setSelectedUsers([]);
       setShowConfigurationForm(false);
+      setAddAllUsers(false);
     }
   }, [visible]);
 
+  const canContinue = addAllUsers || selectedUsers.length > 0;
+
   const handleNext = useCallback(() => {
-    if (selectedUsers.length === 0) return;
+    if (!canContinue) return;
     setShowConfigurationForm(true);
-  }, [selectedUsers.length]);
+  }, [canContinue]);
 
   const handleBack = useCallback(() => {
     if (showConfigurationForm) {
@@ -90,17 +94,15 @@ export const WebGroupCreation = ({
         {!showConfigurationForm && (
           <TouchableOpacity
             onPress={handleNext}
-            disabled={selectedUsers.length === 0}
+            disabled={!canContinue}
             className={`px-3 py-2 rounded-lg ${
-              selectedUsers.length > 0
-                ? "bg-primary-light dark:bg-primary-dark"
-                : "bg-gray-300 dark:bg-gray-700"
+              canContinue ? "bg-primary-light dark:bg-primary-dark" : "bg-gray-300 dark:bg-gray-700"
             }`}
             activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
             <AppText
               className={`text-xs font-medium leading-none ${
-                selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-300"
+                canContinue ? "text-white" : "text-gray-500 dark:text-gray-300"
               }`}
             >
               Continue
@@ -119,18 +121,44 @@ export const WebGroupCreation = ({
           easing={MotionEasing.pair}
         >
           <View style={{ width }}>
-            <UserMultiSelectList
-              selectedUsers={selectedUsers}
-              onChange={setSelectedUsers}
-              searchPlaceholder="Add participants…"
-              autoFocusSearch={true}
-            />
+            <TouchableOpacity
+              onPress={() => setAddAllUsers((prev) => !prev)}
+              className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700"
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="people" size={20} color="#6B7280" />
+                <AppText className="ml-3 text-sm text-gray-900 dark:text-white">
+                  Add all workspace users
+                </AppText>
+              </View>
+              <Ionicons
+                name={addAllUsers ? "checkbox" : "square-outline"}
+                size={22}
+                color={addAllUsers ? "#3B82F6" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+            {addAllUsers ? (
+              <View className="flex-1 items-center justify-center px-8">
+                <Ionicons name="people-circle-outline" size={48} color="#9CA3AF" />
+                <AppText className="mt-3 text-center text-gray-500 dark:text-gray-400">
+                  All workspace users will be added to this group
+                </AppText>
+              </View>
+            ) : (
+              <UserMultiSelectList
+                selectedUsers={selectedUsers}
+                onChange={setSelectedUsers}
+                searchPlaceholder="Add participants…"
+                autoFocusSearch={true}
+              />
+            )}
           </View>
 
           <View style={[styles.stepPage, { width }]}>
             {showConfigurationForm && (
               <GroupConfigurationForm
                 participantUserIds={participantUserIds}
+                addAllWorkspaceUsers={addAllUsers}
                 onSuccess={handleGroupCreated}
                 submitLabel="Create group"
                 setSelectedConversation={setSelectedConversation}

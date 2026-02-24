@@ -61,24 +61,37 @@ export default function AddMoreGroupParticipants({
           </AppText>
         </View>
 
-        <TouchableOpacity
-          onPress={saveAddParticipants}
-          disabled={selectedUsers.length === 0}
-          className={`px-3 py-2 rounded-lg ${
-            selectedUsers.length > 0
-              ? "bg-primary-light dark:bg-primary-dark"
-              : "bg-gray-300 dark:bg-gray-700"
-          }`}
-          activeOpacity={DEFAULT_ACTIVE_OPACITY}
-        >
-          <AppText
-            className={`text-xs font-medium leading-none ${
-              selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-300"
-            }`}
+        <View className="flex-row gap-x-2">
+          <TouchableOpacity
+            onPress={() =>
+              addParticipants({ conversationId, newParticipantIds: [], addAllWorkspaceUsers: true })
+            }
+            className="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700"
+            activeOpacity={DEFAULT_ACTIVE_OPACITY}
           >
-            Add
-          </AppText>
-        </TouchableOpacity>
+            <AppText className="text-xs font-medium leading-none text-gray-700 dark:text-gray-300">
+              Add All
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={saveAddParticipants}
+            disabled={selectedUsers.length === 0}
+            className={`px-3 py-2 rounded-lg ${
+              selectedUsers.length > 0
+                ? "bg-primary-light dark:bg-primary-dark"
+                : "bg-gray-300 dark:bg-gray-700"
+            }`}
+            activeOpacity={DEFAULT_ACTIVE_OPACITY}
+          >
+            <AppText
+              className={`text-xs font-medium leading-none ${
+                selectedUsers.length > 0 ? "text-white" : "text-gray-500 dark:text-gray-300"
+              }`}
+            >
+              Add
+            </AppText>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View className="w-full h-full">
