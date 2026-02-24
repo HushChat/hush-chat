@@ -234,8 +234,11 @@ public class MessageController {
      */
     @ApiOperation(value = "get message url meta data")
     @GetMapping("urlMetadata/{messageId}")
-    public ResponseEntity<MessageUrlMetadataDTO> getMessageUrlMetadata(@PathVariable Long messageId) {
-        MessageUrlMetadataDTO messageUrlMetaData = messageService.getMessageUrlMetadata(messageId);
+    public ResponseEntity<MessageUrlMetadataDTO> getMessageUrlMetadata(
+            @AuthenticatedUser UserDetails authenticatedUser,
+            @PathVariable Long messageId
+    ) {
+        MessageUrlMetadataDTO messageUrlMetaData = messageService.getMessageUrlMetadata(authenticatedUser.getId(), messageId);
         return ResponseEntity.ok(messageUrlMetaData);
     }
 }

@@ -758,9 +758,8 @@ public class MessageService {
      * @throws CustomBadRequestException if the message does not exist or if an error
      * occurs while connecting to and parsing the external URL
      */
-    public MessageUrlMetadataDTO getMessageUrlMetadata(Long messageId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new CustomBadRequestException("Message not found"));
+    public MessageUrlMetadataDTO getMessageUrlMetadata(Long userId, Long messageId) {
+        Message message = getMessageIfUserParticipant(userId, messageId);
 
         String extractedUrl = null;
 
@@ -811,9 +810,9 @@ public class MessageService {
                 dto.setDomain(extractedUrl);
             }
 
-        } catch (IOException exception) {
-            logger.error("failed to extract domain for url: {}", extractedUrl, exception);
-            return null;
+        } catch (Exception exception) {
+            logger.error("failed to extract url metadata for url: {}", extractedUrl, exception);
+            throw new CustomBadRequestException("Failed to extract url metadata for url: " + extractedUrl);
         }
 
         return dto;
