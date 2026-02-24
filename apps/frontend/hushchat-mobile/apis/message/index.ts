@@ -1,5 +1,5 @@
 import { CONVERSATION_API_ENDPOINTS, MESSAGE_API_ENDPOINTS } from "@/constants/apiConstants";
-import { IMessageReactionRequest } from "@/types/chat/types";
+import { IMessageReactionRequest, TMessageUrlMetadata } from "@/types/chat/types";
 import { ErrorResponse } from "@/utils/apiErrorUtils";
 import axios, { AxiosError } from "axios";
 
@@ -148,5 +148,12 @@ export const getMentionedMessages = async (page: number = 0, size: number = 20) 
 
 export const getMessageUrlMetadata = async (messageId: number) => {
   const response = await axios.get(MESSAGE_API_ENDPOINTS.GET_URL_METADATA(messageId));
+  return response.data;
+};
+
+export const getBatchMessageUrlMetadata = async (
+  messageIds: number[]
+): Promise<Record<number, TMessageUrlMetadata>> => {
+  const response = await axios.post(MESSAGE_API_ENDPOINTS.GET_BATCH_URL_METADATA, messageIds);
   return response.data;
 };
