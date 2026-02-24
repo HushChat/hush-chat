@@ -1,0 +1,23 @@
+name: Trigger Deploy Website to AWS
+on:
+  push:
+    tags:
+      - 'web-v*'
+
+jobs:
+  trigger-deployment:
+    runs-on: [self-hosted, on-premise]
+    if: ${{ !github.event.repository.fork }}
+
+    steps:
+      - name: Extract tag name
+        id: extract_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Dispatch website deployment workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GIT_TOKEN }}
+          repository: ${{ vars.DEPLOYMENT_REPO }}
+          event-type: run-deploy-website
+          client-payload: '{"tag": "${{ env.TAG_NAME }}"}'
