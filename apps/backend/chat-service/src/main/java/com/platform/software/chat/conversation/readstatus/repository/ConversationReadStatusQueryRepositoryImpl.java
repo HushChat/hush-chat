@@ -12,6 +12,7 @@ import com.platform.software.chat.user.entity.QChatUser;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
@@ -90,10 +91,23 @@ public class ConversationReadStatusQueryRepositoryImpl  implements ConversationR
                 qMessage.id.count()
             ))
             .from(qConversation)
+                .innerJoin(qParticipant).on(
+                        qParticipant.conversation.eq(qConversation)
+                                .and(qParticipant.user.id.eq(userId))
+                                .and(qParticipant.isDeleted.isFalse())
+                )
             .leftJoin(qConversationReadStatus)
             .on(joinReadStatusForUser(userId))
             .leftJoin(qMessage)
-            .on(joinUnreadMessages())
+                .on(joinUnreadMessages()
+                        .and(
+                                qParticipant.lastDeletedTime.isNull()
+                                        .or(
+                                                // compare Date > ZonedDateTime
+                                                Expressions.booleanTemplate("{0} > {1}", qMessage.createdAt, qParticipant.lastDeletedTime)
+                                        )
+                        )
+                )
             .groupBy(qConversation.id);
     }
 

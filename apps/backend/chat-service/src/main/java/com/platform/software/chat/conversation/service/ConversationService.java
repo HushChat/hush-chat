@@ -1327,10 +1327,6 @@ public class ConversationService {
         ConversationParticipant requestedParticipant = conversationUtilService
                 .getConversationParticipantOrThrow(conversationId, requestingUserId);
 
-        if (requestedParticipant.getIsDeleted()) {
-            throw new CustomBadRequestException("Can't access deleted conversation");
-        }
-
         Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
         String imageViewSignedUrl = conversationUtilService.getImageViewSignedUrl(MediaPathEnum.RESIZED_GROUP_PICTURE, MediaSizeEnum.LARGE, conversation.getImageIndexedName());
         conversation.setSignedImageUrl(imageViewSignedUrl);
