@@ -1,76 +1,23 @@
-name: Deploy Website to AWS
-
+name: Trigger Deploy Website to AWS
 on:
   push:
     tags:
       - 'web-v*'
 
 jobs:
-  deploy:
+  trigger-deployment:
     runs-on: [self-hosted, on-premise]
+    if: ${{ !github.event.repository.fork }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Extract tag name
+        id: extract_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Extract tag info
-        id: config
-        run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "project=hushchat" >> $GITHUB_OUTPUT
-          echo "bucket=gethush.chat" >> $GITHUB_OUTPUT
-          echo "distribution=E1RN7LMLF9PA6" >> $GITHUB_OUTPUT
-
-      - name: Print deployment info
-        run: |
-          echo "========================================"
-          echo "  Deploying: ${{ steps.config.outputs.project }}"
-          echo "  Tag:       ${{ steps.config.outputs.tag }}"
-          echo "  Bucket:    ${{ steps.config.outputs.bucket }}"
-          echo "  CDN ID:    ${{ steps.config.outputs.distribution }}"
-          echo "========================================"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Dispatch website deployment workflow
+        uses: peter-evans/repository-dispatch@v2
         with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: website/hushchat/pnpm-lock.yaml
-
-      - name: Install dependencies
-        working-directory: website/hushchat
-        run: pnpm install --frozen-lockfile
-
-      - name: Build website
-        working-directory: website/hushchat
-        run: pnpm build
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ap-south-1
-
-      - name: Deploy to S3
-        run: |
-          echo "Uploading website/hushchat/dist -> s3://${{ steps.config.outputs.bucket }}"
-          aws s3 sync \
-            website/hushchat/dist \
-            s3://${{ steps.config.outputs.bucket }} \
-            --delete
-          echo "S3 sync complete"
-
-      - name: Invalidate CloudFront cache
-        run: |
-          echo "Invalidating CloudFront distribution ${{ steps.config.outputs.distribution }}"
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ steps.config.outputs.distribution }} \
-            --paths "/*"
-          echo "Deployment complete for ${{ steps.config.outputs.project }} (${{ steps.config.outputs.bucket }})"
+          token: ${{ secrets.GIT_TOKEN }}
+          repository: ${{ vars.DEPLOYMENT_REPO }}
+          event-type: run-deploy-website
+          client-payload: '{"tag": "${{ env.TAG_NAME }}"}'
