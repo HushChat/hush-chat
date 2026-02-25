@@ -1,0 +1,61 @@
+---
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  activePage?: string;
+}
+
+const {
+  title = 'HushChat - Where Teams Come Together to Communicate',
+  description = 'One workspace for your entire team. Organize conversations into groups, message teammates directly, and keep everyone in sync-effortlessly.',
+  activePage = '',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://gethush.chat');
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content={description} />
+  <meta name="author" content="HushChat" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonicalURL.href} />
+  <meta property="og:image" content="/images/hushchat-hero-img-2048x1156.png" />
+  <meta property="og:site_name" content="HushChat" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="/images/hushchat-hero-img-2048x1156.png" />
+
+  <link rel="canonical" href={canonicalURL.href} />
+
+  <!-- Fonts: preconnect + preload for zero-flash page loads -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <title>{title}</title>
+</head>
+<body>
+  <Navbar activePage={activePage} />
+  <main>
+    <slot />
+  </main>
+  <Footer />
+</body>
+</html>

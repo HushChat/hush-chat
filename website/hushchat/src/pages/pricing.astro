@@ -1,0 +1,98 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Pricing - HushChat" description="Simple, transparent pricing for teams of all sizes." activePage="pricing">
+
+  <section class="pricing-hero">
+    <div class="container">
+      <h1>Simple, Transparent Pricing</h1>
+      <p class="pricing-subtitle">
+        Plans that grow with your team. No hidden fees, no surprises.
+      </p>
+    </div>
+  </section>
+
+  <section class="pricing-content section-padding">
+    <div class="container">
+      <div class="pricing-placeholder">
+        <div class="pricing-placeholder-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <path d="M2 10h20"/>
+          </svg>
+        </div>
+        <h2>Coming Soon</h2>
+        <p>We're finalizing our pricing plans. Reach out to learn more about early access.</p>
+        <a href="/contact" class="btn-primary">Contact Us</a>
+      </div>
+    </div>
+  </section>
+
+</Layout>
+
+<style>
+  .pricing-hero {
+    background: linear-gradient(180deg, var(--color-light-bg-alt) 0%, var(--color-white) 100%);
+    padding: 5rem 0 3rem;
+    text-align: center;
+  }
+
+  .pricing-hero h1 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  .pricing-subtitle {
+    font-size: 1.125rem;
+    color: var(--color-muted);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .pricing-placeholder {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--color-light-bg);
+    border-radius: 1rem;
+    border: 1px solid var(--color-border);
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .pricing-placeholder-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--color-light-purple);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+
+  .pricing-placeholder h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-placeholder p {
+    font-size: 1rem;
+    color: var(--color-muted);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 767px) {
+    .pricing-hero {
+      padding: 3rem 0 2rem;
+    }
+
+    .pricing-hero h1 {
+      font-size: 2rem;
+    }
+  }
+</style>

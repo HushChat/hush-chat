@@ -1,0 +1,211 @@
+---
+interface Props {
+  activePage?: string;
+}
+
+const { activePage = '' } = Astro.props;
+---
+
+<nav class="navbar">
+  <div class="navbar-container container">
+    <a href="/" class="navbar-logo">
+      <img src="/images/hushchat-logo-min-1024x282.png" alt="HushChat" class="navbar-logo-img" width="1024" height="282" />
+    </a>
+
+    <ul class="navbar-links" id="navLinks">
+      <li><a href="/" class:list={[{ active: activePage === 'home' }]}>Home</a></li>
+      <li><a href="/pricing" class:list={[{ active: activePage === 'pricing' }]}>Pricing</a></li>
+      <li><a href="/contact" class:list={[{ active: activePage === 'contact' }]}>Contact Us</a></li>
+    </ul>
+
+    <a href="/contact" class="navbar-cta btn-primary">Get Started</a>
+
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+</nav>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    transition: box-shadow var(--transition-base);
+  }
+
+  .navbar.scrolled {
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--nav-height);
+  }
+
+  .navbar-logo {
+    flex-shrink: 0;
+  }
+
+  .navbar-logo-img {
+    height: 3rem;
+    width: auto;
+  }
+
+  .navbar-links {
+    display: flex;
+    list-style: none;
+    gap: 2.5rem;
+    align-items: center;
+  }
+
+  .navbar-links a {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-body);
+    transition: color var(--transition-fast);
+    position: relative;
+  }
+
+  .navbar-links a:hover,
+  .navbar-links a.active {
+    color: var(--color-primary);
+  }
+
+  .navbar-links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    border-radius: 1px;
+  }
+
+  .navbar-cta {
+    padding: 0.625rem 1.5rem;
+    font-size: 0.875rem;
+    border-radius: 9999px;
+  }
+
+  .mobile-menu-btn {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 1001;
+  }
+
+  .mobile-menu-btn span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--color-heading);
+    border-radius: 2px;
+    transition: transform var(--transition-base), opacity var(--transition-base);
+  }
+
+  .mobile-menu-btn.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .mobile-menu-btn.open span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu-btn.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Tablet: hide CTA button */
+  @media (max-width: 1024px) {
+    .navbar-cta {
+      display: none;
+    }
+  }
+
+  /* Mobile: hamburger menu */
+  @media (max-width: 767px) {
+    .mobile-menu-btn {
+      display: flex;
+    }
+
+    .navbar-links {
+      display: none;
+      position: absolute;
+      top: var(--nav-height);
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      background: var(--color-white);
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      gap: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .navbar-links.open {
+      display: flex;
+    }
+
+    .navbar-links li {
+      width: 100%;
+    }
+
+    .navbar-links a {
+      display: block;
+      padding: 0.75rem 0;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .navbar-links li:last-child a {
+      border-bottom: none;
+    }
+
+    .navbar-links a.active::after {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // Mobile hamburger toggle
+  const btn = document.getElementById('mobileMenuBtn');
+  const links = document.getElementById('navLinks');
+
+  btn?.addEventListener('click', () => {
+    const isOpen = links?.classList.toggle('open');
+    btn.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  // Close menu when clicking a link
+  links?.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      links.classList.remove('open');
+      btn?.classList.remove('open');
+      btn?.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // Add scroll shadow to navbar
+  const navbar = document.querySelector('.navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 10) {
+      navbar?.classList.add('scrolled');
+    } else {
+      navbar?.classList.remove('scrolled');
+    }
+  });
+</script>
