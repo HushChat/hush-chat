@@ -1,0 +1,110 @@
+---
+interface Props {
+  activePage?: string;
+}
+
+const { activePage = '' } = Astro.props;
+---
+
+<nav class="navbar">
+  <div class="navbar-container container">
+    <a href="/" class="navbar-logo">HushChat</a>
+    <button class="mobile-menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <ul class="navbar-links">
+      <li><a href="/" class:list={[{ active: activePage === 'home' }]}>Home</a></li>
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+  }
+
+  .navbar-logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .navbar-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+  }
+
+  .navbar-links a {
+    font-weight: 500;
+    color: var(--color-text-light);
+    transition: color 0.2s;
+  }
+
+  .navbar-links a:hover,
+  .navbar-links a.active {
+    color: var(--color-primary);
+  }
+
+  .mobile-menu-btn {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .mobile-menu-btn span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--color-text);
+    transition: 0.3s;
+  }
+
+  @media (max-width: 767px) {
+    .mobile-menu-btn {
+      display: flex;
+    }
+
+    .navbar-links {
+      display: none;
+      position: absolute;
+      top: 4rem;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      background: var(--color-bg);
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      gap: 1rem;
+    }
+
+    .navbar-links.open {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  const btn = document.querySelector('.mobile-menu-btn');
+  const links = document.querySelector('.navbar-links');
+  btn?.addEventListener('click', () => {
+    links?.classList.toggle('open');
+  });
+</script>

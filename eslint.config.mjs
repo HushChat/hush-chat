@@ -7,7 +7,7 @@ import pluginReactNative from 'eslint-plugin-react-native';
 
 export default [
     {
-        ignores: ['node_modules/**', 'android/**', 'ios/**', 'build/**', 'dist/**', 'scripts/**', '**/apps/frontend/hushchat-mobile/scripts/**', "**/apps/frontend/hushchat-mobile/public/**"]
+        ignores: ['node_modules/**', 'android/**', 'ios/**', 'build/**', 'dist/**', 'scripts/**', '**/apps/frontend/hushchat-mobile/scripts/**', "**/apps/frontend/hushchat-mobile/public/**", 'website/**']
     },
     js.configs.recommended,
     ...tseslint.configs.recommended,

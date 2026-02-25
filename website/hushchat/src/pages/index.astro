@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="HushChat" activePage="home">
+  <section class="hero">
+    <div class="container">
+      <h1>HushChat</h1>
+      <p>Coming soon.</p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+  }
+
+  .hero p {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+  }
+</style>
