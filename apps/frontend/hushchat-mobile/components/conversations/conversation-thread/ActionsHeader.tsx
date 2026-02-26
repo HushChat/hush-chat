@@ -6,7 +6,6 @@ import {
   IMessage,
   ConversationAPIResponse,
   PIN_MESSAGE_OPTIONS,
-  MessageTypeEnum,
 } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
 import { AppText } from "@/components/AppText";
@@ -48,9 +47,8 @@ const ActionsHeader = ({
   const isForwardedMessage = message.isForwarded;
   const currentUserIsSender = user?.id === message?.senderId;
 
-  const isAttachmentOnly = message?.messageType === MessageTypeEnum.ATTACHMENT;
   const hasText = !!message?.messageText;
-  const canEdit = currentUserIsSender && !message?.isUnsend && hasText && !isAttachmentOnly;
+  const canEdit = currentUserIsSender && !message?.isUnsend && hasText;
 
   const documentAttachments = useMemo(() => {
     if (!message?.messageAttachments) return [];

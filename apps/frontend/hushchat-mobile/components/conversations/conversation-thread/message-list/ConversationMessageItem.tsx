@@ -160,8 +160,7 @@ export const ConversationMessageItem = ({
   const hasText = !!messageContent;
   const isGroupChat = conversationAPIResponse?.isGroup;
   const isSystemEvent = message.messageType === MessageTypeEnum.SYSTEM_EVENT;
-  const isAttachmentOnly = message.messageType === MessageTypeEnum.ATTACHMENT;
-  const canEdit = isCurrentUser && !message.isUnsend && hasText && !isAttachmentOnly;
+  const canEdit = isCurrentUser && !message.isUnsend && hasText;
 
   const messageTime = useMemo(
     () => format(new Date(message.createdAt), "h:mm a"),
