@@ -367,13 +367,14 @@ const ConversationThreadScreen = ({
           const results = await uploadNativeFiles(finalFiles);
           if (results?.some((r) => r.success)) {
             setSelectedMessage(null);
+            refetchConversationMessages();
           }
         } catch {
           ToastUtils.error("Failed to upload images.");
         }
       })();
     },
-    [imageEditor, uploadNativeFiles, setSelectedMessage]
+    [imageEditor, uploadNativeFiles, setSelectedMessage, refetchConversationMessages]
   );
 
   const handleEditorSave = useCallback(
@@ -407,6 +408,7 @@ const ConversationThreadScreen = ({
         const results = await uploadNativeFiles(files);
         if (results?.some((r) => r.success)) {
           setSelectedMessage(null);
+          refetchConversationMessages();
         }
         return;
       }
@@ -417,7 +419,14 @@ const ConversationThreadScreen = ({
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickNativeFiles, uploadNativeFiles, setSelectedMessage, imageEditor, startEditingNextImage]);
+  }, [
+    pickNativeFiles,
+    uploadNativeFiles,
+    setSelectedMessage,
+    imageEditor,
+    startEditingNextImage,
+    refetchConversationMessages,
+  ]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,

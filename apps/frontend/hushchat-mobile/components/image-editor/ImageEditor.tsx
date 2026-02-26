@@ -10,9 +10,9 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import ViewShot from "react-native-view-shot";
+import { cacheDirectory, writeAsStringAsync, EncodingType } from "expo-file-system";
 import { AppText } from "@/components/AppText";
-import DrawingCanvas from "./DrawingCanvas";
+import DrawingCanvas, { DrawingCanvasHandle } from "./DrawingCanvas";
 import EditorToolbar from "./EditorToolbar";
 import { useDrawing } from "./useDrawing";
 import { ImageEditorProps } from "./types";
@@ -21,7 +21,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const ImageEditor = ({ visible, imageUri, onSave, onCancel }: ImageEditorProps) => {
   const insets = useSafeAreaInsets();
-  const viewShotRef = useRef<ViewShot>(null);
+  const canvasRef = useRef<DrawingCanvasHandle>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [imageAspect, setImageAspect] = useState(1);
 
@@ -54,16 +54,32 @@ const ImageEditor = ({ visible, imageUri, onSave, onCancel }: ImageEditorProps) 
   const canvasHeight = canvasWidth / imageAspect;
 
   const handleSave = useCallback(async () => {
-    if (!viewShotRef.current?.capture) return;
+    if (!canvasRef.current) {
+      onSave(imageUri);
+      return;
+    }
 
     setIsSaving(true);
     try {
-      const uri = await viewShotRef.current.capture();
-      onSave(uri);
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("timeout")), 5000);
+        canvasRef.current!.toDataURL((data) => {
+          clearTimeout(timeout);
+          resolve(data);
+        });
+      });
+
+      const filePath = `${cacheDirectory}edited-${Date.now()}.png`;
+      await writeAsStringAsync(filePath, base64, {
+        encoding: EncodingType.Base64,
+      });
+      onSave(filePath);
+    } catch {
+      onSave(imageUri);
     } finally {
       setIsSaving(false);
     }
-  }, [onSave]);
+  }, [onSave, imageUri]);
 
   const handleDone = useCallback(() => {
     if (hasEdits) {
@@ -104,11 +120,7 @@ const ImageEditor = ({ visible, imageUri, onSave, onCancel }: ImageEditorProps) 
 
           <GestureHandlerRootView style={styles.flex1}>
             <View style={styles.canvasArea}>
-              <ViewShot
-                ref={viewShotRef}
-                options={{ format: "png", quality: 1, result: "tmpfile" }}
-                style={[styles.viewShot, { width: canvasWidth, height: canvasHeight }]}
-              >
+              <View style={[styles.canvasWrapper, { width: canvasWidth, height: canvasHeight }]}>
                 <Image
                   source={{ uri: imageUri }}
                   style={styles.image}
@@ -116,6 +128,8 @@ const ImageEditor = ({ visible, imageUri, onSave, onCancel }: ImageEditorProps) 
                   onLoad={handleImageLoad}
                 />
                 <DrawingCanvas
+                  ref={canvasRef}
+                  imageUri={imageUri}
                   paths={paths}
                   activeTool={activeTool}
                   activeColor={activeColor}
@@ -124,7 +138,7 @@ const ImageEditor = ({ visible, imageUri, onSave, onCancel }: ImageEditorProps) 
                   onEndPath={endPath}
                   currentPathRef={currentPathRef}
                 />
-              </ViewShot>
+              </View>
             </View>
           </GestureHandlerRootView>
 
@@ -186,7 +200,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  viewShot: {
+  canvasWrapper: {
     overflow: "hidden",
   },
   image: {

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 type EditableImage = {
   uri: string;
@@ -7,7 +7,7 @@ type EditableImage = {
 
 export function useImageEditor() {
   const [editingImage, setEditingImage] = useState<EditableImage | null>(null);
-  const [editedUris, setEditedUris] = useState<Map<number, string>>(new Map());
+  const editedUrisRef = useRef<Map<number, string>>(new Map());
 
   const openEditor = useCallback((uri: string, index: number) => {
     setEditingImage({ uri, index });
@@ -20,22 +20,19 @@ export function useImageEditor() {
   const saveEdit = useCallback(
     (editedUri: string) => {
       if (!editingImage) return;
-      setEditedUris((prev) => new Map(prev).set(editingImage.index, editedUri));
+      editedUrisRef.current.set(editingImage.index, editedUri);
       setEditingImage(null);
     },
     [editingImage]
   );
 
-  const getEditedUri = useCallback(
-    (index: number, originalUri: string): string => {
-      return editedUris.get(index) ?? originalUri;
-    },
-    [editedUris]
-  );
+  const getEditedUri = useCallback((index: number, originalUri: string): string => {
+    return editedUrisRef.current.get(index) ?? originalUri;
+  }, []);
 
   const reset = useCallback(() => {
     setEditingImage(null);
-    setEditedUris(new Map());
+    editedUrisRef.current = new Map();
   }, []);
 
   return {
