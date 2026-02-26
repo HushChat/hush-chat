@@ -6,7 +6,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start:hush-chat": "yarn --cwd apps/frontend/hushchat-mobile start",
-    "start:backend": "mvn -f apps/backend/chat-service/pom.xml spring-boot:run",
+    "start:backend": "set -a && source .env && set +a && mvn -f apps/backend/chat-service/pom.xml spring-boot:run",
     "build:backend": "mvn -f apps/backend/chat-service/pom.xml clean package -DskipTests",
     "build:backend:prod": "mvn -f apps/backend/chat-service/pom.xml clean install -Dspring.profiles.active=prod -DskipTests",
     "test:backend": "mvn -f apps/backend/chat-service/pom.xml test",
