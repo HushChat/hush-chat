@@ -8,6 +8,8 @@ import PreviewFooter from "@/components/conversations/conversation-thread/messag
 import { usePasteHandler } from "@/hooks/usePasteHandler";
 import { ACCEPT_DOC_TYPES } from "@/constants/mediaConstants";
 import { useIsMobileLayout } from "@/hooks/useIsMobileLayout";
+import ImageEditorWeb from "@/components/image-editor/ImageEditorWeb";
+import { getFileType } from "@/utils/files/getFileType";
 
 export type PreviewFile = {
   id: string;
@@ -133,6 +135,35 @@ const FilePreviewOverlay = ({
     [previewFiles.length, onFileSelect]
   );
 
+  const [editorVisible, setEditorVisible] = useState(false);
+  const [editorImageUri, setEditorImageUri] = useState("");
+
+  const handleEditImage = useCallback(() => {
+    const current = previewFiles[selectedIndex];
+    if (!current || getFileType(current.file.name) !== "image") return;
+    const uri = URL.createObjectURL(current.file);
+    setEditorImageUri(uri);
+    setEditorVisible(true);
+  }, [previewFiles, selectedIndex]);
+
+  const handleEditorSave = useCallback(
+    (editedFile: File) => {
+      setPreviewFiles((prev) =>
+        prev.map((item, idx) => (idx === selectedIndex ? { ...item, file: editedFile } : item))
+      );
+      setEditorVisible(false);
+      URL.revokeObjectURL(editorImageUri);
+      setEditorImageUri("");
+    },
+    [selectedIndex, editorImageUri]
+  );
+
+  const handleEditorCancel = useCallback(() => {
+    setEditorVisible(false);
+    URL.revokeObjectURL(editorImageUri);
+    setEditorImageUri("");
+  }, [editorImageUri]);
+
   usePasteHandler({
     enabled: true,
     onPasteFiles: (newFiles) => onFileSelect(newFiles),
@@ -142,6 +173,7 @@ const FilePreviewOverlay = ({
   if (previewFiles.length === 0) return null;
 
   const currentItem = previewFiles[selectedIndex];
+  const currentFileIsImage = currentItem && getFileType(currentItem.file.name) === "image";
 
   return (
     <View style={styles.container} className="bg-background-light dark:bg-background-dark">
@@ -167,6 +199,7 @@ const FilePreviewOverlay = ({
             inputRef={captionInputRef}
             isMarkdownEnabled={currentItem.isMarkdownEnabled}
             onMarkdownChange={handleMarkdownChange}
+            onEditImage={currentFileIsImage ? handleEditImage : undefined}
           />
         )}
       </View>
@@ -187,6 +220,12 @@ const FilePreviewOverlay = ({
         multiple
         style={styles.hiddenInput}
         onChange={onHiddenPickerChange}
+      />
+      <ImageEditorWeb
+        visible={editorVisible}
+        imageUri={editorImageUri}
+        onSave={handleEditorSave}
+        onCancel={handleEditorCancel}
       />
     </View>
   );

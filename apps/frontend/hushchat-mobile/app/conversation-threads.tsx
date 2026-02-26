@@ -46,6 +46,9 @@ import { useWebSocket } from "@/contexts/WebSocketContext";
 import { useMessageEdit } from "@/hooks/useMessageEdit";
 import ConversationInput from "@/components/conversation-input/ConversationInput/ConversationInput";
 import { getAPIErrorMessage } from "@/utils/apiErrorUtils";
+import ImageEditor from "@/components/image-editor/ImageEditor";
+import { useImageEditor } from "@/hooks/useImageEditor";
+import { LocalFile } from "@/hooks/useNativePickerUpload";
 
 const CHAT_BG_OPACITY_DARK = 0.08;
 const CHAT_BG_OPACITY_LIGHT = 0.02;
@@ -311,7 +314,8 @@ const ConversationThreadScreen = ({
   });
 
   const {
-    pickAndUploadImagesAndVideos,
+    pick: pickNativeFiles,
+    upload: uploadNativeFiles,
     uploadFilesFromWebWithCaptions,
     pickAndUploadDocuments,
     isUploading: isUploadingImages,
@@ -319,6 +323,10 @@ const ConversationThreadScreen = ({
     sendGifMessage,
     uploadProgress,
   } = useMessageAttachmentUploader(currentConversationId);
+
+  const imageEditor = useImageEditor();
+  const pickedFilesRef = useRef<LocalFile[]>([]);
+  const editingIndexRef = useRef(0);
 
   const handleOpenDocumentPickerNative = useCallback(async () => {
     try {
@@ -334,18 +342,82 @@ const ConversationThreadScreen = ({
     }
   }, [pickAndUploadDocuments, setSelectedMessage, uploadError]);
 
+  const startEditingNextImage = useCallback(
+    (files: LocalFile[], fromIndex: number) => {
+      for (let i = fromIndex; i < files.length; i++) {
+        if (files[i].type.startsWith("image/")) {
+          editingIndexRef.current = i;
+          imageEditor.openEditor(files[i].uri, i);
+          return;
+        }
+      }
+      // No more images to edit — upload all files
+      void (async () => {
+        try {
+          const finalFiles = files.map((f, i) => {
+            const editedUri = imageEditor.getEditedUri(i, f.uri);
+            if (editedUri !== f.uri) {
+              return { ...f, uri: editedUri, type: "image/png" };
+            }
+            return f;
+          });
+          imageEditor.reset();
+          pickedFilesRef.current = [];
+
+          const results = await uploadNativeFiles(finalFiles);
+          if (results?.some((r) => r.success)) {
+            setSelectedMessage(null);
+          }
+        } catch {
+          ToastUtils.error("Failed to upload images.");
+        }
+      })();
+    },
+    [imageEditor, uploadNativeFiles, setSelectedMessage]
+  );
+
+  const handleEditorSave = useCallback(
+    (editedUri: string) => {
+      imageEditor.saveEdit(editedUri);
+      startEditingNextImage(pickedFilesRef.current, editingIndexRef.current + 1);
+    },
+    [imageEditor, startEditingNextImage]
+  );
+
+  const handleEditorCancel = useCallback(() => {
+    imageEditor.closeEditor();
+    startEditingNextImage(pickedFilesRef.current, editingIndexRef.current + 1);
+  }, [imageEditor, startEditingNextImage]);
+
   const handleOpenImagePickerNative = useCallback(async () => {
     try {
-      const results = await pickAndUploadImagesAndVideos();
-      if (results?.some((r) => r.success)) {
-        setSelectedMessage(null);
-      } else if (uploadError) {
-        ToastUtils.error(uploadError);
+      const files = await pickNativeFiles({
+        source: "media",
+        mediaKind: "all",
+        multiple: true,
+        maxSizeKB: 250 * 1024,
+        allowedMimeTypes: ["image/*", "video/*"],
+      });
+
+      if (!files || files.length === 0) return;
+
+      const hasImages = files.some((f) => f.type.startsWith("image/"));
+      if (!hasImages) {
+        // No images to edit (only videos) — upload directly
+        const results = await uploadNativeFiles(files);
+        if (results?.some((r) => r.success)) {
+          setSelectedMessage(null);
+        }
+        return;
       }
+
+      pickedFilesRef.current = files;
+      imageEditor.reset();
+      startEditingNextImage(files, 0);
     } catch {
       ToastUtils.error("Failed to pick or upload images.");
     }
-  }, [pickAndUploadImagesAndVideos, setSelectedMessage, uploadError]);
+  }, [pickNativeFiles, uploadNativeFiles, setSelectedMessage, imageEditor, startEditingNextImage]);
 
   const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessageMutation(
     undefined,
@@ -636,6 +708,15 @@ const ConversationThreadScreen = ({
           </ImageBackground>
         </KeyboardAvoidingView>
       </View>
+
+      {imageEditor.editingImage && (
+        <ImageEditor
+          visible={imageEditor.isEditing}
+          imageUri={imageEditor.editingImage.uri}
+          onSave={handleEditorSave}
+          onCancel={handleEditorCancel}
+        />
+      )}
     </SafeAreaView>
   );
 };

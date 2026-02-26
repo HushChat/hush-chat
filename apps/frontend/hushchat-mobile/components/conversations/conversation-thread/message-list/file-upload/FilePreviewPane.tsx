@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { colorScheme } from "nativewind";
 import { Image } from "expo-image";
 import { SIZES } from "@/constants/mediaConstants";
@@ -23,6 +23,7 @@ type TFilePreviewPaneProps = {
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
   isMarkdownEnabled: boolean;
   onMarkdownChange: (enabled: boolean) => void;
+  onEditImage?: () => void;
 };
 
 const FilePreviewPane = ({
@@ -38,6 +39,7 @@ const FilePreviewPane = ({
   inputRef,
   isMarkdownEnabled,
   onMarkdownChange,
+  onEditImage,
 }: TFilePreviewPaneProps) => {
   const [url, setUrl] = useState("");
   const [fileType, setFileType] = useState<"image" | "document" | "video">("document");
@@ -86,7 +88,22 @@ const FilePreviewPane = ({
 
   const renderPreviewContent = () => {
     if (fileType === "image") {
-      return <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />;
+      return (
+        <View style={styles.imageWrapper}>
+          <Image source={{ uri: url }} contentFit="contain" style={styles.previewImage} />
+          {onEditImage && (
+            <TouchableOpacity
+              onPress={onEditImage}
+              style={styles.editButton}
+              className="bg-primary-light dark:bg-primary-dark"
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="pencil" size={16} color="#fff" />
+              <AppText style={styles.editButtonText}>Edit</AppText>
+            </TouchableOpacity>
+          )}
+        </View>
+      );
     }
 
     if (fileType === "video") {
@@ -157,10 +174,31 @@ const FilePreviewPane = ({
 export default FilePreviewPane;
 
 const styles = StyleSheet.create({
-  previewImage: {
+  imageWrapper: {
     width: "100%",
     height: "100%",
     maxHeight: 500,
+    position: "relative",
+  },
+  previewImage: {
+    width: "100%",
+    height: "100%",
+  },
+  editButton: {
+    position: "absolute",
+    bottom: 12,
+    right: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
   },
   videoContainer: {
     width: "100%",
