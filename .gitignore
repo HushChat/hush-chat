@@ -151,3 +151,4 @@ secrets.json
 # ---------------------------------------
 # GitHub Actions temp files
 *.retry
+apps/frontend/hushchat-mobile/google-services.json
