@@ -96,7 +96,7 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
      * @return available tokens of given userId
      */
     @Override
-    public List<String> findNonMutedTokensByUserId(Long userId){
+    public List<String> findNonMutedTokensByUserId(Long userId, Long conversationId){
         return jpaQueryFactory
                 .select(qChatNotification.token)
                 .distinct()
@@ -106,6 +106,7 @@ public class ChatNotificationQueryRepositoryImpl implements ChatNotificationQuer
                 .on(qConversationParticipant.user.id.eq(qChatUser.id))
                 .where(
                         qChatUser.id.eq(userId)
+                                .and(qConversationParticipant.conversation.id.eq(conversationId))
                                 .and(
                                         qConversationParticipant.mutedUntil.isNull()
                                                 .or(qConversationParticipant.mutedUntil.lt(ZonedDateTime.now()))
