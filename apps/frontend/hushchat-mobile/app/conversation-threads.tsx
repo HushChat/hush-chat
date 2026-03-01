@@ -241,11 +241,13 @@ const ConversationThreadScreen = ({
     [loadMessageWindow, onMessageJumped]
   );
 
+  const hasLoadedMessages = !!conversationMessagesPages;
+
   useEffect(() => {
-    if (searchedMessageId) {
+    if (searchedMessageId && hasLoadedMessages) {
       handleNavigateToMessage(searchedMessageId);
     }
-  }, [searchedMessageId, handleNavigateToMessage]);
+  }, [searchedMessageId, handleNavigateToMessage, hasLoadedMessages]);
 
   const handleTargetMessageScrolled = useCallback(() => {
     clearTargetMessage();
@@ -498,7 +500,7 @@ const ConversationThreadScreen = ({
   }, [selectedMessageIds, webForwardPress]);
 
   const conversationMessages = useMemo(
-    () => conversationMessagesPages?.pages?.flatMap((page) => page.content) ?? [],
+    () => conversationMessagesPages?.pages?.flatMap((page) => page.content ?? []) ?? [],
     [conversationMessagesPages]
   );
 

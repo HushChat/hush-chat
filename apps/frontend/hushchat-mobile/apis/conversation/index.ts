@@ -50,6 +50,7 @@ export interface CursorPaginatedQueryOptions<T> {
   allowForwardPagination?: boolean;
   retry?: boolean | number | ((failureCount: number, error: unknown) => boolean);
   refetchOnMount?: boolean | "always";
+  staleTime?: number;
 }
 
 export interface AddConversationParticipantsParams {
