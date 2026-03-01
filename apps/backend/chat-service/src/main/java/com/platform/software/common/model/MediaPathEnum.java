@@ -10,7 +10,9 @@ public enum MediaPathEnum {
 
     RESIZED_MESSAGE_ATTACHMENT("resized-images/message-attachments/%s/%s"),
     RESIZED_PROFILE_PICTURE("resized-images/profile/%s/%s"),
-    RESIZED_GROUP_PICTURE("resized-images/conversation/%s/%s");
+    RESIZED_GROUP_PICTURE("resized-images/conversation/%s/%s"),
+
+    VIDEO_THUMBNAIL("video-thumbnails/%s");
 
     private final String name;
 
