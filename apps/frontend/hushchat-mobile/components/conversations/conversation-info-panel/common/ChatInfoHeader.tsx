@@ -13,22 +13,24 @@ import { getInitials } from "@/utils/commonUtils";
 
 type ChatInfoHeaderProps = {
   title: string;
+  description?: string;
   onBack: () => void;
   showActions?: boolean;
   onPressChat?: () => void;
   onPressCall?: () => void;
-  imageUrl?: string | undefined | null;
   onPressSearch: () => void;
+  imageUrl?: string | undefined | null;
 };
 
 export default function ChatInfoHeader({
   title,
+  description,
   onBack,
   showActions,
   onPressChat,
   onPressCall,
-  imageUrl,
   onPressSearch,
+  imageUrl,
 }: ChatInfoHeaderProps) {
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
@@ -78,6 +80,7 @@ export default function ChatInfoHeader({
       </View>
       <ChatInfoNameBar
         title={title}
+        description={description}
         showActions={!!showActions}
         onPressChat={onPressChat}
         onPressCall={onPressCall}
