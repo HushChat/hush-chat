@@ -803,12 +803,17 @@ import Layout from "../layouts/Layout.astro";
 
     .bento-grid {
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
+      grid-template-rows: auto auto auto;
     }
 
     .bento-card--interaction {
       grid-column: 1 / 2;
       grid-row: 1 / 2;
+      height: auto;
+    }
+
+    .bento-card--interaction .bento-card-image {
+      width: 100%;
     }
 
     .bento-card--teams {
@@ -822,6 +827,7 @@ import Layout from "../layouts/Layout.astro";
       flex-direction: row;
       align-items: center;
       gap: 2rem;
+      height: auto;
     }
 
     .bento-card--setup .bento-card-image {
@@ -838,7 +844,19 @@ import Layout from "../layouts/Layout.astro";
     }
 
     .cta-grid {
-      padding: 3rem;
+      grid-template-columns: 1fr 0.8fr;
+    }
+
+    .cta-content {
+      padding: 2.5rem;
+    }
+
+    .cta-content h2 {
+      font-size: 2rem;
+    }
+
+    .cta-decoration img {
+      height: 400px;
     }
   }
 
@@ -886,27 +904,46 @@ import Layout from "../layouts/Layout.astro";
     .bento-card--interaction {
       grid-column: 1;
       grid-row: auto;
+      height: auto;
+    }
+
+    .bento-card--interaction .bento-card-image {
+      width: 100%;
     }
 
     .bento-card--teams {
       grid-column: 1;
       grid-row: auto;
-      padding: 2rem;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .bento-card-text {
+      font-size: 1.375rem;
     }
 
     .bento-card--everywhere {
       grid-column: 1;
       grid-row: auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .bento-card-title {
+      font-size: 1.5rem;
+    }
+
+    .bento-card-title--large {
+      font-size: 1.5rem;
     }
 
     .bento-card--setup {
       grid-column: 1;
       grid-row: auto;
       flex-direction: column;
+      height: auto;
     }
 
     .bento-card--setup .bento-card-title {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
     }
 
     .bento-card--setup .bento-card-image {
@@ -917,10 +954,6 @@ import Layout from "../layouts/Layout.astro";
       max-width: 200px;
     }
 
-    .bento-card-title--large {
-      font-size: 1.5rem;
-    }
-
     .steps-grid {
       grid-template-columns: 1fr;
       gap: 1rem;
@@ -928,8 +961,11 @@ import Layout from "../layouts/Layout.astro";
 
     .cta-grid {
       grid-template-columns: 1fr;
-      padding: 2.5rem 1.5rem;
       text-align: center;
+    }
+
+    .cta-content {
+      padding: 2.5rem 1.5rem;
     }
 
     .cta-content h2 {
