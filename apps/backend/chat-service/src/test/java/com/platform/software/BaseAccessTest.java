@@ -32,6 +32,11 @@ public abstract class BaseAccessTest extends TestcontainerTest {
         authUtils.loginUsers();
     }
 
+    protected void assertUnauthorized(ResponseEntity<?> response) {
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(),
+            "Expected status code 401 UNAUTHORIZED, but got: " + response.getStatusCode());
+    }
+
     protected void assertForbidden(ResponseEntity<?> response) {
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(),
             "Expected status code FORBIDDEN, but got: " + response.getStatusCode());
