@@ -4,6 +4,7 @@ import { FC } from "react";
 import ChangeWorkspace from "@/app/settings/change-workspace";
 import Invite from "@/app/settings/invite";
 import Users from "@/app/settings/users";
+import Groups from "@/app/settings/groups";
 import { ALL_ROLES, WorkspaceUserRole } from "@/app/guards/RoleGuard";
 
 type TMenuItem = {
@@ -34,6 +35,12 @@ const baseMenuItems: TMenuItem[] = [
     key: "users",
     label: "Users",
     icon: "people",
+    allowedRoles: [WorkspaceUserRole.ADMIN],
+  },
+  {
+    key: "groups",
+    label: "Groups",
+    icon: "group",
     allowedRoles: [WorkspaceUserRole.ADMIN],
   },
 ];
@@ -69,5 +76,6 @@ export const settingsPanels: Record<string, FC> = {
   contact: Contact,
   invite: Invite,
   users: Users,
+  groups: Groups,
   changeWorkspace: ChangeWorkspace,
 };

@@ -521,6 +521,43 @@ public class ConversationQueryRepositoryImpl implements ConversationQueryReposit
     }
 
     @Override
+    public Page<GroupAdminListDTO> findAllGroupsForAdminList(String keyword, Pageable pageable) {
+        BooleanExpression whereCondition = qConversation.isGroup.eq(true)
+                .and(qConversation.deleted.eq(false));
+
+        if (StringUtils.hasText(keyword)) {
+            whereCondition = whereCondition.and(
+                    qConversation.name.containsIgnoreCase(keyword)
+            );
+        }
+
+        JPAQuery<GroupAdminListDTO> query = jpaQueryFactory
+                .select(Projections.constructor(GroupAdminListDTO.class,
+                        qConversation.id,
+                        qConversation.name,
+                        qConversation.imageIndexedName,
+                        Expressions.nullExpression(String.class),
+                        qConversation.disabled
+                ))
+                .from(qConversation)
+                .where(whereCondition)
+                .orderBy(qConversation.name.asc());
+
+        Long totalCount = jpaQueryFactory
+                .select(qConversation.count())
+                .from(qConversation)
+                .where(whereCondition)
+                .fetchOne();
+
+        List<GroupAdminListDTO> results = query
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, totalCount != null ? totalCount : 0);
+    }
+
+    @Override
     @Transactional
     public long clearExpiredPinnedMessageFromConversation(Long conversationId) {
         return jpaQueryFactory

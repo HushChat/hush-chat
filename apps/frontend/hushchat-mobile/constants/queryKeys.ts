@@ -102,6 +102,7 @@ export const userQueryKeys = {
 
 export const workspaceAdminQueryKeys = {
   chatUserById: (userId: number) => ["workspace-chat-user", userId],
+  adminGroups: (keyword: string) => ["admin-groups", keyword],
 };
 
 export const gifQueryKeys = {

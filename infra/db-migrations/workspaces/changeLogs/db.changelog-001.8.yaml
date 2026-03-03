@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_disabled_to_conversation
+      author: pavithra
+      tag: release-18.1
+      changes:
+        - addColumn:
+            tableName: conversation
+            columns:
+              - column:
+                  name: disabled
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
