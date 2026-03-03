@@ -11,6 +11,9 @@ import com.platform.software.exception.CustomBadRequestException;
 public class ConversationPermissionGuard {
 
     public void validateMessageSendingAccess(Conversation conversation, ConversationParticipant participant) {
+        if (Boolean.TRUE.equals(conversation.getDisabled())) {
+            throw new CustomBadRequestException("This group has been disabled by a workspace admin");
+        }
         if (Boolean.TRUE.equals(conversation.getOnlyAdminsCanSendMessages())) {
             if (participant.getRole() != ConversationParticipantRoleEnum.ADMIN) {
                 throw new CustomBadRequestException("Only admins can send messages in this conversation");

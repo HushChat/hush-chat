@@ -1723,4 +1723,34 @@ public class ConversationService {
         conversationParticipantRepository.save(participant);
         return participant.getNotifyOnMentionsOnly();
     }
+
+    public Page<GroupAdminListDTO> getGroupsForAdminList(String keyword, Pageable pageable) {
+        Page<GroupAdminListDTO> groups = conversationRepository.findAllGroupsForAdminList(keyword, pageable);
+
+        List<GroupAdminListDTO> enriched = groups.getContent().stream()
+                .peek(dto -> {
+                    String signedUrl = conversationUtilService.getImageViewSignedUrl(
+                            MediaPathEnum.RESIZED_GROUP_PICTURE,
+                            MediaSizeEnum.MEDIUM,
+                            dto.getImageIndexedName()
+                    );
+                    dto.setSignedImageUrl(signedUrl);
+                    dto.setImageIndexedName(null);
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(enriched, pageable, groups.getTotalElements());
+    }
+
+    @Transactional
+    public void toggleGroupDisabled(Long conversationId, Boolean disabled) {
+        Conversation conversation = conversationUtilService.getConversationOrThrow(conversationId);
+
+        if (!Boolean.TRUE.equals(conversation.getIsGroup())) {
+            throw new CustomBadRequestException("Only group conversations can be disabled");
+        }
+
+        conversation.setDisabled(disabled);
+        conversationRepository.save(conversation);
+    }
 }

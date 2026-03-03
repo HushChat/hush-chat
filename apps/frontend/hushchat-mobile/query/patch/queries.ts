@@ -14,6 +14,7 @@ import {
   updateUser,
   updateWorkspaceChatUser,
 } from "@/apis/user";
+import { toggleGroupDisabled } from "@/apis/admin-conversation";
 import {
   ConversationReadInfo,
   IConversation,
@@ -135,4 +136,12 @@ export const useToggleSuspendUserMutation = createMutationHook<void, { email: st
   ({ email }) => toggleSuspendWorkspaceUser(email),
   (keyParams: { userId: number }) => () =>
     [workspaceAdminQueryKeys.chatUserById(keyParams.userId), ["workspace-chat-users"]] as string[][]
+);
+
+export const useToggleGroupDisabledMutation = createMutationHook<
+  void,
+  { conversationId: number; disabled: boolean }
+>(
+  ({ conversationId, disabled }) => toggleGroupDisabled(conversationId, disabled),
+  () => () => [["admin-groups"]] as string[][]
 );
