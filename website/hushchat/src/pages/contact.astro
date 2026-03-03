@@ -1,0 +1,227 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Contact Us - HushChat" description="Get in touch with the HushChat team. We'd love to help you get started." activePage="contact">
+
+  <section class="contact-hero">
+    <div class="container">
+      <h1>Get in Touch</h1>
+      <p class="contact-subtitle">
+        Have questions or ready to get started? We'd love to hear from you.
+      </p>
+    </div>
+  </section>
+
+  <section class="contact-content section-padding">
+    <div class="container">
+      <div class="contact-grid">
+        <!-- Contact Info -->
+        <div class="contact-info">
+          <div class="contact-info-card">
+            <div class="contact-info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="M22 7l-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+              </svg>
+            </div>
+            <div>
+              <h3>Email Us</h3>
+              <a href="mailto:hello@gethush.chat">hello@gethush.chat</a>
+            </div>
+          </div>
+
+          <div class="contact-info-card">
+            <div class="contact-info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B4EFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <h3>Chat With Us</h3>
+              <p>We typically respond within 24 hours.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Form Placeholder -->
+        <div class="contact-form-wrapper">
+          <form class="contact-form" action="#" method="post">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="John Doe" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="john@company.com" required />
+            </div>
+            <div class="form-group">
+              <label for="company">Company / Organization</label>
+              <input type="text" id="company" name="company" placeholder="Acme Inc." />
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="5" placeholder="Tell us about your team and how we can help..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary contact-submit">Send Message</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Layout>
+
+<style>
+  .contact-hero {
+    background: linear-gradient(180deg, var(--color-light-bg-alt) 0%, var(--color-white) 100%);
+    padding: 5rem 0 3rem;
+    text-align: center;
+  }
+
+  .contact-hero h1 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  .contact-subtitle {
+    font-size: 1.125rem;
+    color: var(--color-muted);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* Contact Info */
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .contact-info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--color-light-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+  }
+
+  .contact-info-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--color-light-purple);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .contact-info-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .contact-info-card a,
+  .contact-info-card p {
+    font-size: 0.9375rem;
+    color: var(--color-muted);
+  }
+
+  .contact-info-card a:hover {
+    color: var(--color-primary);
+  }
+
+  /* Contact Form */
+  .contact-form-wrapper {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 2.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-heading);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-family);
+    font-size: 0.9375rem;
+    color: var(--color-heading);
+    background: var(--color-light-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    outline: none;
+  }
+
+  .form-group input::placeholder,
+  .form-group textarea::placeholder {
+    color: var(--color-muted);
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .contact-submit {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 767px) {
+    .contact-hero {
+      padding: 3rem 0 2rem;
+    }
+
+    .contact-hero h1 {
+      font-size: 2rem;
+    }
+
+    .contact-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .contact-form-wrapper {
+      padding: 1.5rem;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .contact-grid {
+      grid-template-columns: 1fr 1.5fr;
+      gap: 2rem;
+    }
+  }
+</style>
