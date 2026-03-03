@@ -58,7 +58,7 @@ import Layout from "../layouts/Layout.astro";
 
         <!-- Right Column -->
         <div class="feature-split-right">
-          <h3>Your Team. Your Data. Your Space.</h3>
+          <h3>Your Team. <br />Your Data. <br />Your Space.</h3>
           <div class="feature-split-mockup">
             <img
               src="/images/mockup-section2-min.png"
@@ -208,11 +208,10 @@ import Layout from "../layouts/Layout.astro";
       <div class="bento-grid">
         <!-- Top-left: Live Interaction -->
         <div class="bento-card bento-card--interaction">
-          <span class="bento-label">Live Instant Interaction</span>
+          <h3 class="bento-card-title bento-card-title--white">Live Instant Interaction</h3>
           <div class="bento-card-image">
-            <!-- Placeholder: provide /images/live-interaction.png -->
             <img
-              src="/images/live-interaction.png"
+              src="/images/instant-interaction.png"
               alt="Live instant interaction feature on mobile"
             />
           </div>
@@ -225,26 +224,7 @@ import Layout from "../layouts/Layout.astro";
 
         <!-- Bottom-left: Available Everywhere -->
         <div class="bento-card bento-card--everywhere">
-          <div class="bento-everywhere-icon">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#6B4EFF"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M2 12h20"></path>
-              <path
-                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-              ></path>
-            </svg>
-          </div>
-          <h3 class="bento-card-title">Available Everywhere</h3>
+          <h3 class="bento-card-title bento-card-title--large">Available Everywhere</h3>
           <p class="bento-card-desc">iOS, Android, and Web &#8211; your conversations follow you</p>
         </div>
 
@@ -255,7 +235,7 @@ import Layout from "../layouts/Layout.astro";
           </h3>
           <div class="bento-card-image">
             <!-- Placeholder: provide /images/hero-screen.png -->
-            <img src="/images/hero-screen.png" alt="HushChat app screenshot showing simple setup" />
+            <img src="/images/create-a-workspace.png" alt="HushChat app screenshot showing simple setup" />
           </div>
         </div>
       </div>
@@ -362,7 +342,7 @@ import Layout from "../layouts/Layout.astro";
           <a href="/contact" class="btn-primary cta-btn">Get started</a>
         </div>
         <div class="cta-decoration">
-          <div class="cta-deco-block"></div>
+          <img src="/images/collaborate-communicate.png" alt="HushChat" class="cta-deco-img" width="175" height="48" />
         </div>
       </div>
     </div>
@@ -488,7 +468,7 @@ import Layout from "../layouts/Layout.astro";
 
   .stat-number {
     font-size: 2.25rem;
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1;
   }
 
@@ -506,21 +486,23 @@ import Layout from "../layouts/Layout.astro";
     background: var(--color-light-purple);
     border-radius: 1rem;
     padding: 2.5rem 2rem;
-    text-align: center;
+    text-align: left;
+    overflow: hidden;
+    height: 600px;
   }
 
   .feature-split-right h3 {
-    font-size: 1.375rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
+    font-size: 2.3rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
     color: var(--color-heading);
   }
 
   .feature-split-mockup img {
-    max-width: 280px;
+    max-width: 400px;
     margin: 0 auto;
-    border-radius: 1.5rem;
-    box-shadow: 0 10px 40px rgba(107, 78, 255, 0.15);
+    bottom: -50px;
+    position: relative;
   }
 
   /* FEATURES GRID SECTION */
@@ -532,6 +514,8 @@ import Layout from "../layouts/Layout.astro";
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
+    width: 80%;
+    margin: 0 auto;
   }
 
   .feature-card {
@@ -539,6 +523,7 @@ import Layout from "../layouts/Layout.astro";
     border: 1px solid var(--color-border);
     border-radius: 0.75rem;
     padding: 2rem;
+    text-align: center;
     transition:
       box-shadow var(--transition-base),
       transform var(--transition-base);
@@ -557,11 +542,11 @@ import Layout from "../layouts/Layout.astro";
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.25rem;
+    margin: 0 auto 1.25rem;
   }
 
   .feature-card-title {
-    font-size: 1.125rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--color-heading);
     margin-bottom: 0.75rem;
@@ -591,33 +576,31 @@ import Layout from "../layouts/Layout.astro";
   .bento-card--interaction {
     grid-column: 1 / 2;
     grid-row: 1 / 2;
-    background: var(--color-light-bg);
-    border: 1px solid var(--color-border);
+    background: var(--color-primary);
     display: flex;
     flex-direction: column;
-    align-items: center;
+    height: 350px;
   }
 
-  .bento-label {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--color-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1rem;
+  .bento-card--interaction .bento-card-image {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    margin: 1rem auto 0;
+    width: 300px;
   }
 
   .bento-card--interaction .bento-card-image img {
-    max-width: 180px;
-    margin: 0 auto;
-    border-radius: 1rem;
+    width: 100%;
+    border-radius: 0.75rem;
   }
 
   /* Top-center: Helping Teams */
   .bento-card--teams {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
-    background: var(--color-light-purple);
+    background: var(--color-light-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -625,8 +608,8 @@ import Layout from "../layouts/Layout.astro";
   }
 
   .bento-card-text {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.8rem;
+    font-weight: 700;
     color: var(--color-heading);
     line-height: 1.5;
   }
@@ -640,24 +623,19 @@ import Layout from "../layouts/Layout.astro";
     display: flex;
     flex-direction: column;
     justify-content: center;
-  }
-
-  .bento-everywhere-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--color-light-purple);
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
+    padding: 2.5rem;
   }
 
   .bento-card-title {
-    font-size: 1.25rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: var(--color-heading);
     margin-bottom: 0.5rem;
+  }
+
+  .bento-card-title--large {
+    font-size: 2rem;
+    font-weight: 800;
   }
 
   .bento-card-title--white {
@@ -674,10 +652,18 @@ import Layout from "../layouts/Layout.astro";
   .bento-card--setup {
     grid-column: 3 / 4;
     grid-row: 1 / 3;
-    background: var(--color-primary);
+    background: #1a1a2e;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    overflow: hidden;
+    height: 560px;
+  }
+
+  .bento-card--setup .bento-card-title {
+    font-size: 2.25rem;
+    font-weight: 600;
+    line-height: 1.15;
   }
 
   .bento-card--setup .bento-card-image {
@@ -689,9 +675,7 @@ import Layout from "../layouts/Layout.astro";
   }
 
   .bento-card--setup .bento-card-image img {
-    max-width: 220px;
-    border-radius: 1rem 1rem 0 0;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 320px;
   }
 
   /* STEPS SECTION */
@@ -734,7 +718,7 @@ import Layout from "../layouts/Layout.astro";
 
   .step-number {
     display: block;
-    font-size: 0.8125rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--color-primary);
     margin-bottom: 0.75rem;
@@ -742,7 +726,7 @@ import Layout from "../layouts/Layout.astro";
   }
 
   .step-title {
-    font-size: 1.125rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--color-heading);
     margin-bottom: 0.5rem;
@@ -766,12 +750,15 @@ import Layout from "../layouts/Layout.astro";
     align-items: center;
     background: var(--color-light-bg-alt);
     border-radius: 1.25rem;
-    padding: 4rem;
     overflow: hidden;
   }
 
+  .cta-content {
+    padding: 4rem;
+  }
+
   .cta-content h2 {
-    font-size: 2rem;
+    font-size: 3rem;
     font-weight: 700;
     line-height: 1.25;
     margin-bottom: 1rem;
@@ -788,6 +775,11 @@ import Layout from "../layouts/Layout.astro";
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .cta-decoration img {
+    height: 600px;
+  width: auto;
   }
 
   .cta-deco-block {
@@ -811,7 +803,7 @@ import Layout from "../layouts/Layout.astro";
 
     .bento-grid {
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto auto;
+      grid-template-rows: auto auto;
     }
 
     .bento-card--interaction {
@@ -834,6 +826,10 @@ import Layout from "../layouts/Layout.astro";
 
     .bento-card--setup .bento-card-image {
       margin-top: 0;
+    }
+
+    .bento-card--setup .bento-card-image img {
+      max-width: 220px;
     }
 
     .bento-card--everywhere {
@@ -879,6 +875,7 @@ import Layout from "../layouts/Layout.astro";
 
     .features-cards {
       grid-template-columns: 1fr;
+      width: 100%;
     }
 
     .bento-grid {
@@ -908,8 +905,20 @@ import Layout from "../layouts/Layout.astro";
       flex-direction: column;
     }
 
+    .bento-card--setup .bento-card-title {
+      font-size: 1.75rem;
+    }
+
     .bento-card--setup .bento-card-image {
       margin-top: 1.5rem;
+    }
+
+    .bento-card--setup .bento-card-image img {
+      max-width: 200px;
+    }
+
+    .bento-card-title--large {
+      font-size: 1.5rem;
     }
 
     .steps-grid {
