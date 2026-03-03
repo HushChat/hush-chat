@@ -44,16 +44,23 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
 
-        <!-- Contact Form Placeholder -->
+        <!-- Contact Form -->
         <div class="contact-form-wrapper">
-          <form class="contact-form" action="#" method="post">
+          <form class="contact-form" id="contactForm" action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY" />
+            <input type="hidden" name="subject" value="New contact from HushChat website" />
+            <input type="hidden" name="from_name" value="HushChat Website" />
+            <input type="checkbox" name="botcheck" class="hidden" style="display:none" />
+
             <div class="form-group">
               <label for="name">Full Name</label>
               <input type="text" id="name" name="name" placeholder="John Doe" required />
+              <span class="field-error" id="name-error"></span>
             </div>
             <div class="form-group">
               <label for="email">Email Address</label>
               <input type="email" id="email" name="email" placeholder="john@company.com" required />
+              <span class="field-error" id="email-error"></span>
             </div>
             <div class="form-group">
               <label for="company">Company / Organization</label>
@@ -62,8 +69,18 @@ import Layout from '../layouts/Layout.astro';
             <div class="form-group">
               <label for="message">Message</label>
               <textarea id="message" name="message" rows="5" placeholder="Tell us about your team and how we can help..." required></textarea>
+              <span class="field-error" id="message-error"></span>
             </div>
-            <button type="submit" class="btn-primary contact-submit">Send Message</button>
+
+            <button type="submit" class="btn-primary contact-submit" id="submitBtn">
+              <span class="btn-text">Send Message</span>
+              <span class="btn-loading">
+                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                Sending...
+              </span>
+            </button>
+
+            <div class="form-status" id="formStatus"></div>
           </form>
         </div>
       </div>
@@ -194,9 +211,81 @@ import Layout from '../layouts/Layout.astro';
     min-height: 120px;
   }
 
+  /* Field error state */
+  .form-group input.input-error,
+  .form-group textarea.input-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  }
+
+  .field-error {
+    display: none;
+    font-size: 0.8125rem;
+    color: #ef4444;
+    margin-top: 0.375rem;
+  }
+
+  .field-error.visible {
+    display: block;
+  }
+
+  /* Submit button */
   .contact-submit {
     width: 100%;
     margin-top: 0.5rem;
+    position: relative;
+  }
+
+  .contact-submit .btn-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .contact-submit.is-loading .btn-text {
+    display: none;
+  }
+
+  .contact-submit.is-loading .btn-loading {
+    display: inline-flex;
+  }
+
+  .contact-submit.is-loading {
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  .spinner {
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Form status message */
+  .form-status {
+    margin-top: 1rem;
+    padding: 0;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    text-align: center;
+    transition: all var(--transition-fast);
+  }
+
+  .form-status.status-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    padding: 0.875rem 1rem;
+  }
+
+  .form-status.status-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.875rem 1rem;
   }
 
   @media (max-width: 767px) {
@@ -225,3 +314,110 @@ import Layout from '../layouts/Layout.astro';
     }
   }
 </style>
+
+<script>
+  function initContactForm() {
+    const form = document.getElementById('contactForm') as HTMLFormElement | null;
+    if (!form) return;
+
+    const submitBtn = document.getElementById('submitBtn')!;
+    const formStatus = document.getElementById('formStatus')!;
+
+    const fieldDefs = [
+      { key: 'name', message: 'Please enter your name.' },
+      { key: 'email', message: 'Please enter a valid email address.' },
+      { key: 'message', message: 'Please enter a message.' },
+    ] as const;
+
+    function getEl(key: string) {
+      return document.getElementById(key) as HTMLInputElement | HTMLTextAreaElement;
+    }
+    function getErrorEl(key: string) {
+      return document.getElementById(`${key}-error`)!;
+    }
+
+    function clearFieldError(key: string) {
+      getEl(key).classList.remove('input-error');
+      const err = getErrorEl(key);
+      err.textContent = '';
+      err.classList.remove('visible');
+    }
+
+    function setFieldError(key: string, message: string) {
+      getEl(key).classList.add('input-error');
+      const err = getErrorEl(key);
+      err.textContent = message;
+      err.classList.add('visible');
+    }
+
+    // Clear errors on input
+    fieldDefs.forEach(({ key }) => {
+      getEl(key).addEventListener('input', () => clearFieldError(key));
+    });
+
+    function validate(): boolean {
+      let valid = true;
+
+      if (!getEl('name').value.trim()) {
+        setFieldError('name', 'Please enter your name.');
+        valid = false;
+      } else {
+        clearFieldError('name');
+      }
+
+      const emailVal = getEl('email').value.trim();
+      if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        setFieldError('email', 'Please enter a valid email address.');
+        valid = false;
+      } else {
+        clearFieldError('email');
+      }
+
+      if (!(getEl('message') as HTMLTextAreaElement).value.trim()) {
+        setFieldError('message', 'Please enter a message.');
+        valid = false;
+      } else {
+        clearFieldError('message');
+      }
+
+      return valid;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formStatus.className = 'form-status';
+      formStatus.textContent = '';
+
+      if (!validate()) return;
+
+      submitBtn.classList.add('is-loading');
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          formStatus.className = 'form-status status-success';
+          formStatus.textContent = "Message sent successfully! We'll get back to you soon.";
+          form.reset();
+        } else {
+          formStatus.className = 'form-status status-error';
+          formStatus.textContent = data.message || 'Something went wrong. Please try again.';
+        }
+      } catch {
+        formStatus.className = 'form-status status-error';
+        formStatus.textContent = 'Network error. Please check your connection and try again.';
+      } finally {
+        submitBtn.classList.remove('is-loading');
+      }
+    });
+  }
+
+  // Run on initial load and on every ViewTransitions navigation
+  initContactForm();
+  document.addEventListener('astro:after-swap', initContactForm);
+</script>
