@@ -12,6 +12,7 @@ export const useMessageUrlMetadataQuery = (messageId: number, isIncludeUrlMetada
     queryKey: conversationMessageQueryKeys.messageUrlMetadata(messageId),
     queryFn: () => getMessageUrlMetadata(messageId),
     enabled: isIncludeUrlMetadata,
+    retry: false,
   });
 
   return {
