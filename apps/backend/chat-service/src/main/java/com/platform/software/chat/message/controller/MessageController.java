@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/messages")
@@ -237,5 +238,14 @@ public class MessageController {
     public ResponseEntity<MessageUrlMetadataDTO> getMessageUrlMetadata(@PathVariable Long messageId) {
         MessageUrlMetadataDTO messageUrlMetaData = messageService.getMessageUrlMetadata(messageId);
         return ResponseEntity.ok(messageUrlMetaData);
+    }
+
+    @ApiOperation(value = "get batch message url meta data")
+    @PostMapping("urlMetadata/batch")
+    public ResponseEntity<Map<Long, MessageUrlMetadataDTO>> getBatchMessageUrlMetadata(
+            @RequestBody List<Long> messageIds
+    ) {
+        java.util.Map<Long, MessageUrlMetadataDTO> result = messageService.getBatchMessageUrlMetadata(messageIds);
+        return ResponseEntity.ok(result);
     }
 }
