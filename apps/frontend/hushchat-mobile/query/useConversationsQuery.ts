@@ -1,16 +1,41 @@
-import { IConversation } from "@/types/chat/types";
+import { IConversation, ConversationType } from "@/types/chat/types";
 import { useUserStore } from "@/store/user/useUserStore";
+import { useConversationStore } from "@/store/conversation/useConversationStore"; // Import Store
 import { ConversationFilterCriteria, getAllConversations } from "@/apis/conversation";
 import {
   OffsetPaginatedQueryResult,
   usePaginatedQueryWithOffset,
 } from "@/query/usePaginatedQueryWithOffset";
 import { conversationQueryKeys } from "@/constants/queryKeys";
+import { useMemo } from "react";
 
 const PAGE_SIZE = 20;
 
+const getCriteriaFromType = (type: ConversationType): ConversationFilterCriteria => {
+  switch (type) {
+    case ConversationType.ARCHIVED:
+      return { isArchived: true };
+
+    case ConversationType.FAVORITES:
+      return { isFavorite: true, isArchived: false };
+
+    case ConversationType.MUTED:
+      return { isMuted: true, isArchived: false };
+
+    case ConversationType.GROUPS:
+      return { isGroup: true, isArchived: false } as any;
+
+    case ConversationType.UNREAD:
+      return { hasUnread: true, isArchived: false } as any;
+
+    case ConversationType.ALL:
+    default:
+      return { isArchived: false };
+  }
+};
+
 export function useConversationsQuery(
-  criteria: ConversationFilterCriteria = {},
+  criteriaOverrides: ConversationFilterCriteria = {},
   initialOffset: number = 0
 ): {
   conversationsPages: OffsetPaginatedQueryResult<IConversation>["pages"];
@@ -26,6 +51,13 @@ export function useConversationsQuery(
     user: { id: userId },
   } = useUserStore();
 
+  const { selectedConversationType } = useConversationStore();
+
+  const activeCriteria = useMemo(() => {
+    const baseCriteria = getCriteriaFromType(selectedConversationType);
+    return { ...baseCriteria, ...criteriaOverrides };
+  }, [selectedConversationType, criteriaOverrides]);
+
   const {
     pages,
     isLoading,
@@ -36,9 +68,11 @@ export function useConversationsQuery(
     invalidateQuery,
     refetch,
   } = usePaginatedQueryWithOffset<IConversation>({
-    queryKey: conversationQueryKeys.allConversations(Number(userId), criteria),
+    queryKey: conversationQueryKeys.allConversations(Number(userId), activeCriteria),
+
     queryFn: (pageParam: number, pageSize: number) =>
-      getAllConversations(criteria, pageParam, pageSize),
+      getAllConversations(activeCriteria, pageParam, pageSize),
+
     pageSize: PAGE_SIZE,
     initialOffset,
   });
