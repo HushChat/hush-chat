@@ -10,6 +10,7 @@ import { useConversationSearch } from "@/hooks/useConversationSearch";
 import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
 import { useRegisterShortcut } from "@/hooks/useRegisterShortcut";
 import { useShortcutSignalStore } from "@/store/shortcut/useShortcutSignalStore";
+import { useSearchFocusStore } from "@/store/search/useSearchFocusStore";
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
 import SearchBar from "@/components/SearchBar";
@@ -70,6 +71,8 @@ export default function ConversationSidebarWeb() {
     selectedConversationId,
   });
 
+  const setSearchFocused = useSearchFocusStore((s) => s.setSearchFocused);
+
   // Consume pending shortcut signals from global shortcuts
   const consumeSignal = useShortcutSignalStore((s) => s.consumeSignal);
   const pendingSignal = useShortcutSignalStore((s) => s.pendingSignal);
@@ -82,6 +85,7 @@ export default function ConversationSidebarWeb() {
     switch (signal) {
       case "focusSearch":
         setSelectedConversationType(ConversationType.ALL);
+        setSearchFocused(true);
         if (searchInputRef.current) {
           searchInputRef.current.focus();
         } else {
@@ -104,7 +108,9 @@ export default function ConversationSidebarWeb() {
     }
   }, [shouldFocusSearch, selectedConversationType]);
 
-  // Escape closes overlays (contextual — only active when overlays are open)
+  const isSearchFocused = useSearchFocusStore((s) => s.isSearchFocused);
+
+  // Escape closes overlays or dismisses search focus
   useRegisterShortcut(
     SHORTCUT_ACTIONS.CLOSE_OVERLAY,
     useCallback(() => {
@@ -112,9 +118,12 @@ export default function ConversationSidebarWeb() {
         setShowMentionedMessages(false);
       } else if (showCreateGroup) {
         setShowCreateGroup(false);
+      } else if (isSearchFocused) {
+        searchInputRef.current?.blur();
+        setSearchFocused(false);
       }
-    }, [showMentionedMessages, showCreateGroup]),
-    showMentionedMessages || showCreateGroup
+    }, [showMentionedMessages, showCreateGroup, isSearchFocused, setSearchFocused]),
+    showMentionedMessages || showCreateGroup || isSearchFocused
   );
 
   return (
@@ -139,6 +148,8 @@ export default function ConversationSidebarWeb() {
             onChangeText={handleSearchInputChange}
             onClear={handleSearchClear}
             autoFocus={shouldFocusSearch}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
           />
         </View>
       )}
