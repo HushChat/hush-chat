@@ -1,12 +1,15 @@
-import { useCallback, useState } from "react";
-import { Dimensions, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Dimensions, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { ConversationType, IConversation } from "@/types/chat/types";
 import { CONVERSATION } from "@/constants/routes";
+import { SHORTCUT_ACTIONS } from "@/constants/keyboardShortcuts";
 import { getConversationFilters } from "@/constants/conversationFilters";
 import { useConversationList } from "@/hooks/useConversationList";
 import { useConversationSearch } from "@/hooks/useConversationSearch";
 import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
+import { useRegisterShortcut } from "@/hooks/useRegisterShortcut";
+import { useShortcutSignalStore } from "@/store/shortcut/useShortcutSignalStore";
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
 import SearchBar from "@/components/SearchBar";
@@ -20,6 +23,8 @@ export default function ConversationSidebarWeb() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showMentionedMessages, setShowMentionedMessages] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
+  const [shouldFocusSearch, setShouldFocusSearch] = useState(false);
+  const searchInputRef = useRef<TextInput>(null);
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -65,6 +70,53 @@ export default function ConversationSidebarWeb() {
     selectedConversationId,
   });
 
+  // Consume pending shortcut signals from global shortcuts
+  const consumeSignal = useShortcutSignalStore((s) => s.consumeSignal);
+  const pendingSignal = useShortcutSignalStore((s) => s.pendingSignal);
+
+  useEffect(() => {
+    if (!pendingSignal) return;
+
+    const signal = consumeSignal();
+
+    switch (signal) {
+      case "focusSearch":
+        setSelectedConversationType(ConversationType.ALL);
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        } else {
+          setShouldFocusSearch(true);
+        }
+        break;
+      case "newConversation":
+        setShowCreateGroup(true);
+        break;
+      case "toggleMentionedMessages":
+        setShowMentionedMessages((prev) => !prev);
+        break;
+    }
+  }, [pendingSignal, consumeSignal, setSelectedConversationType]);
+
+  // Clear the autoFocus flag once SearchBar has mounted and focused
+  useEffect(() => {
+    if (shouldFocusSearch && searchInputRef.current) {
+      setShouldFocusSearch(false);
+    }
+  }, [shouldFocusSearch, selectedConversationType]);
+
+  // Escape closes overlays (contextual — only active when overlays are open)
+  useRegisterShortcut(
+    SHORTCUT_ACTIONS.CLOSE_OVERLAY,
+    useCallback(() => {
+      if (showMentionedMessages) {
+        setShowMentionedMessages(false);
+      } else if (showCreateGroup) {
+        setShowCreateGroup(false);
+      }
+    }, [showMentionedMessages, showCreateGroup]),
+    showMentionedMessages || showCreateGroup
+  );
+
   return (
     <View
       onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
@@ -82,9 +134,11 @@ export default function ConversationSidebarWeb() {
       {selectedConversationType === ConversationType.ALL && (
         <View className="px-4 sm:px-6">
           <SearchBar
+            inputRef={searchInputRef}
             value={searchInput}
             onChangeText={handleSearchInputChange}
             onClear={handleSearchClear}
+            autoFocus={shouldFocusSearch}
           />
         </View>
       )}
