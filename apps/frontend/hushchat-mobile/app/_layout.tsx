@@ -12,6 +12,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/query/config/queryClientConfig";
 import { getNavigationTheme } from "@/utils/commonUtils";
 import { ModalProvider } from "@/context/modal-context";
+import { KeyboardShortcutsProvider } from "@/contexts/KeyboardShortcutsContext";
+import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConversationNotificationsProvider } from "@/contexts/ConversationNotificationsContext";
@@ -48,12 +50,15 @@ export default function RootLayout() {
               <ConversationNotificationsProvider>
                 <DynamicBrowserTitle />
                 <ModalProvider>
-                  <Gate ready={appReady} isAuthenticated={isAuthenticated} />
-                  <Toast
-                    config={toastConfig}
-                    topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
-                  />
-                  <StatusBar style="auto" />
+                  <KeyboardShortcutsProvider>
+                    <GlobalShortcutsBinder />
+                    <Gate ready={appReady} isAuthenticated={isAuthenticated} />
+                    <Toast
+                      config={toastConfig}
+                      topOffset={PLATFORM.IS_IOS ? TOAST_OFFSET_IOS : TOAST_OFFSET_ANDROID}
+                    />
+                    <StatusBar style="auto" />
+                  </KeyboardShortcutsProvider>
                 </ModalProvider>
               </ConversationNotificationsProvider>
             </WebSocketProvider>
@@ -98,5 +103,10 @@ function Gate({ ready, isAuthenticated }: { ready: boolean; isAuthenticated: boo
 
 function AppLifecycleManager() {
   useRefreshOnAppStateChange();
+  return null;
+}
+
+function GlobalShortcutsBinder() {
+  useGlobalShortcuts();
   return null;
 }

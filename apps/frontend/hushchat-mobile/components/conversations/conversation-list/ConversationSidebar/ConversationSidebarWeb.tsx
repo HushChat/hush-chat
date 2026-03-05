@@ -1,12 +1,16 @@
-import { useCallback, useState } from "react";
-import { Dimensions, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Dimensions, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { ConversationType, IConversation } from "@/types/chat/types";
 import { CONVERSATION } from "@/constants/routes";
+import { SHORTCUT_ACTIONS } from "@/constants/keyboardShortcuts";
 import { getConversationFilters } from "@/constants/conversationFilters";
 import { useConversationList } from "@/hooks/useConversationList";
 import { useConversationSearch } from "@/hooks/useConversationSearch";
 import { usePublishUserActivity } from "@/hooks/usePublishUserActivity";
+import { useRegisterShortcut } from "@/hooks/useRegisterShortcut";
+import { useShortcutSignalStore } from "@/store/shortcut/useShortcutSignalStore";
+import { useSearchFocusStore } from "@/store/search/useSearchFocusStore";
 import ConversationListContainer from "@/components/conversations/conversation-list/ConversationListContainer";
 import { ConversationHeader } from "@/components/conversations/ConversationHeader";
 import SearchBar from "@/components/SearchBar";
@@ -20,6 +24,8 @@ export default function ConversationSidebarWeb() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showMentionedMessages, setShowMentionedMessages] = useState(false);
   const [leftPaneWidth, setLeftPaneWidth] = useState(470);
+  const [shouldFocusSearch, setShouldFocusSearch] = useState(false);
+  const searchInputRef = useRef<TextInput>(null);
 
   const screenWidth = Dimensions.get("window").width;
 
@@ -65,6 +71,61 @@ export default function ConversationSidebarWeb() {
     selectedConversationId,
   });
 
+  const setSearchFocused = useSearchFocusStore((s) => s.setSearchFocused);
+
+  // Consume pending shortcut signals from global shortcuts
+  const consumeSignal = useShortcutSignalStore((s) => s.consumeSignal);
+  const pendingSignal = useShortcutSignalStore((s) => s.pendingSignal);
+
+  useEffect(() => {
+    if (!pendingSignal) return;
+
+    const signal = consumeSignal();
+
+    switch (signal) {
+      case "focusSearch":
+        setSelectedConversationType(ConversationType.ALL);
+        setSearchFocused(true);
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        } else {
+          setShouldFocusSearch(true);
+        }
+        break;
+      case "newConversation":
+        setShowCreateGroup(true);
+        break;
+      case "toggleMentionedMessages":
+        setShowMentionedMessages((prev) => !prev);
+        break;
+    }
+  }, [pendingSignal, consumeSignal, setSelectedConversationType]);
+
+  // Clear the autoFocus flag once SearchBar has mounted and focused
+  useEffect(() => {
+    if (shouldFocusSearch && searchInputRef.current) {
+      setShouldFocusSearch(false);
+    }
+  }, [shouldFocusSearch, selectedConversationType]);
+
+  const isSearchFocused = useSearchFocusStore((s) => s.isSearchFocused);
+
+  // Escape closes overlays or dismisses search focus
+  useRegisterShortcut(
+    SHORTCUT_ACTIONS.CLOSE_OVERLAY,
+    useCallback(() => {
+      if (showMentionedMessages) {
+        setShowMentionedMessages(false);
+      } else if (showCreateGroup) {
+        setShowCreateGroup(false);
+      } else if (isSearchFocused) {
+        searchInputRef.current?.blur();
+        setSearchFocused(false);
+      }
+    }, [showMentionedMessages, showCreateGroup, isSearchFocused, setSearchFocused]),
+    showMentionedMessages || showCreateGroup || isSearchFocused
+  );
+
   return (
     <View
       onLayout={(event) => setLeftPaneWidth(Math.round(event.nativeEvent.layout.width))}
@@ -82,9 +143,13 @@ export default function ConversationSidebarWeb() {
       {selectedConversationType === ConversationType.ALL && (
         <View className="px-4 sm:px-6">
           <SearchBar
+            inputRef={searchInputRef}
             value={searchInput}
             onChangeText={handleSearchInputChange}
             onClear={handleSearchClear}
+            autoFocus={shouldFocusSearch}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
           />
         </View>
       )}
